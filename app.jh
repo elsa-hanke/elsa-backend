@@ -1,0 +1,13 @@
+application {
+  config {
+    baseName backend
+    applicationType monolith,
+    authenticationType jwt
+    buildTool gradle // ja kotlin
+    languages [fi, sv, en]
+    nativeLanguage fi
+    packageName fi.oulu.elsa
+    prodDatabaseType postgresql
+  }
+  entities *
+}
