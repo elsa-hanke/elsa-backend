@@ -29,6 +29,7 @@ plugins {
     id "org.liquibase.gradle"
     id "org.sonarqube"
     id "io.spring.nohttp"
+    id "org.owasp.dependencycheck"
     //jhipster-needle-gradle-plugins - JHipster will add additional gradle plugins here
 }
 
