@@ -1,13 +1,125 @@
 application {
   config {
-    baseName backend
     applicationType monolith,
     authenticationType jwt
-    buildTool gradle // ja kotlin
+    baseName backend
+    buildTool gradle
     languages [fi, sv, en]
     nativeLanguage fi
     packageName fi.oulu.elsa
     prodDatabaseType postgresql
+    skipClient true
   }
-  entities *
+  entities all
 }
+entity Kayttaja {
+    nimi String required
+    profiilikuva Blob maxbytes(10000000)
+    kieli Kieli
+}
+entity ErikoistuvaLaakari {
+    puhelinnumero String required
+    sahkoposti String required
+    opiskelijatunnus String
+    opintojenAloitusvuosi Integer min(1900) max(2100)
+}
+entity Osoite {
+    ensisijainen Boolean required
+    osoiterivi1 String required
+    osoiterivi2 String
+    osoiterivi3 String
+    kunta String required
+    postinumero Integer required
+    maakunta String
+    maa String required
+}
+entity Opintooikeustiedot {
+    voimassaoloAlkaa LocalDate
+    voimassaoloPaattyy LocalDate
+    erikoisala String
+}
+entity Yliopisto {
+    nimi String
+}
+entity Erikoisala {
+    nimi String required
+}
+entity Tyoskentelyjakso {
+    tunnus String required
+    osasto String
+    alkamispaiva LocalDate
+    paattymispaiva LocalDate
+}
+entity OsaamisenArviointi {
+    tunnus String
+    osasto String
+    alkamispaiva LocalDate
+    paattymispaiva LocalDate
+}
+entity OsaamisalueenArviointi {
+    vaatimustaso Integer min(1) max(5)
+    arvio Integer min(0) max(5)
+    sanallinenArvio String
+}
+entity Arviointiosaalue {
+    aluetunnus String
+    nimi String
+    kuvaus String
+    osaamisenRajaarvo String
+    minimivaatimus String
+    voimassaoloAlkaa LocalDate
+    voimassaoloLoppuu LocalDate
+}
+entity Tyoskentelypaikka {
+    nimi String
+    tyyppi TyoskentelyjaksoTyyppi
+}
+entity Koejakso {
+    ohjeteksti String
+    alkamispaiva LocalDate
+    paattymispaiva LocalDate
+}
+entity Hops {
+    suunnitelmanTunnus String
+}
+entity PikaviestiKeskustelu {
+    aihe String
+}
+entity Pikaviesti {
+    sisalto String
+}
+enum Kieli {
+    SUOMI, RUOTSI, ENGLANTI
+}
+enum TyoskentelyjaksoTyyppi {
+    TERVEYSKESKUS, SAIRAALA, KESKUSSAIRAALA
+}
+relationship OneToOne {
+    Kayttaja{user} to User
+    ErikoistuvaLaakari{kayttaja} to Kayttaja
+    Hops{erikoistuvaLaakari} to ErikoistuvaLaakari{hops}
+    Tyoskentelypaikka{tyoskentelyjakso} to Tyoskentelyjakso{tyoskentelypaikka}
+    Koejakso{erikoistuvaLaakari} to ErikoistuvaLaakari{koejakso}
+    OsaamisenArviointi{tyoskentelyjakso} to Tyoskentelyjakso{arviointi}
+}
+relationship OneToMany {
+    ErikoistuvaLaakari{osoite} to Osoite{erikoistuvaLaakari}
+    ErikoistuvaLaakari{tyoskentelyjakso} to Tyoskentelyjakso{erikoistuvaLaakari}
+    OsaamisalueenArviointi{arviointiosaalue} to Arviointiosaalue{osaamisalueenArviointi}
+    OsaamisenArviointi{osaamisalueenArviointi} to OsaamisalueenArviointi{osaamisenArviointi}
+}
+relationship ManyToOne {
+    Pikaviesti{keskustelu} to PikaviestiKeskustelu
+    Pikaviesti{lahettaja} to Kayttaja
+    Koejakso{lahikouluttaja} to Kayttaja
+    Koejakso{vastuuhenkilo} to Kayttaja
+    OsaamisenArviointi{arvioitava} to ErikoistuvaLaakari
+    OsaamisenArviointi{arvioija} to Kayttaja
+    Opintooikeustiedot{yliopisto} to Yliopisto
+}
+relationship ManyToMany {
+    PikaviestiKeskustelu{keskustelija} to Kayttaja{keskustelu}
+    Yliopisto{erikoisala} to Erikoisala{yliopisto}
+}
+dto all with mapstruct
+service all with serviceImpl
