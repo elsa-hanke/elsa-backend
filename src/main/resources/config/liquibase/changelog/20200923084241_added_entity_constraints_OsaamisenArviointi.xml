@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <!--
+        Added the constraints for entity OsaamisenArviointi.
+    -->
+    <changeSet id="20200923084241-2" author="jhipster">
+        
+        <addForeignKeyConstraint baseColumnNames="tyoskentelyjakso_id"
+                                 baseTableName="osaamisen_arviointi"
+                                 constraintName="fk_osaamisen_arviointi_tyoskentelyjakso_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="tyoskentelyjakso"/>
+
+        <addForeignKeyConstraint baseColumnNames="arvioitava_id"
+                                 baseTableName="osaamisen_arviointi"
+                                 constraintName="fk_osaamisen_arviointi_arvioitava_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="erikoistuva_laakari"/>
+
+        <addForeignKeyConstraint baseColumnNames="arvioija_id"
+                                 baseTableName="osaamisen_arviointi"
+                                 constraintName="fk_osaamisen_arviointi_arvioija_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="kayttaja"/>
+
+    </changeSet>
+</databaseChangeLog>

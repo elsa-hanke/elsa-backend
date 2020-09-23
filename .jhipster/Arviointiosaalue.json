@@ -1,0 +1,53 @@
+{
+  "name": "Arviointiosaalue",
+  "fields": [
+    {
+      "fieldName": "aluetunnus",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "nimi",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "kuvaus",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "osaamisenRajaarvo",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "minimivaatimus",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "voimassaoloAlkaa",
+      "fieldType": "LocalDate"
+    },
+    {
+      "fieldName": "voimassaoloLoppuu",
+      "fieldType": "LocalDate"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "osaamisalueenArviointi",
+      "otherEntityRelationshipName": "arviointiosaalue",
+      "relationshipName": "osaamisalueenArviointi",
+      "otherEntityField": "id"
+    }
+  ],
+  "changelogDate": "20200923084441",
+  "entityTableName": "arviointiosaalue",
+  "dto": "mapstruct",
+  "pagination": "no",
+  "service": "serviceImpl",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": ["backend"]
+}

@@ -1,0 +1,36 @@
+{
+  "name": "Pikaviesti",
+  "fields": [
+    {
+      "fieldName": "sisalto",
+      "fieldType": "String"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "pikaviestiKeskustelu",
+      "otherEntityRelationshipName": "pikaviesti",
+      "relationshipName": "keskustelu",
+      "otherEntityField": "id"
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "kayttaja",
+      "otherEntityRelationshipName": "pikaviesti",
+      "relationshipName": "lahettaja",
+      "otherEntityField": "id"
+    }
+  ],
+  "changelogDate": "20200923084941",
+  "entityTableName": "pikaviesti",
+  "dto": "mapstruct",
+  "pagination": "no",
+  "service": "serviceImpl",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": ["backend"]
+}
