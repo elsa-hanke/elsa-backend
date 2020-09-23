@@ -32,7 +32,8 @@ class AuditResource(private val auditEventService: AuditEventService) {
     @GetMapping
     fun getAll(pageable: Pageable): ResponseEntity<List<AuditEvent>> {
         val page = auditEventService.findAll(pageable)
-        val headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
+        val headers = PaginationUtil
+            .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
         return ResponseEntity(page.content, headers, HttpStatus.OK)
     }
 
@@ -55,7 +56,8 @@ class AuditResource(private val auditEventService: AuditEventService) {
         val to = toDate.atStartOfDay(ZoneId.systemDefault()).plusDays(1).toInstant()
 
         val page = auditEventService.findByDates(from, to, pageable)
-        val headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
+        val headers = PaginationUtil
+            .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
         return ResponseEntity(page.content, headers, HttpStatus.OK)
     }
 

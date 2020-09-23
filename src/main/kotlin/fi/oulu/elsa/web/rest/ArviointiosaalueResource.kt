@@ -30,11 +30,14 @@ class ArviointiosaalueResource(
      * `POST  /arviointiosaalues` : Create a new arviointiosaalue.
      *
      * @param arviointiosaalueDTO the arviointiosaalueDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new arviointiosaalueDTO, or with status `400 (Bad Request)` if the arviointiosaalue has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new arviointiosaalueDTO,
+     * or with status `400 (Bad Request)` if the arviointiosaalue has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/arviointiosaalues")
-    fun createArviointiosaalue(@RequestBody arviointiosaalueDTO: ArviointiosaalueDTO): ResponseEntity<ArviointiosaalueDTO> {
+    fun createArviointiosaalue(
+        @RequestBody arviointiosaalueDTO: ArviointiosaalueDTO
+    ): ResponseEntity<ArviointiosaalueDTO> {
         log.debug("REST request to save Arviointiosaalue : $arviointiosaalueDTO")
         if (arviointiosaalueDTO.id != null) {
             throw BadRequestAlertException(
@@ -59,7 +62,9 @@ class ArviointiosaalueResource(
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/arviointiosaalues")
-    fun updateArviointiosaalue(@RequestBody arviointiosaalueDTO: ArviointiosaalueDTO): ResponseEntity<ArviointiosaalueDTO> {
+    fun updateArviointiosaalue(
+        @RequestBody arviointiosaalueDTO: ArviointiosaalueDTO
+    ): ResponseEntity<ArviointiosaalueDTO> {
         log.debug("REST request to update Arviointiosaalue : $arviointiosaalueDTO")
         if (arviointiosaalueDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
@@ -93,7 +98,8 @@ class ArviointiosaalueResource(
      * `GET  /arviointiosaalues/:id` : get the "id" arviointiosaalue.
      *
      * @param id the id of the arviointiosaalueDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the arviointiosaalueDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the arviointiosaalueDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/arviointiosaalues/{id}")
     fun getArviointiosaalue(@PathVariable id: Long): ResponseEntity<ArviointiosaalueDTO> {

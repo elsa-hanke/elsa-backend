@@ -31,7 +31,8 @@ class KayttajaResource(
      * `POST  /kayttajas` : Create a new kayttaja.
      *
      * @param kayttajaDTO the kayttajaDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new kayttajaDTO, or with status `400 (Bad Request)` if the kayttaja has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new kayttajaDTO,
+     * or with status `400 (Bad Request)` if the kayttaja has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/kayttajas")
@@ -94,7 +95,8 @@ class KayttajaResource(
      * `GET  /kayttajas/:id` : get the "id" kayttaja.
      *
      * @param id the id of the kayttajaDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the kayttajaDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the kayttajaDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/kayttajas/{id}")
     fun getKayttaja(@PathVariable id: Long): ResponseEntity<KayttajaDTO> {

@@ -31,11 +31,14 @@ class ErikoistuvaLaakariResource(
      * `POST  /erikoistuva-laakaris` : Create a new erikoistuvaLaakari.
      *
      * @param erikoistuvaLaakariDTO the erikoistuvaLaakariDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new erikoistuvaLaakariDTO, or with status `400 (Bad Request)` if the erikoistuvaLaakari has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new erikoistuvaLaakariDTO,
+     * or with status `400 (Bad Request)` if the erikoistuvaLaakari has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/erikoistuva-laakaris")
-    fun createErikoistuvaLaakari(@Valid @RequestBody erikoistuvaLaakariDTO: ErikoistuvaLaakariDTO): ResponseEntity<ErikoistuvaLaakariDTO> {
+    fun createErikoistuvaLaakari(
+        @Valid @RequestBody erikoistuvaLaakariDTO: ErikoistuvaLaakariDTO
+    ): ResponseEntity<ErikoistuvaLaakariDTO> {
         log.debug("REST request to save ErikoistuvaLaakari : $erikoistuvaLaakariDTO")
         if (erikoistuvaLaakariDTO.id != null) {
             throw BadRequestAlertException(
@@ -60,7 +63,9 @@ class ErikoistuvaLaakariResource(
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/erikoistuva-laakaris")
-    fun updateErikoistuvaLaakari(@Valid @RequestBody erikoistuvaLaakariDTO: ErikoistuvaLaakariDTO): ResponseEntity<ErikoistuvaLaakariDTO> {
+    fun updateErikoistuvaLaakari(
+        @Valid @RequestBody erikoistuvaLaakariDTO: ErikoistuvaLaakariDTO
+    ): ResponseEntity<ErikoistuvaLaakariDTO> {
         log.debug("REST request to update ErikoistuvaLaakari : $erikoistuvaLaakariDTO")
         if (erikoistuvaLaakariDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
@@ -103,7 +108,8 @@ class ErikoistuvaLaakariResource(
      * `GET  /erikoistuva-laakaris/:id` : get the "id" erikoistuvaLaakari.
      *
      * @param id the id of the erikoistuvaLaakariDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the erikoistuvaLaakariDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the erikoistuvaLaakariDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/erikoistuva-laakaris/{id}")
     fun getErikoistuvaLaakari(@PathVariable id: Long): ResponseEntity<ErikoistuvaLaakariDTO> {

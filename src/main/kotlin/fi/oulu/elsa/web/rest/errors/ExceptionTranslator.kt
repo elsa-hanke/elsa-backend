@@ -70,7 +70,9 @@ class ExceptionTranslator : ProblemHandling, SecurityAdviceTrait {
         request: NativeWebRequest
     ): ResponseEntity<Problem>? {
         val result = ex.bindingResult
-        val fieldErrors = result.fieldErrors.map { FieldErrorVM(it.objectName.replaceFirst(Regex("DTO$"), ""), it.field, it.code) }
+        val fieldErrors = result.fieldErrors.map {
+            FieldErrorVM(it.objectName.replaceFirst(Regex("DTO$"), ""), it.field, it.code)
+        }
 
         val problem = Problem.builder()
             .withType(CONSTRAINT_VIOLATION_TYPE)

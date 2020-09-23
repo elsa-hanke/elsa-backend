@@ -61,7 +61,8 @@ class UserResource(
     @GetMapping("/users")
     fun getAllUsers(pageable: Pageable): ResponseEntity<List<UserDTO>> {
         val page = userService.getAllManagedUsers(pageable)
-        val headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
+        val headers = PaginationUtil
+            .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
         return ResponseEntity(page.content, headers, HttpStatus.OK)
     }
 
@@ -77,7 +78,8 @@ class UserResource(
      * `GET /users/:login` : get the "login" user.
      *
      * @param login the login of the user to find.
-     * @return the `ResponseEntity` with status `200 (OK)` and with body the "login" user, or with status `404 (Not Found)`.
+     * @return the `ResponseEntity` with status `200 (OK)` and with body the "login" user,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/users/{login:$LOGIN_REGEX}")
     fun getUser(@PathVariable login: String): ResponseEntity<UserDTO> {

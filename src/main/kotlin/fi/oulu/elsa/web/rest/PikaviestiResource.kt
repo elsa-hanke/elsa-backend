@@ -30,7 +30,8 @@ class PikaviestiResource(
      * `POST  /pikaviestis` : Create a new pikaviesti.
      *
      * @param pikaviestiDTO the pikaviestiDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new pikaviestiDTO, or with status `400 (Bad Request)` if the pikaviesti has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new pikaviestiDTO,
+     * or with status `400 (Bad Request)` if the pikaviesti has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/pikaviestis")
@@ -93,7 +94,8 @@ class PikaviestiResource(
      * `GET  /pikaviestis/:id` : get the "id" pikaviesti.
      *
      * @param id the id of the pikaviestiDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the pikaviestiDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the pikaviestiDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/pikaviestis/{id}")
     fun getPikaviesti(@PathVariable id: Long): ResponseEntity<PikaviestiDTO> {

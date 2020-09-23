@@ -30,11 +30,14 @@ class TyoskentelypaikkaResource(
      * `POST  /tyoskentelypaikkas` : Create a new tyoskentelypaikka.
      *
      * @param tyoskentelypaikkaDTO the tyoskentelypaikkaDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new tyoskentelypaikkaDTO, or with status `400 (Bad Request)` if the tyoskentelypaikka has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new tyoskentelypaikkaDTO,
+     * or with status `400 (Bad Request)` if the tyoskentelypaikka has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/tyoskentelypaikkas")
-    fun createTyoskentelypaikka(@RequestBody tyoskentelypaikkaDTO: TyoskentelypaikkaDTO): ResponseEntity<TyoskentelypaikkaDTO> {
+    fun createTyoskentelypaikka(
+        @RequestBody tyoskentelypaikkaDTO: TyoskentelypaikkaDTO
+    ): ResponseEntity<TyoskentelypaikkaDTO> {
         log.debug("REST request to save Tyoskentelypaikka : $tyoskentelypaikkaDTO")
         if (tyoskentelypaikkaDTO.id != null) {
             throw BadRequestAlertException(
@@ -59,7 +62,9 @@ class TyoskentelypaikkaResource(
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/tyoskentelypaikkas")
-    fun updateTyoskentelypaikka(@RequestBody tyoskentelypaikkaDTO: TyoskentelypaikkaDTO): ResponseEntity<TyoskentelypaikkaDTO> {
+    fun updateTyoskentelypaikka(
+        @RequestBody tyoskentelypaikkaDTO: TyoskentelypaikkaDTO
+    ): ResponseEntity<TyoskentelypaikkaDTO> {
         log.debug("REST request to update Tyoskentelypaikka : $tyoskentelypaikkaDTO")
         if (tyoskentelypaikkaDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
@@ -93,7 +98,8 @@ class TyoskentelypaikkaResource(
      * `GET  /tyoskentelypaikkas/:id` : get the "id" tyoskentelypaikka.
      *
      * @param id the id of the tyoskentelypaikkaDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the tyoskentelypaikkaDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the tyoskentelypaikkaDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/tyoskentelypaikkas/{id}")
     fun getTyoskentelypaikka(@PathVariable id: Long): ResponseEntity<TyoskentelypaikkaDTO> {

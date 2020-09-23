@@ -37,7 +37,10 @@ class AuditEventService(
     @Scheduled(cron = "0 0 12 * * ?")
     fun removeOldAuditEvents() {
         persistenceAuditEventRepository
-            .findByAuditEventDateBefore(Instant.now().minus(jHipsterProperties.auditEvents.retentionPeriod.toLong(), ChronoUnit.DAYS))
+            .findByAuditEventDateBefore(
+                Instant.now()
+                    .minus(jHipsterProperties.auditEvents.retentionPeriod.toLong(), ChronoUnit.DAYS)
+            )
             .forEach {
                 log.debug("Deleting audit data $it")
                 persistenceAuditEventRepository.delete(it)

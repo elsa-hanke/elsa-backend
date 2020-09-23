@@ -31,7 +31,8 @@ class OsoiteResource(
      * `POST  /osoites` : Create a new osoite.
      *
      * @param osoiteDTO the osoiteDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new osoiteDTO, or with status `400 (Bad Request)` if the osoite has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new osoiteDTO,
+     * or with status `400 (Bad Request)` if the osoite has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/osoites")
@@ -94,7 +95,8 @@ class OsoiteResource(
      * `GET  /osoites/:id` : get the "id" osoite.
      *
      * @param id the id of the osoiteDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the osoiteDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the osoiteDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/osoites/{id}")
     fun getOsoite(@PathVariable id: Long): ResponseEntity<OsoiteDTO> {

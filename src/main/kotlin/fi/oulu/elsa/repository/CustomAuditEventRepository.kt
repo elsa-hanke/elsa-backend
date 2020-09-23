@@ -68,7 +68,8 @@ class CustomAuditEventRepository(
                     if (length > EVENT_DATA_COLUMN_MAX_LENGTH) {
                         value = value.substring(0, EVENT_DATA_COLUMN_MAX_LENGTH)
                         log.warn(
-                            "Event data for ${entry.key} too long ($length) has been truncated to $EVENT_DATA_COLUMN_MAX_LENGTH. Consider increasing column width."
+                            "Event data for ${entry.key} too long ($length) has been truncated" +
+                                " to $EVENT_DATA_COLUMN_MAX_LENGTH. Consider increasing column width."
                         )
                     }
                 }
