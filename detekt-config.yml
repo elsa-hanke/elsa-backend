@@ -1,5 +1,5 @@
 build:
-  #maxIssues: 10
+  maxIssues: 1000 # 10-100?
   weights:
   # complexity: 2
   # LongParameterList: 1
@@ -218,8 +218,6 @@ formatting:
   NoEmptyClassBody:
     active: true
     autoCorrect: true
-  NoItParamInMultilineLambda:
-    active: false
   NoLineBreakAfterElse:
     active: true
     autoCorrect: true
@@ -273,9 +271,6 @@ formatting:
     active: true
     autoCorrect: true
   SpacingAroundRangeOperator:
-    active: true
-    autoCorrect: true
-  SpacingAroundUnaryOperators:
     active: true
     autoCorrect: true
   StringTemplate:
