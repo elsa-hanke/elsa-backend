@@ -12,6 +12,10 @@ jacocoTestReport {
     }
 }
 
+dependencyCheck {
+    format = "ALL"
+}
+
 file("sonar-project.properties").withReader {
     Properties sonarProperties = new Properties()
     sonarProperties.load(it)
