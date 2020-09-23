@@ -1,0 +1,62 @@
+{
+  "name": "Osoite",
+  "fields": [
+    {
+      "fieldName": "ensisijainen",
+      "fieldType": "Boolean",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "osoiterivi1",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "osoiterivi2",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "osoiterivi3",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "kunta",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "postinumero",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "maakunta",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "maa",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "erikoistuvaLaakari",
+      "otherEntityRelationshipName": "osoite",
+      "relationshipName": "erikoistuvaLaakari",
+      "otherEntityField": "id"
+    }
+  ],
+  "changelogDate": "20200923083741",
+  "entityTableName": "osoite",
+  "dto": "mapstruct",
+  "pagination": "no",
+  "service": "serviceImpl",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": ["backend"]
+}

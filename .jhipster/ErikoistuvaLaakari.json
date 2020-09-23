@@ -1,0 +1,73 @@
+{
+  "name": "ErikoistuvaLaakari",
+  "fields": [
+    {
+      "fieldName": "puhelinnumero",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "sahkoposti",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "opiskelijatunnus",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "opintojenAloitusvuosi",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["min", "max"],
+      "fieldValidateRulesMin": "1900",
+      "fieldValidateRulesMax": "2100"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "one-to-one",
+      "otherEntityName": "kayttaja",
+      "otherEntityRelationshipName": "erikoistuvaLaakari",
+      "relationshipName": "kayttaja",
+      "otherEntityField": "id",
+      "ownerSide": true
+    },
+    {
+      "relationshipType": "one-to-many",
+      "otherEntityName": "osoite",
+      "otherEntityRelationshipName": "erikoistuvaLaakari",
+      "relationshipName": "osoite"
+    },
+    {
+      "relationshipType": "one-to-many",
+      "otherEntityName": "tyoskentelyjakso",
+      "otherEntityRelationshipName": "erikoistuvaLaakari",
+      "relationshipName": "tyoskentelyjakso"
+    },
+    {
+      "relationshipType": "one-to-one",
+      "otherEntityName": "hops",
+      "otherEntityRelationshipName": "erikoistuvaLaakari",
+      "relationshipName": "hops",
+      "ownerSide": false
+    },
+    {
+      "relationshipType": "one-to-one",
+      "otherEntityName": "koejakso",
+      "otherEntityRelationshipName": "erikoistuvaLaakari",
+      "relationshipName": "koejakso",
+      "ownerSide": false
+    }
+  ],
+  "changelogDate": "20200923083641",
+  "entityTableName": "erikoistuva_laakari",
+  "dto": "mapstruct",
+  "pagination": "no",
+  "service": "serviceImpl",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": ["backend"]
+}

@@ -1,0 +1,62 @@
+{
+  "name": "OsaamisenArviointi",
+  "fields": [
+    {
+      "fieldName": "tunnus",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "osasto",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "alkamispaiva",
+      "fieldType": "LocalDate"
+    },
+    {
+      "fieldName": "paattymispaiva",
+      "fieldType": "LocalDate"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "one-to-one",
+      "otherEntityName": "tyoskentelyjakso",
+      "otherEntityRelationshipName": "arviointi",
+      "relationshipName": "tyoskentelyjakso",
+      "otherEntityField": "id",
+      "ownerSide": true
+    },
+    {
+      "relationshipType": "one-to-many",
+      "otherEntityName": "osaamisalueenArviointi",
+      "otherEntityRelationshipName": "osaamisenArviointi",
+      "relationshipName": "osaamisalueenArviointi"
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "erikoistuvaLaakari",
+      "otherEntityRelationshipName": "osaamisenArviointi",
+      "relationshipName": "arvioitava",
+      "otherEntityField": "id"
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "kayttaja",
+      "otherEntityRelationshipName": "osaamisenArviointi",
+      "relationshipName": "arvioija",
+      "otherEntityField": "id"
+    }
+  ],
+  "changelogDate": "20200923084241",
+  "entityTableName": "osaamisen_arviointi",
+  "dto": "mapstruct",
+  "pagination": "no",
+  "service": "serviceImpl",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": ["backend"]
+}

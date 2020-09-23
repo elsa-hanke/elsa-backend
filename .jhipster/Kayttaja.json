@@ -1,0 +1,51 @@
+{
+  "name": "Kayttaja",
+  "fields": [
+    {
+      "fieldName": "nimi",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "profiilikuva",
+      "fieldType": "byte[]",
+      "fieldTypeBlobContent": "any",
+      "fieldValidateRules": ["maxbytes"],
+      "fieldValidateRulesMaxbytes": "10000000"
+    },
+    {
+      "fieldName": "kieli",
+      "fieldType": "Kieli",
+      "fieldValues": "SUOMI,RUOTSI,ENGLANTI"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "one-to-one",
+      "otherEntityName": "user",
+      "otherEntityRelationshipName": "kayttaja",
+      "relationshipName": "user",
+      "otherEntityField": "id",
+      "ownerSide": true
+    },
+    {
+      "relationshipType": "many-to-many",
+      "otherEntityName": "pikaviestiKeskustelu",
+      "otherEntityRelationshipName": "keskustelija",
+      "relationshipName": "keskustelu",
+      "otherEntityField": "id",
+      "ownerSide": false
+    }
+  ],
+  "changelogDate": "20200923083541",
+  "entityTableName": "kayttaja",
+  "dto": "mapstruct",
+  "pagination": "no",
+  "service": "serviceImpl",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": ["backend"]
+}

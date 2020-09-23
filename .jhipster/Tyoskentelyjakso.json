@@ -1,0 +1,56 @@
+{
+  "name": "Tyoskentelyjakso",
+  "fields": [
+    {
+      "fieldName": "tunnus",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "osasto",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "alkamispaiva",
+      "fieldType": "LocalDate"
+    },
+    {
+      "fieldName": "paattymispaiva",
+      "fieldType": "LocalDate"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "one-to-one",
+      "otherEntityName": "tyoskentelypaikka",
+      "otherEntityRelationshipName": "tyoskentelyjakso",
+      "relationshipName": "tyoskentelypaikka",
+      "ownerSide": false
+    },
+    {
+      "relationshipType": "one-to-one",
+      "otherEntityName": "osaamisenArviointi",
+      "otherEntityRelationshipName": "tyoskentelyjakso",
+      "relationshipName": "arviointi",
+      "ownerSide": false
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "erikoistuvaLaakari",
+      "otherEntityRelationshipName": "tyoskentelyjakso",
+      "relationshipName": "erikoistuvaLaakari",
+      "otherEntityField": "id"
+    }
+  ],
+  "changelogDate": "20200923084141",
+  "entityTableName": "tyoskentelyjakso",
+  "dto": "mapstruct",
+  "pagination": "no",
+  "service": "serviceImpl",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": ["backend"]
+}
