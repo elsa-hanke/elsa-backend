@@ -30,11 +30,14 @@ class PikaviestiKeskusteluResource(
      * `POST  /pikaviesti-keskustelus` : Create a new pikaviestiKeskustelu.
      *
      * @param pikaviestiKeskusteluDTO the pikaviestiKeskusteluDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new pikaviestiKeskusteluDTO, or with status `400 (Bad Request)` if the pikaviestiKeskustelu has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new pikaviestiKeskusteluDTO,
+     * or with status `400 (Bad Request)` if the pikaviestiKeskustelu has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/pikaviesti-keskustelus")
-    fun createPikaviestiKeskustelu(@RequestBody pikaviestiKeskusteluDTO: PikaviestiKeskusteluDTO): ResponseEntity<PikaviestiKeskusteluDTO> {
+    fun createPikaviestiKeskustelu(
+        @RequestBody pikaviestiKeskusteluDTO: PikaviestiKeskusteluDTO
+    ): ResponseEntity<PikaviestiKeskusteluDTO> {
         log.debug("REST request to save PikaviestiKeskustelu : $pikaviestiKeskusteluDTO")
         if (pikaviestiKeskusteluDTO.id != null) {
             throw BadRequestAlertException(
@@ -59,7 +62,9 @@ class PikaviestiKeskusteluResource(
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/pikaviesti-keskustelus")
-    fun updatePikaviestiKeskustelu(@RequestBody pikaviestiKeskusteluDTO: PikaviestiKeskusteluDTO): ResponseEntity<PikaviestiKeskusteluDTO> {
+    fun updatePikaviestiKeskustelu(
+        @RequestBody pikaviestiKeskusteluDTO: PikaviestiKeskusteluDTO
+    ): ResponseEntity<PikaviestiKeskusteluDTO> {
         log.debug("REST request to update PikaviestiKeskustelu : $pikaviestiKeskusteluDTO")
         if (pikaviestiKeskusteluDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
@@ -83,7 +88,9 @@ class PikaviestiKeskusteluResource(
      * @return the [ResponseEntity] with status `200 (OK)` and the list of pikaviestiKeskustelus in body.
      */
     @GetMapping("/pikaviesti-keskustelus")
-    fun getAllPikaviestiKeskustelus(@RequestParam(required = false, defaultValue = "false") eagerload: Boolean): MutableList<PikaviestiKeskusteluDTO> {
+    fun getAllPikaviestiKeskustelus(
+        @RequestParam(required = false, defaultValue = "false") eagerload: Boolean
+    ): MutableList<PikaviestiKeskusteluDTO> {
         log.debug("REST request to get all PikaviestiKeskustelus")
 
         return pikaviestiKeskusteluService.findAll()
@@ -93,7 +100,8 @@ class PikaviestiKeskusteluResource(
      * `GET  /pikaviesti-keskustelus/:id` : get the "id" pikaviestiKeskustelu.
      *
      * @param id the id of the pikaviestiKeskusteluDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the pikaviestiKeskusteluDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the pikaviestiKeskusteluDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/pikaviesti-keskustelus/{id}")
     fun getPikaviestiKeskustelu(@PathVariable id: Long): ResponseEntity<PikaviestiKeskusteluDTO> {

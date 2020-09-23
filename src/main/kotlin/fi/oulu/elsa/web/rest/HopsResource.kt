@@ -30,7 +30,8 @@ class HopsResource(
      * `POST  /hops` : Create a new hops.
      *
      * @param hopsDTO the hopsDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new hopsDTO, or with status `400 (Bad Request)` if the hops has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new hopsDTO,
+     * or with status `400 (Bad Request)` if the hops has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/hops")

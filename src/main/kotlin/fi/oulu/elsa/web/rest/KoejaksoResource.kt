@@ -30,7 +30,8 @@ class KoejaksoResource(
      * `POST  /koejaksos` : Create a new koejakso.
      *
      * @param koejaksoDTO the koejaksoDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new koejaksoDTO, or with status `400 (Bad Request)` if the koejakso has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new koejaksoDTO,
+     * or with status `400 (Bad Request)` if the koejakso has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/koejaksos")
@@ -93,7 +94,8 @@ class KoejaksoResource(
      * `GET  /koejaksos/:id` : get the "id" koejakso.
      *
      * @param id the id of the koejaksoDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the koejaksoDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the koejaksoDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/koejaksos/{id}")
     fun getKoejakso(@PathVariable id: Long): ResponseEntity<KoejaksoDTO> {

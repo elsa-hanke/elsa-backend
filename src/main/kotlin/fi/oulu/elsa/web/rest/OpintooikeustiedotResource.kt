@@ -30,11 +30,14 @@ class OpintooikeustiedotResource(
      * `POST  /opintooikeustiedots` : Create a new opintooikeustiedot.
      *
      * @param opintooikeustiedotDTO the opintooikeustiedotDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new opintooikeustiedotDTO, or with status `400 (Bad Request)` if the opintooikeustiedot has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new opintooikeustiedotDTO,
+     * or with status `400 (Bad Request)` if the opintooikeustiedot has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/opintooikeustiedots")
-    fun createOpintooikeustiedot(@RequestBody opintooikeustiedotDTO: OpintooikeustiedotDTO): ResponseEntity<OpintooikeustiedotDTO> {
+    fun createOpintooikeustiedot(
+        @RequestBody opintooikeustiedotDTO: OpintooikeustiedotDTO
+    ): ResponseEntity<OpintooikeustiedotDTO> {
         log.debug("REST request to save Opintooikeustiedot : $opintooikeustiedotDTO")
         if (opintooikeustiedotDTO.id != null) {
             throw BadRequestAlertException(
@@ -59,7 +62,9 @@ class OpintooikeustiedotResource(
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/opintooikeustiedots")
-    fun updateOpintooikeustiedot(@RequestBody opintooikeustiedotDTO: OpintooikeustiedotDTO): ResponseEntity<OpintooikeustiedotDTO> {
+    fun updateOpintooikeustiedot(
+        @RequestBody opintooikeustiedotDTO: OpintooikeustiedotDTO
+    ): ResponseEntity<OpintooikeustiedotDTO> {
         log.debug("REST request to update Opintooikeustiedot : $opintooikeustiedotDTO")
         if (opintooikeustiedotDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
@@ -93,7 +98,8 @@ class OpintooikeustiedotResource(
      * `GET  /opintooikeustiedots/:id` : get the "id" opintooikeustiedot.
      *
      * @param id the id of the opintooikeustiedotDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the opintooikeustiedotDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the opintooikeustiedotDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/opintooikeustiedots/{id}")
     fun getOpintooikeustiedot(@PathVariable id: Long): ResponseEntity<OpintooikeustiedotDTO> {

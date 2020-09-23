@@ -30,11 +30,14 @@ class OsaamisenArviointiResource(
      * `POST  /osaamisen-arviointis` : Create a new osaamisenArviointi.
      *
      * @param osaamisenArviointiDTO the osaamisenArviointiDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new osaamisenArviointiDTO, or with status `400 (Bad Request)` if the osaamisenArviointi has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new osaamisenArviointiDTO,
+     * or with status `400 (Bad Request)` if the osaamisenArviointi has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/osaamisen-arviointis")
-    fun createOsaamisenArviointi(@RequestBody osaamisenArviointiDTO: OsaamisenArviointiDTO): ResponseEntity<OsaamisenArviointiDTO> {
+    fun createOsaamisenArviointi(
+        @RequestBody osaamisenArviointiDTO: OsaamisenArviointiDTO
+    ): ResponseEntity<OsaamisenArviointiDTO> {
         log.debug("REST request to save OsaamisenArviointi : $osaamisenArviointiDTO")
         if (osaamisenArviointiDTO.id != null) {
             throw BadRequestAlertException(
@@ -59,7 +62,9 @@ class OsaamisenArviointiResource(
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/osaamisen-arviointis")
-    fun updateOsaamisenArviointi(@RequestBody osaamisenArviointiDTO: OsaamisenArviointiDTO): ResponseEntity<OsaamisenArviointiDTO> {
+    fun updateOsaamisenArviointi(
+        @RequestBody osaamisenArviointiDTO: OsaamisenArviointiDTO
+    ): ResponseEntity<OsaamisenArviointiDTO> {
         log.debug("REST request to update OsaamisenArviointi : $osaamisenArviointiDTO")
         if (osaamisenArviointiDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
@@ -93,7 +98,8 @@ class OsaamisenArviointiResource(
      * `GET  /osaamisen-arviointis/:id` : get the "id" osaamisenArviointi.
      *
      * @param id the id of the osaamisenArviointiDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the osaamisenArviointiDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the osaamisenArviointiDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/osaamisen-arviointis/{id}")
     fun getOsaamisenArviointi(@PathVariable id: Long): ResponseEntity<OsaamisenArviointiDTO> {

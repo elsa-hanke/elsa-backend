@@ -9,7 +9,14 @@ import org.mapstruct.Mappings
 /**
  * Mapper for the entity [OsaamisenArviointi] and its DTO [OsaamisenArviointiDTO].
  */
-@Mapper(componentModel = "spring", uses = [TyoskentelyjaksoMapper::class, ErikoistuvaLaakariMapper::class, KayttajaMapper::class])
+@Mapper(
+    componentModel = "spring",
+    uses = [
+        TyoskentelyjaksoMapper::class,
+        ErikoistuvaLaakariMapper::class,
+        KayttajaMapper::class
+    ]
+)
 interface OsaamisenArviointiMapper :
     EntityMapper<OsaamisenArviointiDTO, OsaamisenArviointi> {
 

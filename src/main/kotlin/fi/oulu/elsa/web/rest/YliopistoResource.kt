@@ -30,7 +30,8 @@ class YliopistoResource(
      * `POST  /yliopistos` : Create a new yliopisto.
      *
      * @param yliopistoDTO the yliopistoDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new yliopistoDTO, or with status `400 (Bad Request)` if the yliopisto has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new yliopistoDTO,
+     * or with status `400 (Bad Request)` if the yliopisto has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/yliopistos")
@@ -83,7 +84,9 @@ class YliopistoResource(
      * @return the [ResponseEntity] with status `200 (OK)` and the list of yliopistos in body.
      */
     @GetMapping("/yliopistos")
-    fun getAllYliopistos(@RequestParam(required = false, defaultValue = "false") eagerload: Boolean): MutableList<YliopistoDTO> {
+    fun getAllYliopistos(
+        @RequestParam(required = false, defaultValue = "false") eagerload: Boolean
+    ): MutableList<YliopistoDTO> {
         log.debug("REST request to get all Yliopistos")
 
         return yliopistoService.findAll()
@@ -93,7 +96,8 @@ class YliopistoResource(
      * `GET  /yliopistos/:id` : get the "id" yliopisto.
      *
      * @param id the id of the yliopistoDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the yliopistoDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the yliopistoDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/yliopistos/{id}")
     fun getYliopisto(@PathVariable id: Long): ResponseEntity<YliopistoDTO> {

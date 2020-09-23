@@ -31,7 +31,8 @@ class ErikoisalaResource(
      * `POST  /erikoisalas` : Create a new erikoisala.
      *
      * @param erikoisalaDTO the erikoisalaDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new erikoisalaDTO, or with status `400 (Bad Request)` if the erikoisala has already an ID.
+     * @return the [ResponseEntity] with status `201 (Created)` and with body the new erikoisalaDTO,
+     * or with status `400 (Bad Request)` if the erikoisala has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/erikoisalas")
@@ -94,7 +95,8 @@ class ErikoisalaResource(
      * `GET  /erikoisalas/:id` : get the "id" erikoisala.
      *
      * @param id the id of the erikoisalaDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the erikoisalaDTO, or with status `404 (Not Found)`.
+     * @return the [ResponseEntity] with status `200 (OK)` and with body the erikoisalaDTO,
+     * or with status `404 (Not Found)`.
      */
     @GetMapping("/erikoisalas/{id}")
     fun getErikoisala(@PathVariable id: Long): ResponseEntity<ErikoisalaDTO> {
