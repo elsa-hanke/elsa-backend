@@ -1,0 +1,1 @@
+${AnsiColor.RED}ELSA - Running Spring Boot ${spring-boot.version}${AnsiColor.DEFAULT}
