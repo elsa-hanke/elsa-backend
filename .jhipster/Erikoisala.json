@@ -1,22 +1,18 @@
 {
   "name": "Erikoisala",
-  "fields": [
-    {
-      "fieldName": "nimi",
-      "fieldType": "String",
-      "fieldValidateRules": ["required"]
-    }
-  ],
-  "relationships": [
-    {
-      "relationshipType": "many-to-many",
-      "otherEntityName": "yliopisto",
-      "otherEntityRelationshipName": "erikoisala",
-      "relationshipName": "yliopisto",
-      "otherEntityField": "id",
-      "ownerSide": false
-    }
-  ],
+  "fields": [{
+    "fieldName": "nimi",
+    "fieldType": "String",
+    "fieldValidateRules": ["required"]
+  }],
+  "relationships": [{
+    "relationshipType": "many-to-many",
+    "otherEntityName": "yliopisto",
+    "otherEntityRelationshipName": "erikoisala",
+    "relationshipName": "yliopisto",
+    "otherEntityField": "id",
+    "ownerSide": false
+  }],
   "changelogDate": "20200923084041",
   "entityTableName": "erikoisala",
   "dto": "mapstruct",
@@ -27,5 +23,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

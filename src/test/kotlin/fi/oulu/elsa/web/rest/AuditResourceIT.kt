@@ -1,6 +1,6 @@
 package fi.oulu.elsa.web.rest
 
-import fi.oulu.elsa.BackendApp
+import fi.oulu.elsa.ElsaBackendApp
 import fi.oulu.elsa.config.TestSecurityConfiguration
 import fi.oulu.elsa.domain.PersistentAuditEvent
 import fi.oulu.elsa.repository.PersistenceAuditEventRepository
@@ -33,7 +33,7 @@ private const val SECONDS_PER_DAY = (60 * 60 * 24).toLong()
  */
 @AutoConfigureMockMvc
 @WithMockUser(authorities = [ADMIN])
-@SpringBootTest(classes = [BackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
 @Transactional
 class AuditResourceIT {
 

@@ -1,6 +1,6 @@
 package fi.oulu.elsa.web.rest
 
-import fi.oulu.elsa.BackendApp
+import fi.oulu.elsa.ElsaBackendApp
 import fi.oulu.elsa.config.TestSecurityConfiguration
 import fi.oulu.elsa.domain.OsaamisenArviointi
 import fi.oulu.elsa.repository.OsaamisenArviointiRepository
@@ -40,7 +40,7 @@ import kotlin.test.assertNotNull
  *
  * @see OsaamisenArviointiResource
  */
-@SpringBootTest(classes = [BackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
 @AutoConfigureMockMvc
 @WithMockUser
 class OsaamisenArviointiResourceIT {

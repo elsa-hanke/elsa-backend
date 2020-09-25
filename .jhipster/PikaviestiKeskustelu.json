@@ -1,21 +1,17 @@
 {
   "name": "PikaviestiKeskustelu",
-  "fields": [
-    {
-      "fieldName": "aihe",
-      "fieldType": "String"
-    }
-  ],
-  "relationships": [
-    {
-      "relationshipType": "many-to-many",
-      "otherEntityName": "kayttaja",
-      "otherEntityRelationshipName": "keskustelu",
-      "relationshipName": "keskustelija",
-      "otherEntityField": "id",
-      "ownerSide": true
-    }
-  ],
+  "fields": [{
+    "fieldName": "aihe",
+    "fieldType": "String"
+  }],
+  "relationships": [{
+    "relationshipType": "many-to-many",
+    "otherEntityName": "kayttaja",
+    "otherEntityRelationshipName": "keskustelu",
+    "relationshipName": "keskustelija",
+    "otherEntityField": "id",
+    "ownerSide": true
+  }],
   "changelogDate": "20200923084841",
   "entityTableName": "pikaviesti_keskustelu",
   "dto": "mapstruct",
@@ -26,5 +22,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

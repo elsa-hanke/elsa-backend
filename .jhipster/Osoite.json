@@ -1,7 +1,6 @@
 {
   "name": "Osoite",
-  "fields": [
-    {
+  "fields": [{
       "fieldName": "ensisijainen",
       "fieldType": "Boolean",
       "fieldValidateRules": ["required"]
@@ -39,15 +38,13 @@
       "fieldValidateRules": ["required"]
     }
   ],
-  "relationships": [
-    {
-      "relationshipType": "many-to-one",
-      "otherEntityName": "erikoistuvaLaakari",
-      "otherEntityRelationshipName": "osoite",
-      "relationshipName": "erikoistuvaLaakari",
-      "otherEntityField": "id"
-    }
-  ],
+  "relationships": [{
+    "relationshipType": "many-to-one",
+    "otherEntityName": "erikoistuvaLaakari",
+    "otherEntityRelationshipName": "osoite",
+    "relationshipName": "erikoistuvaLaakari",
+    "otherEntityField": "id"
+  }],
   "changelogDate": "20200923083741",
   "entityTableName": "osoite",
   "dto": "mapstruct",
@@ -58,5 +55,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

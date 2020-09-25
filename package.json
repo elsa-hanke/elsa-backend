@@ -1,7 +1,7 @@
 {
-  "name": "backend",
+  "name": "elsa-backend",
   "version": "0.0.0",
-  "description": "Description for backend",
+  "description": "Description for elsa-backend",
   "private": true,
   "license": "EUPL-1.2",
   "cacheDirectories": [

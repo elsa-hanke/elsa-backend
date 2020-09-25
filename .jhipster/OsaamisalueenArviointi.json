@@ -1,7 +1,6 @@
 {
   "name": "OsaamisalueenArviointi",
-  "fields": [
-    {
+  "fields": [{
       "fieldName": "vaatimustaso",
       "fieldType": "Integer",
       "fieldValidateRules": ["min", "max"],
@@ -20,8 +19,7 @@
       "fieldType": "String"
     }
   ],
-  "relationships": [
-    {
+  "relationships": [{
       "relationshipType": "one-to-many",
       "otherEntityName": "arviointiosaalue",
       "otherEntityRelationshipName": "osaamisalueenArviointi",
@@ -45,5 +43,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

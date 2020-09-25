@@ -1,6 +1,6 @@
 package fi.oulu.elsa.config.timezone
 
-import fi.oulu.elsa.BackendApp
+import fi.oulu.elsa.ElsaBackendApp
 import fi.oulu.elsa.config.TestSecurityConfiguration
 import fi.oulu.elsa.repository.timezone.DateTimeWrapper
 import fi.oulu.elsa.repository.timezone.DateTimeWrapperRepository
@@ -28,7 +28,7 @@ import java.time.format.DateTimeFormatter
 /**
  * Integration tests for the ZoneId Hibernate configuration.
  */
-@SpringBootTest(classes = [BackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
 class HibernateTimeZoneIT {
 
     @Autowired

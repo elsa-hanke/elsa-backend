@@ -1,21 +1,17 @@
 {
   "name": "Hops",
-  "fields": [
-    {
-      "fieldName": "suunnitelmanTunnus",
-      "fieldType": "String"
-    }
-  ],
-  "relationships": [
-    {
-      "relationshipType": "one-to-one",
-      "otherEntityName": "erikoistuvaLaakari",
-      "otherEntityRelationshipName": "hops",
-      "relationshipName": "erikoistuvaLaakari",
-      "otherEntityField": "id",
-      "ownerSide": true
-    }
-  ],
+  "fields": [{
+    "fieldName": "suunnitelmanTunnus",
+    "fieldType": "String"
+  }],
+  "relationships": [{
+    "relationshipType": "one-to-one",
+    "otherEntityName": "erikoistuvaLaakari",
+    "otherEntityRelationshipName": "hops",
+    "relationshipName": "erikoistuvaLaakari",
+    "otherEntityField": "id",
+    "ownerSide": true
+  }],
   "changelogDate": "20200923084741",
   "entityTableName": "hops",
   "dto": "mapstruct",
@@ -26,5 +22,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

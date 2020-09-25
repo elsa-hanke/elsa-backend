@@ -3,7 +3,7 @@ jib {
         image = "adoptopenjdk:11-jre-hotspot"
     }
     to {
-        image = "backend:latest"
+        image = "elsabackend:latest"
     }
     container {
         entrypoint = ["bash", "-c", "/entrypoint.sh"]

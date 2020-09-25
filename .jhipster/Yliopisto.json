@@ -1,21 +1,17 @@
 {
   "name": "Yliopisto",
-  "fields": [
-    {
-      "fieldName": "nimi",
-      "fieldType": "String"
-    }
-  ],
-  "relationships": [
-    {
-      "relationshipType": "many-to-many",
-      "otherEntityName": "erikoisala",
-      "otherEntityRelationshipName": "yliopisto",
-      "relationshipName": "erikoisala",
-      "otherEntityField": "id",
-      "ownerSide": true
-    }
-  ],
+  "fields": [{
+    "fieldName": "nimi",
+    "fieldType": "String"
+  }],
+  "relationships": [{
+    "relationshipType": "many-to-many",
+    "otherEntityName": "erikoisala",
+    "otherEntityRelationshipName": "yliopisto",
+    "relationshipName": "erikoisala",
+    "otherEntityField": "id",
+    "ownerSide": true
+  }],
   "changelogDate": "20200923083941",
   "entityTableName": "yliopisto",
   "dto": "mapstruct",
@@ -26,5 +22,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

@@ -1,7 +1,6 @@
 {
   "name": "OsaamisenArviointi",
-  "fields": [
-    {
+  "fields": [{
       "fieldName": "tunnus",
       "fieldType": "String"
     },
@@ -18,8 +17,7 @@
       "fieldType": "LocalDate"
     }
   ],
-  "relationships": [
-    {
+  "relationships": [{
       "relationshipType": "one-to-one",
       "otherEntityName": "tyoskentelyjakso",
       "otherEntityRelationshipName": "arviointi",
@@ -58,5 +56,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

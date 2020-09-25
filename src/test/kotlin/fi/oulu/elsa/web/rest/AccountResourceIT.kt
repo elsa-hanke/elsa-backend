@@ -1,6 +1,6 @@
 package fi.oulu.elsa.web.rest
 
-import fi.oulu.elsa.BackendApp
+import fi.oulu.elsa.ElsaBackendApp
 import fi.oulu.elsa.config.TestSecurityConfiguration
 import fi.oulu.elsa.security.ADMIN
 import org.junit.jupiter.api.Test
@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional
  */
 @AutoConfigureMockMvc
 @WithMockUser(value = TEST_USER_LOGIN)
-@SpringBootTest(classes = [BackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
 class AccountResourceIT {
 
     @Autowired

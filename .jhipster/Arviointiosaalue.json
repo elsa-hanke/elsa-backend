@@ -1,7 +1,6 @@
 {
   "name": "Arviointiosaalue",
-  "fields": [
-    {
+  "fields": [{
       "fieldName": "aluetunnus",
       "fieldType": "String"
     },
@@ -30,15 +29,13 @@
       "fieldType": "LocalDate"
     }
   ],
-  "relationships": [
-    {
-      "relationshipType": "many-to-one",
-      "otherEntityName": "osaamisalueenArviointi",
-      "otherEntityRelationshipName": "arviointiosaalue",
-      "relationshipName": "osaamisalueenArviointi",
-      "otherEntityField": "id"
-    }
-  ],
+  "relationships": [{
+    "relationshipType": "many-to-one",
+    "otherEntityName": "osaamisalueenArviointi",
+    "otherEntityRelationshipName": "arviointiosaalue",
+    "relationshipName": "osaamisalueenArviointi",
+    "otherEntityField": "id"
+  }],
   "changelogDate": "20200923084441",
   "entityTableName": "arviointiosaalue",
   "dto": "mapstruct",
@@ -49,5 +46,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

@@ -1,6 +1,6 @@
 package fi.oulu.elsa.web.rest
 
-import fi.oulu.elsa.BackendApp
+import fi.oulu.elsa.ElsaBackendApp
 import fi.oulu.elsa.config.TestSecurityConfiguration
 import fi.oulu.elsa.domain.Osoite
 import fi.oulu.elsa.repository.OsoiteRepository
@@ -38,7 +38,7 @@ import kotlin.test.assertNotNull
  *
  * @see OsoiteResource
  */
-@SpringBootTest(classes = [BackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
 @AutoConfigureMockMvc
 @WithMockUser
 class OsoiteResourceIT {

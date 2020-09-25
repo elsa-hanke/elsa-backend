@@ -2,7 +2,7 @@ application {
   config {
     applicationType monolith,
     authenticationType oauth2
-    baseName backend
+    baseName elsaBackend
     buildTool gradle
     languages [fi, sv, en]
     nativeLanguage fi

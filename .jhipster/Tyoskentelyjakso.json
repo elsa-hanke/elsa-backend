@@ -1,7 +1,6 @@
 {
   "name": "Tyoskentelyjakso",
-  "fields": [
-    {
+  "fields": [{
       "fieldName": "tunnus",
       "fieldType": "String",
       "fieldValidateRules": ["required"]
@@ -19,8 +18,7 @@
       "fieldType": "LocalDate"
     }
   ],
-  "relationships": [
-    {
+  "relationships": [{
       "relationshipType": "one-to-one",
       "otherEntityName": "tyoskentelypaikka",
       "otherEntityRelationshipName": "tyoskentelyjakso",
@@ -52,5 +50,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

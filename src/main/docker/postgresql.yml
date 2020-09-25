@@ -1,11 +1,11 @@
-version: '2'
+version: "2"
 services:
-  backend-postgresql:
+  elsabackend-postgresql:
     image: postgres:12.3
     # volumes:
-    #     - ~/volumes/jhipster/backend/postgresql/:/var/lib/postgresql/data/
+    #     - ~/volumes/jhipster/elsaBackend/postgresql/:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=backend
+      - POSTGRES_USER=elsaBackend
       - POSTGRES_PASSWORD=
       - POSTGRES_HOST_AUTH_METHOD=trust
     ports:

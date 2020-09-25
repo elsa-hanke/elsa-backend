@@ -13,6 +13,6 @@ class ApplicationWebXml : SpringBootServletInitializer() {
     override fun configure(application: SpringApplicationBuilder): SpringApplicationBuilder {
         // set a default to use when no profile is configured.
         DefaultProfileUtil.addDefaultProfile(application.application())
-        return application.sources(BackendApp::class.java)
+        return application.sources(ElsaBackendApp::class.java)
     }
 }

@@ -90,7 +90,7 @@ eclipse {
 defaultTasks "bootRun"
 
 springBoot {
-    mainClassName = "fi.oulu.elsa.BackendApp"
+    mainClassName = "fi.oulu.elsa.ElsaBackendApp"
 }
 
 test {
@@ -147,8 +147,8 @@ liquibase {
     activities {
         main {
             driver "org.h2.Driver"
-            url "jdbc:h2:file:./build/h2db/db/backend"
-            username "backend"
+            url "jdbc:h2:file:./build/h2db/db/elsabackend"
+            username "elsaBackend"
             password ""
             changeLogFile "src/main/resources/config/liquibase/master.xml"
             defaultSchemaName ""
@@ -157,8 +157,8 @@ liquibase {
         }
         diffLog {
             driver "org.h2.Driver"
-            url "jdbc:h2:file:./build/h2db/db/backend"
-            username "backend"
+            url "jdbc:h2:file:./build/h2db/db/elsabackend"
+            username "elsaBackend"
             password ""
             changeLogFile project.ext.diffChangelogFile
             referenceUrl "hibernate:spring:fi.oulu.elsa.domain?dialect=org.hibernate.dialect.H2Dialect&hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"

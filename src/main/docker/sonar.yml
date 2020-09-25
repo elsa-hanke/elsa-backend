@@ -1,6 +1,6 @@
-version: '2'
+version: "2"
 services:
-  backend-sonar:
+  elsabackend-sonar:
     image: sonarqube:8.3.1-community
     ports:
       - 9001:9000
