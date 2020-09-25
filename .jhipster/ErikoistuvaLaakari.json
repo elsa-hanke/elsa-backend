@@ -1,7 +1,6 @@
 {
   "name": "ErikoistuvaLaakari",
-  "fields": [
-    {
+  "fields": [{
       "fieldName": "puhelinnumero",
       "fieldType": "String",
       "fieldValidateRules": ["required"]
@@ -23,8 +22,7 @@
       "fieldValidateRulesMax": "2100"
     }
   ],
-  "relationships": [
-    {
+  "relationships": [{
       "relationshipType": "one-to-one",
       "otherEntityName": "kayttaja",
       "otherEntityRelationshipName": "erikoistuvaLaakari",
@@ -69,5 +67,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

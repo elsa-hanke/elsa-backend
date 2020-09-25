@@ -1,6 +1,6 @@
 package fi.oulu.elsa.web.rest
 
-import fi.oulu.elsa.BackendApp
+import fi.oulu.elsa.ElsaBackendApp
 import fi.oulu.elsa.config.TestSecurityConfiguration
 import fi.oulu.elsa.domain.Authority
 import fi.oulu.elsa.domain.User
@@ -38,7 +38,7 @@ import kotlin.test.assertNull
  */
 @AutoConfigureMockMvc
 @WithMockUser(authorities = [ADMIN])
-@SpringBootTest(classes = [BackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
 class UserResourceIT {
 
     @Autowired

@@ -1,7 +1,6 @@
 {
   "name": "Koejakso",
-  "fields": [
-    {
+  "fields": [{
       "fieldName": "ohjeteksti",
       "fieldType": "String"
     },
@@ -14,8 +13,7 @@
       "fieldType": "LocalDate"
     }
   ],
-  "relationships": [
-    {
+  "relationships": [{
       "relationshipType": "one-to-one",
       "otherEntityName": "erikoistuvaLaakari",
       "otherEntityRelationshipName": "koejakso",
@@ -48,5 +46,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

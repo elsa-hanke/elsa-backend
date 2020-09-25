@@ -1,6 +1,6 @@
 package fi.oulu.elsa.service
 
-import fi.oulu.elsa.BackendApp
+import fi.oulu.elsa.ElsaBackendApp
 import fi.oulu.elsa.config.ANONYMOUS_USER
 import fi.oulu.elsa.config.DEFAULT_LANGUAGE
 import fi.oulu.elsa.config.TestSecurityConfiguration
@@ -30,7 +30,7 @@ private const val DEFAULT_LANGKEY = "dummy"
 /**
  * Integration tests for [UserService].
  */
-@SpringBootTest(classes = [BackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
 @Transactional
 class UserServiceIT {
 

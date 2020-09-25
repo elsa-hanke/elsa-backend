@@ -1,7 +1,6 @@
 {
   "name": "Opintooikeustiedot",
-  "fields": [
-    {
+  "fields": [{
       "fieldName": "voimassaoloAlkaa",
       "fieldType": "LocalDate"
     },
@@ -14,15 +13,13 @@
       "fieldType": "String"
     }
   ],
-  "relationships": [
-    {
-      "relationshipType": "many-to-one",
-      "otherEntityName": "yliopisto",
-      "otherEntityRelationshipName": "opintooikeustiedot",
-      "relationshipName": "yliopisto",
-      "otherEntityField": "id"
-    }
-  ],
+  "relationships": [{
+    "relationshipType": "many-to-one",
+    "otherEntityName": "yliopisto",
+    "otherEntityRelationshipName": "opintooikeustiedot",
+    "relationshipName": "yliopisto",
+    "otherEntityField": "id"
+  }],
   "changelogDate": "20200923083841",
   "entityTableName": "opintooikeustiedot",
   "dto": "mapstruct",
@@ -33,5 +30,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

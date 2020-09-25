@@ -15,12 +15,12 @@ import javax.annotation.PostConstruct
 
 @SpringBootApplication
 @EnableConfigurationProperties(LiquibaseProperties::class, ApplicationProperties::class)
-class BackendApp(private val env: Environment) {
+class ElsaBackendApp(private val env: Environment) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     /**
-     * Initializes backend.
+     * Initializes elsaBackend.
      *
      * Spring profiles can be configured with a program argument --spring.profiles.active=your-active-profile
      *
@@ -58,13 +58,13 @@ class BackendApp(private val env: Environment) {
          */
         @JvmStatic
         fun main(args: Array<String>) {
-            val env = runApplication<BackendApp>(*args) { DefaultProfileUtil.addDefaultProfile(this) }.environment
+            val env = runApplication<ElsaBackendApp>(*args) { DefaultProfileUtil.addDefaultProfile(this) }.environment
             logApplicationStartup(env)
         }
 
         @JvmStatic
         private fun logApplicationStartup(env: Environment) {
-            val log = LoggerFactory.getLogger(BackendApp::class.java)
+            val log = LoggerFactory.getLogger(ElsaBackendApp::class.java)
 
             val protocol = if (env.getProperty("server.ssl.key-store") != null) {
                 "https"

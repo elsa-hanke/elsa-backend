@@ -59,7 +59,7 @@ management:
 
 spring:
   application:
-    name: backend
+    name: elsaBackend
   profiles:
     # The commented value for `active` can be replaced with valid Spring profiles to load.
     # Otherwise, it will be filled in by gradle when building the JAR file
@@ -97,13 +97,13 @@ spring:
     allow-bean-definition-overriding: true
   task:
     execution:
-      thread-name-prefix: backend-task-
+      thread-name-prefix: elsa-backend-task-
       pool:
         core-size: 2
         max-size: 50
         queue-capacity: 10000
     scheduling:
-      thread-name-prefix: backend-scheduling-
+      thread-name-prefix: elsa-backend-scheduling-
       pool:
         size: 2
   thymeleaf:
@@ -141,7 +141,7 @@ info:
 
 jhipster:
   clientApp:
-    name: 'backendApp'
+    name: 'elsaBackendApp'
   # By default CORS is disabled. Uncomment to enable.
   # cors:
   #     allowed-origins: "*"
@@ -151,11 +151,11 @@ jhipster:
   #     allow-credentials: true
   #     max-age: 1800
   mail:
-    from: backend@localhost
+    from: elsaBackend@localhost
   swagger:
     default-include-pattern: /api/.*
-    title: backend API
-    description: backend API documentation
+    title: elsaBackend API
+    description: elsaBackend API documentation
     version: 0.0.1
     terms-of-service-url:
     contact-name:

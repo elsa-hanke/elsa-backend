@@ -1,13 +1,10 @@
 {
   "name": "Pikaviesti",
-  "fields": [
-    {
-      "fieldName": "sisalto",
-      "fieldType": "String"
-    }
-  ],
-  "relationships": [
-    {
+  "fields": [{
+    "fieldName": "sisalto",
+    "fieldType": "String"
+  }],
+  "relationships": [{
       "relationshipType": "many-to-one",
       "otherEntityName": "pikaviestiKeskustelu",
       "otherEntityRelationshipName": "pikaviesti",
@@ -32,5 +29,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

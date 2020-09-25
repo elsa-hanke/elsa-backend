@@ -1,7 +1,6 @@
 {
   "name": "Kayttaja",
-  "fields": [
-    {
+  "fields": [{
       "fieldName": "nimi",
       "fieldType": "String",
       "fieldValidateRules": ["required"]
@@ -19,8 +18,7 @@
       "fieldValues": "SUOMI,RUOTSI,ENGLANTI"
     }
   ],
-  "relationships": [
-    {
+  "relationships": [{
       "relationshipType": "one-to-one",
       "otherEntityName": "user",
       "otherEntityRelationshipName": "kayttaja",
@@ -47,5 +45,5 @@
   "readOnly": false,
   "embedded": false,
   "clientRootFolder": "",
-  "applications": ["backend"]
+  "applications": ["elsaBackend"]
 }

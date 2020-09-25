@@ -1,6 +1,6 @@
 package fi.oulu.elsa.repository
 
-import fi.oulu.elsa.BackendApp
+import fi.oulu.elsa.ElsaBackendApp
 import fi.oulu.elsa.config.ANONYMOUS_USER
 import fi.oulu.elsa.config.TestSecurityConfiguration
 import fi.oulu.elsa.config.audit.AuditEventConverter
@@ -21,7 +21,7 @@ import java.time.temporal.ChronoUnit
 /**
  * Integration tests for [CustomAuditEventRepository].
  */
-@SpringBootTest(classes = [BackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
 @Transactional
 class CustomAuditEventRepositoryIT {
 
