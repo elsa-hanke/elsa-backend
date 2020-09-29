@@ -1,5 +1,7 @@
 # elsa-backend
 
+[![Build Status](https://dev.azure.com/elsa-hanke/ELSA/_apis/build/status/elsa-hanke.elsa-backend?branchName=main)](https://dev.azure.com/elsa-hanke/ELSA/_build/latest?definitionId=4&branchName=main)
+
 This application was generated using JHipster 6.10.1, you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v6.10.1](https://www.jhipster.tech/documentation-archive/v6.10.1).
 
 ## Development
