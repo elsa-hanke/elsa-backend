@@ -1392,6 +1392,42 @@
   "enabledEventTypes": [],
   "adminEventsEnabled": false,
   "adminEventsDetailsEnabled": false,
+  "identityProviders": [
+    {
+      "alias": "suomi-fi-testi",
+      "internalId": "afdbec48-da89-4737-b749-e4ecc037f6f8",
+      "providerId": "saml",
+      "enabled": true,
+      "updateProfileFirstLoginMode": "on",
+      "trustEmail": false,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "validateSignature": "true",
+        "samlXmlKeyNameTranformer": "KEY_ID",
+        "signingCertificate": "MIIHCjCCBPKgAwIBAgIEDB53hzANBgkqhkiG9w0BAQsFADB4MQswCQYDVQQGEwJGSTEhMB8GA1UE ChMYVmFlc3RvcmVraXN0ZXJpa2Vza3VzIENBMRowGAYDVQQLExFQYWx2ZWx1dmFybWVudGVldDEq MCgGA1UEAxMhVlJLIENBIGZvciBTZXJ2aWNlIFByb3ZpZGVycyAtIEczMB4XDTE5MDExNTExMTUw MFoXDTIxMDExNDIxNTk1OVowga0xCzAJBgNVBAYTAkZJMRAwDgYDVQQIEwdGaW5sYW5kMREwDwYD VQQHEwhIZWxzaW5raTEeMBwGA1UEChMVVmFlc3RvcmVraXN0ZXJpa2Vza3VzMRgwFgYDVQQLEw9U ZXN0aXZhcm1lbnRlZXQxEjAQBgNVBAUTCTAyNDU0MzctMjErMCkGA1UEAxMibWV0YWRhdGEtc2ln bmluZy5hcHJvLnR1bm5pc3R1cy5maTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBANsa FsD27cfAiCt3TwKPy5TCjfUzN2MgmQsKUE+yFIzqpH5VNVrU/1Kf6Z8pJSpbpTo52iapRhcdIPOt pMoNkrY6AxapiyC1N/IDZ/vSk8UQ9VeqLUoGq1wGVKgo36QgZq8fIdo/YgJCA6K9h5/4GxUpTKK5 0e6YShgjamU0UCyiiHYzdw/zO2Y2QdlIrG9J8zer1TVMmZgrGqDX3a426qupUZ0BXXe41TQXcE5g FyaVDZGW+qNuoEzFEpqTBYgkUeozjZI9BSuxHJok62HoKyctoLpE3JlMhMjLsgro+KaxA78A48Ne LOSllLx+6vjBr48+yTaSzwDyEr+VS8yp/Y/9FgLyeQSs2QCN+DsG9ktQ87iaaM8IWVDHSv/d1YOB k28o7lkKGQSBUxO4AS1q3YZ5JLgpZj7Xy8Q4gqcNoB1eYtAIii+Jg86+z3kehNivAiytFilsLibq RS66DuqELERzLsEy4eFrvDU+8bRoIakZ8WV4dFoGv5uLAt15ItSpbwIDAQABo4IB5DCCAeAwHwYD VR0jBBgwFoAUZQToLZLnyyqrVxWoZSqq+rcWdPYwHQYDVR0OBBYEFB6MqlaedT+GywDK0+drQTk7 bI7LMA4GA1UdDwEB/wQEAwIGwDCB1wYDVR0gBIHPMIHMMAgGBgQAj3oBBzCBvwYJKoF2hAUBCiIB MIGxMCcGCCsGAQUFBwIBFhtodHRwOi8vd3d3LmZpbmVpZC5maS9jcHMzMy8wgYUGCCsGAQUFBwIC MHkad1Zhcm1lbm5lcG9saXRpaWtrYSBvbiBzYWF0YXZpbGxhIC0gQ2VydGlmaWthdCBwb2xpY3kg ZmlubnMgLSBDZXJ0aWZpY2F0ZSBwb2xpY3kgaXMgYXZhaWxhYmxlIGh0dHA6Ly93d3cuZmluZWlk LmZpL2NwczMzMA8GA1UdEwEB/wQFMAMBAQAwNwYDVR0fBDAwLjAsoCqgKIYmaHR0cDovL3Byb3h5 LmZpbmVpZC5maS9jcmwvdnJrc3AzYy5jcmwwagYIKwYBBQUHAQEEXjBcMDAGCCsGAQUFBzAChiRo dHRwOi8vcHJveHkuZmluZWlkLmZpL2NhL3Zya3NwMy5jcnQwKAYIKwYBBQUHMAGGHGh0dHA6Ly9v Y3NwLmZpbmVpZC5maS92cmtzcDMwDQYJKoZIhvcNAQELBQADggIBAD09UfDS/YYFdnGLmuB/YXS3 OR3jYmfDt3ZF+elek8HAm6qwJXHBkfQfAioFeI9JMa9LrOWAzCAGEeg2q2noWhUYEQcy3NwztWZz AMhXu6F6d1kua80lZ8YNOeCcbJ9a2LdEZR10g9JFdQdkVy3R19AyKbYwNaEZod/L2o34HvmT+oYI pOFhuD392Qp3bkgD6MYcWscWTPvFPVjlQNXjZ8a3/XssdYq1MxuUcWdZ3DQ/jdIQEOWfE/fZ8tI8 XIaZpsJjLEcbJ26DBxrGtvscdSrpFVrZO3Y1T2WE8NfDuZCmMczNBR1Guisv94B4X1L/TiPBKo6r 2JhepXLXKuvn/oHf7WjKdOsjmGtBLcQvcAqmtf0Nq+95Am6p+ZFlfIfY7ezOL+W3HaM2F552DC22 TY4F83pz3NidvXoldrJfXRSJCZEovj4p0Lcj0azGHFxY4CgpfbVO9iNRMer3o/5uB/fuVTw9Ang+ ZIgC/oNj2tIXjwTns3Z4AIJH2z7TYQo0PiXgx3h3Tn16UBrE14cyfw6/rtNbin3S1rvqhbhr9R50 MPPS1Z5pKf/Wn5KZhPAAaxhXlYxcmL5jrplu7nlPYquS89Uu0AkrpvHf77Qi+t7xVJCjoTMTsrfo 2Se+8gu2UQZrqjfPJZ17vKZcsRHTgSs0WFPKC9MS6Zl6U4NGJRZp",
+        "postBindingLogout": "true",
+        "nameIDPolicyFormat": "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
+        "postBindingResponse": "true",
+        "principalAttribute": "urn:oid:1.2.246.21",
+        "singleLogoutServiceUrl": "https://testi.apro.tunnistus.fi/idp/profile/SAML2/POST/SLO",
+        "signatureAlgorithm": "RSA_SHA256",
+        "wantAssertionsEncrypted": "true",
+        "xmlSigKeyInfoKeyNameTransformer": "NONE",
+        "useJwksUrl": "true",
+        "wantAssertionsSigned": "true",
+        "postBindingAuthnRequest": "true",
+        "syncMode": "IMPORT",
+        "forceAuthn": "true",
+        "singleSignOnServiceUrl": "https://testi.apro.tunnistus.fi/idp/profile/SAML2/POST/SSO",
+        "wantAuthnRequestsSigned": "true",
+        "principalType": "ATTRIBUTE"
+      }
+    }
+  ],
   "components": {
     "org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy": [
       {
