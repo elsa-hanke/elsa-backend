@@ -67,7 +67,15 @@
       "firstName": "Erikoistuva",
       "lastName": "Erikoistuva",
       "email": "erikoistuva@localhost",
-      "credentials": [],
+      "credentials": [
+        {
+          "id": "bba1ce17-0cd9-41d5-b6d5-9bf9ed7a2d48",
+          "type": "password",
+          "createdDate": 1505479392766,
+          "secretData": "{\"value\":\"9FDfwV0D/8O8r8YApwp5VvLyXrQ0WdjyffrX/BZICnQoGZAMzEnQam7ji9USoHd/uyK5GMgUK6F8RJ1A53nNzg==\",\"salt\":\"g1NtirrtPN6EI54XMLM6pg==\"}",
+          "credentialData": "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\"}"
+        }
+      ],
       "disableableCredentialTypes": [],
       "requiredActions": [],
       "realmRoles": ["offline_access", "uma_authorization"],
@@ -87,7 +95,15 @@
       "firstName": "Kouluttaja",
       "lastName": "Kouluttaja",
       "email": "kouluttaja@localhost",
-      "credentials": [],
+      "credentials": [
+        {
+          "id": "6a8883bc-6ba7-4451-9b8f-a25d2501e2d7",
+          "type": "password",
+          "createdDate": 1505479392766,
+          "secretData": "{\"value\":\"cEogBkrC5eFipKV9x/qL9uhal3NUgSDv5vmd7EoLLeb3pOrI/laEt4S/uSvMYx2C+ftIV2xHABxZ27zTOMHJ7A==\",\"salt\":\"41jXCxsssbBhjYpnQr+P0g==\"}",
+          "credentialData": "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\"}"
+        }
+      ],
       "disableableCredentialTypes": [],
       "requiredActions": [],
       "realmRoles": ["offline_access", "uma_authorization"],
@@ -107,7 +123,15 @@
       "firstName": "Vastuuhenkilo",
       "lastName": "Vastuuhenkilo",
       "email": "vastuuhenkilo@localhost",
-      "credentials": [],
+      "credentials": [
+        {
+          "id": "189d41bd-b25d-4a0e-b569-b03403863608",
+          "type": "password",
+          "createdDate": 1505479392766,
+          "secretData": "{\"value\":\"FMgTo/bmO1Za8NvNd+XBWozpxkppiYfMViTikUq8lJHGQY7iAEgHqLuMdlKPRVbCe3CHPf5+NpCo9KyUFmACIw==\",\"salt\":\"GquZpi+HT5zDuP1zGsJz3Q==\"}",
+          "credentialData": "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\"}"
+        }
+      ],
       "disableableCredentialTypes": [],
       "requiredActions": [],
       "realmRoles": ["offline_access", "uma_authorization"],
