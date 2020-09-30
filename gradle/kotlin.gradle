@@ -38,10 +38,11 @@ allOpen {
 }
 
 ktlint {
-    //See more options: https://github.com/JLLeitschuh/ktlint-gradle#configuration
+    // See more options: https://github.com/JLLeitschuh/ktlint-gradle#configuration
     ignoreFailures = true
     disabledRules = ["no-wildcard-imports", "filename"]
 }
+check.dependsOn ktlint
 
 detekt {
     toolVersion = detektVersion
@@ -62,9 +63,6 @@ if (OperatingSystem.current().isWindows()) {
         }
     }
 }
-
-//Reformat code before compilation
-compileKotlin.dependsOn ktlintFormat
 
 
 jacocoTestReport {
