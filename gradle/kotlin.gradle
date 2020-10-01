@@ -42,7 +42,7 @@ ktlint {
     ignoreFailures = true
     disabledRules = ["no-wildcard-imports", "filename"]
 }
-check.dependsOn ktlint
+check.dependsOn ktlintCheck
 
 detekt {
     toolVersion = detektVersion
