@@ -43,5 +43,5 @@ stages:
               regionName: 'eu-west-1'
               imageSource: 'imagename'
               sourceImageName: 'elsabackend'
-              repositoryName: 'elsa'
+              repositoryName: 'elsa-backend'
             displayName: 'Push image'
