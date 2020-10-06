@@ -16,6 +16,7 @@ data class Yliopisto(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
+
     @Column(name = "nimi")
     var nimi: String? = null,
 

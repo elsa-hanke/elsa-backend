@@ -35,14 +35,18 @@
     "embeddableLaunchScript": false,
     "entitySuffix": "",
     "dtoSuffix": "DTO",
-    "otherModules": [{
-      "name": "generator-jhipster-kotlin",
-      "version": "1.9.0"
-    }],
-    "blueprints": [{
-      "name": "generator-jhipster-kotlin",
-      "version": "1.9.0"
-    }]
+    "otherModules": [
+      {
+        "name": "generator-jhipster-kotlin",
+        "version": "1.9.0"
+      }
+    ],
+    "blueprints": [
+      {
+        "name": "generator-jhipster-kotlin",
+        "version": "1.9.0"
+      }
+    ]
   },
   "entities": [
     "Kayttaja",
@@ -52,9 +56,12 @@
     "Yliopisto",
     "Erikoisala",
     "Tyoskentelyjakso",
+    "Suoritusarviointi",
     "OsaamisenArviointi",
     "OsaamisalueenArviointi",
     "Arviointiosaalue",
+    "EpaOsaamisalue",
+    "ArvioitavaOsaalue",
     "Tyoskentelypaikka",
     "Koejakso",
     "Hops",

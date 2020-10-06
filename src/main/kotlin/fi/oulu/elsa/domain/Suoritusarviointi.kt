@@ -1,0 +1,97 @@
+package fi.oulu.elsa.domain
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import java.io.Serializable
+import java.time.LocalDate
+import javax.persistence.*
+import javax.validation.constraints.*
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
+
+/**
+ * A Suoritusarviointi.
+ */
+@Entity
+@Table(name = "suoritusarviointi")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+data class Suoritusarviointi(
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
+    @SequenceGenerator(name = "sequenceGenerator")
+    var id: Long? = null,
+
+    @Column(name = "tapahtuman_ajankohta")
+    var tapahtumanAjankohta: LocalDate? = null,
+
+    @Column(name = "arvioitava_tapahtuma")
+    var arvioitavaTapahtuma: String? = null,
+
+    @Column(name = "pyynnon_aika")
+    var pyynnonAika: LocalDate? = null,
+
+    @get: Min(value = 1)
+    @get: Max(value = 5)
+    @Column(name = "vaativuustaso")
+    var vaativuustaso: Int? = null,
+
+    @Column(name = "sanallinen_arvio")
+    var sanallinenArvio: String? = null,
+
+    @Column(name = "arviointi_aika")
+    var arviointiAika: LocalDate? = null,
+
+    @OneToOne @JoinColumn(unique = true)
+    var tyoskentelyjakso: Tyoskentelyjakso? = null,
+
+    @OneToMany(mappedBy = "suoritusarviointi")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    var osaalueenArviointis: MutableSet<OsaalueenArviointi> = mutableSetOf(),
+
+    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarviointis"], allowSetters = true)
+    var arvioitava: ErikoistuvaLaakari? = null,
+
+    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarviointis"], allowSetters = true)
+    var arvioija: Kayttaja? = null,
+
+    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarviointis"], allowSetters = true)
+    var arvioitavaOsaalue: EpaOsaamisalue? = null
+
+    // jhipster-needle-entity-add-field - JHipster will add fields here
+) : Serializable {
+
+    fun addOsaalueenArviointi(osaalueenArviointi: OsaalueenArviointi): Suoritusarviointi {
+        this.osaalueenArviointis.add(osaalueenArviointi)
+        osaalueenArviointi.suoritusarviointi = this
+        return this
+    }
+
+    fun removeOsaalueenArviointi(osaalueenArviointi: OsaalueenArviointi): Suoritusarviointi {
+        this.osaalueenArviointis.remove(osaalueenArviointi)
+        osaalueenArviointi.suoritusarviointi = null
+        return this
+    }
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Suoritusarviointi) return false
+
+        return id != null && other.id != null && id == other.id
+    }
+
+    override fun hashCode() = 31
+
+    override fun toString() = "Suoritusarviointi{" +
+        "id=$id" +
+        ", tapahtumanAjankohta='$tapahtumanAjankohta'" +
+        ", arvioitavaTapahtuma='$arvioitavaTapahtuma'" +
+        ", pyynnonAika='$pyynnonAika'" +
+        ", vaativuustaso=$vaativuustaso" +
+        ", sanallinenArvio='$sanallinenArvio'" +
+        ", arviointiAika='$arviointiAika'" +
+        "}"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

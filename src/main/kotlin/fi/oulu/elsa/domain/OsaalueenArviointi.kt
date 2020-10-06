@@ -1,32 +1,34 @@
 package fi.oulu.elsa.domain
 
-import fi.oulu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.io.Serializable
 import javax.persistence.*
+import javax.validation.constraints.*
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 
 /**
- * A Tyoskentelypaikka.
+ * A OsaalueenArviointi.
  */
 @Entity
-@Table(name = "tyoskentelypaikka")
+@Table(name = "osaalueen_arviointi")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-data class Tyoskentelypaikka(
+data class OsaalueenArviointi(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
 
-    @Column(name = "nimi")
-    var nimi: String? = null,
+    @get: Min(value = 1)
+    @get: Max(value = 5)
+    @Column(name = "arvio")
+    var arvio: Int? = null,
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tyyppi")
-    var tyyppi: TyoskentelyjaksoTyyppi? = null,
+    @ManyToOne @JsonIgnoreProperties(value = ["osaalueenArviointis"], allowSetters = true)
+    var arvioitavaOsaalue: ArvioitavaOsaalue? = null,
 
-    @OneToOne @JoinColumn(unique = true)
-    var tyoskentelyjakso: Tyoskentelyjakso? = null
+    @ManyToOne @JsonIgnoreProperties(value = ["osaalueenArviointis"], allowSetters = true)
+    var suoritusarviointi: Suoritusarviointi? = null
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 ) : Serializable {
@@ -34,17 +36,16 @@ data class Tyoskentelypaikka(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Tyoskentelypaikka) return false
+        if (other !is OsaalueenArviointi) return false
 
         return id != null && other.id != null && id == other.id
     }
 
     override fun hashCode() = 31
 
-    override fun toString() = "Tyoskentelypaikka{" +
+    override fun toString() = "OsaalueenArviointi{" +
         "id=$id" +
-        ", nimi='$nimi'" +
-        ", tyyppi='$tyyppi'" +
+        ", arvio=$arvio" +
         "}"
 
     companion object {
