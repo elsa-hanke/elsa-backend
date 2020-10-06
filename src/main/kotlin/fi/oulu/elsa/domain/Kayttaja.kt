@@ -19,6 +19,7 @@ data class Kayttaja(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
+
     @get: NotNull
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,

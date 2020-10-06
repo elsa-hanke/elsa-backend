@@ -17,6 +17,7 @@ data class Pikaviesti(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
+
     @Column(name = "sisalto")
     var sisalto: String? = null,
 

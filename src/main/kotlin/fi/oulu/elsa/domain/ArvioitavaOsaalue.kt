@@ -1,28 +1,32 @@
 package fi.oulu.elsa.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
+import fi.oulu.elsa.domain.enumeration.CanmedsRooli
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
+import javax.validation.constraints.*
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 
 /**
- * A Arviointiosaalue.
+ * A ArvioitavaOsaalue.
  */
 @Entity
-@Table(name = "arviointiosaalue")
+@Table(name = "arvioitava_osaalue")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-data class Arviointiosaalue(
+data class ArvioitavaOsaalue(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
 
-    @Column(name = "aluetunnus")
-    var aluetunnus: String? = null,
+    @get: NotNull
+    @Column(name = "tunnus", nullable = false)
+    var tunnus: String? = null,
 
-    @Column(name = "nimi")
+    @get: NotNull
+    @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
 
     @Column(name = "kuvaus")
@@ -31,8 +35,8 @@ data class Arviointiosaalue(
     @Column(name = "osaamisen_rajaarvo")
     var osaamisenRajaarvo: String? = null,
 
-    @Column(name = "minimivaatimus")
-    var minimivaatimus: String? = null,
+    @Column(name = "arviointikriteerit")
+    var arviointikriteerit: String? = null,
 
     @Column(name = "voimassaolo_alkaa")
     var voimassaoloAlkaa: LocalDate? = null,
@@ -40,8 +44,13 @@ data class Arviointiosaalue(
     @Column(name = "voimassaolo_loppuu")
     var voimassaoloLoppuu: LocalDate? = null,
 
-    @ManyToOne @JsonIgnoreProperties(value = ["arviointiosaalues"], allowSetters = true)
-    var osaamisalueenArviointi: OsaamisalueenArviointi? = null
+    @get: NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rooli", nullable = false)
+    var rooli: CanmedsRooli? = null,
+
+    @ManyToOne @JsonIgnoreProperties(value = ["arvioitavaOsaalues"], allowSetters = true)
+    var epaOsaamisalue: EpaOsaamisalue? = null
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 ) : Serializable {
@@ -49,22 +58,23 @@ data class Arviointiosaalue(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Arviointiosaalue) return false
+        if (other !is ArvioitavaOsaalue) return false
 
         return id != null && other.id != null && id == other.id
     }
 
     override fun hashCode() = 31
 
-    override fun toString() = "Arviointiosaalue{" +
+    override fun toString() = "ArvioitavaOsaalue{" +
         "id=$id" +
-        ", aluetunnus='$aluetunnus'" +
+        ", tunnus='$tunnus'" +
         ", nimi='$nimi'" +
         ", kuvaus='$kuvaus'" +
         ", osaamisenRajaarvo='$osaamisenRajaarvo'" +
-        ", minimivaatimus='$minimivaatimus'" +
+        ", arviointikriteerit='$arviointikriteerit'" +
         ", voimassaoloAlkaa='$voimassaoloAlkaa'" +
         ", voimassaoloLoppuu='$voimassaoloLoppuu'" +
+        ", rooli='$rooli'" +
         "}"
 
     companion object {

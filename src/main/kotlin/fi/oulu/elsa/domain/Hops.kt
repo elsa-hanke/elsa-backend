@@ -16,6 +16,7 @@ data class Hops(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
+
     @Column(name = "suunnitelman_tunnus")
     var suunnitelmanTunnus: String? = null,
 

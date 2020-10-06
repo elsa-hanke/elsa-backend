@@ -18,6 +18,7 @@ data class Osoite(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
+
     @get: NotNull
     @Column(name = "ensisijainen", nullable = false)
     var ensisijainen: Boolean? = null,

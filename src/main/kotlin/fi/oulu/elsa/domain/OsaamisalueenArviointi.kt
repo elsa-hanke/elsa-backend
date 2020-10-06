@@ -18,6 +18,7 @@ data class OsaamisalueenArviointi(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
+
     @get: Min(value = 1)
     @get: Max(value = 5)
     @Column(name = "vaatimustaso")

@@ -1,0 +1,80 @@
+{
+  "name": "Suoritusarviointi",
+  "fields": [
+    {
+      "fieldName": "tapahtumanAjankohta",
+      "fieldType": "LocalDate"
+    },
+    {
+      "fieldName": "arvioitavaTapahtuma",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "pyynnonAika",
+      "fieldType": "LocalDate"
+    },
+    {
+      "fieldName": "vaativuustaso",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["min", "max"],
+      "fieldValidateRulesMin": "1",
+      "fieldValidateRulesMax": "5"
+    },
+    {
+      "fieldName": "sanallinenArvio",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "arviointiAika",
+      "fieldType": "LocalDate"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "one-to-one",
+      "otherEntityName": "tyoskentelyjakso",
+      "otherEntityRelationshipName": "suoritusarviointi",
+      "relationshipName": "tyoskentelyjakso",
+      "otherEntityField": "id",
+      "ownerSide": true
+    },
+    {
+      "relationshipType": "one-to-many",
+      "otherEntityName": "osaalueenArviointi",
+      "otherEntityRelationshipName": "suoritusarviointi",
+      "relationshipName": "osaalueenArviointi"
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "erikoistuvaLaakari",
+      "otherEntityRelationshipName": "suoritusarviointi",
+      "relationshipName": "arvioitava",
+      "otherEntityField": "id"
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "kayttaja",
+      "otherEntityRelationshipName": "suoritusarviointi",
+      "relationshipName": "arvioija",
+      "otherEntityField": "id"
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "epaOsaamisalue",
+      "otherEntityRelationshipName": "suoritusarviointi",
+      "relationshipName": "arvioitavaOsaalue",
+      "otherEntityField": "id"
+    }
+  ],
+  "changelogDate": "20201006135001",
+  "entityTableName": "suoritusarviointi",
+  "dto": "mapstruct",
+  "pagination": "no",
+  "service": "serviceImpl",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": ["elsaBackend"]
+}

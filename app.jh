@@ -50,25 +50,33 @@ entity Tyoskentelyjakso {
     alkamispaiva LocalDate
     paattymispaiva LocalDate
 }
-entity OsaamisenArviointi {
-    tunnus String
-    osasto String
-    alkamispaiva LocalDate
-    paattymispaiva LocalDate
-}
-entity OsaamisalueenArviointi {
-    vaatimustaso Integer min(1) max(5)
-    arvio Integer min(0) max(5)
+entity Suoritusarviointi {
+    tapahtumanAjankohta LocalDate
+    arvioitavaTapahtuma String
+    pyynnonAika LocalDate
+    vaativuustaso Integer min(1) max(5)
     sanallinenArvio String
+    arviointiAika LocalDate
 }
-entity Arviointiosaalue {
-    aluetunnus String
-    nimi String
+entity OsaalueenArviointi {
+    arvio Integer min(1) max(5)
+}
+entity EpaOsaamisalue {
+    epaTunnus String required
+    epaNimi String required
+    kuvaus String
+    voimassaoloAlkaa LocalDate required
+    voimassaoloLoppuu LocalDate
+}
+entity ArvioitavaOsaalue {
+    tunnus String required
+    nimi String required
     kuvaus String
     osaamisenRajaarvo String
-    minimivaatimus String
+    arviointikriteerit String
     voimassaoloAlkaa LocalDate
     voimassaoloLoppuu LocalDate
+    rooli CanmedsRooli required
 }
 entity Tyoskentelypaikka {
     nimi String
@@ -94,28 +102,33 @@ enum Kieli {
 enum TyoskentelyjaksoTyyppi {
     TERVEYSKESKUS, SAIRAALA, KESKUSSAIRAALA
 }
+enum CanmedsRooli {
+    AMMATILLISUUS, VUOROVAIKUTUSTAIDOT, YHTEISTYOTAIDOT, JOHTAMISTAIDOT, TERVEYDEN_JA_HYVINVOINNIN_EDISTAMINEN, OMA_OSAAMINEN_JA_TIEDONHALLINTA, LAAKETIETEELLINEN_OSAAMINEN
+}
 relationship OneToOne {
     Kayttaja{user} to User
     ErikoistuvaLaakari{kayttaja} to Kayttaja
     Hops{erikoistuvaLaakari} to ErikoistuvaLaakari{hops}
     Tyoskentelypaikka{tyoskentelyjakso} to Tyoskentelyjakso{tyoskentelypaikka}
     Koejakso{erikoistuvaLaakari} to ErikoistuvaLaakari{koejakso}
-    OsaamisenArviointi{tyoskentelyjakso} to Tyoskentelyjakso{arviointi}
+    Suoritusarviointi{tyoskentelyjakso} to Tyoskentelyjakso{suoritusarviointi}
 }
 relationship OneToMany {
     ErikoistuvaLaakari{osoite} to Osoite{erikoistuvaLaakari}
     ErikoistuvaLaakari{tyoskentelyjakso} to Tyoskentelyjakso{erikoistuvaLaakari}
-    OsaamisalueenArviointi{arviointiosaalue} to Arviointiosaalue{osaamisalueenArviointi}
-    OsaamisenArviointi{osaamisalueenArviointi} to OsaamisalueenArviointi{osaamisenArviointi}
+    EpaOsaamisalue{arvioitavaOsaalue} to ArvioitavaOsaalue{epaOsaamisalue}
+    Suoritusarviointi{osaalueenArviointi} to OsaalueenArviointi{suoritusarviointi}
 }
 relationship ManyToOne {
     Pikaviesti{keskustelu} to PikaviestiKeskustelu
     Pikaviesti{lahettaja} to Kayttaja
     Koejakso{lahikouluttaja} to Kayttaja
     Koejakso{vastuuhenkilo} to Kayttaja
-    OsaamisenArviointi{arvioitava} to ErikoistuvaLaakari
-    OsaamisenArviointi{arvioija} to Kayttaja
+    Suoritusarviointi{arvioitava} to ErikoistuvaLaakari
+    Suoritusarviointi{arvioija} to Kayttaja
     Opintooikeustiedot{yliopisto} to Yliopisto
+    OsaalueenArviointi{arvioitavaOsaalue} to ArvioitavaOsaalue
+    Suoritusarviointi{arvioitavaOsaalue} to EpaOsaamisalue
 }
 relationship ManyToMany {
     PikaviestiKeskustelu{keskustelija} to Kayttaja{keskustelu}

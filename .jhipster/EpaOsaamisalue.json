@@ -1,0 +1,47 @@
+{
+  "name": "EpaOsaamisalue",
+  "fields": [
+    {
+      "fieldName": "epaTunnus",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "epaNimi",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "kuvaus",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "voimassaoloAlkaa",
+      "fieldType": "LocalDate",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "voimassaoloLoppuu",
+      "fieldType": "LocalDate"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "one-to-many",
+      "otherEntityName": "arvioitavaOsaalue",
+      "otherEntityRelationshipName": "epaOsaamisalue",
+      "relationshipName": "arvioitavaOsaalue"
+    }
+  ],
+  "changelogDate": "20201006135201",
+  "entityTableName": "epa_osaamisalue",
+  "dto": "mapstruct",
+  "pagination": "no",
+  "service": "serviceImpl",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": ["elsaBackend"]
+}

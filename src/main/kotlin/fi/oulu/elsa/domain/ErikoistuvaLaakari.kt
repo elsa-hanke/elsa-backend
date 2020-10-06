@@ -18,6 +18,7 @@ data class ErikoistuvaLaakari(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
+
     @get: NotNull
     @Column(name = "puhelinnumero", nullable = false)
     var puhelinnumero: String? = null,
