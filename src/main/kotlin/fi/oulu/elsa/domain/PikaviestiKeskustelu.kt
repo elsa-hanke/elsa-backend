@@ -16,6 +16,7 @@ data class PikaviestiKeskustelu(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
+
     @Column(name = "aihe")
     var aihe: String? = null,
 

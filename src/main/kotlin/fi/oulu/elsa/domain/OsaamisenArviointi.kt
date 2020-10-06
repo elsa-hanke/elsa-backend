@@ -18,6 +18,7 @@ data class OsaamisenArviointi(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
+
     @Column(name = "tunnus")
     var tunnus: String? = null,
 

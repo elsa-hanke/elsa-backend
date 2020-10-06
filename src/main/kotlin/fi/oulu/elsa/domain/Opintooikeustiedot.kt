@@ -18,6 +18,7 @@ data class Opintooikeustiedot(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
+
     @Column(name = "voimassaolo_alkaa")
     var voimassaoloAlkaa: LocalDate? = null,
 
