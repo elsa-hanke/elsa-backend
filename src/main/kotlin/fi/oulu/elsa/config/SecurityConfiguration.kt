@@ -44,6 +44,9 @@ class SecurityConfiguration(
     @Value("\${spring.security.oauth2.client.provider.oidc.issuer-uri}")
     private lateinit var issuerUri: String
 
+    @Value("\${elsa.csrf.cookie.domain}")
+    private lateinit var csrfCookieDomain: String
+
     override fun configure(web: WebSecurity?) {
         web!!.ignoring()
             .antMatchers(HttpMethod.OPTIONS, "/**")
@@ -54,9 +57,11 @@ class SecurityConfiguration(
 
     @Throws(Exception::class)
     public override fun configure(http: HttpSecurity) {
+        val withHttpOnlyFalse = CookieCsrfTokenRepository.withHttpOnlyFalse()
+        withHttpOnlyFalse.setCookieDomain(csrfCookieDomain)
         http
             .csrf()
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .csrfTokenRepository(withHttpOnlyFalse)
             .and()
             .addFilterBefore(corsFilter, CsrfFilter::class.java)
             .exceptionHandling()
