@@ -55,9 +55,11 @@ stages:
         pool:
           vmImage: $(vmImageName)
         steps:
-          - task: AWSCLI@1
+          - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
             inputs:
               awsCredentials: 'elsa-ci'
               regionName: 'eu-west-1'
+              awsCommand: 'ecs'
+              awsSubcommand: 'update-service'
+              awsArguments: '--cluster elsa-dev-cluster --service ecs-dev-backend --force-new-deployment'
             displayName: Force update ecs service
-          - script: aws ecs update-service --cluster elsa-dev-cluster --service ecs-dev-backend --force-new-deployment
