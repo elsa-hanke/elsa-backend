@@ -108,6 +108,13 @@ jhipster:
       queue-size: 512
   audit-events:
     retention-period: 30 # Number of days before audit events are deleted.
+  cors:
+    allowed-origins: 'https://elsapalvelu.fi'
+    allowed-methods: '*'
+    allowed-headers: '*'
+    exposed-headers: '*,Authorization'
+    allow-credentials: true
+    max-age: 1800
 
 # ===================================================================
 # Application specific properties
@@ -118,4 +125,8 @@ jhipster:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
-# application:
+application:
+  elsa:
+    csrf:
+      cookie:
+        domain: 'elsapalvelu.fi'
