@@ -44,7 +44,7 @@ class SecurityConfiguration(
     @Value("\${spring.security.oauth2.client.provider.oidc.issuer-uri}")
     private lateinit var issuerUri: String
 
-    @Value("\${elsa.csrf.cookie.domain}")
+    @Value("\${elsa.csrf.cookie.domain:}")
     private lateinit var csrfCookieDomain: String
 
     override fun configure(web: WebSecurity?) {
