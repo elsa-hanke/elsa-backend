@@ -112,7 +112,7 @@ jhipster:
     allowed-origins: 'https://elsapalvelu.fi'
     allowed-methods: '*'
     allowed-headers: '*'
-    exposed-headers: '*,Authorization'
+    exposed-headers: 'Authorization,Link,X-Total-Count'
     allow-credentials: true
     max-age: 1800
 
