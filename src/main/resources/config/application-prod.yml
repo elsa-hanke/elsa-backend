@@ -126,7 +126,6 @@ jhipster:
 # ===================================================================
 
 application:
-  elsa:
-    csrf:
-      cookie:
-        domain: 'elsapalvelu.fi'
+  csrf:
+    cookie:
+      domain: 'elsapalvelu.fi'
