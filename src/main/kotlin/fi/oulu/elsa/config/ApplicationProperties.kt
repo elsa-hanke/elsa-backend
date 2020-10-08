@@ -9,4 +9,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * See [io.github.jhipster.config.JHipsterProperties] for a good example.
  */
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
-class ApplicationProperties
+class ApplicationProperties {
+    private val csrf = Csrf()
+
+    fun getCsrf(): Csrf {
+        return csrf
+    }
+
+    class Csrf {
+        val cookie = Cookie()
+    }
+
+    class Cookie {
+        var domain: String? = null
+    }
+}

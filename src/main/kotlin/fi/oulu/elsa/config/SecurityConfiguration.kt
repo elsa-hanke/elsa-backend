@@ -38,14 +38,12 @@ import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport
 class SecurityConfiguration(
     private val corsFilter: CorsFilter,
     private val jHipsterProperties: JHipsterProperties,
+    private val applicationProperties: ApplicationProperties,
     private val problemSupport: SecurityProblemSupport
 ) : WebSecurityConfigurerAdapter() {
 
     @Value("\${spring.security.oauth2.client.provider.oidc.issuer-uri}")
     private lateinit var issuerUri: String
-
-    @Value("\${application.csrf.cookie.domain:}")
-    private lateinit var csrfCookieDomain: String
 
     override fun configure(web: WebSecurity?) {
         web!!.ignoring()
@@ -58,7 +56,7 @@ class SecurityConfiguration(
     @Throws(Exception::class)
     public override fun configure(http: HttpSecurity) {
         val withHttpOnlyFalse = CookieCsrfTokenRepository.withHttpOnlyFalse()
-        withHttpOnlyFalse.setCookieDomain(csrfCookieDomain)
+        withHttpOnlyFalse.setCookieDomain(applicationProperties.getCsrf().cookie.domain)
         http
             .csrf()
             .csrfTokenRepository(withHttpOnlyFalse)
