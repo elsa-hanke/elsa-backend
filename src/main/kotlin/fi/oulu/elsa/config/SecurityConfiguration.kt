@@ -93,6 +93,8 @@ class SecurityConfiguration(
             .antMatchers("/management/**").hasAuthority(ADMIN)
             .and()
             .oauth2Login()
+            .defaultSuccessUrl("/", true) // TODO: ohjaa pyydettyyn front end näkymään
+            .failureUrl("/") // TODO: Ohjaa kirjautumiseen tai front end näkymään
             .and()
             .oauth2ResourceServer()
             .jwt()
