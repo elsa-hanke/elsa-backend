@@ -6,7 +6,7 @@
     <!--
         Added the constraints for entity Suoritusarviointi.
     -->
-    <changeSet id="20201006135001-2" author="jhipster">
+    <changeSet id="20201009074133-2" author="jhipster">
         
         <addForeignKeyConstraint baseColumnNames="tyoskentelyjakso_id"
                                  baseTableName="suoritusarviointi"

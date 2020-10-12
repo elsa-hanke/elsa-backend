@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <!--
+        Added the constraints for entity OsaalueenArviointi.
+    -->
+    <changeSet id="20201009074233-2" author="jhipster">
+        
+        <addForeignKeyConstraint baseColumnNames="arvioitava_osaalue_id"
+                                 baseTableName="osaalueen_arviointi"
+                                 constraintName="fk_osaalueen_arviointi_arvioitava_osaalue_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="arvioitava_osaalue"/>
+
+        <addForeignKeyConstraint baseColumnNames="suoritusarviointi_id"
+                                 baseTableName="osaalueen_arviointi"
+                                 constraintName="fk_osaalueen_arviointi_suoritusarviointi_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="suoritusarviointi"/>
+
+    </changeSet>
+</databaseChangeLog>
