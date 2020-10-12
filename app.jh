@@ -6,7 +6,7 @@ application {
     buildTool gradle
     languages [fi, sv, en]
     nativeLanguage fi
-    packageName fi.oulu.elsa
+    packageName fi.elsapalvelu.elsa
     prodDatabaseType postgresql
     skipClient true
   }

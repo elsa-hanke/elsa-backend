@@ -34,7 +34,7 @@ plugins {
     //jhipster-needle-gradle-plugins - JHipster will add additional gradle plugins here
 }
 
-group = "fi.oulu.elsa"
+group = "fi.elsapalvelu.elsa"
 version = "0.0.1-SNAPSHOT"
 
 description = ""
@@ -77,7 +77,7 @@ eclipse {
 defaultTasks "bootRun"
 
 springBoot {
-    mainClassName = "fi.oulu.elsa.ElsaBackendApp"
+    mainClassName = "fi.elsapalvelu.elsa.ElsaBackendApp"
 }
 
 test {
@@ -148,7 +148,7 @@ liquibase {
             username "elsaBackend"
             password ""
             changeLogFile project.ext.diffChangelogFile
-            referenceUrl "hibernate:spring:fi.oulu.elsa.domain?dialect=org.hibernate.dialect.H2Dialect&hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
+            referenceUrl "hibernate:spring:fi.elsapalvelu.elsa.domain?dialect=org.hibernate.dialect.H2Dialect&hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
             defaultSchemaName ""
             logLevel "debug"
             classpath "$buildDir/classes/java/main"
