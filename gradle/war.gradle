@@ -1,7 +1,7 @@
 apply plugin: "war"
 
 bootWar {
-    mainClassName = "fi.oulu.elsa.ElsaBackendApp"
+    mainClassName = "fi.elsapalvelu.elsa.ElsaBackendApp"
     includes = ["WEB-INF/**", "META-INF/**"]
 }
 
