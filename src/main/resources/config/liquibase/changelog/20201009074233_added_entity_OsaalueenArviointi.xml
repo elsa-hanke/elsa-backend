@@ -8,33 +8,27 @@
 
     
     <!--
-        Added the entity EpaOsaamisalue.
+        Added the entity OsaalueenArviointi.
     -->
-    <changeSet id="20201006135201-1" author="jhipster">
-        <createTable tableName="epa_osaamisalue">
+    <changeSet id="20201009074233-1" author="jhipster">
+        <createTable tableName="osaalueen_arviointi">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="epa_tunnus" type="varchar(255)">
-                <constraints nullable="false" />
-            </column>
-            <column name="epa_nimi" type="varchar(255)">
-                <constraints nullable="false" />
-            </column>
-            <column name="kuvaus" type="varchar(255)">
+            <column name="arvio" type="integer">
                 <constraints nullable="true" />
             </column>
-            <column name="voimassaolo_alkaa" type="date">
-                <constraints nullable="false" />
+            <column name="arvioitava_osaalue_id" type="bigint">
+                <constraints nullable="true" />
             </column>
-            <column name="voimassaolo_loppuu" type="date">
+            <column name="suoritusarviointi_id" type="bigint">
                 <constraints nullable="true" />
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
     </changeSet>
 
-    <changeSet id="20201006135201-1-relations" author="jhipster">
+    <changeSet id="20201009074233-1-relations" author="jhipster">
 
     </changeSet>
     <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here -->
@@ -47,17 +41,13 @@
           This can be customized by adding or removing 'faker' in the 'spring.liquibase.contexts'
           Spring Boot configuration key.
     -->
-    <changeSet id="20201006135201-1-data" author="jhipster" context="faker">
+    <changeSet id="20201009074233-1-data" author="jhipster" context="faker">
         <loadData
-                  file="config/liquibase/fake-data/epa_osaamisalue.csv"
+                  file="config/liquibase/fake-data/osaalueen_arviointi.csv"
                   separator=";"
-                  tableName="epa_osaamisalue">
+                  tableName="osaalueen_arviointi">
             <column name="id" type="numeric"/>
-            <column name="epa_tunnus" type="string"/>
-            <column name="epa_nimi" type="string"/>
-            <column name="kuvaus" type="string"/>
-            <column name="voimassaolo_alkaa" type="date"/>
-            <column name="voimassaolo_loppuu" type="date"/>
+            <column name="arvio" type="numeric"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>
     </changeSet>
