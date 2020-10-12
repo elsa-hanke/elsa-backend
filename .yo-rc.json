@@ -23,7 +23,7 @@
     "testFrameworks": [],
     "websocket": false,
     "applicationType": "monolith",
-    "packageName": "fi.oulu.elsa",
+    "packageName": "fi.elsapalvelu.elsa",
     "packageFolder": "fi/oulu/elsa",
     "jhipsterVersion": "6.10.1",
     "creationTimestamp": 1600850040286,

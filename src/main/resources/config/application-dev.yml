@@ -17,7 +17,7 @@ logging:
   level:
     ROOT: DEBUG
     io.github.jhipster: DEBUG
-    fi.oulu.elsa: DEBUG
+    fi.elsapalvelu.elsa: DEBUG
 
 spring:
   profiles:
