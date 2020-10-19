@@ -51,15 +51,15 @@ class TyoskentelyjaksoServiceImpl(
     }
 
     /**
-     *  Get all the tyoskentelyjaksos where Arviointi is `null`.
+     *  Get all the tyoskentelyjaksos where Suoritusarviointi is `null`.
      *  @return the list of entities.
      */
     @Transactional(readOnly = true)
-    override fun findAllWhereArviointiIsNull(): MutableList<TyoskentelyjaksoDTO> {
-        log.debug("Request to get all tyoskentelyjaksos where Arviointi is null")
+    override fun findAllWhereSuoritusarviointiIsNull(): MutableList<TyoskentelyjaksoDTO> {
+        log.debug("Request to get all tyoskentelyjaksos where Suoritusarviointi is null")
         return tyoskentelyjaksoRepository.findAll()
             .asSequence()
-            .filter { it.arviointi == null }
+            .filter { it.suoritusarviointi == null }
             .mapTo(mutableListOf()) { tyoskentelyjaksoMapper.toDto(it) }
     }
 
