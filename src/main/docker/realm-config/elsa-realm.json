@@ -41,6 +41,14 @@
   "roles": {
     "realm": [
       {
+        "id": "81c0ae02-3831-423f-b60d-71c12cb46c32",
+        "name": "ROLE_TEKNINEN_PAAKAYTTAJA",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "elsa",
+        "attributes": {}
+      },
+      {
         "id": "a2350d85-938e-440c-847c-35086fe0f1d8",
         "name": "ROLE_ADMIN",
         "description": "ELSA administrator role",
@@ -50,9 +58,57 @@
         "attributes": {}
       },
       {
+        "id": "7c3342d4-7eea-4353-b245-b5488a7febd1",
+        "name": "ROLE_KOULUTUSDEKAANI",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "elsa",
+        "attributes": {}
+      },
+      {
+        "id": "ff56d987-ff63-416f-b4da-9a4e7f889b20",
+        "name": "ROLE_LAHIKOULUTTAJA",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "elsa",
+        "attributes": {}
+      },
+      {
+        "id": "5ac6518d-4286-4eae-a27f-f24da82916b4",
+        "name": "ROLE_KOULUTTAJA",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "elsa",
+        "attributes": {}
+      },
+      {
         "id": "932ca70d-a311-42f9-9042-431cef835b9e",
         "name": "offline_access",
         "description": "${role_offline-access}",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "elsa",
+        "attributes": {}
+      },
+      {
+        "id": "91ecdc11-1889-4f1d-bb63-108faa4a9a80",
+        "name": "ROLE_PALVELUJARJESTELMAN_VIRKAILIJA",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "elsa",
+        "attributes": {}
+      },
+      {
+        "id": "55b8efe5-2e5f-40a1-9d90-cb9268de8b99",
+        "name": "ROLE_PAAKAYTTAJA",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "elsa",
+        "attributes": {}
+      },
+      {
+        "id": "edbee9ce-47cd-4857-b1e5-3b0c05ef27e6",
+        "name": "ROLE_ERIKOISTUVA_LAAKARI",
         "composite": false,
         "clientRole": false,
         "containerId": "elsa",
@@ -71,6 +127,22 @@
         "id": "96c0124c-0f00-4769-8cd3-f7dfd74a0af3",
         "name": "uma_authorization",
         "description": "${role_uma_authorization}",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "elsa",
+        "attributes": {}
+      },
+      {
+        "id": "866297e7-2b3d-4132-b054-145b2277958e",
+        "name": "ROLE_OPINTOHALLINNON_VIRKAILIJA",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "elsa",
+        "attributes": {}
+      },
+      {
+        "id": "87edb8de-da96-43c4-96bf-bd1624646f60",
+        "name": "ROLE_VASTUUHENKILO",
         "composite": false,
         "clientRole": false,
         "containerId": "elsa",
@@ -389,11 +461,92 @@
       "subGroups": []
     },
     {
+      "id": "be2c05c3-424e-4fd0-84ff-a3e9fdd1f0db",
+      "name": "Erikoistuvat lääkärit",
+      "path": "/Erikoistuvat lääkärit",
+      "attributes": {},
+      "realmRoles": ["ROLE_ERIKOISTUVA_LAAKARI"],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "id": "73635390-b3dc-41b9-a20a-8f589261696e",
+      "name": "Kouluttajat",
+      "path": "/Kouluttajat",
+      "attributes": {},
+      "realmRoles": ["ROLE_LAHIKOULUTTAJA", "ROLE_KOULUTTAJA"],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "id": "925ea9e5-e7b0-4179-8db9-9c3acc1ec6cd",
+      "name": "Koulutusdekaanit",
+      "path": "/Koulutusdekaanit",
+      "attributes": {},
+      "realmRoles": ["ROLE_KOULUTUSDEKAANI", "ROLE_LAHIKOULUTTAJA", "ROLE_KOULUTTAJA", "ROLE_VASTUUHENKILO"],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "id": "07133113-cdc4-4221-9f7c-50e56649347c",
+      "name": "Lähikouluttajat",
+      "path": "/Lähikouluttajat",
+      "attributes": {},
+      "realmRoles": ["ROLE_LAHIKOULUTTAJA"],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "id": "0aeb3de3-9b27-4e34-badf-c53c5c0ca15e",
+      "name": "Opintohallinnon virkailijat",
+      "path": "/Opintohallinnon virkailijat",
+      "attributes": {},
+      "realmRoles": ["ROLE_PALVELUJARJESTELMAN_VIRKAILIJA", "ROLE_OPINTOHALLINNON_VIRKAILIJA"],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "id": "d4ce298d-9f5b-4cc7-8aa6-a1fa51c70560",
+      "name": "Palvelujärjestelmän virkailijat",
+      "path": "/Palvelujärjestelmän virkailijat",
+      "attributes": {},
+      "realmRoles": ["ROLE_PALVELUJARJESTELMAN_VIRKAILIJA"],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "id": "c7f1e057-097a-4812-8b2d-c921ccef1868",
+      "name": "Pääkäyttäjät",
+      "path": "/Pääkäyttäjät",
+      "attributes": {},
+      "realmRoles": ["ROLE_PAAKAYTTAJA"],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "id": "a858aaa1-7f8c-400e-a424-adaae794f32e",
+      "name": "Tekniset pääkäyttäjät",
+      "path": "/Tekniset pääkäyttäjät",
+      "attributes": {},
+      "realmRoles": ["ROLE_TEKNINEN_PAAKAYTTAJA", "ROLE_PAAKAYTTAJA"],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
       "id": "ab0947d8-3b91-42a0-81e7-953a3c207316",
       "name": "Users",
       "path": "/Users",
       "attributes": {},
       "realmRoles": ["ROLE_USER"],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "id": "3dbad20e-5b31-4c56-88d2-0917659d01e4",
+      "name": "Vastuuhenkilöt",
+      "path": "/Vastuuhenkilöt",
+      "attributes": {},
+      "realmRoles": ["ROLE_LAHIKOULUTTAJA", "ROLE_KOULUTTAJA", "ROLE_VASTUUHENKILO"],
       "clientRoles": {},
       "subGroups": []
     }

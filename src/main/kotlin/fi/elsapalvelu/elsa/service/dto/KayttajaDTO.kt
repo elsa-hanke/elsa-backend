@@ -32,4 +32,12 @@ data class KayttajaDTO(
     }
 
     override fun hashCode() = 31
+
+    override fun toString() = "KayttajaDTO{" +
+        "id=$id" +
+        ", nimi='$nimi'" +
+        ", profiilikuva='?'" +
+        ", profiilikuvaContentType='$profiilikuvaContentType'" +
+        ", kieli='$kieli'" +
+        "}"
 }
