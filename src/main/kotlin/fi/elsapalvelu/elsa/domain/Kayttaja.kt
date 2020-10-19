@@ -71,7 +71,7 @@ data class Kayttaja(
     override fun toString() = "Kayttaja{" +
         "id=$id" +
         ", nimi='$nimi'" +
-        ", profiilikuva='$profiilikuva'" +
+        ", profiilikuva='?'" +
         ", profiilikuvaContentType='$profiilikuvaContentType'" +
         ", kieli='$kieli'" +
         "}"
