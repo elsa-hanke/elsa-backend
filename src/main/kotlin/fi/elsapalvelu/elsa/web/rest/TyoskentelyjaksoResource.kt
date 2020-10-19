@@ -82,6 +82,7 @@ class TyoskentelyjaksoResource(
             )
             .body(result)
     }
+
     /**
      * `GET  /tyoskentelyjaksos` : get all the tyoskentelyjaksos.
      *
@@ -95,9 +96,9 @@ class TyoskentelyjaksoResource(
             log.debug("REST request to get all Tyoskentelyjaksos where tyoskentelypaikka is null")
             return tyoskentelyjaksoService.findAllWhereTyoskentelypaikkaIsNull()
         }
-        if ("arviointi-is-null".equals(filter)) {
-            log.debug("REST request to get all Tyoskentelyjaksos where arviointi is null")
-            return tyoskentelyjaksoService.findAllWhereArviointiIsNull()
+        if ("suoritusarviointi-is-null".equals(filter)) {
+            log.debug("REST request to get all Tyoskentelyjaksos where suoritusarviointi is null")
+            return tyoskentelyjaksoService.findAllWhereSuoritusarviointiIsNull()
         }
         log.debug("REST request to get all Tyoskentelyjaksos")
 
@@ -117,6 +118,7 @@ class TyoskentelyjaksoResource(
         val tyoskentelyjaksoDTO = tyoskentelyjaksoService.findOne(id)
         return ResponseUtil.wrapOrNotFound(tyoskentelyjaksoDTO)
     }
+
     /**
      *  `DELETE  /tyoskentelyjaksos/:id` : delete the "id" tyoskentelyjakso.
      *

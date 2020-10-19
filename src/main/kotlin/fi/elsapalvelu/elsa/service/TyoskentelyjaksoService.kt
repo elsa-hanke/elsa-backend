@@ -21,18 +21,20 @@ interface TyoskentelyjaksoService {
      * @return the list of entities.
      */
     fun findAll(): MutableList<TyoskentelyjaksoDTO>
+
     /**
      * Get all the [TyoskentelyjaksoDTO] where Tyoskentelypaikka is `null`.
      *
      * @return the {@link MutableList} of entities.
      */
     fun findAllWhereTyoskentelypaikkaIsNull(): MutableList<TyoskentelyjaksoDTO>
+
     /**
-     * Get all the [TyoskentelyjaksoDTO] where Arviointi is `null`.
+     * Get all the [TyoskentelyjaksoDTO] where Suoritusarviointi is `null`.
      *
      * @return the {@link MutableList} of entities.
      */
-    fun findAllWhereArviointiIsNull(): MutableList<TyoskentelyjaksoDTO>
+    fun findAllWhereSuoritusarviointiIsNull(): MutableList<TyoskentelyjaksoDTO>
 
     /**
      * Get the "id" tyoskentelyjakso.

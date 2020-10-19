@@ -20,7 +20,7 @@ interface TyoskentelyjaksoMapper :
 
     @Mappings(
         Mapping(target = "tyoskentelypaikka", ignore = true),
-        Mapping(target = "arviointi", ignore = true),
+        Mapping(target = "suoritusarviointi", ignore = true),
         Mapping(source = "erikoistuvaLaakariId", target = "erikoistuvaLaakari")
     )
     override fun toEntity(tyoskentelyjaksoDTO: TyoskentelyjaksoDTO): Tyoskentelyjakso
