@@ -40,7 +40,7 @@ data class Tyoskentelyjakso(
 
     @OneToOne(mappedBy = "tyoskentelyjakso")
     @JsonIgnore
-    var arviointi: OsaamisenArviointi? = null,
+    var suoritusarviointi: Suoritusarviointi? = null,
 
     @ManyToOne @JsonIgnoreProperties(value = ["tyoskentelyjaksos"], allowSetters = true)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null

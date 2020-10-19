@@ -27,9 +27,9 @@
     },
     {
       "relationshipType": "one-to-one",
-      "otherEntityName": "osaamisenArviointi",
+      "otherEntityName": "suoritusarviointi",
       "otherEntityRelationshipName": "tyoskentelyjakso",
-      "relationshipName": "arviointi",
+      "relationshipName": "suoritusarviointi",
       "ownerSide": false
     },
     {

@@ -51,4 +51,5 @@
     <include file="config/liquibase/changelog/20201009074433_added_entity_constraints_ArvioitavaOsaalue.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
+    <include file="config/liquibase/changelog/20201019084007_deleted_unused_entities.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
