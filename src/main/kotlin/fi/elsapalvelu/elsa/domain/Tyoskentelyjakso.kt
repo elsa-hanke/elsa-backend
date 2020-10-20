@@ -9,9 +9,6 @@ import java.time.LocalDate
 import javax.persistence.*
 import javax.validation.constraints.*
 
-/**
- * A Tyoskentelyjakso.
- */
 @Entity
 @Table(name = "tyoskentelyjakso")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -34,19 +31,31 @@ data class Tyoskentelyjakso(
     @Column(name = "paattymispaiva")
     var paattymispaiva: LocalDate? = null,
 
-    @OneToOne(mappedBy = "tyoskentelyjakso")
-    @JsonIgnore
-    var tyoskentelypaikka: Tyoskentelypaikka? = null,
+    @OneToMany(mappedBy = "tyoskentelyjakso")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    var suoritusarvioinnit: MutableSet<Suoritusarviointi> = mutableSetOf(),
 
     @OneToOne(mappedBy = "tyoskentelyjakso")
     @JsonIgnore
-    var suoritusarviointi: Suoritusarviointi? = null,
+    var tyoskentelypaikka: Tyoskentelypaikka? = null,
 
     @ManyToOne @JsonIgnoreProperties(value = ["tyoskentelyjaksos"], allowSetters = true)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 ) : Serializable {
+
+    fun addSuoritusarviointi(suoritusarviointi: Suoritusarviointi): Tyoskentelyjakso {
+        this.suoritusarvioinnit.add(suoritusarviointi)
+        suoritusarviointi.tyoskentelyjakso = this
+        return this
+    }
+
+    fun removeSuoritusarviointi(suoritusarviointi: Suoritusarviointi): Tyoskentelyjakso {
+        this.suoritusarvioinnit.remove(suoritusarviointi)
+        suoritusarviointi.tyoskentelyjakso = null
+        return this
+    }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     override fun equals(other: Any?): Boolean {

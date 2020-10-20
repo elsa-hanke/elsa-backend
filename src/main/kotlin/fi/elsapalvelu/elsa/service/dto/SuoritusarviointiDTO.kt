@@ -26,13 +26,13 @@ data class SuoritusarviointiDTO(
 
     var arviointiAika: LocalDate? = null,
 
-    var tyoskentelyjaksoId: Long? = null,
-
     var arvioitavaId: Long? = null,
 
     var arvioijaId: Long? = null,
 
-    var arvioitavaOsaalueId: Long? = null
+    var arvioitavaOsaalueId: Long? = null,
+
+    var tyoskentelyjaksoId: Long? = null
 
 ) : Serializable {
 

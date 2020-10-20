@@ -1,42 +1,37 @@
 package fi.elsapalvelu.elsa.web.rest
 
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
+import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
+import io.github.jhipster.web.util.PaginationUtil
 import io.github.jhipster.web.util.ResponseUtil
 import java.net.URI
-import java.net.URISyntaxException
 import javax.validation.Valid
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
+import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder
+import java.security.Principal
 
 private const val ENTITY_NAME = "suoritusarviointi"
-/**
- * REST controller for managing [fi.elsapalvelu.elsa.domain.Suoritusarviointi].
- */
+
 @RestController
 @RequestMapping("/api")
 class SuoritusarviointiResource(
-    private val suoritusarviointiService: SuoritusarviointiService
+    private val suoritusarviointiService: SuoritusarviointiService,
+    private val userService: UserService
 ) {
-
-    private val log = LoggerFactory.getLogger(javaClass)
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 
-    /**
-     * `POST  /suoritusarviointis` : Create a new suoritusarviointi.
-     *
-     * @param suoritusarviointiDTO the suoritusarviointiDTO to create.
-     * @return the [ResponseEntity] with status `201 (Created)` and with body the new suoritusarviointiDTO, or with status `400 (Bad Request)` if the suoritusarviointi has already an ID.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
-     */
-    @PostMapping("/suoritusarviointis")
-    fun createSuoritusarviointi(@Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO): ResponseEntity<SuoritusarviointiDTO> {
-        log.debug("REST request to save Suoritusarviointi : $suoritusarviointiDTO")
+    @PostMapping("/suoritusarvioinnit")
+    fun createSuoritusarviointi(
+        @Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO
+    ): ResponseEntity<SuoritusarviointiDTO> {
         if (suoritusarviointiDTO.id != null) {
             throw BadRequestAlertException(
                 "A new suoritusarviointi cannot already have an ID",
@@ -44,23 +39,15 @@ class SuoritusarviointiResource(
             )
         }
         val result = suoritusarviointiService.save(suoritusarviointiDTO)
-        return ResponseEntity.created(URI("/api/suoritusarviointis/${result.id}"))
+        return ResponseEntity.created(URI("/api/suoritusarvioinnit/${result.id}"))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString()))
             .body(result)
     }
 
-    /**
-     * `PUT  /suoritusarviointis` : Updates an existing suoritusarviointi.
-     *
-     * @param suoritusarviointiDTO the suoritusarviointiDTO to update.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the updated suoritusarviointiDTO,
-     * or with status `400 (Bad Request)` if the suoritusarviointiDTO is not valid,
-     * or with status `500 (Internal Server Error)` if the suoritusarviointiDTO couldn't be updated.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
-     */
-    @PutMapping("/suoritusarviointis")
-    fun updateSuoritusarviointi(@Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO): ResponseEntity<SuoritusarviointiDTO> {
-        log.debug("REST request to update Suoritusarviointi : $suoritusarviointiDTO")
+    @PutMapping("/suoritusarvioinnit")
+    fun updateSuoritusarviointi(
+        @Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO
+    ): ResponseEntity<SuoritusarviointiDTO> {
         if (suoritusarviointiDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
         }
@@ -74,43 +61,55 @@ class SuoritusarviointiResource(
             )
             .body(result)
     }
-    /**
-     * `GET  /suoritusarviointis` : get all the suoritusarviointis.
-     *
 
-     * @return the [ResponseEntity] with status `200 (OK)` and the list of suoritusarviointis in body.
-     */
-    @GetMapping("/suoritusarviointis")
-    fun getAllSuoritusarviointis(): MutableList<SuoritusarviointiDTO> {
-        log.debug("REST request to get all Suoritusarviointis")
+    @GetMapping("/suoritusarvioinnit")
+    fun getAllSuoritusarvioinnit(
+        pageable: Pageable
+    ): ResponseEntity<List<SuoritusarviointiDTO>> {
+        val page = suoritusarviointiService.findAll(pageable)
+        val headers = PaginationUtil
+            .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
+        return ResponseEntity.ok().headers(headers).body(page.content)
+    }
 
-        return suoritusarviointiService.findAll()
-            }
+    @GetMapping("/suoritusarvioinnit/omat")
+    fun getAllSuoritusarvioinnit(
+        principal: Principal?,
+        pageable: Pageable
+    ): ResponseEntity<List<SuoritusarviointiDTO>> {
+        if (principal is AbstractAuthenticationToken) {
+            val userId = userService.getUserFromAuthentication(principal).id!! // id on olemassa aina
+            val page = suoritusarviointiService.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+                userId,
+                pageable
+            )
+            val headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
+            return ResponseEntity.ok().headers(headers).body(page.content)
+        } else {
+            throw AccountResource.AccountResourceException("User could not be found")
+        }
+    }
 
-    /**
-     * `GET  /suoritusarviointis/:id` : get the "id" suoritusarviointi.
-     *
-     * @param id the id of the suoritusarviointiDTO to retrieve.
-     * @return the [ResponseEntity] with status `200 (OK)` and with body the suoritusarviointiDTO, or with status `404 (Not Found)`.
-     */
-    @GetMapping("/suoritusarviointis/{id}")
-    fun getSuoritusarviointi(@PathVariable id: Long): ResponseEntity<SuoritusarviointiDTO> {
-        log.debug("REST request to get Suoritusarviointi : $id")
+    @GetMapping("/suoritusarvioinnit/{id}")
+    fun getSuoritusarviointi(
+        @PathVariable id: Long
+    ): ResponseEntity<SuoritusarviointiDTO> {
         val suoritusarviointiDTO = suoritusarviointiService.findOne(id)
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
     }
-    /**
-     *  `DELETE  /suoritusarviointis/:id` : delete the "id" suoritusarviointi.
-     *
-     * @param id the id of the suoritusarviointiDTO to delete.
-     * @return the [ResponseEntity] with status `204 (NO_CONTENT)`.
-     */
-    @DeleteMapping("/suoritusarviointis/{id}")
-    fun deleteSuoritusarviointi(@PathVariable id: Long): ResponseEntity<Void> {
-        log.debug("REST request to delete Suoritusarviointi : $id")
 
+    @DeleteMapping("/suoritusarvioinnit/{id}")
+    fun deleteSuoritusarviointi(
+        @PathVariable id: Long
+    ): ResponseEntity<Void> {
         suoritusarviointiService.delete(id)
             return ResponseEntity.noContent()
-                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build()
+                .headers(HeaderUtil.createEntityDeletionAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    id.toString()
+                )).build()
     }
 }

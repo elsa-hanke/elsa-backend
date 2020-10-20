@@ -1,11 +1,4 @@
 id;tapahtuman_ajankohta;arvioitava_tapahtuma;pyynnon_aika;vaativuustaso;sanallinen_arvio;arviointi_aika
-1;2020-10-06;deposit zero defect;2020-10-06;4;ivory;2020-10-05
-2;2020-10-06;composite bandwidth Pataca;2020-10-06;5;engage withdrawal Health;2020-10-06
-3;2020-10-05;e-enable modular HDD;2020-10-05;5;calculate;2020-10-05
-4;2020-10-05;metrics Bacon Jewelery;2020-10-05;4;Unbranded Concrete Towels withdrawal;2020-10-05
-5;2020-10-06;Nuevo Sol Generic;2020-10-06;1;Chilean Peso Unidades de fomento;2020-10-05
-6;2020-10-05;red;2020-10-05;5;Alabama;2020-10-05
-7;2020-10-06;deposit;2020-10-05;5;Small;2020-10-06
-8;2020-10-06;Car demand-driven Virtual;2020-10-05;2;Generic open-source;2020-10-05
-9;2020-10-05;Functionality Washington;2020-10-05;1;Pizza Central back up;2020-10-05
-10;2020-10-05;e-commerce SCSI Incredible Rubber Shirt;2020-10-05;4;turquoise Car microchip;2020-10-05
+1;2020-10-06;Tapahtuma 1;2020-10-06;4;Sanallinen arvio 1;2020-10-05
+2;2020-10-06;Tapahtuma 2;2020-10-06;5;Sanallinen arvio 2;2020-10-06
+3;2020-10-05;Tapahtuma 3;2020-10-05;5;Sanallinen arvio 3;2020-10-05

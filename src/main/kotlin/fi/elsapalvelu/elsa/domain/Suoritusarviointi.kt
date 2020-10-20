@@ -8,9 +8,6 @@ import javax.validation.constraints.*
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 
-/**
- * A Suoritusarviointi.
- */
 @Entity
 @Table(name = "suoritusarviointi")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -40,21 +37,21 @@ data class Suoritusarviointi(
     @Column(name = "arviointi_aika")
     var arviointiAika: LocalDate? = null,
 
-    @OneToOne @JoinColumn(unique = true)
-    var tyoskentelyjakso: Tyoskentelyjakso? = null,
-
     @OneToMany(mappedBy = "suoritusarviointi")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var osaalueenArviointis: MutableSet<OsaalueenArviointi> = mutableSetOf(),
 
-    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarviointis"], allowSetters = true)
+    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     var arvioitava: ErikoistuvaLaakari? = null,
 
-    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarviointis"], allowSetters = true)
+    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     var arvioija: Kayttaja? = null,
 
-    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarviointis"], allowSetters = true)
-    var arvioitavaOsaalue: EpaOsaamisalue? = null
+    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
+    var arvioitavaOsaalue: EpaOsaamisalue? = null,
+
+    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
+    var tyoskentelyjakso: Tyoskentelyjakso? = null
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 ) : Serializable {
