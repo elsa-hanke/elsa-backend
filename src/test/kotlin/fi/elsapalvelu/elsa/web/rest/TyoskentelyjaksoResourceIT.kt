@@ -99,7 +99,7 @@ class TyoskentelyjaksoResourceIT {
         // Create the Tyoskentelyjakso
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
         restTyoskentelyjaksoMockMvc.perform(
-            post("/api/tyoskentelyjaksos")
+            post("/api/tyoskentelyjaksot")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
         ).andExpect(status().isCreated)
@@ -125,7 +125,7 @@ class TyoskentelyjaksoResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restTyoskentelyjaksoMockMvc.perform(
-            post("/api/tyoskentelyjaksos")
+            post("/api/tyoskentelyjaksot")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
         ).andExpect(status().isBadRequest)
@@ -146,7 +146,7 @@ class TyoskentelyjaksoResourceIT {
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
 
         restTyoskentelyjaksoMockMvc.perform(
-            post("/api/tyoskentelyjaksos")
+            post("/api/tyoskentelyjaksot")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
         ).andExpect(status().isBadRequest)
@@ -163,7 +163,7 @@ class TyoskentelyjaksoResourceIT {
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
         // Get all the tyoskentelyjaksoList
-        restTyoskentelyjaksoMockMvc.perform(get("/api/tyoskentelyjaksos?sort=id,desc"))
+        restTyoskentelyjaksoMockMvc.perform(get("/api/tyoskentelyjaksot?sort=id,desc"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(tyoskentelyjakso.id?.toInt())))
@@ -184,7 +184,7 @@ class TyoskentelyjaksoResourceIT {
         assertNotNull(id)
 
         // Get the tyoskentelyjakso
-        restTyoskentelyjaksoMockMvc.perform(get("/api/tyoskentelyjaksos/{id}", id))
+        restTyoskentelyjaksoMockMvc.perform(get("/api/tyoskentelyjaksot/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(tyoskentelyjakso.id?.toInt()))
@@ -223,7 +223,7 @@ class TyoskentelyjaksoResourceIT {
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(updatedTyoskentelyjakso)
 
         restTyoskentelyjaksoMockMvc.perform(
-            put("/api/tyoskentelyjaksos")
+            put("/api/tyoskentelyjaksot")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
         ).andExpect(status().isOk)
@@ -248,7 +248,7 @@ class TyoskentelyjaksoResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restTyoskentelyjaksoMockMvc.perform(
-            put("/api/tyoskentelyjaksos")
+            put("/api/tyoskentelyjaksot")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
         ).andExpect(status().isBadRequest)
@@ -269,7 +269,7 @@ class TyoskentelyjaksoResourceIT {
 
         // Delete the tyoskentelyjakso
         restTyoskentelyjaksoMockMvc.perform(
-            delete("/api/tyoskentelyjaksos/{id}", tyoskentelyjakso.id)
+            delete("/api/tyoskentelyjaksot/{id}", tyoskentelyjakso.id)
                 .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isNoContent)
 
