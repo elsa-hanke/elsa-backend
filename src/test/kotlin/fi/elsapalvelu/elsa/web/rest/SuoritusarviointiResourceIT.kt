@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.Suoritusarviointi
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
+import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import java.time.LocalDate
@@ -55,6 +56,9 @@ class SuoritusarviointiResourceIT {
     private lateinit var suoritusarviointiService: SuoritusarviointiService
 
     @Autowired
+    private lateinit var userService: UserService
+
+    @Autowired
     private lateinit var jacksonMessageConverter: MappingJackson2HttpMessageConverter
 
     @Autowired
@@ -76,7 +80,7 @@ class SuoritusarviointiResourceIT {
     @BeforeEach
     fun setup() {
         MockitoAnnotations.initMocks(this)
-        val suoritusarviointiResource = SuoritusarviointiResource(suoritusarviointiService)
+        val suoritusarviointiResource = SuoritusarviointiResource(suoritusarviointiService, userService)
          this.restSuoritusarviointiMockMvc = MockMvcBuilders.standaloneSetup(suoritusarviointiResource)
              .setCustomArgumentResolvers(pageableArgumentResolver)
              .setControllerAdvice(exceptionTranslator)
@@ -99,7 +103,7 @@ class SuoritusarviointiResourceIT {
         // Create the Suoritusarviointi
         val suoritusarviointiDTO = suoritusarviointiMapper.toDto(suoritusarviointi)
         restSuoritusarviointiMockMvc.perform(
-            post("/api/suoritusarviointis")
+            post("/api/suoritusarvioinnit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(suoritusarviointiDTO))
         ).andExpect(status().isCreated)
@@ -127,7 +131,7 @@ class SuoritusarviointiResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restSuoritusarviointiMockMvc.perform(
-            post("/api/suoritusarviointis")
+            post("/api/suoritusarvioinnit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(suoritusarviointiDTO))
         ).andExpect(status().isBadRequest)
@@ -140,12 +144,12 @@ class SuoritusarviointiResourceIT {
     @Test
     @Transactional
     @Throws(Exception::class)
-    fun getAllSuoritusarviointis() {
+    fun getAllSuoritusarvioinnit() {
         // Initialize the database
         suoritusarviointiRepository.saveAndFlush(suoritusarviointi)
 
         // Get all the suoritusarviointiList
-        restSuoritusarviointiMockMvc.perform(get("/api/suoritusarviointis?sort=id,desc"))
+        restSuoritusarviointiMockMvc.perform(get("/api/suoritusarvioinnit?sort=id,desc"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(suoritusarviointi.id?.toInt())))
@@ -167,7 +171,7 @@ class SuoritusarviointiResourceIT {
         assertNotNull(id)
 
         // Get the suoritusarviointi
-        restSuoritusarviointiMockMvc.perform(get("/api/suoritusarviointis/{id}", id))
+        restSuoritusarviointiMockMvc.perform(get("/api/suoritusarvioinnit/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(suoritusarviointi.id?.toInt()))
@@ -183,7 +187,7 @@ class SuoritusarviointiResourceIT {
     @Throws(Exception::class)
     fun getNonExistingSuoritusarviointi() {
         // Get the suoritusarviointi
-        restSuoritusarviointiMockMvc.perform(get("/api/suoritusarviointis/{id}", Long.MAX_VALUE))
+        restSuoritusarviointiMockMvc.perform(get("/api/suoritusarvioinnit/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
     @Test
@@ -209,7 +213,7 @@ class SuoritusarviointiResourceIT {
         val suoritusarviointiDTO = suoritusarviointiMapper.toDto(updatedSuoritusarviointi)
 
         restSuoritusarviointiMockMvc.perform(
-            put("/api/suoritusarviointis")
+            put("/api/suoritusarvioinnit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(suoritusarviointiDTO))
         ).andExpect(status().isOk)
@@ -236,7 +240,7 @@ class SuoritusarviointiResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restSuoritusarviointiMockMvc.perform(
-            put("/api/suoritusarviointis")
+            put("/api/suoritusarvioinnit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(suoritusarviointiDTO))
         ).andExpect(status().isBadRequest)
@@ -257,7 +261,7 @@ class SuoritusarviointiResourceIT {
 
         // Delete the suoritusarviointi
         restSuoritusarviointiMockMvc.perform(
-            delete("/api/suoritusarviointis/{id}", suoritusarviointi.id)
+            delete("/api/suoritusarvioinnit/{id}", suoritusarviointi.id)
                 .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isNoContent)
 

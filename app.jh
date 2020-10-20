@@ -111,13 +111,13 @@ relationship OneToOne {
     Hops{erikoistuvaLaakari} to ErikoistuvaLaakari{hops}
     Tyoskentelypaikka{tyoskentelyjakso} to Tyoskentelyjakso{tyoskentelypaikka}
     Koejakso{erikoistuvaLaakari} to ErikoistuvaLaakari{koejakso}
-    Suoritusarviointi{tyoskentelyjakso} to Tyoskentelyjakso{suoritusarviointi}
 }
 relationship OneToMany {
     ErikoistuvaLaakari{osoite} to Osoite{erikoistuvaLaakari}
     ErikoistuvaLaakari{tyoskentelyjakso} to Tyoskentelyjakso{erikoistuvaLaakari}
     EpaOsaamisalue{arvioitavaOsaalue} to ArvioitavaOsaalue{epaOsaamisalue}
     Suoritusarviointi{osaalueenArviointi} to OsaalueenArviointi{suoritusarviointi}
+    Tyoskentelyjakso{suoritusarviointi} to Suoritusarviointi{tyoskentelyjakso}
 }
 relationship ManyToOne {
     Pikaviesti{keskustelu} to PikaviestiKeskustelu
@@ -136,3 +136,4 @@ relationship ManyToMany {
 }
 dto all with mapstruct
 service all with serviceImpl
+paginate all with pagination

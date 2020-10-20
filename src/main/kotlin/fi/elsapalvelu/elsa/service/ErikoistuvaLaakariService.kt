@@ -42,6 +42,8 @@ interface ErikoistuvaLaakariService {
      */
     fun findOne(id: Long): Optional<ErikoistuvaLaakariDTO>
 
+    fun findOneByKayttajaUserId(userId: String): Optional<ErikoistuvaLaakariDTO>
+
     /**
      * Delete the "id" erikoistuvaLaakari.
      *
