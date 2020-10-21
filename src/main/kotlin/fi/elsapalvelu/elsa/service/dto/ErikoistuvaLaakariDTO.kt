@@ -5,9 +5,6 @@ import javax.validation.constraints.Max
 import javax.validation.constraints.Min
 import javax.validation.constraints.NotNull
 
-/**
- * A DTO for the [fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari] entity.
- */
 data class ErikoistuvaLaakariDTO(
 
     var id: Long? = null,

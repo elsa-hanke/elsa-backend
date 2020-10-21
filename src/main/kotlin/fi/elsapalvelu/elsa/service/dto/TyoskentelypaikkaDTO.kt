@@ -3,9 +3,6 @@ package fi.elsapalvelu.elsa.service.dto
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import java.io.Serializable
 
-/**
- * A DTO for the [fi.elsapalvelu.elsa.domain.Tyoskentelypaikka] entity.
- */
 data class TyoskentelypaikkaDTO(
 
     var id: Long? = null,
