@@ -5,9 +5,6 @@ import java.time.LocalDate
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
 
-/**
- * A DTO for the [fi.elsapalvelu.elsa.domain.Suoritusarviointi] entity.
- */
 data class SuoritusarviointiDTO(
 
     var id: Long? = null,

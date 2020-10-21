@@ -6,9 +6,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import javax.persistence.*
 
-/**
- * A Tyoskentelypaikka.
- */
 @Entity
 @Table(name = "tyoskentelypaikka")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)

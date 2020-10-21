@@ -4,9 +4,6 @@ import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
 
-/**
- * A DTO for the [fi.elsapalvelu.elsa.domain.Tyoskentelyjakso] entity.
- */
 data class TyoskentelyjaksoDTO(
 
     var id: Long? = null,
