@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.domain.enumeration
 
-enum class CanmedsRooli {
+enum class CanmedsOsaalue {
     AMMATILLISUUS,
     VUOROVAIKUTUSTAIDOT,
     YHTEISTYOTAIDOT,

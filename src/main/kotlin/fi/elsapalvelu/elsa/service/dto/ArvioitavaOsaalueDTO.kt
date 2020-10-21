@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.enumeration.CanmedsRooli
+import fi.elsapalvelu.elsa.domain.enumeration.CanmedsOsaalue
 import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
@@ -29,7 +29,7 @@ data class ArvioitavaOsaalueDTO(
     var voimassaoloLoppuu: LocalDate? = null,
 
     @get: NotNull
-    var rooli: CanmedsRooli? = null,
+    var rooli: CanmedsOsaalue? = null,
 
     var epaOsaamisalueId: Long? = null
 
