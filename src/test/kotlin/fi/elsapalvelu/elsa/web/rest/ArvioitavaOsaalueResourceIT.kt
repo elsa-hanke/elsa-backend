@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.web.rest
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.ArvioitavaOsaalue
-import fi.elsapalvelu.elsa.domain.enumeration.CanmedsRooli
+import fi.elsapalvelu.elsa.domain.enumeration.CanmedsOsaalue
 import fi.elsapalvelu.elsa.repository.ArvioitavaOsaalueRepository
 import fi.elsapalvelu.elsa.service.ArvioitavaOsaalueService
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaOsaalueMapper
@@ -360,8 +360,8 @@ class ArvioitavaOsaalueResourceIT {
         private val DEFAULT_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
-        private val DEFAULT_ROOLI: CanmedsRooli = CanmedsRooli.AMMATILLISUUS
-        private val UPDATED_ROOLI: CanmedsRooli = CanmedsRooli.VUOROVAIKUTUSTAIDOT
+        private val DEFAULT_ROOLI: CanmedsOsaalue = CanmedsOsaalue.AMMATILLISUUS
+        private val UPDATED_ROOLI: CanmedsOsaalue = CanmedsOsaalue.VUOROVAIKUTUSTAIDOT
 
         /**
          * Create an entity for this test.

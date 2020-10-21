@@ -76,7 +76,7 @@ entity ArvioitavaOsaalue {
     arviointikriteerit String
     voimassaoloAlkaa LocalDate
     voimassaoloLoppuu LocalDate
-    rooli CanmedsRooli required
+    rooli CanmedsOsaalue required
 }
 entity Tyoskentelypaikka {
     nimi String
@@ -102,7 +102,7 @@ enum Kieli {
 enum TyoskentelyjaksoTyyppi {
     TERVEYSKESKUS, SAIRAALA, KESKUSSAIRAALA
 }
-enum CanmedsRooli {
+enum CanmedsOsaalue {
     AMMATILLISUUS, VUOROVAIKUTUSTAIDOT, YHTEISTYOTAIDOT, JOHTAMISTAIDOT, TERVEYDEN_JA_HYVINVOINNIN_EDISTAMINEN, OMA_OSAAMINEN_JA_TIEDONHALLINTA, LAAKETIETEELLINEN_OSAAMINEN
 }
 relationship OneToOne {
