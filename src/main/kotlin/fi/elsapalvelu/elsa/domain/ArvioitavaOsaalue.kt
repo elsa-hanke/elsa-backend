@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import fi.elsapalvelu.elsa.domain.enumeration.CanmedsRooli
+import fi.elsapalvelu.elsa.domain.enumeration.CanmedsOsaalue
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
@@ -47,7 +47,7 @@ data class ArvioitavaOsaalue(
     @get: NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "rooli", nullable = false)
-    var rooli: CanmedsRooli? = null,
+    var rooli: CanmedsOsaalue? = null,
 
     @ManyToOne @JsonIgnoreProperties(value = ["arvioitavaOsaalues"], allowSetters = true)
     var epaOsaamisalue: EpaOsaamisalue? = null
