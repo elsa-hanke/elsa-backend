@@ -5,9 +5,6 @@ import java.io.Serializable
 import javax.persistence.Lob
 import javax.validation.constraints.NotNull
 
-/**
- * A DTO for the [fi.elsapalvelu.elsa.domain.Kayttaja] entity.
- */
 data class KayttajaDTO(
 
     var id: Long? = null,

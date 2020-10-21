@@ -8,9 +8,6 @@ import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Pattern
 import javax.validation.constraints.Size
 
-/**
- * A DTO representing a user, with his authorities.
- */
 open class UserDTO(
     var id: String? = null,
 

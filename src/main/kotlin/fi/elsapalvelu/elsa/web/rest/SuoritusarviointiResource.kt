@@ -1,8 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
+import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
+import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiPyyntolomakeDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.PaginationUtil
@@ -23,7 +26,9 @@ private const val ENTITY_NAME = "suoritusarviointi"
 @RequestMapping("/api")
 class SuoritusarviointiResource(
     private val suoritusarviointiService: SuoritusarviointiService,
-    private val userService: UserService
+    private val userService: UserService,
+    private val kayttajaService: KayttajaService,
+    private val tyoskentelyjaksoService: TyoskentelyjaksoService
 ) {
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
@@ -89,6 +94,15 @@ class SuoritusarviointiResource(
         } else {
             throw AccountResource.AccountResourceException("User could not be found")
         }
+    }
+
+    @GetMapping("/suoritusarvioinnit/arviointipyynto-lomake")
+    fun getSuoritusarviointiPyyntolomake(): ResponseEntity<SuoritusarviointiPyyntolomakeDTO> {
+        val suoritusarviointiPyyntolomakeDTO = SuoritusarviointiPyyntolomakeDTO()
+        suoritusarviointiPyyntolomakeDTO.tyoskentelyjaksot = tyoskentelyjaksoService.findAll().toMutableSet()
+        suoritusarviointiPyyntolomakeDTO.kouluttajat = kayttajaService.findAll().toMutableSet()
+
+        return ResponseEntity.ok(suoritusarviointiPyyntolomakeDTO)
     }
 
     @GetMapping("/suoritusarvioinnit/{id}")
