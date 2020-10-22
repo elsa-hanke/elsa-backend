@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
 import java.time.LocalDate
+import javax.persistence.Lob
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
 
@@ -14,6 +15,9 @@ data class SuoritusarviointiDTO(
     var arvioitavaTapahtuma: String? = null,
 
     var pyynnonAika: LocalDate? = null,
+
+    @Lob
+    var lisatiedot: String? = null,
 
     @get: Min(value = 1)
     @get: Max(value = 5)
