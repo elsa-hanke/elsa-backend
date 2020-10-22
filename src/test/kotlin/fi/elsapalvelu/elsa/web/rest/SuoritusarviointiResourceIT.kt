@@ -128,6 +128,7 @@ class SuoritusarviointiResourceIT {
         assertThat(testSuoritusarviointi.tapahtumanAjankohta).isEqualTo(DEFAULT_TAPAHTUMAN_AJANKOHTA)
         assertThat(testSuoritusarviointi.arvioitavaTapahtuma).isEqualTo(DEFAULT_ARVIOITAVA_TAPAHTUMA)
         assertThat(testSuoritusarviointi.pyynnonAika).isEqualTo(DEFAULT_PYYNNON_AIKA)
+        assertThat(testSuoritusarviointi.lisatiedot).isEqualTo(DEFAULT_LISATIEDOT)
         assertThat(testSuoritusarviointi.vaativuustaso).isEqualTo(DEFAULT_VAATIVUUSTASO)
         assertThat(testSuoritusarviointi.sanallinenArvio).isEqualTo(DEFAULT_SANALLINEN_ARVIO)
         assertThat(testSuoritusarviointi.arviointiAika).isEqualTo(DEFAULT_ARVIOINTI_AIKA)
@@ -169,6 +170,7 @@ class SuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.[*].tapahtumanAjankohta").value(hasItem(DEFAULT_TAPAHTUMAN_AJANKOHTA.toString())))
             .andExpect(jsonPath("$.[*].arvioitavaTapahtuma").value(hasItem(DEFAULT_ARVIOITAVA_TAPAHTUMA)))
             .andExpect(jsonPath("$.[*].pyynnonAika").value(hasItem(DEFAULT_PYYNNON_AIKA.toString())))
+            .andExpect(jsonPath("$.[*].lisatiedot").value(hasItem(DEFAULT_LISATIEDOT.toString())))
             .andExpect(jsonPath("$.[*].vaativuustaso").value(hasItem(DEFAULT_VAATIVUUSTASO)))
             .andExpect(jsonPath("$.[*].sanallinenArvio").value(hasItem(DEFAULT_SANALLINEN_ARVIO)))
             .andExpect(jsonPath("$.[*].arviointiAika").value(hasItem(DEFAULT_ARVIOINTI_AIKA.toString()))) }
@@ -191,6 +193,7 @@ class SuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.tapahtumanAjankohta").value(DEFAULT_TAPAHTUMAN_AJANKOHTA.toString()))
             .andExpect(jsonPath("$.arvioitavaTapahtuma").value(DEFAULT_ARVIOITAVA_TAPAHTUMA))
             .andExpect(jsonPath("$.pyynnonAika").value(DEFAULT_PYYNNON_AIKA.toString()))
+            .andExpect(jsonPath("$.lisatiedot").value(DEFAULT_LISATIEDOT.toString()))
             .andExpect(jsonPath("$.vaativuustaso").value(DEFAULT_VAATIVUUSTASO))
             .andExpect(jsonPath("$.sanallinenArvio").value(DEFAULT_SANALLINEN_ARVIO))
             .andExpect(jsonPath("$.arviointiAika").value(DEFAULT_ARVIOINTI_AIKA.toString())) }
@@ -220,6 +223,7 @@ class SuoritusarviointiResourceIT {
         updatedSuoritusarviointi.tapahtumanAjankohta = UPDATED_TAPAHTUMAN_AJANKOHTA
         updatedSuoritusarviointi.arvioitavaTapahtuma = UPDATED_ARVIOITAVA_TAPAHTUMA
         updatedSuoritusarviointi.pyynnonAika = UPDATED_PYYNNON_AIKA
+        updatedSuoritusarviointi.lisatiedot = UPDATED_LISATIEDOT
         updatedSuoritusarviointi.vaativuustaso = UPDATED_VAATIVUUSTASO
         updatedSuoritusarviointi.sanallinenArvio = UPDATED_SANALLINEN_ARVIO
         updatedSuoritusarviointi.arviointiAika = UPDATED_ARVIOINTI_AIKA
@@ -238,6 +242,7 @@ class SuoritusarviointiResourceIT {
         assertThat(testSuoritusarviointi.tapahtumanAjankohta).isEqualTo(UPDATED_TAPAHTUMAN_AJANKOHTA)
         assertThat(testSuoritusarviointi.arvioitavaTapahtuma).isEqualTo(UPDATED_ARVIOITAVA_TAPAHTUMA)
         assertThat(testSuoritusarviointi.pyynnonAika).isEqualTo(UPDATED_PYYNNON_AIKA)
+        assertThat(testSuoritusarviointi.lisatiedot).isEqualTo(UPDATED_LISATIEDOT)
         assertThat(testSuoritusarviointi.vaativuustaso).isEqualTo(UPDATED_VAATIVUUSTASO)
         assertThat(testSuoritusarviointi.sanallinenArvio).isEqualTo(UPDATED_SANALLINEN_ARVIO)
         assertThat(testSuoritusarviointi.arviointiAika).isEqualTo(UPDATED_ARVIOINTI_AIKA)
@@ -294,6 +299,9 @@ class SuoritusarviointiResourceIT {
         private val DEFAULT_PYYNNON_AIKA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_PYYNNON_AIKA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
+        private const val DEFAULT_LISATIEDOT = "AAAAAAAAAA"
+        private const val UPDATED_LISATIEDOT = "BBBBBBBBBB"
+
         private const val DEFAULT_VAATIVUUSTASO: Int = 1
         private const val UPDATED_VAATIVUUSTASO: Int = 2
 
@@ -335,6 +343,7 @@ class SuoritusarviointiResourceIT {
                 tapahtumanAjankohta = UPDATED_TAPAHTUMAN_AJANKOHTA,
                 arvioitavaTapahtuma = UPDATED_ARVIOITAVA_TAPAHTUMA,
                 pyynnonAika = UPDATED_PYYNNON_AIKA,
+                lisatiedot = UPDATED_LISATIEDOT,
                 vaativuustaso = UPDATED_VAATIVUUSTASO,
                 sanallinenArvio = UPDATED_SANALLINEN_ARVIO,
                 arviointiAika = UPDATED_ARVIOINTI_AIKA

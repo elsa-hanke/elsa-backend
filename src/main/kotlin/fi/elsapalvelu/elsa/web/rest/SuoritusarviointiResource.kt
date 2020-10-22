@@ -19,6 +19,8 @@ import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.security.Principal
+import java.time.LocalDate
+import java.time.ZoneId
 
 private const val ENTITY_NAME = "suoritusarviointi"
 
@@ -77,6 +79,29 @@ class SuoritusarviointiResource(
         return ResponseEntity.ok().headers(headers).body(page.content)
     }
 
+    @GetMapping("/suoritusarvioinnit/{id}")
+    fun getSuoritusarviointi(
+        @PathVariable id: Long
+    ): ResponseEntity<SuoritusarviointiDTO> {
+        val suoritusarviointiDTO = suoritusarviointiService.findOne(id)
+        return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
+    }
+
+    @DeleteMapping("/suoritusarvioinnit/{id}")
+    fun deleteSuoritusarviointi(
+        @PathVariable id: Long
+    ): ResponseEntity<Void> {
+        suoritusarviointiService.delete(id)
+            return ResponseEntity.noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    id.toString()
+                )).build()
+    }
+
+
     @GetMapping("/suoritusarvioinnit/omat")
     fun getAllSuoritusarvioinnit(
         principal: Principal?,
@@ -105,25 +130,39 @@ class SuoritusarviointiResource(
         return ResponseEntity.ok(suoritusarviointiPyyntolomakeDTO)
     }
 
-    @GetMapping("/suoritusarvioinnit/{id}")
-    fun getSuoritusarviointi(
-        @PathVariable id: Long
+    @PostMapping("/suoritusarvioinnit/arviointipyynto")
+    fun createArviointipyynto(
+        @Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO
     ): ResponseEntity<SuoritusarviointiDTO> {
-        val suoritusarviointiDTO = suoritusarviointiService.findOne(id)
-        return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
-    }
+        if (suoritusarviointiDTO.id != null) {
+            throw BadRequestAlertException(
+                "Uusi arviointipyyntö ei saa sisältää ID:tä",
+                ENTITY_NAME, "idexists"
+            )
+        }
+        if (suoritusarviointiDTO.vaativuustaso != null) {
+            throw BadRequestAlertException(
+                "Uusi arviointipyyntö ei saa sisältää vaativuustasoa. Kouluttaja määrittelee sen.",
+                ENTITY_NAME, "dataillegal"
+            )
+        }
+        if (suoritusarviointiDTO.sanallinenArvio != null) {
+            throw BadRequestAlertException(
+                "Uusi arviointipyyntö ei saa sisältää sanallista arviointi. Kouluttaja määrittelee sen.",
+                ENTITY_NAME, "dataillegal"
+            )
+        }
+        if (suoritusarviointiDTO.arviointiAika != null) {
+            throw BadRequestAlertException(
+                "Uusi arviointipyyntö ei saa sisältää arvioinnin aikaa. Kouluttaja määrittelee sen.",
+                ENTITY_NAME, "dataillegal"
+            )
+        }
+        suoritusarviointiDTO.pyynnonAika = LocalDate.now(ZoneId.systemDefault()) // Todo: tarkista aikavyöhyke
 
-    @DeleteMapping("/suoritusarvioinnit/{id}")
-    fun deleteSuoritusarviointi(
-        @PathVariable id: Long
-    ): ResponseEntity<Void> {
-        suoritusarviointiService.delete(id)
-            return ResponseEntity.noContent()
-                .headers(HeaderUtil.createEntityDeletionAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    id.toString()
-                )).build()
+        val result = suoritusarviointiService.save(suoritusarviointiDTO)
+        return ResponseEntity.created(URI("/api/suoritusarvioinnit/${result.id}"))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString()))
+            .body(result)
     }
 }
