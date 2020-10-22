@@ -3,15 +3,13 @@ package fi.elsapalvelu.elsa.service.mapper
 import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.service.dto.ErikoisalaDTO
 import org.mapstruct.Mapper
+import org.mapstruct.ReportingPolicy
 
-/**
- * Mapper for the entity [Erikoisala] and its DTO [ErikoisalaDTO].
- */
-@Mapper(componentModel = "spring", uses = [])
+@Mapper(componentModel = "spring", uses = [], unmappedTargetPolicy = ReportingPolicy.IGNORE)
 interface ErikoisalaMapper :
     EntityMapper<ErikoisalaDTO, Erikoisala> {
 
-    override fun toEntity(erikoisalaDTO: ErikoisalaDTO): Erikoisala
+    override fun toEntity(dto: ErikoisalaDTO): Erikoisala
 
     @JvmDefault
     fun fromId(id: Long?) = id?.let {
