@@ -7,6 +7,7 @@ import javax.persistence.*
 import javax.validation.constraints.*
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.annotations.Type
 
 @Entity
 @Table(name = "suoritusarviointi")
@@ -25,6 +26,11 @@ data class Suoritusarviointi(
 
     @Column(name = "pyynnon_aika")
     var pyynnonAika: LocalDate? = null,
+
+    @Lob
+    @Type(type = "org.hibernate.type.TextType")
+    @Column(name = "lisatiedot")
+    var lisatiedot: String? = null,
 
     @get: Min(value = 1)
     @get: Max(value = 5)
@@ -83,6 +89,7 @@ data class Suoritusarviointi(
         ", tapahtumanAjankohta='$tapahtumanAjankohta'" +
         ", arvioitavaTapahtuma='$arvioitavaTapahtuma'" +
         ", pyynnonAika='$pyynnonAika'" +
+        ", lisatiedot='$lisatiedot'" +
         ", vaativuustaso=$vaativuustaso" +
         ", sanallinenArvio='$sanallinenArvio'" +
         ", arviointiAika='$arviointiAika'" +
