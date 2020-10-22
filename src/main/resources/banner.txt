@@ -1,1 +1,1 @@
-${AnsiColor.RED}ELSA - Running Spring Boot ${spring-boot.version}${AnsiColor.DEFAULT}
+${AnsiColor.RED}ELSA-palvelu - Spring Boot ${spring-boot.version}${AnsiColor.DEFAULT}
