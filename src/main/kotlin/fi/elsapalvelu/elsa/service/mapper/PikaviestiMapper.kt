@@ -5,11 +5,13 @@ import fi.elsapalvelu.elsa.service.dto.PikaviestiDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.mapstruct.ReportingPolicy
 
-/**
- * Mapper for the entity [Pikaviesti] and its DTO [PikaviestiDTO].
- */
-@Mapper(componentModel = "spring", uses = [PikaviestiKeskusteluMapper::class, KayttajaMapper::class])
+@Mapper(
+    componentModel = "spring",
+    uses = [PikaviestiKeskusteluMapper::class, KayttajaMapper::class],
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 interface PikaviestiMapper :
     EntityMapper<PikaviestiDTO, Pikaviesti> {
 
@@ -17,13 +19,13 @@ interface PikaviestiMapper :
         Mapping(source = "keskustelu.id", target = "keskusteluId"),
         Mapping(source = "lahettaja.id", target = "lahettajaId")
     )
-    override fun toDto(pikaviesti: Pikaviesti): PikaviestiDTO
+    override fun toDto(entity: Pikaviesti): PikaviestiDTO
 
     @Mappings(
         Mapping(source = "keskusteluId", target = "keskustelu"),
         Mapping(source = "lahettajaId", target = "lahettaja")
     )
-    override fun toEntity(pikaviestiDTO: PikaviestiDTO): Pikaviesti
+    override fun toEntity(dto: PikaviestiDTO): Pikaviesti
 
     @JvmDefault
     fun fromId(id: Long?) = id?.let {

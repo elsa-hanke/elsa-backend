@@ -5,18 +5,16 @@ import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.mapstruct.ReportingPolicy
 
-/**
- * Mapper for the entity [ErikoistuvaLaakari] and its DTO [ErikoistuvaLaakariDTO].
- */
-@Mapper(componentModel = "spring", uses = [KayttajaMapper::class])
+@Mapper(componentModel = "spring", uses = [KayttajaMapper::class], unmappedTargetPolicy = ReportingPolicy.IGNORE)
 interface ErikoistuvaLaakariMapper :
     EntityMapper<ErikoistuvaLaakariDTO, ErikoistuvaLaakari> {
 
     @Mappings(
         Mapping(source = "kayttaja.id", target = "kayttajaId")
     )
-    override fun toDto(erikoistuvaLaakari: ErikoistuvaLaakari): ErikoistuvaLaakariDTO
+    override fun toDto(entity: ErikoistuvaLaakari): ErikoistuvaLaakariDTO
 
     @Mappings(
         Mapping(source = "kayttajaId", target = "kayttaja"),
@@ -27,7 +25,7 @@ interface ErikoistuvaLaakariMapper :
         Mapping(target = "hops", ignore = true),
         Mapping(target = "koejakso", ignore = true)
     )
-    override fun toEntity(erikoistuvaLaakariDTO: ErikoistuvaLaakariDTO): ErikoistuvaLaakari
+    override fun toEntity(dto: ErikoistuvaLaakariDTO): ErikoistuvaLaakari
 
     @JvmDefault
     fun fromId(id: Long?) = id?.let {
