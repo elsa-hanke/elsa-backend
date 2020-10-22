@@ -134,7 +134,7 @@ class UserService(
     private fun clearUserCaches(user: User) {
         cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE)?.evict(user.login!!)
         if (user.email != null) {
-            cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE)?.evict(user.email)
+            cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE)?.evict(user.email!!)
         }
     }
 
