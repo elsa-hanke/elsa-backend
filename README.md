@@ -1,122 +1,47 @@
-# elsa-backend
+# ELSA-palvelun backend
 
 [![Build Status](https://dev.azure.com/elsa-hanke/ELSA/_apis/build/status/elsa-hanke.elsa-backend?branchName=main)](https://dev.azure.com/elsa-hanke/ELSA/_build/latest?definitionId=4&branchName=main)
 
-This application was generated using JHipster 6.10.1, you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v6.10.1](https://www.jhipster.tech/documentation-archive/v6.10.1).
 
-## Development
+## Kehittäminen
 
-To start your application in the dev profile, run:
-
+Käynnistä Keycloak komennolla:
 ```
-./gradlew
+docker-compose -f src/main/docker/keycloak.yml up -d
 ```
 
-For further instructions on how to develop with JHipster, have a look at [Using JHipster in development][].
-
-## Building for production
-
-### Packaging as jar
-
-To build the final jar and optimize the elsa-backend application for production, run:
-
-```
-
-
-./gradlew -Pprod clean bootJar
-
-```
-
-To ensure everything worked, run:
-
-```
-
-
-java -jar build/libs/*.jar
-
-```
-
-Refer to [Using JHipster in production][] for more details.
-
-### Packaging as war
-
-To package your application as a war in order to deploy it to an application server, run:
-
-```
-
-
-./gradlew -Pprod -Pwar clean bootWar
-
-```
-
-## Testing
-
-To launch your application's tests, run:
-
-```
-./gradlew test integrationTest jacocoTestReport
-```
-
-For more information, refer to the [Running tests page][].
-
-### Code quality
-
-Sonar is used to analyse code quality. You can start a local Sonar server (accessible on http://localhost:9001) with:
-
-```
-docker-compose -f src/main/docker/sonar.yml up -d
-```
-
-Install Dependency-Check plugin from marketplace. You can run a Sonar analysis with using the [sonar-scanner](https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner) or by using the gradle plugin.
-
-Then, run a Sonar analysis:
-
-```
-./gradlew -Pprod clean check jacocoTestReport dependencyCheckAnalyze sonarqube
-```
-
-For more information, refer to the [Code quality page][].
-
-## Using Docker to simplify development (optional)
-
-You can use Docker to improve your JHipster development experience. A number of docker-compose configuration are available in the [src/main/docker](src/main/docker) folder to launch required third party services.
-
-For example, to start a postgresql database in a docker container, run:
-
+Käynnistä Postgres tietokanta komennolla:
 ```
 docker-compose -f src/main/docker/postgresql.yml up -d
 ```
 
-To stop it and remove the container, run:
-
+Käynnistä applikaatio dev profiililla:
 ```
-docker-compose -f src/main/docker/postgresql.yml down
-```
-
-You can also fully dockerize your application and all the services that it depends on.
-To achieve this, first build a docker image of your app by running:
-
-```
-./gradlew bootJar -Pprod jibDockerBuild
+./gradlew
 ```
 
-Then run:
 
+## Tuotantoversion rakentaminen
+
+Rakenna tuotantoversion jar komennolla:
 ```
-docker-compose -f src/main/docker/app.yml up -d
+./gradlew -Pprod clean bootJar
 ```
 
-For more information refer to [Using Docker and Docker-Compose][], this page also contains information on the docker-compose sub-generator (`jhipster docker-compose`), which is able to generate docker configurations for one or several JHipster applications.
 
-## Continuous Integration (optional)
+## Testaaminen
 
-To configure CI for your project, run the ci-cd sub-generator (`jhipster ci-cd`), this will let you generate configuration files for a number of Continuous Integration systems. Consult the [Setting up Continuous Integration][] page for more information.
+Suorita applikaation testit komennolla:
+```
+./gradlew test integrationTest jacocoTestReport
+```
 
-[jhipster homepage and latest documentation]: https://www.jhipster.tech
-[jhipster 6.10.1 archive]: https://www.jhipster.tech/documentation-archive/v6.10.1
-[using jhipster in development]: https://www.jhipster.tech/documentation-archive/v6.10.1/development/
-[using docker and docker-compose]: https://www.jhipster.tech/documentation-archive/v6.10.1/docker-compose
-[using jhipster in production]: https://www.jhipster.tech/documentation-archive/v6.10.1/production/
-[running tests page]: https://www.jhipster.tech/documentation-archive/v6.10.1/running-tests/
-[code quality page]: https://www.jhipster.tech/documentation-archive/v6.10.1/code-quality/
-[setting up continuous integration]: https://www.jhipster.tech/documentation-archive/v6.10.1/setting-up-ci/
+### Koodin laadun analysointi
+Sonaria käytetään koodin laadun analysointiin. Voit käynnistää paikallisen Sonar palvelimen (käytettävissä http://localhost:9001) komennolla:
+```
+docker-compose -f src/main/docker/sonar.yml up -d
+```
+Asenna Dependency-Check lisäosa Sonarin marketplacesta. Tämän jälkeen suorita analyysi:
+```
+./gradlew -Pprod clean check jacocoTestReport dependencyCheckAnalyze sonarqube
+```
