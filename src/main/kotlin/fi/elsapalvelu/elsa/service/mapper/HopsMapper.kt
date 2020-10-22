@@ -5,23 +5,25 @@ import fi.elsapalvelu.elsa.service.dto.HopsDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.mapstruct.ReportingPolicy
 
-/**
- * Mapper for the entity [Hops] and its DTO [HopsDTO].
- */
-@Mapper(componentModel = "spring", uses = [ErikoistuvaLaakariMapper::class])
+@Mapper(
+    componentModel = "spring",
+    uses = [ErikoistuvaLaakariMapper::class],
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 interface HopsMapper :
     EntityMapper<HopsDTO, Hops> {
 
     @Mappings(
         Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId")
     )
-    override fun toDto(hops: Hops): HopsDTO
+    override fun toDto(entity: Hops): HopsDTO
 
     @Mappings(
         Mapping(source = "erikoistuvaLaakariId", target = "erikoistuvaLaakari")
     )
-    override fun toEntity(hopsDTO: HopsDTO): Hops
+    override fun toEntity(dto: HopsDTO): Hops
 
     @JvmDefault
     fun fromId(id: Long?) = id?.let {

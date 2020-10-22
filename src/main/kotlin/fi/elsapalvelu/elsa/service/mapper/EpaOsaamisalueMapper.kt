@@ -3,15 +3,13 @@ package fi.elsapalvelu.elsa.service.mapper
 import fi.elsapalvelu.elsa.domain.EpaOsaamisalue
 import fi.elsapalvelu.elsa.service.dto.EpaOsaamisalueDTO
 import org.mapstruct.Mapper
+import org.mapstruct.ReportingPolicy
 
-/**
- * Mapper for the entity [EpaOsaamisalue] and its DTO [EpaOsaamisalueDTO].
- */
-@Mapper(componentModel = "spring", uses = [])
+@Mapper(componentModel = "spring", uses = [], unmappedTargetPolicy = ReportingPolicy.IGNORE)
 interface EpaOsaamisalueMapper :
     EntityMapper<EpaOsaamisalueDTO, EpaOsaamisalue> {
 
-    override fun toEntity(epaOsaamisalueDTO: EpaOsaamisalueDTO): EpaOsaamisalue
+    override fun toEntity(dto: EpaOsaamisalueDTO): EpaOsaamisalue
 
     @JvmDefault
     fun fromId(id: Long?) = id?.let {

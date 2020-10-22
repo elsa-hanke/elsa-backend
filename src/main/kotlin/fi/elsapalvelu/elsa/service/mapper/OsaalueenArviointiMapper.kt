@@ -5,11 +5,13 @@ import fi.elsapalvelu.elsa.service.dto.OsaalueenArviointiDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.mapstruct.ReportingPolicy
 
-/**
- * Mapper for the entity [OsaalueenArviointi] and its DTO [OsaalueenArviointiDTO].
- */
-@Mapper(componentModel = "spring", uses = [ArvioitavaOsaalueMapper::class, SuoritusarviointiMapper::class])
+@Mapper(
+    componentModel = "spring",
+    uses = [ArvioitavaOsaalueMapper::class, SuoritusarviointiMapper::class],
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 interface OsaalueenArviointiMapper :
     EntityMapper<OsaalueenArviointiDTO, OsaalueenArviointi> {
 
@@ -17,13 +19,13 @@ interface OsaalueenArviointiMapper :
         Mapping(source = "arvioitavaOsaalue.id", target = "arvioitavaOsaalueId"),
         Mapping(source = "suoritusarviointi.id", target = "suoritusarviointiId")
     )
-    override fun toDto(osaalueenArviointi: OsaalueenArviointi): OsaalueenArviointiDTO
+    override fun toDto(entity: OsaalueenArviointi): OsaalueenArviointiDTO
 
     @Mappings(
         Mapping(source = "arvioitavaOsaalueId", target = "arvioitavaOsaalue"),
         Mapping(source = "suoritusarviointiId", target = "suoritusarviointi")
     )
-    override fun toEntity(osaalueenArviointiDTO: OsaalueenArviointiDTO): OsaalueenArviointi
+    override fun toEntity(dto: OsaalueenArviointiDTO): OsaalueenArviointi
 
     @JvmDefault
     fun fromId(id: Long?) = id?.let {
