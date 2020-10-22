@@ -28,6 +28,22 @@ Rakenna tuotantoversion jar komennolla:
 ./gradlew -Pprod clean bootJar
 ```
 
+Testaa tuotantoversion toimivuus komennolla:
+```
+java --add-opens java.base/sun.nio.ch=ALL-UNNAMED -jar build/libs/*.jar
+```
+
+## Tuotantoversion kontin rakentaminen
+
+Rakenna tuotantoversion kontti komennolla:
+```
+./gradlew bootJar -Pprod jibDockerBuild
+```
+
+Testaa tuotantoversion kontin toimivuus komennolla:
+```
+docker-compose -f src/main/docker/app.yml up -d
+```
 
 ## Testaaminen
 

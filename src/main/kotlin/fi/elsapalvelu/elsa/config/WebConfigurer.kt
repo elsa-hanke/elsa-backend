@@ -1,14 +1,11 @@
 package fi.elsapalvelu.elsa.config
 
-import io.github.jhipster.config.JHipsterConstants
 import io.github.jhipster.config.JHipsterProperties
-import io.github.jhipster.config.h2.H2ConfigurationHelper
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.servlet.ServletContextInitializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
-import org.springframework.core.env.Profiles
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.CorsFilter
 import javax.servlet.ServletContext
@@ -31,9 +28,6 @@ class WebConfigurer(
             log.info("Web application configuration, using profiles: {}", *env.activeProfiles as Array<*>)
         }
 
-        if (env.acceptsProfiles(Profiles.of(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT))) {
-            initH2Console(servletContext)
-        }
         log.info("Web application fully configured")
     }
 
@@ -50,13 +44,5 @@ class WebConfigurer(
             }
         }
         return CorsFilter(source)
-    }
-
-    /**
-     * Initializes H2 console.
-     */
-    private fun initH2Console(servletContext: ServletContext) {
-        log.debug("Initialize H2 console")
-        H2ConfigurationHelper.initH2Console(servletContext)
     }
 }

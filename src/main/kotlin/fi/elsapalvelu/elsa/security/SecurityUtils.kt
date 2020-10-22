@@ -25,6 +25,7 @@ fun extractPrincipal(authentication: Authentication?): String? {
         return null
     }
 
+    @Suppress("CAST_NEVER_SUCCEEDS")
     return when (val principal = authentication.principal) {
         is UserDetails -> principal.username
         is JwtAuthenticationToken -> (authentication as JwtAuthenticationToken).token.claims as String

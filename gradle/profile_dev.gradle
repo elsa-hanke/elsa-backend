@@ -7,7 +7,6 @@ configurations {
 
 dependencies {
     developmentOnly "org.springframework.boot:spring-boot-devtools"
-    implementation "com.h2database:h2"
 }
 
 def profiles = "dev"
@@ -28,6 +27,7 @@ springBoot {
 
 bootRun {
     args = []
+    jvmArgs = ["--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED"]
 }
 
 
