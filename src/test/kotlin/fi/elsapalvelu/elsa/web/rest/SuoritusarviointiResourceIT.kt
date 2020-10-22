@@ -4,7 +4,9 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.Suoritusarviointi
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
+import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
+import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
@@ -59,6 +61,12 @@ class SuoritusarviointiResourceIT {
     private lateinit var userService: UserService
 
     @Autowired
+    private lateinit var kayttajaService: KayttajaService
+
+    @Autowired
+    private lateinit var tyoskentelyjaksoService: TyoskentelyjaksoService
+
+    @Autowired
     private lateinit var jacksonMessageConverter: MappingJackson2HttpMessageConverter
 
     @Autowired
@@ -80,7 +88,12 @@ class SuoritusarviointiResourceIT {
     @BeforeEach
     fun setup() {
         MockitoAnnotations.initMocks(this)
-        val suoritusarviointiResource = SuoritusarviointiResource(suoritusarviointiService, userService)
+        val suoritusarviointiResource = SuoritusarviointiResource(
+            suoritusarviointiService,
+            userService,
+            kayttajaService,
+            tyoskentelyjaksoService
+        )
          this.restSuoritusarviointiMockMvc = MockMvcBuilders.standaloneSetup(suoritusarviointiResource)
              .setCustomArgumentResolvers(pageableArgumentResolver)
              .setControllerAdvice(exceptionTranslator)
