@@ -15,6 +15,7 @@ stages:
           SPRING_JPA_SHOW_SQL: false
           JHI_DISABLE_WEBPACK_LOGS: true
           GRADLE_USER_HOME: $(Pipeline.Workspace)/.gradle
+          TERM: dumb
 
         steps:
           - task: Cache@2
