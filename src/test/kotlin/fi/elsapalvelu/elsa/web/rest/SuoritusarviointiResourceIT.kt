@@ -323,6 +323,7 @@ class SuoritusarviointiResourceIT {
                 tapahtumanAjankohta = DEFAULT_TAPAHTUMAN_AJANKOHTA,
                 arvioitavaTapahtuma = DEFAULT_ARVIOITAVA_TAPAHTUMA,
                 pyynnonAika = DEFAULT_PYYNNON_AIKA,
+                lisatiedot = DEFAULT_LISATIEDOT,
                 vaativuustaso = DEFAULT_VAATIVUUSTASO,
                 sanallinenArvio = DEFAULT_SANALLINEN_ARVIO,
                 arviointiAika = DEFAULT_ARVIOINTI_AIKA
