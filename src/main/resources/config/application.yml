@@ -141,7 +141,7 @@ info:
 
 jhipster:
   clientApp:
-    name: 'elsaBackendApp'
+    name: 'elsa'
   # By default CORS is disabled. Uncomment to enable.
   # cors:
   #     allowed-origins: "*"
@@ -154,8 +154,8 @@ jhipster:
     from: elsaBackend@localhost
   swagger:
     default-include-pattern: /api/.*
-    title: elsaBackend API
-    description: elsaBackend API documentation
+    title: ELSA-palvelu API
+    description: ELSA-palvelu API-dokumentaatio
     version: 0.0.1
     terms-of-service-url:
     contact-name:

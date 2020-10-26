@@ -1,10 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest
 
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
-import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
-import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiPyyntolomakeDTO
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
+import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.PaginationUtil
@@ -19,10 +16,11 @@ import java.net.URI
 import java.security.Principal
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.*
 import javax.validation.Valid
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/erikoistuva-laakari")
 class RooliErikoistuvaLaakariResource(
     private val suoritusarviointiService: SuoritusarviointiService,
     private val userService: UserService,
@@ -33,25 +31,22 @@ class RooliErikoistuvaLaakariResource(
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 
-    @GetMapping("/erikoistuva-laakari")
+    @GetMapping("")
     fun getErikoistuvaLaakari(
         principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
-        if (principal is AbstractAuthenticationToken) {
-            val user = userService.getUserFromAuthentication(principal)
-            return ResponseUtil.wrapOrNotFound(erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!))
-        } else {
-            throw AccountResource.AccountResourceException("User could not be found")
-        }
+        val user = getAuthenticatedUser(principal)
+        return ResponseUtil.wrapOrNotFound(erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!))
     }
 
-    @GetMapping("/erikoistuva-laakari/{erikoistuvaLaakariId}/suoritusarvioinnit")
+    @GetMapping("/suoritusarvioinnit")
     fun getAllSuoritusarvioinnit(
-        @PathVariable erikoistuvaLaakariId: Long,
-        pageable: Pageable
+        pageable: Pageable,
+        principal: Principal?
     ): ResponseEntity<List<SuoritusarviointiDTO>> {
-        val page = suoritusarviointiService.findAllByErikoistuvaLaakariId(
-            erikoistuvaLaakariId,
+        val user = getAuthenticatedUser(principal)
+        val page = suoritusarviointiService.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+            user.id!!,
             pageable
         )
         val headers = PaginationUtil
@@ -59,25 +54,29 @@ class RooliErikoistuvaLaakariResource(
         return ResponseEntity.ok().headers(headers).body(page.content)
     }
 
-    @GetMapping("/erikoistuva-laakari/{erikoistuvaLaakariId}/arviointipyynto-lomake")
+    @GetMapping("/arviointipyynto-lomake")
     fun getSuoritusarviointiPyyntolomake(
-        @PathVariable erikoistuvaLaakariId: Long
+        principal: Principal?
     ): ResponseEntity<SuoritusarviointiPyyntolomakeDTO> {
+        val user = getAuthenticatedUser(principal)
         val suoritusarviointiPyyntolomakeDTO = SuoritusarviointiPyyntolomakeDTO()
-        suoritusarviointiPyyntolomakeDTO.tyoskentelyjaksot = tyoskentelyjaksoService.findAll().toMutableSet()
+        suoritusarviointiPyyntolomakeDTO.tyoskentelyjaksot = tyoskentelyjaksoService
+            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+        // TODO: Vain kouluttajat
         suoritusarviointiPyyntolomakeDTO.kouluttajat = kayttajaService.findAll().toMutableSet()
 
         return ResponseEntity.ok(suoritusarviointiPyyntolomakeDTO)
     }
 
-    @PostMapping("/erikoistuva-laakari/{erikoistuvaLaakariId}/suoritusarvioinnit/arviointipyynto")
+    @PostMapping("/suoritusarvioinnit/arviointipyynto")
     fun createArviointipyynto(
-        @PathVariable erikoistuvaLaakariId: Long,
-        @Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO
+        @Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO,
+        principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
+        val user = getAuthenticatedUser(principal)
         if (suoritusarviointiDTO.id != null) {
             throw BadRequestAlertException(
-                "Uusi arviointipyyntö ei saa sisältää ID:tä",
+                "Uusi arviointipyyntö ei saa sisältää ID:tä.",
                 "suoritusarviointi", "idexists"
             )
         }
@@ -99,7 +98,28 @@ class RooliErikoistuvaLaakariResource(
                 "suoritusarviointi", "dataillegal"
             )
         }
-        suoritusarviointiDTO.pyynnonAika = LocalDate.now(ZoneId.systemDefault()) // Todo: tarkista aikavyöhyke
+        if (suoritusarviointiDTO.tyoskentelyjaksoId == null) {
+            throw BadRequestAlertException(
+                "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
+                "suoritusarviointi", "dataillegal"
+            )
+        } else {
+            val tyoskentelyjakso = tyoskentelyjaksoService.findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!)
+            val erikoistuvaLaakari = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+            if (!tyoskentelyjakso.isPresent || !erikoistuvaLaakari.isPresent) {
+                throw BadRequestAlertException(
+                    "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
+                    "suoritusarviointi", "dataillegal"
+                )
+            }
+            if (tyoskentelyjakso.get().erikoistuvaLaakariId!! != erikoistuvaLaakari.get().id) {
+                throw BadRequestAlertException(
+                    "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
+                    "suoritusarviointi", "dataillegal"
+                )
+            }
+        }
+        suoritusarviointiDTO.pyynnonAika = LocalDate.now(ZoneId.systemDefault())
 
         val result = suoritusarviointiService.save(suoritusarviointiDTO)
         return ResponseEntity.created(URI("/api/suoritusarvioinnit/${result.id}"))
@@ -112,27 +132,56 @@ class RooliErikoistuvaLaakariResource(
             .body(result)
     }
 
-    @PostMapping("/erikoistuva-laakari/{erikoistuvaLaakariId}/tyoskentelyjaksot")
+    @GetMapping("/suoritusarvioinnit/{id}")
+    fun getSuoritusarviointi(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<SuoritusarviointiDTO> {
+        val user = getAuthenticatedUser(principal)
+        val suoritusarviointiDTO = suoritusarviointiService
+            .findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id, user.id!!)
+        return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
+    }
+
+    @PostMapping("/tyoskentelyjaksot")
     fun createTyoskentelyjakso(
-        @PathVariable erikoistuvaLaakariId: Long,
-        @Valid @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO
+        @Valid @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
+        principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         if (tyoskentelyjaksoDTO.id != null) {
             throw BadRequestAlertException(
-                "A new tyoskentelyjakso cannot already have an ID",
+                "Uusi tyoskentelyjakso ei saa sisältää ID:tä.",
                 "tyoskentelyjakso",
                 "idexists"
             )
         }
-        tyoskentelyjaksoDTO.erikoistuvaLaakariId = erikoistuvaLaakariId
-        val result = tyoskentelyjaksoService.save(tyoskentelyjaksoDTO)
-        return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(
-                applicationName,
-                true,
+        val user = getAuthenticatedUser(principal)
+        val erikoistuvaLaakari = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+        if (erikoistuvaLaakari.isPresent) {
+            tyoskentelyjaksoDTO.erikoistuvaLaakariId = erikoistuvaLaakari.get().id
+            val result = tyoskentelyjaksoService.save(tyoskentelyjaksoDTO)
+            return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${result.id}"))
+                .headers(HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    "tyoskentelyjakso",
+                    result.id.toString())
+                )
+                .body(result)
+        } else {
+            throw BadRequestAlertException(
+                "Uuden tyoskentelyjakson voi tehdä vain erikoistuva lääkäri.",
                 "tyoskentelyjakso",
-                result.id.toString())
+                "dataillegal"
             )
-            .body(result)
+        }
+    }
+
+    fun getAuthenticatedUser(principal: Principal?): UserDTO {
+        if (principal is AbstractAuthenticationToken) {
+            return userService.getUserFromAuthentication(principal)
+        } else {
+            throw AccountResource.AccountResourceException("Käyttäjä ei löydy")
+        }
     }
 }
