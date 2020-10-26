@@ -8,9 +8,6 @@ import java.io.Serializable
 import javax.persistence.*
 import javax.validation.constraints.*
 
-/**
- * A Kayttaja.
- */
 @Entity
 @Table(name = "kayttaja")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -35,7 +32,8 @@ data class Kayttaja(
     @Column(name = "kieli")
     var kieli: Kieli? = null,
 
-    @OneToOne @JoinColumn(unique = true)
+    @OneToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @JoinColumn(unique = true)
     var user: User? = null,
 
     @ManyToMany(mappedBy = "keskustelijas")

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository
 @Repository
 interface SuoritusarviointiRepository : JpaRepository<Suoritusarviointi, Long> {
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariId(id: Long): MutableList<Suoritusarviointi>
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariId(id: Long, pageable: Pageable): Page<Suoritusarviointi>
 
     fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         id: String,
