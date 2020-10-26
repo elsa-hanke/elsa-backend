@@ -138,7 +138,7 @@ class UserService(
 
         // Luodaan erikoistuva lääkäri ja käyttäjä entiteetit erikoistuvalle lääkärille jos ne eivät ole vielä luotu
         if (user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI))) {
-            if (erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!).isEmpty) {
+            if (!erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!).isPresent) {
                 val kayttaja = Kayttaja(user = user, nimi = user.firstName + " " + user.lastName)
                 val erikoistuvaLaakari = ErikoistuvaLaakari(kayttaja = kayttaja)
                 erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
