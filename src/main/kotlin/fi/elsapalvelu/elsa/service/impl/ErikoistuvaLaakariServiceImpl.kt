@@ -70,15 +70,16 @@ class ErikoistuvaLaakariServiceImpl(
             .map(erikoistuvaLaakariMapper::toDto)
     }
 
-    override fun findOneByKayttajaUserId(userId: String): Optional<ErikoistuvaLaakariDTO> {
-        log.debug("Request to get ErikoistuvaLaakari by kayttaja user id : $userId")
-        return erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-            .map(erikoistuvaLaakariMapper::toDto)
-    }
-
     override fun delete(id: Long) {
         log.debug("Request to delete ErikoistuvaLaakari : $id")
 
         erikoistuvaLaakariRepository.deleteById(id)
+    }
+
+    override fun findOneByKayttajaUserId(
+        id: String
+    ): Optional<ErikoistuvaLaakariDTO> {
+        return erikoistuvaLaakariRepository.findOneByKayttajaUserId(id)
+            .map(erikoistuvaLaakariMapper::toDto)
     }
 }

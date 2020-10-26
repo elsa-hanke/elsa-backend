@@ -3,9 +3,14 @@ package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.config.DEFAULT_LANGUAGE
 import fi.elsapalvelu.elsa.domain.Authority
+import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.AuthorityRepository
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.getCurrentUserLogin
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import org.slf4j.LoggerFactory
@@ -29,6 +34,8 @@ import java.util.Optional
 class UserService(
     private val userRepository: UserRepository,
     private val authorityRepository: AuthorityRepository,
+    private val kayttajaRepository: KayttajaRepository,
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val cacheManager: CacheManager
 ) {
 
@@ -128,6 +135,16 @@ class UserService(
             .map(GrantedAuthority::getAuthority)
             .map { Authority(name = it) }
             .toMutableSet()
+
+        // Luodaan erikoistuva lääkäri ja käyttäjä entiteetit erikoistuvalle lääkärille jos ne eivät ole vielä luotu
+        if (user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI))) {
+            if (erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!).isEmpty) {
+                val kayttaja = Kayttaja(user = user, nimi = user.firstName + " " + user.lastName)
+                val erikoistuvaLaakari = ErikoistuvaLaakari(kayttaja = kayttaja)
+                erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+            }
+        }
+
         return UserDTO(syncUserWithIdP(attributes, user))
     }
 

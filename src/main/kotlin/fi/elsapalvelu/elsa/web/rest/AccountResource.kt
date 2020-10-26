@@ -17,14 +17,7 @@ class AccountResource(private val userService: UserService) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    /**
-     * `GET  /account` : get the current user.
-     *
-     * @param principal the current user; resolves to `null` if not authenticated.
-     * @return the current user.
-     * @throws AccountResourceException `500 (Internal Server Error)` if the user couldn't be returned.
-     */
-    @GetMapping("/account")
+    @GetMapping("/kayttaja")
     fun getAccount(principal: Principal?): UserDTO =
         if (principal is AbstractAuthenticationToken) {
             userService.getUserFromAuthentication(principal)

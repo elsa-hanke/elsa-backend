@@ -9,7 +9,7 @@ interface SuoritusarviointiService {
 
     fun findAll(pageable: Pageable): Page<SuoritusarviointiDTO>
 
-    fun findAllByErikoistuvaLaakariId(erikoistuvaLaakariId: Long): MutableList<SuoritusarviointiDTO>
+    fun findAllByErikoistuvaLaakariId(erikoistuvaLaakariId: Long, pageable: Pageable): Page<SuoritusarviointiDTO>
 
     fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         userId: String,

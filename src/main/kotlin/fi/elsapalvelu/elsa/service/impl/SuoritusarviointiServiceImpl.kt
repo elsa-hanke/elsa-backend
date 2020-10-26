@@ -30,9 +30,12 @@ class SuoritusarviointiServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariId(erikoistuvaLaakariId: Long): MutableList<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariId(erikoistuvaLaakariId)
-            .mapTo(mutableListOf(), suoritusarviointiMapper::toDto)
+    override fun findAllByErikoistuvaLaakariId(
+        erikoistuvaLaakariId: Long,
+        pageable: Pageable
+    ): Page<SuoritusarviointiDTO> {
+        return suoritusarviointiRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariId(erikoistuvaLaakariId, pageable)
+            .map(suoritusarviointiMapper::toDto)
     }
 
     @Transactional(readOnly = true)

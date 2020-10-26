@@ -45,7 +45,7 @@ class AccountResourceIT {
         TestSecurityContextHolder.getContext().authentication = authentication
 
         restAccountMockMvc.perform(
-            get("/api/account")
+            get("/api/kayttaja")
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isOk)
