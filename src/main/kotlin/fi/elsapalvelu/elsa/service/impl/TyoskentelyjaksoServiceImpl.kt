@@ -28,6 +28,12 @@ class TyoskentelyjaksoServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun findAllByErikoistuvaLaakariKayttajaUserId(id: String): MutableList<TyoskentelyjaksoDTO> {
+        return tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(id)
+            .mapTo(mutableListOf(), tyoskentelyjaksoMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
     override fun findAllWhereTyoskentelypaikkaIsNull(): MutableList<TyoskentelyjaksoDTO> {
         return tyoskentelyjaksoRepository.findAll()
             .asSequence()
