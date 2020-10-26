@@ -53,6 +53,15 @@ class SuoritusarviointiServiceImpl(
             .map(suoritusarviointiMapper::toDto)
     }
 
+    @Transactional(readOnly = true)
+    override fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+        id: Long,
+        userId: String
+    ): Optional<SuoritusarviointiDTO> {
+        return suoritusarviointiRepository.findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id, userId)
+            .map(suoritusarviointiMapper::toDto)
+    }
+
     override fun delete(id: Long) {
         suoritusarviointiRepository.deleteById(id)
     }
