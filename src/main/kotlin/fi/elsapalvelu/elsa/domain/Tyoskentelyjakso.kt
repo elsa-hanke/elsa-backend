@@ -39,7 +39,8 @@ data class Tyoskentelyjakso(
     @JsonIgnore
     var tyoskentelypaikka: Tyoskentelypaikka? = null,
 
-    @ManyToOne @JsonIgnoreProperties(value = ["tyoskentelyjaksos"], allowSetters = true)
+    @ManyToOne
+    @JsonIgnoreProperties(value = ["tyoskentelyjaksos"], allowSetters = true)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository
 
 @Suppress("unused")
 @Repository
-interface TyoskentelyjaksoRepository : JpaRepository<Tyoskentelyjakso, Long>
+interface TyoskentelyjaksoRepository : JpaRepository<Tyoskentelyjakso, Long> {
+    fun findAllByErikoistuvaLaakariKayttajaUserId(id: String): List<Tyoskentelyjakso>
+}
