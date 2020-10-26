@@ -40,6 +40,11 @@ class SoteOrganisaatioQueryService(
         return soteOrganisaatioRepository.count(specification)
     }
 
+    @Transactional(readOnly = true)
+    fun findAllKunnat(): MutableList<String> {
+        return soteOrganisaatioRepository.findAll().mapNotNull { it.postOffice }.distinct().toMutableList()
+    }
+
     protected fun createSpecification(criteria: SoteOrganisaatioCriteria?): Specification<SoteOrganisaatio?> {
         var specification: Specification<SoteOrganisaatio?> = Specification.where(null)
         if (criteria != null) {

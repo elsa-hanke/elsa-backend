@@ -70,6 +70,11 @@ class SoteOrganisaatioResource(
         return ResponseEntity.ok().body(entityList)
     }
 
+    @GetMapping("/sote-organisaatiot/kunnat") fun getAllKunnat(
+    ): ResponseEntity<MutableList<String>> {
+        return ResponseEntity.ok(soteOrganisaatioQueryService.findAllKunnat())
+    }
+
     @GetMapping("/sote-organisaatiot/count")
     fun countSoteOrganisaatiot(
         criteria: SoteOrganisaatioCriteria
