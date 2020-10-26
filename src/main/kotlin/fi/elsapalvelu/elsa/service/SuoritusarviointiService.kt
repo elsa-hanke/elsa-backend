@@ -18,5 +18,10 @@ interface SuoritusarviointiService {
 
     fun findOne(id: Long): Optional<SuoritusarviointiDTO>
 
+    fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+        id: Long,
+        userId: String
+    ): Optional<SuoritusarviointiDTO>
+
     fun delete(id: Long)
 }
