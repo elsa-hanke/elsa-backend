@@ -101,7 +101,6 @@ class SuoritusarviointiResource(
                 )).build()
     }
 
-
     @GetMapping("/suoritusarvioinnit/omat")
     fun getAllSuoritusarvioinnit(
         principal: Principal?,

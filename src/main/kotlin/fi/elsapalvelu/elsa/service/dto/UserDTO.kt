@@ -43,7 +43,6 @@ open class UserDTO(
     var lastModifiedDate: Instant? = null,
 
     var authorities: Set<String>? = null
-
 ) {
     constructor(user: User) :
         this(

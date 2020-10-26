@@ -7,9 +7,6 @@ import java.io.Serializable
 import javax.persistence.*
 import javax.validation.constraints.*
 
-/**
- * A ErikoistuvaLaakari.
- */
 @Entity
 @Table(name = "erikoistuva_laakari")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -19,11 +16,9 @@ data class ErikoistuvaLaakari(
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
 
-    @get: NotNull
     @Column(name = "puhelinnumero", nullable = false)
     var puhelinnumero: String? = null,
 
-    @get: NotNull
     @Column(name = "sahkoposti", nullable = false)
     var sahkoposti: String? = null,
 
@@ -35,7 +30,8 @@ data class ErikoistuvaLaakari(
     @Column(name = "opintojen_aloitusvuosi")
     var opintojenAloitusvuosi: Int? = null,
 
-    @OneToOne @JoinColumn(unique = true)
+    @OneToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @JoinColumn(unique = true)
     var kayttaja: Kayttaja? = null,
 
     @OneToMany(mappedBy = "erikoistuvaLaakari")
