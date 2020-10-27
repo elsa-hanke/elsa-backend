@@ -4,10 +4,7 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.Suoritusarviointi
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
-import fi.elsapalvelu.elsa.service.KayttajaService
-import fi.elsapalvelu.elsa.service.SuoritusarviointiService
-import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import java.time.LocalDate
@@ -58,6 +55,9 @@ class SuoritusarviointiResourceIT {
     private lateinit var suoritusarviointiService: SuoritusarviointiService
 
     @Autowired
+    private lateinit var suoritusarviointiQueryService: SuoritusarviointiQueryService
+
+    @Autowired
     private lateinit var userService: UserService
 
     @Autowired
@@ -90,9 +90,7 @@ class SuoritusarviointiResourceIT {
         MockitoAnnotations.initMocks(this)
         val suoritusarviointiResource = SuoritusarviointiResource(
             suoritusarviointiService,
-            userService,
-            kayttajaService,
-            tyoskentelyjaksoService
+            suoritusarviointiQueryService
         )
          this.restSuoritusarviointiMockMvc = MockMvcBuilders.standaloneSetup(suoritusarviointiResource)
              .setCustomArgumentResolvers(pageableArgumentResolver)
