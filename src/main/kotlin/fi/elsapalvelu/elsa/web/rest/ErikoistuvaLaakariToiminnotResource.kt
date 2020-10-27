@@ -7,6 +7,7 @@ import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.PaginationUtil
 import io.github.jhipster.web.util.ResponseUtil
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AbstractAuthenticationToken
@@ -16,13 +17,13 @@ import java.net.URI
 import java.security.Principal
 import java.time.LocalDate
 import java.time.ZoneId
-import java.util.*
 import javax.validation.Valid
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariToiminnotResource(
     private val suoritusarviointiService: SuoritusarviointiService,
+    private val suoritusarviointiQueryService: SuoritusarviointiQueryService,
     private val userService: UserService,
     private val kayttajaService: KayttajaService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
@@ -41,17 +42,16 @@ class ErikoistuvaLaakariToiminnotResource(
 
     @GetMapping("/suoritusarvioinnit")
     fun getAllSuoritusarvioinnit(
+        criteria: SuoritusarviointiCriteria,
         pageable: Pageable,
         principal: Principal?
-    ): ResponseEntity<List<SuoritusarviointiDTO>> {
+    ): ResponseEntity<Page<SuoritusarviointiDTO>> {
         val user = getAuthenticatedUser(principal)
-        val page = suoritusarviointiService.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-            user.id!!,
-            pageable
-        )
+        val page = suoritusarviointiQueryService
+            .findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(criteria, user.id!!, pageable)
         val headers = PaginationUtil
             .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
-        return ResponseEntity.ok().headers(headers).body(page.content)
+        return ResponseEntity.ok().headers(headers).body(page)
     }
 
     @GetMapping("/arviointipyynto-lomake")
