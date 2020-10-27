@@ -21,7 +21,7 @@ import javax.validation.Valid
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
-class RooliErikoistuvaLaakariResource(
+class ErikoistuvaLaakariToiminnotResource(
     private val suoritusarviointiService: SuoritusarviointiService,
     private val userService: UserService,
     private val kayttajaService: KayttajaService,
