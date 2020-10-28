@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -13,6 +12,7 @@ import javax.validation.constraints.*
 @Table(name = "tyoskentelyjakso")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Tyoskentelyjakso(
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
@@ -35,15 +35,10 @@ data class Tyoskentelyjakso(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var suoritusarvioinnit: MutableSet<Suoritusarviointi> = mutableSetOf(),
 
-    @OneToOne(mappedBy = "tyoskentelyjakso")
-    @JsonIgnore
-    var tyoskentelypaikka: Tyoskentelypaikka? = null,
-
     @ManyToOne
     @JsonIgnoreProperties(value = ["tyoskentelyjaksos"], allowSetters = true)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here
 ) : Serializable {
 
     fun addSuoritusarviointi(suoritusarviointi: Suoritusarviointi): Tyoskentelyjakso {
@@ -57,7 +52,6 @@ data class Tyoskentelyjakso(
         suoritusarviointi.tyoskentelyjakso = null
         return this
     }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

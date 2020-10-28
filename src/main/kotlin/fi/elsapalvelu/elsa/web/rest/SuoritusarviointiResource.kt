@@ -35,7 +35,12 @@ class SuoritusarviointiResource(
         }
         val result = suoritusarviointiService.save(suoritusarviointiDTO)
         return ResponseEntity.created(URI("/api/suoritusarvioinnit/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString()))
+            .headers(HeaderUtil.createEntityCreationAlert(
+                applicationName,
+                true,
+                ENTITY_NAME,
+                result.id.toString())
+            )
             .body(result)
     }
 

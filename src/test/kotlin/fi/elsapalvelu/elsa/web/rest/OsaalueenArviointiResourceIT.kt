@@ -158,7 +158,7 @@ class OsaalueenArviointiResourceIT {
         restOsaalueenArviointiMockMvc.perform(get("/api/osaalueen-arviointis/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(osaalueenArviointi.id?.toInt()))
+            .andExpect(jsonPath("$.id").value(osaalueenArviointi.id as Any))
             .andExpect(jsonPath("$.arvio").value(DEFAULT_ARVIO)) }
 
     @Test

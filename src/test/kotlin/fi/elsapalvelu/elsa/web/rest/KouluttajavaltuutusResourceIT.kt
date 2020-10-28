@@ -256,7 +256,7 @@ class KouluttajavaltuutusResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id")
-                .value(kouluttajavaltuutus.id?.toInt()))
+                .value(kouluttajavaltuutus.id as Any))
             .andExpect(jsonPath("$.alkamispaiva")
                 .value(DEFAULT_ALKAMISPAIVA.toString()))
             .andExpect(jsonPath("$.paattymispaiva")

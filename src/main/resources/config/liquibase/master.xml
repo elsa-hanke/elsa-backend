@@ -16,35 +16,18 @@
     <include file="config/liquibase/changelog/00000000000000_initial_schema.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075037_added_entity_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020075237_added_entity_Osoite.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020075337_added_entity_Opintooikeustiedot.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020075437_added_entity_Yliopisto.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020075537_added_entity_Erikoisala.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075637_added_entity_Tyoskentelyjakso.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075737_added_entity_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075837_added_entity_OsaalueenArviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075937_added_entity_EpaOsaamisalue.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020080037_added_entity_ArvioitavaOsaalue.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020080137_added_entity_Tyoskentelypaikka.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020080237_added_entity_Koejakso.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020080337_added_entity_Hops.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020080437_added_entity_PikaviestiKeskustelu.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020080537_added_entity_Pikaviesti.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201022130115_added_entity_SoteOrganisaatio.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201028101013_added_entity_Kouluttajavaltuutus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020075237_added_entity_constraints_Osoite.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020075337_added_entity_constraints_Opintooikeustiedot.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020075437_added_entity_constraints_Yliopisto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075637_added_entity_constraints_Tyoskentelyjakso.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075737_added_entity_constraints_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075837_added_entity_constraints_OsaalueenArviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020080037_added_entity_constraints_ArvioitavaOsaalue.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020080137_added_entity_constraints_Tyoskentelypaikka.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020080237_added_entity_constraints_Koejakso.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020080337_added_entity_constraints_Hops.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020080437_added_entity_constraints_PikaviestiKeskustelu.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20201020080537_added_entity_constraints_Pikaviesti.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201028101013_added_entity_constraints_Kouluttajavaltuutus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

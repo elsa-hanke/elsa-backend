@@ -6,10 +6,6 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.util.*
 
-/**
- * Spring Data  repository for the [ErikoistuvaLaakari] entity.
- */
-@Suppress("unused")
 @Repository
 interface ErikoistuvaLaakariRepository : JpaRepository<ErikoistuvaLaakari, Long> {
 

@@ -35,7 +35,12 @@ class TyoskentelyjaksoResource(
         }
         val result = tyoskentelyjaksoService.save(tyoskentelyjaksoDTO)
         return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString()))
+            .headers(HeaderUtil.createEntityCreationAlert(
+                applicationName,
+                true,
+                ENTITY_NAME,
+                result.id.toString())
+            )
             .body(result)
     }
 
@@ -60,22 +65,24 @@ class TyoskentelyjaksoResource(
     }
 
     @GetMapping("/tyoskentelyjaksot")
-    fun getAlltyoskentelyjaksot(@RequestParam(required = false) filter: String?): MutableList<TyoskentelyjaksoDTO> {
-        if ("tyoskentelypaikka-is-null".equals(filter)) {
-            return tyoskentelyjaksoService.findAllWhereTyoskentelypaikkaIsNull()
-        }
-
+    fun getAlltyoskentelyjaksot(
+        @RequestParam(required = false) filter: String?
+    ): MutableList<TyoskentelyjaksoDTO> {
         return tyoskentelyjaksoService.findAll()
     }
 
     @GetMapping("/tyoskentelyjaksot/{id}")
-    fun getTyoskentelyjakso(@PathVariable id: Long): ResponseEntity<TyoskentelyjaksoDTO> {
+    fun getTyoskentelyjakso(
+        @PathVariable id: Long
+    ): ResponseEntity<TyoskentelyjaksoDTO> {
         val tyoskentelyjaksoDTO = tyoskentelyjaksoService.findOne(id)
         return ResponseUtil.wrapOrNotFound(tyoskentelyjaksoDTO)
     }
 
     @DeleteMapping("/tyoskentelyjaksot/{id}")
-    fun deleteTyoskentelyjakso(@PathVariable id: Long): ResponseEntity<Void> {
+    fun deleteTyoskentelyjakso(
+        @PathVariable id: Long
+    ): ResponseEntity<Void> {
         tyoskentelyjaksoService.delete(id)
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build()

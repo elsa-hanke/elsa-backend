@@ -187,7 +187,7 @@ class SuoritusarviointiResourceIT {
         restSuoritusarviointiMockMvc.perform(get("/api/suoritusarvioinnit/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(suoritusarviointi.id?.toInt()))
+            .andExpect(jsonPath("$.id").value(suoritusarviointi.id as Any))
             .andExpect(jsonPath("$.tapahtumanAjankohta").value(DEFAULT_TAPAHTUMAN_AJANKOHTA.toString()))
             .andExpect(jsonPath("$.arvioitavaTapahtuma").value(DEFAULT_ARVIOITAVA_TAPAHTUMA))
             .andExpect(jsonPath("$.pyynnonAika").value(DEFAULT_PYYNNON_AIKA.toString()))
