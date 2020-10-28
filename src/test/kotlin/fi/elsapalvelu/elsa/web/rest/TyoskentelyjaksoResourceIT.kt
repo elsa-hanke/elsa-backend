@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.Tyoskentelypaikka
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
@@ -109,9 +110,9 @@ class TyoskentelyjaksoResourceIT {
         assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeCreate + 1)
         val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
         assertThat(testTyoskentelyjakso.tunnus).isEqualTo(DEFAULT_TUNNUS)
-        assertThat(testTyoskentelyjakso.osasto).isEqualTo(DEFAULT_OSASTO)
         assertThat(testTyoskentelyjakso.alkamispaiva).isEqualTo(DEFAULT_ALKAMISPAIVA)
         assertThat(testTyoskentelyjakso.paattymispaiva).isEqualTo(DEFAULT_PAATTYMISPAIVA)
+        assertThat(testTyoskentelyjakso.osaaikaprosentti).isEqualTo(DEFAULT_OSAAIKAPROSENTTI)
     }
 
     @Test
@@ -157,8 +158,29 @@ class TyoskentelyjaksoResourceIT {
 
     @Test
     @Transactional
+    fun checkOsaaikaprosenttiIsRequired() {
+        val databaseSizeBeforeTest = tyoskentelyjaksoRepository.findAll().size
+        // set the field null
+        tyoskentelyjakso.osaaikaprosentti = null
+
+        // Create the Tyoskentelyjakso, which fails.
+        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+
+        restTyoskentelyjaksoMockMvc.perform(
+            post("/api/tyoskentelyjaksot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
+        ).andExpect(status().isBadRequest)
+
+        val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
+        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeTest)
+    }
+
+
+    @Test
+    @Transactional
     @Throws(Exception::class)
-    fun getAllTyoskentelyjaksos() {
+    fun getAllTyoskentelyjaksot() {
         // Initialize the database
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
@@ -168,9 +190,9 @@ class TyoskentelyjaksoResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(tyoskentelyjakso.id?.toInt())))
             .andExpect(jsonPath("$.[*].tunnus").value(hasItem(DEFAULT_TUNNUS)))
-            .andExpect(jsonPath("$.[*].osasto").value(hasItem(DEFAULT_OSASTO)))
             .andExpect(jsonPath("$.[*].alkamispaiva").value(hasItem(DEFAULT_ALKAMISPAIVA.toString())))
             .andExpect(jsonPath("$.[*].paattymispaiva").value(hasItem(DEFAULT_PAATTYMISPAIVA.toString())))
+            .andExpect(jsonPath("$.[*].osaaikaprosentti").value(hasItem(DEFAULT_OSAAIKAPROSENTTI)))
     }
 
     @Test
@@ -189,9 +211,9 @@ class TyoskentelyjaksoResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(tyoskentelyjakso.id as Any))
             .andExpect(jsonPath("$.tunnus").value(DEFAULT_TUNNUS))
-            .andExpect(jsonPath("$.osasto").value(DEFAULT_OSASTO))
             .andExpect(jsonPath("$.alkamispaiva").value(DEFAULT_ALKAMISPAIVA.toString()))
             .andExpect(jsonPath("$.paattymispaiva").value(DEFAULT_PAATTYMISPAIVA.toString()))
+            .andExpect(jsonPath("$.osaaikaprosentti").value(DEFAULT_OSAAIKAPROSENTTI))
     }
 
     @Test
@@ -199,7 +221,7 @@ class TyoskentelyjaksoResourceIT {
     @Throws(Exception::class)
     fun getNonExistingTyoskentelyjakso() {
         // Get the tyoskentelyjakso
-        restTyoskentelyjaksoMockMvc.perform(get("/api/tyoskentelyjaksos/{id}", Long.MAX_VALUE))
+        restTyoskentelyjaksoMockMvc.perform(get("/api/tyoskentelyjaksot/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
     @Test
@@ -217,9 +239,9 @@ class TyoskentelyjaksoResourceIT {
         // Disconnect from session so that the updates on updatedTyoskentelyjakso are not directly saved in db
         em.detach(updatedTyoskentelyjakso)
         updatedTyoskentelyjakso.tunnus = UPDATED_TUNNUS
-        updatedTyoskentelyjakso.osasto = UPDATED_OSASTO
         updatedTyoskentelyjakso.alkamispaiva = UPDATED_ALKAMISPAIVA
         updatedTyoskentelyjakso.paattymispaiva = UPDATED_PAATTYMISPAIVA
+        updatedTyoskentelyjakso.osaaikaprosentti = UPDATED_OSAAIKAPROSENTTI
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(updatedTyoskentelyjakso)
 
         restTyoskentelyjaksoMockMvc.perform(
@@ -233,9 +255,9 @@ class TyoskentelyjaksoResourceIT {
         assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeUpdate)
         val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
         assertThat(testTyoskentelyjakso.tunnus).isEqualTo(UPDATED_TUNNUS)
-        assertThat(testTyoskentelyjakso.osasto).isEqualTo(UPDATED_OSASTO)
         assertThat(testTyoskentelyjakso.alkamispaiva).isEqualTo(UPDATED_ALKAMISPAIVA)
         assertThat(testTyoskentelyjakso.paattymispaiva).isEqualTo(UPDATED_PAATTYMISPAIVA)
+        assertThat(testTyoskentelyjakso.osaaikaprosentti).isEqualTo(UPDATED_OSAAIKAPROSENTTI)
     }
 
     @Test
@@ -283,14 +305,14 @@ class TyoskentelyjaksoResourceIT {
         private const val DEFAULT_TUNNUS = "AAAAAAAAAA"
         private const val UPDATED_TUNNUS = "BBBBBBBBBB"
 
-        private const val DEFAULT_OSASTO = "AAAAAAAAAA"
-        private const val UPDATED_OSASTO = "BBBBBBBBBB"
-
         private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         private val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
+
+        private const val DEFAULT_OSAAIKAPROSENTTI: Int = 50
+        private const val UPDATED_OSAAIKAPROSENTTI: Int = 51
 
         /**
          * Create an entity for this test.
@@ -302,10 +324,21 @@ class TyoskentelyjaksoResourceIT {
         fun createEntity(em: EntityManager): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
                 tunnus = DEFAULT_TUNNUS,
-                osasto = DEFAULT_OSASTO,
                 alkamispaiva = DEFAULT_ALKAMISPAIVA,
-                paattymispaiva = DEFAULT_PAATTYMISPAIVA
+                paattymispaiva = DEFAULT_PAATTYMISPAIVA,
+                osaaikaprosentti = DEFAULT_OSAAIKAPROSENTTI
             )
+
+            // Add required entity
+            val tyoskentelypaikka: Tyoskentelypaikka
+            if (em.findAll(Tyoskentelypaikka::class).isEmpty()) {
+                tyoskentelypaikka = TyoskentelypaikkaResourceIT.createEntity()
+                em.persist(tyoskentelypaikka)
+                em.flush()
+            } else {
+                tyoskentelypaikka = em.findAll(Tyoskentelypaikka::class).get(0)
+            }
+            tyoskentelyjakso.tyoskentelypaikka = tyoskentelypaikka
 
             return tyoskentelyjakso
         }
@@ -320,10 +353,21 @@ class TyoskentelyjaksoResourceIT {
         fun createUpdatedEntity(em: EntityManager): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
                 tunnus = UPDATED_TUNNUS,
-                osasto = UPDATED_OSASTO,
                 alkamispaiva = UPDATED_ALKAMISPAIVA,
-                paattymispaiva = UPDATED_PAATTYMISPAIVA
+                paattymispaiva = UPDATED_PAATTYMISPAIVA,
+                osaaikaprosentti = UPDATED_OSAAIKAPROSENTTI
             )
+
+            // Add required entity
+            val tyoskentelypaikka: Tyoskentelypaikka
+            if (em.findAll(Tyoskentelypaikka::class).isEmpty()) {
+                tyoskentelypaikka = TyoskentelypaikkaResourceIT.createUpdatedEntity()
+                em.persist(tyoskentelypaikka)
+                em.flush()
+            } else {
+                tyoskentelypaikka = em.findAll(Tyoskentelypaikka::class).get(0)
+            }
+            tyoskentelyjakso.tyoskentelypaikka = tyoskentelypaikka
 
             return tyoskentelyjakso
         }

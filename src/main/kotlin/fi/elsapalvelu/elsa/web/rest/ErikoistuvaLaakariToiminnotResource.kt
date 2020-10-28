@@ -104,7 +104,7 @@ class ErikoistuvaLaakariToiminnotResource(
                 "suoritusarviointi", "dataillegal"
             )
         }
-        if (suoritusarviointiDTO.sanallinenArvio != null) {
+        if (suoritusarviointiDTO.sanallinenArviointi != null) {
             throw BadRequestAlertException(
                 "Uusi arviointipyyntö ei saa sisältää sanallista arviointi. Kouluttaja määrittelee sen.",
                 "suoritusarviointi", "dataillegal"

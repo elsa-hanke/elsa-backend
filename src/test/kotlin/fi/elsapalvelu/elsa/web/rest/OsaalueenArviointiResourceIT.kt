@@ -85,7 +85,7 @@ class OsaalueenArviointiResourceIT {
 
     @BeforeEach
     fun initTest() {
-        osaalueenArviointi = createEntity(em)
+        osaalueenArviointi = createEntity()
     }
 
     @Test
@@ -251,7 +251,7 @@ class OsaalueenArviointiResourceIT {
          * if they test an entity which requires the current entity.
          */
         @JvmStatic
-        fun createEntity(em: EntityManager): OsaalueenArviointi {
+        fun createEntity(): OsaalueenArviointi {
             val osaalueenArviointi = OsaalueenArviointi(
                 arvio = DEFAULT_ARVIO
             )
@@ -266,7 +266,7 @@ class OsaalueenArviointiResourceIT {
          * if they test an entity which requires the current entity.
          */
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): OsaalueenArviointi {
+        fun createUpdatedEntity(): OsaalueenArviointi {
             val osaalueenArviointi = OsaalueenArviointi(
                 arvio = UPDATED_ARVIO
             )

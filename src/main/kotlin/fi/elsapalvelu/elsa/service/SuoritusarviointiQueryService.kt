@@ -84,9 +84,9 @@ class SuoritusarviointiQueryService(
                 specification = specification
                     .and(buildRangeSpecification(criteria.vaativuustaso, Suoritusarviointi_.vaativuustaso))
             }
-            if (criteria.sanallinenArvio != null) {
+            if (criteria.sanallinenArviointi != null) {
                 specification = specification
-                    .and(buildStringSpecification(criteria.sanallinenArvio, Suoritusarviointi_.sanallinenArvio))
+                    .and(buildStringSpecification(criteria.sanallinenArviointi, Suoritusarviointi_.sanallinenArviointi))
             }
             if (criteria.arviointiAika != null) {
                 specification = specification
