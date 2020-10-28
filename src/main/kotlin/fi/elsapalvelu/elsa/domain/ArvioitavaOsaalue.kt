@@ -9,13 +9,11 @@ import javax.validation.constraints.*
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 
-/**
- * A ArvioitavaOsaalue.
- */
 @Entity
 @Table(name = "arvioitava_osaalue")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class ArvioitavaOsaalue(
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
@@ -49,12 +47,11 @@ data class ArvioitavaOsaalue(
     @Column(name = "rooli", nullable = false)
     var rooli: CanmedsOsaalue? = null,
 
-    @ManyToOne @JsonIgnoreProperties(value = ["arvioitavaOsaalues"], allowSetters = true)
+    @ManyToOne
+    @JsonIgnoreProperties(value = ["arvioitavaOsaalueet"], allowSetters = true)
     var epaOsaamisalue: EpaOsaamisalue? = null
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here
 ) : Serializable {
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -31,48 +30,40 @@ data class ErikoistuvaLaakari(
     var opintojenAloitusvuosi: Int? = null,
 
     @NotNull
-    @OneToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @OneToOne(optional = false)
     @JoinColumn(unique = true)
     var kayttaja: Kayttaja? = null,
 
+    @OneToMany(mappedBy = "valtuuttaja")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    var annetutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf(),
+
     @OneToMany(mappedBy = "erikoistuvaLaakari")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var osoites: MutableSet<Osoite> = mutableSetOf(),
-
-    @OneToMany(mappedBy = "erikoistuvaLaakari")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var tyoskentelyjaksos: MutableSet<Tyoskentelyjakso> = mutableSetOf(),
-
-    @OneToOne(mappedBy = "erikoistuvaLaakari")
-    @JsonIgnore
-    var hops: Hops? = null,
-
-    @OneToOne(mappedBy = "erikoistuvaLaakari")
-    @JsonIgnore
-    var koejakso: Koejakso? = null
+    var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf(),
 
 ) : Serializable {
 
-    fun addOsoite(osoite: Osoite): ErikoistuvaLaakari {
-        this.osoites.add(osoite)
-        osoite.erikoistuvaLaakari = this
+    fun addValtuutus(kouluttajavaltuutus: Kouluttajavaltuutus): ErikoistuvaLaakari {
+        this.annetutValtuutukset.add(kouluttajavaltuutus)
+        kouluttajavaltuutus.valtuuttaja = this
         return this
     }
 
-    fun removeOsoite(osoite: Osoite): ErikoistuvaLaakari {
-        this.osoites.remove(osoite)
-        osoite.erikoistuvaLaakari = null
+    fun removeValtuutus(kouluttajavaltuutus: Kouluttajavaltuutus): ErikoistuvaLaakari {
+        this.annetutValtuutukset.remove(kouluttajavaltuutus)
+        kouluttajavaltuutus.valtuuttaja = null
         return this
     }
 
     fun addTyoskentelyjakso(tyoskentelyjakso: Tyoskentelyjakso): ErikoistuvaLaakari {
-        this.tyoskentelyjaksos.add(tyoskentelyjakso)
+        this.tyoskentelyjaksot.add(tyoskentelyjakso)
         tyoskentelyjakso.erikoistuvaLaakari = this
         return this
     }
 
     fun removeTyoskentelyjakso(tyoskentelyjakso: Tyoskentelyjakso): ErikoistuvaLaakari {
-        this.tyoskentelyjaksos.remove(tyoskentelyjakso)
+        this.tyoskentelyjaksot.remove(tyoskentelyjakso)
         tyoskentelyjakso.erikoistuvaLaakari = null
         return this
     }

@@ -13,6 +13,7 @@ import org.hibernate.annotations.Type
 @Table(name = "suoritusarviointi")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Suoritusarviointi(
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
@@ -45,35 +46,37 @@ data class Suoritusarviointi(
 
     @OneToMany(mappedBy = "suoritusarviointi")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var osaalueenArviointis: MutableSet<OsaalueenArviointi> = mutableSetOf(),
+    var osaalueenArvioinnit: MutableSet<OsaalueenArviointi> = mutableSetOf(),
 
-    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
+    @ManyToOne
+    @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     var arvioitava: ErikoistuvaLaakari? = null,
 
-    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
+    @ManyToOne
+    @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     var arvioija: Kayttaja? = null,
 
-    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
+    @ManyToOne
+    @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     var arvioitavaOsaalue: EpaOsaamisalue? = null,
 
-    @ManyToOne @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
+    @ManyToOne
+    @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     var tyoskentelyjakso: Tyoskentelyjakso? = null
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here
 ) : Serializable {
 
     fun addOsaalueenArviointi(osaalueenArviointi: OsaalueenArviointi): Suoritusarviointi {
-        this.osaalueenArviointis.add(osaalueenArviointi)
+        this.osaalueenArvioinnit.add(osaalueenArviointi)
         osaalueenArviointi.suoritusarviointi = this
         return this
     }
 
     fun removeOsaalueenArviointi(osaalueenArviointi: OsaalueenArviointi): Suoritusarviointi {
-        this.osaalueenArviointis.remove(osaalueenArviointi)
+        this.osaalueenArvioinnit.remove(osaalueenArviointi)
         osaalueenArviointi.suoritusarviointi = null
         return this
     }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

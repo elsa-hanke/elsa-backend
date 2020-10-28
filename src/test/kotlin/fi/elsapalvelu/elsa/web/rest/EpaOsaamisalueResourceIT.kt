@@ -99,7 +99,7 @@ class EpaOsaamisalueResourceIT {
         // Create the EpaOsaamisalue
         val epaOsaamisalueDTO = epaOsaamisalueMapper.toDto(epaOsaamisalue)
         restEpaOsaamisalueMockMvc.perform(
-            post("/api/epa-osaamisalues")
+            post("/api/epa-osaamisalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(epaOsaamisalueDTO))
         ).andExpect(status().isCreated)
@@ -126,7 +126,7 @@ class EpaOsaamisalueResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restEpaOsaamisalueMockMvc.perform(
-            post("/api/epa-osaamisalues")
+            post("/api/epa-osaamisalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(epaOsaamisalueDTO))
         ).andExpect(status().isBadRequest)
@@ -147,7 +147,7 @@ class EpaOsaamisalueResourceIT {
         val epaOsaamisalueDTO = epaOsaamisalueMapper.toDto(epaOsaamisalue)
 
         restEpaOsaamisalueMockMvc.perform(
-            post("/api/epa-osaamisalues")
+            post("/api/epa-osaamisalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(epaOsaamisalueDTO))
         ).andExpect(status().isBadRequest)
@@ -167,7 +167,7 @@ class EpaOsaamisalueResourceIT {
         val epaOsaamisalueDTO = epaOsaamisalueMapper.toDto(epaOsaamisalue)
 
         restEpaOsaamisalueMockMvc.perform(
-            post("/api/epa-osaamisalues")
+            post("/api/epa-osaamisalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(epaOsaamisalueDTO))
         ).andExpect(status().isBadRequest)
@@ -187,7 +187,7 @@ class EpaOsaamisalueResourceIT {
         val epaOsaamisalueDTO = epaOsaamisalueMapper.toDto(epaOsaamisalue)
 
         restEpaOsaamisalueMockMvc.perform(
-            post("/api/epa-osaamisalues")
+            post("/api/epa-osaamisalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(epaOsaamisalueDTO))
         ).andExpect(status().isBadRequest)
@@ -199,12 +199,12 @@ class EpaOsaamisalueResourceIT {
     @Test
     @Transactional
     @Throws(Exception::class)
-    fun getAllEpaOsaamisalues() {
+    fun getAllEpaOsaamisalueet() {
         // Initialize the database
         epaOsaamisalueRepository.saveAndFlush(epaOsaamisalue)
 
         // Get all the epaOsaamisalueList
-        restEpaOsaamisalueMockMvc.perform(get("/api/epa-osaamisalues?sort=id,desc"))
+        restEpaOsaamisalueMockMvc.perform(get("/api/epa-osaamisalueet?sort=id,desc"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(epaOsaamisalue.id?.toInt())))
@@ -225,10 +225,10 @@ class EpaOsaamisalueResourceIT {
         assertNotNull(id)
 
         // Get the epaOsaamisalue
-        restEpaOsaamisalueMockMvc.perform(get("/api/epa-osaamisalues/{id}", id))
+        restEpaOsaamisalueMockMvc.perform(get("/api/epa-osaamisalueet/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(epaOsaamisalue.id?.toInt()))
+            .andExpect(jsonPath("$.id").value(epaOsaamisalue.id as Any))
             .andExpect(jsonPath("$.epaTunnus").value(DEFAULT_EPA_TUNNUS))
             .andExpect(jsonPath("$.epaNimi").value(DEFAULT_EPA_NIMI))
             .andExpect(jsonPath("$.kuvaus").value(DEFAULT_KUVAUS))
@@ -240,7 +240,7 @@ class EpaOsaamisalueResourceIT {
     @Throws(Exception::class)
     fun getNonExistingEpaOsaamisalue() {
         // Get the epaOsaamisalue
-        restEpaOsaamisalueMockMvc.perform(get("/api/epa-osaamisalues/{id}", Long.MAX_VALUE))
+        restEpaOsaamisalueMockMvc.perform(get("/api/epa-osaamisalueet/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
     @Test
@@ -265,7 +265,7 @@ class EpaOsaamisalueResourceIT {
         val epaOsaamisalueDTO = epaOsaamisalueMapper.toDto(updatedEpaOsaamisalue)
 
         restEpaOsaamisalueMockMvc.perform(
-            put("/api/epa-osaamisalues")
+            put("/api/epa-osaamisalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(epaOsaamisalueDTO))
         ).andExpect(status().isOk)
@@ -291,7 +291,7 @@ class EpaOsaamisalueResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restEpaOsaamisalueMockMvc.perform(
-            put("/api/epa-osaamisalues")
+            put("/api/epa-osaamisalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(epaOsaamisalueDTO))
         ).andExpect(status().isBadRequest)
@@ -312,7 +312,7 @@ class EpaOsaamisalueResourceIT {
 
         // Delete the epaOsaamisalue
         restEpaOsaamisalueMockMvc.perform(
-            delete("/api/epa-osaamisalues/{id}", epaOsaamisalue.id)
+            delete("/api/epa-osaamisalueet/{id}", epaOsaamisalue.id)
                 .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isNoContent)
 

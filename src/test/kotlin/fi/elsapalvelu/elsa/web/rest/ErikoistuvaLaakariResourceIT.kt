@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.service.ErikoistuvaLaakariService
 import fi.elsapalvelu.elsa.service.mapper.ErikoistuvaLaakariMapper
@@ -97,7 +98,7 @@ class ErikoistuvaLaakariResourceIT {
         // Create the ErikoistuvaLaakari
         val erikoistuvaLaakariDTO = erikoistuvaLaakariMapper.toDto(erikoistuvaLaakari)
         restErikoistuvaLaakariMockMvc.perform(
-            post("/api/erikoistuva-laakaris")
+            post("/api/erikoistuvat-laakarit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(erikoistuvaLaakariDTO))
         ).andExpect(status().isCreated)
@@ -123,7 +124,7 @@ class ErikoistuvaLaakariResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restErikoistuvaLaakariMockMvc.perform(
-            post("/api/erikoistuva-laakaris")
+            post("/api/erikoistuvat-laakarit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(erikoistuvaLaakariDTO))
         ).andExpect(status().isBadRequest)
@@ -144,7 +145,7 @@ class ErikoistuvaLaakariResourceIT {
         val erikoistuvaLaakariDTO = erikoistuvaLaakariMapper.toDto(erikoistuvaLaakari)
 
         restErikoistuvaLaakariMockMvc.perform(
-            post("/api/erikoistuva-laakaris")
+            post("/api/erikoistuvat-laakarit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(erikoistuvaLaakariDTO))
         ).andExpect(status().isBadRequest)
@@ -164,7 +165,7 @@ class ErikoistuvaLaakariResourceIT {
         val erikoistuvaLaakariDTO = erikoistuvaLaakariMapper.toDto(erikoistuvaLaakari)
 
         restErikoistuvaLaakariMockMvc.perform(
-            post("/api/erikoistuva-laakaris")
+            post("/api/erikoistuvat-laakarit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(erikoistuvaLaakariDTO))
         ).andExpect(status().isBadRequest)
@@ -176,20 +177,19 @@ class ErikoistuvaLaakariResourceIT {
     @Test
     @Transactional
     @Throws(Exception::class)
-    fun getAllErikoistuvaLaakaris() {
+    fun getAllErikoistuvatLaakarit() {
         // Initialize the database
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
         // Get all the erikoistuvaLaakariList
-        restErikoistuvaLaakariMockMvc.perform(get("/api/erikoistuva-laakaris?sort=id,desc"))
+        restErikoistuvaLaakariMockMvc.perform(get("/api/erikoistuvat-laakarit?sort=id,desc"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(erikoistuvaLaakari.id?.toInt())))
             .andExpect(jsonPath("$.[*].puhelinnumero").value(hasItem(DEFAULT_PUHELINNUMERO)))
             .andExpect(jsonPath("$.[*].sahkoposti").value(hasItem(DEFAULT_SAHKOPOSTI)))
             .andExpect(jsonPath("$.[*].opiskelijatunnus").value(hasItem(DEFAULT_OPISKELIJATUNNUS)))
-            .andExpect(jsonPath("$.[*].opintojenAloitusvuosi").value(hasItem(DEFAULT_OPINTOJEN_ALOITUSVUOSI)))
-    }
+            .andExpect(jsonPath("$.[*].opintojenAloitusvuosi").value(hasItem(DEFAULT_OPINTOJEN_ALOITUSVUOSI))) }
 
     @Test
     @Transactional
@@ -202,22 +202,21 @@ class ErikoistuvaLaakariResourceIT {
         assertNotNull(id)
 
         // Get the erikoistuvaLaakari
-        restErikoistuvaLaakariMockMvc.perform(get("/api/erikoistuva-laakaris/{id}", id))
+        restErikoistuvaLaakariMockMvc.perform(get("/api/erikoistuvat-laakarit/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(erikoistuvaLaakari.id?.toInt()))
+            .andExpect(jsonPath("$.id").value(erikoistuvaLaakari.id as Any))
             .andExpect(jsonPath("$.puhelinnumero").value(DEFAULT_PUHELINNUMERO))
             .andExpect(jsonPath("$.sahkoposti").value(DEFAULT_SAHKOPOSTI))
             .andExpect(jsonPath("$.opiskelijatunnus").value(DEFAULT_OPISKELIJATUNNUS))
-            .andExpect(jsonPath("$.opintojenAloitusvuosi").value(DEFAULT_OPINTOJEN_ALOITUSVUOSI))
-    }
+            .andExpect(jsonPath("$.opintojenAloitusvuosi").value(DEFAULT_OPINTOJEN_ALOITUSVUOSI)) }
 
     @Test
     @Transactional
     @Throws(Exception::class)
     fun getNonExistingErikoistuvaLaakari() {
         // Get the erikoistuvaLaakari
-        restErikoistuvaLaakariMockMvc.perform(get("/api/erikoistuva-laakaris/{id}", Long.MAX_VALUE))
+        restErikoistuvaLaakariMockMvc.perform(get("/api/erikoistuvat-laakarit/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
     @Test
@@ -241,7 +240,7 @@ class ErikoistuvaLaakariResourceIT {
         val erikoistuvaLaakariDTO = erikoistuvaLaakariMapper.toDto(updatedErikoistuvaLaakari)
 
         restErikoistuvaLaakariMockMvc.perform(
-            put("/api/erikoistuva-laakaris")
+            put("/api/erikoistuvat-laakarit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(erikoistuvaLaakariDTO))
         ).andExpect(status().isOk)
@@ -266,7 +265,7 @@ class ErikoistuvaLaakariResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restErikoistuvaLaakariMockMvc.perform(
-            put("/api/erikoistuva-laakaris")
+            put("/api/erikoistuvat-laakarit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(erikoistuvaLaakariDTO))
         ).andExpect(status().isBadRequest)
@@ -287,7 +286,7 @@ class ErikoistuvaLaakariResourceIT {
 
         // Delete the erikoistuvaLaakari
         restErikoistuvaLaakariMockMvc.perform(
-            delete("/api/erikoistuva-laakaris/{id}", erikoistuvaLaakari.id)
+            delete("/api/erikoistuvat-laakarit/{id}", erikoistuvaLaakari.id)
                 .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isNoContent)
 
@@ -325,6 +324,16 @@ class ErikoistuvaLaakariResourceIT {
                 opintojenAloitusvuosi = DEFAULT_OPINTOJEN_ALOITUSVUOSI
             )
 
+            // Add required entity
+            val kayttaja: Kayttaja
+            if (em.findAll(Kayttaja::class).isEmpty()) {
+                kayttaja = KayttajaResourceIT.createEntity(em)
+                em.persist(kayttaja)
+                em.flush()
+            } else {
+                kayttaja = em.findAll(Kayttaja::class).get(0)
+            }
+            erikoistuvaLaakari.kayttaja = kayttaja
             return erikoistuvaLaakari
         }
 
@@ -343,6 +352,16 @@ class ErikoistuvaLaakariResourceIT {
                 opintojenAloitusvuosi = UPDATED_OPINTOJEN_ALOITUSVUOSI
             )
 
+            // Add required entity
+            val kayttaja: Kayttaja
+            if (em.findAll(Kayttaja::class).isEmpty()) {
+                kayttaja = KayttajaResourceIT.createUpdatedEntity(em)
+                em.persist(kayttaja)
+                em.flush()
+            } else {
+                kayttaja = em.findAll(Kayttaja::class).get(0)
+            }
+            erikoistuvaLaakari.kayttaja = kayttaja
             return erikoistuvaLaakari
         }
     }

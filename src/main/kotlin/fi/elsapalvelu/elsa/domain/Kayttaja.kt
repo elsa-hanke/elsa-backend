@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import fi.elsapalvelu.elsa.domain.enumeration.Kieli
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -33,26 +32,26 @@ data class Kayttaja(
     @Column(name = "kieli")
     var kieli: Kieli? = null,
 
-    @OneToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @NotNull
+    @OneToOne(optional = false)
     @JoinColumn(unique = true)
     var user: User? = null,
 
-    @ManyToMany(mappedBy = "keskustelijas")
+    @OneToMany(mappedBy = "valtuutettu")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnore
-    var keskustelus: MutableSet<PikaviestiKeskustelu> = mutableSetOf()
+    var saadutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf()
 
 ) : Serializable {
 
-    fun addKeskustelu(pikaviestiKeskustelu: PikaviestiKeskustelu): Kayttaja {
-        this.keskustelus.add(pikaviestiKeskustelu)
-        pikaviestiKeskustelu.keskustelijas.add(this)
+    fun addValtuutus(kouluttajavaltuutus: Kouluttajavaltuutus): Kayttaja {
+        this.saadutValtuutukset.add(kouluttajavaltuutus)
+        kouluttajavaltuutus.valtuutettu = this
         return this
     }
 
-    fun removeKeskustelu(pikaviestiKeskustelu: PikaviestiKeskustelu): Kayttaja {
-        this.keskustelus.remove(pikaviestiKeskustelu)
-        pikaviestiKeskustelu.keskustelijas.remove(this)
+    fun removeValtuutus(kouluttajavaltuutus: Kouluttajavaltuutus): Kayttaja {
+        this.saadutValtuutukset.remove(kouluttajavaltuutus)
+        kouluttajavaltuutus.valtuutettu = null
         return this
     }
 

@@ -99,7 +99,7 @@ class KayttajaResourceIT {
         // Create the Kayttaja
         val kayttajaDTO = kayttajaMapper.toDto(kayttaja)
         restKayttajaMockMvc.perform(
-            post("/api/kayttajas")
+            post("/api/kayttajat")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajaDTO))
         ).andExpect(status().isCreated)
@@ -125,7 +125,7 @@ class KayttajaResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restKayttajaMockMvc.perform(
-            post("/api/kayttajas")
+            post("/api/kayttajat")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajaDTO))
         ).andExpect(status().isBadRequest)
@@ -146,7 +146,7 @@ class KayttajaResourceIT {
         val kayttajaDTO = kayttajaMapper.toDto(kayttaja)
 
         restKayttajaMockMvc.perform(
-            post("/api/kayttajas")
+            post("/api/kayttajat")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajaDTO))
         ).andExpect(status().isBadRequest)
@@ -158,20 +158,19 @@ class KayttajaResourceIT {
     @Test
     @Transactional
     @Throws(Exception::class)
-    fun getAllKayttajas() {
+    fun getAllKayttajat() {
         // Initialize the database
         kayttajaRepository.saveAndFlush(kayttaja)
 
         // Get all the kayttajaList
-        restKayttajaMockMvc.perform(get("/api/kayttajas?sort=id,desc"))
+        restKayttajaMockMvc.perform(get("/api/kayttajat?sort=id,desc"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(kayttaja.id?.toInt())))
             .andExpect(jsonPath("$.[*].nimi").value(hasItem(DEFAULT_NIMI)))
             .andExpect(jsonPath("$.[*].profiilikuvaContentType").value(hasItem(DEFAULT_PROFIILIKUVA_CONTENT_TYPE)))
             .andExpect(jsonPath("$.[*].profiilikuva").value(hasItem(Base64Utils.encodeToString(DEFAULT_PROFIILIKUVA))))
-            .andExpect(jsonPath("$.[*].kieli").value(hasItem(DEFAULT_KIELI.toString())))
-    }
+            .andExpect(jsonPath("$.[*].kieli").value(hasItem(DEFAULT_KIELI.toString()))) }
 
     @Test
     @Transactional
@@ -184,22 +183,21 @@ class KayttajaResourceIT {
         assertNotNull(id)
 
         // Get the kayttaja
-        restKayttajaMockMvc.perform(get("/api/kayttajas/{id}", id))
+        restKayttajaMockMvc.perform(get("/api/kayttajat/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(kayttaja.id?.toInt()))
+            .andExpect(jsonPath("$.id").value(kayttaja.id as Any))
             .andExpect(jsonPath("$.nimi").value(DEFAULT_NIMI))
             .andExpect(jsonPath("$.profiilikuvaContentType").value(DEFAULT_PROFIILIKUVA_CONTENT_TYPE))
             .andExpect(jsonPath("$.profiilikuva").value(Base64Utils.encodeToString(DEFAULT_PROFIILIKUVA)))
-            .andExpect(jsonPath("$.kieli").value(DEFAULT_KIELI.toString()))
-    }
+            .andExpect(jsonPath("$.kieli").value(DEFAULT_KIELI.toString())) }
 
     @Test
     @Transactional
     @Throws(Exception::class)
     fun getNonExistingKayttaja() {
         // Get the kayttaja
-        restKayttajaMockMvc.perform(get("/api/kayttajas/{id}", Long.MAX_VALUE))
+        restKayttajaMockMvc.perform(get("/api/kayttajat/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
     @Test
@@ -223,7 +221,7 @@ class KayttajaResourceIT {
         val kayttajaDTO = kayttajaMapper.toDto(updatedKayttaja)
 
         restKayttajaMockMvc.perform(
-            put("/api/kayttajas")
+            put("/api/kayttajat")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajaDTO))
         ).andExpect(status().isOk)
@@ -248,7 +246,7 @@ class KayttajaResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restKayttajaMockMvc.perform(
-            put("/api/kayttajas")
+            put("/api/kayttajat")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajaDTO))
         ).andExpect(status().isBadRequest)
@@ -269,7 +267,7 @@ class KayttajaResourceIT {
 
         // Delete the kayttaja
         restKayttajaMockMvc.perform(
-            delete("/api/kayttajas/{id}", kayttaja.id)
+            delete("/api/kayttajat/{id}", kayttaja.id)
                 .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isNoContent)
 
@@ -306,6 +304,11 @@ class KayttajaResourceIT {
                 kieli = DEFAULT_KIELI
             )
 
+            // Add required entity
+            val user = UserResourceIT.createEntity(em)
+            em.persist(user)
+            em.flush()
+            kayttaja.user = user
             return kayttaja
         }
 
@@ -324,6 +327,11 @@ class KayttajaResourceIT {
                 kieli = UPDATED_KIELI
             )
 
+            // Add required entity
+            val user = UserResourceIT.createEntity(em)
+            em.persist(user)
+            em.flush()
+            kayttaja.user = user
             return kayttaja
         }
     }

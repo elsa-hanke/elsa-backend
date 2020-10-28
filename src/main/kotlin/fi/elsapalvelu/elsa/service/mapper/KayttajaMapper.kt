@@ -7,7 +7,13 @@ import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.mapstruct.ReportingPolicy
 
-@Mapper(componentModel = "spring", uses = [UserMapper::class], unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(
+    componentModel = "spring",
+    uses = [
+        UserMapper::class
+    ],
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 interface KayttajaMapper :
     EntityMapper<KayttajaDTO, Kayttaja> {
 
@@ -18,8 +24,8 @@ interface KayttajaMapper :
 
     @Mappings(
         Mapping(source = "userId", target = "user"),
-        Mapping(target = "keskustelus", ignore = true),
-        Mapping(target = "removeKeskustelu", ignore = true)
+        Mapping(target = "saadutValtuutukset", ignore = true),
+        Mapping(target = "removeValtuutus", ignore = true),
     )
     override fun toEntity(dto: KayttajaDTO): Kayttaja
 

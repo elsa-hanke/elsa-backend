@@ -19,14 +19,6 @@ class ElsaBackendApp(private val env: Environment) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    /**
-     * Initializes elsaBackend.
-     *
-     * Spring profiles can be configured with a program argument --spring.profiles.active=your-active-profile
-     *
-     * You can find more information on how profiles work with JHipster on
-     * [https://www.jhipster.tech/profiles/]("https://www.jhipster.tech/profiles/").
-     */
     @PostConstruct
     fun initApplication() {
         val activeProfiles = env.activeProfiles

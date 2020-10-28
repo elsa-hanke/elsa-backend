@@ -7,13 +7,11 @@ import javax.validation.constraints.*
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 
-/**
- * A EpaOsaamisalue.
- */
 @Entity
 @Table(name = "epa_osaamisalue")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class EpaOsaamisalue(
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
@@ -39,23 +37,21 @@ data class EpaOsaamisalue(
 
     @OneToMany(mappedBy = "epaOsaamisalue")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var arvioitavaOsaalues: MutableSet<ArvioitavaOsaalue> = mutableSetOf()
+    var arvioitavatOsaalueet: MutableSet<ArvioitavaOsaalue> = mutableSetOf()
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here
 ) : Serializable {
 
     fun addArvioitavaOsaalue(arvioitavaOsaalue: ArvioitavaOsaalue): EpaOsaamisalue {
-        this.arvioitavaOsaalues.add(arvioitavaOsaalue)
+        this.arvioitavatOsaalueet.add(arvioitavaOsaalue)
         arvioitavaOsaalue.epaOsaamisalue = this
         return this
     }
 
     fun removeArvioitavaOsaalue(arvioitavaOsaalue: ArvioitavaOsaalue): EpaOsaamisalue {
-        this.arvioitavaOsaalues.remove(arvioitavaOsaalue)
+        this.arvioitavatOsaalueet.remove(arvioitavaOsaalue)
         arvioitavaOsaalue.epaOsaamisalue = null
         return this
     }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

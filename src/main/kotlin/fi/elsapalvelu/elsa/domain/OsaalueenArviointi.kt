@@ -7,13 +7,11 @@ import javax.validation.constraints.*
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 
-/**
- * A OsaalueenArviointi.
- */
 @Entity
 @Table(name = "osaalueen_arviointi")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class OsaalueenArviointi(
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
@@ -24,15 +22,15 @@ data class OsaalueenArviointi(
     @Column(name = "arvio")
     var arvio: Int? = null,
 
-    @ManyToOne @JsonIgnoreProperties(value = ["osaalueenArviointis"], allowSetters = true)
+    @ManyToOne
+    @JsonIgnoreProperties(value = ["osaalueenArvioinnit"], allowSetters = true)
     var arvioitavaOsaalue: ArvioitavaOsaalue? = null,
 
-    @ManyToOne @JsonIgnoreProperties(value = ["osaalueenArviointis"], allowSetters = true)
+    @ManyToOne
+    @JsonIgnoreProperties(value = ["osaalueenArvioinnit"], allowSetters = true)
     var suoritusarviointi: Suoritusarviointi? = null
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here
 ) : Serializable {
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

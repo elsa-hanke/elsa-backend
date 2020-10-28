@@ -37,12 +37,12 @@ data class Kouluttajavaltuutus(
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["annetutValtuutuksets"], allowSetters = true)
+    @JsonIgnoreProperties(value = ["annetutValtuutukset"], allowSetters = true)
     var valtuuttaja: ErikoistuvaLaakari? = null,
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["saadutValtuutuksets"], allowSetters = true)
+    @JsonIgnoreProperties(value = ["saadutValtuutukset"], allowSetters = true)
     var valtuutettu: Kayttaja? = null
 
 ) : Serializable {

@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import io.github.jhipster.web.util.PaginationUtil
 import io.github.jhipster.web.util.ResponseUtil
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
@@ -47,17 +46,9 @@ class UserResource(
     private val userService: UserService
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @Value("\${jhipster.clientApp.name}")
     private val applicationName: String? = null
 
-    /**
-     * `GET /users` : get all users.
-     *
-     * @param pageable the pagination information.
-     * @return the `ResponseEntity` with status `200 (OK)` and with body all users.
-     */
     @GetMapping("/users")
     fun getAllUsers(pageable: Pageable): ResponseEntity<List<UserDTO>> {
         val page = userService.getAllManagedUsers(pageable)
@@ -66,24 +57,12 @@ class UserResource(
         return ResponseEntity(page.content, headers, HttpStatus.OK)
     }
 
-    /**
-     * Gets a list of all roles.
-     * @return a string list of all roles.
-     */
     @GetMapping("/users/authorities")
     @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getAuthorities() = userService.getAuthorities()
 
-    /**
-     * `GET /users/:login` : get the "login" user.
-     *
-     * @param login the login of the user to find.
-     * @return the `ResponseEntity` with status `200 (OK)` and with body the "login" user,
-     * or with status `404 (Not Found)`.
-     */
     @GetMapping("/users/{login:$LOGIN_REGEX}")
     fun getUser(@PathVariable login: String): ResponseEntity<UserDTO> {
-        log.debug("REST request to get User : $login")
         return ResponseUtil.wrapOrNotFound(
             userService.getUserWithAuthoritiesByLogin(login)
                 .map { UserDTO(it) }

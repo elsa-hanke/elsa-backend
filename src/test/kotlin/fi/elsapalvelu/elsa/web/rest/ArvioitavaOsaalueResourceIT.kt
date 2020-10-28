@@ -100,7 +100,7 @@ class ArvioitavaOsaalueResourceIT {
         // Create the ArvioitavaOsaalue
         val arvioitavaOsaalueDTO = arvioitavaOsaalueMapper.toDto(arvioitavaOsaalue)
         restArvioitavaOsaalueMockMvc.perform(
-            post("/api/arvioitava-osaalues")
+            post("/api/arvioitavat-osaalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(arvioitavaOsaalueDTO))
         ).andExpect(status().isCreated)
@@ -130,7 +130,7 @@ class ArvioitavaOsaalueResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restArvioitavaOsaalueMockMvc.perform(
-            post("/api/arvioitava-osaalues")
+            post("/api/arvioitavat-osaalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(arvioitavaOsaalueDTO))
         ).andExpect(status().isBadRequest)
@@ -151,7 +151,7 @@ class ArvioitavaOsaalueResourceIT {
         val arvioitavaOsaalueDTO = arvioitavaOsaalueMapper.toDto(arvioitavaOsaalue)
 
         restArvioitavaOsaalueMockMvc.perform(
-            post("/api/arvioitava-osaalues")
+            post("/api/arvioitavat-osaalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(arvioitavaOsaalueDTO))
         ).andExpect(status().isBadRequest)
@@ -171,7 +171,7 @@ class ArvioitavaOsaalueResourceIT {
         val arvioitavaOsaalueDTO = arvioitavaOsaalueMapper.toDto(arvioitavaOsaalue)
 
         restArvioitavaOsaalueMockMvc.perform(
-            post("/api/arvioitava-osaalues")
+            post("/api/arvioitavat-osaalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(arvioitavaOsaalueDTO))
         ).andExpect(status().isBadRequest)
@@ -191,7 +191,7 @@ class ArvioitavaOsaalueResourceIT {
         val arvioitavaOsaalueDTO = arvioitavaOsaalueMapper.toDto(arvioitavaOsaalue)
 
         restArvioitavaOsaalueMockMvc.perform(
-            post("/api/arvioitava-osaalues")
+            post("/api/arvioitavat-osaalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(arvioitavaOsaalueDTO))
         ).andExpect(status().isBadRequest)
@@ -203,12 +203,12 @@ class ArvioitavaOsaalueResourceIT {
     @Test
     @Transactional
     @Throws(Exception::class)
-    fun getAllArvioitavaOsaalues() {
+    fun getAllArvioitavatOsaalueet() {
         // Initialize the database
         arvioitavaOsaalueRepository.saveAndFlush(arvioitavaOsaalue)
 
         // Get all the arvioitavaOsaalueList
-        restArvioitavaOsaalueMockMvc.perform(get("/api/arvioitava-osaalues?sort=id,desc"))
+        restArvioitavaOsaalueMockMvc.perform(get("/api/arvioitavat-osaalueet?sort=id,desc"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(arvioitavaOsaalue.id?.toInt())))
@@ -232,10 +232,10 @@ class ArvioitavaOsaalueResourceIT {
         assertNotNull(id)
 
         // Get the arvioitavaOsaalue
-        restArvioitavaOsaalueMockMvc.perform(get("/api/arvioitava-osaalues/{id}", id))
+        restArvioitavaOsaalueMockMvc.perform(get("/api/arvioitavat-osaalueet/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(arvioitavaOsaalue.id?.toInt()))
+            .andExpect(jsonPath("$.id").value(arvioitavaOsaalue.id as Any))
             .andExpect(jsonPath("$.tunnus").value(DEFAULT_TUNNUS))
             .andExpect(jsonPath("$.nimi").value(DEFAULT_NIMI))
             .andExpect(jsonPath("$.kuvaus").value(DEFAULT_KUVAUS))
@@ -250,7 +250,7 @@ class ArvioitavaOsaalueResourceIT {
     @Throws(Exception::class)
     fun getNonExistingArvioitavaOsaalue() {
         // Get the arvioitavaOsaalue
-        restArvioitavaOsaalueMockMvc.perform(get("/api/arvioitava-osaalues/{id}", Long.MAX_VALUE))
+        restArvioitavaOsaalueMockMvc.perform(get("/api/arvioitavat-osaalueet/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
     @Test
@@ -278,7 +278,7 @@ class ArvioitavaOsaalueResourceIT {
         val arvioitavaOsaalueDTO = arvioitavaOsaalueMapper.toDto(updatedArvioitavaOsaalue)
 
         restArvioitavaOsaalueMockMvc.perform(
-            put("/api/arvioitava-osaalues")
+            put("/api/arvioitavat-osaalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(arvioitavaOsaalueDTO))
         ).andExpect(status().isOk)
@@ -307,7 +307,7 @@ class ArvioitavaOsaalueResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restArvioitavaOsaalueMockMvc.perform(
-            put("/api/arvioitava-osaalues")
+            put("/api/arvioitavat-osaalueet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(arvioitavaOsaalueDTO))
         ).andExpect(status().isBadRequest)
@@ -328,7 +328,7 @@ class ArvioitavaOsaalueResourceIT {
 
         // Delete the arvioitavaOsaalue
         restArvioitavaOsaalueMockMvc.perform(
-            delete("/api/arvioitava-osaalues/{id}", arvioitavaOsaalue.id)
+            delete("/api/arvioitavat-osaalueet/{id}", arvioitavaOsaalue.id)
                 .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isNoContent)
 

@@ -4,9 +4,6 @@ import java.io.Serializable
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
 
-/**
- * A DTO for the [fi.elsapalvelu.elsa.domain.OsaalueenArviointi] entity.
- */
 data class OsaalueenArviointiDTO(
 
     var id: Long? = null,

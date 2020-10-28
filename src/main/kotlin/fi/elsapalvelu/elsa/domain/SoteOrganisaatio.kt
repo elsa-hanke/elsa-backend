@@ -10,6 +10,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 @Table(name = "sote_organisaatio")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class SoteOrganisaatio(
+
     @Id
     @Column(name = "organization_id")
     var organizationId: String? = null,

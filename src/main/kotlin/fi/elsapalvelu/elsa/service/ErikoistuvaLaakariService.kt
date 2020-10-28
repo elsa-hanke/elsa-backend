@@ -8,10 +8,6 @@ interface ErikoistuvaLaakariService {
 
     fun findAll(): MutableList<ErikoistuvaLaakariDTO>
 
-    fun findAllWhereHopsIsNull(): MutableList<ErikoistuvaLaakariDTO>
-
-    fun findAllWhereKoejaksoIsNull(): MutableList<ErikoistuvaLaakariDTO>
-
     fun findOne(id: Long): Optional<ErikoistuvaLaakariDTO>
 
     fun delete(id: Long)
