@@ -102,7 +102,7 @@ class SuoritusarviointiResourceIT {
 
     @BeforeEach
     fun initTest() {
-        suoritusarviointi = createEntity(em)
+        suoritusarviointi = createEntity()
     }
 
     @Test
@@ -128,7 +128,7 @@ class SuoritusarviointiResourceIT {
         assertThat(testSuoritusarviointi.pyynnonAika).isEqualTo(DEFAULT_PYYNNON_AIKA)
         assertThat(testSuoritusarviointi.lisatiedot).isEqualTo(DEFAULT_LISATIEDOT)
         assertThat(testSuoritusarviointi.vaativuustaso).isEqualTo(DEFAULT_VAATIVUUSTASO)
-        assertThat(testSuoritusarviointi.sanallinenArvio).isEqualTo(DEFAULT_SANALLINEN_ARVIO)
+        assertThat(testSuoritusarviointi.sanallinenArviointi).isEqualTo(DEFAULT_SANALLINEN_ARVIOINTI)
         assertThat(testSuoritusarviointi.arviointiAika).isEqualTo(DEFAULT_ARVIOINTI_AIKA)
     }
 
@@ -170,7 +170,7 @@ class SuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.[*].pyynnonAika").value(hasItem(DEFAULT_PYYNNON_AIKA.toString())))
             .andExpect(jsonPath("$.[*].lisatiedot").value(hasItem(DEFAULT_LISATIEDOT.toString())))
             .andExpect(jsonPath("$.[*].vaativuustaso").value(hasItem(DEFAULT_VAATIVUUSTASO)))
-            .andExpect(jsonPath("$.[*].sanallinenArvio").value(hasItem(DEFAULT_SANALLINEN_ARVIO)))
+            .andExpect(jsonPath("$.[*].sanallinenArviointi").value(hasItem(DEFAULT_SANALLINEN_ARVIOINTI)))
             .andExpect(jsonPath("$.[*].arviointiAika").value(hasItem(DEFAULT_ARVIOINTI_AIKA.toString()))) }
 
     @Test
@@ -193,7 +193,7 @@ class SuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.pyynnonAika").value(DEFAULT_PYYNNON_AIKA.toString()))
             .andExpect(jsonPath("$.lisatiedot").value(DEFAULT_LISATIEDOT.toString()))
             .andExpect(jsonPath("$.vaativuustaso").value(DEFAULT_VAATIVUUSTASO))
-            .andExpect(jsonPath("$.sanallinenArvio").value(DEFAULT_SANALLINEN_ARVIO))
+            .andExpect(jsonPath("$.sanallinenArviointi").value(DEFAULT_SANALLINEN_ARVIOINTI))
             .andExpect(jsonPath("$.arviointiAika").value(DEFAULT_ARVIOINTI_AIKA.toString())) }
 
     @Test
@@ -223,7 +223,7 @@ class SuoritusarviointiResourceIT {
         updatedSuoritusarviointi.pyynnonAika = UPDATED_PYYNNON_AIKA
         updatedSuoritusarviointi.lisatiedot = UPDATED_LISATIEDOT
         updatedSuoritusarviointi.vaativuustaso = UPDATED_VAATIVUUSTASO
-        updatedSuoritusarviointi.sanallinenArvio = UPDATED_SANALLINEN_ARVIO
+        updatedSuoritusarviointi.sanallinenArviointi = UPDATED_SANALLINEN_ARVIOINTI
         updatedSuoritusarviointi.arviointiAika = UPDATED_ARVIOINTI_AIKA
         val suoritusarviointiDTO = suoritusarviointiMapper.toDto(updatedSuoritusarviointi)
 
@@ -242,7 +242,7 @@ class SuoritusarviointiResourceIT {
         assertThat(testSuoritusarviointi.pyynnonAika).isEqualTo(UPDATED_PYYNNON_AIKA)
         assertThat(testSuoritusarviointi.lisatiedot).isEqualTo(UPDATED_LISATIEDOT)
         assertThat(testSuoritusarviointi.vaativuustaso).isEqualTo(UPDATED_VAATIVUUSTASO)
-        assertThat(testSuoritusarviointi.sanallinenArvio).isEqualTo(UPDATED_SANALLINEN_ARVIO)
+        assertThat(testSuoritusarviointi.sanallinenArviointi).isEqualTo(UPDATED_SANALLINEN_ARVIOINTI)
         assertThat(testSuoritusarviointi.arviointiAika).isEqualTo(UPDATED_ARVIOINTI_AIKA)
     }
 
@@ -303,8 +303,8 @@ class SuoritusarviointiResourceIT {
         private const val DEFAULT_VAATIVUUSTASO: Int = 1
         private const val UPDATED_VAATIVUUSTASO: Int = 2
 
-        private const val DEFAULT_SANALLINEN_ARVIO = "AAAAAAAAAA"
-        private const val UPDATED_SANALLINEN_ARVIO = "BBBBBBBBBB"
+        private const val DEFAULT_SANALLINEN_ARVIOINTI = "AAAAAAAAAA"
+        private const val UPDATED_SANALLINEN_ARVIOINTI = "BBBBBBBBBB"
 
         private val DEFAULT_ARVIOINTI_AIKA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_ARVIOINTI_AIKA: LocalDate = LocalDate.now(ZoneId.systemDefault())
@@ -316,14 +316,14 @@ class SuoritusarviointiResourceIT {
          * if they test an entity which requires the current entity.
          */
         @JvmStatic
-        fun createEntity(em: EntityManager): Suoritusarviointi {
+        fun createEntity(): Suoritusarviointi {
             val suoritusarviointi = Suoritusarviointi(
                 tapahtumanAjankohta = DEFAULT_TAPAHTUMAN_AJANKOHTA,
                 arvioitavaTapahtuma = DEFAULT_ARVIOITAVA_TAPAHTUMA,
                 pyynnonAika = DEFAULT_PYYNNON_AIKA,
                 lisatiedot = DEFAULT_LISATIEDOT,
                 vaativuustaso = DEFAULT_VAATIVUUSTASO,
-                sanallinenArvio = DEFAULT_SANALLINEN_ARVIO,
+                sanallinenArviointi = DEFAULT_SANALLINEN_ARVIOINTI,
                 arviointiAika = DEFAULT_ARVIOINTI_AIKA
             )
 
@@ -337,14 +337,14 @@ class SuoritusarviointiResourceIT {
          * if they test an entity which requires the current entity.
          */
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): Suoritusarviointi {
+        fun createUpdatedEntity(): Suoritusarviointi {
             val suoritusarviointi = Suoritusarviointi(
                 tapahtumanAjankohta = UPDATED_TAPAHTUMAN_AJANKOHTA,
                 arvioitavaTapahtuma = UPDATED_ARVIOITAVA_TAPAHTUMA,
                 pyynnonAika = UPDATED_PYYNNON_AIKA,
                 lisatiedot = UPDATED_LISATIEDOT,
                 vaativuustaso = UPDATED_VAATIVUUSTASO,
-                sanallinenArvio = UPDATED_SANALLINEN_ARVIO,
+                sanallinenArviointi = UPDATED_SANALLINEN_ARVIOINTI,
                 arviointiAika = UPDATED_ARVIOINTI_AIKA
             )
 

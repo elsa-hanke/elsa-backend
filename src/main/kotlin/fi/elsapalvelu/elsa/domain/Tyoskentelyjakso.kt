@@ -22,14 +22,23 @@ data class Tyoskentelyjakso(
     @Column(name = "tunnus", nullable = false)
     var tunnus: String? = null,
 
-    @Column(name = "osasto")
-    var osasto: String? = null,
-
+    @get: NotNull
     @Column(name = "alkamispaiva")
     var alkamispaiva: LocalDate? = null,
 
     @Column(name = "paattymispaiva")
     var paattymispaiva: LocalDate? = null,
+
+    @get: NotNull
+    @get: Min(value = 50)
+    @get: Max(value = 100)
+    @Column(name = "osaaikaprosentti", nullable = false)
+    var osaaikaprosentti: Int? = null,
+
+    //@NotNull
+    @OneToOne(optional = false)
+    @JoinColumn(unique = true)
+    var tyoskentelypaikka: Tyoskentelypaikka? = null,
 
     @OneToMany(mappedBy = "tyoskentelyjakso")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -65,7 +74,6 @@ data class Tyoskentelyjakso(
     override fun toString() = "Tyoskentelyjakso{" +
         "id=$id" +
         ", tunnus='$tunnus'" +
-        ", osasto='$osasto'" +
         ", alkamispaiva='$alkamispaiva'" +
         ", paattymispaiva='$paattymispaiva'" +
         "}"

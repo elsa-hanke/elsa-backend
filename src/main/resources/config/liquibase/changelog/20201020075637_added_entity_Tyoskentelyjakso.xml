@@ -12,13 +12,16 @@
             <column name="tunnus" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
-            <column name="osasto" type="varchar(255)">
-                <constraints nullable="true" />
-            </column>
             <column name="alkamispaiva" type="date">
-                <constraints nullable="true" />
+                <constraints nullable="false" />
             </column>
             <column name="paattymispaiva" type="date">
+                <constraints nullable="true" />
+            </column>
+            <column name="osaaikaprosentti" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="tyoskentelypaikka_id" type="bigint">
                 <constraints nullable="true" />
             </column>
             <column name="erikoistuva_laakari_id" type="bigint">
@@ -38,9 +41,10 @@
                   tableName="tyoskentelyjakso">
             <column name="id" type="numeric"/>
             <column name="tunnus" type="string"/>
-            <column name="osasto" type="string"/>
             <column name="alkamispaiva" type="date"/>
             <column name="paattymispaiva" type="date"/>
+            <column name="osaaikaprosentti" type="numeric"/>
+            <column name="tyoskentelypaikka_id" type="numeric"/>
         </loadData>
     </changeSet>
 

@@ -305,7 +305,7 @@ class KayttajaResourceIT {
             )
 
             // Add required entity
-            val user = UserResourceIT.createEntity(em)
+            val user = UserResourceIT.createEntity()
             em.persist(user)
             em.flush()
             kayttaja.user = user
@@ -328,7 +328,7 @@ class KayttajaResourceIT {
             )
 
             // Add required entity
-            val user = UserResourceIT.createEntity(em)
+            val user = UserResourceIT.createEntity()
             em.persist(user)
             em.flush()
             kayttaja.user = user

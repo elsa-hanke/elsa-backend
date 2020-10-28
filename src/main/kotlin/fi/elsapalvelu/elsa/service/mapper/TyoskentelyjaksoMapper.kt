@@ -9,7 +9,10 @@ import org.mapstruct.ReportingPolicy
 
 @Mapper(
     componentModel = "spring",
-    uses = [ErikoistuvaLaakariMapper::class],
+    uses = [
+        TyoskentelypaikkaMapper::class,
+        ErikoistuvaLaakariMapper::class
+    ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
 interface TyoskentelyjaksoMapper :
@@ -21,6 +24,7 @@ interface TyoskentelyjaksoMapper :
     override fun toDto(entity: Tyoskentelyjakso): TyoskentelyjaksoDTO
 
     @Mappings(
+        Mapping(source = "tyoskentelypaikkaId", target = "tyoskentelypaikka"),
         Mapping(target = "suoritusarvioinnit", ignore = true),
         Mapping(target = "removeSuoritusarviointi", ignore = true),
         Mapping(source = "erikoistuvaLaakariId", target = "erikoistuvaLaakari")

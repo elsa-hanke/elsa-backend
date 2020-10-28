@@ -23,7 +23,7 @@ data class SuoritusarviointiDTO(
     @get: Max(value = 5)
     var vaativuustaso: Int? = null,
 
-    var sanallinenArvio: String? = null,
+    var sanallinenArviointi: String? = null,
 
     var arviointiAika: LocalDate? = null,
 

@@ -87,7 +87,7 @@ class EpaOsaamisalueResourceIT {
 
     @BeforeEach
     fun initTest() {
-        epaOsaamisalue = createEntity(em)
+        epaOsaamisalue = createEntity()
     }
 
     @Test
@@ -345,7 +345,7 @@ class EpaOsaamisalueResourceIT {
          * if they test an entity which requires the current entity.
          */
         @JvmStatic
-        fun createEntity(em: EntityManager): EpaOsaamisalue {
+        fun createEntity(): EpaOsaamisalue {
             val epaOsaamisalue = EpaOsaamisalue(
                 epaTunnus = DEFAULT_EPA_TUNNUS,
                 epaNimi = DEFAULT_EPA_NIMI,
@@ -364,7 +364,7 @@ class EpaOsaamisalueResourceIT {
          * if they test an entity which requires the current entity.
          */
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): EpaOsaamisalue {
+        fun createUpdatedEntity(): EpaOsaamisalue {
             val epaOsaamisalue = EpaOsaamisalue(
                 epaTunnus = UPDATED_EPA_TUNNUS,
                 epaNimi = UPDATED_EPA_NIMI,

@@ -23,6 +23,7 @@
     <include file="config/liquibase/changelog/20201020080037_added_entity_ArvioitavaOsaalue.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201022130115_added_entity_SoteOrganisaatio.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201028101013_added_entity_Kouluttajavaltuutus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20201028164852_added_entity_Tyoskentelypaikka.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075637_added_entity_constraints_Tyoskentelyjakso.xml" relativeToChangelogFile="false"/>

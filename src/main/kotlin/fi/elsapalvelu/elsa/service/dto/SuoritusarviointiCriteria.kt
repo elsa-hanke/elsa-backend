@@ -19,7 +19,7 @@ data class SuoritusarviointiCriteria(
 
     var vaativuustaso: IntegerFilter? = null,
 
-    var sanallinenArvio: StringFilter? = null,
+    var sanallinenArviointi: StringFilter? = null,
 
     var arviointiAika: LocalDateFilter? = null
 ) : Serializable, Criteria {
@@ -31,7 +31,7 @@ data class SuoritusarviointiCriteria(
             other.arvioitavaTapahtuma?.copy(),
             other.pyynnonAika?.copy(),
             other.vaativuustaso?.copy(),
-            other.sanallinenArvio?.copy(),
+            other.sanallinenArviointi?.copy(),
             other.arviointiAika?.copy()
         )
 

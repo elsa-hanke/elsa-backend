@@ -1,11 +1,11 @@
-id;tunnus;osasto;alkamispaiva;paattymispaiva
-1;Assimilated purple;disintermediate auxiliary program;2020-09-22;2020-09-23
-2;Paradigm;Outdoors Marketing bandwidth;2020-09-23;2020-09-22
-3;program Alabama New York;Ghana;2020-09-22;2020-09-23
-4;Macedonia;redundant Sleek Frozen Bike Shoes;2020-09-22;2020-09-22
-5;Assurance Dynamic;mint green New York Pre-emptive;2020-09-23;2020-09-22
-6;functionalities bandwidth Credit Card Account;Investor deposit Tasty;2020-09-22;2020-09-23
-7;Handmade;bandwidth copy;2020-09-22;2020-09-23
-8;moderator Toys optical;Total;2020-09-22;2020-09-23
-9;bypassing Division transmitting;Forward;2020-09-22;2020-09-23
-10;Personal Loan Account withdrawal Delaware;Applications port;2020-09-22;2020-09-22
+id;tunnus;alkamispaiva;paattymispaiva;osaaikaprosentti;tyoskentelypaikka_id
+1;abc1;2020-09-22;2020-09-23;70;1
+2;abc2;2020-09-23;2020-09-22;95;2
+3;abc3;2020-09-22;2020-09-23;79;3
+4;abc4;2020-09-22;2020-09-22;95;4
+5;abc5;2020-09-23;2020-09-22;71;5
+6;abc6;2020-09-22;2020-09-23;50;6
+7;abc7;2020-09-22;2020-09-23;81;7
+8;abc8;2020-09-22;2020-09-23;100;8
+9;abc9;2020-09-22;2020-09-23;61;9
+10;abc10;2020-09-22;2020-09-22;50;10

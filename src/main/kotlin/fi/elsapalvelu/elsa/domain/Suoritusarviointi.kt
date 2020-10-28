@@ -38,8 +38,8 @@ data class Suoritusarviointi(
     @Column(name = "vaativuustaso")
     var vaativuustaso: Int? = null,
 
-    @Column(name = "sanallinen_arvio")
-    var sanallinenArvio: String? = null,
+    @Column(name = "sanallinen_arviointi")
+    var sanallinenArviointi: String? = null,
 
     @Column(name = "arviointi_aika")
     var arviointiAika: LocalDate? = null,
@@ -94,7 +94,7 @@ data class Suoritusarviointi(
         ", pyynnonAika='$pyynnonAika'" +
         ", lisatiedot='$lisatiedot'" +
         ", vaativuustaso=$vaativuustaso" +
-        ", sanallinenArvio='$sanallinenArvio'" +
+        ", sanallinenArviointi='$sanallinenArviointi'" +
         ", arviointiAika='$arviointiAika'" +
         "}"
 
