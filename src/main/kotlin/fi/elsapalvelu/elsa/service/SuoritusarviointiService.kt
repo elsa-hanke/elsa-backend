@@ -16,6 +16,10 @@ interface SuoritusarviointiService {
         pageable: Pageable
     ): Page<SuoritusarviointiDTO>
 
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+        userId: String
+    ): MutableList<SuoritusarviointiDTO>
+
     fun findOne(id: Long): Optional<SuoritusarviointiDTO>
 
     fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(

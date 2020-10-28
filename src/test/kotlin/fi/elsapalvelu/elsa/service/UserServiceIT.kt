@@ -24,7 +24,6 @@ private const val DEFAULT_LOGIN = "johndoe"
 private const val DEFAULT_EMAIL = "johndoe@localhost"
 private const val DEFAULT_FIRSTNAME = "john"
 private const val DEFAULT_LASTNAME = "doe"
-private const val DEFAULT_IMAGEURL = "http://placehold.it/50x50"
 private const val DEFAULT_LANGKEY = "dummy"
 
 /**
@@ -52,15 +51,13 @@ class UserServiceIT {
             email = DEFAULT_EMAIL,
             firstName = DEFAULT_FIRSTNAME,
             lastName = DEFAULT_LASTNAME,
-            imageUrl = DEFAULT_IMAGEURL,
             langKey = DEFAULT_LANGKEY
         )
         userDetails = mutableMapOf(
             "sub" to DEFAULT_LOGIN,
             "email" to DEFAULT_EMAIL,
             "given_name" to DEFAULT_FIRSTNAME,
-            "family_name" to DEFAULT_LASTNAME,
-            "picture" to DEFAULT_IMAGEURL
+            "family_name" to DEFAULT_LASTNAME
         )
     }
 
@@ -94,7 +91,6 @@ class UserServiceIT {
         assertThat(userDTO.email).isEqualTo(DEFAULT_EMAIL)
         assertThat(userDTO.activated).isTrue()
         assertThat(userDTO.langKey).isEqualTo(DEFAULT_LANGUAGE)
-        assertThat(userDTO.imageUrl).isEqualTo(DEFAULT_IMAGEURL)
         assertThat(userDTO.authorities).contains(ANONYMOUS)
     }
 

@@ -1,3 +1,6 @@
-id;login;first_name;last_name;email;image_url;activated;lang_key;created_by;last_modified_by
-1;system;System;System;system@localhost;;true;fi;system;system
-2;anonymoususer;Anonymous;User;anonymous@localhost;;true;fi;system;system
+id;login;first_name;last_name;email;activated;lang_key;created_by;last_modified_by
+1;system;System;System;system@localhost;true;fi;system;system
+2;anonymoususer;Anonymous;User;anonymous@localhost;true;fi;system;system
+395a637e-b517-4fdd-b127-351aa1c73cd8;etunimi1.sukunimi1@example.com;Etunimi 1;Sukunimi 1;etunimi1.sukunimi1@example.com;true;fi;system;system
+ec58bdd4-2358-4666-b4e1-4855c6f6cc24;etunimi2.sukunimi2@example.com;Etunimi 2;Sukunimi 2;etunimi2.sukunimi2@example.com;true;fi;system;system
+829b7a5c-c591-4ecc-bd08-2273fd7e38fc;etunimi3.sukunimi3@example.com;Etunimi 3;Sukunimi 3;etunimi3.sukunimi3@example.com;true;fi;system;system

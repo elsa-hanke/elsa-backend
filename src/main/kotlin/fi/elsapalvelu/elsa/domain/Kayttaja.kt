@@ -28,6 +28,7 @@ data class Kayttaja(
     @Column(name = "profiilikuva_content_type")
     var profiilikuvaContentType: String? = null,
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "kieli")
     var kieli: Kieli? = null,
@@ -41,7 +42,6 @@ data class Kayttaja(
     @JsonIgnore
     var keskustelus: MutableSet<PikaviestiKeskustelu> = mutableSetOf()
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here
 ) : Serializable {
 
     fun addKeskustelu(pikaviestiKeskustelu: PikaviestiKeskustelu): Kayttaja {
@@ -55,7 +55,6 @@ data class Kayttaja(
         pikaviestiKeskustelu.keskustelijas.remove(this)
         return this
     }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

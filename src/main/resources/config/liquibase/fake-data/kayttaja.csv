@@ -1,11 +1,4 @@
-id;nimi;profiilikuva;profiilikuva_content_type;kieli
-1;Kayttaja 1;../fake-data/blob/hipster.png;image/png;RUOTSI
-2;Kayttaja 2;../fake-data/blob/hipster.png;image/png;ENGLANTI
-3;Kayttaja 3;../fake-data/blob/hipster.png;image/png;RUOTSI
-4;Kayttaja 4;../fake-data/blob/hipster.png;image/png;SUOMI
-5;Kayttaja 5;../fake-data/blob/hipster.png;image/png;SUOMI
-6;Kayttaja 6;../fake-data/blob/hipster.png;image/png;SUOMI
-7;Kayttaja 7;../fake-data/blob/hipster.png;image/png;ENGLANTI
-8;Kayttaja 8;../fake-data/blob/hipster.png;image/png;SUOMI
-9;Kayttaja 9;../fake-data/blob/hipster.png;image/png;SUOMI
-10;Kayttaja 10;../fake-data/blob/hipster.png;image/png;SUOMI
+id;nimi;profiilikuva;profiilikuva_content_type;kieli;user_id
+1;Kayttaja 1;../fake-data/blob/hipster.png;image/png;RUOTSI;395a637e-b517-4fdd-b127-351aa1c73cd8
+2;Kayttaja 2;../fake-data/blob/hipster.png;image/png;ENGLANTI;ec58bdd4-2358-4666-b4e1-4855c6f6cc24
+3;Kayttaja 3;../fake-data/blob/hipster.png;image/png;RUOTSI;829b7a5c-c591-4ecc-bd08-2273fd7e38fc

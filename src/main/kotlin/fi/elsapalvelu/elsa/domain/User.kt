@@ -57,10 +57,6 @@ class User(
     @Column(name = "lang_key", length = 10)
     var langKey: String? = null,
 
-    @field:Size(max = 256)
-    @Column(name = "image_url", length = 256)
-    var imageUrl: String? = null,
-
     @JsonIgnore
     @ManyToMany
     @JoinTable(
@@ -94,7 +90,6 @@ class User(
             ", firstName='" + firstName + '\'' +
             ", lastName='" + lastName + '\'' +
             ", email='" + email + '\'' +
-            ", imageUrl='" + imageUrl + '\'' +
             ", activated='" + activated + '\'' +
             ", langKey='" + langKey + '\'' +
             "}"

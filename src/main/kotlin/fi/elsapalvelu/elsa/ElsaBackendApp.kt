@@ -51,11 +51,6 @@ class ElsaBackendApp(private val env: Environment) {
     }
 
     companion object {
-        /**
-         * Main method, used to run the application.
-         *
-         * @param args the command line arguments.
-         */
         @JvmStatic
         fun main(args: Array<String>) {
             val env = runApplication<ElsaBackendApp>(*args) { DefaultProfileUtil.addDefaultProfile(this) }.environment
