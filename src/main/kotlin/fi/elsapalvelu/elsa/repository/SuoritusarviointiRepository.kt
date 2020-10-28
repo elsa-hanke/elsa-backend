@@ -19,6 +19,10 @@ interface SuoritusarviointiRepository : JpaRepository<Suoritusarviointi, Long>,
         pageable: Pageable
     ): Page<Suoritusarviointi>
 
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+        userId: String
+    ): MutableList<Suoritusarviointi>
+
     fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         id: Long,
         userId: String

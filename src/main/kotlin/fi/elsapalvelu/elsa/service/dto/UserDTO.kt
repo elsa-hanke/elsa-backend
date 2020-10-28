@@ -26,9 +26,6 @@ open class UserDTO(
     @field:Size(min = 5, max = 254)
     var email: String? = null,
 
-    @field:Size(max = 256)
-    var imageUrl: String? = null,
-
     var activated: Boolean = false,
 
     @field:Size(min = 2, max = 10)
@@ -47,7 +44,7 @@ open class UserDTO(
     constructor(user: User) :
         this(
             user.id, user.login, user.firstName, user.lastName, user.email,
-            user.imageUrl, user.activated, user.langKey,
+            user.activated, user.langKey,
             user.createdBy, user.createdDate, user.lastModifiedBy, user.lastModifiedDate,
             user.authorities.map { it.name }.filterNotNullTo(mutableSetOf())
         )
@@ -59,7 +56,6 @@ open class UserDTO(
         ", firstName='" + firstName + '\'' +
         ", lastName='" + lastName + '\'' +
         ", email='" + email + '\'' +
-        ", imageUrl='" + imageUrl + '\'' +
         ", activated=" + activated +
         ", langKey='" + langKey + '\'' +
         ", createdBy=" + createdBy +

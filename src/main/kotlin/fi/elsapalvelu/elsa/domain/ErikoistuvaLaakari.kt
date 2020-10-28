@@ -30,6 +30,7 @@ data class ErikoistuvaLaakari(
     @Column(name = "opintojen_aloitusvuosi")
     var opintojenAloitusvuosi: Int? = null,
 
+    @NotNull
     @OneToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     @JoinColumn(unique = true)
     var kayttaja: Kayttaja? = null,
@@ -50,7 +51,6 @@ data class ErikoistuvaLaakari(
     @JsonIgnore
     var koejakso: Koejakso? = null
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here
 ) : Serializable {
 
     fun addOsoite(osoite: Osoite): ErikoistuvaLaakari {
@@ -76,7 +76,6 @@ data class ErikoistuvaLaakari(
         tyoskentelyjakso.erikoistuvaLaakari = null
         return this
     }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

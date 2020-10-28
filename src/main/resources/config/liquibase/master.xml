@@ -31,6 +31,7 @@
     <include file="config/liquibase/changelog/20201020080437_added_entity_PikaviestiKeskustelu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020080537_added_entity_Pikaviesti.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201022130115_added_entity_SoteOrganisaatio.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20201028101013_added_entity_Kouluttajavaltuutus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075237_added_entity_constraints_Osoite.xml" relativeToChangelogFile="false"/>
@@ -45,4 +46,5 @@
     <include file="config/liquibase/changelog/20201020080337_added_entity_constraints_Hops.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020080437_added_entity_constraints_PikaviestiKeskustelu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020080537_added_entity_constraints_Pikaviesti.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20201028101013_added_entity_constraints_Kouluttajavaltuutus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

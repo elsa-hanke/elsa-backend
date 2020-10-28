@@ -30,7 +30,6 @@ class UserMapperTest {
             email = "johndoe@localhost",
             firstName = "john",
             lastName = "doe",
-            imageUrl = "image_url",
             langKey = "en"
         )
 
