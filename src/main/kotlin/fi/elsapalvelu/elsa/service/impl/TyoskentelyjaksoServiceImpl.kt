@@ -34,14 +34,6 @@ class TyoskentelyjaksoServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllWhereTyoskentelypaikkaIsNull(): MutableList<TyoskentelyjaksoDTO> {
-        return tyoskentelyjaksoRepository.findAll()
-            .asSequence()
-            .filter { it.tyoskentelypaikka == null }
-            .mapTo(mutableListOf()) { tyoskentelyjaksoMapper.toDto(it) }
-    }
-
-    @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<TyoskentelyjaksoDTO> {
         return tyoskentelyjaksoRepository.findById(id)
             .map(tyoskentelyjaksoMapper::toDto)

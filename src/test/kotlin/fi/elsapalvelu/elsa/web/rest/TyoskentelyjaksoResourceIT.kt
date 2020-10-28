@@ -187,7 +187,7 @@ class TyoskentelyjaksoResourceIT {
         restTyoskentelyjaksoMockMvc.perform(get("/api/tyoskentelyjaksot/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(tyoskentelyjakso.id?.toInt()))
+            .andExpect(jsonPath("$.id").value(tyoskentelyjakso.id as Any))
             .andExpect(jsonPath("$.tunnus").value(DEFAULT_TUNNUS))
             .andExpect(jsonPath("$.osasto").value(DEFAULT_OSASTO))
             .andExpect(jsonPath("$.alkamispaiva").value(DEFAULT_ALKAMISPAIVA.toString()))

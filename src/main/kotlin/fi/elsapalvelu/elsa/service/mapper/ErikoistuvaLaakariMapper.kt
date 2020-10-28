@@ -18,12 +18,8 @@ interface ErikoistuvaLaakariMapper :
 
     @Mappings(
         Mapping(source = "kayttajaId", target = "kayttaja"),
-        Mapping(target = "osoites", ignore = true),
-        Mapping(target = "removeOsoite", ignore = true),
-        Mapping(target = "tyoskentelyjaksos", ignore = true),
+        Mapping(target = "tyoskentelyjaksot", ignore = true),
         Mapping(target = "removeTyoskentelyjakso", ignore = true),
-        Mapping(target = "hops", ignore = true),
-        Mapping(target = "koejakso", ignore = true)
     )
     override fun toEntity(dto: ErikoistuvaLaakariDTO): ErikoistuvaLaakari
 

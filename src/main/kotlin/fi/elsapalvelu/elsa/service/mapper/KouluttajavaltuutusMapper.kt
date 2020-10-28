@@ -5,8 +5,15 @@ import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.mapstruct.ReportingPolicy
 
-@Mapper(componentModel = "spring", uses = [ErikoistuvaLaakariMapper::class, KayttajaMapper::class])
+@Mapper(
+    componentModel = "spring",
+    uses = [
+        ErikoistuvaLaakariMapper::class,
+        KayttajaMapper::class
+    ],
+    unmappedTargetPolicy = ReportingPolicy.IGNORE)
 interface KouluttajavaltuutusMapper :
     EntityMapper<KouluttajavaltuutusDTO, Kouluttajavaltuutus> {
 
