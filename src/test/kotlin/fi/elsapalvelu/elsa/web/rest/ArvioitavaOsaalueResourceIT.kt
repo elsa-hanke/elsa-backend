@@ -88,7 +88,7 @@ class ArvioitavaOsaalueResourceIT {
 
     @BeforeEach
     fun initTest() {
-        arvioitavaOsaalue = createEntity(em)
+        arvioitavaOsaalue = createEntity()
     }
 
     @Test
@@ -370,7 +370,7 @@ class ArvioitavaOsaalueResourceIT {
          * if they test an entity which requires the current entity.
          */
         @JvmStatic
-        fun createEntity(em: EntityManager): ArvioitavaOsaalue {
+        fun createEntity(): ArvioitavaOsaalue {
             val arvioitavaOsaalue = ArvioitavaOsaalue(
                 tunnus = DEFAULT_TUNNUS,
                 nimi = DEFAULT_NIMI,
@@ -392,7 +392,7 @@ class ArvioitavaOsaalueResourceIT {
          * if they test an entity which requires the current entity.
          */
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): ArvioitavaOsaalue {
+        fun createUpdatedEntity(): ArvioitavaOsaalue {
             val arvioitavaOsaalue = ArvioitavaOsaalue(
                 tunnus = UPDATED_TUNNUS,
                 nimi = UPDATED_NIMI,

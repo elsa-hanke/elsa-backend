@@ -24,7 +24,7 @@
             <column name="vaativuustaso" type="integer">
                 <constraints nullable="true" />
             </column>
-            <column name="sanallinen_arvio" type="varchar(255)">
+            <column name="sanallinen_arviointi" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
             <column name="arviointi_aika" type="date">
@@ -60,7 +60,7 @@
             <column name="pyynnon_aika" type="date"/>
             <column name="lisatiedot" type="clob"/>
             <column name="vaativuustaso" type="numeric"/>
-            <column name="sanallinen_arvio" type="string"/>
+            <column name="sanallinen_arviointi" type="string"/>
             <column name="arviointi_aika" type="date"/>
         </loadData>
     </changeSet>

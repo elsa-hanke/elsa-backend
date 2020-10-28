@@ -39,20 +39,20 @@ class CustomAuditEventRepositoryIT {
         persistenceAuditEventRepository.deleteAll()
         val oneHourAgo = Instant.now().minusSeconds(3600)
 
-        val testUserEvent = PersistentAuditEvent(
+        PersistentAuditEvent(
             principal = "test-user",
             auditEventType = "test-type",
             auditEventDate = oneHourAgo,
             data = mutableMapOf("test-key" to "test-value")
         )
 
-        val testOldUserEvent = PersistentAuditEvent(
+        PersistentAuditEvent(
             principal = "test-user",
             auditEventType = "test-type",
             auditEventDate = oneHourAgo.minusSeconds(10000)
         )
 
-        val testOtherUserEvent = PersistentAuditEvent(
+        PersistentAuditEvent(
             principal = "other-test-user",
             auditEventType = "test-type",
             auditEventDate = oneHourAgo
