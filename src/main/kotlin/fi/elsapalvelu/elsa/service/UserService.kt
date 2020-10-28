@@ -47,9 +47,8 @@ class UserService(
      * @param lastName last name of user.
      * @param email email id of user.
      * @param langKey language key.
-     * @param imageUrl image URL of user.
      */
-    fun updateUser(firstName: String?, lastName: String?, email: String?, langKey: String?, imageUrl: String?) {
+    fun updateUser(firstName: String?, lastName: String?, email: String?, langKey: String?) {
         getCurrentUserLogin()
             .flatMap(userRepository::findOneByLogin)
             .ifPresent {
@@ -58,7 +57,6 @@ class UserService(
                 it.lastName = lastName
                 it.email = email?.toLowerCase()
                 it.langKey = langKey
-                it.imageUrl = imageUrl
                 clearUserCaches(it)
                 log.debug("Changed Information for User: $it")
             }
@@ -99,12 +97,12 @@ class UserService(
                 val idpModifiedDate = details["updated_at"] as Instant
                 if (idpModifiedDate.isAfter(dbModifiedDate)) {
                     log.debug("Updating user '${user.login}' in local database")
-                    updateUser(user.firstName, user.lastName, user.email, user.langKey, user.imageUrl)
+                    updateUser(user.firstName, user.lastName, user.email, user.langKey)
                 }
                 // no last updated info, blindly update
             } else {
                 log.debug("Updating user '${user.login}' in local database")
-                updateUser(user.firstName, user.lastName, user.email, user.langKey, user.imageUrl)
+                updateUser(user.firstName, user.lastName, user.email, user.langKey)
             }
         } else {
             log.debug("Saving user '${user.login}' in local database")
@@ -200,9 +198,6 @@ class UserService(
             } else {
                 // set langKey to default if not specified by IdP
                 user.langKey = DEFAULT_LANGUAGE
-            }
-            if (details["picture"] != null) {
-                user.imageUrl = details["picture"] as String
             }
             user.activated = true
             return user

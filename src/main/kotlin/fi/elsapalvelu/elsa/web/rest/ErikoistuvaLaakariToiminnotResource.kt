@@ -40,6 +40,23 @@ class ErikoistuvaLaakariToiminnotResource(
         return ResponseUtil.wrapOrNotFound(erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!))
     }
 
+    @GetMapping("/suoritusarvioinnit-rajaimet")
+    fun getAllSuoritusarvioinnit(
+        principal: Principal?
+    ): ResponseEntity<SuoritusarvioinnitDto> {
+        val user = getAuthenticatedUser(principal)
+        val options = SuoritusarvioinnitDto()
+        options.tyoskentelyjaksot = tyoskentelyjaksoService
+            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+        // TODO: EPA-osaamisalueet
+        options.tapahtumat = suoritusarviointiService
+            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+        // TODO: Vain omat kouluttajat / myönnetyt käyttöoikeudet
+        options.kouluttajat = kayttajaService.findAll().toMutableSet()
+
+        return ResponseEntity.ok(options)
+    }
+
     @GetMapping("/suoritusarvioinnit")
     fun getAllSuoritusarvioinnit(
         criteria: SuoritusarviointiCriteria,
@@ -51,6 +68,7 @@ class ErikoistuvaLaakariToiminnotResource(
             .findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(criteria, user.id!!, pageable)
         val headers = PaginationUtil
             .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
+
         return ResponseEntity.ok().headers(headers).body(page)
     }
 
@@ -59,13 +77,13 @@ class ErikoistuvaLaakariToiminnotResource(
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiPyyntolomakeDTO> {
         val user = getAuthenticatedUser(principal)
-        val suoritusarviointiPyyntolomakeDTO = SuoritusarviointiPyyntolomakeDTO()
-        suoritusarviointiPyyntolomakeDTO.tyoskentelyjaksot = tyoskentelyjaksoService
+        val lomake = SuoritusarviointiPyyntolomakeDTO()
+        lomake.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
-        // TODO: Vain kouluttajat
-        suoritusarviointiPyyntolomakeDTO.kouluttajat = kayttajaService.findAll().toMutableSet()
+        // TODO: Vain omat kouluttajat
+        lomake.kouluttajat = kayttajaService.findAll().toMutableSet()
 
-        return ResponseEntity.ok(suoritusarviointiPyyntolomakeDTO)
+        return ResponseEntity.ok(lomake)
     }
 
     @PostMapping("/suoritusarvioinnit/arviointipyynto")

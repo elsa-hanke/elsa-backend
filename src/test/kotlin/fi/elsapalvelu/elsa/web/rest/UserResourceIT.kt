@@ -91,7 +91,6 @@ class UserResourceIT {
             .andExpect(jsonPath("\$.[*].firstName").value(hasItem(DEFAULT_FIRSTNAME)))
             .andExpect(jsonPath("\$.[*].lastName").value(hasItem(DEFAULT_LASTNAME)))
             .andExpect(jsonPath("\$.[*].email").value(hasItem(DEFAULT_EMAIL)))
-            .andExpect(jsonPath("\$.[*].imageUrl").value(hasItem(DEFAULT_IMAGEURL)))
             .andExpect(jsonPath("\$.[*].langKey").value(hasItem(DEFAULT_LANGKEY)))
     }
 
@@ -112,7 +111,6 @@ class UserResourceIT {
             .andExpect(jsonPath("\$.firstName").value(DEFAULT_FIRSTNAME))
             .andExpect(jsonPath("\$.lastName").value(DEFAULT_LASTNAME))
             .andExpect(jsonPath("\$.email").value(DEFAULT_EMAIL))
-            .andExpect(jsonPath("\$.imageUrl").value(DEFAULT_IMAGEURL))
             .andExpect(jsonPath("\$.langKey").value(DEFAULT_LANGKEY))
 
         assertNotNull(cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE)!!.get(user.login!!))
@@ -163,7 +161,6 @@ class UserResourceIT {
             lastName = DEFAULT_LASTNAME,
             email = DEFAULT_EMAIL,
             activated = true,
-            imageUrl = DEFAULT_IMAGEURL,
             langKey = DEFAULT_LANGKEY,
             createdBy = DEFAULT_LOGIN,
             lastModifiedBy = DEFAULT_LOGIN,
@@ -178,7 +175,6 @@ class UserResourceIT {
         assertThat(user.lastName).isEqualTo(DEFAULT_LASTNAME)
         assertThat(user.email).isEqualTo(DEFAULT_EMAIL)
         assertThat(user.activated).isEqualTo(true)
-        assertThat(user.imageUrl).isEqualTo(DEFAULT_IMAGEURL)
         assertThat(user.langKey).isEqualTo(DEFAULT_LANGKEY)
         assertThat(user.createdBy).isNull()
         assertThat(user.createdDate).isNotNull()
@@ -204,7 +200,6 @@ class UserResourceIT {
         assertThat(userDTO.lastName).isEqualTo(DEFAULT_LASTNAME)
         assertThat(userDTO.email).isEqualTo(DEFAULT_EMAIL)
         assertThat(userDTO.isActivated()).isEqualTo(true)
-        assertThat(userDTO.imageUrl).isEqualTo(DEFAULT_IMAGEURL)
         assertThat(userDTO.langKey).isEqualTo(DEFAULT_LANGKEY)
         assertThat(userDTO.createdBy).isEqualTo(DEFAULT_LOGIN)
         assertThat(userDTO.createdDate).isEqualTo(user.createdDate)
@@ -249,8 +244,6 @@ class UserResourceIT {
 
         private const val DEFAULT_LASTNAME = "doe"
 
-        private const val DEFAULT_IMAGEURL = "http://placehold.it/50x50"
-
         private const val DEFAULT_LANGKEY = "en"
 
         /**
@@ -268,7 +261,6 @@ class UserResourceIT {
                 email = RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL,
                 firstName = DEFAULT_FIRSTNAME,
                 lastName = DEFAULT_LASTNAME,
-                imageUrl = DEFAULT_IMAGEURL,
                 langKey = DEFAULT_LANGKEY
             )
         }

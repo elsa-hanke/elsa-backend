@@ -48,6 +48,14 @@ class SuoritusarviointiServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+        userId: String
+    ): MutableList<SuoritusarviointiDTO> {
+        return suoritusarviointiRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId)
+            .mapTo(mutableListOf(), suoritusarviointiMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<SuoritusarviointiDTO> {
         return suoritusarviointiRepository.findById(id)
             .map(suoritusarviointiMapper::toDto)
