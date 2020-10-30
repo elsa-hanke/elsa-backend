@@ -162,22 +162,31 @@ class ErikoistuvaLaakariToiminnotResource(
     }
 
     @PostMapping("/tyoskentelyjaksot")
-    fun createTyoskentelyjakso(
-        @Valid @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
+    fun createTyoskentelyjaksoJaPaikka(
+        @Valid @RequestBody tyoskentelyjakso: TyoskentelyjaksoDTO,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
-        if (tyoskentelyjaksoDTO.id != null) {
+        val tyoskentelypaikka = tyoskentelyjakso.tyoskentelypaikka
+        if (tyoskentelyjakso.id != null) {
             throw BadRequestAlertException(
                 "Uusi tyoskentelyjakso ei saa sisältää ID:tä.",
                 "tyoskentelyjakso",
                 "idexists"
             )
         }
+        if (tyoskentelypaikka == null ||tyoskentelypaikka.id != null) {
+            throw BadRequestAlertException(
+                "Uusi tyoskentelypaikka ei saa sisältää ID:tä.",
+                "tyoskentelypaikka",
+                "idexists"
+            )
+        }
         val user = getAuthenticatedUser(principal)
         val erikoistuvaLaakari = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
         if (erikoistuvaLaakari.isPresent) {
-            tyoskentelyjaksoDTO.erikoistuvaLaakariId = erikoistuvaLaakari.get().id
-            val result = tyoskentelyjaksoService.save(tyoskentelyjaksoDTO)
+            tyoskentelyjakso.erikoistuvaLaakariId = erikoistuvaLaakari.get().id
+
+            val result = tyoskentelyjaksoService.save(tyoskentelyjakso)
             return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${result.id}"))
                 .headers(HeaderUtil.createEntityCreationAlert(
                     applicationName,
