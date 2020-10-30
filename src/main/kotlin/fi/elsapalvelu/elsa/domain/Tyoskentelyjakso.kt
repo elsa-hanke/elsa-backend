@@ -23,7 +23,7 @@ data class Tyoskentelyjakso(
     var tunnus: String? = null,
 
     @get: NotNull
-    @Column(name = "alkamispaiva")
+    @Column(name = "alkamispaiva", nullable = false)
     var alkamispaiva: LocalDate? = null,
 
     @Column(name = "paattymispaiva")
@@ -35,8 +35,8 @@ data class Tyoskentelyjakso(
     @Column(name = "osaaikaprosentti", nullable = false)
     var osaaikaprosentti: Int? = null,
 
-    //@NotNull
-    @OneToOne(optional = false)
+    @NotNull
+    @OneToOne(optional = false, cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     @JoinColumn(unique = true)
     var tyoskentelypaikka: Tyoskentelypaikka? = null,
 

@@ -22,7 +22,7 @@ class TyoskentelypaikkaResourceIT {
         private const val UPDATED_KUNTA = "BBBBBBBBBB"
 
         private val DEFAULT_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
-        private val UPDATED_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.SAIRAALA
+        private val UPDATED_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.YLIOPISTOLLINEN_SAIRAALA
 
         @JvmStatic
         fun createEntity(): Tyoskentelypaikka {
