@@ -9,10 +9,7 @@
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="epa_tunnus" type="varchar(255)">
-                <constraints nullable="false" />
-            </column>
-            <column name="epa_nimi" type="varchar(255)">
+            <column name="nimi" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
             <column name="kuvaus" type="varchar(255)">
@@ -37,8 +34,7 @@
                   separator=";"
                   tableName="epa_osaamisalue">
             <column name="id" type="numeric"/>
-            <column name="epa_tunnus" type="string"/>
-            <column name="epa_nimi" type="string"/>
+            <column name="nimi" type="string"/>
             <column name="kuvaus" type="string"/>
             <column name="voimassaolo_alkaa" type="date"/>
             <column name="voimassaolo_loppuu" type="date"/>

@@ -108,8 +108,7 @@ class EpaOsaamisalueResourceIT {
         val epaOsaamisalueList = epaOsaamisalueRepository.findAll()
         assertThat(epaOsaamisalueList).hasSize(databaseSizeBeforeCreate + 1)
         val testEpaOsaamisalue = epaOsaamisalueList[epaOsaamisalueList.size - 1]
-        assertThat(testEpaOsaamisalue.epaTunnus).isEqualTo(DEFAULT_EPA_TUNNUS)
-        assertThat(testEpaOsaamisalue.epaNimi).isEqualTo(DEFAULT_EPA_NIMI)
+        assertThat(testEpaOsaamisalue.nimi).isEqualTo(DEFAULT_NIMI)
         assertThat(testEpaOsaamisalue.kuvaus).isEqualTo(DEFAULT_KUVAUS)
         assertThat(testEpaOsaamisalue.voimassaoloAlkaa).isEqualTo(DEFAULT_VOIMASSAOLO_ALKAA)
         assertThat(testEpaOsaamisalue.voimassaoloLoppuu).isEqualTo(DEFAULT_VOIMASSAOLO_LOPPUU)
@@ -138,30 +137,10 @@ class EpaOsaamisalueResourceIT {
 
     @Test
     @Transactional
-    fun checkEpaTunnusIsRequired() {
+    fun checkNimiIsRequired() {
         val databaseSizeBeforeTest = epaOsaamisalueRepository.findAll().size
         // set the field null
-        epaOsaamisalue.epaTunnus = null
-
-        // Create the EpaOsaamisalue, which fails.
-        val epaOsaamisalueDTO = epaOsaamisalueMapper.toDto(epaOsaamisalue)
-
-        restEpaOsaamisalueMockMvc.perform(
-            post("/api/epa-osaamisalueet")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(epaOsaamisalueDTO))
-        ).andExpect(status().isBadRequest)
-
-        val epaOsaamisalueList = epaOsaamisalueRepository.findAll()
-        assertThat(epaOsaamisalueList).hasSize(databaseSizeBeforeTest)
-    }
-
-    @Test
-    @Transactional
-    fun checkEpaNimiIsRequired() {
-        val databaseSizeBeforeTest = epaOsaamisalueRepository.findAll().size
-        // set the field null
-        epaOsaamisalue.epaNimi = null
+        epaOsaamisalue.nimi = null
 
         // Create the EpaOsaamisalue, which fails.
         val epaOsaamisalueDTO = epaOsaamisalueMapper.toDto(epaOsaamisalue)
@@ -208,8 +187,7 @@ class EpaOsaamisalueResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(epaOsaamisalue.id?.toInt())))
-            .andExpect(jsonPath("$.[*].epaTunnus").value(hasItem(DEFAULT_EPA_TUNNUS)))
-            .andExpect(jsonPath("$.[*].epaNimi").value(hasItem(DEFAULT_EPA_NIMI)))
+            .andExpect(jsonPath("$.[*].nimi").value(hasItem(DEFAULT_NIMI)))
             .andExpect(jsonPath("$.[*].kuvaus").value(hasItem(DEFAULT_KUVAUS)))
             .andExpect(jsonPath("$.[*].voimassaoloAlkaa").value(hasItem(DEFAULT_VOIMASSAOLO_ALKAA.toString())))
             .andExpect(jsonPath("$.[*].voimassaoloLoppuu").value(hasItem(DEFAULT_VOIMASSAOLO_LOPPUU.toString()))) }
@@ -229,8 +207,7 @@ class EpaOsaamisalueResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(epaOsaamisalue.id as Any))
-            .andExpect(jsonPath("$.epaTunnus").value(DEFAULT_EPA_TUNNUS))
-            .andExpect(jsonPath("$.epaNimi").value(DEFAULT_EPA_NIMI))
+            .andExpect(jsonPath("$.nimi").value(DEFAULT_NIMI))
             .andExpect(jsonPath("$.kuvaus").value(DEFAULT_KUVAUS))
             .andExpect(jsonPath("$.voimassaoloAlkaa").value(DEFAULT_VOIMASSAOLO_ALKAA.toString()))
             .andExpect(jsonPath("$.voimassaoloLoppuu").value(DEFAULT_VOIMASSAOLO_LOPPUU.toString())) }
@@ -257,8 +234,7 @@ class EpaOsaamisalueResourceIT {
         val updatedEpaOsaamisalue = epaOsaamisalueRepository.findById(id).get()
         // Disconnect from session so that the updates on updatedEpaOsaamisalue are not directly saved in db
         em.detach(updatedEpaOsaamisalue)
-        updatedEpaOsaamisalue.epaTunnus = UPDATED_EPA_TUNNUS
-        updatedEpaOsaamisalue.epaNimi = UPDATED_EPA_NIMI
+        updatedEpaOsaamisalue.nimi = UPDATED_NIMI
         updatedEpaOsaamisalue.kuvaus = UPDATED_KUVAUS
         updatedEpaOsaamisalue.voimassaoloAlkaa = UPDATED_VOIMASSAOLO_ALKAA
         updatedEpaOsaamisalue.voimassaoloLoppuu = UPDATED_VOIMASSAOLO_LOPPUU
@@ -274,8 +250,7 @@ class EpaOsaamisalueResourceIT {
         val epaOsaamisalueList = epaOsaamisalueRepository.findAll()
         assertThat(epaOsaamisalueList).hasSize(databaseSizeBeforeUpdate)
         val testEpaOsaamisalue = epaOsaamisalueList[epaOsaamisalueList.size - 1]
-        assertThat(testEpaOsaamisalue.epaTunnus).isEqualTo(UPDATED_EPA_TUNNUS)
-        assertThat(testEpaOsaamisalue.epaNimi).isEqualTo(UPDATED_EPA_NIMI)
+        assertThat(testEpaOsaamisalue.nimi).isEqualTo(UPDATED_NIMI)
         assertThat(testEpaOsaamisalue.kuvaus).isEqualTo(UPDATED_KUVAUS)
         assertThat(testEpaOsaamisalue.voimassaoloAlkaa).isEqualTo(UPDATED_VOIMASSAOLO_ALKAA)
         assertThat(testEpaOsaamisalue.voimassaoloLoppuu).isEqualTo(UPDATED_VOIMASSAOLO_LOPPUU)
@@ -323,11 +298,8 @@ class EpaOsaamisalueResourceIT {
 
     companion object {
 
-        private const val DEFAULT_EPA_TUNNUS = "AAAAAAAAAA"
-        private const val UPDATED_EPA_TUNNUS = "BBBBBBBBBB"
-
-        private const val DEFAULT_EPA_NIMI = "AAAAAAAAAA"
-        private const val UPDATED_EPA_NIMI = "BBBBBBBBBB"
+        private const val DEFAULT_NIMI = "AAAAAAAAAA"
+        private const val UPDATED_NIMI = "BBBBBBBBBB"
 
         private const val DEFAULT_KUVAUS = "AAAAAAAAAA"
         private const val UPDATED_KUVAUS = "BBBBBBBBBB"
@@ -347,8 +319,7 @@ class EpaOsaamisalueResourceIT {
         @JvmStatic
         fun createEntity(): EpaOsaamisalue {
             val epaOsaamisalue = EpaOsaamisalue(
-                epaTunnus = DEFAULT_EPA_TUNNUS,
-                epaNimi = DEFAULT_EPA_NIMI,
+                nimi = DEFAULT_NIMI,
                 kuvaus = DEFAULT_KUVAUS,
                 voimassaoloAlkaa = DEFAULT_VOIMASSAOLO_ALKAA,
                 voimassaoloLoppuu = DEFAULT_VOIMASSAOLO_LOPPUU
@@ -366,8 +337,7 @@ class EpaOsaamisalueResourceIT {
         @JvmStatic
         fun createUpdatedEntity(): EpaOsaamisalue {
             val epaOsaamisalue = EpaOsaamisalue(
-                epaTunnus = UPDATED_EPA_TUNNUS,
-                epaNimi = UPDATED_EPA_NIMI,
+                nimi = UPDATED_NIMI,
                 kuvaus = UPDATED_KUVAUS,
                 voimassaoloAlkaa = UPDATED_VOIMASSAOLO_ALKAA,
                 voimassaoloLoppuu = UPDATED_VOIMASSAOLO_LOPPUU

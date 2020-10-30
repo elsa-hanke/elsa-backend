@@ -27,7 +27,8 @@ class ErikoistuvaLaakariToiminnotResource(
     private val userService: UserService,
     private val kayttajaService: KayttajaService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
+    private val epaOsaamisalueService: EpaOsaamisalueService
 ) {
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
@@ -48,7 +49,7 @@ class ErikoistuvaLaakariToiminnotResource(
         val options = SuoritusarvioinnitDto()
         options.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
-        // TODO: EPA-osaamisalueet
+        options.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()
         options.tapahtumat = suoritusarviointiService
             .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
         // TODO: Vain omat kouluttajat / myönnetyt käyttöoikeudet
@@ -80,6 +81,7 @@ class ErikoistuvaLaakariToiminnotResource(
         val lomake = SuoritusarviointiPyyntolomakeDTO()
         lomake.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+        lomake.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()
         // TODO: Vain omat kouluttajat
         lomake.kouluttajat = kayttajaService.findAll().toMutableSet()
 
@@ -162,7 +164,7 @@ class ErikoistuvaLaakariToiminnotResource(
     }
 
     @PostMapping("/tyoskentelyjaksot")
-    fun createTyoskentelyjaksoJaPaikka(
+    fun createTyoskentelyjakso(
         @Valid @RequestBody tyoskentelyjakso: TyoskentelyjaksoDTO,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
@@ -174,7 +176,7 @@ class ErikoistuvaLaakariToiminnotResource(
                 "idexists"
             )
         }
-        if (tyoskentelypaikka == null ||tyoskentelypaikka.id != null) {
+        if (tyoskentelypaikka == null || tyoskentelypaikka.id != null) {
             throw BadRequestAlertException(
                 "Uusi tyoskentelypaikka ei saa sisältää ID:tä.",
                 "tyoskentelypaikka",
