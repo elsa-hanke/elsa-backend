@@ -6,7 +6,10 @@ data class SuoritusarviointiPyyntolomakeDTO(
 
     var tyoskentelyjaksot: MutableSet<TyoskentelyjaksoDTO> = mutableSetOf(),
 
+    var epaOsaamisalueet: MutableSet<EpaOsaamisalueDTO> = mutableSetOf(),
+
     var kouluttajat: MutableSet<KayttajaDTO> = mutableSetOf()
+
 ) : Serializable {
     override fun hashCode() = 31
 }

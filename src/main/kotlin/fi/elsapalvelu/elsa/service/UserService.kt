@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.enumeration.Kieli
 import fi.elsapalvelu.elsa.repository.AuthorityRepository
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
@@ -137,7 +138,8 @@ class UserService(
         // Luodaan erikoistuva lääkäri ja käyttäjä entiteetit erikoistuvalle lääkärille jos ne eivät ole vielä luotu
         if (user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI))) {
             if (!erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!).isPresent) {
-                val kayttaja = Kayttaja(user = user, nimi = user.firstName + " " + user.lastName)
+                var kayttaja = Kayttaja(user = user, nimi = user.firstName + " " + user.lastName, kieli = Kieli.SUOMI)
+                kayttaja = kayttajaRepository.save(kayttaja)
                 val erikoistuvaLaakari = ErikoistuvaLaakari(kayttaja = kayttaja)
                 erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
             }

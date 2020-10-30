@@ -18,12 +18,8 @@ data class EpaOsaamisalue(
     var id: Long? = null,
 
     @get: NotNull
-    @Column(name = "epa_tunnus", nullable = false)
-    var epaTunnus: String? = null,
-
-    @get: NotNull
-    @Column(name = "epa_nimi", nullable = false)
-    var epaNimi: String? = null,
+    @Column(name = "nimi", nullable = false)
+    var nimi: String? = null,
 
     @Column(name = "kuvaus")
     var kuvaus: String? = null,
@@ -64,8 +60,7 @@ data class EpaOsaamisalue(
 
     override fun toString() = "EpaOsaamisalue{" +
         "id=$id" +
-        ", epaTunnus='$epaTunnus'" +
-        ", epaNimi='$epaNimi'" +
+        ", nimi='$nimi'" +
         ", kuvaus='$kuvaus'" +
         ", voimassaoloAlkaa='$voimassaoloAlkaa'" +
         ", voimassaoloLoppuu='$voimassaoloLoppuu'" +

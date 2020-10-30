@@ -42,6 +42,7 @@ class SoteOrganisaatioQueryService(
 
     @Transactional(readOnly = true)
     fun findAllKunnat(): MutableList<String> {
+        // TODO: parempi haku
         return soteOrganisaatioRepository.findAll().mapNotNull { it.postOffice }.distinct().toMutableList()
     }
 

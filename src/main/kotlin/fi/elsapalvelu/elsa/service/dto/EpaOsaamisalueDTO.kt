@@ -9,10 +9,7 @@ data class EpaOsaamisalueDTO(
     var id: Long? = null,
 
     @get: NotNull
-    var epaTunnus: String? = null,
-
-    @get: NotNull
-    var epaNimi: String? = null,
+    var nimi: String? = null,
 
     var kuvaus: String? = null,
 
