@@ -30,7 +30,7 @@ data class ErikoistuvaLaakari(
     var opintojenAloitusvuosi: Int? = null,
 
     @NotNull
-    @OneToOne(optional = false)
+    @OneToOne(optional = false, cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     @JoinColumn(unique = true)
     var kayttaja: Kayttaja? = null,
 

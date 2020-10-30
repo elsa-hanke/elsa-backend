@@ -23,7 +23,8 @@ data class TyoskentelyjaksoDTO(
     @get: Max(value = 100)
     var osaaikaprosentti: Int? = null,
 
-    var tyoskentelypaikkaId: Long? = null,
+    @get: NotNull
+    var tyoskentelypaikka: TyoskentelypaikkaDTO? = null,
 
     var erikoistuvaLaakariId: Long? = null
 

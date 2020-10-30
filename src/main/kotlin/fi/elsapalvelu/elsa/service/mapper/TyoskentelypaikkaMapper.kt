@@ -12,7 +12,7 @@ import org.mapstruct.ReportingPolicy
 interface TyoskentelypaikkaMapper :
     EntityMapper<TyoskentelypaikkaDTO, Tyoskentelypaikka> {
 
-    override fun toEntity(tyoskentelypaikkaDTO: TyoskentelypaikkaDTO): Tyoskentelypaikka
+    override fun toEntity(dto: TyoskentelypaikkaDTO): Tyoskentelypaikka
 
     @JvmDefault
     fun fromId(id: Long?) = id?.let {
