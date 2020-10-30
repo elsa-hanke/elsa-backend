@@ -6,7 +6,7 @@ data class SuoritusarvioinnitDto(
 
     var tyoskentelyjaksot: MutableSet<TyoskentelyjaksoDTO> = mutableSetOf(),
 
-    var osaamisalueet: MutableSet<EpaOsaamisalueDTO> = mutableSetOf(),
+    var epaOsaamisalueet: MutableSet<EpaOsaamisalueDTO> = mutableSetOf(),
 
     var tapahtumat: MutableSet<SuoritusarviointiDTO> = mutableSetOf(),
 
