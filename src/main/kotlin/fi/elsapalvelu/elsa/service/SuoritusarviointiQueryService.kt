@@ -108,11 +108,11 @@ class SuoritusarviointiQueryService(
                         EpaOsaamisalue_.id
                     ))
             }
-            if (criteria.arvioijaId != null) {
+            if (criteria.arvioinninAntajaId != null) {
                 specification = specification
                     .and(buildReferringEntitySpecification(
-                        criteria.arvioijaId,
-                        Suoritusarviointi_.arvioija,
+                        criteria.arvioinninAntajaId,
+                        Suoritusarviointi_.arvioinninAntaja,
                         Kayttaja_.id
                     ))
             }

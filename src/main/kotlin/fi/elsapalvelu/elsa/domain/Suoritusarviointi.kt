@@ -35,9 +35,34 @@ data class Suoritusarviointi(
 
     @get: Min(value = 1)
     @get: Max(value = 5)
+    @Column(name = "itsearviointi_vaativuustaso")
+    var itsearviointiVaativuustaso: Int? = null,
+
+    @get: Min(value = 1)
+    @get: Max(value = 5)
+    @Column(name = "itsearviointi_luottamuksen_taso")
+    var itsearviointiLuottamuksenTaso: Int? = null,
+
+    @Lob
+    @Type(type = "org.hibernate.type.TextType")
+    @Column(name = "sanallinen_itsearviointi")
+    var sanallinenItsearviointi: String? = null,
+
+    @Column(name = "itsearviointi_aika")
+    var itsearviointiAika: LocalDate? = null,
+
+    @get: Min(value = 1)
+    @get: Max(value = 5)
     @Column(name = "vaativuustaso")
     var vaativuustaso: Int? = null,
 
+    @get: Min(value = 1)
+    @get: Max(value = 5)
+    @Column(name = "luottamuksen_taso")
+    var luottamuksenTaso: Int? = null,
+
+    @Lob
+    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "sanallinen_arviointi")
     var sanallinenArviointi: String? = null,
 
@@ -50,11 +75,7 @@ data class Suoritusarviointi(
 
     @ManyToOne
     @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
-    var arvioitava: ErikoistuvaLaakari? = null,
-
-    @ManyToOne
-    @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
-    var arvioija: Kayttaja? = null,
+    var arvioinninAntaja: Kayttaja? = null,
 
     @ManyToOne
     @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
@@ -93,7 +114,12 @@ data class Suoritusarviointi(
         ", arvioitavaTapahtuma='$arvioitavaTapahtuma'" +
         ", pyynnonAika='$pyynnonAika'" +
         ", lisatiedot='$lisatiedot'" +
+        ", itsearviointiVaativuustaso=$itsearviointiVaativuustaso" +
+        ", itsearviointiLuottamuksenTaso=$itsearviointiLuottamuksenTaso" +
+        ", sanallinenItsearviointi='$sanallinenItsearviointi'" +
+        ", itsearviointiAika='$itsearviointiAika'" +
         ", vaativuustaso=$vaativuustaso" +
+        ", luottamuksenTaso=$luottamuksenTaso" +
         ", sanallinenArviointi='$sanallinenArviointi'" +
         ", arviointiAika='$arviointiAika'" +
         "}"
