@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
 
-data class SuoritusarvioinnitDto(
+data class SuoritusarvioinnitOptionsDto(
 
     var tyoskentelyjaksot: MutableSet<TyoskentelyjaksoDTO> = mutableSetOf(),
 
