@@ -92,6 +92,30 @@ class SuoritusarviointiQueryService(
                 specification = specification
                     .and(buildRangeSpecification(criteria.arviointiAika, Suoritusarviointi_.arviointiAika))
             }
+            if (criteria.tyoskentelyjaksoId != null) {
+                specification = specification
+                    .and(buildReferringEntitySpecification(
+                        criteria.tyoskentelyjaksoId,
+                        Suoritusarviointi_.tyoskentelyjakso,
+                        Tyoskentelyjakso_.id
+                    ))
+            }
+            if (criteria.arvioitavaOsaalueId != null) {
+                specification = specification
+                    .and(buildReferringEntitySpecification(
+                        criteria.arvioitavaOsaalueId,
+                        Suoritusarviointi_.arvioitavaOsaalue,
+                        EpaOsaamisalue_.id
+                    ))
+            }
+            if (criteria.arvioijaId != null) {
+                specification = specification
+                    .and(buildReferringEntitySpecification(
+                        criteria.arvioijaId,
+                        Suoritusarviointi_.arvioija,
+                        Kayttaja_.id
+                    ))
+            }
         }
         return specification
     }
