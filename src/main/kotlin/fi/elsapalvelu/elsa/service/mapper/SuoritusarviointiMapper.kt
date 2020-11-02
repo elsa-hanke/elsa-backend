@@ -20,8 +20,7 @@ interface SuoritusarviointiMapper :
     EntityMapper<SuoritusarviointiDTO, Suoritusarviointi> {
 
     @Mappings(
-        Mapping(source = "arvioitava.id", target = "arvioitavaId"),
-        Mapping(source = "arvioija.id", target = "arvioijaId"),
+        Mapping(source = "arvioinninAntaja.id", target = "arvioinninAntajaId"),
         Mapping(source = "arvioitavaOsaalue.id", target = "arvioitavaOsaalueId"),
         Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId")
     )
@@ -30,8 +29,7 @@ interface SuoritusarviointiMapper :
     @Mappings(
         Mapping(target = "osaalueenArvioinnit", ignore = true),
         Mapping(target = "removeOsaalueenArviointi", ignore = true),
-        Mapping(source = "arvioitavaId", target = "arvioitava"),
-        Mapping(source = "arvioijaId", target = "arvioija"),
+        Mapping(source = "arvioinninAntajaId", target = "arvioinninAntaja"),
         Mapping(source = "arvioitavaOsaalueId", target = "arvioitavaOsaalue"),
         Mapping(source = "tyoskentelyjaksoId", target = "tyoskentelyjakso")
     )

@@ -27,7 +27,7 @@ data class SuoritusarviointiCriteria(
 
     var arvioitavaOsaalueId: LongFilter? = null,
 
-    var arvioijaId: LongFilter? = null
+    var arvioinninAntajaId: LongFilter? = null
 
 ) : Serializable, Criteria {
 
@@ -42,7 +42,7 @@ data class SuoritusarviointiCriteria(
             other.arviointiAika?.copy(),
             other.tyoskentelyjaksoId?.copy(),
             other.arvioitavaOsaalueId?.copy(),
-            other.arvioijaId?.copy(),
+            other.arvioinninAntajaId?.copy(),
         )
 
     override fun copy() = SuoritusarviointiCriteria(this)
