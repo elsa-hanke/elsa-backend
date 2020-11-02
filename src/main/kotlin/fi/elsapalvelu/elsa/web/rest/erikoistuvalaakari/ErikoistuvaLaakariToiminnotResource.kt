@@ -1,7 +1,8 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.web.rest.AccountResource
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.PaginationUtil
@@ -28,7 +29,8 @@ class ErikoistuvaLaakariToiminnotResource(
     private val kayttajaService: KayttajaService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
-    private val epaOsaamisalueService: EpaOsaamisalueService
+    private val epaOsaamisalueService: EpaOsaamisalueService,
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) {
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
@@ -44,16 +46,17 @@ class ErikoistuvaLaakariToiminnotResource(
     @GetMapping("/suoritusarvioinnit-rajaimet")
     fun getAllSuoritusarvioinnit(
         principal: Principal?
-    ): ResponseEntity<SuoritusarvioinnitDto> {
+    ): ResponseEntity<SuoritusarvioinnitOptionsDto> {
         val user = getAuthenticatedUser(principal)
-        val options = SuoritusarvioinnitDto()
+        val id = user.id!!
+        val options = SuoritusarvioinnitOptionsDto()
         options.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
         options.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()
         options.tapahtumat = suoritusarviointiService
-            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
-        // TODO: Vain omat kouluttajat / myönnetyt käyttöoikeudet
-        options.kouluttajat = kayttajaService.findAll().toMutableSet()
+            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+        options.kouluttajat = kouluttajavaltuutusService
+            .findAllValtuutettuByValtuuttajaKayttajaUserId(id).toMutableSet()
 
         return ResponseEntity.ok(options)
     }
@@ -65,8 +68,9 @@ class ErikoistuvaLaakariToiminnotResource(
         principal: Principal?
     ): ResponseEntity<Page<SuoritusarviointiDTO>> {
         val user = getAuthenticatedUser(principal)
+        val id = user.id!!
         val page = suoritusarviointiQueryService
-            .findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(criteria, user.id!!, pageable)
+            .findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(criteria, id, pageable)
         val headers = PaginationUtil
             .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
 
@@ -76,16 +80,16 @@ class ErikoistuvaLaakariToiminnotResource(
     @GetMapping("/arviointipyynto-lomake")
     fun getSuoritusarviointiPyyntolomake(
         principal: Principal?
-    ): ResponseEntity<SuoritusarviointiPyyntolomakeDTO> {
+    ): ResponseEntity<ArviointipyyntoFormDTO> {
         val user = getAuthenticatedUser(principal)
-        val lomake = SuoritusarviointiPyyntolomakeDTO()
-        lomake.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
-        lomake.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()
-        // TODO: Vain omat kouluttajat
-        lomake.kouluttajat = kayttajaService.findAll().toMutableSet()
+        val id = user.id!!
+        val form = ArviointipyyntoFormDTO()
+        form.tyoskentelyjaksot = tyoskentelyjaksoService
+            .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+        form.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()
+        form.kouluttajat = kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(id).toMutableSet()
 
-        return ResponseEntity.ok(lomake)
+        return ResponseEntity.ok(form)
     }
 
     @PostMapping("/suoritusarvioinnit/arviointipyynto")

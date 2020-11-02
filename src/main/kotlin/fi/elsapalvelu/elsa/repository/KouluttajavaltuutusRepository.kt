@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface KouluttajavaltuutusRepository : JpaRepository<Kouluttajavaltuutus, Long>
+interface KouluttajavaltuutusRepository : JpaRepository<Kouluttajavaltuutus, Long> {
+    fun findAllByValtuuttajaKayttajaUserId(id: String): List<Kouluttajavaltuutus>
+}
