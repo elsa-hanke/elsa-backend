@@ -49,7 +49,13 @@ data class SuoritusarviointiDTO(
 
     var arvioitavaOsaalueId: Long? = null,
 
-    var tyoskentelyjaksoId: Long? = null
+    var tyoskentelyjaksoId: Long? = null,
+
+    var arvioinninAntaja: KayttajaDTO? = null,
+
+    var arvioitavaOsaalue: EpaOsaamisalueDTO? = null,
+
+    var tyoskentelyjakso: TyoskentelyjaksoDTO? = null
 
 ) : Serializable {
 
