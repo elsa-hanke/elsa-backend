@@ -21,19 +21,31 @@
             <column name="lisatiedot" type="${clobType}">
                 <constraints nullable="true" />
             </column>
+            <column name="itsearviointi_vaativuustaso" type="integer">
+                <constraints nullable="true" />
+            </column>
+            <column name="itsearviointi_luottamuksen_taso" type="integer">
+                <constraints nullable="true" />
+            </column>
+            <column name="sanallinen_itsearviointi" type="${clobType}">
+                <constraints nullable="true" />
+            </column>
+            <column name="itsearviointi_aika" type="date">
+                <constraints nullable="true" />
+            </column>
             <column name="vaativuustaso" type="integer">
                 <constraints nullable="true" />
             </column>
-            <column name="sanallinen_arviointi" type="varchar(255)">
+            <column name="luottamuksen_taso" type="integer">
+                <constraints nullable="true" />
+            </column>
+            <column name="sanallinen_arviointi" type="${clobType}">
                 <constraints nullable="true" />
             </column>
             <column name="arviointi_aika" type="date">
                 <constraints nullable="true" />
             </column>
-            <column name="arvioitava_id" type="bigint">
-                <constraints nullable="true" />
-            </column>
-            <column name="arvioija_id" type="bigint">
+            <column name="arvioinnin_antaja_id" type="bigint">
                 <constraints nullable="true" />
             </column>
             <column name="arvioitava_osaalue_id" type="bigint">
@@ -59,8 +71,13 @@
             <column name="arvioitava_tapahtuma" type="string"/>
             <column name="pyynnon_aika" type="date"/>
             <column name="lisatiedot" type="clob"/>
+            <column name="itsearviointi_vaativuustaso" type="numeric"/>
+            <column name="itsearviointi_luottamuksen_taso" type="numeric"/>
+            <column name="itsearviointi_aika" type="date"/>
+            <column name="sanallinen_itsearviointi" type="clob"/>
             <column name="vaativuustaso" type="numeric"/>
-            <column name="sanallinen_arviointi" type="string"/>
+            <column name="luottamuksen_taso" type="numeric"/>
+            <column name="sanallinen_arviointi" type="clob"/>
             <column name="arviointi_aika" type="date"/>
         </loadData>
     </changeSet>

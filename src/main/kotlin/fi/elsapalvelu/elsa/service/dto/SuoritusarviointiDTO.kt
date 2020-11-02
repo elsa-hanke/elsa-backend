@@ -21,15 +21,31 @@ data class SuoritusarviointiDTO(
 
     @get: Min(value = 1)
     @get: Max(value = 5)
+    var itsearviointiVaativuustaso: Int? = null,
+
+    @get: Min(value = 1)
+    @get: Max(value = 5)
+    var itsearviointiLuottamuksenTaso: Int? = null,
+
+    @Lob
+    var sanallinenItsearviointi: String? = null,
+
+    var itsearviointiAika: LocalDate? = null,
+
+    @get: Min(value = 1)
+    @get: Max(value = 5)
     var vaativuustaso: Int? = null,
 
+    @get: Min(value = 1)
+    @get: Max(value = 5)
+    var luottamuksenTaso: Int? = null,
+
+    @Lob
     var sanallinenArviointi: String? = null,
 
     var arviointiAika: LocalDate? = null,
 
-    var arvioitavaId: Long? = null,
-
-    var arvioijaId: Long? = null,
+    var arvioinninAntajaId: Long? = null,
 
     var arvioitavaOsaalueId: Long? = null,
 

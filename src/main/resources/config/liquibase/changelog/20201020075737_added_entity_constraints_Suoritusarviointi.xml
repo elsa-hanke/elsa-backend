@@ -6,15 +6,9 @@
 
     <changeSet id="20201020075737-2" author="jhipster">
 
-        <addForeignKeyConstraint baseColumnNames="arvioitava_id"
+        <addForeignKeyConstraint baseColumnNames="arvioinnin_antaja_id"
                                  baseTableName="suoritusarviointi"
-                                 constraintName="fk_suoritusarviointi_arvioitava_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="erikoistuva_laakari"/>
-
-        <addForeignKeyConstraint baseColumnNames="arvioija_id"
-                                 baseTableName="suoritusarviointi"
-                                 constraintName="fk_suoritusarviointi_arvioija_id"
+                                 constraintName="fk_suoritusarviointi_arvioinnin_antaja_id"
                                  referencedColumnNames="id"
                                  referencedTableName="kayttaja"/>
 
