@@ -1,4 +1,4 @@
 id;tapahtuman_ajankohta;arvioitava_tapahtuma;pyynnon_aika;lisatiedot;itsearviointi_vaativuustaso;itsearviointi_luottamuksen_taso;sanallinen_itsearviointi;itsearviointi_aika;vaativuustaso;sanallinen_arviointi;arviointi_aika
-1;2020-10-06;Tapahtuma 1;2020-10-06;../fake-data/blob/hipster.txt;;;;;4;../fake-data/blob/hipster.txt;2020-10-05
-2;2020-10-06;Tapahtuma 2;2020-10-06;../fake-data/blob/hipster.txt;;;;;5;../fake-data/blob/hipster.txt;2020-10-06
-3;2020-10-05;Tapahtuma 3;2020-10-05;../fake-data/blob/hipster.txt;;;;;5;../fake-data/blob/hipster.txt;2020-10-05
+1;2020-10-06;Tapahtuma 1;2020-10-06;../fake-data/blob/hipster.txt;;;../fake-data/blob/hipster.txt;;4;../fake-data/blob/hipster.txt;2020-10-05
+2;2020-10-06;Tapahtuma 2;2020-10-06;../fake-data/blob/hipster.txt;;;../fake-data/blob/hipster.txt;;5;../fake-data/blob/hipster.txt;2020-10-06
+3;2020-10-05;Tapahtuma 3;2020-10-05;../fake-data/blob/hipster.txt;;;../fake-data/blob/hipster.txt;;5;../fake-data/blob/hipster.txt;2020-10-05
