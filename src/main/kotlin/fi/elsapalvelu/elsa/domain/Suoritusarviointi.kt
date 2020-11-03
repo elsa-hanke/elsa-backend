@@ -19,13 +19,16 @@ data class Suoritusarviointi(
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
 
-    @Column(name = "tapahtuman_ajankohta")
+    @get: NotNull
+    @Column(name = "tapahtuman_ajankohta", nullable = false)
     var tapahtumanAjankohta: LocalDate? = null,
 
-    @Column(name = "arvioitava_tapahtuma")
+    @get: NotNull
+    @Column(name = "arvioitava_tapahtuma", nullable = false)
     var arvioitavaTapahtuma: String? = null,
 
-    @Column(name = "pyynnon_aika")
+    @get: NotNull
+    @Column(name = "pyynnon_aika", nullable = false)
     var pyynnonAika: LocalDate? = null,
 
     @Lob
@@ -73,15 +76,18 @@ data class Suoritusarviointi(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var osaalueenArvioinnit: MutableSet<OsaalueenArviointi> = mutableSetOf(),
 
-    @ManyToOne
+    @NotNull
+    @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     var arvioinninAntaja: Kayttaja? = null,
 
-    @ManyToOne
+    @NotNull
+    @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     var arvioitavaOsaalue: EpaOsaamisalue? = null,
 
-    @ManyToOne
+    @NotNull
+    @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     var tyoskentelyjakso: Tyoskentelyjakso? = null
 
