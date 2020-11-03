@@ -5,13 +5,16 @@ import java.time.LocalDate
 import javax.persistence.Lob
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
+import javax.validation.constraints.NotNull
 
 data class SuoritusarviointiDTO(
 
     var id: Long? = null,
 
+    @get: NotNull
     var tapahtumanAjankohta: LocalDate? = null,
 
+    @get: NotNull
     var arvioitavaTapahtuma: String? = null,
 
     var pyynnonAika: LocalDate? = null,
