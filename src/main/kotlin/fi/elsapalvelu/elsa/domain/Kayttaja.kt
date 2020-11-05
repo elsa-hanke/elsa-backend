@@ -33,7 +33,7 @@ data class Kayttaja(
     var kieli: Kieli? = null,
 
     @NotNull
-    @OneToOne(optional = false, cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @OneToOne(optional = false)
     @JoinColumn(unique = true)
     var user: User? = null,
 

@@ -114,6 +114,20 @@ class UserService(
     }
 
     /**
+     * Luodaan erikoistuva lääkäri ja käyttäjä entiteetit erikoistuvalle lääkärille jos niitä ei vielä ole.
+     */
+    private fun handleNewErikoistuvaLaakari(user: User) {
+        if (user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI))) {
+            if (!erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!).isPresent) {
+                val kayttaja = kayttajaRepository.save(Kayttaja(user = user, nimi = "todo", kieli = Kieli.SUOMI))
+                erikoistuvaLaakariRepository.save(
+                    ErikoistuvaLaakari(kayttaja = kayttaja)
+                )
+            }
+        }
+    }
+
+    /**
      * Returns the user from an OAuth 2.0 login or resource server with JWT.
      * Synchronizes the user in the local repository.
      *
@@ -129,23 +143,17 @@ class UserService(
                 else -> throw IllegalArgumentException("AuthenticationToken is not OAuth2 or JWT!")
             }
 
-        val user = getUser(attributes)
+        var user = getUser(attributes)
         user.authorities = authToken.authorities.asSequence()
             .map(GrantedAuthority::getAuthority)
             .map { Authority(name = it) }
             .toMutableSet()
 
-        // Luodaan erikoistuva lääkäri ja käyttäjä entiteetit erikoistuvalle lääkärille jos ne eivät ole vielä luotu
-        if (user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI))) {
-            if (!erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!).isPresent) {
-                var kayttaja = Kayttaja(user = user, nimi = user.firstName + " " + user.lastName, kieli = Kieli.SUOMI)
-                kayttaja = kayttajaRepository.save(kayttaja)
-                val erikoistuvaLaakari = ErikoistuvaLaakari(kayttaja = kayttaja)
-                erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
-            }
-        }
+        user = syncUserWithIdP(attributes, user)
 
-        return UserDTO(syncUserWithIdP(attributes, user))
+        handleNewErikoistuvaLaakari(user)
+
+        return UserDTO(user)
     }
 
     private fun clearUserCaches(user: User) {
