@@ -1,9 +1,12 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.UserDTO
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
+import fi.elsapalvelu.elsa.service.mapper.UserMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.Optional
@@ -12,11 +15,22 @@ import java.util.Optional
 @Transactional
 class KayttajaServiceImpl(
     private val kayttajaRepository: KayttajaRepository,
-    private val kayttajaMapper: KayttajaMapper
+    private val userRepository: UserRepository,
+    private val kayttajaMapper: KayttajaMapper,
+    private val userMapper: UserMapper
 ) : KayttajaService {
 
     override fun save(kayttajaDTO: KayttajaDTO): KayttajaDTO {
         var kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
+        kayttaja = kayttajaRepository.save(kayttaja)
+        return kayttajaMapper.toDto(kayttaja)
+    }
+
+    override fun save(kayttajaDTO: KayttajaDTO, userDTO: UserDTO): KayttajaDTO {
+        var user = userMapper.userDTOToUser(userDTO)!!
+        user = userRepository.save(user)
+        var kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
+        kayttaja.user = user
         kayttaja = kayttajaRepository.save(kayttaja)
         return kayttajaMapper.toDto(kayttaja)
     }
