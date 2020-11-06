@@ -18,9 +18,6 @@
             <column name="profiilikuva_content_type" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
-            <column name="kieli" type="varchar(255)">
-                <constraints nullable="true" />
-            </column>
             <column name="user_id" type="varchar(100)">
                 <constraints unique="true" nullable="false" uniqueConstraintName="ux_kayttaja_user_id" />
             </column>
@@ -40,7 +37,6 @@
             <column name="nimi" type="string"/>
             <column name="profiilikuva" type="blob"/>
             <column name="profiilikuva_content_type" type="string"/>
-            <column name="kieli" type="string"/>
             <column name="user_id" type="string"/>
         </loadData>
     </changeSet>

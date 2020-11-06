@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.net.URI
 import java.security.Principal
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.*
 import javax.validation.Valid
 
 @RestController
@@ -205,6 +207,50 @@ class ErikoistuvaLaakariToiminnotResource(
             throw BadRequestAlertException(
                 "Uuden tyoskentelyjakson voi tehdä vain erikoistuva lääkäri.",
                 "tyoskentelyjakso",
+                "dataillegal"
+            )
+        }
+    }
+
+    @PostMapping("/lahikouluttajat")
+    fun createLahikouluttaja(
+        @Valid @RequestBody uusiLahikouluttaja: UusiLahikouluttajaDTO,
+        principal: Principal?
+    ): ResponseEntity<KayttajaDTO> {
+        val user = getAuthenticatedUser(principal)
+        val erikoistuvaLaakari = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+        if (erikoistuvaLaakari.isPresent) {
+            val result = kayttajaService.save(
+                KayttajaDTO(nimi = uusiLahikouluttaja.nimi),
+                UserDTO(
+                    id = UUID.randomUUID().toString(),
+                    login = uusiLahikouluttaja.sahkoposti,
+                    email = uusiLahikouluttaja.sahkoposti,
+                    activated = false,
+                )
+            )
+            val kouluttajavaltuutus = KouluttajavaltuutusDTO(
+                alkamispaiva = LocalDate.now(ZoneId.systemDefault()),
+                paattymispaiva = LocalDate.now(ZoneId.systemDefault()).plusMonths(6),
+                valtuutuksenLuontiaika = Instant.now(),
+                valtuutuksenMuokkausaika = Instant.now(),
+                valtuuttajaId = erikoistuvaLaakari.get().id,
+                valtuutettuId = result.id,
+            )
+
+            kouluttajavaltuutusService.save(kouluttajavaltuutus)
+            return ResponseEntity.created(URI("/api/kayttajat/${result.id}"))
+                .headers(HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    "kayttaja",
+                    result.id.toString())
+                )
+                .body(result)
+        } else {
+            throw BadRequestAlertException(
+                "Uuden lahikouluttajan voi lisätä vain erikoistuva lääkäri.",
+                "kayttaja",
                 "dataillegal"
             )
         }

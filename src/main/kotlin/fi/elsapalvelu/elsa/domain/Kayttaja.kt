@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import fi.elsapalvelu.elsa.domain.enumeration.Kieli
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -26,11 +25,6 @@ data class Kayttaja(
 
     @Column(name = "profiilikuva_content_type")
     var profiilikuvaContentType: String? = null,
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "kieli")
-    var kieli: Kieli? = null,
 
     @NotNull
     @OneToOne(optional = false)
@@ -69,7 +63,6 @@ data class Kayttaja(
         ", nimi='$nimi'" +
         ", profiilikuva='?'" +
         ", profiilikuvaContentType='$profiilikuvaContentType'" +
-        ", kieli='$kieli'" +
         "}"
 
     companion object {

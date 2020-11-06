@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.enumeration.Kieli
 import fi.elsapalvelu.elsa.repository.AuthorityRepository
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
@@ -119,7 +118,10 @@ class UserService(
     private fun handleNewErikoistuvaLaakari(user: User) {
         if (user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI))) {
             if (!erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!).isPresent) {
-                val kayttaja = kayttajaRepository.save(Kayttaja(user = user, nimi = "todo", kieli = Kieli.SUOMI))
+                val kayttaja = kayttajaRepository.save(Kayttaja(
+                    user = user,
+                    nimi = user.firstName + " " + user.lastName
+                ))
                 erikoistuvaLaakariRepository.save(
                     ErikoistuvaLaakari(kayttaja = kayttaja)
                 )
