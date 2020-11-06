@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.enumeration.Kieli
 import java.io.Serializable
 import javax.persistence.Lob
 import javax.validation.constraints.NotNull
@@ -15,8 +14,6 @@ data class KayttajaDTO(
     @Lob
     var profiilikuva: ByteArray? = null,
     var profiilikuvaContentType: String? = null,
-
-    var kieli: Kieli? = null,
 
     var userId: String? = null
 
@@ -35,6 +32,5 @@ data class KayttajaDTO(
         ", nimi='$nimi'" +
         ", profiilikuva='?'" +
         ", profiilikuvaContentType='$profiilikuvaContentType'" +
-        ", kieli='$kieli'" +
         "}"
 }

@@ -1,5 +1,5 @@
-id;nimi;profiilikuva;profiilikuva_content_type;kieli;user_id
-1;Kayttaja 1;../fake-data/blob/avatar0.png;image/png;RUOTSI;395a637e-b517-4fdd-b127-351aa1c73cd8
-2;Kayttaja 2;../fake-data/blob/avatar1.svg;image/svg+xml;ENGLANTI;ec58bdd4-2358-4666-b4e1-4855c6f6cc24
-3;Kayttaja 3;../fake-data/blob/avatar2.svg;image/svg+xml;RUOTSI;829b7a5c-c591-4ecc-bd08-2273fd7e38fc
-4;Kayttaja 4;../fake-data/blob/avatar3.svg;image/svg+xml;RUOTSI;75e3c320-3912-4ccb-b281-d9298e84ec6d
+id;nimi;profiilikuva;profiilikuva_content_type;user_id
+1;Kayttaja 1;../fake-data/blob/avatar0.png;image/png;395a637e-b517-4fdd-b127-351aa1c73cd8
+2;Kayttaja 2;../fake-data/blob/avatar1.svg;image/svg+xml;ec58bdd4-2358-4666-b4e1-4855c6f6cc24
+3;Kayttaja 3;../fake-data/blob/avatar2.svg;image/svg+xml;829b7a5c-c591-4ecc-bd08-2273fd7e38fc
+4;Kayttaja 4;../fake-data/blob/avatar3.svg;image/svg+xml;75e3c320-3912-4ccb-b281-d9298e84ec6d
