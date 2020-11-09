@@ -40,6 +40,7 @@ class SuoritusarvioinninKommenttiServiceImpl(
         if (kayttaja == suoritusarviointi.arvioinninAntaja ||
             kayttaja == suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja) {
             suoritusarvioinninKommentti = suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
+            // TODO: lähetä sähköposti toiselle osapuolelle
             return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
         } else {
             throw BadRequestAlertException(

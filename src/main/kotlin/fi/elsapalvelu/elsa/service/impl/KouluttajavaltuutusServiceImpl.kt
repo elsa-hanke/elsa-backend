@@ -21,6 +21,7 @@ class KouluttajavaltuutusServiceImpl(
     override fun save(kouluttajavaltuutusDTO: KouluttajavaltuutusDTO): KouluttajavaltuutusDTO {
         var kouluttajavaltuutus = kouluttajavaltuutusMapper.toEntity(kouluttajavaltuutusDTO)
         kouluttajavaltuutus = kouluttajavaltuutusRepository.save(kouluttajavaltuutus)
+        // TODO: lähetä sähköposti kouluttajalle
         return kouluttajavaltuutusMapper.toDto(kouluttajavaltuutus)
     }
 

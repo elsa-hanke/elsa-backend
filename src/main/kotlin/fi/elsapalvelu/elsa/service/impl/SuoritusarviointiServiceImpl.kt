@@ -27,6 +27,7 @@ class SuoritusarviointiServiceImpl(
     override fun save(suoritusarviointiDTO: SuoritusarviointiDTO): SuoritusarviointiDTO {
         var suoritusarviointi = suoritusarviointiMapper.toEntity(suoritusarviointiDTO)
         suoritusarviointi = suoritusarviointiRepository.save(suoritusarviointi)
+        // TODO: lähetä sähköposti arvioinnin tekijälle
         return suoritusarviointiMapper.toDto(suoritusarviointi)
     }
 
