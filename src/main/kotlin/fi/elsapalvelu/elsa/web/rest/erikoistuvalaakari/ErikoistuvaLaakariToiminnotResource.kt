@@ -27,6 +27,7 @@ import javax.validation.Valid
 class ErikoistuvaLaakariToiminnotResource(
     private val suoritusarviointiService: SuoritusarviointiService,
     private val suoritusarviointiQueryService: SuoritusarviointiQueryService,
+    private val suoritusarvioinninKommenttiService: SuoritusarvioinninKommenttiService,
     private val userService: UserService,
     private val kayttajaService: KayttajaService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
@@ -95,7 +96,7 @@ class ErikoistuvaLaakariToiminnotResource(
     }
 
     @PostMapping("/suoritusarvioinnit/arviointipyynto")
-    fun createArviointipyynto(
+    fun createSuoritusarviointi(
         @Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO,
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
@@ -144,7 +145,17 @@ class ErikoistuvaLaakariToiminnotResource(
                     "suoritusarviointi", "dataillegal"
                 )
             }
+            if (tyoskentelyjakso.get().alkamispaiva!! > suoritusarviointiDTO.tapahtumanAjankohta!! ||
+                (tyoskentelyjakso.get().paattymispaiva != null &&
+                    suoritusarviointiDTO.tapahtumanAjankohta!! > tyoskentelyjakso.get().paattymispaiva!!)
+            ) {
+                throw BadRequestAlertException(
+                    "Uuden arviointipyynnön pitää kohdistua työskentelyjakson väliin.",
+                    "suoritusarviointi", "dataillegal"
+                )
+            }
         }
+
         suoritusarviointiDTO.pyynnonAika = LocalDate.now(ZoneId.systemDefault())
 
         val result = suoritusarviointiService.save(suoritusarviointiDTO)
@@ -154,6 +165,26 @@ class ErikoistuvaLaakariToiminnotResource(
                 true,
                 "suoritusarviointi",
                 result.id.toString())
+            )
+            .body(result)
+    }
+
+    @PutMapping("/suoritusarvioinnit")
+    fun updateSuoritusarviointi(
+        @Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO,
+        principal: Principal?
+    ): ResponseEntity<SuoritusarviointiDTO> {
+        if (suoritusarviointiDTO.id == null) {
+            throw BadRequestAlertException("Virheellinen id", "suoritusarviointi", "idnull")
+        }
+        val user = getAuthenticatedUser(principal)
+        val result = suoritusarviointiService.save(suoritusarviointiDTO, user.id!!)
+        return ResponseEntity.ok()
+            .headers(
+                HeaderUtil.createEntityUpdateAlert(
+                    applicationName, true, "suoritusarviointi",
+                    suoritusarviointiDTO.id.toString()
+                )
             )
             .body(result)
     }
@@ -169,13 +200,42 @@ class ErikoistuvaLaakariToiminnotResource(
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
     }
 
+    @PostMapping("/suoritusarvioinnit/{id}/kommentti")
+    fun createSuoritusarvioinninKommentti(
+        @PathVariable id: Long,
+        @Valid @RequestBody suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO,
+        principal: Principal?
+    ): ResponseEntity<SuoritusarvioinninKommenttiDTO> {
+        val user = getAuthenticatedUser(principal)
+        if (suoritusarvioinninKommenttiDTO.id != null) {
+            throw BadRequestAlertException(
+                "Uusi suoritusarvioinnin kommentti ei saa sisältää ID:tä.",
+                "suoritusarvioinnin_kommentti", "idexists"
+            )
+        }
+        suoritusarvioinninKommenttiDTO.luontiaika = Instant.now()
+        suoritusarvioinninKommenttiDTO.muokkausaika = Instant.now()
+        suoritusarvioinninKommenttiDTO.suoritusarviointiId = id
+        val result = suoritusarvioinninKommenttiService
+            .save(suoritusarvioinninKommenttiDTO, user.id!!)
+
+        return ResponseEntity.created(URI("/api/suoritusarvioinnit/$id/kommentti/${result.id}"))
+            .headers(HeaderUtil.createEntityCreationAlert(
+                applicationName,
+                true,
+                "suoritusarvioinnin_kommentti",
+                result.id.toString())
+            )
+            .body(result)
+    }
+
     @PostMapping("/tyoskentelyjaksot")
     fun createTyoskentelyjakso(
-        @Valid @RequestBody tyoskentelyjakso: TyoskentelyjaksoDTO,
+        @Valid @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
-        val tyoskentelypaikka = tyoskentelyjakso.tyoskentelypaikka
-        if (tyoskentelyjakso.id != null) {
+        val tyoskentelypaikka = tyoskentelyjaksoDTO.tyoskentelypaikka
+        if (tyoskentelyjaksoDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi tyoskentelyjakso ei saa sisältää ID:tä.",
                 "tyoskentelyjakso",
@@ -192,9 +252,9 @@ class ErikoistuvaLaakariToiminnotResource(
         val user = getAuthenticatedUser(principal)
         val erikoistuvaLaakari = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
         if (erikoistuvaLaakari.isPresent) {
-            tyoskentelyjakso.erikoistuvaLaakariId = erikoistuvaLaakari.get().id
+            tyoskentelyjaksoDTO.erikoistuvaLaakariId = erikoistuvaLaakari.get().id
 
-            val result = tyoskentelyjaksoService.save(tyoskentelyjakso)
+            val result = tyoskentelyjaksoService.save(tyoskentelyjaksoDTO)
             return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${result.id}"))
                 .headers(HeaderUtil.createEntityCreationAlert(
                     applicationName,
@@ -214,18 +274,18 @@ class ErikoistuvaLaakariToiminnotResource(
 
     @PostMapping("/lahikouluttajat")
     fun createLahikouluttaja(
-        @Valid @RequestBody uusiLahikouluttaja: UusiLahikouluttajaDTO,
+        @Valid @RequestBody uusiLahikouluttajaDTO: UusiLahikouluttajaDTO,
         principal: Principal?
     ): ResponseEntity<KayttajaDTO> {
         val user = getAuthenticatedUser(principal)
         val erikoistuvaLaakari = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
         if (erikoistuvaLaakari.isPresent) {
             val result = kayttajaService.save(
-                KayttajaDTO(nimi = uusiLahikouluttaja.nimi),
+                KayttajaDTO(nimi = uusiLahikouluttajaDTO.nimi),
                 UserDTO(
                     id = UUID.randomUUID().toString(),
-                    login = uusiLahikouluttaja.sahkoposti,
-                    email = uusiLahikouluttaja.sahkoposti,
+                    login = uusiLahikouluttajaDTO.sahkoposti,
+                    email = uusiLahikouluttajaDTO.sahkoposti,
                     activated = false,
                 )
             )

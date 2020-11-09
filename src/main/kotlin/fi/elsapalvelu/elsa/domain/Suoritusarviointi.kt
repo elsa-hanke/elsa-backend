@@ -76,6 +76,9 @@ data class Suoritusarviointi(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var osaalueenArvioinnit: MutableSet<OsaalueenArviointi> = mutableSetOf(),
 
+    @OneToMany(mappedBy = "suoritusarviointi")
+    var kommentit: MutableSet<SuoritusarvioinninKommentti> = mutableSetOf(),
+
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
@@ -102,6 +105,18 @@ data class Suoritusarviointi(
     fun removeOsaalueenArviointi(osaalueenArviointi: OsaalueenArviointi): Suoritusarviointi {
         this.osaalueenArvioinnit.remove(osaalueenArviointi)
         osaalueenArviointi.suoritusarviointi = null
+        return this
+    }
+
+    fun addKommentti(suoritusarvioinninKommentti: SuoritusarvioinninKommentti): Suoritusarviointi {
+        this.kommentit.add(suoritusarvioinninKommentti)
+        suoritusarvioinninKommentti.suoritusarviointi = this
+        return this
+    }
+
+    fun removeKommentti(suoritusarvioinninKommentti: SuoritusarvioinninKommentti): Suoritusarviointi {
+        this.kommentit.remove(suoritusarvioinninKommentti)
+        suoritusarvioinninKommentti.suoritusarviointi = null
         return this
     }
 

@@ -7,6 +7,8 @@ import java.util.Optional
 interface SuoritusarviointiService {
     fun save(suoritusarviointiDTO: SuoritusarviointiDTO): SuoritusarviointiDTO
 
+    fun save(suoritusarviointiDTO: SuoritusarviointiDTO, userId: String): SuoritusarviointiDTO
+
     fun findAll(pageable: Pageable): Page<SuoritusarviointiDTO>
 
     fun findAllByErikoistuvaLaakariId(erikoistuvaLaakariId: Long, pageable: Pageable): Page<SuoritusarviointiDTO>
