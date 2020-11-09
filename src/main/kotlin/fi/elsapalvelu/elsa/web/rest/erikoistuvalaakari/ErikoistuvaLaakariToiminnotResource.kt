@@ -213,8 +213,9 @@ class ErikoistuvaLaakariToiminnotResource(
                 "suoritusarvioinnin_kommentti", "idexists"
             )
         }
-        suoritusarvioinninKommenttiDTO.luontiaika = Instant.now()
-        suoritusarvioinninKommenttiDTO.muokkausaika = Instant.now()
+        val now = Instant.now()
+        suoritusarvioinninKommenttiDTO.luontiaika = now
+        suoritusarvioinninKommenttiDTO.muokkausaika = now
         suoritusarvioinninKommenttiDTO.suoritusarviointiId = id
         val result = suoritusarvioinninKommenttiService
             .save(suoritusarvioinninKommenttiDTO, user.id!!)
