@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20201109103052-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="kommentoija_id"
+                                 baseTableName="suoritusarvioinnin_kommentti"
+                                 constraintName="fk_suoritusarvioinnin_kommentti_kommentoija_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="kayttaja"/>
+
+        <addForeignKeyConstraint baseColumnNames="suoritusarviointi_id"
+                                 baseTableName="suoritusarvioinnin_kommentti"
+                                 constraintName="fk_suoritusarvioinnin_kommentti_suoritusarviointi_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="suoritusarviointi"/>
+
+    </changeSet>
+</databaseChangeLog>

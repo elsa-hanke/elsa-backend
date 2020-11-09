@@ -40,8 +40,9 @@ data class Tyoskentelyjakso(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var suoritusarvioinnit: MutableSet<Suoritusarviointi> = mutableSetOf(),
 
-    @ManyToOne
-    @JsonIgnoreProperties(value = ["tyoskentelyjaksos"], allowSetters = true)
+    @NotNull
+    @ManyToOne(optional = false)
+    @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null
 
 ) : Serializable {

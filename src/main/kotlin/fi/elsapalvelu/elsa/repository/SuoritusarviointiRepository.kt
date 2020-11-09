@@ -12,6 +12,8 @@ import java.util.*
 interface SuoritusarviointiRepository : JpaRepository<Suoritusarviointi, Long>,
     JpaSpecificationExecutor<Suoritusarviointi> {
 
+    fun findOneById(id: Long): Optional<Suoritusarviointi>
+
     fun findAllByTyoskentelyjaksoErikoistuvaLaakariId(id: Long, pageable: Pageable): Page<Suoritusarviointi>
 
     fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(

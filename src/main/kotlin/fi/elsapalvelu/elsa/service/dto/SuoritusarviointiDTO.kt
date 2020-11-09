@@ -48,6 +48,8 @@ data class SuoritusarviointiDTO(
 
     var arviointiAika: LocalDate? = null,
 
+    var kommentit: MutableSet<SuoritusarvioinninKommenttiDTO>? = null,
+
     var arvioinninAntajaId: Long? = null,
 
     var arvioitavaOsaalueId: Long? = null,
