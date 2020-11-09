@@ -109,7 +109,6 @@ class TyoskentelyjaksoResourceIT {
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeCreate + 1)
         val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
-        assertThat(testTyoskentelyjakso.tunnus).isEqualTo(DEFAULT_TUNNUS)
         assertThat(testTyoskentelyjakso.alkamispaiva).isEqualTo(DEFAULT_ALKAMISPAIVA)
         assertThat(testTyoskentelyjakso.paattymispaiva).isEqualTo(DEFAULT_PAATTYMISPAIVA)
         assertThat(testTyoskentelyjakso.osaaikaprosentti).isEqualTo(DEFAULT_OSAAIKAPROSENTTI)
@@ -134,26 +133,6 @@ class TyoskentelyjaksoResourceIT {
         // Validate the Tyoskentelyjakso in the database
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeCreate)
-    }
-
-    @Test
-    @Transactional
-    fun checkTunnusIsRequired() {
-        val databaseSizeBeforeTest = tyoskentelyjaksoRepository.findAll().size
-        // set the field null
-        tyoskentelyjakso.tunnus = null
-
-        // Create the Tyoskentelyjakso, which fails.
-        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
-
-        restTyoskentelyjaksoMockMvc.perform(
-            post("/api/tyoskentelyjaksot")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
-        ).andExpect(status().isBadRequest)
-
-        val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeTest)
     }
 
     @Test
@@ -189,7 +168,6 @@ class TyoskentelyjaksoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(tyoskentelyjakso.id?.toInt())))
-            .andExpect(jsonPath("$.[*].tunnus").value(hasItem(DEFAULT_TUNNUS)))
             .andExpect(jsonPath("$.[*].alkamispaiva").value(hasItem(DEFAULT_ALKAMISPAIVA.toString())))
             .andExpect(jsonPath("$.[*].paattymispaiva").value(hasItem(DEFAULT_PAATTYMISPAIVA.toString())))
             .andExpect(jsonPath("$.[*].osaaikaprosentti").value(hasItem(DEFAULT_OSAAIKAPROSENTTI)))
@@ -210,7 +188,6 @@ class TyoskentelyjaksoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(tyoskentelyjakso.id as Any))
-            .andExpect(jsonPath("$.tunnus").value(DEFAULT_TUNNUS))
             .andExpect(jsonPath("$.alkamispaiva").value(DEFAULT_ALKAMISPAIVA.toString()))
             .andExpect(jsonPath("$.paattymispaiva").value(DEFAULT_PAATTYMISPAIVA.toString()))
             .andExpect(jsonPath("$.osaaikaprosentti").value(DEFAULT_OSAAIKAPROSENTTI))
@@ -238,7 +215,6 @@ class TyoskentelyjaksoResourceIT {
         val updatedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(id).get()
         // Disconnect from session so that the updates on updatedTyoskentelyjakso are not directly saved in db
         em.detach(updatedTyoskentelyjakso)
-        updatedTyoskentelyjakso.tunnus = UPDATED_TUNNUS
         updatedTyoskentelyjakso.alkamispaiva = UPDATED_ALKAMISPAIVA
         updatedTyoskentelyjakso.paattymispaiva = UPDATED_PAATTYMISPAIVA
         updatedTyoskentelyjakso.osaaikaprosentti = UPDATED_OSAAIKAPROSENTTI
@@ -254,7 +230,6 @@ class TyoskentelyjaksoResourceIT {
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeUpdate)
         val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
-        assertThat(testTyoskentelyjakso.tunnus).isEqualTo(UPDATED_TUNNUS)
         assertThat(testTyoskentelyjakso.alkamispaiva).isEqualTo(UPDATED_ALKAMISPAIVA)
         assertThat(testTyoskentelyjakso.paattymispaiva).isEqualTo(UPDATED_PAATTYMISPAIVA)
         assertThat(testTyoskentelyjakso.osaaikaprosentti).isEqualTo(UPDATED_OSAAIKAPROSENTTI)
@@ -302,9 +277,6 @@ class TyoskentelyjaksoResourceIT {
 
     companion object {
 
-        private const val DEFAULT_TUNNUS = "AAAAAAAAAA"
-        private const val UPDATED_TUNNUS = "BBBBBBBBBB"
-
         private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
@@ -323,7 +295,6 @@ class TyoskentelyjaksoResourceIT {
         @JvmStatic
         fun createEntity(em: EntityManager): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
-                tunnus = DEFAULT_TUNNUS,
                 alkamispaiva = DEFAULT_ALKAMISPAIVA,
                 paattymispaiva = DEFAULT_PAATTYMISPAIVA,
                 osaaikaprosentti = DEFAULT_OSAAIKAPROSENTTI
@@ -352,7 +323,6 @@ class TyoskentelyjaksoResourceIT {
         @JvmStatic
         fun createUpdatedEntity(em: EntityManager): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
-                tunnus = UPDATED_TUNNUS,
                 alkamispaiva = UPDATED_ALKAMISPAIVA,
                 paattymispaiva = UPDATED_PAATTYMISPAIVA,
                 osaaikaprosentti = UPDATED_OSAAIKAPROSENTTI

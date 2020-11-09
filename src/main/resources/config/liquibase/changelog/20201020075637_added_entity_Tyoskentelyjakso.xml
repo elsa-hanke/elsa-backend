@@ -9,9 +9,6 @@
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="tunnus" type="varchar(255)">
-                <constraints nullable="false" />
-            </column>
             <column name="alkamispaiva" type="date">
                 <constraints nullable="false" />
             </column>
@@ -40,7 +37,6 @@
                   separator=";"
                   tableName="tyoskentelyjakso">
             <column name="id" type="numeric"/>
-            <column name="tunnus" type="string"/>
             <column name="alkamispaiva" type="date"/>
             <column name="paattymispaiva" type="date"/>
             <column name="osaaikaprosentti" type="numeric"/>

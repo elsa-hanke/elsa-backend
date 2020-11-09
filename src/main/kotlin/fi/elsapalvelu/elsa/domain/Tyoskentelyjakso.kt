@@ -19,10 +19,6 @@ data class Tyoskentelyjakso(
     var id: Long? = null,
 
     @get: NotNull
-    @Column(name = "tunnus", nullable = false)
-    var tunnus: String? = null,
-
-    @get: NotNull
     @Column(name = "alkamispaiva", nullable = false)
     var alkamispaiva: LocalDate? = null,
 
@@ -73,7 +69,6 @@ data class Tyoskentelyjakso(
 
     override fun toString() = "Tyoskentelyjakso{" +
         "id=$id" +
-        ", tunnus='$tunnus'" +
         ", alkamispaiva='$alkamispaiva'" +
         ", paattymispaiva='$paattymispaiva'" +
         "}"

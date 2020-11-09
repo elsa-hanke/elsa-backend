@@ -11,9 +11,6 @@ data class TyoskentelyjaksoDTO(
     var id: Long? = null,
 
     @get: NotNull
-    var tunnus: String? = null,
-
-    @get: NotNull
     var alkamispaiva: LocalDate? = null,
 
     var paattymispaiva: LocalDate? = null,
