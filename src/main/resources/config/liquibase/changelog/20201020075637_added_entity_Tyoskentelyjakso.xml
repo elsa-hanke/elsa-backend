@@ -19,10 +19,10 @@
                 <constraints nullable="false" />
             </column>
             <column name="tyoskentelypaikka_id" type="bigint">
-                <constraints nullable="true" />
+                <constraints nullable="false" />
             </column>
             <column name="erikoistuva_laakari_id" type="bigint">
-                <constraints nullable="true" />
+                <constraints nullable="false" />
             </column>
         </createTable>
     </changeSet>
@@ -41,6 +41,7 @@
             <column name="paattymispaiva" type="date"/>
             <column name="osaaikaprosentti" type="numeric"/>
             <column name="tyoskentelypaikka_id" type="numeric"/>
+            <column name="erikoistuva_laakari_id" type="numeric"/>
         </loadData>
     </changeSet>
 

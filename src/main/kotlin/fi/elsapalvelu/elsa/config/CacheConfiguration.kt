@@ -62,17 +62,19 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".saadutValtuutukset")
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.OsaalueenArviointi::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.SoteOrganisaatio::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.SuoritusarvioinninKommentti::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Suoritusarviointi::class.java.name + ".osaalueenArvioinnit")
             createCache(cm, fi.elsapalvelu.elsa.domain.Suoritusarviointi::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelyjakso::class.java.name + ".suoritusarvioinnit")
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelyjakso::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelypaikka::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.User::class.java.name + ".authorities")
             createCache(cm, fi.elsapalvelu.elsa.domain.User::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.repository.UserRepository.USERS_BY_EMAIL_CACHE)
             createCache(cm, fi.elsapalvelu.elsa.repository.UserRepository.USERS_BY_LOGIN_CACHE)
-            // jhipster-needle-ehcache-add-entry
         }
     }
 

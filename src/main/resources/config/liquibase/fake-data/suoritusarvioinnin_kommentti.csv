@@ -1,0 +1,4 @@
+id;teksti;luontiaika;muokkausaika;kommentoija_id;suoritusarviointi_id
+1;../fake-data/blob/hipster.txt;2020-11-08T12:07:53;2020-11-09T08:26:11;1;1
+2;../fake-data/blob/hipster.txt;2020-11-08T15:42:43;2020-11-08T12:03:54;2;2
+3;../fake-data/blob/hipster.txt;2020-11-08T16:51:05;2020-11-08T18:37:07;3;3
