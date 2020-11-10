@@ -45,6 +45,9 @@
             <column name="arviointi_aika" type="date">
                 <constraints nullable="true" />
             </column>
+            <column name="lukittu" type="boolean">
+                <constraints nullable="false" />
+            </column>
             <column name="arvioinnin_antaja_id" type="bigint">
                 <constraints nullable="false" />
             </column>
@@ -79,6 +82,7 @@
             <column name="luottamuksen_taso" type="numeric"/>
             <column name="sanallinen_arviointi" type="clob"/>
             <column name="arviointi_aika" type="date"/>
+            <column name="lukittu" type="boolean"/>
             <column name="arvioinnin_antaja_id" type="numeric"/>
             <column name="arvioitava_osaalue_id" type="numeric"/>
             <column name="tyoskentelyjakso_id" type="numeric"/>

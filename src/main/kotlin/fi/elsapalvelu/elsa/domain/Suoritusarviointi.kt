@@ -72,6 +72,10 @@ data class Suoritusarviointi(
     @Column(name = "arviointi_aika")
     var arviointiAika: LocalDate? = null,
 
+    @get: NotNull
+    @Column(name = "lukittu", nullable = false)
+    var lukittu: Boolean = false,
+
     @OneToMany(mappedBy = "suoritusarviointi")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var osaalueenArvioinnit: MutableSet<OsaalueenArviointi> = mutableSetOf(),
@@ -143,6 +147,7 @@ data class Suoritusarviointi(
         ", luottamuksenTaso=$luottamuksenTaso" +
         ", sanallinenArviointi='$sanallinenArviointi'" +
         ", arviointiAika='$arviointiAika'" +
+        ", lukittu='$lukittu'" +
         "}"
 
     companion object {
