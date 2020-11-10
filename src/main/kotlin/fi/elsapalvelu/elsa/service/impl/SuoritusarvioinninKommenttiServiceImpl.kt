@@ -33,7 +33,22 @@ class SuoritusarvioinninKommenttiServiceImpl(
         userId: String
     ): SuoritusarvioinninKommenttiDTO {
         val kayttaja = kayttajaRepository.findOneByUserId(userId).get()
-        suoritusarvioinninKommenttiDTO.kommentoija = kayttajaMapper.toDto(kayttaja)
+        val kayttajaDTO = kayttajaMapper.toDto(kayttaja)
+
+        // Tarkisteaan, että muokkaaja on sama kuin kommentin tekijä
+        if (suoritusarvioinninKommenttiDTO.kommentoija != null &&
+            suoritusarvioinninKommenttiDTO.kommentoija != kayttajaDTO
+        ) {
+            throw BadRequestAlertException(
+                "Kommenttia voi muokata vain kommentin tekijä.",
+                "suoritusarvioinnin_kommentti", "dataillegal"
+            )
+        }
+        // Asetetaan kommentoija uuteen kommenttiin
+        if (suoritusarvioinninKommenttiDTO.kommentoija == null) {
+            suoritusarvioinninKommenttiDTO.kommentoija = kayttajaDTO
+        }
+
         var suoritusarvioinninKommentti = suoritusarvioinninKommenttiMapper.toEntity(suoritusarvioinninKommenttiDTO)
         val suoritusarviointi = suoritusarviointiRepository
             .findOneById(suoritusarvioinninKommentti.suoritusarviointi?.id!!).get()
