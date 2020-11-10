@@ -208,13 +208,13 @@ class ErikoistuvaLaakariToiminnotResource(
         @Valid @RequestBody suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO,
         principal: Principal?
     ): ResponseEntity<SuoritusarvioinninKommenttiDTO> {
-        val user = getAuthenticatedUser(principal)
         if (suoritusarvioinninKommenttiDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi suoritusarvioinnin kommentti ei saa sisältää ID:tä.",
                 "suoritusarvioinnin_kommentti", "idexists"
             )
         }
+        val user = getAuthenticatedUser(principal)
         val now = Instant.now()
         suoritusarvioinninKommenttiDTO.luontiaika = now
         suoritusarvioinninKommenttiDTO.muokkausaika = now
@@ -228,6 +228,29 @@ class ErikoistuvaLaakariToiminnotResource(
                 true,
                 "suoritusarvioinnin_kommentti",
                 result.id.toString())
+            )
+            .body(result)
+    }
+
+    @PutMapping("/suoritusarvioinnit/{id}/kommentti")
+    fun updateSuoritusarvioinninKommentti(
+        @Valid @RequestBody suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO,
+        principal: Principal?
+    ): ResponseEntity<SuoritusarvioinninKommenttiDTO> {
+        if (suoritusarvioinninKommenttiDTO.id == null) {
+            throw BadRequestAlertException("Invalid id", "suoritusarvioinnin_kommentti", "idnull")
+        }
+        val user = getAuthenticatedUser(principal)
+        suoritusarvioinninKommenttiDTO.muokkausaika = Instant.now()
+        val result = suoritusarvioinninKommenttiService.save(suoritusarvioinninKommenttiDTO, user.id!!)
+        return ResponseEntity.ok()
+            .headers(
+                HeaderUtil.createEntityUpdateAlert(
+                    applicationName,
+                    true,
+                    "suoritusarvioinnin_kommentti",
+                    suoritusarvioinninKommenttiDTO.id.toString()
+                )
             )
             .body(result)
     }
