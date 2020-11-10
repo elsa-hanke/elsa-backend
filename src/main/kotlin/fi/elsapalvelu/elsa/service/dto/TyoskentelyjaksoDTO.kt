@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.Max
@@ -19,6 +20,13 @@ data class TyoskentelyjaksoDTO(
     @get: Min(value = 50)
     @get: Max(value = 100)
     var osaaikaprosentti: Int? = null,
+
+    @get: NotNull
+    var kaytannonKoulutus: KaytannonKoulutusTyyppi? = null,
+
+    var reunakoulutuksenNimi: String? = null,
+
+    var hyvaksyttyAiempaanErikoisalaan: Boolean = false,
 
     @get: NotNull
     var tyoskentelypaikka: TyoskentelypaikkaDTO? = null,

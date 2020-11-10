@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.AccountResource
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AbstractAuthenticationToken
+import org.springframework.util.StringUtils
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.net.URI
@@ -248,6 +250,15 @@ class ErikoistuvaLaakariToiminnotResource(
                 "Uusi tyoskentelypaikka ei saa sisältää ID:tä.",
                 "tyoskentelypaikka",
                 "idexists"
+            )
+        }
+        if (tyoskentelyjaksoDTO.kaytannonKoulutus == KaytannonKoulutusTyyppi.REUNAKOULUTUS &&
+            StringUtils.isEmpty(tyoskentelyjaksoDTO.reunakoulutuksenNimi)
+        ) {
+            throw BadRequestAlertException(
+                "Työskentelyjakso on reunakoulutus, mutta reunakoulutuksen nimi puuttuu.",
+                "tyoskentelypaikka",
+                "dataillegal"
             )
         }
         val user = getAuthenticatedUser(principal)

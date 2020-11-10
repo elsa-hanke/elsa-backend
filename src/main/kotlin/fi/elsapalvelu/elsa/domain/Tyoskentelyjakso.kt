@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -31,6 +32,18 @@ data class Tyoskentelyjakso(
     @Column(name = "osaaikaprosentti", nullable = false)
     var osaaikaprosentti: Int? = null,
 
+    @get: NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "kaytannon_koulutus", nullable = false)
+    var kaytannonKoulutus: KaytannonKoulutusTyyppi? = null,
+
+    @Column(name = "reunakoulutuksen_nimi")
+    var reunakoulutuksenNimi: String? = null,
+
+    @get: NotNull
+    @Column(name = "hyvaksytty_aiempaan_erikoisalaan", nullable = false)
+    var hyvaksyttyAiempaanErikoisalaan: Boolean = false,
+
     @NotNull
     @OneToOne(optional = false, cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     @JoinColumn(unique = true)
@@ -43,7 +56,7 @@ data class Tyoskentelyjakso(
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
-    var erikoistuvaLaakari: ErikoistuvaLaakari? = null
+    var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
 ) : Serializable {
 
@@ -72,6 +85,10 @@ data class Tyoskentelyjakso(
         "id=$id" +
         ", alkamispaiva='$alkamispaiva'" +
         ", paattymispaiva='$paattymispaiva'" +
+        ", osaaikaprosentti=$osaaikaprosentti" +
+        ", kaytannonKoulutus='$kaytannonKoulutus'" +
+        ", reunakoulutuksenNimi='$reunakoulutuksenNimi'" +
+        ", hyvaksyttyAiempaanErikoisalaan='$hyvaksyttyAiempaanErikoisalaan'" +
         "}"
 
     companion object {

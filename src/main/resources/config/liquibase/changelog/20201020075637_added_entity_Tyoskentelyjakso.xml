@@ -18,6 +18,15 @@
             <column name="osaaikaprosentti" type="integer">
                 <constraints nullable="false" />
             </column>
+            <column name="kaytannon_koulutus" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="reunakoulutuksen_nimi" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="hyvaksytty_aiempaan_erikoisalaan" type="boolean">
+                <constraints nullable="false" />
+            </column>
             <column name="tyoskentelypaikka_id" type="bigint">
                 <constraints nullable="false" />
             </column>
@@ -40,6 +49,9 @@
             <column name="alkamispaiva" type="date"/>
             <column name="paattymispaiva" type="date"/>
             <column name="osaaikaprosentti" type="numeric"/>
+            <column name="kaytannon_koulutus" type="string"/>
+            <column name="reunakoulutuksen_nimi" type="string"/>
+            <column name="hyvaksytty_aiempaan_erikoisalaan" type="boolean"/>
             <column name="tyoskentelypaikka_id" type="numeric"/>
             <column name="erikoistuva_laakari_id" type="numeric"/>
         </loadData>
