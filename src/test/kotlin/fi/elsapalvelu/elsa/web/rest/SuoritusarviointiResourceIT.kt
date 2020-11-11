@@ -203,26 +203,6 @@ class SuoritusarviointiResourceIT {
 
     @Test
     @Transactional
-    fun checkPyynnonAikaIsRequired() {
-        val databaseSizeBeforeTest = suoritusarviointiRepository.findAll().size
-        // set the field null
-        suoritusarviointi.pyynnonAika = null
-
-        // Create the Suoritusarviointi, which fails.
-        val suoritusarviointiDTO = suoritusarviointiMapper.toDto(suoritusarviointi)
-
-        restSuoritusarviointiMockMvc.perform(
-            post("/api/suoritusarvioinnit")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(suoritusarviointiDTO))
-        ).andExpect(status().isBadRequest)
-
-        val suoritusarviointiList = suoritusarviointiRepository.findAll()
-        assertThat(suoritusarviointiList).hasSize(databaseSizeBeforeTest)
-    }
-
-    @Test
-    @Transactional
     @Throws(Exception::class)
     fun getAllSuoritusarvioinnit() {
         // Initialize the database
