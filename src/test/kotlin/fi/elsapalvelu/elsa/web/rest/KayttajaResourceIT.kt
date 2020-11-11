@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.enumeration.Kieli
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
@@ -111,7 +110,6 @@ class KayttajaResourceIT {
         assertThat(testKayttaja.nimi).isEqualTo(DEFAULT_NIMI)
         assertThat(testKayttaja.profiilikuva).isEqualTo(DEFAULT_PROFIILIKUVA)
         assertThat(testKayttaja.profiilikuvaContentType).isEqualTo(DEFAULT_PROFIILIKUVA_CONTENT_TYPE)
-        assertThat(testKayttaja.kieli).isEqualTo(DEFAULT_KIELI)
     }
 
     @Test
@@ -169,8 +167,7 @@ class KayttajaResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(kayttaja.id?.toInt())))
             .andExpect(jsonPath("$.[*].nimi").value(hasItem(DEFAULT_NIMI)))
             .andExpect(jsonPath("$.[*].profiilikuvaContentType").value(hasItem(DEFAULT_PROFIILIKUVA_CONTENT_TYPE)))
-            .andExpect(jsonPath("$.[*].profiilikuva").value(hasItem(Base64Utils.encodeToString(DEFAULT_PROFIILIKUVA))))
-            .andExpect(jsonPath("$.[*].kieli").value(hasItem(DEFAULT_KIELI.toString()))) }
+            .andExpect(jsonPath("$.[*].profiilikuva").value(hasItem(Base64Utils.encodeToString(DEFAULT_PROFIILIKUVA)))) }
 
     @Test
     @Transactional
@@ -189,8 +186,7 @@ class KayttajaResourceIT {
             .andExpect(jsonPath("$.id").value(kayttaja.id as Any))
             .andExpect(jsonPath("$.nimi").value(DEFAULT_NIMI))
             .andExpect(jsonPath("$.profiilikuvaContentType").value(DEFAULT_PROFIILIKUVA_CONTENT_TYPE))
-            .andExpect(jsonPath("$.profiilikuva").value(Base64Utils.encodeToString(DEFAULT_PROFIILIKUVA)))
-            .andExpect(jsonPath("$.kieli").value(DEFAULT_KIELI.toString())) }
+            .andExpect(jsonPath("$.profiilikuva").value(Base64Utils.encodeToString(DEFAULT_PROFIILIKUVA))) }
 
     @Test
     @Transactional
@@ -217,7 +213,6 @@ class KayttajaResourceIT {
         updatedKayttaja.nimi = UPDATED_NIMI
         updatedKayttaja.profiilikuva = UPDATED_PROFIILIKUVA
         updatedKayttaja.profiilikuvaContentType = UPDATED_PROFIILIKUVA_CONTENT_TYPE
-        updatedKayttaja.kieli = UPDATED_KIELI
         val kayttajaDTO = kayttajaMapper.toDto(updatedKayttaja)
 
         restKayttajaMockMvc.perform(
@@ -233,7 +228,6 @@ class KayttajaResourceIT {
         assertThat(testKayttaja.nimi).isEqualTo(UPDATED_NIMI)
         assertThat(testKayttaja.profiilikuva).isEqualTo(UPDATED_PROFIILIKUVA)
         assertThat(testKayttaja.profiilikuvaContentType).isEqualTo(UPDATED_PROFIILIKUVA_CONTENT_TYPE)
-        assertThat(testKayttaja.kieli).isEqualTo(UPDATED_KIELI)
     }
 
     @Test
@@ -286,9 +280,6 @@ class KayttajaResourceIT {
         private const val DEFAULT_PROFIILIKUVA_CONTENT_TYPE: String = "image/jpg"
         private const val UPDATED_PROFIILIKUVA_CONTENT_TYPE: String = "image/png"
 
-        private val DEFAULT_KIELI: Kieli = Kieli.SUOMI
-        private val UPDATED_KIELI: Kieli = Kieli.RUOTSI
-
         /**
          * Create an entity for this test.
          *
@@ -300,12 +291,11 @@ class KayttajaResourceIT {
             val kayttaja = Kayttaja(
                 nimi = DEFAULT_NIMI,
                 profiilikuva = DEFAULT_PROFIILIKUVA,
-                profiilikuvaContentType = DEFAULT_PROFIILIKUVA_CONTENT_TYPE,
-                kieli = DEFAULT_KIELI
+                profiilikuvaContentType = DEFAULT_PROFIILIKUVA_CONTENT_TYPE
             )
 
             // Add required entity
-            val user = UserResourceIT.createEntity()
+            val user = UserResourceIT.createEntity(em)
             em.persist(user)
             em.flush()
             kayttaja.user = user
@@ -323,12 +313,11 @@ class KayttajaResourceIT {
             val kayttaja = Kayttaja(
                 nimi = UPDATED_NIMI,
                 profiilikuva = UPDATED_PROFIILIKUVA,
-                profiilikuvaContentType = UPDATED_PROFIILIKUVA_CONTENT_TYPE,
-                kieli = UPDATED_KIELI
+                profiilikuvaContentType = UPDATED_PROFIILIKUVA_CONTENT_TYPE
             )
 
             // Add required entity
-            val user = UserResourceIT.createEntity()
+            val user = UserResourceIT.createEntity(em)
             em.persist(user)
             em.flush()
             kayttaja.user = user
