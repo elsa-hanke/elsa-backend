@@ -202,6 +202,22 @@ class ErikoistuvaLaakariToiminnotResource(
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
     }
 
+    @DeleteMapping("/suoritusarvioinnit/{id}")
+    fun deleteSuoritusarviointi(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        val user = getAuthenticatedUser(principal)
+        suoritusarviointiService.delete(id, user.id!!)
+        return ResponseEntity.noContent()
+            .headers(HeaderUtil.createEntityDeletionAlert(
+                applicationName,
+                true,
+                "suoritusarviointi",
+                id.toString()
+            )).build()
+    }
+
     @PostMapping("/suoritusarvioinnit/{id}/kommentti")
     fun createSuoritusarvioinninKommentti(
         @PathVariable id: Long,

@@ -30,4 +30,6 @@ interface SuoritusarviointiService {
     ): Optional<SuoritusarviointiDTO>
 
     fun delete(id: Long)
+
+    fun delete(id: Long, userId: String)
 }

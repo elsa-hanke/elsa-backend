@@ -80,7 +80,7 @@ data class Suoritusarviointi(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var osaalueenArvioinnit: MutableSet<OsaalueenArviointi> = mutableSetOf(),
 
-    @OneToMany(mappedBy = "suoritusarviointi")
+    @OneToMany(mappedBy = "suoritusarviointi", cascade = [CascadeType.ALL], orphanRemoval = true)
     var kommentit: MutableSet<SuoritusarvioinninKommentti> = mutableSetOf(),
 
     @NotNull

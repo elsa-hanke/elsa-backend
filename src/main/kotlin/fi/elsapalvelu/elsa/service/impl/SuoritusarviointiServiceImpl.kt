@@ -1,17 +1,16 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
-import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import java.util.Optional
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.util.ObjectUtils
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -20,6 +19,8 @@ import java.time.ZoneId
 class SuoritusarviointiServiceImpl(
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val epaOsaamisalueRepository: EpaOsaamisalueRepository,
+    private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val suoritusarviointiMapper: SuoritusarviointiMapper
 ) : SuoritusarviointiService {
@@ -38,21 +39,50 @@ class SuoritusarviointiServiceImpl(
         var suoritusarviointi = suoritusarviointiRepository
             .findOneById(suoritusarviointiDTO.id!!).get()
 
+        // Erikoistuva lääkäri
         suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari.let {
             val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
                 .findOneByKayttajaUserId(userId)
-            if (kirjautunutErikoistuvaLaakari.isPresent && kirjautunutErikoistuvaLaakari.get() == it) {
-                suoritusarviointi.itsearviointiVaativuustaso = suoritusarviointiDTO.itsearviointiVaativuustaso
-                suoritusarviointi.itsearviointiLuottamuksenTaso = suoritusarviointiDTO.itsearviointiLuottamuksenTaso
-                suoritusarviointi.sanallinenItsearviointi = suoritusarviointiDTO.sanallinenItsearviointi
-                suoritusarviointi.itsearviointiAika = LocalDate.now(ZoneId.systemDefault())
+            if (kirjautunutErikoistuvaLaakari.isPresent &&
+                kirjautunutErikoistuvaLaakari.get() == it
+            ) {
+                val isItsearviointiNotEmpty = !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiVaativuustaso) &&
+                    !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiLuottamuksenTaso) &&
+                    !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenItsearviointi)
+
+                // Itsearvioinnin tekeminen
+                if (isItsearviointiNotEmpty) {
+                    suoritusarviointi.itsearviointiVaativuustaso = suoritusarviointiDTO.itsearviointiVaativuustaso
+                    suoritusarviointi.itsearviointiLuottamuksenTaso = suoritusarviointiDTO.itsearviointiLuottamuksenTaso
+                    suoritusarviointi.sanallinenItsearviointi = suoritusarviointiDTO.sanallinenItsearviointi
+                    suoritusarviointi.itsearviointiAika = LocalDate.now(ZoneId.systemDefault())
+                } else {
+                    // Arviointipyynnön muokkaus
+                    suoritusarviointi.arvioitavaOsaalue = epaOsaamisalueRepository
+                        .findByIdOrNull(suoritusarviointiDTO.arvioitavaOsaalueId)
+                    suoritusarviointi.arvioitavaTapahtuma = suoritusarviointiDTO.arvioitavaTapahtuma
+                    suoritusarviointi.lisatiedot = suoritusarviointiDTO.lisatiedot
+                    suoritusarviointi.tapahtumanAjankohta = suoritusarviointiDTO.tapahtumanAjankohta
+                    suoritusarviointi.tyoskentelyjakso = tyoskentelyjaksoRepository
+                        .findByIdOrNull(suoritusarviointiDTO.tyoskentelyjaksoId)
+                }
             }
         }
 
+        // Arvioinnin antaja
         suoritusarviointi.arvioinninAntaja.let {
             val kirjautunutKayttaja = kayttajaRepository
                 .findOneByUserId(userId)
-            if (kirjautunutKayttaja.isPresent && kirjautunutKayttaja.get() == it) {
+
+            val isArviointiNotEmpty = !ObjectUtils.isEmpty(suoritusarviointiDTO.vaativuustaso) &&
+                !ObjectUtils.isEmpty(suoritusarviointiDTO.luottamuksenTaso) &&
+                !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenArviointi)
+
+            // Arvioinnin tekeminen
+            if (kirjautunutKayttaja.isPresent &&
+                kirjautunutKayttaja.get() == it &&
+                isArviointiNotEmpty
+            ) {
                 suoritusarviointi.vaativuustaso = suoritusarviointiDTO.vaativuustaso
                 suoritusarviointi.luottamuksenTaso = suoritusarviointiDTO.luottamuksenTaso
                 suoritusarviointi.sanallinenArviointi = suoritusarviointiDTO.sanallinenArviointi
@@ -113,5 +143,24 @@ class SuoritusarviointiServiceImpl(
 
     override fun delete(id: Long) {
         suoritusarviointiRepository.deleteById(id)
+    }
+
+    override fun delete(id: Long, userId: String) {
+
+        val suoritusarviointiOpt = suoritusarviointiRepository.findOneById(id)
+        if (suoritusarviointiOpt.isPresent) {
+            val suoritusarviointi = suoritusarviointiOpt.get()
+            suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari.let {
+                val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
+                    .findOneByKayttajaUserId(userId)
+                if (kirjautunutErikoistuvaLaakari.isPresent &&
+                    kirjautunutErikoistuvaLaakari.get() == it &&
+                    suoritusarviointi.arviointiAika == null &&
+                    !suoritusarviointi.lukittu
+                ) {
+                    suoritusarviointiRepository.deleteById(id)
+                }
+            }
+        }
     }
 }
