@@ -7,7 +7,6 @@ import fi.elsapalvelu.elsa.service.SuoritusarvioinninKommenttiService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarvioinninKommenttiMapper
-import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.Optional
@@ -39,10 +38,7 @@ class SuoritusarvioinninKommenttiServiceImpl(
         if (suoritusarvioinninKommenttiDTO.kommentoija != null &&
             suoritusarvioinninKommenttiDTO.kommentoija != kayttajaDTO
         ) {
-            throw BadRequestAlertException(
-                "Kommenttia voi muokata vain kommentin tekijä.",
-                "suoritusarvioinnin_kommentti", "dataillegal"
-            )
+            throw IllegalArgumentException("Kommenttia voi muokata vain kommentin tekijä.")
         }
         // Asetetaan kommentoija uuteen kommenttiin
         if (suoritusarvioinninKommenttiDTO.kommentoija == null) {
@@ -58,10 +54,7 @@ class SuoritusarvioinninKommenttiServiceImpl(
             // TODO: lähetä sähköposti toiselle osapuolelle
             return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
         } else {
-            throw BadRequestAlertException(
-                "Kommentin lisääjän täytyy olla joko arviointipyynnön tehnyt tai arvioinnin antaja.",
-                "suoritusarvioinnin_kommentti", "dataillegal"
-            )
+            throw IllegalArgumentException("Kommentin lisääjän täytyy olla joko arviointipyynnön tehnyt tai arvioinnin antaja.")
         }
     }
 
