@@ -15,7 +15,9 @@ data class TyoskentelypaikkaDTO(
     var kunta: String? = null,
 
     @get: NotNull
-    var tyyppi: TyoskentelyjaksoTyyppi? = null
+    var tyyppi: TyoskentelyjaksoTyyppi? = null,
+
+    var muuTyyppi: String? = null
 
 ) : Serializable {
 
