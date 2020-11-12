@@ -27,12 +27,18 @@ class KayttajaServiceImpl(
     }
 
     override fun save(kayttajaDTO: KayttajaDTO, userDTO: UserDTO): KayttajaDTO {
-        var user = userMapper.userDTOToUser(userDTO)!!
-        user = userRepository.save(user)
-        var kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
-        kayttaja.user = user
-        kayttaja = kayttajaRepository.save(kayttaja)
-        return kayttajaMapper.toDto(kayttaja)
+        val existingUser = userRepository.findOneByLogin(userDTO.login!!)
+        return if (existingUser.isPresent) {
+            val kayttaja = kayttajaRepository.findOneByUserId(existingUser.get().id!!).get()
+            kayttajaMapper.toDto(kayttaja)
+        } else {
+            var user = userMapper.userDTOToUser(userDTO)!!
+            user = userRepository.save(user)
+            var kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
+            kayttaja.user = user
+            kayttaja = kayttajaRepository.save(kayttaja)
+            kayttajaMapper.toDto(kayttaja)
+        }
     }
 
     @Transactional(readOnly = true)
