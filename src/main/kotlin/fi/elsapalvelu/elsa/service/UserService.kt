@@ -52,7 +52,6 @@ class UserService(
         getCurrentUserLogin()
             .flatMap(userRepository::findOneByLogin)
             .ifPresent {
-
                 it.firstName = firstName
                 it.lastName = lastName
                 it.email = email?.toLowerCase()
