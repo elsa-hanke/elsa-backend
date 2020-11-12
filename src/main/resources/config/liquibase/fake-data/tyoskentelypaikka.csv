@@ -1,11 +1,11 @@
-id;nimi;kunta;tyyppi
-1;Työskentelypaikka 1;564;YKSITYINEN
-2;Työskentelypaikka 2;564;KESKUSSAIRAALA
-3;Työskentelypaikka 3;564;YKSITYINEN
-4;Työskentelypaikka 4;837;TERVEYSKESKUS
-5;Työskentelypaikka 5;837;YKSITYINEN
-6;Työskentelypaikka 6;837;TERVEYSKESKUS
-7;Työskentelypaikka 7;837;YKSITYINEN
-8;Työskentelypaikka 8;091;TERVEYSKESKUS
-9;Työskentelypaikka 9;091;YKSITYINEN
-10;Työskentelypaikka 10;091;YKSITYINEN
+id;nimi;kunta;tyyppi;muu_tyyppi
+1;Työskentelypaikka 1;564;YKSITYINEN;
+2;Työskentelypaikka 2;564;KESKUSSAIRAALA;
+3;Työskentelypaikka 3;564;YKSITYINEN;
+4;Työskentelypaikka 4;837;TERVEYSKESKUS;
+5;Työskentelypaikka 5;837;YKSITYINEN;
+6;Työskentelypaikka 6;837;TERVEYSKESKUS;
+7;Työskentelypaikka 7;837;YKSITYINEN;
+8;Työskentelypaikka 8;091;TERVEYSKESKUS;
+9;Työskentelypaikka 9;091;YKSITYINEN;
+10;Työskentelypaikka 10;091;MUU;Hoitokoti

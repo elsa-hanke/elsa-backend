@@ -31,6 +31,9 @@ data class Tyoskentelypaikka(
     @Column(name = "tyyppi", nullable = false)
     var tyyppi: TyoskentelyjaksoTyyppi? = null,
 
+    @Column(name = "muu_tyyppi")
+    var muuTyyppi: String? = null,
+
     @OneToOne(mappedBy = "tyoskentelypaikka")
     @JsonIgnore
     var tyoskentelyjakso: Tyoskentelyjakso? = null

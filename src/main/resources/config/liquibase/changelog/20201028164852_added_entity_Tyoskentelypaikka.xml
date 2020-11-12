@@ -18,6 +18,9 @@
             <column name="tyyppi" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
+            <column name="muu_tyyppi" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
         </createTable>
     </changeSet>
 
@@ -34,6 +37,7 @@
             <column name="nimi" type="string"/>
             <column name="kunta" type="string"/>
             <column name="tyyppi" type="string"/>
+            <column name="muu_tyyppi" type="string"/>
         </loadData>
     </changeSet>
 

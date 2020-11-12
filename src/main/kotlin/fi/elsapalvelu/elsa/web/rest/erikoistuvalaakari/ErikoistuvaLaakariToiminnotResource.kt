@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.AccountResource
@@ -296,6 +297,15 @@ class ErikoistuvaLaakariToiminnotResource(
         ) {
             throw BadRequestAlertException(
                 "Työskentelyjakso on reunakoulutus, mutta reunakoulutuksen nimi puuttuu.",
+                "tyoskentelypaikka",
+                "dataillegal"
+            )
+        }
+        if (tyoskentelyjaksoDTO.tyoskentelypaikka?.tyyppi == TyoskentelyjaksoTyyppi.MUU &&
+            StringUtils.isEmpty(tyoskentelyjaksoDTO.tyoskentelypaikka?.muuTyyppi)
+        ) {
+            throw BadRequestAlertException(
+                "Työskentelypaikka on muu, mutta muun tyyppi puuttuu.",
                 "tyoskentelypaikka",
                 "dataillegal"
             )

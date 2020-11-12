@@ -8,7 +8,6 @@ import fi.elsapalvelu.elsa.service.mapper.TyoskentelypaikkaMapper
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import javax.persistence.EntityManager
 import org.junit.jupiter.api.BeforeEach
-import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -16,7 +15,6 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.validation.Validator
 
 
@@ -61,14 +59,16 @@ class TyoskentelypaikkaResourceIT {
         private const val UPDATED_KUNTA = "BBBBBBBBBB"
 
         private val DEFAULT_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
-        private val UPDATED_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.YLIOPISTOLLINEN_SAIRAALA
+        private val UPDATED_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.MUU
+        private const val UPDATED_MUU_TYYPPI = "CCCCCCCCCC"
 
         @JvmStatic
         fun createEntity(em: EntityManager): Tyoskentelypaikka {
             val tyoskentelypaikka = Tyoskentelypaikka(
                 nimi = DEFAULT_NIMI,
                 kunta = DEFAULT_KUNTA,
-                tyyppi = DEFAULT_TYYPPI
+                tyyppi = DEFAULT_TYYPPI,
+                muuTyyppi = null
             )
 
             return tyoskentelypaikka
@@ -79,7 +79,8 @@ class TyoskentelypaikkaResourceIT {
             val tyoskentelypaikka = Tyoskentelypaikka(
                 nimi = UPDATED_NIMI,
                 kunta = UPDATED_KUNTA,
-                tyyppi = UPDATED_TYYPPI
+                tyyppi = UPDATED_TYYPPI,
+                muuTyyppi = UPDATED_MUU_TYYPPI
             )
 
             return tyoskentelypaikka
