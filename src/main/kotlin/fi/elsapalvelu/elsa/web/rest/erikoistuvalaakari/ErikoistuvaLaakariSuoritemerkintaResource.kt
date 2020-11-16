@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.OppimistavoitteenKategoriaService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaFormDTO
@@ -14,6 +15,7 @@ import java.security.Principal
 class ErikoistuvaLaakariSuoritemerkintaResource(
     private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
+    private val oppimistavoitteenKategoriaService: OppimistavoitteenKategoriaService
 ) {
 
     @GetMapping("/suoritemerkinta-lomake")
@@ -25,6 +27,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         val form = SuoritemerkintaFormDTO()
         form.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+        form.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService.findAll().toMutableSet()
 
         return ResponseEntity.ok(form)
     }

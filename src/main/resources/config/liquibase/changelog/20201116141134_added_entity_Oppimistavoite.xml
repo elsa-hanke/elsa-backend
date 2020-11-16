@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20201116141134-1" author="jhipster">
+        <createTable tableName="oppimistavoite">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="voimassaolon_alkamispaiva" type="date">
+                <constraints nullable="false" />
+            </column>
+            <column name="voimassaolon_paattymispaiva" type="date">
+                <constraints nullable="true" />
+            </column>
+            <column name="kategoria_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20201116141134-1-relations" author="jhipster">
+
+    </changeSet>
+
+    <changeSet id="20201116141134-1-data" author="jhipster" context="faker">
+        <loadData
+            file="config/liquibase/fake-data/oppimistavoite.csv"
+            separator=";"
+            tableName="oppimistavoite">
+            <column name="id" type="numeric"/>
+            <column name="nimi" type="string"/>
+            <column name="voimassaolon_alkamispaiva" type="date"/>
+            <column name="voimassaolon_paattymispaiva" type="date"/>
+            <column name="kategoria_id" type="numeric"/>
+        </loadData>
+    </changeSet>
+
+</databaseChangeLog>
