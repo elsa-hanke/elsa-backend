@@ -8,7 +8,7 @@ import org.springframework.web.servlet.view.RedirectView
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-class Redirect2FrontendResource(private val env: Environment) {
+class RedirectResource(private val env: Environment) {
 
     @GetMapping("/")
     fun redirect2FrontendView(request: HttpServletRequest): RedirectView? {

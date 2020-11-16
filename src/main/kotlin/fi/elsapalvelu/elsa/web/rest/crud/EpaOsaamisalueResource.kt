@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
+import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.service.EpaOsaamisalueService
 import fi.elsapalvelu.elsa.service.dto.EpaOsaamisalueDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -9,6 +10,7 @@ import java.net.URI
 import javax.validation.Valid
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 private const val ENTITY_NAME = "epaOsaamisalue"
@@ -23,6 +25,7 @@ class EpaOsaamisalueResource(
     private var applicationName: String? = null
 
     @PostMapping("/epa-osaamisalueet")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun createEpaOsaamisalue(
         @Valid @RequestBody epaOsaamisalueDTO: EpaOsaamisalueDTO
     ): ResponseEntity<EpaOsaamisalueDTO> {
@@ -44,6 +47,7 @@ class EpaOsaamisalueResource(
     }
 
     @PutMapping("/epa-osaamisalueet")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun updateEpaOsaamisalue(
         @Valid @RequestBody epaOsaamisalueDTO: EpaOsaamisalueDTO
     ): ResponseEntity<EpaOsaamisalueDTO> {
@@ -62,12 +66,14 @@ class EpaOsaamisalueResource(
     }
 
     @GetMapping("/epa-osaamisalueet")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getAllEpaOsaamisalueet(): MutableList<EpaOsaamisalueDTO> {
 
         return epaOsaamisalueService.findAll()
     }
 
     @GetMapping("/epa-osaamisalueet/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getEpaOsaamisalue(
         @PathVariable id: Long
     ): ResponseEntity<EpaOsaamisalueDTO> {
@@ -76,6 +82,7 @@ class EpaOsaamisalueResource(
     }
 
     @DeleteMapping("/epa-osaamisalueet/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun deleteEpaOsaamisalue(
         @PathVariable id: Long
     ): ResponseEntity<Void> {

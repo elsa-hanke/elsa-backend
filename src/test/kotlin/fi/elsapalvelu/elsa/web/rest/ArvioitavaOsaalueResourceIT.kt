@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.CanmedsOsaalue
 import fi.elsapalvelu.elsa.repository.ArvioitavaOsaalueRepository
 import fi.elsapalvelu.elsa.service.ArvioitavaOsaalueService
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaOsaalueMapper
+import fi.elsapalvelu.elsa.web.rest.crud.ArvioitavaOsaalueResource
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import java.time.LocalDate
 import java.time.ZoneId

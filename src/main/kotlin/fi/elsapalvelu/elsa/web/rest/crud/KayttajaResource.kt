@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
+import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -7,6 +8,7 @@ import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 import javax.validation.Valid
@@ -23,6 +25,7 @@ class KayttajaResource(
     private var applicationName: String? = null
 
     @PostMapping("/kayttajat")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun createKayttaja(
         @Valid @RequestBody kayttajaDTO: KayttajaDTO
     ): ResponseEntity<KayttajaDTO> {
@@ -45,6 +48,7 @@ class KayttajaResource(
     }
 
     @PutMapping("/kayttajat")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun updateKayttaja(
         @Valid @RequestBody kayttajaDTO: KayttajaDTO
     ): ResponseEntity<KayttajaDTO> {
@@ -65,11 +69,13 @@ class KayttajaResource(
     }
 
     @GetMapping("/kayttajat")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getAllKayttajat(): MutableList<KayttajaDTO> {
         return kayttajaService.findAll()
     }
 
     @GetMapping("/kayttajat/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getKayttaja(
         @PathVariable id: Long
     ): ResponseEntity<KayttajaDTO> {
@@ -78,6 +84,7 @@ class KayttajaResource(
     }
 
     @DeleteMapping("/kayttajat/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun deleteKayttaja(
         @PathVariable id: Long
     ): ResponseEntity<Void> {

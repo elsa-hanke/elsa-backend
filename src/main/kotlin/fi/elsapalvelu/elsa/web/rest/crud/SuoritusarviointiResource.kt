@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
+import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiCriteria
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
@@ -10,6 +11,7 @@ import java.net.URI
 import javax.validation.Valid
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 private const val ENTITY_NAME = "suoritusarviointi"
@@ -24,6 +26,7 @@ class SuoritusarviointiResource(
     private var applicationName: String? = null
 
     @PostMapping("/suoritusarvioinnit")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun createSuoritusarviointi(
         @Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO
     ): ResponseEntity<SuoritusarviointiDTO> {
@@ -45,6 +48,7 @@ class SuoritusarviointiResource(
     }
 
     @PutMapping("/suoritusarvioinnit")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun updateSuoritusarviointi(
         @Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO
     ): ResponseEntity<SuoritusarviointiDTO> {
@@ -62,7 +66,9 @@ class SuoritusarviointiResource(
             .body(result)
     }
 
-    @GetMapping("/suoritusarvioinnit") fun getAllSuoritusarvioinnit(
+    @GetMapping("/suoritusarvioinnit")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
+    fun getAllSuoritusarvioinnit(
         criteria: SuoritusarviointiCriteria
     ): ResponseEntity<MutableList<SuoritusarviointiDTO>> {
         val entityList = suoritusarviointiQueryService.findByCriteria(criteria)
@@ -70,11 +76,13 @@ class SuoritusarviointiResource(
     }
 
     @GetMapping("/suoritusarvioinnit/count")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun countSuoritusarvioinnit(criteria: SuoritusarviointiCriteria): ResponseEntity<Long> {
         return ResponseEntity.ok().body(suoritusarviointiQueryService.countByCriteria(criteria))
     }
 
     @GetMapping("/suoritusarvioinnit/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getSuoritusarviointi(
         @PathVariable id: Long
     ): ResponseEntity<SuoritusarviointiDTO> {
@@ -83,6 +91,7 @@ class SuoritusarviointiResource(
     }
 
     @DeleteMapping("/suoritusarvioinnit/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun deleteSuoritusarviointi(
         @PathVariable id: Long
     ): ResponseEntity<Void> {

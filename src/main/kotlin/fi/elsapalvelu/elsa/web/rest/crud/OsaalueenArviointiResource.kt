@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
+import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.service.OsaalueenArviointiService
 import fi.elsapalvelu.elsa.service.dto.OsaalueenArviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -9,6 +10,7 @@ import java.net.URI
 import javax.validation.Valid
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 private const val ENTITY_NAME = "osaalueenArviointi"
@@ -23,6 +25,7 @@ class OsaalueenArviointiResource(
     private var applicationName: String? = null
 
     @PostMapping("/osaalueen-arviointis")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun createOsaalueenArviointi(
         @Valid @RequestBody osaalueenArviointiDTO: OsaalueenArviointiDTO
     ): ResponseEntity<OsaalueenArviointiDTO> {
@@ -44,6 +47,7 @@ class OsaalueenArviointiResource(
     }
 
     @PutMapping("/osaalueen-arviointis")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun updateOsaalueenArviointi(
         @Valid @RequestBody osaalueenArviointiDTO: OsaalueenArviointiDTO
     ): ResponseEntity<OsaalueenArviointiDTO> {
@@ -62,12 +66,14 @@ class OsaalueenArviointiResource(
     }
 
     @GetMapping("/osaalueen-arviointis")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getAllOsaalueenArviointis(): MutableList<OsaalueenArviointiDTO> {
 
         return osaalueenArviointiService.findAll()
     }
 
     @GetMapping("/osaalueen-arviointis/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getOsaalueenArviointi(
         @PathVariable id: Long
     ): ResponseEntity<OsaalueenArviointiDTO> {
@@ -76,6 +82,7 @@ class OsaalueenArviointiResource(
     }
 
     @DeleteMapping("/osaalueen-arviointis/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun deleteOsaalueenArviointi(
         @PathVariable id: Long
     ): ResponseEntity<Void> {
