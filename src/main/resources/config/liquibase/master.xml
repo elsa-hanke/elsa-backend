@@ -25,6 +25,8 @@
     <include file="config/liquibase/changelog/20201028101013_added_entity_Kouluttajavaltuutus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201028164852_added_entity_Tyoskentelypaikka.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201109103052_added_entity_SuoritusarvioinninKommentti.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20201116141134_added_entity_Oppimistavoite.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20201116141134_added_entity_OppimistavoitteenKategoria.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075637_added_entity_constraints_Tyoskentelyjakso.xml" relativeToChangelogFile="false"/>
@@ -33,4 +35,5 @@
     <include file="config/liquibase/changelog/20201020080037_added_entity_constraints_ArvioitavaOsaalue.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201028101013_added_entity_constraints_Kouluttajavaltuutus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201109103052_added_entity_constraints_SuoritusarvioinninKommentti.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20201116141134_added_entity_constraints_Oppimistavoite.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
