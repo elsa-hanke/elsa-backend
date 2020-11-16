@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
+import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.service.ErikoistuvaLaakariService
 import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -7,6 +8,7 @@ import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 import javax.validation.Valid
@@ -23,6 +25,7 @@ class ErikoistuvaLaakariResource(
     private var applicationName: String? = null
 
     @PostMapping("/erikoistuvat-laakarit")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun createErikoistuvaLaakari(
         @Valid @RequestBody erikoistuvaLaakariDTO: ErikoistuvaLaakariDTO
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
@@ -45,6 +48,7 @@ class ErikoistuvaLaakariResource(
     }
 
     @PutMapping("/erikoistuvat-laakarit")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun updateErikoistuvaLaakari(
         @Valid @RequestBody erikoistuvaLaakariDTO: ErikoistuvaLaakariDTO
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
@@ -65,6 +69,7 @@ class ErikoistuvaLaakariResource(
     }
 
     @GetMapping("/erikoistuvat-laakarit")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getAllErikoistuvaLaakarit(
         @RequestParam(required = false) filter: String?
     ): MutableList<ErikoistuvaLaakariDTO> {
@@ -72,6 +77,7 @@ class ErikoistuvaLaakariResource(
     }
 
     @GetMapping("/erikoistuvat-laakarit/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getErikoistuvaLaakari(
         @PathVariable id: Long
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
@@ -80,6 +86,7 @@ class ErikoistuvaLaakariResource(
     }
 
     @DeleteMapping("/erikoistuvat-laakarit/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun deleteErikoistuvaLaakari(
         @PathVariable id: Long
     ): ResponseEntity<Void> {

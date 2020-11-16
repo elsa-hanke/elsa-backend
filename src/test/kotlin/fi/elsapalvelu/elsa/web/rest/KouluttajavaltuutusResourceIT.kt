@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.mapper.KouluttajavaltuutusMapper
+import fi.elsapalvelu.elsa.web.rest.crud.KouluttajavaltuutusResource
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import java.time.Instant
 import java.time.LocalDate

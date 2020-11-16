@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
+import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.service.ArvioitavaOsaalueService
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaOsaalueDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -9,6 +10,7 @@ import java.net.URI
 import javax.validation.Valid
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 private const val ENTITY_NAME = "arvioitavaOsaalue"
@@ -23,6 +25,7 @@ class ArvioitavaOsaalueResource(
     private var applicationName: String? = null
 
     @PostMapping("/arvioitavat-osaalueet")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun createArvioitavaOsaalue(
         @Valid @RequestBody arvioitavaOsaalueDTO: ArvioitavaOsaalueDTO
     ): ResponseEntity<ArvioitavaOsaalueDTO> {
@@ -44,6 +47,7 @@ class ArvioitavaOsaalueResource(
     }
 
     @PutMapping("/arvioitavat-osaalueet")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun updateArvioitavaOsaalue(
         @Valid @RequestBody arvioitavaOsaalueDTO: ArvioitavaOsaalueDTO
     ): ResponseEntity<ArvioitavaOsaalueDTO> {
@@ -64,11 +68,13 @@ class ArvioitavaOsaalueResource(
     }
 
     @GetMapping("/arvioitavat-osaalueet")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getAllArvioitavatOsaalueet(): MutableList<ArvioitavaOsaalueDTO> {
         return arvioitavaOsaalueService.findAll()
     }
 
     @GetMapping("/arvioitavat-osaalueet/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getArvioitavaOsaalue(
         @PathVariable id: Long
     ): ResponseEntity<ArvioitavaOsaalueDTO> {
@@ -77,6 +83,7 @@ class ArvioitavaOsaalueResource(
     }
 
     @DeleteMapping("/arvioitavat-osaalueet/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun deleteArvioitavaOsaalue(
         @PathVariable id: Long
     ): ResponseEntity<Void> {

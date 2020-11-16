@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.security.Principal
 import java.time.Instant
 import java.util.Optional
 
@@ -155,6 +156,14 @@ class UserService(
         handleNewErikoistuvaLaakari(user)
 
         return UserDTO(user)
+    }
+
+    fun getAuthenticatedUser(principal: Principal?): UserDTO {
+        if (principal is AbstractAuthenticationToken) {
+            return getUserFromAuthentication(principal)
+        } else {
+            throw RuntimeException("Käyttäjä ei ole kirjautunut")
+        }
     }
 
     private fun clearUserCaches(user: User) {
