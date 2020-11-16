@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
+import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -7,6 +8,7 @@ import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 import javax.validation.Valid
@@ -23,6 +25,7 @@ class TyoskentelyjaksoResource(
     private var applicationName: String? = null
 
     @PostMapping("/tyoskentelyjaksot")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun createTyoskentelyjakso(
         @Valid @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO
     ): ResponseEntity<TyoskentelyjaksoDTO> {
@@ -45,6 +48,7 @@ class TyoskentelyjaksoResource(
     }
 
     @PutMapping("/tyoskentelyjaksot")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun updateTyoskentelyjakso(
         @Valid @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO
     ): ResponseEntity<TyoskentelyjaksoDTO> {
@@ -65,6 +69,7 @@ class TyoskentelyjaksoResource(
     }
 
     @GetMapping("/tyoskentelyjaksot")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getAlltyoskentelyjaksot(
         @RequestParam(required = false) filter: String?
     ): MutableList<TyoskentelyjaksoDTO> {
@@ -72,6 +77,7 @@ class TyoskentelyjaksoResource(
     }
 
     @GetMapping("/tyoskentelyjaksot/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getTyoskentelyjakso(
         @PathVariable id: Long
     ): ResponseEntity<TyoskentelyjaksoDTO> {
@@ -80,6 +86,7 @@ class TyoskentelyjaksoResource(
     }
 
     @DeleteMapping("/tyoskentelyjaksot/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun deleteTyoskentelyjakso(
         @PathVariable id: Long
     ): ResponseEntity<Void> {

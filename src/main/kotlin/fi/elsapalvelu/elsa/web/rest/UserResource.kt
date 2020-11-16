@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
+import java.security.Principal
 
 /**
  * REST controller for managing users.
@@ -68,4 +69,7 @@ class UserResource(
                 .map { UserDTO(it) }
         )
     }
+
+    @GetMapping("/kayttaja")
+    fun getKayttaja(principal: Principal?): UserDTO = userService.getAuthenticatedUser(principal)
 }

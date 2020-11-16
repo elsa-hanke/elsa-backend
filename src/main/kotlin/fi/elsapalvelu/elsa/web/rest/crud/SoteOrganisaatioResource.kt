@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
+import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.service.SoteOrganisaatioQueryService
 import fi.elsapalvelu.elsa.service.SoteOrganisaatioService
 import fi.elsapalvelu.elsa.service.dto.SoteOrganisaatioCriteria
@@ -10,6 +11,7 @@ import io.github.jhipster.web.util.ResponseUtil
 import java.net.URI
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 private const val ENTITY_NAME = "soteOrganisaatio"
@@ -25,6 +27,7 @@ class SoteOrganisaatioResource(
     private var applicationName: String? = null
 
     @PostMapping("/sote-organisaatiot")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun createSoteOrganisaatio(
         @RequestBody soteOrganisaatioDTO: SoteOrganisaatioDTO
     ): ResponseEntity<SoteOrganisaatioDTO> {
@@ -46,6 +49,7 @@ class SoteOrganisaatioResource(
     }
 
     @PutMapping("/sote-organisaatiot")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun updateSoteOrganisaatio(
         @RequestBody soteOrganisaatioDTO: SoteOrganisaatioDTO
     ): ResponseEntity<SoteOrganisaatioDTO> {
@@ -63,19 +67,24 @@ class SoteOrganisaatioResource(
             .body(result)
     }
 
-    @GetMapping("/sote-organisaatiot") fun getAllSoteOrganisaatiot(
+    @GetMapping("/sote-organisaatiot")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
+    fun getAllSoteOrganisaatiot(
         criteria: SoteOrganisaatioCriteria
     ): ResponseEntity<MutableList<SoteOrganisaatioDTO>> {
         val entityList = soteOrganisaatioQueryService.findByCriteria(criteria)
         return ResponseEntity.ok().body(entityList)
     }
 
-    @GetMapping("/sote-organisaatiot/kunnat") fun getAllKunnat(
+    @GetMapping("/sote-organisaatiot/kunnat")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
+    fun getAllKunnat(
     ): ResponseEntity<MutableList<String>> {
         return ResponseEntity.ok(soteOrganisaatioQueryService.findAllKunnat())
     }
 
     @GetMapping("/sote-organisaatiot/count")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun countSoteOrganisaatiot(
         criteria: SoteOrganisaatioCriteria
     ): ResponseEntity<Long> {
@@ -83,6 +92,7 @@ class SoteOrganisaatioResource(
     }
 
     @GetMapping("/sote-organisaatiot/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getSoteOrganisaatio(
         @PathVariable id: String
     ): ResponseEntity<SoteOrganisaatioDTO> {
@@ -91,6 +101,7 @@ class SoteOrganisaatioResource(
     }
 
     @DeleteMapping("/sote-organisaatiot/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun deleteSoteOrganisaatio(
         @PathVariable id: String
     ): ResponseEntity<Void> {

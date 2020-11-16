@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
+import fi.elsapalvelu.elsa.web.rest.crud.TyoskentelyjaksoResource
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem

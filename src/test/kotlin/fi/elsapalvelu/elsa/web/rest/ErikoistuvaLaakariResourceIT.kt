@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.service.ErikoistuvaLaakariService
 import fi.elsapalvelu.elsa.service.mapper.ErikoistuvaLaakariMapper
+import fi.elsapalvelu.elsa.web.rest.crud.ErikoistuvaLaakariResource
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem

@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.EpaOsaamisalue
 import fi.elsapalvelu.elsa.repository.EpaOsaamisalueRepository
 import fi.elsapalvelu.elsa.service.EpaOsaamisalueService
 import fi.elsapalvelu.elsa.service.mapper.EpaOsaamisalueMapper
+import fi.elsapalvelu.elsa.web.rest.crud.EpaOsaamisalueResource
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import java.time.LocalDate
 import java.time.ZoneId

@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.OsaalueenArviointi
 import fi.elsapalvelu.elsa.repository.OsaalueenArviointiRepository
 import fi.elsapalvelu.elsa.service.OsaalueenArviointiService
 import fi.elsapalvelu.elsa.service.mapper.OsaalueenArviointiMapper
+import fi.elsapalvelu.elsa.web.rest.crud.OsaalueenArviointiResource
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import javax.persistence.EntityManager
 import kotlin.test.assertNotNull

@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
+import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -9,6 +10,7 @@ import java.net.URI
 import javax.validation.Valid
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 private const val ENTITY_NAME = "kouluttajavaltuutus"
@@ -23,6 +25,7 @@ class KouluttajavaltuutusResource(
     private var applicationName: String? = null
 
     @PostMapping("/kouluttajavaltuutukset")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun createKouluttajavaltuutus(
         @Valid @RequestBody kouluttajavaltuutusDTO: KouluttajavaltuutusDTO
     ): ResponseEntity<KouluttajavaltuutusDTO> {
@@ -44,6 +47,7 @@ class KouluttajavaltuutusResource(
     }
 
     @PutMapping("/kouluttajavaltuutukset")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun updateKouluttajavaltuutus(
         @Valid @RequestBody kouluttajavaltuutusDTO: KouluttajavaltuutusDTO
     ): ResponseEntity<KouluttajavaltuutusDTO> {
@@ -62,11 +66,13 @@ class KouluttajavaltuutusResource(
     }
 
     @GetMapping("/kouluttajavaltuutukset")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getAllKouluttajavaltuutukset(): MutableList<KouluttajavaltuutusDTO> {
         return kouluttajavaltuutusService.findAll()
     }
 
     @GetMapping("/kouluttajavaltuutukset/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun getKouluttajavaltuutus(
         @PathVariable id: Long
     ): ResponseEntity<KouluttajavaltuutusDTO> {
@@ -75,6 +81,7 @@ class KouluttajavaltuutusResource(
     }
 
     @DeleteMapping("/kouluttajavaltuutukset/{id}")
+    @PreAuthorize("hasAuthority(\"$ADMIN\")")
     fun deleteKouluttajavaltuutus(
         @PathVariable id: Long
     ): ResponseEntity<Void> {

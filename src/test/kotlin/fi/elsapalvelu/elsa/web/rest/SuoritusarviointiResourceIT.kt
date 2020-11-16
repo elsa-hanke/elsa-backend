@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
+import fi.elsapalvelu.elsa.web.rest.crud.SuoritusarviointiResource
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import java.time.LocalDate
 import java.time.ZoneId
