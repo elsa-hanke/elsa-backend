@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20201117104534-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="oppimistavoite_id"
+                                 baseTableName="suoritemerkinta"
+                                 constraintName="fk_suoritemerkinta_oppimistavoite_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="oppimistavoite"/>
+
+        <addForeignKeyConstraint baseColumnNames="tyoskentelyjakso_id"
+                                 baseTableName="suoritemerkinta"
+                                 constraintName="fk_suoritemerkinta_tyoskentelyjakso_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="tyoskentelyjakso"/>
+
+    </changeSet>
+</databaseChangeLog>
