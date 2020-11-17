@@ -58,6 +58,8 @@ data class SuoritusarviointiDTO(
 
     var tyoskentelyjaksoId: Long? = null,
 
+    var arvioinninSaaja: KayttajaDTO? = null,
+
     var arvioinninAntaja: KayttajaDTO? = null,
 
     var arvioitavaOsaalue: EpaOsaamisalueDTO? = null,
