@@ -56,6 +56,52 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
             .body(result)
     }
 
+    @PutMapping("/suoritemerkinnat")
+    fun updateSuoritemerkinta(
+        @Valid @RequestBody suoritemerkintaDTO: SuoritemerkintaDTO,
+        principal: Principal?
+    ): ResponseEntity<SuoritemerkintaDTO> {
+        if (suoritemerkintaDTO.id == null) {
+            throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
+        }
+        suoritemerkintaDTO.lukittu = false
+        // Todo: vain omiin työskentelyjaksoihin voi lisätä suoritemerkintä
+        val user = userService.getAuthenticatedUser(principal)
+        val result = suoritemerkintaService.save(suoritemerkintaDTO)
+        return ResponseEntity.ok()
+            .headers(
+                HeaderUtil.createEntityUpdateAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    suoritemerkintaDTO.id.toString()
+                )
+            )
+            .body(result)
+    }
+
+    @GetMapping("/suoritemerkinnat/{id}")
+    fun getSuoritemerkinta(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<SuoritemerkintaDTO> {
+        // Todo: vain omiin työskentelyjaksoihin voi lisätä suoritemerkintä
+        val user = userService.getAuthenticatedUser(principal)
+        val suoritemerkintaDTO = suoritemerkintaService.findOne(id)
+        return ResponseUtil.wrapOrNotFound(suoritemerkintaDTO)
+    }
+
+    @DeleteMapping("/suoritemerkinnat/{id}")
+    fun deleteSuoritemerkinta(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        // Todo: vain omiin työskentelyjaksoihin voi lisätä suoritemerkintä
+        val user = userService.getAuthenticatedUser(principal)
+        suoritemerkintaService.delete(id)
+        return ResponseEntity.noContent()
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build()
+    }
 
     @GetMapping("/suoritemerkinta-lomake")
     fun getSuoritemerkintaLomake(
