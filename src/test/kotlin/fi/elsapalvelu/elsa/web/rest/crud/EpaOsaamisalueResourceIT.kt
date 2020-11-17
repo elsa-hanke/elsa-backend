@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
@@ -6,7 +6,8 @@ import fi.elsapalvelu.elsa.domain.EpaOsaamisalue
 import fi.elsapalvelu.elsa.repository.EpaOsaamisalueRepository
 import fi.elsapalvelu.elsa.service.EpaOsaamisalueService
 import fi.elsapalvelu.elsa.service.mapper.EpaOsaamisalueMapper
-import fi.elsapalvelu.elsa.web.rest.crud.EpaOsaamisalueResource
+import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
+import fi.elsapalvelu.elsa.web.rest.createFormattingConversionService
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import java.time.LocalDate
 import java.time.ZoneId

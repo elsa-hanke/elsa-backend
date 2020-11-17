@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
@@ -6,7 +6,10 @@ import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
-import fi.elsapalvelu.elsa.web.rest.crud.KayttajaResource
+import fi.elsapalvelu.elsa.web.rest.UserResourceIT
+import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
+import fi.elsapalvelu.elsa.web.rest.createByteArray
+import fi.elsapalvelu.elsa.web.rest.createFormattingConversionService
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem

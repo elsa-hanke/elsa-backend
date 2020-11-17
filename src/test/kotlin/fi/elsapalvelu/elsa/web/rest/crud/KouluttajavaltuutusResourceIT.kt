@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.web.rest
+package fi.elsapalvelu.elsa.web.rest.crud
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
@@ -8,8 +8,10 @@ import fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.mapper.KouluttajavaltuutusMapper
-import fi.elsapalvelu.elsa.web.rest.crud.KouluttajavaltuutusResource
+import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
+import fi.elsapalvelu.elsa.web.rest.createFormattingConversionService
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
+import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId

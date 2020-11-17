@@ -53,6 +53,10 @@ data class Tyoskentelyjakso(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var suoritusarvioinnit: MutableSet<Suoritusarviointi> = mutableSetOf(),
 
+    @OneToMany(mappedBy = "tyoskentelyjakso")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    var suoritemerkinnat: MutableSet<Suoritemerkinta> = mutableSetOf(),
+
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
@@ -69,6 +73,18 @@ data class Tyoskentelyjakso(
     fun removeSuoritusarviointi(suoritusarviointi: Suoritusarviointi): Tyoskentelyjakso {
         this.suoritusarvioinnit.remove(suoritusarviointi)
         suoritusarviointi.tyoskentelyjakso = null
+        return this
+    }
+
+    fun addSuoritemerkinta(suoritemerkinta: Suoritemerkinta): Tyoskentelyjakso {
+        this.suoritemerkinnat.add(suoritemerkinta)
+        suoritemerkinta.tyoskentelyjakso = this
+        return this
+    }
+
+    fun removeSuoritemerkinta(suoritemerkinta: Suoritemerkinta): Tyoskentelyjakso {
+        this.suoritemerkinnat.remove(suoritemerkinta)
+        suoritemerkinta.tyoskentelyjakso = null
         return this
     }
 
