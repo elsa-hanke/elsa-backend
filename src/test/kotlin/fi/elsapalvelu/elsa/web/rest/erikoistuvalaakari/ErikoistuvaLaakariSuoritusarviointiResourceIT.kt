@@ -9,6 +9,6 @@ import org.springframework.security.test.context.support.WithMockUser
 @SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
 @AutoConfigureMockMvc
 @WithMockUser
-class ErikoistuvaLaakariToiminnotResourceIT {
+class ErikoistuvaLaakariSuoritusarviointiResourceIT {
     // TODO: toteuta oleelliset testit
 }
