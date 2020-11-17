@@ -24,7 +24,8 @@ interface SuoritusarviointiMapper :
     @Mappings(
         Mapping(source = "arvioinninAntaja.id", target = "arvioinninAntajaId"),
         Mapping(source = "arvioitavaOsaalue.id", target = "arvioitavaOsaalueId"),
-        Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId")
+        Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId"),
+        Mapping(source = "tyoskentelyjakso.erikoistuvaLaakari.kayttaja", target = "arvioinninSaaja")
     )
     override fun toDto(entity: Suoritusarviointi): SuoritusarviointiDTO
 
