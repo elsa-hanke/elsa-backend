@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.service.OppimistavoitteenKategoriaService
 import fi.elsapalvelu.elsa.service.SuoritemerkintaService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.dto.OppimistavoitteetTableDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -103,12 +104,28 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build()
     }
 
+    @GetMapping("/oppimistavoitteet-taulukko")
+    fun getOppimistavoitteetTable(
+        principal: Principal?
+    ): ResponseEntity<OppimistavoitteetTableDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val id = user.id!!
+
+        val table = OppimistavoitteetTableDTO()
+        table.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService.findAll().toMutableSet()
+        table.suoritemerkinnat = suoritemerkintaService
+            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id).toMutableSet();
+
+        return ResponseEntity.ok(table)
+    }
+
     @GetMapping("/suoritemerkinta-lomake")
-    fun getSuoritemerkintaLomake(
+    fun getSuoritemerkintaForm(
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val id = user.id!!
+
         val form = SuoritemerkintaFormDTO()
         form.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
