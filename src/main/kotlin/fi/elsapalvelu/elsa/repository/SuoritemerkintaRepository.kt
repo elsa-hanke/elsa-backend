@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface SuoritemerkintaRepository : JpaRepository<Suoritemerkinta, Long>
+interface SuoritemerkintaRepository : JpaRepository<Suoritemerkinta, Long> {
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id: String): List<Suoritemerkinta>
+}

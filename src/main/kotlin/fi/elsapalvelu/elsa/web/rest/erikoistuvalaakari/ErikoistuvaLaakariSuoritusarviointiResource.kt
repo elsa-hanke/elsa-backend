@@ -70,7 +70,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     }
 
     @GetMapping("/arviointipyynto-lomake")
-    fun getArviointipyyntoLomake(
+    fun getArviointipyyntoForm(
         principal: Principal?
     ): ResponseEntity<ArviointipyyntoFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
