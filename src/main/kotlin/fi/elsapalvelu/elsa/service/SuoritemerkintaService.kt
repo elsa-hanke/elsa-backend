@@ -11,6 +11,8 @@ interface SuoritemerkintaService {
 
     fun findAll(pageable: Pageable): Page<SuoritemerkintaDTO>
 
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id: String): MutableList<SuoritemerkintaDTO>
+
     fun findOne(id: Long): Optional<SuoritemerkintaDTO>
 
     fun delete(id: Long)
