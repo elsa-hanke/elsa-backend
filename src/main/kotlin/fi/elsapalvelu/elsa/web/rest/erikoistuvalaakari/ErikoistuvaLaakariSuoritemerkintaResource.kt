@@ -44,9 +44,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
             )
         }
         suoritemerkintaDTO.lukittu = false
-        // Todo: vain omiin työskentelyjaksoihin voi lisätä suoritemerkintä
         val user = userService.getAuthenticatedUser(principal)
-        val result = suoritemerkintaService.save(suoritemerkintaDTO)
+        val result = suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)
         return ResponseEntity.created(URI("/api/suoritemerkinnat/${result.id}"))
             .headers(HeaderUtil.createEntityCreationAlert(
                 applicationName,
@@ -66,9 +65,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
         }
         suoritemerkintaDTO.lukittu = false
-        // Todo: vain omiin työskentelyjaksoihin voi lisätä suoritemerkintä
         val user = userService.getAuthenticatedUser(principal)
-        val result = suoritemerkintaService.save(suoritemerkintaDTO)
+        val result = suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -86,9 +84,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaDTO> {
-        // Todo: vain omiin työskentelyjaksoihin voi lisätä suoritemerkintä
         val user = userService.getAuthenticatedUser(principal)
-        val suoritemerkintaDTO = suoritemerkintaService.findOne(id)
+        val suoritemerkintaDTO = suoritemerkintaService.findOne(id, user.id!!)
         return ResponseUtil.wrapOrNotFound(suoritemerkintaDTO)
     }
 
@@ -97,9 +94,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<Void> {
-        // Todo: vain omiin työskentelyjaksoihin voi lisätä suoritemerkintä
         val user = userService.getAuthenticatedUser(principal)
-        suoritemerkintaService.delete(id)
+        suoritemerkintaService.delete(id, user.id!!)
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build()
     }
@@ -109,12 +105,11 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         principal: Principal?
     ): ResponseEntity<OppimistavoitteetTableDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val id = user.id!!
 
         val table = OppimistavoitteetTableDTO()
         table.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService.findAll().toMutableSet()
         table.suoritemerkinnat = suoritemerkintaService
-            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id).toMutableSet();
+            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
 
         return ResponseEntity.ok(table)
     }
@@ -124,11 +119,10 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val id = user.id!!
 
         val form = SuoritemerkintaFormDTO()
         form.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
         form.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService.findAll().toMutableSet()
 
         return ResponseEntity.ok(form)

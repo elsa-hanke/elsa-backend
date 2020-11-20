@@ -42,7 +42,7 @@ data class Suoritemerkinta(
 
     @get: NotNull
     @Column(name = "lukittu", nullable = false)
-    var lukittu: Boolean? = null,
+    var lukittu: Boolean = false,
 
     @NotNull
     @ManyToOne(optional = false)
