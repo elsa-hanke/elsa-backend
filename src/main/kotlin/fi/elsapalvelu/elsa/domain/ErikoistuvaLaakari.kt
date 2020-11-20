@@ -40,7 +40,7 @@ data class ErikoistuvaLaakari(
 
     @OneToMany(mappedBy = "erikoistuvaLaakari")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf(),
+    var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf()
 
 ) : Serializable {
 

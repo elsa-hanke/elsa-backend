@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 
 @Repository
-interface SoteOrganisaatioRepository : JpaRepository<SoteOrganisaatio, String>,
+interface SoteOrganisaatioRepository :
+    JpaRepository<SoteOrganisaatio, String>,
     JpaSpecificationExecutor<SoteOrganisaatio>

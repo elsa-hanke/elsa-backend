@@ -45,8 +45,9 @@ class CacheConfiguration(
     }
 
     @Bean
-    fun hibernatePropertiesCustomizer(cacheManager: javax.cache.CacheManager) = HibernatePropertiesCustomizer {
-        hibernateProperties ->
+    fun hibernatePropertiesCustomizer(
+        cacheManager: javax.cache.CacheManager
+    ) = HibernatePropertiesCustomizer { hibernateProperties ->
         hibernateProperties[ConfigSettings.CACHE_MANAGER] = cacheManager
     }
 
@@ -64,14 +65,18 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Oppimistavoite::class.java.name)
-            createCache(cm,
-                fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria::class.java.name + ".oppimistavoitteet")
+            createCache(
+                cm,
+                fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria::class.java.name + ".oppimistavoitteet"
+            )
             createCache(cm, fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.OsaalueenArviointi::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.SoteOrganisaatio::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Suoritemerkinta::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.SuoritusarvioinninKommentti::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Suoritusarviointi::class.java.name + ".osaalueenArvioinnit")
             createCache(cm, fi.elsapalvelu.elsa.domain.Suoritusarviointi::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelyjakso::class.java.name + ".suoritemerkinnat")
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelyjakso::class.java.name + ".suoritusarvioinnit")
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelyjakso::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelypaikka::class.java.name)

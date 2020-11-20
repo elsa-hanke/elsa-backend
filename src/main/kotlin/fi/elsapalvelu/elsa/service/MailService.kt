@@ -31,8 +31,8 @@ class MailService(
     @Async
     fun sendEmail(to: String, subject: String, content: String, isMultipart: Boolean, isHtml: Boolean) {
         log.debug(
-            "Send email[multipart '$isMultipart' and html '$isHtml']"
-                + " to '$to' with subject '$subject' and content=$content"
+            "Send email[multipart '$isMultipart' and html '$isHtml']" +
+                " to '$to' with subject '$subject' and content=$content"
         )
 
         val mimeMessage = javaMailSender.createMimeMessage()

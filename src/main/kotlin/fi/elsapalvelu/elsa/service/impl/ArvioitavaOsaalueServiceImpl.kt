@@ -4,9 +4,9 @@ import fi.elsapalvelu.elsa.repository.ArvioitavaOsaalueRepository
 import fi.elsapalvelu.elsa.service.ArvioitavaOsaalueService
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaOsaalueDTO
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaOsaalueMapper
-import java.util.Optional
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.Optional
 
 @Service
 @Transactional

@@ -94,27 +94,33 @@ class SuoritusarviointiQueryService(
             }
             if (criteria.tyoskentelyjaksoId != null) {
                 specification = specification
-                    .and(buildReferringEntitySpecification(
-                        criteria.tyoskentelyjaksoId,
-                        Suoritusarviointi_.tyoskentelyjakso,
-                        Tyoskentelyjakso_.id
-                    ))
+                    .and(
+                        buildReferringEntitySpecification(
+                            criteria.tyoskentelyjaksoId,
+                            Suoritusarviointi_.tyoskentelyjakso,
+                            Tyoskentelyjakso_.id
+                        )
+                    )
             }
             if (criteria.arvioitavaOsaalueId != null) {
                 specification = specification
-                    .and(buildReferringEntitySpecification(
-                        criteria.arvioitavaOsaalueId,
-                        Suoritusarviointi_.arvioitavaOsaalue,
-                        EpaOsaamisalue_.id
-                    ))
+                    .and(
+                        buildReferringEntitySpecification(
+                            criteria.arvioitavaOsaalueId,
+                            Suoritusarviointi_.arvioitavaOsaalue,
+                            EpaOsaamisalue_.id
+                        )
+                    )
             }
             if (criteria.arvioinninAntajaId != null) {
                 specification = specification
-                    .and(buildReferringEntitySpecification(
-                        criteria.arvioinninAntajaId,
-                        Suoritusarviointi_.arvioinninAntaja,
-                        Kayttaja_.id
-                    ))
+                    .and(
+                        buildReferringEntitySpecification(
+                            criteria.arvioinninAntajaId,
+                            Suoritusarviointi_.arvioinninAntaja,
+                            Kayttaja_.id
+                        )
+                    )
             }
         }
         return specification

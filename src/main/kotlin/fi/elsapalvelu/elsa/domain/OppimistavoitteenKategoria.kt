@@ -30,7 +30,7 @@ class OppimistavoitteenKategoria(
 
     @OneToMany(mappedBy = "kategoria")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var oppimistavoitteet: MutableSet<Oppimistavoite> = mutableSetOf(),
+    var oppimistavoitteet: MutableSet<Oppimistavoite> = mutableSetOf()
 
 ) : Serializable {
 

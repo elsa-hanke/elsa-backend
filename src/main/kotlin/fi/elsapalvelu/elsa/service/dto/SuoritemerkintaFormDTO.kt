@@ -8,6 +8,4 @@ class SuoritemerkintaFormDTO(
 
     var oppimistavoitteenKategoriat: MutableSet<OppimistavoitteenKategoriaDTO> = mutableSetOf()
 
-) : Serializable {
-    override fun hashCode() = 31
-}
+) : Serializable

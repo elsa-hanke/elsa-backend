@@ -41,6 +41,7 @@ class UserService(
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
     /**
      * Update basic information (first name, last name, email, language) for the current user.
      *
@@ -118,10 +119,12 @@ class UserService(
     private fun handleNewErikoistuvaLaakari(user: User) {
         if (user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI))) {
             if (!erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!).isPresent) {
-                val kayttaja = kayttajaRepository.save(Kayttaja(
-                    user = user,
-                    nimi = user.firstName + " " + user.lastName
-                ))
+                val kayttaja = kayttajaRepository.save(
+                    Kayttaja(
+                        user = user,
+                        nimi = user.firstName + " " + user.lastName
+                    )
+                )
                 erikoistuvaLaakariRepository.save(
                     ErikoistuvaLaakari(kayttaja = kayttaja)
                 )

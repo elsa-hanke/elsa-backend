@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.domain
 
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
 import javax.validation.constraints.*
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
 
 @Entity
 @Table(name = "epa_osaamisalue")

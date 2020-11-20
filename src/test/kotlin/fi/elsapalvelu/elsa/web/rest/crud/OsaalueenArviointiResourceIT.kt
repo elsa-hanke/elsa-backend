@@ -9,8 +9,6 @@ import fi.elsapalvelu.elsa.service.mapper.OsaalueenArviointiMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.createFormattingConversionService
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
-import javax.persistence.EntityManager
-import kotlin.test.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.jupiter.api.BeforeEach
@@ -34,6 +32,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.Validator
+import javax.persistence.EntityManager
+import kotlin.test.assertNotNull
 
 /**
  * Integration tests for the [OsaalueenArviointiResource] REST controller.
@@ -77,12 +77,12 @@ class OsaalueenArviointiResourceIT {
     fun setup() {
         MockitoAnnotations.initMocks(this)
         val osaalueenArviointiResource = OsaalueenArviointiResource(osaalueenArviointiService)
-         this.restOsaalueenArviointiMockMvc = MockMvcBuilders.standaloneSetup(osaalueenArviointiResource)
-             .setCustomArgumentResolvers(pageableArgumentResolver)
-             .setControllerAdvice(exceptionTranslator)
-             .setConversionService(createFormattingConversionService())
-             .setMessageConverters(jacksonMessageConverter)
-             .setValidator(validator).build()
+        this.restOsaalueenArviointiMockMvc = MockMvcBuilders.standaloneSetup(osaalueenArviointiResource)
+            .setCustomArgumentResolvers(pageableArgumentResolver)
+            .setControllerAdvice(exceptionTranslator)
+            .setConversionService(createFormattingConversionService())
+            .setMessageConverters(jacksonMessageConverter)
+            .setValidator(validator).build()
     }
 
     @BeforeEach
@@ -144,7 +144,8 @@ class OsaalueenArviointiResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(osaalueenArviointi.id?.toInt())))
-            .andExpect(jsonPath("$.[*].arvio").value(hasItem(DEFAULT_ARVIO))) }
+            .andExpect(jsonPath("$.[*].arvio").value(hasItem(DEFAULT_ARVIO)))
+    }
 
     @Test
     @Transactional
@@ -161,7 +162,8 @@ class OsaalueenArviointiResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(osaalueenArviointi.id as Any))
-            .andExpect(jsonPath("$.arvio").value(DEFAULT_ARVIO)) }
+            .andExpect(jsonPath("$.arvio").value(DEFAULT_ARVIO))
+    }
 
     @Test
     @Transactional
@@ -171,6 +173,7 @@ class OsaalueenArviointiResourceIT {
         restOsaalueenArviointiMockMvc.perform(get("/api/osaalueen-arviointis/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
+
     @Test
     @Transactional
     fun updateOsaalueenArviointi() {

@@ -16,7 +16,7 @@ data class OppimistavoitteenKategoriaDTO(
 
     var voimassaolonPaattymispaiva: LocalDate? = null,
 
-    var oppimistavoitteet: MutableSet<OppimistavoiteDTO>? = null,
+    var oppimistavoitteet: MutableSet<OppimistavoiteDTO>? = null
 
 ) : Serializable {
 
@@ -28,4 +28,3 @@ data class OppimistavoitteenKategoriaDTO(
 
     override fun hashCode() = 31
 }
-

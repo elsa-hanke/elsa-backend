@@ -8,7 +8,8 @@ import org.mapstruct.ReportingPolicy
 @Mapper(
     componentModel = "spring",
     uses = [],
-    unmappedTargetPolicy = ReportingPolicy.IGNORE)
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 interface TyoskentelypaikkaMapper :
     EntityMapper<TyoskentelypaikkaDTO, Tyoskentelypaikka> {
 

@@ -171,7 +171,8 @@ class KayttajaResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(kayttaja.id?.toInt())))
             .andExpect(jsonPath("$.[*].nimi").value(hasItem(DEFAULT_NIMI)))
             .andExpect(jsonPath("$.[*].profiilikuvaContentType").value(hasItem(DEFAULT_PROFIILIKUVA_CONTENT_TYPE)))
-            .andExpect(jsonPath("$.[*].profiilikuva").value(hasItem(Base64Utils.encodeToString(DEFAULT_PROFIILIKUVA)))) }
+            .andExpect(jsonPath("$.[*].profiilikuva").value(hasItem(Base64Utils.encodeToString(DEFAULT_PROFIILIKUVA))))
+    }
 
     @Test
     @Transactional
@@ -190,7 +191,8 @@ class KayttajaResourceIT {
             .andExpect(jsonPath("$.id").value(kayttaja.id as Any))
             .andExpect(jsonPath("$.nimi").value(DEFAULT_NIMI))
             .andExpect(jsonPath("$.profiilikuvaContentType").value(DEFAULT_PROFIILIKUVA_CONTENT_TYPE))
-            .andExpect(jsonPath("$.profiilikuva").value(Base64Utils.encodeToString(DEFAULT_PROFIILIKUVA))) }
+            .andExpect(jsonPath("$.profiilikuva").value(Base64Utils.encodeToString(DEFAULT_PROFIILIKUVA)))
+    }
 
     @Test
     @Transactional
@@ -200,6 +202,7 @@ class KayttajaResourceIT {
         restKayttajaMockMvc.perform(get("/api/kayttajat/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
+
     @Test
     @Transactional
     fun updateKayttaja() {

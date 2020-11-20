@@ -192,7 +192,8 @@ class ErikoistuvaLaakariResourceIT {
             .andExpect(jsonPath("$.[*].puhelinnumero").value(hasItem(DEFAULT_PUHELINNUMERO)))
             .andExpect(jsonPath("$.[*].sahkoposti").value(hasItem(DEFAULT_SAHKOPOSTI)))
             .andExpect(jsonPath("$.[*].opiskelijatunnus").value(hasItem(DEFAULT_OPISKELIJATUNNUS)))
-            .andExpect(jsonPath("$.[*].opintojenAloitusvuosi").value(hasItem(DEFAULT_OPINTOJEN_ALOITUSVUOSI))) }
+            .andExpect(jsonPath("$.[*].opintojenAloitusvuosi").value(hasItem(DEFAULT_OPINTOJEN_ALOITUSVUOSI)))
+    }
 
     @Test
     @Transactional
@@ -212,7 +213,8 @@ class ErikoistuvaLaakariResourceIT {
             .andExpect(jsonPath("$.puhelinnumero").value(DEFAULT_PUHELINNUMERO))
             .andExpect(jsonPath("$.sahkoposti").value(DEFAULT_SAHKOPOSTI))
             .andExpect(jsonPath("$.opiskelijatunnus").value(DEFAULT_OPISKELIJATUNNUS))
-            .andExpect(jsonPath("$.opintojenAloitusvuosi").value(DEFAULT_OPINTOJEN_ALOITUSVUOSI)) }
+            .andExpect(jsonPath("$.opintojenAloitusvuosi").value(DEFAULT_OPINTOJEN_ALOITUSVUOSI))
+    }
 
     @Test
     @Transactional
@@ -222,6 +224,7 @@ class ErikoistuvaLaakariResourceIT {
         restErikoistuvaLaakariMockMvc.perform(get("/api/erikoistuvat-laakarit/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
+
     @Test
     @Transactional
     fun updateErikoistuvaLaakari() {

@@ -93,31 +93,36 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         if (suoritusarviointiDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi arviointipyyntö ei saa sisältää ID:tä.",
-                ENTITY_NAME, "idexists"
+                ENTITY_NAME,
+                "idexists"
             )
         }
         if (suoritusarviointiDTO.vaativuustaso != null) {
             throw BadRequestAlertException(
                 "Uusi arviointipyyntö ei saa sisältää vaativuustasoa. Kouluttaja määrittelee sen.",
-                ENTITY_NAME, "dataillegal"
+                ENTITY_NAME,
+                "dataillegal"
             )
         }
         if (suoritusarviointiDTO.sanallinenArviointi != null) {
             throw BadRequestAlertException(
                 "Uusi arviointipyyntö ei saa sisältää sanallista arviointi. Kouluttaja määrittelee sen.",
-                ENTITY_NAME, "dataillegal"
+                ENTITY_NAME,
+                "dataillegal"
             )
         }
         if (suoritusarviointiDTO.arviointiAika != null) {
             throw BadRequestAlertException(
                 "Uusi arviointipyyntö ei saa sisältää arvioinnin aikaa. Kouluttaja määrittelee sen.",
-                ENTITY_NAME, "dataillegal"
+                ENTITY_NAME,
+                "dataillegal"
             )
         }
         if (suoritusarviointiDTO.tyoskentelyjaksoId == null) {
             throw BadRequestAlertException(
                 "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
-                ENTITY_NAME, "dataillegal"
+                ENTITY_NAME,
+                "dataillegal"
             )
         } else {
             val tyoskentelyjakso = tyoskentelyjaksoService.findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!)
@@ -125,22 +130,27 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
             if (!tyoskentelyjakso.isPresent || !erikoistuvaLaakari.isPresent) {
                 throw BadRequestAlertException(
                     "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
-                    ENTITY_NAME, "dataillegal"
+                    ENTITY_NAME,
+                    "dataillegal"
                 )
             }
             if (tyoskentelyjakso.get().erikoistuvaLaakariId!! != erikoistuvaLaakari.get().id) {
                 throw BadRequestAlertException(
                     "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
-                    ENTITY_NAME, "dataillegal"
+                    ENTITY_NAME,
+                    "dataillegal"
                 )
             }
             if (tyoskentelyjakso.get().alkamispaiva!! > suoritusarviointiDTO.tapahtumanAjankohta!! ||
-                (tyoskentelyjakso.get().paattymispaiva != null &&
-                    suoritusarviointiDTO.tapahtumanAjankohta!! > tyoskentelyjakso.get().paattymispaiva!!)
+                (
+                    tyoskentelyjakso.get().paattymispaiva != null &&
+                        suoritusarviointiDTO.tapahtumanAjankohta!! > tyoskentelyjakso.get().paattymispaiva!!
+                    )
             ) {
                 throw BadRequestAlertException(
                     "Uuden arviointipyynnön pitää kohdistua työskentelyjakson väliin.",
-                    ENTITY_NAME, "dataillegal"
+                    ENTITY_NAME,
+                    "dataillegal"
                 )
             }
         }
@@ -149,11 +159,13 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
 
         val result = suoritusarviointiService.save(suoritusarviointiDTO)
         return ResponseEntity.created(URI("/api/suoritusarvioinnit/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                result.id.toString())
+            .headers(
+                HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    result.id.toString()
+                )
             )
             .body(result)
     }
@@ -171,7 +183,9 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
-                    applicationName, true, ENTITY_NAME,
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
                     suoritusarviointiDTO.id.toString()
                 )
             )
@@ -197,11 +211,13 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         val user = userService.getAuthenticatedUser(principal)
         suoritusarviointiService.delete(id, user.id!!)
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                id.toString()
-            )).build()
+            .headers(
+                HeaderUtil.createEntityDeletionAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    id.toString()
+                )
+            ).build()
     }
 }

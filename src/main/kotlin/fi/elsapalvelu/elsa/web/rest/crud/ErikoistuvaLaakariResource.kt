@@ -38,11 +38,13 @@ class ErikoistuvaLaakariResource(
         }
         val result = erikoistuvaLaakariService.save(erikoistuvaLaakariDTO)
         return ResponseEntity.created(URI("/api/erikoistuvat-laakarit/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                result.id.toString())
+            .headers(
+                HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    result.id.toString()
+                )
             )
             .body(result)
     }
@@ -92,11 +94,13 @@ class ErikoistuvaLaakariResource(
     ): ResponseEntity<Void> {
         erikoistuvaLaakariService.delete(id)
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                id.toString())
+            .headers(
+                HeaderUtil.createEntityDeletionAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    id.toString()
+                )
             ).build()
     }
 }

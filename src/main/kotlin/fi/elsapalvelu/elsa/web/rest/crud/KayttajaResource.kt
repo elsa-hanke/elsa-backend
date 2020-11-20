@@ -38,11 +38,13 @@ class KayttajaResource(
         }
         val result = kayttajaService.save(kayttajaDTO)
         return ResponseEntity.created(URI("/api/kayttajat/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                result.id.toString())
+            .headers(
+                HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    result.id.toString()
+                )
             )
             .body(result)
     }
@@ -90,11 +92,13 @@ class KayttajaResource(
     ): ResponseEntity<Void> {
         kayttajaService.delete(id)
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                id.toString())
+            .headers(
+                HeaderUtil.createEntityDeletionAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    id.toString()
+                )
             ).build()
     }
 }

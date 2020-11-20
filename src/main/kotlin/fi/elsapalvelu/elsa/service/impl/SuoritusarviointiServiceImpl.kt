@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
-import java.util.Optional
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -13,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.ObjectUtils
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.Optional
 
 @Service
 @Transactional

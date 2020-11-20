@@ -25,7 +25,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val oppimistavoitteenKategoriaService: OppimistavoitteenKategoriaService,
-    private val suoritemerkintaService: SuoritemerkintaService,
+    private val suoritemerkintaService: SuoritemerkintaService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -47,12 +47,14 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         val user = userService.getAuthenticatedUser(principal)
         val result = suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)
         return ResponseEntity.created(URI("/api/suoritemerkinnat/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                result.id.toString()
-            ))
+            .headers(
+                HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    result.id.toString()
+                )
+            )
             .body(result)
     }
 

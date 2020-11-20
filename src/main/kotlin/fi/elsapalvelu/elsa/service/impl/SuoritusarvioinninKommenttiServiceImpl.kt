@@ -49,12 +49,15 @@ class SuoritusarvioinninKommenttiServiceImpl(
         val suoritusarviointi = suoritusarviointiRepository
             .findOneById(suoritusarvioinninKommentti.suoritusarviointi?.id!!).get()
         if (kayttaja == suoritusarviointi.arvioinninAntaja ||
-            kayttaja == suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja) {
+            kayttaja == suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja
+        ) {
             suoritusarvioinninKommentti = suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
             // TODO: lähetä sähköposti toiselle osapuolelle
             return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
         } else {
-            throw IllegalArgumentException("Kommentin lisääjän täytyy olla joko arviointipyynnön tehnyt tai arvioinnin antaja.")
+            throw IllegalArgumentException(
+                "Kommentin lisääjän täytyy olla joko arviointipyynnön tehnyt tai arvioinnin antaja."
+            )
         }
     }
 

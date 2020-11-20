@@ -7,12 +7,12 @@ import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
-import java.net.URI
-import javax.validation.Valid
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import java.net.URI
+import javax.validation.Valid
 
 private const val ENTITY_NAME = "suoritusarviointi"
 
@@ -33,16 +33,19 @@ class SuoritusarviointiResource(
         if (suoritusarviointiDTO.id != null) {
             throw BadRequestAlertException(
                 "A new suoritusarviointi cannot already have an ID",
-                ENTITY_NAME, "idexists"
+                ENTITY_NAME,
+                "idexists"
             )
         }
         val result = suoritusarviointiService.save(suoritusarviointiDTO)
         return ResponseEntity.created(URI("/api/suoritusarvioinnit/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                result.id.toString())
+            .headers(
+                HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    result.id.toString()
+                )
             )
             .body(result)
     }
@@ -59,8 +62,10 @@ class SuoritusarviointiResource(
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
-                    applicationName, true, ENTITY_NAME,
-                     suoritusarviointiDTO.id.toString()
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    suoritusarviointiDTO.id.toString()
                 )
             )
             .body(result)
@@ -96,12 +101,14 @@ class SuoritusarviointiResource(
         @PathVariable id: Long
     ): ResponseEntity<Void> {
         suoritusarviointiService.delete(id)
-            return ResponseEntity.noContent()
-                .headers(HeaderUtil.createEntityDeletionAlert(
+        return ResponseEntity.noContent()
+            .headers(
+                HeaderUtil.createEntityDeletionAlert(
                     applicationName,
                     true,
                     ENTITY_NAME,
                     id.toString()
-                )).build()
+                )
+            ).build()
     }
 }

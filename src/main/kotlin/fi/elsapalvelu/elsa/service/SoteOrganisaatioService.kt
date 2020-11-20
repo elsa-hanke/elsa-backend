@@ -1,10 +1,11 @@
 package fi.elsapalvelu.elsa.service
+
 import fi.elsapalvelu.elsa.repository.SoteOrganisaatioRepository
 import fi.elsapalvelu.elsa.service.dto.SoteOrganisaatioDTO
 import fi.elsapalvelu.elsa.service.mapper.SoteOrganisaatioMapper
-import java.util.Optional
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.Optional
 
 @Service
 @Transactional

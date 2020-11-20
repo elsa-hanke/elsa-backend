@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import javax.persistence.*
 import javax.validation.constraints.*
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
 
 @Entity
 @Table(name = "osaalueen_arviointi")

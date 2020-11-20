@@ -38,11 +38,13 @@ class TyoskentelyjaksoResource(
         }
         val result = tyoskentelyjaksoService.save(tyoskentelyjaksoDTO)
         return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                result.id.toString())
+            .headers(
+                HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    result.id.toString()
+                )
             )
             .body(result)
     }

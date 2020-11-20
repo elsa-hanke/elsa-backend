@@ -6,12 +6,12 @@ import fi.elsapalvelu.elsa.service.dto.OsaalueenArviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
-import java.net.URI
-import javax.validation.Valid
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import java.net.URI
+import javax.validation.Valid
 
 private const val ENTITY_NAME = "osaalueenArviointi"
 
@@ -32,16 +32,19 @@ class OsaalueenArviointiResource(
         if (osaalueenArviointiDTO.id != null) {
             throw BadRequestAlertException(
                 "A new osaalueenArviointi cannot already have an ID",
-                ENTITY_NAME, "idexists"
+                ENTITY_NAME,
+                "idexists"
             )
         }
         val result = osaalueenArviointiService.save(osaalueenArviointiDTO)
         return ResponseEntity.created(URI("/api/osaalueen-arviointis/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                result.id.toString())
+            .headers(
+                HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    result.id.toString()
+                )
             )
             .body(result)
     }
@@ -58,8 +61,10 @@ class OsaalueenArviointiResource(
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
-                    applicationName, true, ENTITY_NAME,
-                     osaalueenArviointiDTO.id.toString()
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    osaalueenArviointiDTO.id.toString()
                 )
             )
             .body(result)
@@ -87,12 +92,14 @@ class OsaalueenArviointiResource(
         @PathVariable id: Long
     ): ResponseEntity<Void> {
         osaalueenArviointiService.delete(id)
-            return ResponseEntity.noContent()
-                .headers(HeaderUtil.createEntityDeletionAlert(
+        return ResponseEntity.noContent()
+            .headers(
+                HeaderUtil.createEntityDeletionAlert(
                     applicationName,
                     true,
                     ENTITY_NAME,
-                    id.toString())
-                ).build()
+                    id.toString()
+                )
+            ).build()
     }
 }
