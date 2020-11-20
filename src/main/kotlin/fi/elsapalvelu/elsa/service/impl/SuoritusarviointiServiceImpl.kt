@@ -90,6 +90,8 @@ class SuoritusarviointiServiceImpl(
             }
         }
 
+        // TODO: lähetä sähköposti arvioinnin tekijälle
+
         suoritusarviointi = suoritusarviointiRepository.save(suoritusarviointi)
         return suoritusarviointiMapper.toDto(suoritusarviointi)
     }
@@ -146,7 +148,6 @@ class SuoritusarviointiServiceImpl(
     }
 
     override fun delete(id: Long, userId: String) {
-
         val suoritusarviointiOpt = suoritusarviointiRepository.findOneById(id)
         if (suoritusarviointiOpt.isPresent) {
             val suoritusarviointi = suoritusarviointiOpt.get()
