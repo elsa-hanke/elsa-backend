@@ -9,10 +9,12 @@ import java.util.*
 @Repository
 interface ErikoistuvaLaakariRepository : JpaRepository<ErikoistuvaLaakari, Long> {
 
-    @Query("select el" +
-        " from ErikoistuvaLaakari el" +
-        " inner join fetch el.kayttaja k" +
-        " inner join fetch k.user u" +
-        " where u.id = ?1")
+    @Query(
+        "select el" +
+            " from ErikoistuvaLaakari el" +
+            " inner join fetch el.kayttaja k" +
+            " inner join fetch k.user u" +
+            " where u.id = ?1"
+    )
     fun findOneByKayttajaUserId(id: String): Optional<ErikoistuvaLaakari>
 }

@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.domain.Tyoskentelypaikka
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelypaikkaMapper
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
-import javax.persistence.EntityManager
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -16,7 +15,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.validation.Validator
-
+import javax.persistence.EntityManager
 
 @SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
 @AutoConfigureMockMvc

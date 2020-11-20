@@ -60,7 +60,7 @@ data class Tyoskentelyjakso(
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
-    var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
+    var erikoistuvaLaakari: ErikoistuvaLaakari? = null
 
 ) : Serializable {
 

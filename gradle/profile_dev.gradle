@@ -24,7 +24,7 @@ springBoot {
 
 bootRun {
     args = []
-    jvmArgs = ["--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED"]
+    jvmArgs = ["--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED", "--add-opens", "java.base/java.lang=ALL-UNNAMED"]
 }
 
 

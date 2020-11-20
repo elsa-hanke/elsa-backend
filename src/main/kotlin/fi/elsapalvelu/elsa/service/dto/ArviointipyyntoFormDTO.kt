@@ -10,6 +10,4 @@ data class ArviointipyyntoFormDTO(
 
     var kouluttajat: MutableSet<KayttajaDTO> = mutableSetOf()
 
-) : Serializable {
-    override fun hashCode() = 31
-}
+) : Serializable

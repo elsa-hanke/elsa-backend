@@ -25,7 +25,7 @@ interface KayttajaMapper :
     @Mappings(
         Mapping(source = "userId", target = "user"),
         Mapping(target = "saadutValtuutukset", ignore = true),
-        Mapping(target = "removeValtuutus", ignore = true),
+        Mapping(target = "removeValtuutus", ignore = true)
     )
     override fun toEntity(dto: KayttajaDTO): Kayttaja
 

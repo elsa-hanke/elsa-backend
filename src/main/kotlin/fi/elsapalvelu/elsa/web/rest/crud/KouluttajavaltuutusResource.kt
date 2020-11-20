@@ -6,12 +6,12 @@ import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
-import java.net.URI
-import javax.validation.Valid
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import java.net.URI
+import javax.validation.Valid
 
 private const val ENTITY_NAME = "kouluttajavaltuutus"
 
@@ -32,16 +32,19 @@ class KouluttajavaltuutusResource(
         if (kouluttajavaltuutusDTO.id != null) {
             throw BadRequestAlertException(
                 "A new kouluttajavaltuutus cannot already have an ID",
-                ENTITY_NAME, "idexists"
+                ENTITY_NAME,
+                "idexists"
             )
         }
         val result = kouluttajavaltuutusService.save(kouluttajavaltuutusDTO)
         return ResponseEntity.created(URI("/api/kouluttajavaltuutuses/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                result.id.toString())
+            .headers(
+                HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    result.id.toString()
+                )
             )
             .body(result)
     }
@@ -58,7 +61,9 @@ class KouluttajavaltuutusResource(
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
-                    applicationName, true, ENTITY_NAME,
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
                     kouluttajavaltuutusDTO.id.toString()
                 )
             )
@@ -87,11 +92,13 @@ class KouluttajavaltuutusResource(
     ): ResponseEntity<Void> {
         kouluttajavaltuutusService.delete(id)
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                id.toString())
+            .headers(
+                HeaderUtil.createEntityDeletionAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    id.toString()
+                )
             ).build()
     }
 }
