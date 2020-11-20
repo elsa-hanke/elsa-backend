@@ -39,8 +39,10 @@ class ExceptionTranslatorIT {
     @Test
     @Throws(Exception::class)
     fun testMethodArgumentNotValid() {
-        mockMvc.perform(post("/api/exception-translator-test/method-argument")
-            .content("{}").contentType(MediaType.APPLICATION_JSON).with(csrf()))
+        mockMvc.perform(
+            post("/api/exception-translator-test/method-argument")
+                .content("{}").contentType(MediaType.APPLICATION_JSON).with(csrf())
+        )
             .andExpect(status().isBadRequest)
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("\$.message").value(ERR_VALIDATION))

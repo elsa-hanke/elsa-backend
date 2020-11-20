@@ -42,7 +42,7 @@ data class SuoritusarviointiCriteria(
             other.arviointiAika?.copy(),
             other.tyoskentelyjaksoId?.copy(),
             other.arvioitavaOsaalueId?.copy(),
-            other.arvioinninAntajaId?.copy(),
+            other.arvioinninAntajaId?.copy()
         )
 
     override fun copy() = SuoritusarviointiCriteria(this)

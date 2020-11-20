@@ -13,7 +13,8 @@ import org.mapstruct.ReportingPolicy
         ErikoistuvaLaakariMapper::class,
         KayttajaMapper::class
     ],
-    unmappedTargetPolicy = ReportingPolicy.IGNORE)
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 interface KouluttajavaltuutusMapper :
     EntityMapper<KouluttajavaltuutusDTO, Kouluttajavaltuutus> {
 

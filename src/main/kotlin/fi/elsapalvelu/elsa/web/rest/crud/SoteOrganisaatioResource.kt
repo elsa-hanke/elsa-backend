@@ -8,11 +8,11 @@ import fi.elsapalvelu.elsa.service.dto.SoteOrganisaatioDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
-import java.net.URI
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import java.net.URI
 
 private const val ENTITY_NAME = "soteOrganisaatio"
 
@@ -34,16 +34,19 @@ class SoteOrganisaatioResource(
         if (soteOrganisaatioDTO.organizationId != null) {
             throw BadRequestAlertException(
                 "A new soteOrganisaatio cannot already have an ID",
-                ENTITY_NAME, "idexists"
+                ENTITY_NAME,
+                "idexists"
             )
         }
         val result = soteOrganisaatioService.save(soteOrganisaatioDTO)
         return ResponseEntity.created(URI("/api/sote-organisaatiot/${result.organizationId}"))
-            .headers(HeaderUtil.createEntityCreationAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                result.organizationId.toString())
+            .headers(
+                HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    result.organizationId.toString()
+                )
             )
             .body(result)
     }
@@ -60,7 +63,9 @@ class SoteOrganisaatioResource(
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
-                    applicationName, true, ENTITY_NAME,
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
                     soteOrganisaatioDTO.organizationId.toString()
                 )
             )
@@ -78,8 +83,7 @@ class SoteOrganisaatioResource(
 
     @GetMapping("/sote-organisaatiot/kunnat")
     @PreAuthorize("hasAuthority(\"$ADMIN\")")
-    fun getAllKunnat(
-    ): ResponseEntity<MutableList<String>> {
+    fun getAllKunnat(): ResponseEntity<MutableList<String>> {
         return ResponseEntity.ok(soteOrganisaatioQueryService.findAllKunnat())
     }
 
@@ -107,11 +111,13 @@ class SoteOrganisaatioResource(
     ): ResponseEntity<Void> {
         soteOrganisaatioService.delete(id)
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                id
-            )).build()
+            .headers(
+                HeaderUtil.createEntityDeletionAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    id
+                )
+            ).build()
     }
 }

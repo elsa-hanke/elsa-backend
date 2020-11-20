@@ -10,10 +10,6 @@ import fi.elsapalvelu.elsa.service.mapper.ArvioitavaOsaalueMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.createFormattingConversionService
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
-import java.time.LocalDate
-import java.time.ZoneId
-import javax.persistence.EntityManager
-import kotlin.test.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.jupiter.api.BeforeEach
@@ -37,6 +33,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.Validator
+import java.time.LocalDate
+import java.time.ZoneId
+import javax.persistence.EntityManager
+import kotlin.test.assertNotNull
 
 /**
  * Integration tests for the [ArvioitavaOsaalueResource] REST controller.
@@ -80,12 +80,12 @@ class ArvioitavaOsaalueResourceIT {
     fun setup() {
         MockitoAnnotations.initMocks(this)
         val arvioitavaOsaalueResource = ArvioitavaOsaalueResource(arvioitavaOsaalueService)
-         this.restArvioitavaOsaalueMockMvc = MockMvcBuilders.standaloneSetup(arvioitavaOsaalueResource)
-             .setCustomArgumentResolvers(pageableArgumentResolver)
-             .setControllerAdvice(exceptionTranslator)
-             .setConversionService(createFormattingConversionService())
-             .setMessageConverters(jacksonMessageConverter)
-             .setValidator(validator).build()
+        this.restArvioitavaOsaalueMockMvc = MockMvcBuilders.standaloneSetup(arvioitavaOsaalueResource)
+            .setCustomArgumentResolvers(pageableArgumentResolver)
+            .setControllerAdvice(exceptionTranslator)
+            .setConversionService(createFormattingConversionService())
+            .setMessageConverters(jacksonMessageConverter)
+            .setValidator(validator).build()
     }
 
     @BeforeEach
@@ -221,7 +221,8 @@ class ArvioitavaOsaalueResourceIT {
             .andExpect(jsonPath("$.[*].arviointikriteerit").value(hasItem(DEFAULT_ARVIOINTIKRITEERIT)))
             .andExpect(jsonPath("$.[*].voimassaoloAlkaa").value(hasItem(DEFAULT_VOIMASSAOLO_ALKAA.toString())))
             .andExpect(jsonPath("$.[*].voimassaoloLoppuu").value(hasItem(DEFAULT_VOIMASSAOLO_LOPPUU.toString())))
-            .andExpect(jsonPath("$.[*].rooli").value(hasItem(DEFAULT_ROOLI.toString()))) }
+            .andExpect(jsonPath("$.[*].rooli").value(hasItem(DEFAULT_ROOLI.toString())))
+    }
 
     @Test
     @Transactional
@@ -245,7 +246,8 @@ class ArvioitavaOsaalueResourceIT {
             .andExpect(jsonPath("$.arviointikriteerit").value(DEFAULT_ARVIOINTIKRITEERIT))
             .andExpect(jsonPath("$.voimassaoloAlkaa").value(DEFAULT_VOIMASSAOLO_ALKAA.toString()))
             .andExpect(jsonPath("$.voimassaoloLoppuu").value(DEFAULT_VOIMASSAOLO_LOPPUU.toString()))
-            .andExpect(jsonPath("$.rooli").value(DEFAULT_ROOLI.toString())) }
+            .andExpect(jsonPath("$.rooli").value(DEFAULT_ROOLI.toString()))
+    }
 
     @Test
     @Transactional
@@ -255,6 +257,7 @@ class ArvioitavaOsaalueResourceIT {
         restArvioitavaOsaalueMockMvc.perform(get("/api/arvioitavat-osaalueet/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
+
     @Test
     @Transactional
     fun updateArvioitavaOsaalue() {

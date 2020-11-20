@@ -49,7 +49,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                     id = UUID.randomUUID().toString(),
                     login = uusiLahikouluttajaDTO.sahkoposti,
                     email = uusiLahikouluttajaDTO.sahkoposti,
-                    activated = false,
+                    activated = false
                 )
             )
             val kouluttajavaltuutus = KouluttajavaltuutusDTO(
@@ -58,16 +58,18 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                 valtuutuksenLuontiaika = Instant.now(),
                 valtuutuksenMuokkausaika = Instant.now(),
                 valtuuttajaId = erikoistuvaLaakari.get().id,
-                valtuutettuId = result.id,
+                valtuutettuId = result.id
             )
 
             kouluttajavaltuutusService.save(kouluttajavaltuutus)
             return ResponseEntity.created(URI("/api/kayttajat/${result.id}"))
-                .headers(HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    "kayttaja",
-                    result.id.toString())
+                .headers(
+                    HeaderUtil.createEntityCreationAlert(
+                        applicationName,
+                        true,
+                        "kayttaja",
+                        result.id.toString()
+                    )
                 )
                 .body(result)
         } else {

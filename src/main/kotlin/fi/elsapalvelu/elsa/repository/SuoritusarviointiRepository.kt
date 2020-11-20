@@ -9,7 +9,8 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface SuoritusarviointiRepository : JpaRepository<Suoritusarviointi, Long>,
+interface SuoritusarviointiRepository :
+    JpaRepository<Suoritusarviointi, Long>,
     JpaSpecificationExecutor<Suoritusarviointi> {
 
     fun findOneById(id: Long): Optional<Suoritusarviointi>

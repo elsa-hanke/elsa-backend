@@ -33,7 +33,8 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
         if (suoritusarvioinninKommenttiDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi suoritusarvioinnin kommentti ei saa sisältää ID:tä.",
-                ENTITY_NAME, "idexists"
+                ENTITY_NAME,
+                "idexists"
             )
         }
         val user = userService.getAuthenticatedUser(principal)
@@ -45,11 +46,13 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
             .save(suoritusarvioinninKommenttiDTO, user.id!!)
 
         return ResponseEntity.created(URI("/api/suoritusarvioinnit/$id/kommentti/${result.id}"))
-            .headers(HeaderUtil.createEntityCreationAlert(
-                applicationName,
-                true,
-                ENTITY_NAME,
-                result.id.toString())
+            .headers(
+                HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    result.id.toString()
+                )
             )
             .body(result)
     }

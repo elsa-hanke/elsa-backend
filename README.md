@@ -5,10 +5,7 @@
 
 ## Kehittäminen
 
-Käynnistä Keycloak komennolla:
-```
-docker-compose -f src/main/docker/keycloak.yml up -d
-```
+Käynnistä ELSA-palvelulle kustomoitua Keycloak-kuvaketta (https://github.com/elsa-hanke/elsa-keycloak).
 
 Käynnistä Postgres tietokanta komennolla:
 ```
@@ -30,7 +27,7 @@ Rakenna tuotantoversion jar komennolla:
 
 Testaa tuotantoversion toimivuus komennolla:
 ```
-java --add-opens java.base/sun.nio.ch=ALL-UNNAMED -jar build/libs/*.jar
+java --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED -jar build/libs/*.jar
 ```
 
 ## Tuotantoversion kontin rakentaminen
@@ -38,11 +35,6 @@ java --add-opens java.base/sun.nio.ch=ALL-UNNAMED -jar build/libs/*.jar
 Rakenna tuotantoversion kontti komennolla:
 ```
 ./gradlew bootJar -Pprod jibDockerBuild
-```
-
-Testaa tuotantoversion kontin toimivuus komennolla:
-```
-docker-compose -f src/main/docker/app.yml up -d
 ```
 
 ## Testaaminen

@@ -12,12 +12,6 @@ import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.createFormattingConversionService
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import fi.elsapalvelu.elsa.web.rest.findAll
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
-import javax.persistence.EntityManager
-import kotlin.test.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.jupiter.api.BeforeEach
@@ -41,6 +35,12 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.Validator
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import javax.persistence.EntityManager
+import kotlin.test.assertNotNull
 
 /**
  * Integration tests for the [KouluttajavaltuutusResource] REST controller.
@@ -233,16 +233,27 @@ class KouluttajavaltuutusResourceIT {
         restKouluttajavaltuutusMockMvc.perform(get("/api/kouluttajavaltuutukset?sort=id,desc"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.[*].id")
-                .value(hasItem(kouluttajavaltuutus.id?.toInt())))
-            .andExpect(jsonPath("$.[*].alkamispaiva")
-                .value(hasItem(DEFAULT_ALKAMISPAIVA.toString())))
-            .andExpect(jsonPath("$.[*].paattymispaiva")
-                .value(hasItem(DEFAULT_PAATTYMISPAIVA.toString())))
-            .andExpect(jsonPath("$.[*].valtuutuksenLuontiaika")
-                .value(hasItem(DEFAULT_VALTUUTUKSEN_LUONTIAIKA.toString())))
-            .andExpect(jsonPath("$.[*].valtuutuksenMuokkausaika")
-                .value(hasItem(DEFAULT_VALTUUTUKSEN_MUOKKAUSAIKA.toString()))) }
+            .andExpect(
+                jsonPath("$.[*].id")
+                    .value(hasItem(kouluttajavaltuutus.id?.toInt()))
+            )
+            .andExpect(
+                jsonPath("$.[*].alkamispaiva")
+                    .value(hasItem(DEFAULT_ALKAMISPAIVA.toString()))
+            )
+            .andExpect(
+                jsonPath("$.[*].paattymispaiva")
+                    .value(hasItem(DEFAULT_PAATTYMISPAIVA.toString()))
+            )
+            .andExpect(
+                jsonPath("$.[*].valtuutuksenLuontiaika")
+                    .value(hasItem(DEFAULT_VALTUUTUKSEN_LUONTIAIKA.toString()))
+            )
+            .andExpect(
+                jsonPath("$.[*].valtuutuksenMuokkausaika")
+                    .value(hasItem(DEFAULT_VALTUUTUKSEN_MUOKKAUSAIKA.toString()))
+            )
+    }
 
     @Test
     @Transactional
@@ -258,16 +269,27 @@ class KouluttajavaltuutusResourceIT {
         restKouluttajavaltuutusMockMvc.perform(get("/api/kouluttajavaltuutukset/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id")
-                .value(kouluttajavaltuutus.id as Any))
-            .andExpect(jsonPath("$.alkamispaiva")
-                .value(DEFAULT_ALKAMISPAIVA.toString()))
-            .andExpect(jsonPath("$.paattymispaiva")
-                .value(DEFAULT_PAATTYMISPAIVA.toString()))
-            .andExpect(jsonPath("$.valtuutuksenLuontiaika")
-                .value(DEFAULT_VALTUUTUKSEN_LUONTIAIKA.toString()))
-            .andExpect(jsonPath("$.valtuutuksenMuokkausaika")
-                .value(DEFAULT_VALTUUTUKSEN_MUOKKAUSAIKA.toString())) }
+            .andExpect(
+                jsonPath("$.id")
+                    .value(kouluttajavaltuutus.id as Any)
+            )
+            .andExpect(
+                jsonPath("$.alkamispaiva")
+                    .value(DEFAULT_ALKAMISPAIVA.toString())
+            )
+            .andExpect(
+                jsonPath("$.paattymispaiva")
+                    .value(DEFAULT_PAATTYMISPAIVA.toString())
+            )
+            .andExpect(
+                jsonPath("$.valtuutuksenLuontiaika")
+                    .value(DEFAULT_VALTUUTUKSEN_LUONTIAIKA.toString())
+            )
+            .andExpect(
+                jsonPath("$.valtuutuksenMuokkausaika")
+                    .value(DEFAULT_VALTUUTUKSEN_MUOKKAUSAIKA.toString())
+            )
+    }
 
     @Test
     @Transactional
@@ -277,6 +299,7 @@ class KouluttajavaltuutusResourceIT {
         restKouluttajavaltuutusMockMvc.perform(get("/api/kouluttajavaltuutukset/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
+
     @Test
     @Transactional
     fun updateKouluttajavaltuutus() {

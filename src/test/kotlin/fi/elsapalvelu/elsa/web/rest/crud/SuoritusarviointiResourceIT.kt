@@ -13,10 +13,6 @@ import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.createFormattingConversionService
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import fi.elsapalvelu.elsa.web.rest.findAll
-import java.time.LocalDate
-import java.time.ZoneId
-import javax.persistence.EntityManager
-import kotlin.test.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.jupiter.api.BeforeEach
@@ -40,6 +36,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.Validator
+import java.time.LocalDate
+import java.time.ZoneId
+import javax.persistence.EntityManager
+import kotlin.test.assertNotNull
 
 /**
  * Integration tests for the [SuoritusarviointiResource] REST controller.
@@ -98,12 +98,12 @@ class SuoritusarviointiResourceIT {
             suoritusarviointiService,
             suoritusarviointiQueryService
         )
-         this.restSuoritusarviointiMockMvc = MockMvcBuilders.standaloneSetup(suoritusarviointiResource)
-             .setCustomArgumentResolvers(pageableArgumentResolver)
-             .setControllerAdvice(exceptionTranslator)
-             .setConversionService(createFormattingConversionService())
-             .setMessageConverters(jacksonMessageConverter)
-             .setValidator(validator).build()
+        this.restSuoritusarviointiMockMvc = MockMvcBuilders.standaloneSetup(suoritusarviointiResource)
+            .setCustomArgumentResolvers(pageableArgumentResolver)
+            .setControllerAdvice(exceptionTranslator)
+            .setConversionService(createFormattingConversionService())
+            .setMessageConverters(jacksonMessageConverter)
+            .setValidator(validator).build()
     }
 
     @BeforeEach
@@ -222,7 +222,8 @@ class SuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.[*].lisatiedot").value(hasItem(DEFAULT_LISATIEDOT.toString())))
             .andExpect(jsonPath("$.[*].vaativuustaso").value(hasItem(DEFAULT_VAATIVUUSTASO)))
             .andExpect(jsonPath("$.[*].sanallinenArviointi").value(hasItem(DEFAULT_SANALLINEN_ARVIOINTI)))
-            .andExpect(jsonPath("$.[*].arviointiAika").value(hasItem(DEFAULT_ARVIOINTI_AIKA.toString()))) }
+            .andExpect(jsonPath("$.[*].arviointiAika").value(hasItem(DEFAULT_ARVIOINTI_AIKA.toString())))
+    }
 
     @Test
     @Transactional
@@ -245,7 +246,8 @@ class SuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.lisatiedot").value(DEFAULT_LISATIEDOT.toString()))
             .andExpect(jsonPath("$.vaativuustaso").value(DEFAULT_VAATIVUUSTASO))
             .andExpect(jsonPath("$.sanallinenArviointi").value(DEFAULT_SANALLINEN_ARVIOINTI))
-            .andExpect(jsonPath("$.arviointiAika").value(DEFAULT_ARVIOINTI_AIKA.toString())) }
+            .andExpect(jsonPath("$.arviointiAika").value(DEFAULT_ARVIOINTI_AIKA.toString()))
+    }
 
     @Test
     @Transactional
@@ -255,6 +257,7 @@ class SuoritusarviointiResourceIT {
         restSuoritusarviointiMockMvc.perform(get("/api/suoritusarvioinnit/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
+
     @Test
     @Transactional
     fun updateSuoritusarviointi() {

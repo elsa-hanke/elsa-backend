@@ -9,10 +9,6 @@ import fi.elsapalvelu.elsa.service.mapper.EpaOsaamisalueMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.createFormattingConversionService
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
-import java.time.LocalDate
-import java.time.ZoneId
-import javax.persistence.EntityManager
-import kotlin.test.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.jupiter.api.BeforeEach
@@ -36,6 +32,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.Validator
+import java.time.LocalDate
+import java.time.ZoneId
+import javax.persistence.EntityManager
+import kotlin.test.assertNotNull
 
 /**
  * Integration tests for the [EpaOsaamisalueResource] REST controller.
@@ -79,12 +79,12 @@ class EpaOsaamisalueResourceIT {
     fun setup() {
         MockitoAnnotations.initMocks(this)
         val epaOsaamisalueResource = EpaOsaamisalueResource(epaOsaamisalueService)
-         this.restEpaOsaamisalueMockMvc = MockMvcBuilders.standaloneSetup(epaOsaamisalueResource)
-             .setCustomArgumentResolvers(pageableArgumentResolver)
-             .setControllerAdvice(exceptionTranslator)
-             .setConversionService(createFormattingConversionService())
-             .setMessageConverters(jacksonMessageConverter)
-             .setValidator(validator).build()
+        this.restEpaOsaamisalueMockMvc = MockMvcBuilders.standaloneSetup(epaOsaamisalueResource)
+            .setCustomArgumentResolvers(pageableArgumentResolver)
+            .setControllerAdvice(exceptionTranslator)
+            .setConversionService(createFormattingConversionService())
+            .setMessageConverters(jacksonMessageConverter)
+            .setValidator(validator).build()
     }
 
     @BeforeEach
@@ -192,7 +192,8 @@ class EpaOsaamisalueResourceIT {
             .andExpect(jsonPath("$.[*].nimi").value(hasItem(DEFAULT_NIMI)))
             .andExpect(jsonPath("$.[*].kuvaus").value(hasItem(DEFAULT_KUVAUS)))
             .andExpect(jsonPath("$.[*].voimassaoloAlkaa").value(hasItem(DEFAULT_VOIMASSAOLO_ALKAA.toString())))
-            .andExpect(jsonPath("$.[*].voimassaoloLoppuu").value(hasItem(DEFAULT_VOIMASSAOLO_LOPPUU.toString()))) }
+            .andExpect(jsonPath("$.[*].voimassaoloLoppuu").value(hasItem(DEFAULT_VOIMASSAOLO_LOPPUU.toString())))
+    }
 
     @Test
     @Transactional
@@ -212,7 +213,8 @@ class EpaOsaamisalueResourceIT {
             .andExpect(jsonPath("$.nimi").value(DEFAULT_NIMI))
             .andExpect(jsonPath("$.kuvaus").value(DEFAULT_KUVAUS))
             .andExpect(jsonPath("$.voimassaoloAlkaa").value(DEFAULT_VOIMASSAOLO_ALKAA.toString()))
-            .andExpect(jsonPath("$.voimassaoloLoppuu").value(DEFAULT_VOIMASSAOLO_LOPPUU.toString())) }
+            .andExpect(jsonPath("$.voimassaoloLoppuu").value(DEFAULT_VOIMASSAOLO_LOPPUU.toString()))
+    }
 
     @Test
     @Transactional
@@ -222,6 +224,7 @@ class EpaOsaamisalueResourceIT {
         restEpaOsaamisalueMockMvc.perform(get("/api/epa-osaamisalueet/{id}", Long.MAX_VALUE))
             .andExpect(status().isNotFound)
     }
+
     @Test
     @Transactional
     fun updateEpaOsaamisalue() {

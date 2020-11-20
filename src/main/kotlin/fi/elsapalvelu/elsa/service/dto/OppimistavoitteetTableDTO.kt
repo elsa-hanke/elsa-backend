@@ -6,8 +6,6 @@ class OppimistavoitteetTableDTO(
 
     var oppimistavoitteenKategoriat: MutableSet<OppimistavoitteenKategoriaDTO> = mutableSetOf(),
 
-    var suoritemerkinnat: MutableSet<SuoritemerkintaDTO> = mutableSetOf(),
+    var suoritemerkinnat: MutableSet<SuoritemerkintaDTO> = mutableSetOf()
 
-) : Serializable {
-    override fun hashCode() = 31
-}
+) : Serializable
