@@ -14,6 +14,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
+import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
 @RestController
@@ -24,6 +25,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) {
+
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 
@@ -33,6 +35,15 @@ class ErikoistuvaLaakariMuutToiminnotResource(
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
         val user = userService.getAuthenticatedUser(principal)
         return ResponseUtil.wrapOrNotFound(erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!))
+    }
+
+    @PutMapping("/kayttooikeushakemus")
+    fun updateErikoistuvalaakariKayttooikeushakemus(
+        @Valid @RequestBody kayttooikeusHakemusDTO: KayttooikeusHakemusDTO,
+        principal: Principal?,
+        request: HttpServletRequest
+    ) {
+        userService.updateUserAuthorities(principal, request)
     }
 
     @PostMapping("/lahikouluttajat")
