@@ -11,9 +11,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
 class ApplicationProperties {
     private val csrf = Csrf()
+    private val keycloak = Keycloak()
 
     fun getCsrf(): Csrf {
         return csrf
+    }
+
+    fun getKeycloak(): Keycloak {
+        return keycloak
     }
 
     class Csrf {
@@ -22,5 +27,16 @@ class ApplicationProperties {
 
     class Cookie {
         var domain: String? = null
+    }
+
+    class Keycloak {
+        val admin = Admin()
+    }
+
+    class Admin {
+        var serverUrl: String? = null
+        var realm: String? = null
+        var clientId: String? = null
+        var clientSecret: String? = null
     }
 }

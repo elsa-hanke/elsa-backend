@@ -177,4 +177,10 @@ jhipster:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
-# application:
+application:
+  keycloak:
+    admin:
+      server-url: http://localhost:9080/auth
+      realm: elsa
+      client-id: web-app-admin
+      client-secret: web-app-admin
