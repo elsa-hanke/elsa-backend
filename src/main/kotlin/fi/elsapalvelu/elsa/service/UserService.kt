@@ -13,6 +13,7 @@ import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.getCurrentUserLogin
 import fi.elsapalvelu.elsa.service.dto.UserDTO
+import org.keycloak.admin.client.Keycloak
 import org.slf4j.LoggerFactory
 import org.springframework.cache.CacheManager
 import org.springframework.data.domain.Page
@@ -25,7 +26,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.Principal
 import java.time.Instant
-import java.util.Optional
+import java.util.*
+import javax.servlet.http.HttpServletRequest
 
 /**
  * Service class for managing users.
@@ -37,7 +39,8 @@ class UserService(
     private val authorityRepository: AuthorityRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
-    private val cacheManager: CacheManager
+    private val cacheManager: CacheManager,
+    private val keycloak: Keycloak
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -167,6 +170,24 @@ class UserService(
         } else {
             throw RuntimeException("Käyttäjä ei ole kirjautunut")
         }
+    }
+
+    fun updateUserAuthorities(
+        principal: Principal?,
+        request: HttpServletRequest
+    ) {
+        // TODO: tarkista käyttöoikeus opintotietojärjestelmästä
+
+        // Lisätään käyttäjä erikoistuvat lääkärit ryhmään
+        val user = getAuthenticatedUser(principal)
+        val realmResource = keycloak.realm("elsa")
+        realmResource.groups().groups().find { it.name == "Erikoistuvat lääkärit" }?.let {
+            val userResource = realmResource.users().get(user.id)
+            userResource.joinGroup(it.id)
+        }
+
+        // Vaaditaan, jotta rooli päivittyy erikoistuvalle lääkärille
+        request.session.invalidate()
     }
 
     private fun clearUserCaches(user: User) {

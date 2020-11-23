@@ -12,7 +12,6 @@ buildscript {
         classpath "org.jlleitschuh.gradle:ktlint-gradle:9.4.0"
         classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektVersion}"
         classpath "io.gitlab.arturbosch.detekt:detekt-formatting:${detektVersion}"
-        //jhipster-needle-gradle-buildscript-dependency - JHipster will add additional gradle build script plugins here
     }
 }
 
@@ -30,7 +29,6 @@ plugins {
     id "org.sonarqube"
     id "io.spring.nohttp"
     id "org.owasp.dependencycheck"
-    //jhipster-needle-gradle-plugins - JHipster will add additional gradle plugins here
 }
 
 group = "fi.elsapalvelu.elsa"
@@ -45,7 +43,6 @@ assert System.properties["java.specification.version"] == "1.8" || "11" || "12" 
 apply from: "gradle/docker.gradle"
 apply from: "gradle/sonar.gradle"
 apply from: 'gradle/kotlin.gradle'
-//jhipster-needle-gradle-apply-from - JHipster will add additional gradle scripts to be applied here
 
 if (project.hasProperty("prod")) {
     apply from: "gradle/profile_prod.gradle"
@@ -178,7 +175,6 @@ repositories {
     mavenLocal()
     mavenCentral()
     jcenter()
-    //jhipster-needle-gradle-repositories - JHipster will add additional repositories
 }
 
 dependencies {
@@ -250,7 +246,7 @@ dependencies {
     testImplementation "com.tngtech.archunit:archunit-junit5-api:${archunitJunit5Version}"
     testRuntimeOnly "com.tngtech.archunit:archunit-junit5-engine:${archunitJunit5Version}"
     testImplementation "com.h2database:h2"
-    //jhipster-needle-gradle-dependency - JHipster will add additional dependencies here
+    implementation "org.keycloak:keycloak-admin-client:${keycloakVersion}"
 }
 
 task cleanResources(type: Delete) {
