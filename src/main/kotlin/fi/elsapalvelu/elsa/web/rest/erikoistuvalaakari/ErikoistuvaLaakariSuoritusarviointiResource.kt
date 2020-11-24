@@ -38,10 +38,10 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     @GetMapping("/suoritusarvioinnit-rajaimet")
     fun getAllSuoritusarvioinnit(
         principal: Principal?
-    ): ResponseEntity<SuoritusarvioinnitOptionsDto> {
+    ): ResponseEntity<SuoritusarvioinnitOptionsDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val id = user.id!!
-        val options = SuoritusarvioinnitOptionsDto()
+        val options = SuoritusarvioinnitOptionsDTO()
         options.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
         options.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()

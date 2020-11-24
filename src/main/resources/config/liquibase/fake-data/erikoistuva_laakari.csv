@@ -1,4 +1,4 @@
-id;puhelinnumero;sahkoposti;opiskelijatunnus;opintojen_aloitusvuosi;kayttaja_id
-1;0123456789;sahkoposti1@example.com;a00001;2020;1
-2;+358123456789;sahkoposti2@example.com;b00002;2019;2
-3;+358 123456789;sahkoposti3@example.com;c00003;2019;3
+id;puhelinnumero;sahkoposti;opiskelijatunnus;opintojen_aloitusvuosi;kayttaja_id;erikoisala_id
+1;0123456789;sahkoposti1@example.com;a00001;2020;1;1
+2;+358123456789;sahkoposti2@example.com;b00002;2019;2;2
+3;+358 123456789;sahkoposti3@example.com;c00003;2019;3;1

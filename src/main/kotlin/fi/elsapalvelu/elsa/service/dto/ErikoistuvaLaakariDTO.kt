@@ -21,7 +21,9 @@ data class ErikoistuvaLaakariDTO(
     @get: Max(value = 2100)
     var opintojenAloitusvuosi: Int? = null,
 
-    var kayttajaId: Long? = null
+    var kayttajaId: Long? = null,
+
+    var erikoisalaId: Long? = null
 
 ) : Serializable {
 

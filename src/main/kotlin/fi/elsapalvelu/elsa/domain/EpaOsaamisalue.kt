@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -33,7 +34,11 @@ data class EpaOsaamisalue(
 
     @OneToMany(mappedBy = "epaOsaamisalue")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var arvioitavatOsaalueet: MutableSet<ArvioitavaOsaalue> = mutableSetOf()
+    var arvioitavatOsaalueet: MutableSet<ArvioitavaOsaalue> = mutableSetOf(),
+
+    @ManyToOne(optional = false) @NotNull
+    @JsonIgnoreProperties(value = ["epaOsaamisalueet"], allowSetters = true)
+    var erikoisala: Erikoisala? = null
 
 ) : Serializable {
 

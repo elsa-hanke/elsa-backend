@@ -1,9 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.service.OppimistavoitteenKategoriaService
-import fi.elsapalvelu.elsa.service.SuoritemerkintaService
-import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.OppimistavoitteetTableDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaFormDTO
@@ -25,7 +22,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val oppimistavoitteenKategoriaService: OppimistavoitteenKategoriaService,
-    private val suoritemerkintaService: SuoritemerkintaService
+    private val suoritemerkintaService: SuoritemerkintaService,
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -43,6 +41,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
                 "idexists"
             )
         }
+
         suoritemerkintaDTO.lukittu = false
         val user = userService.getAuthenticatedUser(principal)
         val result = suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)
@@ -109,7 +108,16 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         val user = userService.getAuthenticatedUser(principal)
 
         val table = OppimistavoitteetTableDTO()
-        table.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService.findAll().toMutableSet()
+
+        val erikoistuvaLaakariOptional = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+        if (erikoistuvaLaakariOptional.isPresent) {
+            val erikoistuvaLaakari = erikoistuvaLaakariOptional.get()
+            erikoistuvaLaakari.erikoisalaId?.let {
+                table.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
+                    .findAllByErikoisalaId(it).toMutableSet()
+            }
+        }
+
         table.suoritemerkinnat = suoritemerkintaService
             .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
 
@@ -123,9 +131,18 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         val user = userService.getAuthenticatedUser(principal)
 
         val form = SuoritemerkintaFormDTO()
+
         form.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
-        form.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService.findAll().toMutableSet()
+
+        val erikoistuvaLaakariOptional = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+        if (erikoistuvaLaakariOptional.isPresent) {
+            val erikoistuvaLaakari = erikoistuvaLaakariOptional.get()
+            erikoistuvaLaakari.erikoisalaId?.let {
+                form.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
+                    .findAllByErikoisalaId(it).toMutableSet()
+            }
+        }
 
         return ResponseEntity.ok(form)
     }
