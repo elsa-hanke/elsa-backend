@@ -10,6 +10,7 @@ import org.mapstruct.ReportingPolicy
 @Mapper(
     componentModel = "spring",
     uses = [
+        ErikoisalaMapper::class,
         OppimistavoiteMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
@@ -17,12 +18,15 @@ import org.mapstruct.ReportingPolicy
 interface OppimistavoitteenKategoriaMapper :
     EntityMapper<OppimistavoitteenKategoriaDTO, OppimistavoitteenKategoria> {
 
-    @Mappings()
+    @Mappings(
+        Mapping(source = "erikoisala.id", target = "erikoisalaId")
+    )
     override fun toDto(entity: OppimistavoitteenKategoria): OppimistavoitteenKategoriaDTO
 
     @Mappings(
         Mapping(target = "oppimistavoitteet", ignore = true),
-        Mapping(target = "removeOppimistavoite", ignore = true)
+        Mapping(target = "removeOppimistavoite", ignore = true),
+        Mapping(source = "erikoisalaId", target = "erikoisala")
     )
     override fun toEntity(dto: OppimistavoitteenKategoriaDTO): OppimistavoitteenKategoria
 

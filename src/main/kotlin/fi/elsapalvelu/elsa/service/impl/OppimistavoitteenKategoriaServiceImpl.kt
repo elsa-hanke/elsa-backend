@@ -40,6 +40,12 @@ class OppimistavoitteenKategoriaServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun findAllByErikoisalaId(id: Long): List<OppimistavoitteenKategoriaDTO> {
+        return oppimistavoitteenKategoriaRepository.findAllByErikoisalaId(id)
+            .map(oppimistavoitteenKategoriaMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
     override fun findOne(
         id: Long
     ): Optional<OppimistavoitteenKategoriaDTO> {

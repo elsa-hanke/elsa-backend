@@ -4,17 +4,17 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
-    <changeSet id="20201020075137-2" author="jhipster">
+    <changeSet id="20201124081448-2" author="jhipster">
 
-        <addForeignKeyConstraint baseColumnNames="kayttaja_id"
-                                 baseTableName="erikoistuva_laakari"
-                                 constraintName="fk_erikoistuva_laakari_kayttaja_id"
+        <addForeignKeyConstraint baseColumnNames="yliopisto_id"
+                                 baseTableName="yliopisto_erikoisala"
+                                 constraintName="fk_yliopisto_erikoisala_yliopisto_id"
                                  referencedColumnNames="id"
-                                 referencedTableName="kayttaja"/>
+                                 referencedTableName="yliopisto"/>
 
         <addForeignKeyConstraint baseColumnNames="erikoisala_id"
-                                 baseTableName="erikoistuva_laakari"
-                                 constraintName="fk_erikoistuva_laakari_erikoisala_id"
+                                 baseTableName="yliopisto_erikoisala"
+                                 constraintName="fk_yliopisto_erikoisala_erikoisala_id"
                                  referencedColumnNames="id"
                                  referencedTableName="erikoisala"/>
 

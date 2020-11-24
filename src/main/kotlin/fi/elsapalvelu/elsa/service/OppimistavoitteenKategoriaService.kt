@@ -10,6 +10,8 @@ interface OppimistavoitteenKategoriaService {
 
     fun findAll(): List<OppimistavoitteenKategoriaDTO>
 
+    fun findAllByErikoisalaId(id: Long): List<OppimistavoitteenKategoriaDTO>
+
     fun findAll(pageable: Pageable): Page<OppimistavoitteenKategoriaDTO>
 
     fun findOne(id: Long): Optional<OppimistavoitteenKategoriaDTO>

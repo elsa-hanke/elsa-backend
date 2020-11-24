@@ -4,40 +4,35 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
-    <changeSet id="20201116141134-1" author="jhipster">
-        <createTable tableName="oppimistavoitteen_kategoria">
+    <changeSet id="20201124081548-1" author="jhipster">
+        <createTable tableName="erikoisala">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="nimi" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
-            <column name="voimassaolon_alkamispaiva" type="date">
+            <column name="voimassaolo_alkaa" type="date">
                 <constraints nullable="false" />
             </column>
-            <column name="voimassaolon_paattymispaiva" type="date">
+            <column name="voimassaolo_paattyy" type="date">
                 <constraints nullable="true" />
-            </column>
-            <column name="erikoisala_id" type="bigint">
-                <constraints nullable="false" />
             </column>
         </createTable>
     </changeSet>
 
-    <changeSet id="20201116141134-1-relations" author="jhipster">
+    <changeSet id="20201124081548-1-relations" author="jhipster">
 
     </changeSet>
-
-    <changeSet id="20201116141134-1-data" author="jhipster" context="faker">
+    <changeSet id="20201124081548-1-data" author="jhipster" context="faker">
         <loadData
-            file="config/liquibase/fake-data/oppimistavoitteen_kategoria.csv"
+            file="config/liquibase/fake-data/erikoisala.csv"
             separator=";"
-            tableName="oppimistavoitteen_kategoria">
+            tableName="erikoisala">
             <column name="id" type="numeric"/>
             <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-            <column name="voimassaolon_paattymispaiva" type="date"/>
-            <column name="erikoisala_id" type="numeric"/>
+            <column name="voimassaolo_alkaa" type="date"/>
+            <column name="voimassaolo_paattyy" type="date"/>
         </loadData>
     </changeSet>
 

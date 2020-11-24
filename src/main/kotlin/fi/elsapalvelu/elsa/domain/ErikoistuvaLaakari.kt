@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -40,7 +41,13 @@ data class ErikoistuvaLaakari(
 
     @OneToMany(mappedBy = "erikoistuvaLaakari")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf()
+    var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf(),
+
+    // TODO: onko pakollinen tieto?
+    // @NotNull
+    @ManyToOne(optional = false)
+    @JsonIgnoreProperties(value = ["erikoistuvatLaakarit"], allowSetters = true)
+    var erikoisala: Erikoisala? = null
 
 ) : Serializable {
 

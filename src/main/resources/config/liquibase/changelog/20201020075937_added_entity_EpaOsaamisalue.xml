@@ -21,6 +21,9 @@
             <column name="voimassaolo_loppuu" type="date">
                 <constraints nullable="true" />
             </column>
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
         </createTable>
     </changeSet>
 
@@ -38,6 +41,7 @@
             <column name="kuvaus" type="string"/>
             <column name="voimassaolo_alkaa" type="date"/>
             <column name="voimassaolo_loppuu" type="date"/>
+            <column name="erikoisala_id" type="numeric"/>
         </loadData>
     </changeSet>
 
