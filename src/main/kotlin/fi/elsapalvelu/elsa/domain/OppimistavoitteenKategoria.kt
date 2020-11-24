@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -30,7 +31,12 @@ class OppimistavoitteenKategoria(
 
     @OneToMany(mappedBy = "kategoria")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var oppimistavoitteet: MutableSet<Oppimistavoite> = mutableSetOf()
+    var oppimistavoitteet: MutableSet<Oppimistavoite> = mutableSetOf(),
+
+    @NotNull
+    @ManyToOne(optional = false)
+    @JsonIgnoreProperties(value = ["kategoriat"], allowSetters = true)
+    var erikoisala: Erikoisala? = null
 
 ) : Serializable {
 

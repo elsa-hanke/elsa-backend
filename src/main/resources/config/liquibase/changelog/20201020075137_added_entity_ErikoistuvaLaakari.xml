@@ -24,6 +24,10 @@
             <column name="kayttaja_id" type="bigint">
                 <constraints unique="true" nullable="false" uniqueConstraintName="ux_erikoistuva_laakari_kayttaja_id" />
             </column>
+            <column name="erikoisala_id" type="bigint">
+                <!--TODO: onko pakollinen tieto? <constraints nullable="false" />-->
+                <constraints nullable="true" />
+            </column>
         </createTable>
     </changeSet>
 
@@ -42,6 +46,7 @@
             <column name="opiskelijatunnus" type="string"/>
             <column name="opintojen_aloitusvuosi" type="numeric"/>
             <column name="kayttaja_id" type="numeric"/>
+            <column name="erikoisala_id" type="numeric"/>
         </loadData>
     </changeSet>
 

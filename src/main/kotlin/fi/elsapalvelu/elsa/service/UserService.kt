@@ -6,10 +6,7 @@ import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.repository.AuthorityRepository
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.getCurrentUserLogin
 import fi.elsapalvelu.elsa.service.dto.UserDTO
@@ -39,6 +36,7 @@ class UserService(
     private val authorityRepository: AuthorityRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val erikoisalaRepository: ErikoisalaRepository,
     private val cacheManager: CacheManager,
     private val keycloak: Keycloak
 ) {

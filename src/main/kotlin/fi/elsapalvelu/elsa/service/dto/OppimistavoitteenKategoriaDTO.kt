@@ -16,6 +16,8 @@ data class OppimistavoitteenKategoriaDTO(
 
     var voimassaolonPaattymispaiva: LocalDate? = null,
 
+    var erikoisalaId: Long? = null,
+
     var oppimistavoitteet: MutableSet<OppimistavoiteDTO>? = null
 
 ) : Serializable {
