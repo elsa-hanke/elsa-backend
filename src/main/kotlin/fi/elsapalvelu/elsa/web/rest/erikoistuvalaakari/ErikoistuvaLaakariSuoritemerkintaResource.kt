@@ -25,7 +25,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val oppimistavoitteenKategoriaService: OppimistavoitteenKategoriaService,
     private val suoritemerkintaService: SuoritemerkintaService,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService
 ) {
 
     @Value("\${jhipster.clientApp.name}")

@@ -26,9 +26,6 @@ import java.time.Instant
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
-/**
- * Service class for managing users.
- */
 @Service
 @Transactional
 class UserService(
