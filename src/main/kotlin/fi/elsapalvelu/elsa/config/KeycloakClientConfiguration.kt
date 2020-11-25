@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class KeycloakClientConfiguration(
-    private val applicationProperties: ApplicationProperties,
+    private val applicationProperties: ApplicationProperties
 ) {
 
     @Bean
