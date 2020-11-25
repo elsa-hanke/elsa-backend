@@ -1,19 +1,10 @@
-package fi.elsapalvelu.elsa.web.rest.crud
+package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.Erikoisala
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.test.context.support.WithMockUser
 import java.time.LocalDate
 import java.time.ZoneId
-import javax.persistence.EntityManager
 
-@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
-@AutoConfigureMockMvc
-@WithMockUser
-class ErikoisalaResourceIT {
+class ErikoisalaHelper {
 
     companion object {
 
@@ -27,7 +18,7 @@ class ErikoisalaResourceIT {
         private val UPDATED_VOIMASSAOLO_PAATTYY: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(em: EntityManager): Erikoisala {
+        fun createEntity(): Erikoisala {
             val erikoisala = Erikoisala(
                 nimi = DEFAULT_NIMI,
                 voimassaoloAlkaa = DEFAULT_VOIMASSAOLO_ALKAA,
@@ -38,7 +29,7 @@ class ErikoisalaResourceIT {
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): Erikoisala {
+        fun createUpdatedEntity(): Erikoisala {
             val erikoisala = Erikoisala(
                 nimi = UPDATED_NIMI,
                 voimassaoloAlkaa = UPDATED_VOIMASSAOLO_ALKAA,
