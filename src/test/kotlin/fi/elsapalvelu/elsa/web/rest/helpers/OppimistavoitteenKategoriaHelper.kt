@@ -1,21 +1,13 @@
-package fi.elsapalvelu.elsa.web.rest.crud
+package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria
 import fi.elsapalvelu.elsa.web.rest.findAll
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.test.context.support.WithMockUser
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.persistence.EntityManager
 
-@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
-@AutoConfigureMockMvc
-@WithMockUser
-class OppimistavoitteenKategoriaResourceIT {
+class OppimistavoitteenKategoriaHelper {
 
     companion object {
 
@@ -39,7 +31,7 @@ class OppimistavoitteenKategoriaResourceIT {
             // Add required entity
             val erikoisala: Erikoisala
             if (em.findAll(Erikoisala::class).isEmpty()) {
-                erikoisala = ErikoisalaResourceIT.createEntity(em)
+                erikoisala = ErikoisalaHelper.createEntity()
                 em.persist(erikoisala)
                 em.flush()
             } else {
@@ -60,7 +52,7 @@ class OppimistavoitteenKategoriaResourceIT {
             // Add required entity
             val erikoisala: Erikoisala
             if (em.findAll(Erikoisala::class).isEmpty()) {
-                erikoisala = ErikoisalaResourceIT.createUpdatedEntity(em)
+                erikoisala = ErikoisalaHelper.createUpdatedEntity()
                 em.persist(erikoisala)
                 em.flush()
             } else {
