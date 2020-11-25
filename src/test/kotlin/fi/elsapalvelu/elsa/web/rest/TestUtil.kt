@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import fi.elsapalvelu.elsa.security.extractAuthorityFromClaims
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Description
@@ -30,6 +31,7 @@ private fun createObjectMapper() =
         configure(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS, false)
         setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
         registerModule(JavaTimeModule())
+        registerModule(KotlinModule())
     }
 
 /**

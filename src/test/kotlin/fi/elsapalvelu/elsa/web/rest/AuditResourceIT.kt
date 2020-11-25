@@ -28,9 +28,6 @@ private const val SAMPLE_TYPE = "SAMPLE_TYPE"
 private val SAMPLE_TIMESTAMP = Instant.parse("2015-08-04T10:11:30Z")
 private const val SECONDS_PER_DAY = (60 * 60 * 24).toLong()
 
-/**
- * Integration tests for the [AuditResource] REST controller.
- */
 @AutoConfigureMockMvc
 @WithMockUser(authorities = [ADMIN])
 @SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
