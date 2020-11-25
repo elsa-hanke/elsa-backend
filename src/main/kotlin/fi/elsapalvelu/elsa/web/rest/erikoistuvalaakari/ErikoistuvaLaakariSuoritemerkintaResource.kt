@@ -6,16 +6,18 @@ import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
-import io.github.jhipster.web.util.ResponseUtil
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
 import javax.validation.Valid
 
 private const val ENTITY_NAME = "suoritemerkinta"
 
+@Suppress("unused")
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariSuoritemerkintaResource(
@@ -36,25 +38,33 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     ): ResponseEntity<SuoritemerkintaDTO> {
         if (suoritemerkintaDTO.id != null) {
             throw BadRequestAlertException(
-                "A new suoritemerkinta cannot already have an ID",
+                "Uusi suoritemerkinta ei saa sisältää ID:tä.",
                 ENTITY_NAME,
                 "idexists"
             )
         }
 
+        // Uutta suoritemerkintää ei voi luoda lukittuna
         suoritemerkintaDTO.lukittu = false
+
         val user = userService.getAuthenticatedUser(principal)
-        val result = suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)
-        return ResponseEntity.created(URI("/api/suoritemerkinnat/${result.id}"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    result.id.toString()
+
+        suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
+            return ResponseEntity.created(URI("/api/suoritemerkinnat/${it.id}"))
+                .headers(
+                    HeaderUtil.createEntityCreationAlert(
+                        applicationName,
+                        true,
+                        ENTITY_NAME,
+                        it.id.toString()
+                    )
                 )
-            )
-            .body(result)
+                .body(it)
+        } ?: throw BadRequestAlertException(
+            "Uuden suoritemerkinnän työskentelyjakso täytyy olla oma.",
+            ENTITY_NAME,
+            "dataillegal"
+        )
     }
 
     @PutMapping("/suoritemerkinnat")
@@ -67,17 +77,23 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         }
         suoritemerkintaDTO.lukittu = false
         val user = userService.getAuthenticatedUser(principal)
-        val result = suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    suoritemerkintaDTO.id.toString()
+
+        suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
+            return ResponseEntity.ok()
+                .headers(
+                    HeaderUtil.createEntityUpdateAlert(
+                        applicationName,
+                        true,
+                        ENTITY_NAME,
+                        suoritemerkintaDTO.id.toString()
+                    )
                 )
-            )
-            .body(result)
+                .body(it)
+        } ?: throw BadRequestAlertException(
+            "Uuden suoritemerkinnän työskentelyjakso täytyy olla oma.",
+            ENTITY_NAME,
+            "dataillegal"
+        )
     }
 
     @GetMapping("/suoritemerkinnat/{id}")
@@ -86,8 +102,9 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val suoritemerkintaDTO = suoritemerkintaService.findOne(id, user.id!!)
-        return ResponseUtil.wrapOrNotFound(suoritemerkintaDTO)
+        suoritemerkintaService.findOne(id, user.id!!)?.let {
+            return ResponseEntity.ok(it)
+        } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 
     @DeleteMapping("/suoritemerkinnat/{id}")
