@@ -20,7 +20,7 @@ interface EpaOsaamisalueMapper :
     @Mappings(
         Mapping(source = "erikoisala.id", target = "erikoisalaId")
     )
-    override fun toDto(epaOsaamisalue: EpaOsaamisalue): EpaOsaamisalueDTO
+    override fun toDto(entity: EpaOsaamisalue): EpaOsaamisalueDTO
 
     @Mappings(
         Mapping(target = "arvioitavatOsaalueet", ignore = true),

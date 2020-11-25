@@ -16,6 +16,7 @@ import java.net.URI
 import java.security.Principal
 import javax.validation.Valid
 
+@Suppress("unused")
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariTyoskentelyjaksoResource(

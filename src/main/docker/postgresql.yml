@@ -2,8 +2,6 @@ version: "2"
 services:
   elsabackend-postgresql:
     image: postgres:12.3
-    # volumes:
-    #     - ~/volumes/jhipster/elsaBackend/postgresql/:/var/lib/postgresql/data/
     environment:
       - POSTGRES_USER=elsaBackend
       - POSTGRES_PASSWORD=

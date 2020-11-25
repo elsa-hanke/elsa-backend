@@ -33,9 +33,6 @@ import javax.persistence.EntityManager
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-/**
- * Integration tests for the [UserResource] REST controller.
- */
 @AutoConfigureMockMvc
 @WithMockUser(authorities = [ADMIN])
 @SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
@@ -66,7 +63,7 @@ class UserResourceIT {
 
     @BeforeEach
     fun initTest() {
-        user = createEntity(em)
+        user = createEntity()
         user.apply {
             login = DEFAULT_LOGIN
             email = DEFAULT_EMAIL
@@ -246,16 +243,10 @@ class UserResourceIT {
 
         private const val DEFAULT_LANGKEY = "en"
 
-        /**
-         * Create a User.
-         *
-         * This is a static method, as tests for other entities might also need it,
-         * if they test an entity which has a required relationship to the User entity.
-         */
         @JvmStatic
-        fun createEntity(em: EntityManager): User {
+        fun createEntity(userId: String? = null): User {
             return User(
-                id = UUID.randomUUID().toString(),
+                id = userId ?: UUID.randomUUID().toString(),
                 login = DEFAULT_LOGIN + RandomStringUtils.randomAlphabetic(5),
                 activated = true,
                 email = RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL,

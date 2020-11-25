@@ -26,9 +26,6 @@ private const val DEFAULT_FIRSTNAME = "john"
 private const val DEFAULT_LASTNAME = "doe"
 private const val DEFAULT_LANGKEY = "dummy"
 
-/**
- * Integration tests for [UserService].
- */
 @SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
 @Transactional
 class UserServiceIT {
