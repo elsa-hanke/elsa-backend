@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.cache.CacheManager
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
@@ -123,8 +124,19 @@ class UserService(
                         nimi = user.firstName + " " + user.lastName
                     )
                 )
-                erikoistuvaLaakariRepository.save(
-                    ErikoistuvaLaakari(kayttaja = kayttaja)
+                // TODO: erikoisalan valinta opinto-oikeuden mukaan
+                val erikoisala = erikoisalaRepository.findByIdOrNull(1)
+                erikoisala?.let {
+                    erikoistuvaLaakariRepository.save(
+                        ErikoistuvaLaakari(
+                            kayttaja = kayttaja,
+                            erikoisala = erikoisala
+                        )
+                    )
+                } ?: erikoistuvaLaakariRepository.save(
+                    ErikoistuvaLaakari(
+                        kayttaja = kayttaja
+                    )
                 )
             }
         }
