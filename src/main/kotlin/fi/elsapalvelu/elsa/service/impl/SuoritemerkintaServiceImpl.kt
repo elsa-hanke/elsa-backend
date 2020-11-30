@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.SuoritemerkintaService
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritemerkintaMapper
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,7 +20,11 @@ class SuoritemerkintaServiceImpl(
     private val suoritemerkintaMapper: SuoritemerkintaMapper
 ) : SuoritemerkintaService {
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override fun save(suoritemerkintaDTO: SuoritemerkintaDTO, userId: String): SuoritemerkintaDTO? {
+        log.debug("Request to save Suoritemerkinta : $suoritemerkintaDTO")
+
         tyoskentelyjaksoRepository.findByIdOrNull(suoritemerkintaDTO.tyoskentelyjaksoId!!)?.let { tyoskentelyjakso ->
             tyoskentelyjakso.erikoistuvaLaakari.let {
                 val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
@@ -47,12 +52,16 @@ class SuoritemerkintaServiceImpl(
     override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         userId: String
     ): MutableList<SuoritemerkintaDTO> {
+        log.debug("Request to get list of Suoritemerkinta by user id : $userId")
+
         return suoritemerkintaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId)
             .mapTo(mutableListOf(), suoritemerkintaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
     override fun findOne(id: Long, userId: String): SuoritemerkintaDTO? {
+        log.debug("Request to get Suoritemerkinta : $id")
+
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
             suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
                 val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
@@ -69,6 +78,8 @@ class SuoritemerkintaServiceImpl(
     }
 
     override fun delete(id: Long, userId: String) {
+        log.debug("Request to delete Suoritemerkinta : $id")
+
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
             suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
                 val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
