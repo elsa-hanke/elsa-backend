@@ -15,6 +15,7 @@
     <logger name="javax.mail" level="WARN"/>
     <logger name="javax.management.remote" level="WARN"/>
     <logger name="javax.xml.bind" level="WARN"/>
+    <logger name="jdk.event.security" level="INFO"/>
     <logger name="liquibase" level="WARN"/>
     <logger name="org.apache" level="WARN"/>
     <logger name="org.apache.catalina.startup.DigesterFactory" level="OFF"/>
@@ -23,6 +24,7 @@
     <logger name="org.hibernate" level="WARN"/>
     <logger name="org.hibernate.ejb.HibernatePersistence" level="OFF"/>
     <logger name="org.hibernate.validator" level="WARN"/>
+    <logger name="org.jboss.resteasy" level="INFO"/>
     <logger name="org.postgresql" level="WARN"/>
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.springframework.cache" level="WARN"/>
