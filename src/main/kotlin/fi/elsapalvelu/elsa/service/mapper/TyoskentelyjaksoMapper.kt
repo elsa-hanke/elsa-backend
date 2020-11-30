@@ -19,7 +19,11 @@ interface TyoskentelyjaksoMapper :
     EntityMapper<TyoskentelyjaksoDTO, Tyoskentelyjakso> {
 
     @Mappings(
-        Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId")
+        Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId"),
+        Mapping(
+            expression = "java(entity.isSuoritusarvioinnitEmpty())",
+            target = "suoritusarvioinnit"
+        )
     )
     override fun toDto(entity: Tyoskentelyjakso): TyoskentelyjaksoDTO
 

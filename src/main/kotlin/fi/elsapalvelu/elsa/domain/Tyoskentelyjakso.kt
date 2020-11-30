@@ -50,7 +50,6 @@ data class Tyoskentelyjakso(
     var tyoskentelypaikka: Tyoskentelypaikka? = null,
 
     @OneToMany(mappedBy = "tyoskentelyjakso")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var suoritusarvioinnit: MutableSet<Suoritusarviointi> = mutableSetOf(),
 
     @OneToMany(mappedBy = "tyoskentelyjakso")
@@ -86,6 +85,10 @@ data class Tyoskentelyjakso(
         this.suoritemerkinnat.remove(suoritemerkinta)
         suoritemerkinta.tyoskentelyjakso = null
         return this
+    }
+
+    fun isSuoritusarvioinnitEmpty(): Boolean {
+        return this.suoritusarvioinnit.isNotEmpty()
     }
 
     override fun equals(other: Any?): Boolean {

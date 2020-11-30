@@ -31,7 +31,9 @@ data class TyoskentelyjaksoDTO(
     @get: NotNull
     var tyoskentelypaikka: TyoskentelypaikkaDTO? = null,
 
-    var erikoistuvaLaakariId: Long? = null
+    var erikoistuvaLaakariId: Long? = null,
+
+    var suoritusarvioinnit: Boolean? = null
 
 ) : Serializable {
 
