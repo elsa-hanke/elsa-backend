@@ -42,7 +42,7 @@ class TyoskentelyjaksoHelper {
             // Add required entity
             val tyoskentelypaikka: Tyoskentelypaikka
             if (em.findAll(Tyoskentelypaikka::class).isEmpty()) {
-                tyoskentelypaikka = TyoskentelypaikkaHelper.createEntity()
+                tyoskentelypaikka = TyoskentelypaikkaHelper.createEntity(em)
                 em.persist(tyoskentelypaikka)
                 em.flush()
             } else {
@@ -78,7 +78,7 @@ class TyoskentelyjaksoHelper {
             // Add required entity
             val tyoskentelypaikka: Tyoskentelypaikka
             if (em.findAll(Tyoskentelypaikka::class).isEmpty()) {
-                tyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity()
+                tyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em)
                 em.persist(tyoskentelypaikka)
                 em.flush()
             } else {
