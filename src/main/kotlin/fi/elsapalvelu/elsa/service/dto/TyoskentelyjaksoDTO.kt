@@ -24,12 +24,12 @@ data class TyoskentelyjaksoDTO(
     @get: NotNull
     var kaytannonKoulutus: KaytannonKoulutusTyyppi? = null,
 
-    var reunakoulutuksenNimi: String? = null,
-
     var hyvaksyttyAiempaanErikoisalaan: Boolean = false,
 
     @get: NotNull
     var tyoskentelypaikka: TyoskentelypaikkaDTO? = null,
+
+    var omaaErikoisalaaTukevaId: Long? = null,
 
     var erikoistuvaLaakariId: Long? = null,
 

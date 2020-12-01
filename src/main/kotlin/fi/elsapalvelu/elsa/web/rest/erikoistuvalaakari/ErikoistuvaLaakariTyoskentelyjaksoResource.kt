@@ -1,10 +1,12 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
+import fi.elsapalvelu.elsa.service.ErikoisalaService
 import fi.elsapalvelu.elsa.service.ErikoistuvaLaakariService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
+import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import org.slf4j.LoggerFactory
@@ -28,7 +30,8 @@ private const val ENTITY_NAME = "tyoskentelyjakso"
 class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
+    private val erikoisalaService: ErikoisalaService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -58,12 +61,12 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 "idexists"
             )
         }
-        if (tyoskentelyjaksoDTO.kaytannonKoulutus == KaytannonKoulutusTyyppi.REUNAKOULUTUS &&
-            StringUtils.isEmpty(tyoskentelyjaksoDTO.reunakoulutuksenNimi)
+        if (tyoskentelyjaksoDTO.kaytannonKoulutus == KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS &&
+            tyoskentelyjaksoDTO.omaaErikoisalaaTukevaId == null
         ) {
             throw BadRequestAlertException(
-                "Työskentelyjakso on reunakoulutus, mutta reunakoulutuksen nimi puuttuu.",
-                "tyoskentelypaikka",
+                "Työskentelyjakso on omaa erikoisalaa tukeva, mutta erikoisala puuttuu.",
+                ENTITY_NAME,
                 "dataillegal"
             )
         }
@@ -170,5 +173,18 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         tyoskentelyjaksoService.delete(id, user.id!!)
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build()
+    }
+
+    @GetMapping("/tyoskentelyjakso-lomake")
+    fun getTyoskentelyjaksoForm(
+        principal: Principal?
+    ): ResponseEntity<TyoskentelyjaksoFormDTO> {
+        log.debug("REST request to get TyoskentelyjaksoForm")
+
+        val form = TyoskentelyjaksoFormDTO()
+
+        form.erikoisalat = erikoisalaService.findAll().toMutableSet()
+
+        return ResponseEntity.ok(form)
     }
 }

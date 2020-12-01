@@ -37,9 +37,6 @@ data class Tyoskentelyjakso(
     @Column(name = "kaytannon_koulutus", nullable = false)
     var kaytannonKoulutus: KaytannonKoulutusTyyppi? = null,
 
-    @Column(name = "reunakoulutuksen_nimi")
-    var reunakoulutuksenNimi: String? = null,
-
     @get: NotNull
     @Column(name = "hyvaksytty_aiempaan_erikoisalaan", nullable = false)
     var hyvaksyttyAiempaanErikoisalaan: Boolean = false,
@@ -55,6 +52,10 @@ data class Tyoskentelyjakso(
     @OneToMany(mappedBy = "tyoskentelyjakso")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var suoritemerkinnat: MutableSet<Suoritemerkinta> = mutableSetOf(),
+
+    @ManyToOne
+    @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
+    var omaaErikoisalaaTukeva: Erikoisala? = null,
 
     @NotNull
     @ManyToOne(optional = false)
@@ -106,7 +107,6 @@ data class Tyoskentelyjakso(
         ", paattymispaiva='$paattymispaiva'" +
         ", osaaikaprosentti=$osaaikaprosentti" +
         ", kaytannonKoulutus='$kaytannonKoulutus'" +
-        ", reunakoulutuksenNimi='$reunakoulutuksenNimi'" +
         ", hyvaksyttyAiempaanErikoisalaan='$hyvaksyttyAiempaanErikoisalaan'" +
         "}"
 

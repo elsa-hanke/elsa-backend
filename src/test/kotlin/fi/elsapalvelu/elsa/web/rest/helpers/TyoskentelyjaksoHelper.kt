@@ -24,10 +24,7 @@ class TyoskentelyjaksoHelper {
 
         private val DEFAULT_KAYTANNON_KOULUTUS: KaytannonKoulutusTyyppi =
             KaytannonKoulutusTyyppi.OMAN_ERIKOISALAN_KOULUTUS
-        private val UPDATED_KAYTANNON_KOULUTUS: KaytannonKoulutusTyyppi = KaytannonKoulutusTyyppi.REUNAKOULUTUS
-
-        private const val DEFAULT_REUNAKOULUTUKSEN_NIMI = "AAAAAAAAAA"
-        private const val UPDATED_REUNAKOULUTUKSEN_NIMI = "BBBBBBBBBB"
+        private val UPDATED_KAYTANNON_KOULUTUS: KaytannonKoulutusTyyppi = KaytannonKoulutusTyyppi.TUTKIMUSTYO
 
         private const val DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN: Boolean = false
         private const val UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN: Boolean = true
@@ -39,7 +36,6 @@ class TyoskentelyjaksoHelper {
                 paattymispaiva = DEFAULT_PAATTYMISPAIVA,
                 osaaikaprosentti = DEFAULT_OSAAIKAPROSENTTI,
                 kaytannonKoulutus = DEFAULT_KAYTANNON_KOULUTUS,
-                reunakoulutuksenNimi = DEFAULT_REUNAKOULUTUKSEN_NIMI,
                 hyvaksyttyAiempaanErikoisalaan = DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
             )
 
@@ -76,7 +72,6 @@ class TyoskentelyjaksoHelper {
                 paattymispaiva = UPDATED_PAATTYMISPAIVA,
                 osaaikaprosentti = UPDATED_OSAAIKAPROSENTTI,
                 kaytannonKoulutus = UPDATED_KAYTANNON_KOULUTUS,
-                reunakoulutuksenNimi = UPDATED_REUNAKOULUTUKSEN_NIMI,
                 hyvaksyttyAiempaanErikoisalaan = UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
             )
 

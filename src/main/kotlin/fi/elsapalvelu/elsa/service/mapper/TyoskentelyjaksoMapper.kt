@@ -11,6 +11,7 @@ import org.mapstruct.ReportingPolicy
     componentModel = "spring",
     uses = [
         TyoskentelypaikkaMapper::class,
+        ErikoisalaMapper::class,
         ErikoistuvaLaakariMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
@@ -19,6 +20,7 @@ interface TyoskentelyjaksoMapper :
     EntityMapper<TyoskentelyjaksoDTO, Tyoskentelyjakso> {
 
     @Mappings(
+        Mapping(source = "omaaErikoisalaaTukeva.id", target = "omaaErikoisalaaTukevaId"),
         Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId"),
         Mapping(
             expression = "java(entity.isSuoritusarvioinnitEmpty())",
@@ -32,6 +34,7 @@ interface TyoskentelyjaksoMapper :
         Mapping(target = "removeSuoritusarviointi", ignore = true),
         Mapping(target = "suoritemerkinnat", ignore = true),
         Mapping(target = "removeSuoritemerkinta", ignore = true),
+        Mapping(source = "omaaErikoisalaaTukevaId", target = "omaaErikoisalaaTukeva"),
         Mapping(source = "erikoistuvaLaakariId", target = "erikoistuvaLaakari")
     )
     override fun toEntity(dto: TyoskentelyjaksoDTO): Tyoskentelyjakso

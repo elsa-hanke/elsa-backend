@@ -30,6 +30,12 @@ class ErikoisalaServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun findAll(): MutableList<ErikoisalaDTO> {
+        return erikoisalaRepository.findAll()
+            .mapTo(mutableListOf(), erikoisalaMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<ErikoisalaDTO> {
         return erikoisalaRepository.findById(id)
             .map(erikoisalaMapper::toDto)

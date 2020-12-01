@@ -11,6 +11,8 @@ interface ErikoisalaService {
 
     fun findAll(pageable: Pageable): Page<ErikoisalaDTO>
 
+    fun findAll(): MutableList<ErikoisalaDTO>
+
     fun findOne(id: Long): Optional<ErikoisalaDTO>
 
     fun delete(id: Long)
