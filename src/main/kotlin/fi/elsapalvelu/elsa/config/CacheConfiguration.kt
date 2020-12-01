@@ -75,7 +75,6 @@ class CacheConfiguration(
             )
             createCache(cm, fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.OsaalueenArviointi::class.java.name)
-            createCache(cm, fi.elsapalvelu.elsa.domain.SoteOrganisaatio::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Suoritemerkinta::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.SuoritusarvioinninKommentti::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Suoritusarviointi::class.java.name + ".osaalueenArvioinnit")
