@@ -10,9 +10,6 @@ class TyoskentelypaikkaHelper {
         private const val DEFAULT_NIMI = "AAAAAAAAAA"
         private const val UPDATED_NIMI = "BBBBBBBBBB"
 
-        private const val DEFAULT_KUNTA = "AAAAAAAAAA"
-        private const val UPDATED_KUNTA = "BBBBBBBBBB"
-
         private val DEFAULT_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
         private val UPDATED_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.MUU
         private const val UPDATED_MUU_TYYPPI = "CCCCCCCCCC"
@@ -21,7 +18,6 @@ class TyoskentelypaikkaHelper {
         fun createEntity(): Tyoskentelypaikka {
             val tyoskentelypaikka = Tyoskentelypaikka(
                 nimi = DEFAULT_NIMI,
-                kunta = DEFAULT_KUNTA,
                 tyyppi = DEFAULT_TYYPPI,
                 muuTyyppi = null
             )
@@ -33,7 +29,6 @@ class TyoskentelypaikkaHelper {
         fun createUpdatedEntity(): Tyoskentelypaikka {
             val tyoskentelypaikka = Tyoskentelypaikka(
                 nimi = UPDATED_NIMI,
-                kunta = UPDATED_KUNTA,
                 tyyppi = UPDATED_TYYPPI,
                 muuTyyppi = UPDATED_MUU_TYYPPI
             )
