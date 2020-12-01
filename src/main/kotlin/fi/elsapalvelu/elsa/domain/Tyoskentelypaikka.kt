@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -23,16 +24,17 @@ data class Tyoskentelypaikka(
     var nimi: String? = null,
 
     @get: NotNull
-    @Column(name = "kunta", nullable = false)
-    var kunta: String? = null,
-
-    @get: NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "tyyppi", nullable = false)
     var tyyppi: TyoskentelyjaksoTyyppi? = null,
 
     @Column(name = "muu_tyyppi")
     var muuTyyppi: String? = null,
+
+    @NotNull
+    @ManyToOne(optional = false)
+    @JsonIgnoreProperties(value = ["tyoskentelypaikat"], allowSetters = true)
+    var kunta: Kunta? = null,
 
     @OneToOne(mappedBy = "tyoskentelypaikka")
     @JsonIgnore
@@ -52,7 +54,6 @@ data class Tyoskentelypaikka(
     override fun toString() = "Tyoskentelypaikka{" +
         "id=$id" +
         ", nimi='$nimi'" +
-        ", kunta='$kunta'" +
         ", tyyppi='$tyyppi'" +
         "}"
 

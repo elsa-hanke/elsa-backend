@@ -1,10 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
-import fi.elsapalvelu.elsa.service.ErikoisalaService
-import fi.elsapalvelu.elsa.service.ErikoistuvaLaakariService
-import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -31,6 +28,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
+    private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService
 ) {
 
@@ -182,6 +180,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         log.debug("REST request to get TyoskentelyjaksoForm")
 
         val form = TyoskentelyjaksoFormDTO()
+
+        form.kunnat = kuntaService.findAll().toMutableSet()
 
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
 

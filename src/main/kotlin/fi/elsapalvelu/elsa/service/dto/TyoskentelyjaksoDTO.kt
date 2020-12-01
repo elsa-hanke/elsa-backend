@@ -33,6 +33,8 @@ data class TyoskentelyjaksoDTO(
 
     var erikoistuvaLaakariId: Long? = null,
 
+    var omaaErikoisalaaTukeva: ErikoisalaDTO? = null,
+
     var suoritusarvioinnit: Boolean? = null
 
 ) : Serializable {

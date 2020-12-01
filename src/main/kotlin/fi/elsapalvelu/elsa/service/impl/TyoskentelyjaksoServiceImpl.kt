@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
+import fi.elsapalvelu.elsa.repository.KuntaRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
@@ -17,7 +17,7 @@ import java.util.Optional
 class TyoskentelyjaksoServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
-    private val suoritusarviointiRepository: SuoritusarviointiRepository,
+    private val kuntaRepository: KuntaRepository,
     private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
 ) : TyoskentelyjaksoService {
 
@@ -36,6 +36,7 @@ class TyoskentelyjaksoServiceImpl(
         if (kirjautunutErikoistuvaLaakari.isPresent) {
             tyoskentelyjaksoDTO.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.get().id
             var tyoskentelyjakso = tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
+            tyoskentelyjakso.tyoskentelypaikka!!.kunta = kuntaRepository.findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
             tyoskentelyjakso = tyoskentelyjaksoRepository.save(tyoskentelyjakso)
             return tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
         }

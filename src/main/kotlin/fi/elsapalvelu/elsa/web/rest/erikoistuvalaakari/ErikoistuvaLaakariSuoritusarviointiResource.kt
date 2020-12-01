@@ -28,6 +28,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private val suoritusarviointiQueryService: SuoritusarviointiQueryService,
     private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
+    private val kuntaService: KuntaService,
+    private val erikoisalaService: ErikoisalaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val epaOsaamisalueService: EpaOsaamisalueService,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService
@@ -79,6 +81,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         val form = ArviointipyyntoFormDTO()
         form.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+        form.kunnat = kuntaService.findAll().toMutableSet()
+        form.erikoisalat = erikoisalaService.findAll().toMutableSet()
         form.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()
         form.kouluttajat = kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(id).toMutableSet()
 

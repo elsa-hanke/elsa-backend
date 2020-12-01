@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20201201105013-1" author="jhipster">
+        <createTable tableName="kunta">
+            <column name="id" type="varchar(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="abbreviation" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="short_name" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="long_name" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="description" type="${clobType}">
+                <constraints nullable="true" />
+            </column>
+            <column name="kortnamn" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="korvaava_koodi" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="langt_namn" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="maakunta" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="sairaanhoitopiiri" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20201201105013-1-relations" author="jhipster">
+
+    </changeSet>
+
+    <changeSet id="20201201105013-1-data" author="jhipster" context="faker">
+        <loadData
+            file="config/liquibase/fake-data/kunta.csv"
+            separator=";"
+            tableName="kunta">
+            <column name="id" type="string"/>
+            <column name="abbreviation" type="string"/>
+        </loadData>
+    </changeSet>
+
+</databaseChangeLog>

@@ -12,14 +12,14 @@
             <column name="nimi" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
-            <column name="kunta" type="varchar(255)">
-                <constraints nullable="false" />
-            </column>
             <column name="tyyppi" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
             <column name="muu_tyyppi" type="varchar(255)">
                 <constraints nullable="true" />
+            </column>
+            <column name="kunta_id" type="varchar(255)">
+                <constraints nullable="false" />
             </column>
         </createTable>
     </changeSet>
@@ -35,9 +35,9 @@
             tableName="tyoskentelypaikka">
             <column name="id" type="numeric"/>
             <column name="nimi" type="string"/>
-            <column name="kunta" type="string"/>
             <column name="tyyppi" type="string"/>
             <column name="muu_tyyppi" type="string"/>
+            <column name="kunta_id" type="string"/>
         </loadData>
     </changeSet>
 

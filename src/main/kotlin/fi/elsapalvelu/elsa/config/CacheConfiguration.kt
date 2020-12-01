@@ -68,6 +68,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".saadutValtuutukset")
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Kunta::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Oppimistavoite::class.java.name)
             createCache(
                 cm,

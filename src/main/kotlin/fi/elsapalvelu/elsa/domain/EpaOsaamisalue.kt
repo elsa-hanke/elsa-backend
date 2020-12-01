@@ -36,7 +36,8 @@ data class EpaOsaamisalue(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var arvioitavatOsaalueet: MutableSet<ArvioitavaOsaalue> = mutableSetOf(),
 
-    @ManyToOne(optional = false) @NotNull
+    @NotNull
+    @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["epaOsaamisalueet"], allowSetters = true)
     var erikoisala: Erikoisala? = null
 

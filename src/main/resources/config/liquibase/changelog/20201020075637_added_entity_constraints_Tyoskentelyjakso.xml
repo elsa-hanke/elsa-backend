@@ -6,6 +6,18 @@
 
     <changeSet id="20201020075637-2" author="jhipster">
 
+        <addForeignKeyConstraint baseColumnNames="tyoskentelypaikka_id"
+                                 baseTableName="tyoskentelyjakso"
+                                 constraintName="fk_tyoskentelyjakso_tyoskentelypaikka_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="tyoskentelypaikka"/>
+
+        <addForeignKeyConstraint baseColumnNames="omaa_erikoisalaa_tukeva_id"
+                                 baseTableName="tyoskentelyjakso"
+                                 constraintName="fk_tyoskentelyjakso_omaa_erikoisalaa_tukeva_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="erikoisala"/>
+
         <addForeignKeyConstraint baseColumnNames="erikoistuva_laakari_id"
                                  baseTableName="tyoskentelyjakso"
                                  constraintName="fk_tyoskentelyjakso_erikoistuva_laakari_id"

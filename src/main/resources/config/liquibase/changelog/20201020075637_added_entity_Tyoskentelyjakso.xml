@@ -25,7 +25,10 @@
                 <constraints nullable="false" />
             </column>
             <column name="tyoskentelypaikka_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints unique="true" nullable="false" uniqueConstraintName="ux_tyoskentelyjakso_tyoskentelypaikka_id" />
+            </column>
+            <column name="omaa_erikoisalaa_tukeva_id" type="bigint">
+                <constraints nullable="true" />
             </column>
             <column name="erikoistuva_laakari_id" type="bigint">
                 <constraints nullable="false" />

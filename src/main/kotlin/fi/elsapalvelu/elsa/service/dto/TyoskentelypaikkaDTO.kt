@@ -12,12 +12,13 @@ data class TyoskentelypaikkaDTO(
     var nimi: String? = null,
 
     @get: NotNull
-    var kunta: String? = null,
-
-    @get: NotNull
     var tyyppi: TyoskentelyjaksoTyyppi? = null,
 
-    var muuTyyppi: String? = null
+    var muuTyyppi: String? = null,
+
+    var kuntaId: String? = null,
+
+    var kunta: KuntaDTO? = null
 
 ) : Serializable {
 
