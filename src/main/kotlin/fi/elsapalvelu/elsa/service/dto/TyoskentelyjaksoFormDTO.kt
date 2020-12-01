@@ -4,6 +4,8 @@ import java.io.Serializable
 
 class TyoskentelyjaksoFormDTO(
 
-    var erikoisalat: MutableSet<ErikoisalaDTO> = mutableSetOf(),
+    var kunnat: MutableSet<KuntaDTO> = mutableSetOf(),
+
+    var erikoisalat: MutableSet<ErikoisalaDTO> = mutableSetOf()
 
 ) : Serializable
