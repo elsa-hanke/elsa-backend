@@ -59,15 +59,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 "idexists"
             )
         }
-        if (tyoskentelyjaksoDTO.kaytannonKoulutus == KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS &&
-            tyoskentelyjaksoDTO.omaaErikoisalaaTukevaId == null
-        ) {
-            throw BadRequestAlertException(
-                "Työskentelyjakso on omaa erikoisalaa tukeva, mutta erikoisala puuttuu.",
-                ENTITY_NAME,
-                "dataillegal"
-            )
-        }
         if (tyoskentelyjaksoDTO.paattymispaiva != null
         ) {
             val daysBetween = ChronoUnit.DAYS.between(
