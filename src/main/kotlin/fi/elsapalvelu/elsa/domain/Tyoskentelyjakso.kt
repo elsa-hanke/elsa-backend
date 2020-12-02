@@ -52,6 +52,9 @@ data class Tyoskentelyjakso(
     @OneToMany(mappedBy = "tyoskentelyjakso")
     var suoritemerkinnat: MutableSet<Suoritemerkinta> = mutableSetOf(),
 
+    @OneToMany(mappedBy = "tyoskentelyjakso")
+    var keskeytykset: MutableSet<Keskeytysaika> = mutableSetOf(),
+
     @ManyToOne
     @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
     var omaaErikoisalaaTukeva: Erikoisala? = null,
@@ -84,6 +87,18 @@ data class Tyoskentelyjakso(
     fun removeSuoritemerkinta(suoritemerkinta: Suoritemerkinta): Tyoskentelyjakso {
         this.suoritemerkinnat.remove(suoritemerkinta)
         suoritemerkinta.tyoskentelyjakso = null
+        return this
+    }
+
+    fun addKeskeytysaika(keskeytysaika: Keskeytysaika): Tyoskentelyjakso {
+        this.keskeytykset.add(keskeytysaika)
+        keskeytysaika.tyoskentelyjakso = this
+        return this
+    }
+
+    fun removeKeskeytysaika(keskeytysaika: Keskeytysaika): Tyoskentelyjakso {
+        this.keskeytykset.remove(keskeytysaika)
+        keskeytysaika.tyoskentelyjakso = null
         return this
     }
 
