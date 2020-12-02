@@ -50,7 +50,6 @@ data class Tyoskentelyjakso(
     var suoritusarvioinnit: MutableSet<Suoritusarviointi> = mutableSetOf(),
 
     @OneToMany(mappedBy = "tyoskentelyjakso")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var suoritemerkinnat: MutableSet<Suoritemerkinta> = mutableSetOf(),
 
     @ManyToOne
