@@ -34,6 +34,8 @@ interface TyoskentelyjaksoMapper :
         Mapping(target = "removeSuoritusarviointi", ignore = true),
         Mapping(target = "suoritemerkinnat", ignore = true),
         Mapping(target = "removeSuoritemerkinta", ignore = true),
+        Mapping(target = "keskeytykset", ignore = true),
+        Mapping(target = "removeKeskeytysaika", ignore = true),
         Mapping(source = "omaaErikoisalaaTukevaId", target = "omaaErikoisalaaTukeva"),
         Mapping(source = "erikoistuvaLaakariId", target = "erikoistuvaLaakari")
     )

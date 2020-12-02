@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.dto.PoissaoloFormDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.util.StringUtils
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
@@ -29,7 +28,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val kuntaService: KuntaService,
-    private val erikoisalaService: ErikoisalaService
+    private val erikoisalaService: ErikoisalaService,
+    private val poissaolonSyyService: PoissaolonSyyService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -175,6 +175,24 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         form.kunnat = kuntaService.findAll().toMutableSet()
 
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
+
+        return ResponseEntity.ok(form)
+    }
+
+    @GetMapping("/poissaolo-lomake")
+    fun getPoissaoloForm(
+        principal: Principal?
+    ): ResponseEntity<PoissaoloFormDTO> {
+        log.debug("REST request to get PoissaoloForm")
+
+        val user = userService.getAuthenticatedUser(principal)
+
+        val form = PoissaoloFormDTO()
+
+        form.poissaoloSyyt = poissaolonSyyService.findAll().toMutableSet()
+
+        form.tyoskentelyjaksot = tyoskentelyjaksoService
+            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
 
         return ResponseEntity.ok(form)
     }
