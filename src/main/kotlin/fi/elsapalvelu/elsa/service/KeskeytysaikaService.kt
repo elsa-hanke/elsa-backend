@@ -5,11 +5,11 @@ import org.springframework.data.domain.Pageable
 
 interface KeskeytysaikaService {
 
-    fun save(keskeytysaikaDTO: KeskeytysaikaDTO): KeskeytysaikaDTO
+    fun save(keskeytysaikaDTO: KeskeytysaikaDTO, userId: String): KeskeytysaikaDTO?
 
     fun findAll(pageable: Pageable): Page<KeskeytysaikaDTO>
 
-    fun findOne(id: Long): KeskeytysaikaDTO?
+    fun findOne(id: Long, userId: String): KeskeytysaikaDTO?
 
     fun delete(id: Long)
 }

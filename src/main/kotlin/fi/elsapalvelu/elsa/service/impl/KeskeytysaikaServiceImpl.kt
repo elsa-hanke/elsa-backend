@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KeskeytysaikaRepository
+import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.KeskeytysaikaService
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
@@ -16,31 +18,43 @@ import java.util.Optional
 @Transactional
 class KeskeytysaikaServiceImpl(
     private val keskeytysaikaRepository: KeskeytysaikaRepository,
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val keskeytysaikaMapper: KeskeytysaikaMapper
 ) : KeskeytysaikaService {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun save(keskeytysaikaDTO: KeskeytysaikaDTO): KeskeytysaikaDTO {
+    override fun save(keskeytysaikaDTO: KeskeytysaikaDTO, userId: String): KeskeytysaikaDTO? {
         log.debug("Request to save Keskeytysaika : $keskeytysaikaDTO")
 
-        var keskeytysaika = keskeytysaikaMapper.toEntity(keskeytysaikaDTO)
-        keskeytysaika = keskeytysaikaRepository.save(keskeytysaika)
-        return keskeytysaikaMapper.toDto(keskeytysaika)
+        tyoskentelyjaksoRepository.findByIdOrNull(keskeytysaikaDTO.tyoskentelyjaksoId)?.let {
+            if (userId == it.erikoistuvaLaakari?.kayttaja?.user?.id) {
+                var keskeytysaika = keskeytysaikaMapper.toEntity(keskeytysaikaDTO)
+                keskeytysaika = keskeytysaikaRepository.save(keskeytysaika)
+                return keskeytysaikaMapper.toDto(keskeytysaika)
+            }
+        }
+
+        return null
     }
 
     @Transactional(readOnly = true)
     override fun findAll(pageable: Pageable): Page<KeskeytysaikaDTO> {
         log.debug("Request to get all Keskeytysaika")
+
         return keskeytysaikaRepository.findAll(pageable)
             .map(keskeytysaikaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOne(id: Long): KeskeytysaikaDTO? {
+    override fun findOne(id: Long, userId: String): KeskeytysaikaDTO? {
         log.debug("Request to get Keskeytysaika : $id")
-        keskeytysaikaRepository.findByIdOrNull(id)?.let {
-            return keskeytysaikaMapper.toDto(it)
+
+        keskeytysaikaRepository.findByIdOrNull(id)?.let { keskeytysaika ->
+            if (keskeytysaika.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.user?.id == userId) {
+                return keskeytysaikaMapper.toDto(keskeytysaika)
+            }
         }
         return null
     }

@@ -23,7 +23,11 @@ data class KeskeytysaikaDTO(
 
     var poissaolonSyyId: Long? = null,
 
-    var tyoskentelyjaksoId: Long? = null
+    var tyoskentelyjaksoId: Long? = null,
+
+    var poissaolonSyy: PoissaolonSyyDTO? = null,
+
+    var tyoskentelyjakso: TyoskentelyjaksoDTO? = null
 
 ) : Serializable {
 
