@@ -29,8 +29,6 @@ class TyoskentelyjaksoServiceImpl(
     ): TyoskentelyjaksoDTO? {
         log.debug("Request to save Tyoskentelyjakso : $tyoskentelyjaksoDTO")
 
-        tyoskentelyjaksoDTO.erikoistuvaLaakariId
-
         val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
             .findOneByKayttajaUserId(userId)
         if (kirjautunutErikoistuvaLaakari.isPresent) {
