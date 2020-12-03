@@ -24,6 +24,8 @@ private const val ENTITY_NAME = "suoritemerkinta"
 class ErikoistuvaLaakariSuoritemerkintaResource(
     private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
+    private val kuntaService: KuntaService,
+    private val erikoisalaService: ErikoisalaService,
     private val oppimistavoitteenKategoriaService: OppimistavoitteenKategoriaService,
     private val suoritemerkintaService: SuoritemerkintaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService
@@ -166,6 +168,10 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+
+        form.kunnat = kuntaService.findAll().toMutableSet()
+
+        form.erikoisalat = erikoisalaService.findAll().toMutableSet()
 
         val erikoistuvaLaakariOptional = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
         if (erikoistuvaLaakariOptional.isPresent) {
