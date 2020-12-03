@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.PoissaoloFormDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoFormDTO
@@ -29,7 +30,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
-    private val poissaolonSyyService: PoissaolonSyyService
+    private val poissaolonSyyService: PoissaolonSyyService,
+    private val keskeytysaikaService: KeskeytysaikaService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -195,5 +197,52 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
 
         return ResponseEntity.ok(form)
+    }
+
+    @PostMapping("/tyoskentelyjaksot/poissaolot")
+    fun createPoissaolo(
+        @Valid @RequestBody keskeytysaikaDTO: KeskeytysaikaDTO,
+        principal: Principal?
+    ): ResponseEntity<KeskeytysaikaDTO> {
+        log.debug("REST request to create Keskeytysaika : $keskeytysaikaDTO")
+
+        if (keskeytysaikaDTO.id != null) {
+            throw BadRequestAlertException(
+                "Uusi keskeytysaika ei saa sisältää ID:tä.",
+                "keskeytysaika",
+                "idexists"
+            )
+        }
+        val user = userService.getAuthenticatedUser(principal)
+
+        keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)?.let {
+            return ResponseEntity.created(URI("/api/tyoskentelyjaksot/poissaolot/${it.id}"))
+                .headers(
+                    HeaderUtil.createEntityCreationAlert(
+                        applicationName,
+                        true,
+                        "keskeytysaika",
+                        it.id.toString()
+                    )
+                )
+                .body(it)
+        } ?: throw BadRequestAlertException(
+            "Keskeytysajan täytyy olla oma.",
+            "keskeytysaika",
+            "dataillegal"
+        )
+    }
+
+    @GetMapping("/tyoskentelyjaksot/poissaolot/{id}")
+    fun getPoissaolo(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<KeskeytysaikaDTO> {
+        log.debug("REST request to get Tyoskentelyjakso : $id")
+
+        val user = userService.getAuthenticatedUser(principal)
+        keskeytysaikaService.findOne(id, user.id!!)?.let {
+            return ResponseEntity.ok(it)
+        } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 }
