@@ -174,7 +174,6 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val id = suoritemerkinta.id
         assertNotNull(id)
         val updatedSuoritemerkinta = suoritemerkintaRepository.findById(id).get()
-        // Disconnect from session so that the updates on updatedSuoritemerkinta are not directly saved in db
         em.detach(updatedSuoritemerkinta)
 
         updatedSuoritemerkinta.suorituspaiva = UPDATED_SUORITUSPAIVA
@@ -253,7 +252,6 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val id = suoritemerkinta.id
         assertNotNull(id)
         val updatedSuoritemerkinta = suoritemerkintaRepository.findById(id).get()
-        // Disconnect from session so that the updates on updatedSuoritemerkinta are not directly saved in db
         em.detach(updatedSuoritemerkinta)
 
         updatedSuoritemerkinta.suorituspaiva = UPDATED_SUORITUSPAIVA
