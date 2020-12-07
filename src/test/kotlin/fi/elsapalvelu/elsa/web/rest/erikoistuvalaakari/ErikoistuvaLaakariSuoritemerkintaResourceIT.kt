@@ -221,7 +221,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
     @Test
     @Transactional
-    fun updateSuoritemerkintaForAnotherUser() {
+    fun updateAnotherUserSuoritemerkinta() {
         initTest(null)
 
         val databaseSizeBeforeCreate = suoritemerkintaRepository.findAll().size
@@ -299,6 +299,25 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
     @Test
     @Transactional
+    fun deleteAnotherUserSuoritemerkinta() {
+        initTest(null)
+
+        suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
+
+        val databaseSizeBeforeDelete = suoritemerkintaRepository.findAll().size
+
+        restSuoritemerkintaMockMvc.perform(
+            delete("/api/erikoistuva-laakari/suoritemerkinnat/{id}", suoritemerkinta.id)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(csrf())
+        ).andExpect(status().isNoContent)
+
+        val suoritemerkintaList = suoritemerkintaRepository.findAll()
+        assertThat(suoritemerkintaList).hasSize(databaseSizeBeforeDelete)
+    }
+
+    @Test
+    @Transactional
     fun deleteLukittuSuoritemerkinta() {
         initTest()
 
@@ -319,7 +338,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
     @Test
     @Transactional
-    fun getOppimistavoitteetTaulukko() {
+    fun getOppimistavoitteetTable() {
         initTest()
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
@@ -348,7 +367,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
     @Test
     @Transactional
-    fun getSuoritemerkintaLomake() {
+    fun getSuoritemerkintaForm() {
         initTest()
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
@@ -356,19 +375,15 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val id = suoritemerkinta.id
         assertNotNull(id)
 
-        val erikoistuvaLaakariOptional = erikoistuvaLaakariRepository.findOneByKayttajaUserId(DEFAULT_ID)
-        if (erikoistuvaLaakariOptional.isPresent) {
-            val erikoistuvaLaakari = erikoistuvaLaakariOptional.get()
-            erikoistuvaLaakari.erikoisala = suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
-            erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
-        }
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(DEFAULT_ID).get()
+        erikoistuvaLaakari.erikoisala = suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
+        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
         restSuoritemerkintaMockMvc.perform(get("/api/erikoistuva-laakari/suoritemerkinta-lomake"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.tyoskentelyjaksot[0].id").value(suoritemerkinta.tyoskentelyjakso?.id as Any))
-            .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(
                 jsonPath("$.oppimistavoitteenKategoriat[0].id")
                     .value(suoritemerkinta.oppimistavoite?.kategoria?.id as Any)

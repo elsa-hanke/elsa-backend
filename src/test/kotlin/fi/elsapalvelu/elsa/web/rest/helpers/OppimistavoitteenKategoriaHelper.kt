@@ -28,7 +28,7 @@ class OppimistavoitteenKategoriaHelper {
                 voimassaolonPaattymispaiva = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val erikoisala: Erikoisala
             if (em.findAll(Erikoisala::class).isEmpty()) {
                 erikoisala = ErikoisalaHelper.createEntity()
@@ -49,7 +49,7 @@ class OppimistavoitteenKategoriaHelper {
                 voimassaolonPaattymispaiva = UPDATED_VOIMASSAOLON_PAATTYMISPAIVA
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val erikoisala: Erikoisala
             if (em.findAll(Erikoisala::class).isEmpty()) {
                 erikoisala = ErikoisalaHelper.createUpdatedEntity()

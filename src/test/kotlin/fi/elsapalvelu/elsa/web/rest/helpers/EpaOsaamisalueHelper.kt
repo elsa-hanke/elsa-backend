@@ -1,8 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.EpaOsaamisalue
+import fi.elsapalvelu.elsa.domain.Erikoisala
+import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
+import javax.persistence.EntityManager
 
 class EpaOsaamisalueHelper {
 
@@ -21,7 +24,7 @@ class EpaOsaamisalueHelper {
         private val UPDATED_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(): EpaOsaamisalue {
+        fun createEntity(em: EntityManager): EpaOsaamisalue {
             val epaOsaamisalue = EpaOsaamisalue(
                 nimi = DEFAULT_NIMI,
                 kuvaus = DEFAULT_KUVAUS,
@@ -29,17 +32,39 @@ class EpaOsaamisalueHelper {
                 voimassaoloLoppuu = DEFAULT_VOIMASSAOLO_LOPPUU
             )
 
+            // Lisätään pakollinen tieto
+            val erikoisala: Erikoisala
+            if (em.findAll(Erikoisala::class).isEmpty()) {
+                erikoisala = ErikoisalaHelper.createEntity()
+                em.persist(erikoisala)
+                em.flush()
+            } else {
+                erikoisala = em.findAll(Erikoisala::class).get(0)
+            }
+            epaOsaamisalue.erikoisala = erikoisala
+
             return epaOsaamisalue
         }
 
         @JvmStatic
-        fun createUpdatedEntity(): EpaOsaamisalue {
+        fun createUpdatedEntity(em: EntityManager): EpaOsaamisalue {
             val epaOsaamisalue = EpaOsaamisalue(
                 nimi = UPDATED_NIMI,
                 kuvaus = UPDATED_KUVAUS,
                 voimassaoloAlkaa = UPDATED_VOIMASSAOLO_ALKAA,
                 voimassaoloLoppuu = UPDATED_VOIMASSAOLO_LOPPUU
             )
+
+            // Lisätään pakollinen tieto
+            val erikoisala: Erikoisala
+            if (em.findAll(Erikoisala::class).isEmpty()) {
+                erikoisala = ErikoisalaHelper.createUpdatedEntity()
+                em.persist(erikoisala)
+                em.flush()
+            } else {
+                erikoisala = em.findAll(Erikoisala::class).get(0)
+            }
+            epaOsaamisalue.erikoisala = erikoisala
 
             return epaOsaamisalue
         }

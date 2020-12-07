@@ -39,7 +39,7 @@ class TyoskentelyjaksoHelper {
                 hyvaksyttyAiempaanErikoisalaan = DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val tyoskentelypaikka: Tyoskentelypaikka
             if (em.findAll(Tyoskentelypaikka::class).isEmpty()) {
                 tyoskentelypaikka = TyoskentelypaikkaHelper.createEntity(em)
@@ -50,7 +50,7 @@ class TyoskentelyjaksoHelper {
             }
             tyoskentelyjakso.tyoskentelypaikka = tyoskentelypaikka
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val erikoistuvaLaakari: ErikoistuvaLaakari
             if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
                 erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, userId)
@@ -75,7 +75,7 @@ class TyoskentelyjaksoHelper {
                 hyvaksyttyAiempaanErikoisalaan = UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val tyoskentelypaikka: Tyoskentelypaikka
             if (em.findAll(Tyoskentelypaikka::class).isEmpty()) {
                 tyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em)
@@ -85,7 +85,7 @@ class TyoskentelyjaksoHelper {
                 tyoskentelypaikka = em.findAll(Tyoskentelypaikka::class).get(0)
             }
             tyoskentelyjakso.tyoskentelypaikka = tyoskentelypaikka
-            // Add required entity
+            // Lisätään pakollinen tieto
             val erikoistuvaLaakari: ErikoistuvaLaakari
             if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
                 erikoistuvaLaakari = ErikoistuvaLaakariHelper.createUpdatedEntity(em)

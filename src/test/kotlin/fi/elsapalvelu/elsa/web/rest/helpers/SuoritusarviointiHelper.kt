@@ -50,7 +50,7 @@ class SuoritusarviointiHelper {
         private const val UPDATED_LUKITTU: Boolean = true
 
         @JvmStatic
-        fun createEntity(em: EntityManager): Suoritusarviointi {
+        fun createEntity(em: EntityManager, userId: String? = null): Suoritusarviointi {
             val suoritusarviointi = Suoritusarviointi(
                 tapahtumanAjankohta = DEFAULT_TAPAHTUMAN_AJANKOHTA,
                 arvioitavaTapahtuma = DEFAULT_ARVIOITAVA_TAPAHTUMA,
@@ -66,10 +66,10 @@ class SuoritusarviointiHelper {
                 lukittu = DEFAULT_LUKITTU
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val kayttaja: Kayttaja
             if (em.findAll(Kayttaja::class).isEmpty()) {
-                kayttaja = KayttajaHelper.createEntity(em)
+                kayttaja = KayttajaHelper.createEntity(em, userId)
                 em.persist(kayttaja)
                 em.flush()
             } else {
@@ -77,10 +77,10 @@ class SuoritusarviointiHelper {
             }
             suoritusarviointi.arvioinninAntaja = kayttaja
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val epaOsaamisalue: EpaOsaamisalue
             if (em.findAll(EpaOsaamisalue::class).isEmpty()) {
-                epaOsaamisalue = EpaOsaamisalueHelper.createEntity()
+                epaOsaamisalue = EpaOsaamisalueHelper.createEntity(em)
                 em.persist(epaOsaamisalue)
                 em.flush()
             } else {
@@ -88,7 +88,7 @@ class SuoritusarviointiHelper {
             }
             suoritusarviointi.arvioitavaOsaalue = epaOsaamisalue
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
             if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
                 tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
@@ -119,7 +119,7 @@ class SuoritusarviointiHelper {
                 lukittu = UPDATED_LUKITTU
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val kayttaja: Kayttaja
             if (em.findAll(Kayttaja::class).isEmpty()) {
                 kayttaja = KayttajaHelper.createUpdatedEntity(em)
@@ -130,10 +130,10 @@ class SuoritusarviointiHelper {
             }
             suoritusarviointi.arvioinninAntaja = kayttaja
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val epaOsaamisalue: EpaOsaamisalue
             if (em.findAll(EpaOsaamisalue::class).isEmpty()) {
-                epaOsaamisalue = EpaOsaamisalueHelper.createUpdatedEntity()
+                epaOsaamisalue = EpaOsaamisalueHelper.createUpdatedEntity(em)
                 em.persist(epaOsaamisalue)
                 em.flush()
             } else {
@@ -141,7 +141,7 @@ class SuoritusarviointiHelper {
             }
             suoritusarviointi.arvioitavaOsaalue = epaOsaamisalue
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
             if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
                 tyoskentelyjakso = TyoskentelyjaksoHelper.createUpdatedEntity(em)

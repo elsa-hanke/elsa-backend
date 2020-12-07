@@ -104,7 +104,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 )
                 .body(it)
         } ?: throw BadRequestAlertException(
-            "Työskentelyjakson täytyy olla oma.",
+            "Työskentelyjakson lisääminen epäonnistui.",
             ENTITY_NAME,
             "dataillegal"
         )
@@ -120,6 +120,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         if (tyoskentelyjaksoDTO.id == null) {
             throw BadRequestAlertException("Epäkelvollinen id", ENTITY_NAME, "idnull")
         }
+
         val user = userService.getAuthenticatedUser(principal)
 
         tyoskentelyjaksoService.save(tyoskentelyjaksoDTO, user.id!!)?.let {
@@ -134,7 +135,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 )
                 .body(it)
         } ?: throw BadRequestAlertException(
-            "Työskentelyjakson täytyy olla oma.",
+            "Työskentelyjakson päivittäminen epäonnistui.",
             ENTITY_NAME,
             "dataillegal"
         )
@@ -200,7 +201,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     }
 
     @PostMapping("/tyoskentelyjaksot/poissaolot")
-    fun createPoissaolo(
+    fun createKeskeytysaika(
         @Valid @RequestBody keskeytysaikaDTO: KeskeytysaikaDTO,
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaDTO> {
@@ -213,6 +214,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 "idexists"
             )
         }
+        if (keskeytysaikaDTO.alkamispaiva!!.isAfter(keskeytysaikaDTO.paattymispaiva)) {
+            throw BadRequestAlertException(
+                "Keskeytysajan päättymispäivä ei saa olla ennen alkamisaikaa",
+                "keskeytysaika",
+                "dataillegal"
+            )
+        }
+
         val user = userService.getAuthenticatedUser(principal)
 
         keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)?.let {
@@ -227,18 +236,18 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 )
                 .body(it)
         } ?: throw BadRequestAlertException(
-            "Keskeytysajan täytyy olla oma.",
+            "Keskeytysajan lisääminen epäonnistui.",
             "keskeytysaika",
             "dataillegal"
         )
     }
 
     @GetMapping("/tyoskentelyjaksot/poissaolot/{id}")
-    fun getPoissaolo(
+    fun getKeskeytysaika(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaDTO> {
-        log.debug("REST request to get Tyoskentelyjakso : $id")
+        log.debug("REST request to get Keskeytysaika : $id")
 
         val user = userService.getAuthenticatedUser(principal)
         keskeytysaikaService.findOne(id, user.id!!)?.let {

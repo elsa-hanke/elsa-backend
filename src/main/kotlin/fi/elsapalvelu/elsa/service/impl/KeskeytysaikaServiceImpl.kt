@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
 
 @Service
 @Transactional
@@ -28,8 +27,20 @@ class KeskeytysaikaServiceImpl(
     override fun save(keskeytysaikaDTO: KeskeytysaikaDTO, userId: String): KeskeytysaikaDTO? {
         log.debug("Request to save Keskeytysaika : $keskeytysaikaDTO")
 
-        tyoskentelyjaksoRepository.findByIdOrNull(keskeytysaikaDTO.tyoskentelyjaksoId)?.let {
-            if (userId == it.erikoistuvaLaakari?.kayttaja?.user?.id) {
+        tyoskentelyjaksoRepository.findByIdOrNull(keskeytysaikaDTO.tyoskentelyjaksoId)?.let { tyoskentelyjakso ->
+            if (
+                userId == tyoskentelyjakso.erikoistuvaLaakari?.kayttaja?.user?.id && (
+                    tyoskentelyjakso.alkamispaiva!!.isBefore(keskeytysaikaDTO.alkamispaiva) ||
+                        tyoskentelyjakso.alkamispaiva!!.isEqual(keskeytysaikaDTO.alkamispaiva)
+                    )
+            ) {
+                if (
+                    tyoskentelyjakso.paattymispaiva != null &&
+                    tyoskentelyjakso.paattymispaiva!!.isBefore(keskeytysaikaDTO.paattymispaiva)
+                ) {
+                    return null
+                }
+
                 var keskeytysaika = keskeytysaikaMapper.toEntity(keskeytysaikaDTO)
                 keskeytysaika = keskeytysaikaRepository.save(keskeytysaika)
                 return keskeytysaikaMapper.toDto(keskeytysaika)

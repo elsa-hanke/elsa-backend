@@ -30,7 +30,7 @@ class ErikoistuvaLaakariHelper {
                 opintojenAloitusvuosi = DEFAULT_OPINTOJEN_ALOITUSVUOSI
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val kayttaja: Kayttaja
             if (em.findAll(Kayttaja::class).isEmpty()) {
                 kayttaja = KayttajaHelper.createEntity(em, userId)
@@ -52,7 +52,7 @@ class ErikoistuvaLaakariHelper {
                 opintojenAloitusvuosi = UPDATED_OPINTOJEN_ALOITUSVUOSI
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val kayttaja: Kayttaja
             if (em.findAll(Kayttaja::class).isEmpty()) {
                 kayttaja = KayttajaHelper.createUpdatedEntity(em)
