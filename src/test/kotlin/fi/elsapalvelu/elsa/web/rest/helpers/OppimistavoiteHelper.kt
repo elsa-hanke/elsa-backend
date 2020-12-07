@@ -28,7 +28,7 @@ class OppimistavoiteHelper {
                 voimassaolonPaattymispaiva = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val oppimistavoitteenKategoria: OppimistavoitteenKategoria
             if (em.findAll(OppimistavoitteenKategoria::class).isEmpty()) {
                 oppimistavoitteenKategoria = OppimistavoitteenKategoriaHelper.createEntity(em)
@@ -49,7 +49,7 @@ class OppimistavoiteHelper {
                 voimassaolonPaattymispaiva = UPDATED_VOIMASSAOLON_PAATTYMISPAIVA
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val oppimistavoitteenKategoria: OppimistavoitteenKategoria
             if (em.findAll(OppimistavoitteenKategoria::class).isEmpty()) {
                 oppimistavoitteenKategoria = OppimistavoitteenKategoriaHelper.createUpdatedEntity(em)

@@ -29,7 +29,8 @@ class SuoritemerkintaServiceImpl(
             tyoskentelyjakso.erikoistuvaLaakari.let {
                 val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
                     .findOneByKayttajaUserId(userId)
-                if (kirjautunutErikoistuvaLaakari.isPresent &&
+                if (
+                    kirjautunutErikoistuvaLaakari.isPresent &&
                     kirjautunutErikoistuvaLaakari.get() == it
                 ) {
                     val suoritemerkinta = suoritemerkintaMapper.toEntity(suoritemerkintaDTO)

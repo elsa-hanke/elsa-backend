@@ -23,7 +23,7 @@ interface TyoskentelyjaksoMapper :
         Mapping(source = "omaaErikoisalaaTukeva.id", target = "omaaErikoisalaaTukevaId"),
         Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId"),
         Mapping(
-            expression = "java(entity.isSuoritusarvioinnitEmpty())",
+            expression = "java(entity.isSuoritusarvioinnitNotEmpty())",
             target = "suoritusarvioinnit"
         )
     )

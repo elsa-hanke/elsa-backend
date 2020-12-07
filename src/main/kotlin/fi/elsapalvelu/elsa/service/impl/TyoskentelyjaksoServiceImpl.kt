@@ -31,10 +31,31 @@ class TyoskentelyjaksoServiceImpl(
 
         val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
             .findOneByKayttajaUserId(userId)
-        if (kirjautunutErikoistuvaLaakari.isPresent) {
-            tyoskentelyjaksoDTO.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.get().id
+        if (
+            kirjautunutErikoistuvaLaakari.isPresent &&
+            kirjautunutErikoistuvaLaakari.get().id == tyoskentelyjaksoDTO.erikoistuvaLaakariId
+        ) {
             var tyoskentelyjakso = tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
-            tyoskentelyjakso.tyoskentelypaikka!!.kunta = kuntaRepository.findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
+
+            // Tarkistetaan päättymispäivä suoritusarvioinneille
+            if (tyoskentelyjakso.isSuoritusarvioinnitNotEmpty()) {
+                tyoskentelyjakso.suoritusarvioinnit.forEach {
+                    if (it.tapahtumanAjankohta!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+                        return null
+                    }
+                }
+            }
+            // Tarkistetaan päättymispäivä keskeytyksille
+            if (tyoskentelyjakso.keskeytykset.isNotEmpty()) {
+                tyoskentelyjakso.keskeytykset.forEach {
+                    if (it.paattymispaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+                        return null
+                    }
+                }
+            }
+
+            tyoskentelyjakso.tyoskentelypaikka!!.kunta = kuntaRepository
+                .findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
             tyoskentelyjakso = tyoskentelyjaksoRepository.save(tyoskentelyjakso)
             return tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
         }
@@ -87,7 +108,7 @@ class TyoskentelyjaksoServiceImpl(
                     .findOneByKayttajaUserId(userId)
                 if (kirjautunutErikoistuvaLaakari.isPresent &&
                     kirjautunutErikoistuvaLaakari.get() == it &&
-                    tyoskentelyjakso.suoritusarvioinnit.isEmpty()
+                    !tyoskentelyjakso.isSuoritusarvioinnitNotEmpty()
                 ) {
                     tyoskentelyjaksoRepository.deleteById(id)
                 }
