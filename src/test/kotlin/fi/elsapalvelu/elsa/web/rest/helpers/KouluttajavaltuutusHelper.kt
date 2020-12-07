@@ -35,7 +35,7 @@ class KouluttajavaltuutusHelper {
                 valtuutuksenMuokkausaika = DEFAULT_VALTUUTUKSEN_MUOKKAUSAIKA
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val erikoistuvaLaakari: ErikoistuvaLaakari
             if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
                 erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
@@ -45,7 +45,8 @@ class KouluttajavaltuutusHelper {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
             kouluttajavaltuutus.valtuuttaja = erikoistuvaLaakari
-            // Add required entity
+
+            // Lisätään pakollinen tieto
             val kayttaja: Kayttaja
             if (em.findAll(Kayttaja::class).isEmpty()) {
                 kayttaja = KayttajaHelper.createEntity(em)
@@ -55,6 +56,7 @@ class KouluttajavaltuutusHelper {
                 kayttaja = em.findAll(Kayttaja::class).get(0)
             }
             kouluttajavaltuutus.valtuutettu = kayttaja
+
             return kouluttajavaltuutus
         }
 
@@ -67,7 +69,7 @@ class KouluttajavaltuutusHelper {
                 valtuutuksenMuokkausaika = UPDATED_VALTUUTUKSEN_MUOKKAUSAIKA
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val erikoistuvaLaakari: ErikoistuvaLaakari
             if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
                 erikoistuvaLaakari = ErikoistuvaLaakariHelper.createUpdatedEntity(em)
@@ -77,7 +79,7 @@ class KouluttajavaltuutusHelper {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
             kouluttajavaltuutus.valtuuttaja = erikoistuvaLaakari
-            // Add required entity
+            // Lisätään pakollinen tieto
             val kayttaja: Kayttaja
             if (em.findAll(Kayttaja::class).isEmpty()) {
                 kayttaja = KayttajaHelper.createUpdatedEntity(em)

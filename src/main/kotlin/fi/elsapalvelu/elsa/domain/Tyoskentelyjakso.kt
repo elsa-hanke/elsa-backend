@@ -102,7 +102,7 @@ data class Tyoskentelyjakso(
         return this
     }
 
-    fun isSuoritusarvioinnitEmpty(): Boolean {
+    fun isSuoritusarvioinnitNotEmpty(): Boolean {
         return this.suoritusarvioinnit.isNotEmpty()
     }
 

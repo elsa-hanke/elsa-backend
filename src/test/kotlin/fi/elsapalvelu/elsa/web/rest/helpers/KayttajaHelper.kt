@@ -25,7 +25,7 @@ class KayttajaHelper {
                 profiilikuvaContentType = DEFAULT_PROFIILIKUVA_CONTENT_TYPE
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val user = UserResourceIT.createEntity(userId)
             em.persist(user)
             em.flush()
@@ -41,7 +41,7 @@ class KayttajaHelper {
                 profiilikuvaContentType = UPDATED_PROFIILIKUVA_CONTENT_TYPE
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val user = UserResourceIT.createEntity()
             em.persist(user)
             em.flush()

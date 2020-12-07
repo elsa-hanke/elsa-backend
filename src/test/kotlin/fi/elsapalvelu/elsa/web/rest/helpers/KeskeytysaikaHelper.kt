@@ -5,21 +5,20 @@ import fi.elsapalvelu.elsa.domain.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
-import java.time.ZoneId
 import javax.persistence.EntityManager
 
 class KeskeytysaikaHelper {
 
     companion object {
 
-        val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
-        val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
+        val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 1, 5)
+        val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 1, 20)
 
-        val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
-        val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
+        val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 1, 10)
+        val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 1, 25)
 
-        const val DEFAULT_OSAAIKAPROSENTTI: Int = 0
-        const val UPDATED_OSAAIKAPROSENTTI: Int = 1
+        const val DEFAULT_OSAAIKAPROSENTTI: Int = 50
+        const val UPDATED_OSAAIKAPROSENTTI: Int = 60
 
         @JvmStatic
         fun createEntity(em: EntityManager, tyoskentelyjakso: Tyoskentelyjakso): Keskeytysaika {
@@ -29,7 +28,7 @@ class KeskeytysaikaHelper {
                 osaaikaprosentti = DEFAULT_OSAAIKAPROSENTTI
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val poissaolonSyy: PoissaolonSyy
             if (em.findAll(PoissaolonSyy::class).isEmpty()) {
                 poissaolonSyy = PoissaolonSyyHelper.createEntity()
@@ -53,7 +52,7 @@ class KeskeytysaikaHelper {
                 osaaikaprosentti = UPDATED_OSAAIKAPROSENTTI
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val poissaolonSyy: PoissaolonSyy
             if (em.findAll(PoissaolonSyy::class).isEmpty()) {
                 poissaolonSyy = PoissaolonSyyHelper.createUpdatedEntity()

@@ -25,7 +25,7 @@ class TyoskentelypaikkaHelper {
                 muuTyyppi = null
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val kunta: Kunta
             if (em.findAll(Kunta::class).isEmpty()) {
                 kunta = KuntaHelper.createEntity()
@@ -47,7 +47,7 @@ class TyoskentelypaikkaHelper {
                 muuTyyppi = UPDATED_MUU_TYYPPI
             )
 
-            // Add required entity
+            // Lisätään pakollinen tieto
             val kunta: Kunta
             if (em.findAll(Kunta::class).isEmpty()) {
                 kunta = KuntaHelper.createUpdatedEntity()
