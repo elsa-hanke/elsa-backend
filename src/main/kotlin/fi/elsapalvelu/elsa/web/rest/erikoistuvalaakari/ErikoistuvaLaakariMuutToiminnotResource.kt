@@ -4,10 +4,11 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
-import io.github.jhipster.web.util.ResponseUtil
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
 import java.time.Instant
@@ -35,7 +36,9 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseUtil.wrapOrNotFound(erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!))
+        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let {
+            return ResponseEntity.ok(it)
+        } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 
     @PutMapping("/kayttooikeushakemus")
@@ -53,8 +56,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<KayttajaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val erikoistuvaLaakari = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
-        if (erikoistuvaLaakari.isPresent) {
+        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let { kirjautunutErikoistuvaLaakari ->
             val result = kayttajaService.save(
                 KayttajaDTO(nimi = uusiLahikouluttajaDTO.nimi),
                 UserDTO(
@@ -69,7 +71,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                 paattymispaiva = LocalDate.now(ZoneId.systemDefault()).plusMonths(6),
                 valtuutuksenLuontiaika = Instant.now(),
                 valtuutuksenMuokkausaika = Instant.now(),
-                valtuuttajaId = erikoistuvaLaakari.get().id,
+                valtuuttajaId = kirjautunutErikoistuvaLaakari.id,
                 valtuutettuId = result.id
             )
 
@@ -84,12 +86,10 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                     )
                 )
                 .body(result)
-        } else {
-            throw BadRequestAlertException(
-                "Uuden lahikouluttajan voi lisätä vain erikoistuva lääkäri.",
-                "kayttaja",
-                "dataillegal"
-            )
-        }
+        } ?: throw BadRequestAlertException(
+            "Uuden lahikouluttajan voi lisätä vain erikoistuva lääkäri.",
+            "kayttaja",
+            "dataillegal"
+        )
     }
 }

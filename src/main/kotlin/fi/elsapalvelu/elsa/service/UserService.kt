@@ -36,7 +36,7 @@ class UserService(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val erikoisalaRepository: ErikoisalaRepository,
     private val cacheManager: CacheManager,
-    private val keycloak: Keycloak
+    private val keycloak: Keycloak,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -106,7 +106,7 @@ class UserService(
             }
         } else {
             log.debug("Saving user '${user.login}' in local database")
-            userRepository.save(user)
+            userRepository.saveAndFlush(user)
             clearUserCaches(user)
         }
         return user
@@ -116,29 +116,30 @@ class UserService(
      * Luodaan erikoistuva lääkäri ja käyttäjä entiteetit erikoistuvalle lääkärille jos niitä ei vielä ole.
      */
     private fun handleNewErikoistuvaLaakari(user: User) {
-        if (user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI))) {
-            if (!erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!).isPresent) {
-                val kayttaja = kayttajaRepository.save(
-                    Kayttaja(
-                        user = user,
-                        nimi = user.firstName + " " + user.lastName
-                    )
+        if (
+            user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI)) &&
+            erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!) == null
+        ) {
+            val kayttaja = kayttajaRepository.save(
+                Kayttaja(
+                    user = user,
+                    nimi = user.firstName + " " + user.lastName
                 )
-                // TODO: erikoisalan valinta opinto-oikeuden mukaan
-                val erikoisala = erikoisalaRepository.findByIdOrNull(1)
-                erikoisala?.let {
-                    erikoistuvaLaakariRepository.save(
-                        ErikoistuvaLaakari(
-                            kayttaja = kayttaja,
-                            erikoisala = erikoisala
-                        )
-                    )
-                } ?: erikoistuvaLaakariRepository.save(
+            )
+            // TODO: erikoisalan valinta opinto-oikeuden mukaan
+            val erikoisala = erikoisalaRepository.findByIdOrNull(1)
+            erikoisala?.let {
+                erikoistuvaLaakariRepository.save(
                     ErikoistuvaLaakari(
-                        kayttaja = kayttaja
+                        kayttaja = kayttaja,
+                        erikoisala = erikoisala
                     )
                 )
-            }
+            } ?: erikoistuvaLaakariRepository.save(
+                ErikoistuvaLaakari(
+                    kayttaja = kayttaja
+                )
+            )
         }
     }
 

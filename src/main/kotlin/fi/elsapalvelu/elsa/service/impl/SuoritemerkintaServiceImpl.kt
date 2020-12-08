@@ -27,21 +27,18 @@ class SuoritemerkintaServiceImpl(
 
         tyoskentelyjaksoRepository.findByIdOrNull(suoritemerkintaDTO.tyoskentelyjaksoId!!)?.let { tyoskentelyjakso ->
             tyoskentelyjakso.erikoistuvaLaakari.let {
-                val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
-                    .findOneByKayttajaUserId(userId)
-                if (
-                    kirjautunutErikoistuvaLaakari.isPresent &&
-                    kirjautunutErikoistuvaLaakari.get() == it
-                ) {
-                    val suoritemerkinta = suoritemerkintaMapper.toEntity(suoritemerkintaDTO)
-                    // Jos päivitetään olemassa olevaa, tarkistetaan että suoritemerkintä ei ole lukittu
-                    if (suoritemerkinta.id != null) {
-                        val suoritemerkintaOptional = suoritemerkintaRepository.findOneById(suoritemerkinta.id!!)
-                        if (suoritemerkintaOptional.isPresent && !suoritemerkintaOptional.get().lukittu) {
+                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
+                    if (kirjautunutErikoistuvaLaakari == it) {
+                        val suoritemerkinta = suoritemerkintaMapper.toEntity(suoritemerkintaDTO)
+                        // Jos päivitetään olemassa olevaa, tarkistetaan että suoritemerkintä ei ole lukittu
+                        if (suoritemerkinta.id != null) {
+                            val suoritemerkintaOptional = suoritemerkintaRepository.findOneById(suoritemerkinta.id!!)
+                            if (suoritemerkintaOptional.isPresent && !suoritemerkintaOptional.get().lukittu) {
+                                return suoritemerkintaMapper.toDto(suoritemerkintaRepository.save(suoritemerkinta))
+                            }
+                        } else {
                             return suoritemerkintaMapper.toDto(suoritemerkintaRepository.save(suoritemerkinta))
                         }
-                    } else {
-                        return suoritemerkintaMapper.toDto(suoritemerkintaRepository.save(suoritemerkinta))
                     }
                 }
             }
@@ -65,12 +62,10 @@ class SuoritemerkintaServiceImpl(
 
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
             suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
-                val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
-                    .findOneByKayttajaUserId(userId)
-                if (kirjautunutErikoistuvaLaakari.isPresent &&
-                    kirjautunutErikoistuvaLaakari.get() == it
-                ) {
-                    return suoritemerkintaMapper.toDto(suoritemerkinta)
+                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
+                    if (kirjautunutErikoistuvaLaakari == it) {
+                        return suoritemerkintaMapper.toDto(suoritemerkinta)
+                    }
                 }
             }
         }
@@ -83,13 +78,11 @@ class SuoritemerkintaServiceImpl(
 
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
             suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
-                val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
-                    .findOneByKayttajaUserId(userId)
-                if (kirjautunutErikoistuvaLaakari.isPresent &&
-                    kirjautunutErikoistuvaLaakari.get() == it &&
-                    !suoritemerkinta.lukittu
-                ) {
-                    suoritemerkintaRepository.deleteById(id)
+                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
+                    if (kirjautunutErikoistuvaLaakari == it &&
+                        !suoritemerkinta.lukittu) {
+                        suoritemerkintaRepository.deleteById(id)
+                    }
                 }
             }
         }

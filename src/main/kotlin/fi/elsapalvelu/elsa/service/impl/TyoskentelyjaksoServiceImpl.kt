@@ -28,35 +28,36 @@ class TyoskentelyjaksoServiceImpl(
     ): TyoskentelyjaksoDTO? {
         log.debug("Request to save Tyoskentelyjakso : $tyoskentelyjaksoDTO")
 
-        val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
-            .findOneByKayttajaUserId(userId)
-        if (
-            kirjautunutErikoistuvaLaakari.isPresent &&
-            kirjautunutErikoistuvaLaakari.get().id == tyoskentelyjaksoDTO.erikoistuvaLaakariId
-        ) {
-            var tyoskentelyjakso = tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
-
-            // Tarkistetaan päättymispäivä suoritusarvioinneille
-            if (tyoskentelyjakso.isSuoritusarvioinnitNotEmpty()) {
-                tyoskentelyjakso.suoritusarvioinnit.forEach {
-                    if (it.tapahtumanAjankohta!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
-                        return null
-                    }
-                }
-            }
-            // Tarkistetaan päättymispäivä keskeytyksille
-            if (tyoskentelyjakso.keskeytykset.isNotEmpty()) {
-                tyoskentelyjakso.keskeytykset.forEach {
-                    if (it.paattymispaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
-                        return null
-                    }
-                }
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
+            if (tyoskentelyjaksoDTO.erikoistuvaLaakariId == null) {
+                tyoskentelyjaksoDTO.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.id
             }
 
-            tyoskentelyjakso.tyoskentelypaikka!!.kunta = kuntaRepository
-                .findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
-            tyoskentelyjakso = tyoskentelyjaksoRepository.save(tyoskentelyjakso)
-            return tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+            if (tyoskentelyjaksoDTO.erikoistuvaLaakariId == kirjautunutErikoistuvaLaakari.id) {
+                var tyoskentelyjakso = tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
+
+                // Tarkistetaan päättymispäivä suoritusarvioinneille
+                if (tyoskentelyjakso.isSuoritusarvioinnitNotEmpty()) {
+                    tyoskentelyjakso.suoritusarvioinnit.forEach {
+                        if (it.tapahtumanAjankohta!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+                            return null
+                        }
+                    }
+                }
+                // Tarkistetaan päättymispäivä keskeytyksille
+                if (tyoskentelyjakso.keskeytykset.isNotEmpty()) {
+                    tyoskentelyjakso.keskeytykset.forEach {
+                        if (it.paattymispaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+                            return null
+                        }
+                    }
+                }
+
+                tyoskentelyjakso.tyoskentelypaikka!!.kunta = kuntaRepository
+                    .findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
+                tyoskentelyjakso = tyoskentelyjaksoRepository.save(tyoskentelyjakso)
+                return tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+            }
         }
 
         return null
@@ -76,12 +77,10 @@ class TyoskentelyjaksoServiceImpl(
 
         tyoskentelyjaksoRepository.findByIdOrNull(id)?.let { tyoskentelyjakso ->
             tyoskentelyjakso.erikoistuvaLaakari.let {
-                val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
-                    .findOneByKayttajaUserId(userId)
-                if (kirjautunutErikoistuvaLaakari.isPresent &&
-                    kirjautunutErikoistuvaLaakari.get() == it
-                ) {
-                    return tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
+                    if (kirjautunutErikoistuvaLaakari == it) {
+                        return tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+                    }
                 }
             }
         }
@@ -94,13 +93,13 @@ class TyoskentelyjaksoServiceImpl(
 
         tyoskentelyjaksoRepository.findByIdOrNull(id)?.let { tyoskentelyjakso ->
             tyoskentelyjakso.erikoistuvaLaakari.let {
-                val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
-                    .findOneByKayttajaUserId(userId)
-                if (kirjautunutErikoistuvaLaakari.isPresent &&
-                    kirjautunutErikoistuvaLaakari.get() == it &&
-                    !tyoskentelyjakso.isSuoritusarvioinnitNotEmpty()
-                ) {
-                    tyoskentelyjaksoRepository.deleteById(id)
+                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {kirjautunutErikoistuvaLaakari ->
+                    if (
+                        kirjautunutErikoistuvaLaakari == it &&
+                        !tyoskentelyjakso.isSuoritusarvioinnitNotEmpty()
+                    ) {
+                        tyoskentelyjaksoRepository.deleteById(id)
+                    }
                 }
             }
         }

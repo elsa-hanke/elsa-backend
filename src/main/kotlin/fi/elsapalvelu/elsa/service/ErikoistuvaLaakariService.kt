@@ -12,5 +12,5 @@ interface ErikoistuvaLaakariService {
 
     fun delete(id: Long)
 
-    fun findOneByKayttajaUserId(id: String): Optional<ErikoistuvaLaakariDTO>
+    fun findOneByKayttajaUserId(id: String): ErikoistuvaLaakariDTO?
 }

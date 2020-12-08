@@ -132,9 +132,9 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         } else {
             val tyoskentelyjakso = tyoskentelyjaksoService
                 .findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!, user.id!!)
-            val erikoistuvaLaakari = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+            val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
 
-            if (tyoskentelyjakso == null || !erikoistuvaLaakari.isPresent) {
+            if (tyoskentelyjakso == null || kirjautunutErikoistuvaLaakari == null) {
                 throw BadRequestAlertException(
                     "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
                     ENTITY_NAME,
@@ -142,7 +142,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 )
             }
 
-            if (tyoskentelyjakso.erikoistuvaLaakariId != erikoistuvaLaakari.get().id) {
+            if (tyoskentelyjakso.erikoistuvaLaakariId != kirjautunutErikoistuvaLaakari.id) {
                 throw BadRequestAlertException(
                     "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
                     ENTITY_NAME,

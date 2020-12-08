@@ -40,6 +40,7 @@ class ErikoistuvaLaakariHelper {
                 kayttaja = em.findAll(Kayttaja::class).get(0)
             }
             erikoistuvaLaakari.kayttaja = kayttaja
+
             return erikoistuvaLaakari
         }
 
@@ -62,6 +63,7 @@ class ErikoistuvaLaakariHelper {
                 kayttaja = em.findAll(Kayttaja::class).get(0)
             }
             erikoistuvaLaakari.kayttaja = kayttaja
+
             return erikoistuvaLaakari
         }
     }

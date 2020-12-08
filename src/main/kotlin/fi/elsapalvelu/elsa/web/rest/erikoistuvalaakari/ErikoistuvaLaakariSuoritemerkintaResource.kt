@@ -141,10 +141,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
 
         val table = OppimistavoitteetTableDTO()
 
-        val erikoistuvaLaakariOptional = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
-        if (erikoistuvaLaakariOptional.isPresent) {
-            val erikoistuvaLaakari = erikoistuvaLaakariOptional.get()
-            erikoistuvaLaakari.erikoisalaId?.let {
+        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let { kirjautunutErikoistuvaLaakari ->
+            kirjautunutErikoistuvaLaakari.erikoisalaId?.let {
                 table.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
                     .findAllByErikoisalaId(it).toMutableSet()
             }
@@ -173,10 +171,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
 
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
 
-        val erikoistuvaLaakariOptional = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
-        if (erikoistuvaLaakariOptional.isPresent) {
-            val erikoistuvaLaakari = erikoistuvaLaakariOptional.get()
-            erikoistuvaLaakari.erikoisalaId?.let {
+        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let { kirjautunutErikoistuvaLaakari ->
+            kirjautunutErikoistuvaLaakari.erikoisalaId?.let {
                 form.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
                     .findAllByErikoisalaId(it).toMutableSet()
             }

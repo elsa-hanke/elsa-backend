@@ -39,8 +39,11 @@ class ErikoistuvaLaakariServiceImpl(
 
     override fun findOneByKayttajaUserId(
         id: String
-    ): Optional<ErikoistuvaLaakariDTO> {
-        return erikoistuvaLaakariRepository.findOneByKayttajaUserId(id)
-            .map(erikoistuvaLaakariMapper::toDto)
+    ): ErikoistuvaLaakariDTO? {
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(id)?.let {
+            return erikoistuvaLaakariMapper.toDto(it)
+        }
+
+        return null
     }
 }
