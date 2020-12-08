@@ -2,7 +2,10 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
-import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.Keskeytysaika
+import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.Tyoskentelypaikka
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
@@ -26,13 +29,8 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import javax.persistence.EntityManager
@@ -255,7 +253,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         val id = tyoskentelyjakso.id
         assertNotNull(id)
         val updatedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(id).get()
-        em.detach(updatedTyoskentelyjakso)
 
         updatedTyoskentelyjakso.alkamispaiva = UPDATED_ALKAMISPAIVA
         updatedTyoskentelyjakso.paattymispaiva = UPDATED_PAATTYMISPAIVA

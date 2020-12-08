@@ -34,27 +34,40 @@ class TyoskentelyjaksoServiceImpl(
             }
 
             if (tyoskentelyjaksoDTO.erikoistuvaLaakariId == kirjautunutErikoistuvaLaakari.id) {
-                var tyoskentelyjakso = tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
+                // Jos päivitetään olemassa olevaa, tarkistetaan sallitaan vain päättymispäivä muokkaus.
+                var tyoskentelyjakso = if (tyoskentelyjaksoDTO.id != null) {
+                    tyoskentelyjaksoRepository.findByIdOrNull(tyoskentelyjaksoDTO.id)?.let {
+                        it.paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
+                        it
+                    } ?: return null
+                } else {
+                    val newTyoskentelyjakso = tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
+                    newTyoskentelyjakso.tyoskentelypaikka!!.kunta = kuntaRepository
+                        .findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
+                    newTyoskentelyjakso
+                }
 
                 // Tarkistetaan päättymispäivä suoritusarvioinneille
-                if (tyoskentelyjakso.isSuoritusarvioinnitNotEmpty()) {
-                    tyoskentelyjakso.suoritusarvioinnit.forEach {
-                        if (it.tapahtumanAjankohta!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
-                            return null
-                        }
-                    }
-                }
-                // Tarkistetaan päättymispäivä keskeytyksille
-                if (tyoskentelyjakso.keskeytykset.isNotEmpty()) {
-                    tyoskentelyjakso.keskeytykset.forEach {
-                        if (it.paattymispaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
-                            return null
-                        }
+                tyoskentelyjakso.suoritusarvioinnit.forEach {
+                    if (it.tapahtumanAjankohta!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+                        return null
                     }
                 }
 
-                tyoskentelyjakso.tyoskentelypaikka!!.kunta = kuntaRepository
-                    .findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
+                // Tarkistetaan päättymispäivä suoritemerkinnöille
+                tyoskentelyjakso.suoritemerkinnat.forEach {
+                    if (it.suorituspaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+                        return null
+                    }
+                }
+
+                // Tarkistetaan päättymispäivä keskeytyksille
+                tyoskentelyjakso.keskeytykset.forEach {
+                    if (it.paattymispaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+                        return null
+                    }
+                }
+
                 tyoskentelyjakso = tyoskentelyjaksoRepository.save(tyoskentelyjakso)
                 return tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
             }
@@ -93,7 +106,7 @@ class TyoskentelyjaksoServiceImpl(
 
         tyoskentelyjaksoRepository.findByIdOrNull(id)?.let { tyoskentelyjakso ->
             tyoskentelyjakso.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {kirjautunutErikoistuvaLaakari ->
+                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
                     if (
                         kirjautunutErikoistuvaLaakari == it &&
                         !tyoskentelyjakso.isSuoritusarvioinnitNotEmpty()
