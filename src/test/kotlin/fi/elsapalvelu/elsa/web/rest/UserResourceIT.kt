@@ -256,8 +256,4 @@ class UserResourceIT {
             )
         }
     }
-
-    fun assertPersistedUsers(userAssertion: (List<User>) -> Unit) {
-        userAssertion(userRepository.findAll())
-    }
 }

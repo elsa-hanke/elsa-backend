@@ -30,6 +30,7 @@ class KayttajaHelper {
             em.persist(user)
             em.flush()
             kayttaja.user = user
+
             return kayttaja
         }
 
@@ -46,6 +47,7 @@ class KayttajaHelper {
             em.persist(user)
             em.flush()
             kayttaja.user = user
+
             return kayttaja
         }
     }

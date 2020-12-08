@@ -346,12 +346,9 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val id = suoritemerkinta.id
         assertNotNull(id)
 
-        val erikoistuvaLaakariOptional = erikoistuvaLaakariRepository.findOneByKayttajaUserId(DEFAULT_ID)
-        if (erikoistuvaLaakariOptional.isPresent) {
-            val erikoistuvaLaakari = erikoistuvaLaakariOptional.get()
-            erikoistuvaLaakari.erikoisala = suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
-            erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
-        }
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(DEFAULT_ID)!!
+        erikoistuvaLaakari.erikoisala = suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
+        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
         restSuoritemerkintaMockMvc.perform(get("/api/erikoistuva-laakari/oppimistavoitteet-taulukko"))
             .andExpect(status().isOk)
@@ -375,7 +372,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val id = suoritemerkinta.id
         assertNotNull(id)
 
-        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(DEFAULT_ID).get()
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(DEFAULT_ID)!!
         erikoistuvaLaakari.erikoisala = suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
