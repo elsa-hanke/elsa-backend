@@ -130,26 +130,29 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 "dataillegal"
             )
         } else {
-            val tyoskentelyjakso = tyoskentelyjaksoService.findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!)
+            val tyoskentelyjakso = tyoskentelyjaksoService
+                .findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!, user.id!!)
             val erikoistuvaLaakari = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
-            if (!tyoskentelyjakso.isPresent || !erikoistuvaLaakari.isPresent) {
+
+            if (tyoskentelyjakso == null || !erikoistuvaLaakari.isPresent) {
                 throw BadRequestAlertException(
                     "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
                     ENTITY_NAME,
                     "dataillegal"
                 )
             }
-            if (tyoskentelyjakso.get().erikoistuvaLaakariId!! != erikoistuvaLaakari.get().id) {
+
+            if (tyoskentelyjakso.erikoistuvaLaakariId != erikoistuvaLaakari.get().id) {
                 throw BadRequestAlertException(
                     "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
                     ENTITY_NAME,
                     "dataillegal"
                 )
             }
-            if (tyoskentelyjakso.get().alkamispaiva!! > suoritusarviointiDTO.tapahtumanAjankohta!! ||
+            if (tyoskentelyjakso.alkamispaiva!! > suoritusarviointiDTO.tapahtumanAjankohta!! ||
                 (
-                    tyoskentelyjakso.get().paattymispaiva != null &&
-                        suoritusarviointiDTO.tapahtumanAjankohta!! > tyoskentelyjakso.get().paattymispaiva!!
+                    tyoskentelyjakso.paattymispaiva != null &&
+                        suoritusarviointiDTO.tapahtumanAjankohta!! > tyoskentelyjakso.paattymispaiva!!
                     )
             ) {
                 throw BadRequestAlertException(

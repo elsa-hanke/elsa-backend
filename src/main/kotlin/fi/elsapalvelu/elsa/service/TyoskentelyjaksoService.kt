@@ -8,8 +8,6 @@ interface TyoskentelyjaksoService {
 
     fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<TyoskentelyjaksoDTO>
 
-    fun findOne(id: Long): Optional<TyoskentelyjaksoDTO>
-
     fun findOne(id: Long, userId: String): TyoskentelyjaksoDTO?
 
     fun delete(id: Long, userId: String)

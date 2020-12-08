@@ -118,7 +118,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         log.debug("REST request to update Tyoskentelyjakso : $tyoskentelyjaksoDTO")
 
         if (tyoskentelyjaksoDTO.id == null) {
-            throw BadRequestAlertException("Epäkelvollinen id", ENTITY_NAME, "idnull")
+            throw BadRequestAlertException("Työskentelyjakson ID puuttuu.", ENTITY_NAME, "idnull")
         }
 
         val user = userService.getAuthenticatedUser(principal)

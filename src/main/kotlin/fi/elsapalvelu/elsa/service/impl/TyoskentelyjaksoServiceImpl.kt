@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
 
 @Service
 @Transactional
@@ -69,15 +68,6 @@ class TyoskentelyjaksoServiceImpl(
 
         return tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
             .mapTo(mutableListOf(), tyoskentelyjaksoMapper::toDto)
-    }
-
-    // TODO: Käytä user id rajapintaa
-    @Transactional(readOnly = true)
-    override fun findOne(id: Long): Optional<TyoskentelyjaksoDTO> {
-        log.debug("Request to get Tyoskentelyjakso : $id")
-
-        return tyoskentelyjaksoRepository.findById(id)
-            .map(tyoskentelyjaksoMapper::toDto)
     }
 
     @Transactional(readOnly = true)
