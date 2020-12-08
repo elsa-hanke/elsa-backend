@@ -41,11 +41,8 @@ class SuoritusarviointiServiceImpl(
 
         // Erikoistuva lääkäri
         suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari.let {
-            val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
-                .findOneByKayttajaUserId(userId)
-            if (kirjautunutErikoistuvaLaakari.isPresent &&
-                kirjautunutErikoistuvaLaakari.get() == it
-            ) {
+            val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == it) {
                 val isItsearviointiNotEmpty = !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiVaativuustaso) &&
                     !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiLuottamuksenTaso) &&
                     !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenItsearviointi)
@@ -152,10 +149,10 @@ class SuoritusarviointiServiceImpl(
         if (suoritusarviointiOpt.isPresent) {
             val suoritusarviointi = suoritusarviointiOpt.get()
             suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari.let {
-                val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository
-                    .findOneByKayttajaUserId(userId)
-                if (kirjautunutErikoistuvaLaakari.isPresent &&
-                    kirjautunutErikoistuvaLaakari.get() == it &&
+                val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                if (
+                    kirjautunutErikoistuvaLaakari != null &&
+                    kirjautunutErikoistuvaLaakari == it &&
                     suoritusarviointi.arviointiAika == null &&
                     !suoritusarviointi.lukittu
                 ) {
