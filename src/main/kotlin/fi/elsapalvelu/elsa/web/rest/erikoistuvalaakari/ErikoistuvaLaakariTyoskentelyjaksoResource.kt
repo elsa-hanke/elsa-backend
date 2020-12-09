@@ -252,17 +252,22 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         }
 
         val user = userService.getAuthenticatedUser(principal)
-        val result = keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    "keskeytysaika",
-                    keskeytysaikaDTO.id.toString()
+        keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)?.let {
+            return ResponseEntity.ok()
+                .headers(
+                    HeaderUtil.createEntityUpdateAlert(
+                        applicationName,
+                        true,
+                        "keskeytysaika",
+                        keskeytysaikaDTO.id.toString()
+                    )
                 )
-            )
-            .body(result)
+                .body(it)
+        } ?: throw BadRequestAlertException(
+            "Keskeytysajan päivittäminen epäonnistui.",
+            ENTITY_NAME,
+            "dataillegal"
+        )
     }
 
     @GetMapping("/tyoskentelyjaksot/poissaolot/{id}")
