@@ -1,10 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
-import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaFormDTO
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoFormDTO
+import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import org.slf4j.LoggerFactory
@@ -137,6 +134,22 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             ENTITY_NAME,
             "dataillegal"
         )
+    }
+
+    @GetMapping("/tyoskentelyjaksot-taulukko")
+    fun getAllTyoskentelyjaksos(
+        principal: Principal?
+    ): ResponseEntity<TyoskentelyjaksotTableDTO> {
+        log.debug("REST request to get a page of Tyoskentelyjakso")
+
+        val user = userService.getAuthenticatedUser(principal)
+        val table = TyoskentelyjaksotTableDTO()
+        table.tyoskentelyjaksot = tyoskentelyjaksoService
+            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+        table.keskeytykset = keskeytysaikaService
+            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+
+        return ResponseEntity.ok(table)
     }
 
     @GetMapping("/tyoskentelyjaksot/{id}")

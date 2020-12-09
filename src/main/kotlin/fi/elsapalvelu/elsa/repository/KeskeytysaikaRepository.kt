@@ -5,4 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface KeskeytysaikaRepository : JpaRepository<Keskeytysaika, Long>
+interface KeskeytysaikaRepository : JpaRepository<Keskeytysaika, Long> {
+
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id: String): List<Keskeytysaika>
+}
