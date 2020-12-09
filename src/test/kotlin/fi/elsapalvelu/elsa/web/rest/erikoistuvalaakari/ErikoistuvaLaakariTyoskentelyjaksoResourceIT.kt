@@ -591,7 +591,155 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
     @Test
     @Transactional
-    fun getPoissaoloForm() {
+    fun updateKeskeytysaika() {
+        initTest()
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
+        keskeytysaikaRepository.saveAndFlush(keskeytysaika)
+
+        val databaseSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
+
+        val id = keskeytysaika.id
+        assertNotNull(id)
+
+        val updatedKeskeytysaika = keskeytysaikaRepository.findById(id).get()
+        em.detach(updatedKeskeytysaika)
+        updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
+        updatedKeskeytysaika.paattymispaiva = KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA
+        updatedKeskeytysaika.osaaikaprosentti = KeskeytysaikaHelper.UPDATED_OSAAIKAPROSENTTI
+        val keskeytysaikaDTO = keskeytysaikaMapper.toDto(updatedKeskeytysaika)
+
+        restKeskeytysaikaMockMvc.perform(
+            put("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(keskeytysaikaDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val keskeytysaikaList = keskeytysaikaRepository.findAll()
+        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeUpdate)
+        val testKeskeytysaika = keskeytysaikaList[keskeytysaikaList.size - 1]
+        assertThat(testKeskeytysaika.alkamispaiva).isEqualTo(KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA)
+        assertThat(testKeskeytysaika.paattymispaiva).isEqualTo(KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA)
+        assertThat(testKeskeytysaika.osaaikaprosentti).isEqualTo(KeskeytysaikaHelper.UPDATED_OSAAIKAPROSENTTI)
+    }
+
+    @Test
+    @Transactional
+    fun updateAnotherUserKeskeytysaika() {
+        initTest(null)
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
+        keskeytysaikaRepository.saveAndFlush(keskeytysaika)
+
+        val databaseSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
+
+        val id = keskeytysaika.id
+        assertNotNull(id)
+
+        val updatedKeskeytysaika = keskeytysaikaRepository.findById(id).get()
+        em.detach(updatedKeskeytysaika)
+        updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
+        updatedKeskeytysaika.paattymispaiva = KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA
+        updatedKeskeytysaika.osaaikaprosentti = KeskeytysaikaHelper.UPDATED_OSAAIKAPROSENTTI
+        val keskeytysaikaDTO = keskeytysaikaMapper.toDto(updatedKeskeytysaika)
+
+        restKeskeytysaikaMockMvc.perform(
+            put("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(keskeytysaikaDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val keskeytysaikaList = keskeytysaikaRepository.findAll()
+        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeUpdate)
+    }
+
+    @Test
+    @Transactional
+    fun updateKeskeytysaikaWithoutId() {
+        initTest()
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
+        keskeytysaikaRepository.saveAndFlush(keskeytysaika)
+
+        val databaseSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
+
+        val id = keskeytysaika.id
+        assertNotNull(id)
+
+        val updatedKeskeytysaika = keskeytysaikaRepository.findById(id).get()
+        em.detach(updatedKeskeytysaika)
+        updatedKeskeytysaika.id = null
+        updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
+        updatedKeskeytysaika.paattymispaiva = KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA
+        updatedKeskeytysaika.osaaikaprosentti = KeskeytysaikaHelper.UPDATED_OSAAIKAPROSENTTI
+        val keskeytysaikaDTO = keskeytysaikaMapper.toDto(updatedKeskeytysaika)
+
+        restKeskeytysaikaMockMvc.perform(
+            put("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(keskeytysaikaDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val keskeytysaikaList = keskeytysaikaRepository.findAll()
+        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeUpdate)
+    }
+
+    @Test
+    @Transactional
+    fun deleteKeskeytysaika() {
+        initTest()
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
+        keskeytysaikaRepository.saveAndFlush(keskeytysaika)
+
+        val databaseSizeBeforeDelete = keskeytysaikaRepository.findAll().size
+
+        restKeskeytysaikaMockMvc.perform(
+            delete("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot/{id}", keskeytysaika.id)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(csrf())
+        ).andExpect(status().isNoContent)
+
+        val keskeytysaikaList = keskeytysaikaRepository.findAll()
+        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeDelete - 1)
+    }
+
+    @Test
+    @Transactional
+    fun deleteAnotherUserKeskeytysaika() {
+        initTest(null)
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
+        keskeytysaikaRepository.saveAndFlush(keskeytysaika)
+
+        val databaseSizeBeforeDelete = keskeytysaikaRepository.findAll().size
+
+        restKeskeytysaikaMockMvc.perform(
+            delete("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot/{id}", keskeytysaika.id)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(csrf())
+        ).andExpect(status().isNoContent)
+
+        val keskeytysaikaList = keskeytysaikaRepository.findAll()
+        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeDelete)
+    }
+
+    @Test
+    @Transactional
+    fun getKeskeytysaikaForm() {
         initTest()
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
