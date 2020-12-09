@@ -18,7 +18,6 @@ import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
-@Suppress("unused")
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariMuutToiminnotResource(

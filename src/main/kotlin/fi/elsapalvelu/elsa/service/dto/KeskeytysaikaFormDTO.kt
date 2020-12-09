@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
 
-class PoissaoloFormDTO(
+class KeskeytysaikaFormDTO(
 
     var poissaoloSyyt: MutableSet<PoissaolonSyyDTO> = mutableSetOf(),
 
