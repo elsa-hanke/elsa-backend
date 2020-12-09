@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
-import fi.elsapalvelu.elsa.service.dto.PoissaoloFormDTO
+import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaFormDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -21,13 +21,11 @@ import kotlin.math.ceil
 
 private const val ENTITY_NAME = "tyoskentelyjakso"
 
-@Suppress("unused")
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
     private val poissaolonSyyService: PoissaolonSyyService,
@@ -183,14 +181,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     }
 
     @GetMapping("/poissaolo-lomake")
-    fun getPoissaoloForm(
+    fun getKeskeytysaikaForm(
         principal: Principal?
-    ): ResponseEntity<PoissaoloFormDTO> {
+    ): ResponseEntity<KeskeytysaikaFormDTO> {
         log.debug("REST request to get PoissaoloForm")
 
         val user = userService.getAuthenticatedUser(principal)
 
-        val form = PoissaoloFormDTO()
+        val form = KeskeytysaikaFormDTO()
 
         form.poissaoloSyyt = poissaolonSyyService.findAll().toMutableSet()
 
@@ -242,6 +240,31 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         )
     }
 
+    @PutMapping("/tyoskentelyjaksot/poissaolot")
+    fun updateKeskeytysaika(
+        @Valid @RequestBody keskeytysaikaDTO: KeskeytysaikaDTO,
+        principal: Principal?
+    ): ResponseEntity<KeskeytysaikaDTO> {
+        log.debug("REST request to update Keskeytysaika : $keskeytysaikaDTO")
+
+        if (keskeytysaikaDTO.id == null) {
+            throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
+        }
+
+        val user = userService.getAuthenticatedUser(principal)
+        val result = keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)
+        return ResponseEntity.ok()
+            .headers(
+                HeaderUtil.createEntityUpdateAlert(
+                    applicationName,
+                    true,
+                    "keskeytysaika",
+                    keskeytysaikaDTO.id.toString()
+                )
+            )
+            .body(result)
+    }
+
     @GetMapping("/tyoskentelyjaksot/poissaolot/{id}")
     fun getKeskeytysaika(
         @PathVariable id: Long,
@@ -253,5 +276,19 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         keskeytysaikaService.findOne(id, user.id!!)?.let {
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+    }
+
+    @DeleteMapping("/tyoskentelyjaksot/poissaolot/{id}")
+    fun deleteKeskeytysaika(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        log.debug("REST request to delete Keskeytysaika : $id")
+
+        val user = userService.getAuthenticatedUser(principal)
+        keskeytysaikaService.delete(id, user.id!!)
+        return ResponseEntity.noContent()
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, "keskeytysaika", id.toString()))
+            .build()
     }
 }

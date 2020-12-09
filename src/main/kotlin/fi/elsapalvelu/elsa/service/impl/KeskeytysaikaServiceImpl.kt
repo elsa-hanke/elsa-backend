@@ -51,14 +51,6 @@ class KeskeytysaikaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(pageable: Pageable): Page<KeskeytysaikaDTO> {
-        log.debug("Request to get all Keskeytysaika")
-
-        return keskeytysaikaRepository.findAll(pageable)
-            .map(keskeytysaikaMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
     override fun findOne(id: Long, userId: String): KeskeytysaikaDTO? {
         log.debug("Request to get Keskeytysaika : $id")
 
@@ -70,9 +62,17 @@ class KeskeytysaikaServiceImpl(
         return null
     }
 
-    override fun delete(id: Long) {
+    override fun delete(id: Long, userId: String) {
         log.debug("Request to delete Keskeytysaika : $id")
 
-        keskeytysaikaRepository.deleteById(id)
+        keskeytysaikaRepository.findByIdOrNull(id)?.let { keskeytysaika ->
+            keskeytysaika.tyoskentelyjakso?.erikoistuvaLaakari.let {
+                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
+                    if (kirjautunutErikoistuvaLaakari == it) {
+                        keskeytysaikaRepository.deleteById(id)
+                    }
+                }
+            }
+        }
     }
 }

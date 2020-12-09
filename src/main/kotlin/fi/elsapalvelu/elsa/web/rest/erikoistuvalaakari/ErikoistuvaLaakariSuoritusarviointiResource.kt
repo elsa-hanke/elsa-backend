@@ -20,7 +20,6 @@ import javax.validation.Valid
 
 private const val ENTITY_NAME = "suoritusarviointi"
 
-@Suppress("unused")
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariSuoritusarviointiResource(
