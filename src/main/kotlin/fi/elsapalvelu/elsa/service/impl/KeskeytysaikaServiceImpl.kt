@@ -51,6 +51,12 @@ class KeskeytysaikaServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<KeskeytysaikaDTO> {
+        return keskeytysaikaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId)
+            .mapTo(mutableListOf(), keskeytysaikaMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
     override fun findOne(id: Long, userId: String): KeskeytysaikaDTO? {
         log.debug("Request to get Keskeytysaika : $id")
 
