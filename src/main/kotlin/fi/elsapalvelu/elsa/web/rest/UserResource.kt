@@ -1,21 +1,21 @@
 package fi.elsapalvelu.elsa.web.rest
 
-import fi.elsapalvelu.elsa.config.LOGIN_REGEX
-import fi.elsapalvelu.elsa.security.ADMIN
+// import fi.elsapalvelu.elsa.config.LOGIN_REGEX
+// import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.UserDTO
-import io.github.jhipster.web.util.PaginationUtil
-import io.github.jhipster.web.util.ResponseUtil
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.data.domain.Pageable
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
+// import io.github.jhipster.web.util.PaginationUtil
+// import io.github.jhipster.web.util.ResponseUtil
+// import org.springframework.beans.factory.annotation.Value
+// import org.springframework.data.domain.Pageable
+// import org.springframework.http.HttpStatus
+// import org.springframework.http.ResponseEntity
+// import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
+// import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder
+// import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.security.Principal
 
 /**
@@ -46,10 +46,7 @@ import java.security.Principal
 class UserResource(
     private val userService: UserService
 ) {
-
-    @Value("\${jhipster.clientApp.name}")
-    private val applicationName: String? = null
-
+    /*
     @GetMapping("/users")
     fun getAllUsers(pageable: Pageable): ResponseEntity<List<UserDTO>> {
         val page = userService.getAllManagedUsers(pageable)
@@ -69,6 +66,7 @@ class UserResource(
                 .map { UserDTO(it) }
         )
     }
+    */
 
     @GetMapping("/kayttaja")
     fun getKayttaja(principal: Principal?): UserDTO = userService.getAuthenticatedUser(principal)
