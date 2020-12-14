@@ -137,7 +137,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     }
 
     @GetMapping("/tyoskentelyjaksot-taulukko")
-    fun getAllTyoskentelyjaksos(
+    fun getTyoskentelyjaksoTable(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksotTableDTO> {
         log.debug("REST request to get a page of Tyoskentelyjakso")
@@ -148,6 +148,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
         table.keskeytykset = keskeytysaikaService
             .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+        table.tilastot = tyoskentelyjaksoService.getTilastot(user.id!!)
 
         return ResponseEntity.ok(table)
     }
