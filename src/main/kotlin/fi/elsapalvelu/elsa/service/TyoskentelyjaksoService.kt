@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
+import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotDTO
 
 interface TyoskentelyjaksoService {
 
@@ -10,4 +11,6 @@ interface TyoskentelyjaksoService {
     fun findOne(id: Long, userId: String): TyoskentelyjaksoDTO?
 
     fun delete(id: Long, userId: String)
+
+    fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO
 }

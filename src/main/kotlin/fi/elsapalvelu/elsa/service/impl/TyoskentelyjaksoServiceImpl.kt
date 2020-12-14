@@ -1,15 +1,23 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KuntaRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
+import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotDTO
+import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotKaytannonKoulutusDTO
+import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotKoulutustyypitDTO
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 @Service
 @Transactional
@@ -116,5 +124,49 @@ class TyoskentelyjaksoServiceImpl(
                 }
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    override fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO {
+        var terveyskeskusSuoritettu = 0.0
+        val yhteensaSuoritettu = 365.0
+
+        val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+        tyoskentelyjaksot.map { tyoskentelyjakso ->
+            if (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!! == TyoskentelyjaksoTyyppi.TERVEYSKESKUS) {
+                val daysBetween = ChronoUnit.DAYS.between(
+                    tyoskentelyjakso.alkamispaiva,
+                    tyoskentelyjakso.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
+                ) + 1
+                if (daysBetween > 0) {
+                    val factor = (tyoskentelyjakso.osaaikaprosentti!!.toDouble() / 100.0)
+                    terveyskeskusSuoritettu += factor * daysBetween
+                }
+            }
+        }
+        val tyoskentelyaikaYhteensa = terveyskeskusSuoritettu
+        val arvioErikoistumiseenHyvaksyttavista = yhteensaSuoritettu
+        return TyoskentelyjaksotTilastotDTO(
+            tyoskentelyaikaYhteensa = tyoskentelyaikaYhteensa,
+            arvioErikoistumiseenHyvaksyttavista = arvioErikoistumiseenHyvaksyttavista,
+            arvioPuuttuvastaKoulutuksesta = 740.70,
+            koulutustyypit = TyoskentelyjaksotTilastotKoulutustyypitDTO(
+                terveyskeskusVaadittuVahintaan = 273.75,
+                terveyskeskusSuoritettu = terveyskeskusSuoritettu,
+                yliopistosairaalaVaadittuVahintaan = 365.0,
+                yliopistosairaalaSuoritettu = 0.0,
+                yliopistosairaaloidenUlkopuolinenVaadittuVahintaan = 365.0,
+                yliopistosairaaloidenUlkopuolinenSuoritettu = 0.0,
+                yhteensaVaadittuVahintaan = 1825.0,
+                yhteensaSuoritettu = yhteensaSuoritettu
+            ),
+            kaytannonKoulutus = KaytannonKoulutusTyyppi.values().map {
+                TyoskentelyjaksotTilastotKaytannonKoulutusDTO(
+                    kaytannonKoulutus = it,
+                    suoritettu = 0.0
+                )
+            }
+                .toMutableSet()
+        )
     }
 }
