@@ -406,15 +406,12 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         val id = tyoskentelyjakso.id
         assertNotNull(id)
 
-        val erikoisala = ErikoisalaHelper.createEntity()
-        erikoisalaRepository.saveAndFlush(erikoisala)
-
         restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjakso-lomake"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.erikoisalat[0].id").value(erikoisala.id as Any))
+            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(58)))
+            .andExpect(jsonPath("$.erikoisalat[0].id").value(1))
     }
 
     @Test
@@ -753,7 +750,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/poissaolo-lomake"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(16)))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.tyoskentelyjaksot[0].id").value(id as Any))
     }
