@@ -12,6 +12,8 @@ class TyoskentelyjaksotTilastotDTO(
 
     var koulutustyypit: TyoskentelyjaksotTilastotKoulutustyypitDTO,
 
-    var kaytannonKoulutus: MutableSet<TyoskentelyjaksotTilastotKaytannonKoulutusDTO> = mutableSetOf()
+    var kaytannonKoulutus: MutableSet<TyoskentelyjaksotTilastotKaytannonKoulutusDTO> = mutableSetOf(),
+
+    var tyoskentelyjaksot: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO> = mutableSetOf()
 
 ) : Serializable

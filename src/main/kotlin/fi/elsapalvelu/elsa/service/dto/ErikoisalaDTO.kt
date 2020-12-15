@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
@@ -14,7 +15,22 @@ data class ErikoisalaDTO(
     @get: NotNull
     var voimassaoloAlkaa: LocalDate? = null,
 
-    var voimassaoloPaattyy: LocalDate? = null
+    var voimassaoloPaattyy: LocalDate? = null,
+
+    @get: NotNull
+    var tyyppi: ErikoisalaTyyppi? = null,
+
+    @get: NotNull
+    var kaytannonKoulutuksenVahimmaispituus: Double? = null,
+
+    @get: NotNull
+    var terveyskeskuskoulutusjaksonVahimmaispituus: Double? = null,
+
+    @get: NotNull
+    var yliopistosairaalajaksonVahimmaispituus: Double? = null,
+
+    @get: NotNull
+    var yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus: Double? = null
 
 ) : Serializable {
 
