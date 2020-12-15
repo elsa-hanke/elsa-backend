@@ -42,17 +42,17 @@ data class Tyoskentelyjakso(
     var hyvaksyttyAiempaanErikoisalaan: Boolean = false,
 
     @NotNull
-    @OneToOne(optional = false, cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @OneToOne(optional = false, cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(unique = true)
     var tyoskentelypaikka: Tyoskentelypaikka? = null,
 
     @OneToMany(mappedBy = "tyoskentelyjakso")
     var suoritusarvioinnit: MutableSet<Suoritusarviointi> = mutableSetOf(),
 
-    @OneToMany(mappedBy = "tyoskentelyjakso")
+    @OneToMany(mappedBy = "tyoskentelyjakso", cascade = [CascadeType.ALL], orphanRemoval = true)
     var suoritemerkinnat: MutableSet<Suoritemerkinta> = mutableSetOf(),
 
-    @OneToMany(mappedBy = "tyoskentelyjakso")
+    @OneToMany(mappedBy = "tyoskentelyjakso", cascade = [CascadeType.ALL], orphanRemoval = true)
     var keskeytykset: MutableSet<Keskeytysaika> = mutableSetOf(),
 
     @ManyToOne
