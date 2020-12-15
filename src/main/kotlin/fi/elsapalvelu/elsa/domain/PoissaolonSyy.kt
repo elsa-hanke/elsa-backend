@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
+import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -22,6 +23,11 @@ data class PoissaolonSyy(
     var nimi: String? = null,
 
     @get: NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vahennystyyppi", nullable = false)
+    var vahennystyyppi: PoissaolonSyyTyyppi? = null,
+
+    @get: NotNull
     @Column(name = "voimassaolon_alkamispaiva", nullable = false)
     var voimassaolonAlkamispaiva: LocalDate? = null,
 
@@ -42,6 +48,7 @@ data class PoissaolonSyy(
     override fun toString() = "PoissaolonSyy{" +
         "id=$id" +
         ", nimi='$nimi'" +
+        ", vahennystyyppi='$vahennystyyppi'" +
         ", voimassaolonAlkamispaiva='$voimassaolonAlkamispaiva'" +
         ", voimassaolonPaattymispaiva='$voimassaolonPaattymispaiva'" +
         "}"

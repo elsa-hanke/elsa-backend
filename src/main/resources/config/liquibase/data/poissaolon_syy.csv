@@ -1,0 +1,16 @@
+id;nimi;vahennystyyppi;voimassaolon_alkamispaiva
+1;Sairausloma (palkallinen);VAHENNETAAN_YLIMENEVA_AIKA;2020-08-01
+2;Tilapäinen hoitovapaa (palkallinen/palkaton);VAHENNETAAN_YLIMENEVA_AIKA;2020-08-01
+3;Pakottavat perhesyyt;VAHENNETAAN_YLIMENEVA_AIKA;2020-08-01
+4;Äitiysloma, isyysloma, vanhempainvapaa (palkallinen/palkaton);VAHENNETAAN_YLIMENEVA_AIKA;2020-08-01
+5;Opintovapaalain mukainen opintovapaa;VAHENNETAAN_YLIMENEVA_AIKA;2020-08-01
+6;Opiskelu (palkaton);VAHENNETAAN_YLIMENEVA_AIKA;2020-08-01
+7;Lukuloma kuulustelua varten;VAHENNETAAN_YLIMENEVA_AIKA;2020-08-01
+8;Puolustusvoimien kertausharjoitukset;VAHENNETAAN_YLIMENEVA_AIKA;2020-08-01
+9;Lomautukset, säästösyyt, talkoovapaat;VAHENNETAAN_YLIMENEVA_AIKA;2020-08-01
+10;Yksityisasia (palkaton);VAHENNETAAN_SUORAAN;2020-08-01
+11;Virkavapaus/työloma (palkallinen/palkaton);VAHENNETAAN_SUORAAN;2020-08-01
+12;Sairausloma (palkaton);VAHENNETAAN_SUORAAN;2020-08-01
+13;Hoitovapaa (palkaton);VAHENNETAAN_SUORAAN;2020-08-01
+14;Vuorotteluvapaa (palkaton);VAHENNETAAN_SUORAAN;2020-08-01
+15;Sopeuttamisvapaa;VAHENNETAAN_SUORAAN;2020-08-01

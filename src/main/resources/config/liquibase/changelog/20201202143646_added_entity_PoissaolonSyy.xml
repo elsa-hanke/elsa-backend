@@ -12,6 +12,9 @@
             <column name="nimi" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
+            <column name="vahennystyyppi" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
             <column name="voimassaolon_alkamispaiva" type="date">
                 <constraints nullable="false" />
             </column>
@@ -25,15 +28,15 @@
 
     </changeSet>
 
-    <changeSet id="20201202143646-1-data" author="jhipster" context="faker">
+    <changeSet id="20201202143646-1-data" author="jhipster">
         <loadData
-            file="config/liquibase/fake-data/poissaolon_syy.csv"
+            file="config/liquibase/data/poissaolon_syy.csv"
             separator=";"
             tableName="poissaolon_syy">
             <column name="id" type="numeric"/>
             <column name="nimi" type="string"/>
+            <column name="vahennystyyppi" type="string"/>
             <column name="voimassaolon_alkamispaiva" type="date"/>
-            <column name="voimassaolon_paattymispaiva" type="date"/>
         </loadData>
     </changeSet>
 

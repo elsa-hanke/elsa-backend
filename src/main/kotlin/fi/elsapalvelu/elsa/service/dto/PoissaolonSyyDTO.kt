@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi
 import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
@@ -10,6 +11,9 @@ data class PoissaolonSyyDTO(
 
     @get: NotNull
     var nimi: String? = null,
+
+    @get: NotNull
+    var vahennystyyppi: PoissaolonSyyTyyppi? = null,
 
     @get: NotNull
     var voimassaolonAlkamispaiva: LocalDate? = null,
