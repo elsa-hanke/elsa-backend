@@ -18,6 +18,21 @@
             <column name="voimassaolo_paattyy" type="date">
                 <constraints nullable="true" />
             </column>
+            <column name="tyyppi" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="kaytannon_koulutuksen_vahimmaispituus" type="double">
+                <constraints nullable="false" />
+            </column>
+            <column name="terveyskeskuskoulutusjakson_vahimmaispituus" type="double">
+                <constraints nullable="false" />
+            </column>
+            <column name="yliopistosairaalajakson_vahimmaispituus" type="double">
+                <constraints nullable="false" />
+            </column>
+            <column name="yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus" type="double">
+                <constraints nullable="false" />
+            </column>
         </createTable>
     </changeSet>
 
@@ -33,6 +48,11 @@
             <column name="nimi" type="string"/>
             <column name="voimassaolo_alkaa" type="date"/>
             <column name="voimassaolo_paattyy" type="date"/>
+            <column name="tyyppi" type="string"/>
+            <column name="kaytannon_koulutuksen_vahimmaispituus" type="numeric"/>
+            <column name="terveyskeskuskoulutusjakson_vahimmaispituus" type="numeric"/>
+            <column name="yliopistosairaalajakson_vahimmaispituus" type="numeric"/>
+            <column name="yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus" type="numeric"/>
         </loadData>
     </changeSet>
 

@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -28,6 +29,27 @@ data class Erikoisala(
 
     @Column(name = "voimassaolo_paattyy")
     var voimassaoloPaattyy: LocalDate? = null,
+
+    @get: NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tyyppi", nullable = false)
+    var tyyppi: ErikoisalaTyyppi? = null,
+
+    @get: NotNull
+    @Column(name = "kaytannon_koulutuksen_vahimmaispituus", nullable = false)
+    var kaytannonKoulutuksenVahimmaispituus: Double? = null,
+
+    @get: NotNull
+    @Column(name = "terveyskeskuskoulutusjakson_vahimmaispituus", nullable = false)
+    var terveyskeskuskoulutusjaksonVahimmaispituus: Double? = null,
+
+    @get: NotNull
+    @Column(name = "yliopistosairaalajakson_vahimmaispituus", nullable = false)
+    var yliopistosairaalajaksonVahimmaispituus: Double? = null,
+
+    @get: NotNull
+    @Column(name = "yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus", nullable = false)
+    var yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus: Double? = null,
 
     @OneToMany(mappedBy = "erikoisala")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -94,6 +116,11 @@ data class Erikoisala(
         ", nimi='$nimi'" +
         ", voimassaoloAlkaa='$voimassaoloAlkaa'" +
         ", voimassaoloPaattyy='$voimassaoloPaattyy'" +
+        ", tyyppi='$tyyppi'" +
+        ", kaytannonKoulutuksenVahimmaispituus=$kaytannonKoulutuksenVahimmaispituus" +
+        ", terveyskeskuskoulutusjaksonVahimmaispituus=$terveyskeskuskoulutusjaksonVahimmaispituus" +
+        ", yliopistosairaalajaksonVahimmaispituus=$yliopistosairaalajaksonVahimmaispituus" +
+        ", yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus=$yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus" +
         "}"
 
     companion object {
