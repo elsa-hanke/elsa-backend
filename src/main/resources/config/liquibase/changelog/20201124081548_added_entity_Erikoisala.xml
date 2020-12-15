@@ -39,9 +39,9 @@
     <changeSet id="20201124081548-1-relations" author="jhipster">
 
     </changeSet>
-    <changeSet id="20201124081548-1-data" author="jhipster" context="faker">
+    <changeSet id="20201124081548-1-data" author="jhipster">
         <loadData
-            file="config/liquibase/fake-data/erikoisala.csv"
+            file="config/liquibase/data/erikoisala.csv"
             separator=";"
             tableName="erikoisala">
             <column name="id" type="numeric"/>
