@@ -1,6 +1,6 @@
-id;nimi;voimassaolo_alkaa;voimassaolo_paattyy
-1;Erikoisala 1;2020-11-23;2020-11-23
-2;Erikoisala 2;2020-11-24;2020-11-24
-3;Erikoisala 3;2020-11-24;2020-11-23
-4;Erikoisala 4;2020-11-24;
-5;Erikoisala 5;2020-11-23;
+id;nimi;voimassaolo_alkaa;voimassaolo_paattyy;tyyppi;kaytannon_koulutuksen_vahimmaispituus;terveyskeskuskoulutusjakson_vahimmaispituus;yliopistosairaalajakson_vahimmaispituus;yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus
+1;Erikoisala 1;2020-11-23;2020-11-23;LAAKETIEDE;1825;273.75;365;365
+2;Erikoisala 2;2020-11-24;2020-11-24;HAMMASLAAKETIEDE;1825;273.75;365;365
+3;Erikoisala 3;2020-11-24;2020-11-23;LAAKETIEDE;1825;273.75;365;365
+4;Erikoisala 4;2020-11-24;;LAAKETIEDE;1825;273.75;365;365
+5;Erikoisala 5;2020-11-23;;HAMMASLAAKETIEDE;1825;273.75;365;365

@@ -1,15 +1,13 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
-import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi.*
+import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi.*
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KuntaRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotDTO
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotKaytannonKoulutusDTO
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotKoulutustyypitDTO
+import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
@@ -18,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import kotlin.math.max
+import kotlin.math.min
 
 @Service
 @Transactional
@@ -128,45 +128,102 @@ class TyoskentelyjaksoServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO {
+        var tyoskentelyaikaYhteensa = 0.0
         var terveyskeskusSuoritettu = 0.0
-        val yhteensaSuoritettu = 365.0
+        var yliopistosairaalaSuoritettu = 0.0
+        var yliopistosairaaloidenUlkopuolinenSuoritettu = 0.0
 
+        var nykyiselleErikoisalalleSuoritettu = 0.0
+        var hyvaksyttyToiselleErikoisalalleSuoritettu = 0.0
+
+        val tyoskentelyjaksotSuoritettu = mutableSetOf<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>()
+        val kaytannonKoulutusSuoritettuMap = KaytannonKoulutusTyyppi.values().map { it to 0.0 }.toMap().toMutableMap()
         val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         tyoskentelyjaksot.map { tyoskentelyjakso ->
-            if (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!! == TyoskentelyjaksoTyyppi.TERVEYSKESKUS) {
-                val daysBetween = ChronoUnit.DAYS.between(
-                    tyoskentelyjakso.alkamispaiva,
-                    tyoskentelyjakso.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
-                ) + 1
-                if (daysBetween > 0) {
-                    val factor = (tyoskentelyjakso.osaaikaprosentti!!.toDouble() / 100.0)
-                    terveyskeskusSuoritettu += factor * daysBetween
+            val daysBetween = ChronoUnit.DAYS.between(
+                tyoskentelyjakso.alkamispaiva,
+                tyoskentelyjakso.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
+            ) + 1
+
+            // Ei huomioida tulevaisuuden jaksoja
+            if (daysBetween > 0) {
+                val factor = (tyoskentelyjakso.osaaikaprosentti!!.toDouble() / 100.0)
+                val result = factor * daysBetween
+
+                // TODO: Vähennetään poissaolot
+
+                // Summataan suoritettu aika koulutustyypettäin
+                when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
+                    TERVEYSKESKUS -> terveyskeskusSuoritettu += result
+                    YLIOPISTOLLINEN_SAIRAALA -> yliopistosairaalaSuoritettu += result
+                    else -> yliopistosairaaloidenUlkopuolinenSuoritettu += result
                 }
+
+                // Summataan suoritettu aika käytännön koulutuksettain
+                when (tyoskentelyjakso.kaytannonKoulutus!!) {
+                    OMAN_ERIKOISALAN_KOULUTUS ->
+                        kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS] =
+                            kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS]!! + result
+                    OMAA_ERIKOISALAA_TUKEVA_KOULUTUS ->
+                        kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS] =
+                            kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS]!! + result
+                    TUTKIMUSTYO ->
+                        kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO] =
+                            kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO]!! + result
+                    TERVEYSKESKUSTYO ->
+                        kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO] =
+                            kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO]!! + result
+                }
+
+                // Summataan nykyiselle tai hyväksytylle erikoisalalle
+                if (tyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan) {
+                    hyvaksyttyToiselleErikoisalalleSuoritettu += result
+                } else {
+                    nykyiselleErikoisalalleSuoritettu += result
+                }
+
+                // Summataan työskentelyaika yhteensä
+                tyoskentelyaikaYhteensa += result
+
+                // Kootaan työskentelyjaksojen suoritetut työskentelyajat
+                tyoskentelyjaksotSuoritettu.add(
+                    TyoskentelyjaksotTilastotTyoskentelyjaksotDTO(
+                        id = tyoskentelyjakso.id!!,
+                        suoritettu = result
+                    )
+                )
             }
         }
-        val tyoskentelyaikaYhteensa = terveyskeskusSuoritettu
-        val arvioErikoistumiseenHyvaksyttavista = yhteensaSuoritettu
+
+        val erikoisala = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.erikoisala
+        val yhteensaVaadittuVahintaan = erikoisala?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
+        val arvioErikoistumiseenHyvaksyttavista =
+            min(yhteensaVaadittuVahintaan / 2, hyvaksyttyToiselleErikoisalalleSuoritettu) +
+                nykyiselleErikoisalalleSuoritettu
+
         return TyoskentelyjaksotTilastotDTO(
             tyoskentelyaikaYhteensa = tyoskentelyaikaYhteensa,
             arvioErikoistumiseenHyvaksyttavista = arvioErikoistumiseenHyvaksyttavista,
-            arvioPuuttuvastaKoulutuksesta = 740.70,
+            arvioPuuttuvastaKoulutuksesta = max(0.0, yhteensaVaadittuVahintaan - arvioErikoistumiseenHyvaksyttavista),
             koulutustyypit = TyoskentelyjaksotTilastotKoulutustyypitDTO(
-                terveyskeskusVaadittuVahintaan = 273.75,
+                terveyskeskusVaadittuVahintaan = erikoisala?.terveyskeskuskoulutusjaksonVahimmaispituus ?: 0.0,
                 terveyskeskusSuoritettu = terveyskeskusSuoritettu,
-                yliopistosairaalaVaadittuVahintaan = 365.0,
-                yliopistosairaalaSuoritettu = 0.0,
-                yliopistosairaaloidenUlkopuolinenVaadittuVahintaan = 365.0,
-                yliopistosairaaloidenUlkopuolinenSuoritettu = 0.0,
-                yhteensaVaadittuVahintaan = 1825.0,
-                yhteensaSuoritettu = yhteensaSuoritettu
+                yliopistosairaalaVaadittuVahintaan = erikoisala?.yliopistosairaalajaksonVahimmaispituus ?: 0.0,
+                yliopistosairaalaSuoritettu = yliopistosairaalaSuoritettu,
+                yliopistosairaaloidenUlkopuolinenVaadittuVahintaan =
+                    erikoisala?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus ?: 0.0,
+                yliopistosairaaloidenUlkopuolinenSuoritettu = yliopistosairaaloidenUlkopuolinenSuoritettu,
+                yhteensaVaadittuVahintaan = yhteensaVaadittuVahintaan,
+                yhteensaSuoritettu = arvioErikoistumiseenHyvaksyttavista
             ),
             kaytannonKoulutus = KaytannonKoulutusTyyppi.values().map {
                 TyoskentelyjaksotTilastotKaytannonKoulutusDTO(
                     kaytannonKoulutus = it,
-                    suoritettu = 0.0
+                    suoritettu = kaytannonKoulutusSuoritettuMap[it]!!
                 )
             }
-                .toMutableSet()
+                .toMutableSet(),
+            tyoskentelyjaksot = tyoskentelyjaksotSuoritettu
         )
     }
 }
