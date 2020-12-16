@@ -41,6 +41,12 @@ class KeskeytysaikaServiceImpl(
                     return null
                 }
 
+                if (
+                    keskeytysaikaDTO.osaaikaprosentti!! > tyoskentelyjakso.osaaikaprosentti!!
+                ) {
+                    return null
+                }
+
                 var keskeytysaika = keskeytysaikaMapper.toEntity(keskeytysaikaDTO)
                 keskeytysaika = keskeytysaikaRepository.save(keskeytysaika)
                 return keskeytysaikaMapper.toDto(keskeytysaika)
@@ -51,7 +57,9 @@ class KeskeytysaikaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<KeskeytysaikaDTO> {
+    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+        userId: String
+    ): MutableList<KeskeytysaikaDTO> {
         return keskeytysaikaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId)
             .mapTo(mutableListOf(), keskeytysaikaMapper::toDto)
     }
