@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi.*
 import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN
@@ -134,156 +135,37 @@ class TyoskentelyjaksoServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO {
-        var tyoskentelyaikaYhteensa = 0.0
-        var terveyskeskusSuoritettu = 0.0
-        var yliopistosairaalaSuoritettu = 0.0
-        var yliopistosairaaloidenUlkopuolinenSuoritettu = 0.0
 
-        var nykyiselleErikoisalalleSuoritettu = 0.0
-        var hyvaksyttyToiselleErikoisalalleSuoritettu = 0.0
+        val counter = TilastotCounter()
 
-        val poissaoloaikaKalanterivuodessaMap = mutableMapOf<Int, Double>()
-        val tyoskentelyjaksotSuoritettu = mutableSetOf<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>()
         val kaytannonKoulutusSuoritettuMap = KaytannonKoulutusTyyppi.values().map { it to 0.0 }.toMap().toMutableMap()
+        val tyoskentelyjaksotSuoritettu = mutableSetOf<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>()
         val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
 
-        // TODO: työskentelyjakson iterointi omaan metodiin
-        tyoskentelyjaksot.map { tyoskentelyjakso ->
-            val daysBetween = ChronoUnit.DAYS.between(
-                tyoskentelyjakso.alkamispaiva,
-                tyoskentelyjakso.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
-            ) + 1
-
-            // Ei huomioida tulevaisuuden jaksoja
-            if (daysBetween > 0) {
-                val factor = tyoskentelyjakso.osaaikaprosentti!!.toDouble() / 100.0
-                var result = factor * daysBetween
-
-                // Vähennetään keskeytykset
-                tyoskentelyjakso.keskeytykset.map { keskeytysaika ->
-                    val keskeytysaikaDaysBetween = ChronoUnit.DAYS.between(
-                        keskeytysaika.alkamispaiva,
-                        keskeytysaika.paattymispaiva
-                    ) + 1
-
-                    // Keskeytysajan prosentti 0 % tarkoittaa kokopäiväpoissaoloa
-                    val keskeytysaikaFactor = keskeytysaika.osaaikaprosentti!!.toDouble() / 100.0
-                    val keskeytysaikaResult = keskeytysaikaFactor * keskeytysaikaDaysBetween
-
-                    when (keskeytysaika.poissaolonSyy!!.vahennystyyppi!!) {
-                        VAHENNETAAN_YLIMENEVA_AIKA -> {
-                            if (keskeytysaika.alkamispaiva!!.year == keskeytysaika.paattymispaiva!!.year) {
-                                // Jos keskeytys sijoittuu yhden kalenterivuoden sisälle
-                                poissaoloaikaKalanterivuodessaMap[keskeytysaika.alkamispaiva!!.year] =
-                                    (poissaoloaikaKalanterivuodessaMap[keskeytysaika.alkamispaiva!!.year] ?: 0.0) +
-                                    keskeytysaikaResult
-                            } else {
-                                // Lasketaan poissaolopäivät alkamispäivän kalenterivuodesta
-                                val keskeytysaikaAlkamispaivaDaysBetween = ChronoUnit.DAYS.between(
-                                    keskeytysaika.alkamispaiva,
-                                    keskeytysaika.alkamispaiva!!.with(TemporalAdjusters.lastDayOfYear())
-                                ) + 1
-                                poissaoloaikaKalanterivuodessaMap[keskeytysaika.alkamispaiva!!.year] =
-                                    (poissaoloaikaKalanterivuodessaMap[keskeytysaika.alkamispaiva!!.year] ?: 0.0) +
-                                    keskeytysaikaFactor * keskeytysaikaAlkamispaivaDaysBetween
-
-                                // Lasketaan poissaolopäivät päättymispäivän kalenterivuodesta
-                                val keskeytysaikaPaattymispaivaDaysBetween = ChronoUnit.DAYS.between(
-                                    keskeytysaika.paattymispaiva!!.with(TemporalAdjusters.firstDayOfYear()),
-                                    keskeytysaika.paattymispaiva
-                                ) + 1
-                                poissaoloaikaKalanterivuodessaMap[keskeytysaika.paattymispaiva!!.year] =
-                                    (poissaoloaikaKalanterivuodessaMap[keskeytysaika.alkamispaiva!!.year] ?: 0.0) +
-                                    keskeytysaikaFactor * keskeytysaikaPaattymispaivaDaysBetween
-
-                                // Lasketaan poissaolopäivät väliin jäävistä kalenterivuosista
-                                val nextYearOfalkamispaivaYear = keskeytysaika.alkamispaiva!!.year + 1
-                                val previousYearOfpaattymispaivaYear = keskeytysaika.paattymispaiva!!.year - 1
-                                for (year in nextYearOfalkamispaivaYear..previousYearOfpaattymispaivaYear) {
-                                    poissaoloaikaKalanterivuodessaMap[year] =
-                                        (poissaoloaikaKalanterivuodessaMap[keskeytysaika.alkamispaiva!!.year] ?: 0.0) +
-                                        keskeytysaikaFactor * Year.of(year).length()
-                                }
-                            }
-                        }
-                        VAHENNETAAN_SUORAAN -> {
-                            result -= keskeytysaikaResult
-                        }
-                    }
-                }
-
-                // Koskaan ei summata negatiivisa arvoja laskuriin! (Esim. jos on kirjattu poissaolo useampaan kertaan)
-                result = max(0.0, result)
-
-                // Summataan suoritettu aika koulutustyypettäin
-                when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
-                    TERVEYSKESKUS -> terveyskeskusSuoritettu += result
-                    YLIOPISTOLLINEN_SAIRAALA -> yliopistosairaalaSuoritettu += result
-                    else -> yliopistosairaaloidenUlkopuolinenSuoritettu += result
-                }
-
-                // Summataan suoritettu aika käytännön koulutuksettain
-                when (tyoskentelyjakso.kaytannonKoulutus!!) {
-                    OMAN_ERIKOISALAN_KOULUTUS ->
-                        kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS] =
-                            kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS]!! + result
-                    OMAA_ERIKOISALAA_TUKEVA_KOULUTUS ->
-                        kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS] =
-                            kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS]!! + result
-                    TUTKIMUSTYO ->
-                        kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO] =
-                            kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO]!! + result
-                    TERVEYSKESKUSTYO ->
-                        kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO] =
-                            kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO]!! + result
-                }
-
-                // Summataan nykyiselle tai hyväksytylle erikoisalalle
-                if (tyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan) {
-                    hyvaksyttyToiselleErikoisalalleSuoritettu += result
-                } else {
-                    nykyiselleErikoisalalleSuoritettu += result
-                }
-
-                // Summataan työskentelyaika yhteensä
-                tyoskentelyaikaYhteensa += result
-
-                // Kootaan työskentelyjaksojen suoritetut työskentelyajat
-                tyoskentelyjaksotSuoritettu.add(
-                    TyoskentelyjaksotTilastotTyoskentelyjaksotDTO(
-                        id = tyoskentelyjakso.id!!,
-                        suoritettu = result
-                    )
-                )
-            }
+        tyoskentelyjaksot.map {
+            getTyoskentelyjaksoTilastot(it, counter, kaytannonKoulutusSuoritettuMap, tyoskentelyjaksotSuoritettu)
         }
 
         val erikoisala = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.erikoisala
         val yhteensaVaadittuVahintaan = erikoisala?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
-        var arvioErikoistumiseenHyvaksyttavista =
-            min(yhteensaVaadittuVahintaan / 2, hyvaksyttyToiselleErikoisalalleSuoritettu) +
-                nykyiselleErikoisalalleSuoritettu
+        val arvioErikoistumiseenHyvaksyttavista =
+            min(yhteensaVaadittuVahintaan / 2, counter.hyvaksyttyToiselleErikoisalalleSuoritettu) +
+                counter.nykyiselleErikoisalalleSuoritettu
 
-        poissaoloaikaKalanterivuodessaMap.mapValues { entry ->
-            arvioErikoistumiseenHyvaksyttavista -= max(0.0, entry.value - 30) // Vähennetty 30 pv sääntö
-            tyoskentelyaikaYhteensa -= max(0.0, entry.value - 30) // Vähennetty 30 pv sääntö
-        }
-
-        tyoskentelyaikaYhteensa = max(0.0, tyoskentelyaikaYhteensa)
-        arvioErikoistumiseenHyvaksyttavista = max(0.0, arvioErikoistumiseenHyvaksyttavista)
+        counter.tyoskentelyaikaYhteensa = max(0.0, counter.tyoskentelyaikaYhteensa)
 
         return TyoskentelyjaksotTilastotDTO(
-            tyoskentelyaikaYhteensa = tyoskentelyaikaYhteensa,
+            tyoskentelyaikaYhteensa = counter.tyoskentelyaikaYhteensa,
             arvioErikoistumiseenHyvaksyttavista = arvioErikoistumiseenHyvaksyttavista,
             arvioPuuttuvastaKoulutuksesta = max(0.0, yhteensaVaadittuVahintaan - arvioErikoistumiseenHyvaksyttavista),
             koulutustyypit = TyoskentelyjaksotTilastotKoulutustyypitDTO(
                 terveyskeskusVaadittuVahintaan = erikoisala?.terveyskeskuskoulutusjaksonVahimmaispituus ?: 0.0,
-                terveyskeskusSuoritettu = terveyskeskusSuoritettu,
+                terveyskeskusSuoritettu = counter.terveyskeskusSuoritettu,
                 yliopistosairaalaVaadittuVahintaan = erikoisala?.yliopistosairaalajaksonVahimmaispituus ?: 0.0,
-                yliopistosairaalaSuoritettu = yliopistosairaalaSuoritettu,
+                yliopistosairaalaSuoritettu = counter.yliopistosairaalaSuoritettu,
                 yliopistosairaaloidenUlkopuolinenVaadittuVahintaan =
                     erikoisala?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus ?: 0.0,
-                yliopistosairaaloidenUlkopuolinenSuoritettu = yliopistosairaaloidenUlkopuolinenSuoritettu,
+                yliopistosairaaloidenUlkopuolinenSuoritettu = counter.yliopistosairaaloidenUlkopuolinenSuoritettu,
                 yhteensaVaadittuVahintaan = yhteensaVaadittuVahintaan,
                 yhteensaSuoritettu = arvioErikoistumiseenHyvaksyttavista
             ),
@@ -297,4 +179,98 @@ class TyoskentelyjaksoServiceImpl(
             tyoskentelyjaksot = tyoskentelyjaksotSuoritettu
         )
     }
+
+    fun getTyoskentelyjaksoTilastot(
+        tyoskentelyjakso: Tyoskentelyjakso,
+        counter: TilastotCounter,
+        kaytannonKoulutusSuoritettuMap: MutableMap<KaytannonKoulutusTyyppi, Double>,
+        tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>
+    ) {
+        // Lasketaan työskentelyjakson päivät
+        val daysBetween = ChronoUnit.DAYS.between(
+            tyoskentelyjakso.alkamispaiva,
+            tyoskentelyjakso.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
+        ) + 1
+
+        // Ei huomioida tulevaisuuden jaksoja
+        if (daysBetween > 0) {
+            val factor = tyoskentelyjakso.osaaikaprosentti!!.toDouble() / 100.0
+            var result = factor * daysBetween
+
+            // Vähennetään keskeytykset
+            tyoskentelyjakso.keskeytykset.map { keskeytysaika ->
+                val keskeytysaikaDaysBetween = ChronoUnit.DAYS.between(
+                    keskeytysaika.alkamispaiva,
+                    keskeytysaika.paattymispaiva
+                ) + 1
+
+                // Keskeytysajan prosentti 0 % tarkoittaa kokopäiväpoissaoloa
+                val keskeytysaikaFactor = keskeytysaika.osaaikaprosentti!!.toDouble() / 100.0
+                val keskeytysaikaResult = keskeytysaikaFactor * keskeytysaikaDaysBetween
+
+                when (keskeytysaika.poissaolonSyy!!.vahennystyyppi!!) {
+                    VAHENNETAAN_YLIMENEVA_AIKA -> {
+                        // 30 kalenterivuoden päivän sääntöä ei oteta nyt huomioon
+                        result -= keskeytysaikaResult
+                    }
+                    VAHENNETAAN_SUORAAN -> {
+                        result -= keskeytysaikaResult
+                    }
+                }
+            }
+
+            // Koskaan ei summata negatiivisa arvoja laskuriin! (Esim. jos on kirjattu poissaolo useampaan kertaan)
+            result = max(0.0, result)
+
+            // Summataan suoritettu aika koulutustyypettäin
+            when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
+                TERVEYSKESKUS -> counter.terveyskeskusSuoritettu += result
+                YLIOPISTOLLINEN_SAIRAALA -> counter.yliopistosairaalaSuoritettu += result
+                else -> counter.yliopistosairaaloidenUlkopuolinenSuoritettu += result
+            }
+
+            // Summataan suoritettu aika käytännön koulutuksettain
+            when (tyoskentelyjakso.kaytannonKoulutus!!) {
+                OMAN_ERIKOISALAN_KOULUTUS ->
+                    kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS] =
+                        kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS]!! + result
+                OMAA_ERIKOISALAA_TUKEVA_KOULUTUS ->
+                    kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS] =
+                        kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS]!! + result
+                TUTKIMUSTYO ->
+                    kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO] =
+                        kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO]!! + result
+                TERVEYSKESKUSTYO ->
+                    kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO] =
+                        kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO]!! + result
+            }
+
+            // Summataan nykyiselle tai hyväksytylle erikoisalalle
+            if (tyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan) {
+                counter.hyvaksyttyToiselleErikoisalalleSuoritettu += result
+            } else {
+                counter.nykyiselleErikoisalalleSuoritettu += result
+            }
+
+            // Summataan työskentelyaika yhteensä
+            counter.tyoskentelyaikaYhteensa += result
+
+            // Kootaan työskentelyjaksojen suoritetut työskentelyajat
+            tyoskentelyjaksotSuoritettu.add(
+                TyoskentelyjaksotTilastotTyoskentelyjaksotDTO(
+                    id = tyoskentelyjakso.id!!,
+                    suoritettu = result
+                )
+            )
+        }
+    }
+
+    data class TilastotCounter(
+        var terveyskeskusSuoritettu: Double = 0.0,
+        var yliopistosairaalaSuoritettu: Double = 0.0,
+        var yliopistosairaaloidenUlkopuolinenSuoritettu: Double = 0.0,
+        var tyoskentelyaikaYhteensa: Double = 0.0,
+        var nykyiselleErikoisalalleSuoritettu: Double = 0.0,
+        var hyvaksyttyToiselleErikoisalalleSuoritettu: Double = 0.0
+    )
 }
