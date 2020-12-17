@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.Keskeytysaika
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.Tyoskentelypaikka
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
@@ -760,8 +761,17 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     fun getTyoskentelyjaksoTable() {
         initTest()
 
+        tyoskentelyjakso.kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
+        tyoskentelyjakso.tyoskentelypaikka!!.tyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         em.detach(tyoskentelyjakso)
+
+        val tyoskentelyjakso2 = createEntity(em, DEFAULT_ID)
+        tyoskentelyjakso2.hyvaksyttyAiempaanErikoisalaan = true
+        tyoskentelyjakso2.kaytannonKoulutus = KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
+        tyoskentelyjakso2.tyoskentelypaikka!!.tyyppi = TyoskentelyjaksoTyyppi.YLIOPISTOLLINEN_SAIRAALA
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso2)
+        em.detach(tyoskentelyjakso2)
 
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
@@ -771,24 +781,25 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(15)))
-            .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.keskeytykset").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.tilastot.tyoskentelyaikaYhteensa").value(27.0))
-            .andExpect(jsonPath("$.tilastot.arvioErikoistumiseenHyvaksyttavista").value(27.0))
-            .andExpect(jsonPath("$.tilastot.arvioPuuttuvastaKoulutuksesta").value(0.0))
-            .andExpect(jsonPath("$.tilastot.koulutustyypit.terveyskeskusVaadittuVahintaan").value(0.0))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyaikaYhteensa").value(57.0))
+            .andExpect(jsonPath("$.tilastot.arvioErikoistumiseenHyvaksyttavista").value(57.0))
+            .andExpect(jsonPath("$.tilastot.arvioPuuttuvastaKoulutuksesta").value(1768.0))
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.terveyskeskusVaadittuVahintaan").value(273.75))
             .andExpect(jsonPath("$.tilastot.koulutustyypit.terveyskeskusSuoritettu").value(27.0))
-            .andExpect(jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaVaadittuVahintaan").value(0.0))
-            .andExpect(jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaSuoritettu").value(0.0))
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaVaadittuVahintaan").value(365.0))
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaSuoritettu").value(30.0))
             .andExpect(
-                jsonPath("$.tilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenVaadittuVahintaan").value(0.0)
+                jsonPath("$.tilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenVaadittuVahintaan").value(365.0)
             )
             .andExpect(jsonPath("$.tilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenSuoritettu").value(0.0))
-            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaVaadittuVahintaan").value(0.0))
-            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaSuoritettu").value(27.0))
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaVaadittuVahintaan").value(1825.0))
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaSuoritettu").value(57.0))
             .andExpect(jsonPath("$.tilastot.kaytannonKoulutus").value(Matchers.hasSize<Any>(4)))
-            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[0].suoritettu").value(27.0))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[1].suoritettu").value(30.0))
     }
 
     fun initTest(userId: String? = DEFAULT_ID) {
