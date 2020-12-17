@@ -18,10 +18,8 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.time.Year
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalAdjusters
 import kotlin.math.max
 import kotlin.math.min
 
@@ -135,6 +133,7 @@ class TyoskentelyjaksoServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO {
+        log.debug("Request to get TyoskentelyjaksotTilastot")
 
         val counter = TilastotCounter()
 
