@@ -43,13 +43,21 @@
 
     </changeSet>
 
-    <changeSet id="20201201105013-1-data" author="jhipster" context="faker">
+    <changeSet id="20201201105013-1-data" author="jhipster">
         <loadData
-            file="config/liquibase/fake-data/kunta.csv"
+            file="config/liquibase/data/kunta.csv"
             separator=";"
             tableName="kunta">
             <column name="id" type="string"/>
             <column name="abbreviation" type="string"/>
+            <column name="short_name" type="string"/>
+            <column name="long_name" type="string"/>
+            <column name="description" type="string"/>
+            <column name="kortnamn" type="string"/>
+            <column name="korvaava_koodi" type="string"/>
+            <column name="langt_namn" type="string"/>
+            <column name="maakunta" type="string"/>
+            <column name="sairaanhoitopiiri" type="string"/>
         </loadData>
     </changeSet>
 
