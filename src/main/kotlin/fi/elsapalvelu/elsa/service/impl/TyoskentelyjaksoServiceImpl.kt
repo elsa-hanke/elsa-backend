@@ -210,7 +210,7 @@ class TyoskentelyjaksoServiceImpl(
 
                 when (keskeytysaika.poissaolonSyy!!.vahennystyyppi!!) {
                     VAHENNETAAN_YLIMENEVA_AIKA -> {
-                        // 30 kalenterivuoden päivän sääntöä ei oteta nyt huomioon
+                        // 30 kalenterivuoden päivän sääntöä ei oteta huomioon vielä. Tarvitaan jokin ratkaisu.
                         result -= keskeytysaikaResult
                     }
                     VAHENNETAAN_SUORAAN -> {

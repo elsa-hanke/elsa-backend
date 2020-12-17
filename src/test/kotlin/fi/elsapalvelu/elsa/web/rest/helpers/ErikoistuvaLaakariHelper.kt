@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
+import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -40,6 +41,17 @@ class ErikoistuvaLaakariHelper {
                 kayttaja = em.findAll(Kayttaja::class).get(0)
             }
             erikoistuvaLaakari.kayttaja = kayttaja
+
+            // Lisätään pakollinen tieto
+            val erikoisala: Erikoisala
+            if (em.findAll(Erikoisala::class).isEmpty()) {
+                erikoisala = ErikoisalaHelper.createEntity()
+                em.persist(erikoisala)
+                em.flush()
+            } else {
+                erikoisala = em.findAll(Erikoisala::class).get(0)
+            }
+            erikoistuvaLaakari.erikoisala = erikoisala
 
             return erikoistuvaLaakari
         }
