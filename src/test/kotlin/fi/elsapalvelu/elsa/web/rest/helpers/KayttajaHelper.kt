@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.web.rest.UserResourceIT
+import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
 import fi.elsapalvelu.elsa.web.rest.createByteArray
 import javax.persistence.EntityManager
 
@@ -26,7 +26,7 @@ class KayttajaHelper {
             )
 
             // Lisätään pakollinen tieto
-            val user = UserResourceIT.createEntity(userId)
+            val user = KayttajaResourceIT.createEntity(userId)
             em.persist(user)
             em.flush()
             kayttaja.user = user
@@ -43,7 +43,7 @@ class KayttajaHelper {
             )
 
             // Lisätään pakollinen tieto
-            val user = UserResourceIT.createEntity()
+            val user = KayttajaResourceIT.createEntity()
             em.persist(user)
             em.flush()
             kayttaja.user = user

@@ -11,48 +11,27 @@ import fi.elsapalvelu.elsa.service.dto.UserDTO
 import fi.elsapalvelu.elsa.service.mapper.UserMapper
 import org.apache.commons.lang3.RandomStringUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.Matchers.hasItem
-import org.hamcrest.Matchers.hasItems
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cache.CacheManager
-import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.UUID
-import javax.persistence.EntityManager
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 @AutoConfigureMockMvc
 @WithMockUser(authorities = [ADMIN])
 @SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
-class UserResourceIT {
-
-    @Autowired
-    private lateinit var userRepository: UserRepository
+class KayttajaResourceIT {
 
     @Autowired
     private lateinit var userMapper: UserMapper
 
     @Autowired
-    private lateinit var em: EntityManager
-
-    @Autowired
     private lateinit var cacheManager: CacheManager
-
-    @Autowired
-    private lateinit var restUserMockMvc: MockMvc
 
     private lateinit var user: User
 
@@ -69,75 +48,6 @@ class UserResourceIT {
             login = DEFAULT_LOGIN
             email = DEFAULT_EMAIL
         }
-    }
-
-    @Disabled
-    @Test
-    @Transactional
-    @Throws(Exception::class)
-    fun getAllUsers() {
-        // Initialize the database
-        userRepository.saveAndFlush(user)
-
-        // Get all the users
-        restUserMockMvc.perform(
-            get("/api/users?sort=id,desc")
-                .accept(MediaType.APPLICATION_JSON)
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("\$.[*].login").value(hasItem(DEFAULT_LOGIN)))
-            .andExpect(jsonPath("\$.[*].firstName").value(hasItem(DEFAULT_FIRSTNAME)))
-            .andExpect(jsonPath("\$.[*].lastName").value(hasItem(DEFAULT_LASTNAME)))
-            .andExpect(jsonPath("\$.[*].email").value(hasItem(DEFAULT_EMAIL)))
-            .andExpect(jsonPath("\$.[*].langKey").value(hasItem(DEFAULT_LANGKEY)))
-    }
-
-    @Disabled
-    @Test
-    @Transactional
-    @Throws(Exception::class)
-    fun getUser() {
-        // Initialize the database
-        userRepository.saveAndFlush(user)
-
-        assertNull(cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE)!!.get(user.login!!))
-
-        // Get the user
-        restUserMockMvc.perform(get("/api/users/{login}", user.login))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("\$.login").value(user.login!!))
-            .andExpect(jsonPath("\$.firstName").value(DEFAULT_FIRSTNAME))
-            .andExpect(jsonPath("\$.lastName").value(DEFAULT_LASTNAME))
-            .andExpect(jsonPath("\$.email").value(DEFAULT_EMAIL))
-            .andExpect(jsonPath("\$.langKey").value(DEFAULT_LANGKEY))
-
-        assertNotNull(cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE)!!.get(user.login!!))
-    }
-
-    @Test
-    @Transactional
-    @Throws(Exception::class)
-    fun getNonExistingUser() {
-        restUserMockMvc.perform(get("/api/users/unknown"))
-            .andExpect(status().isNotFound)
-    }
-
-    @Disabled
-    @Test
-    @Transactional
-    @Throws(Exception::class)
-    fun getAllAuthorities() {
-        restUserMockMvc.perform(
-            get("/api/users/authorities")
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("\$").isArray)
-            .andExpect(jsonPath("\$").value(hasItems(USER, ADMIN)))
     }
 
     @Test
