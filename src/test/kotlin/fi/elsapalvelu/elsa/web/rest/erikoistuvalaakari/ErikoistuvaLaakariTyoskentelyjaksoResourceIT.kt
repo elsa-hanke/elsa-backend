@@ -751,8 +751,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjakso-lomake"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(58)))
+            .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
+            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(60)))
             .andExpect(jsonPath("$.erikoisalat[0].id").value(1))
     }
 
