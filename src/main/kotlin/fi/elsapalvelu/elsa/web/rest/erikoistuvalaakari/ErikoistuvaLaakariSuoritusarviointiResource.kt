@@ -83,8 +83,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
             .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
         form.kunnat = kuntaService.findAll().toMutableSet()
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
-        form.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()
-        form.kategoriat = epaOsaamisalueenKategoriaService.findAll().toMutableSet()
+        form.epaOsaamisalueenKategoriat = epaOsaamisalueenKategoriaService.findAll().toMutableSet()
         form.kouluttajat = kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(id).toMutableSet()
 
         return ResponseEntity.ok(form)
