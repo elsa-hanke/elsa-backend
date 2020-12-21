@@ -11,5 +11,11 @@
                                  referencedColumnNames="id"
                                  referencedTableName="erikoisala"/>
 
+        <addForeignKeyConstraint baseColumnNames="kategoria_id"
+                                 baseTableName="epa_osaamisalue"
+                                 constraintName="fk_epa_osaamisalue_kategoria_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="epa_osaamisalueen_kategoria"/>
+
     </changeSet>
 </databaseChangeLog>
