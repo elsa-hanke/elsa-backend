@@ -31,6 +31,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private val erikoisalaService: ErikoisalaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val epaOsaamisalueService: EpaOsaamisalueService,
+    private val epaOsaamisalueenKategoriaService: EpaOsaamisalueenKategoriaService,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) {
 
@@ -83,6 +84,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         form.kunnat = kuntaService.findAll().toMutableSet()
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
         form.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()
+        form.kategoriat = epaOsaamisalueenKategoriaService.findAll().toMutableSet()
         form.kouluttajat = kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(id).toMutableSet()
 
         return ResponseEntity.ok(form)

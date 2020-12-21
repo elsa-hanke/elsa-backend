@@ -10,7 +10,8 @@ import org.mapstruct.ReportingPolicy
 @Mapper(
     componentModel = "spring",
     uses = [
-        ErikoisalaMapper::class
+        ErikoisalaMapper::class,
+        EpaOsaamisalueenKategoriaMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
@@ -18,14 +19,16 @@ interface EpaOsaamisalueMapper :
     EntityMapper<EpaOsaamisalueDTO, EpaOsaamisalue> {
 
     @Mappings(
-        Mapping(source = "erikoisala.id", target = "erikoisalaId")
+        Mapping(source = "erikoisala.id", target = "erikoisalaId"),
+        Mapping(source = "kategoria.id", target = "kategoriaId")
     )
     override fun toDto(entity: EpaOsaamisalue): EpaOsaamisalueDTO
 
     @Mappings(
         Mapping(target = "arvioitavatOsaalueet", ignore = true),
         Mapping(target = "removeArvioitavaOsaalue", ignore = true),
-        Mapping(source = "erikoisalaId", target = "erikoisala")
+        Mapping(source = "erikoisalaId", target = "erikoisala"),
+        Mapping(source = "kategoriaId", target = "kategoria")
     )
     override fun toEntity(dto: EpaOsaamisalueDTO): EpaOsaamisalue
 
