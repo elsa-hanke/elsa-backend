@@ -80,7 +80,8 @@ class SuoritemerkintaServiceImpl(
             suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
                 erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
                     if (kirjautunutErikoistuvaLaakari == it &&
-                        !suoritemerkinta.lukittu) {
+                        !suoritemerkinta.lukittu
+                    ) {
                         suoritemerkintaRepository.deleteById(id)
                     }
                 }
