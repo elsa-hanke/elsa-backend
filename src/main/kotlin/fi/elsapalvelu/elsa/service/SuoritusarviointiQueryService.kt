@@ -54,6 +54,23 @@ class SuoritusarviointiQueryService(
     }
 
     @Transactional(readOnly = true)
+    fun findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+        criteria: SuoritusarviointiCriteria?,
+        userId: String,
+    ): List<SuoritusarviointiDTO> {
+        val specification = createSpecification(criteria) { root, _, cb ->
+            val user: Join<Kayttaja, User> = root.join(Suoritusarviointi_.tyoskentelyjakso)
+                .join(Tyoskentelyjakso_.erikoistuvaLaakari)
+                .join(ErikoistuvaLaakari_.kayttaja)
+                .join(Kayttaja_.user)
+            cb.equal(user.get(User_.id), userId)
+        }
+
+        return suoritusarviointiRepository.findAll(specification)
+            .map(suoritusarviointiMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
     fun countByCriteria(criteria: SuoritusarviointiCriteria?): Long {
         val specification = createSpecification(criteria)
         return suoritusarviointiRepository.count(specification)
