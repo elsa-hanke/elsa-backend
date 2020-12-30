@@ -35,7 +35,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private var applicationName: String? = null
 
     @GetMapping("/suoritusarvioinnit-rajaimet")
-    fun getAllSuoritusarvioinnit(
+    fun getSuoritusarvioinnitRajaimet(
         principal: Principal?
     ): ResponseEntity<SuoritusarvioinnitOptionsDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -94,6 +94,13 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 "Uusi arviointipyyntö ei saa sisältää ID:tä.",
                 ENTITY_NAME,
                 "idexists"
+            )
+        }
+        if (suoritusarviointiDTO.luottamuksenTaso != null) {
+            throw BadRequestAlertException(
+                "Uusi arviointipyyntö ei saa sisältää luottamuksen tasoa. Kouluttaja määrittelee sen.",
+                ENTITY_NAME,
+                "dataillegal"
             )
         }
         if (suoritusarviointiDTO.vaativuustaso != null) {
