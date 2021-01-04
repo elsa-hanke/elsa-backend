@@ -63,5 +63,5 @@ stages:
               awsOptions: '--only-show-errors'
               awsCommand: 'ecs'
               awsSubcommand: 'update-service'
-              awsArguments: '--cluster elsa-dev-cluster --service ecs-dev-backend --force-new-deployment'
+              awsArguments: '--cluster elsa-dev-cluster --service ecs-dev-backend --force-new-deployment --quiet'
             displayName: Force update ecs service
