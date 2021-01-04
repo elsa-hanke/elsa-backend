@@ -60,8 +60,7 @@ stages:
             inputs:
               awsCredentials: 'elsa-ci'
               regionName: 'eu-west-1'
-              awsOptions: '--only-show-errors'
               awsCommand: 'ecs'
               awsSubcommand: 'update-service'
-              awsArguments: '--cluster elsa-dev-cluster --service ecs-dev-backend --force-new-deployment --quiet'
+              awsArguments: '--cluster elsa-dev-cluster --service ecs-dev-backend --force-new-deployment'
             displayName: Force update ecs service
