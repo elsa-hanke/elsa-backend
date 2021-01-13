@@ -43,7 +43,7 @@ data class EpaOsaamisalue(
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["epaOsaamisalues"], allowSetters = true)
+    @JsonIgnoreProperties(value = ["epaOsaamisalueet"], allowSetters = true)
     var kategoria: EpaOsaamisalueenKategoria? = null
 
 ) : Serializable {
