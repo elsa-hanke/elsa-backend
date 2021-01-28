@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.KouluttajavaltuutusMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.util.Optional
 
 @Service
@@ -33,8 +34,14 @@ class KouluttajavaltuutusServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findAllValtuutettuByValtuuttajaKayttajaUserId(id: String): MutableList<KayttajaDTO> {
-        return kouluttajavaltuutusRepository.findAllByValtuuttajaKayttajaUserId(id).map { it.valtuutettu!! }
+        return kouluttajavaltuutusRepository.findAllByValtuuttajaKayttajaUserIdAndPaattymispaivaAfter(id, LocalDate.now()).map { it.valtuutettu!! }
             .mapTo(mutableListOf(), kayttajaMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findValtuutettuByValtuuttajaAndValtuutettu(valtuutettuId: String, valtuuttajaId: String): Optional<KouluttajavaltuutusDTO> {
+        return kouluttajavaltuutusRepository.findByValtuuttajaKayttajaUserIdAndValtuutettuUserIdAndPaattymispaivaAfter(valtuutettuId, valtuuttajaId, LocalDate.now())
+            .map(kouluttajavaltuutusMapper::toDto)
     }
 
     @Transactional(readOnly = true)
