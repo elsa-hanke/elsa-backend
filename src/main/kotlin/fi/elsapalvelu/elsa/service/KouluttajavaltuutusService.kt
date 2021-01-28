@@ -1,4 +1,5 @@
 package fi.elsapalvelu.elsa.service
+
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
 import java.util.Optional
@@ -10,6 +11,8 @@ interface KouluttajavaltuutusService {
     fun findAll(): MutableList<KouluttajavaltuutusDTO>
 
     fun findAllValtuutettuByValtuuttajaKayttajaUserId(id: String): MutableList<KayttajaDTO>
+
+    fun findValtuutettuByValtuuttajaAndValtuutettu(valtuutettuId: String, valtuuttajaId: String): Optional<KouluttajavaltuutusDTO>
 
     fun findOne(id: Long): Optional<KouluttajavaltuutusDTO>
 

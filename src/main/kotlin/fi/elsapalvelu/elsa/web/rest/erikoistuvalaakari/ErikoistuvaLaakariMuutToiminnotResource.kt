@@ -1,6 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.ErikoistuvaLaakariService
+import fi.elsapalvelu.elsa.service.KayttajaService
+import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
+import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -65,6 +68,11 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                     activated = false
                 )
             )
+            kouluttajavaltuutusService.findValtuutettuByValtuuttajaAndValtuutettu(user.id!!, result.userId!!).ifPresent {
+                throw BadRequestAlertException("Kouluttaja on jo lisätty",
+                    "kayttaja",
+                    "dataillegal")
+            }
             val kouluttajavaltuutus = KouluttajavaltuutusDTO(
                 alkamispaiva = LocalDate.now(ZoneId.systemDefault()),
                 paattymispaiva = LocalDate.now(ZoneId.systemDefault()).plusMonths(6),
