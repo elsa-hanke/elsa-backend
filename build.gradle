@@ -12,7 +12,6 @@ buildscript {
         classpath "org.jlleitschuh.gradle:ktlint-gradle:9.4.0"
         classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektVersion}"
         classpath "io.gitlab.arturbosch.detekt:detekt-formatting:${detektVersion}"
-        classpath 'org.owasp:dependency-check-gradle:6.1.0'
     }
 }
 
@@ -158,6 +157,11 @@ checkstyle {
 }
 nohttp {
     source.include "build.gradle", "README.md"
+}
+
+dependencyCheck {
+    failBuildOnCVSS = 5
+    failOnError = true
 }
 
 configurations {
