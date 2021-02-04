@@ -1,17 +1,16 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
 import javax.validation.constraints.*
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 
 @Entity
-@Table(name = "epa_osaamisalue")
+@Table(name = "epa_osaamisalueen_kategoria")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-data class EpaOsaamisalue(
+data class EpaOsaamisalueenKategoria(
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
@@ -22,8 +21,9 @@ data class EpaOsaamisalue(
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
 
-    @Column(name = "kuvaus")
-    var kuvaus: String? = null,
+    @get: NotNull
+    @Column(name = "jarjestysnumero", nullable = false)
+    var jarjestysnumero: Int? = null,
 
     @get: NotNull
     @Column(name = "voimassaolo_alkaa", nullable = false)
@@ -32,47 +32,37 @@ data class EpaOsaamisalue(
     @Column(name = "voimassaolo_loppuu")
     var voimassaoloLoppuu: LocalDate? = null,
 
-    @OneToMany(mappedBy = "epaOsaamisalue")
+    @OneToMany(mappedBy = "kategoria")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var arvioitavatOsaalueet: MutableSet<ArvioitavaOsaalue> = mutableSetOf(),
-
-    @NotNull
-    @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["epaOsaamisalueet"], allowSetters = true)
-    var erikoisala: Erikoisala? = null,
-
-    @NotNull
-    @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["epaOsaamisalueet"], allowSetters = true)
-    var kategoria: EpaOsaamisalueenKategoria? = null
+    var epaOsaamisalueet: MutableSet<EpaOsaamisalue> = mutableSetOf()
 
 ) : Serializable {
 
-    fun addArvioitavaOsaalue(arvioitavaOsaalue: ArvioitavaOsaalue): EpaOsaamisalue {
-        this.arvioitavatOsaalueet.add(arvioitavaOsaalue)
-        arvioitavaOsaalue.epaOsaamisalue = this
+    fun addEpaOsaamisalue(epaOsaamisalue: EpaOsaamisalue): EpaOsaamisalueenKategoria {
+        this.epaOsaamisalueet.add(epaOsaamisalue)
+        epaOsaamisalue.kategoria = this
         return this
     }
 
-    fun removeArvioitavaOsaalue(arvioitavaOsaalue: ArvioitavaOsaalue): EpaOsaamisalue {
-        this.arvioitavatOsaalueet.remove(arvioitavaOsaalue)
-        arvioitavaOsaalue.epaOsaamisalue = null
+    fun removeEpaOsaamisalue(epaOsaamisalue: EpaOsaamisalue): EpaOsaamisalueenKategoria {
+        this.epaOsaamisalueet.remove(epaOsaamisalue)
+        epaOsaamisalue.kategoria = null
         return this
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is EpaOsaamisalue) return false
+        if (other !is EpaOsaamisalueenKategoria) return false
 
         return id != null && other.id != null && id == other.id
     }
 
     override fun hashCode() = 31
 
-    override fun toString() = "EpaOsaamisalue{" +
+    override fun toString() = "EpaOsaamisalueenKategoria{" +
         "id=$id" +
         ", nimi='$nimi'" +
-        ", kuvaus='$kuvaus'" +
+        ", jarjestysnumero=$jarjestysnumero" +
         ", voimassaoloAlkaa='$voimassaoloAlkaa'" +
         ", voimassaoloLoppuu='$voimassaoloLoppuu'" +
         "}"
