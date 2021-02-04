@@ -47,7 +47,7 @@ stages:
               repositoryName: 'elsa-backend'
             displayName: 'Push image'
   
-  - stage: Deploy dev
+  - stage: Deploy_dev
     displayName: Deploy dev
     dependsOn: Build
     condition: and(succeeded(), eq(variables.isMain, true))
@@ -70,7 +70,7 @@ stages:
                     awsArguments: '--cluster elsa-dev-cluster --service ecs-dev-backend --force-new-deployment'
                   displayName: Force update ecs service
 
-  - stage: Deploy testi
+  - stage: Deploy_testi
     displayName: Deploy testi
     dependsOn: Build
     condition: and(succeeded(), eq(variables.isMain, true))
