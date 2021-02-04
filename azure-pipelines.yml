@@ -31,6 +31,7 @@ stages:
           - script: |
               ./gradlew dependencyCheckAnalyze
             continueOnError: true
+            publish: $(System.DefaultWorkingDirectory)/build/reports/dependency-check-report.html
             artifact: DependencyCheck
             displayName: 'Dependency check'
           - script: |
