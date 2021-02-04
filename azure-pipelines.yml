@@ -48,11 +48,13 @@ stages:
             displayName: 'Push image'
   
   - stage: Deploy
-    displayName: Deploy stage
+    displayName: Deploy dev
     dependsOn: Build
     condition: and(succeeded(), eq(variables.isMain, true))
     jobs:
-      - job: Deploy
+      - deployment: Deploy
+        displayName: Deploy dev
+        environment: "development"
         pool:
           vmImage: $(vmImageName)
         steps:
@@ -64,3 +66,23 @@ stages:
               awsSubcommand: 'update-service'
               awsArguments: '--cluster elsa-dev-cluster --service ecs-dev-backend --force-new-deployment'
             displayName: Force update ecs service
+
+  - stage: Deploy
+    displayName: Deploy testi
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables.isMain, true))
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy testi
+        environment: "testi"
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
+            inputs:
+              awsCredentials: 'staging-elsa-ci'
+              regionName: 'eu-west-1'
+              awsCommand: 'ecs'
+              awsSubcommand: 'update-service'
+              awsArguments: '--cluster elsa-staging-cluster --service elsa-staging-backend-service --force-new-deployment'
+            displayName: Force update ecs service          
