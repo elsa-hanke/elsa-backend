@@ -4,14 +4,10 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
-import io.github.jhipster.web.util.PaginationUtil
 import io.github.jhipster.web.util.ResponseUtil
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.net.URI
 import java.security.Principal
 import java.time.LocalDate
@@ -31,6 +27,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private val erikoisalaService: ErikoisalaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val epaOsaamisalueService: EpaOsaamisalueService,
+    private val epaOsaamisalueenKategoriaService: EpaOsaamisalueenKategoriaService,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) {
 
@@ -38,7 +35,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private var applicationName: String? = null
 
     @GetMapping("/suoritusarvioinnit-rajaimet")
-    fun getAllSuoritusarvioinnit(
+    fun getSuoritusarvioinnitRajaimet(
         principal: Principal?
     ): ResponseEntity<SuoritusarvioinnitOptionsDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -58,17 +55,15 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     @GetMapping("/suoritusarvioinnit")
     fun getAllSuoritusarvioinnit(
         criteria: SuoritusarviointiCriteria,
-        pageable: Pageable,
         principal: Principal?
-    ): ResponseEntity<Page<SuoritusarviointiDTO>> {
+    ): ResponseEntity<List<SuoritusarviointiDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val id = user.id!!
-        val page = suoritusarviointiQueryService
-            .findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(criteria, id, pageable)
-        val headers = PaginationUtil
-            .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page)
 
-        return ResponseEntity.ok().headers(headers).body(page)
+        return ResponseEntity.ok(
+            suoritusarviointiQueryService
+                .findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(criteria, id)
+        )
     }
 
     @GetMapping("/arviointipyynto-lomake")
@@ -82,7 +77,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
             .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
         form.kunnat = kuntaService.findAll().toMutableSet()
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
-        form.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()
+        form.epaOsaamisalueenKategoriat = epaOsaamisalueenKategoriaService.findAll().toMutableSet()
         form.kouluttajat = kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(id).toMutableSet()
 
         return ResponseEntity.ok(form)
@@ -99,6 +94,13 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 "Uusi arviointipyyntö ei saa sisältää ID:tä.",
                 ENTITY_NAME,
                 "idexists"
+            )
+        }
+        if (suoritusarviointiDTO.luottamuksenTaso != null) {
+            throw BadRequestAlertException(
+                "Uusi arviointipyyntö ei saa sisältää luottamuksen tasoa. Kouluttaja määrittelee sen.",
+                ENTITY_NAME,
+                "dataillegal"
             )
         }
         if (suoritusarviointiDTO.vaativuustaso != null) {

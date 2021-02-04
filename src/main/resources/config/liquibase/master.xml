@@ -33,6 +33,7 @@
     <include file="config/liquibase/changelog/20201201105013_added_entity_Kunta.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201202143546_added_entity_Keskeytysaika.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201202143646_added_entity_PoissaolonSyy.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20201221133954_added_entity_EpaOsaamisalueenKategoria.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>

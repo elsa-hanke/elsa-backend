@@ -1,3 +1,3 @@
-id;nimi;kuvaus;voimassaolo_alkaa;voimassaolo_loppuu;erikoisala_id
-1;EPA-osaamisalue 1;Kuvaus 1...;2020-10-06;2020-10-05;1
-2;EPA-osaamisalue 2;Kuvaus 2...;2020-10-06;2020-10-05;1
+id;nimi;kuvaus;voimassaolo_alkaa;voimassaolo_loppuu;erikoisala_id;kategoria_id
+1;EPA-osaamisalue 1;Kuvaus 1...;2020-01-01;2022-10-05;1;1
+2;EPA-osaamisalue 2;Kuvaus 2...;2020-01-01;2021-10-05;1;1

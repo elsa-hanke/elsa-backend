@@ -24,7 +24,7 @@ interface SuoritusarviointiRepository :
 
     fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         userId: String
-    ): MutableList<Suoritusarviointi>
+    ): List<Suoritusarviointi>
 
     fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         id: Long,

@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.EpaOsaamisalue
+import fi.elsapalvelu.elsa.domain.EpaOsaamisalueenKategoria
 import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
@@ -43,6 +44,17 @@ class EpaOsaamisalueHelper {
             }
             epaOsaamisalue.erikoisala = erikoisala
 
+            // Lisätään pakollinen tieto
+            val epaOsaamisalueenKategoria: EpaOsaamisalueenKategoria
+            if (em.findAll(EpaOsaamisalueenKategoria::class).isEmpty()) {
+                epaOsaamisalueenKategoria = EpaOsaamisalueenKategoriaHelper.createEntity()
+                em.persist(epaOsaamisalueenKategoria)
+                em.flush()
+            } else {
+                epaOsaamisalueenKategoria = em.findAll(EpaOsaamisalueenKategoria::class).get(0)
+            }
+            epaOsaamisalue.kategoria = epaOsaamisalueenKategoria
+
             return epaOsaamisalue
         }
 
@@ -65,6 +77,17 @@ class EpaOsaamisalueHelper {
                 erikoisala = em.findAll(Erikoisala::class).get(0)
             }
             epaOsaamisalue.erikoisala = erikoisala
+
+            // Lisätään pakollinen tieto
+            val epaOsaamisalueenKategoria: EpaOsaamisalueenKategoria
+            if (em.findAll(EpaOsaamisalueenKategoria::class).isEmpty()) {
+                epaOsaamisalueenKategoria = EpaOsaamisalueenKategoriaHelper.createUpdatedEntity()
+                em.persist(epaOsaamisalueenKategoria)
+                em.flush()
+            } else {
+                epaOsaamisalueenKategoria = em.findAll(EpaOsaamisalueenKategoria::class).get(0)
+            }
+            epaOsaamisalue.kategoria = epaOsaamisalueenKategoria
 
             return epaOsaamisalue
         }
