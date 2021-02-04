@@ -29,6 +29,11 @@ stages:
               ./gradlew clean test integrationTest
             displayName: 'Test'
           - script: |
+              ./gradlew dependencyCheckAnalyze
+            continueOnError: true
+            artifact: DependencyCheck
+            displayName: 'Dependency check'
+          - script: |
               ./gradlew --build-cache build -x test integrationTest
             displayName: 'Build'
           - script: |
@@ -46,7 +51,7 @@ stages:
               sourceImageName: 'elsabackend'
               repositoryName: 'elsa-backend'
             displayName: 'Push image'
-  
+
   - stage: Deploy
     displayName: Deploy stage
     dependsOn: Build
