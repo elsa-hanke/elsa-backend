@@ -29,6 +29,13 @@ stages:
               ./gradlew clean test integrationTest
             displayName: 'Test'
           - script: |
+              ./gradlew dependencyCheckAnalyze
+            continueOnError: true
+            displayName: 'Dependency check'
+          - publish: $(System.DefaultWorkingDirectory)/build/reports/dependency-check-report.html
+            artifact: DependencyCheck
+            displayName: 'Upload dependency check artifact'
+          - script: |
               ./gradlew --build-cache build -x test integrationTest
             displayName: 'Build'
           - script: |
@@ -46,7 +53,7 @@ stages:
               sourceImageName: 'elsabackend'
               repositoryName: 'elsa-backend'
             displayName: 'Push image'
-  
+
   - stage: Deploy_dev
     displayName: Deploy dev
     dependsOn: Build
@@ -91,4 +98,4 @@ stages:
                     awsCommand: 'ecs'
                     awsSubcommand: 'update-service'
                     awsArguments: '--cluster elsa-staging-cluster --service elsa-staging-backend-service --force-new-deployment'
-                  displayName: Force update ecs service          
+                  displayName: Force update ecs service
