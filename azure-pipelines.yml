@@ -69,7 +69,6 @@ stages:
             deploy:
               steps:
               - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
-                displayName: 'AWS Shell Script'
                 inputs:
                   awsCredentials: 'elsa-ci'
                   regionName: 'eu-west-1'
@@ -95,13 +94,6 @@ stages:
                   inputs:
                     awsCredentials: 'staging-elsa-ci'
                     regionName: 'eu-west-1'
-<<<<<<< HEAD
                     scriptType: inline
                     inlineScript: 'aws ecs update-service --cluster elsa-staging-cluster --service elsa-staging-keycloak-service --force-new-deployment > /dev/null'
                   displayName: Force update ecs service
-=======
-                    awsCommand: 'ecs'
-                    awsSubcommand: 'update-service'
-                    awsArguments: '--cluster elsa-staging-cluster --service elsa-staging-backend-service --force-new-deployment'
-                  displayName: Force update ecs service
->>>>>>> 466d51e618b3503ae04b77dbb50865af8efde745
