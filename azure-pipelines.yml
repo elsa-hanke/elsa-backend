@@ -29,6 +29,13 @@ stages:
               ./gradlew clean test integrationTest
             displayName: 'Test'
           - script: |
+              ./gradlew dependencyCheckAnalyze
+            continueOnError: true
+            displayName: 'Dependency check'
+          - publish: $(System.DefaultWorkingDirectory)/build/reports/dependency-check-report.html
+            artifact: DependencyCheck
+            displayName: 'Upload dependency check artifact'
+          - script: |
               ./gradlew --build-cache build -x test integrationTest
             displayName: 'Build'
           - script: |
@@ -88,6 +95,13 @@ stages:
                   inputs:
                     awsCredentials: 'staging-elsa-ci'
                     regionName: 'eu-west-1'
+<<<<<<< HEAD
                     scriptType: inline
                     inlineScript: 'aws ecs update-service --cluster elsa-staging-cluster --service elsa-staging-keycloak-service --force-new-deployment > /dev/null'
                   displayName: Force update ecs service
+=======
+                    awsCommand: 'ecs'
+                    awsSubcommand: 'update-service'
+                    awsArguments: '--cluster elsa-staging-cluster --service elsa-staging-backend-service --force-new-deployment'
+                  displayName: Force update ecs service
+>>>>>>> 466d51e618b3503ae04b77dbb50865af8efde745
