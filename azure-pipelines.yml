@@ -47,13 +47,13 @@ stages:
               repositoryName: 'elsa-backend'
             displayName: 'Push image'
   
-  - stage: Deploy_dev
-    displayName: Deploy dev
+  - stage: Deploy_backend_dev
+    displayName: Deploy backend dev
     dependsOn: Build
     condition: and(succeeded(), eq(variables.isMain, true))
     jobs:
       - deployment: Deploy
-        displayName: Deploy dev
+        displayName: Deploy backend dev
         environment: "development"
         pool:
           vmImage: $(vmImageName)
@@ -61,16 +61,16 @@ stages:
           runOnce:
             deploy:
               steps:
-                - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
-                  inputs:
-                    awsCredentials: 'elsa-ci'
-                    regionName: 'eu-west-1'
-                    awsCommand: 'ecs'
-                    awsSubcommand: 'update-service'
-                    awsArguments: '--cluster elsa-dev-cluster --service ecs-dev-backend --force-new-deployment'
-                  displayName: Force update ecs service
+              - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
+                displayName: 'AWS Shell Script'
+                inputs:
+                  awsCredentials: 'elsa-ci'
+                  regionName: 'eu-west-1'
+                  scriptType: inline
+                  inlineScript: 'aws ecs update-service --cluster elsa-dev-cluster --service ecs-dev-keycloak --force-new-deployment > /dev/null'
+                displayName: Force update ecs service
 
-  - stage: Deploy_testi
+  - stage: Deploy_backend_testi
     displayName: Deploy testi
     dependsOn: Build
     condition: and(succeeded(), eq(variables.isMain, true))
@@ -84,11 +84,10 @@ stages:
           runOnce:
             deploy:
               steps:
-                - task: AmazonWebServices.aws-vsts-tools.AWSCLI.AWSCLI@1
+                - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
                   inputs:
                     awsCredentials: 'staging-elsa-ci'
                     regionName: 'eu-west-1'
-                    awsCommand: 'ecs'
-                    awsSubcommand: 'update-service'
-                    awsArguments: '--cluster elsa-staging-cluster --service elsa-staging-backend-service --force-new-deployment'
-                  displayName: Force update ecs service          
+                    scriptType: inline
+                    inlineScript: 'aws ecs update-service --cluster elsa-staging-cluster --service elsa-staging-keycloak-service --force-new-deployment > /dev/null'
+                  displayName: Force update ecs service
