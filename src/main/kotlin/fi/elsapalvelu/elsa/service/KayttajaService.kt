@@ -1,4 +1,5 @@
 package fi.elsapalvelu.elsa.service
+
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import java.util.Optional
@@ -12,6 +13,8 @@ interface KayttajaService {
     fun findAll(): MutableList<KayttajaDTO>
 
     fun findOne(id: Long): Optional<KayttajaDTO>
+
+    fun findByUserId(id: String): Optional<KayttajaDTO>
 
     fun delete(id: Long)
 }

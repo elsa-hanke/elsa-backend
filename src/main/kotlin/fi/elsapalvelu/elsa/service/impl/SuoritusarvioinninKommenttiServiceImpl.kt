@@ -22,8 +22,10 @@ class SuoritusarvioinninKommenttiServiceImpl(
 ) : SuoritusarvioinninKommenttiService {
 
     override fun save(suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO): SuoritusarvioinninKommenttiDTO {
-        var suoritusarvioinninKommentti = suoritusarvioinninKommenttiMapper.toEntity(suoritusarvioinninKommenttiDTO)
-        suoritusarvioinninKommentti = suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
+        var suoritusarvioinninKommentti =
+            suoritusarvioinninKommenttiMapper.toEntity(suoritusarvioinninKommenttiDTO)
+        suoritusarvioinninKommentti =
+            suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
         return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
     }
 
@@ -31,7 +33,7 @@ class SuoritusarvioinninKommenttiServiceImpl(
         suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO,
         userId: String
     ): SuoritusarvioinninKommenttiDTO {
-        val kayttaja = kayttajaRepository.findOneByUserId(userId).get()
+        val kayttaja = kayttajaRepository.findOneByUserLogin(userId).get()
         val kayttajaDTO = kayttajaMapper.toDto(kayttaja)
 
         // Tarkisteaan, että muokkaaja on sama kuin kommentin tekijä
@@ -45,13 +47,15 @@ class SuoritusarvioinninKommenttiServiceImpl(
             suoritusarvioinninKommenttiDTO.kommentoija = kayttajaDTO
         }
 
-        var suoritusarvioinninKommentti = suoritusarvioinninKommenttiMapper.toEntity(suoritusarvioinninKommenttiDTO)
+        var suoritusarvioinninKommentti =
+            suoritusarvioinninKommenttiMapper.toEntity(suoritusarvioinninKommenttiDTO)
         val suoritusarviointi = suoritusarviointiRepository
             .findOneById(suoritusarvioinninKommentti.suoritusarviointi?.id!!).get()
         if (kayttaja == suoritusarviointi.arvioinninAntaja ||
             kayttaja == suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja
         ) {
-            suoritusarvioinninKommentti = suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
+            suoritusarvioinninKommentti =
+                suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
             // TODO: lähetä sähköposti toiselle osapuolelle
             return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
         } else {
