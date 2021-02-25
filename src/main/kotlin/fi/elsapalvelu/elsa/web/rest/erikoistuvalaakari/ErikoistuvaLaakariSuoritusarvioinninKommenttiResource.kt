@@ -43,7 +43,7 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
         suoritusarvioinninKommenttiDTO.muokkausaika = now
         suoritusarvioinninKommenttiDTO.suoritusarviointiId = id
         val result = suoritusarvioinninKommenttiService
-            .save(suoritusarvioinninKommenttiDTO, user.id!!)
+            .save(suoritusarvioinninKommenttiDTO, user.login!!)
 
         return ResponseEntity.created(URI("/api/suoritusarvioinnit/$id/kommentti/${result.id}"))
             .headers(
@@ -67,7 +67,8 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
         }
         val user = userService.getAuthenticatedUser(principal)
         suoritusarvioinninKommenttiDTO.muokkausaika = Instant.now()
-        val result = suoritusarvioinninKommenttiService.save(suoritusarvioinninKommenttiDTO, user.id!!)
+        val result =
+            suoritusarvioinninKommenttiService.save(suoritusarvioinninKommenttiDTO, user.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(

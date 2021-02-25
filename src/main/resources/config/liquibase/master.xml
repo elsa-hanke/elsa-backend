@@ -34,6 +34,7 @@
     <include file="config/liquibase/changelog/20201202143546_added_entity_Keskeytysaika.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201202143646_added_entity_PoissaolonSyy.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201221133954_added_entity_EpaOsaamisalueenKategoria.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210210152137_added_entity_Arviointityokalu.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
@@ -49,4 +50,5 @@
     <include file="config/liquibase/changelog/20201117104534_added_entity_constraints_Suoritemerkinta.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201124081448_added_entity_constraints_Yliopisto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201202143546_added_entity_constraints_Keskeytysaika.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210210152137_added_entity_constraints_Arviointityokalu.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

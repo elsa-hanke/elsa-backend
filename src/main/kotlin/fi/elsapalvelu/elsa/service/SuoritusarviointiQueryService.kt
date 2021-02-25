@@ -28,7 +28,10 @@ class SuoritusarviointiQueryService(
     }
 
     @Transactional(readOnly = true)
-    fun findByCriteria(criteria: SuoritusarviointiCriteria?, page: Pageable): Page<SuoritusarviointiDTO> {
+    fun findByCriteria(
+        criteria: SuoritusarviointiCriteria?,
+        page: Pageable
+    ): Page<SuoritusarviointiDTO> {
         val specification = createSpecification(criteria)
         return suoritusarviointiRepository.findAll(specification, page)
             .map(suoritusarviointiMapper::toDto)
@@ -76,6 +79,18 @@ class SuoritusarviointiQueryService(
         return suoritusarviointiRepository.count(specification)
     }
 
+    @Transactional(readOnly = true)
+    fun findByKouluttajaUserLogin(userId: String): List<SuoritusarviointiDTO> {
+        val specification = createSpecification(null) { root, _, cb ->
+            val user: Join<Kayttaja, User> = root.join(Suoritusarviointi_.arvioinninAntaja)
+                .join(Kayttaja_.user)
+            cb.equal(user.get(User_.login), userId)
+        }
+
+        return suoritusarviointiRepository.findAll(specification)
+            .map(suoritusarviointiMapper::toDto)
+    }
+
     protected fun createSpecification(
         criteria: SuoritusarviointiCriteria?,
         spec: Specification<Suoritusarviointi?>? = null
@@ -83,31 +98,62 @@ class SuoritusarviointiQueryService(
         var specification: Specification<Suoritusarviointi?> = Specification.where(spec)
         if (criteria != null) {
             if (criteria.id != null) {
-                specification = specification.and(buildRangeSpecification(criteria.id, Suoritusarviointi_.id))
+                specification =
+                    specification.and(buildRangeSpecification(criteria.id, Suoritusarviointi_.id))
             }
             if (criteria.tapahtumanAjankohta != null) {
                 specification = specification
-                    .and(buildRangeSpecification(criteria.tapahtumanAjankohta, Suoritusarviointi_.tapahtumanAjankohta))
+                    .and(
+                        buildRangeSpecification(
+                            criteria.tapahtumanAjankohta,
+                            Suoritusarviointi_.tapahtumanAjankohta
+                        )
+                    )
             }
             if (criteria.arvioitavaTapahtuma != null) {
                 specification = specification
-                    .and(buildStringSpecification(criteria.arvioitavaTapahtuma, Suoritusarviointi_.arvioitavaTapahtuma))
+                    .and(
+                        buildStringSpecification(
+                            criteria.arvioitavaTapahtuma,
+                            Suoritusarviointi_.arvioitavaTapahtuma
+                        )
+                    )
             }
             if (criteria.pyynnonAika != null) {
                 specification = specification
-                    .and(buildRangeSpecification(criteria.pyynnonAika, Suoritusarviointi_.pyynnonAika))
+                    .and(
+                        buildRangeSpecification(
+                            criteria.pyynnonAika,
+                            Suoritusarviointi_.pyynnonAika
+                        )
+                    )
             }
             if (criteria.vaativuustaso != null) {
                 specification = specification
-                    .and(buildRangeSpecification(criteria.vaativuustaso, Suoritusarviointi_.vaativuustaso))
+                    .and(
+                        buildRangeSpecification(
+                            criteria.vaativuustaso,
+                            Suoritusarviointi_.vaativuustaso
+                        )
+                    )
             }
             if (criteria.sanallinenArviointi != null) {
                 specification = specification
-                    .and(buildStringSpecification(criteria.sanallinenArviointi, Suoritusarviointi_.sanallinenArviointi))
+                    .and(
+                        buildStringSpecification(
+                            criteria.sanallinenArviointi,
+                            Suoritusarviointi_.sanallinenArviointi
+                        )
+                    )
             }
             if (criteria.arviointiAika != null) {
                 specification = specification
-                    .and(buildRangeSpecification(criteria.arviointiAika, Suoritusarviointi_.arviointiAika))
+                    .and(
+                        buildRangeSpecification(
+                            criteria.arviointiAika,
+                            Suoritusarviointi_.arviointiAika
+                        )
+                    )
             }
             if (criteria.tyoskentelyjaksoId != null) {
                 specification = specification

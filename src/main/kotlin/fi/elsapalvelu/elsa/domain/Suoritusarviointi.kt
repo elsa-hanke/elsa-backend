@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.Type
@@ -96,9 +97,24 @@ data class Suoritusarviointi(
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
-    var tyoskentelyjakso: Tyoskentelyjakso? = null
+    var tyoskentelyjakso: Tyoskentelyjakso? = null,
 
-) : Serializable {
+    @ManyToMany
+    @JoinTable(
+        name = "suoritusarvioinnin_arviointityokalut",
+        joinColumns = [JoinColumn(name = "suoritusarviointi_id", referencedColumnName = "id")],
+        inverseJoinColumns = [JoinColumn(name = "arviointityokalu_id", referencedColumnName = "id")]
+    )
+    var arviointityokalut: MutableSet<Arviointityokalu> = mutableSetOf(),
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "arviointi_perustuu")
+    var arviointiPerustuu: ArvioinninPerustuminen? = null,
+
+    @Column(name = "muu_peruste")
+    var muuPeruste: String? = null,
+
+    ) : Serializable {
 
     fun addOsaalueenArviointi(osaalueenArviointi: OsaalueenArviointi): Suoritusarviointi {
         this.osaalueenArvioinnit.add(osaalueenArviointi)
@@ -148,6 +164,9 @@ data class Suoritusarviointi(
         ", sanallinenArviointi='$sanallinenArviointi'" +
         ", arviointiAika='$arviointiAika'" +
         ", lukittu='$lukittu'" +
+        ", arviointiTyokalu='$arviointityokalut'" +
+        ", arviointiPerustuu='$arviointiPerustuu'" +
+        ", muuPeruste='$muuPeruste'" +
         "}"
 
     companion object {
