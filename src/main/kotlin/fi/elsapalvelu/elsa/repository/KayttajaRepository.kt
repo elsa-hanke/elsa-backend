@@ -9,4 +9,6 @@ import java.util.*
 interface KayttajaRepository : JpaRepository<Kayttaja, Long> {
 
     fun findOneByUserId(id: String): Optional<Kayttaja>
+
+    fun findOneByUserLogin(id: String): Optional<Kayttaja>
 }

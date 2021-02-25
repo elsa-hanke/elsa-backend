@@ -78,7 +78,9 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         form.kunnat = kuntaService.findAll().toMutableSet()
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
         form.epaOsaamisalueenKategoriat = epaOsaamisalueenKategoriaService.findAll().toMutableSet()
-        form.kouluttajat = kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(id).toMutableSet()
+        form.kouluttajat =
+            kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(id)
+                .toMutableSet()
 
         return ResponseEntity.ok(form)
     }
@@ -133,7 +135,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         } else {
             val tyoskentelyjakso = tyoskentelyjaksoService
                 .findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!, user.id!!)
-            val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+            val kirjautunutErikoistuvaLaakari =
+                erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
 
             if (tyoskentelyjakso == null || kirjautunutErikoistuvaLaakari == null) {
                 throw BadRequestAlertException(

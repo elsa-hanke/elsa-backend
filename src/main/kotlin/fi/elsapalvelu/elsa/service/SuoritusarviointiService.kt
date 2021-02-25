@@ -1,4 +1,5 @@
 package fi.elsapalvelu.elsa.service
+
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -11,7 +12,10 @@ interface SuoritusarviointiService {
 
     fun findAll(pageable: Pageable): Page<SuoritusarviointiDTO>
 
-    fun findAllByErikoistuvaLaakariId(erikoistuvaLaakariId: Long, pageable: Pageable): Page<SuoritusarviointiDTO>
+    fun findAllByErikoistuvaLaakariId(
+        erikoistuvaLaakariId: Long,
+        pageable: Pageable
+    ): Page<SuoritusarviointiDTO>
 
     fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         userId: String,
@@ -27,6 +31,11 @@ interface SuoritusarviointiService {
     fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         id: Long,
         userId: String
+    ): Optional<SuoritusarviointiDTO>
+
+    fun findOneByIdAndArvioinninAntajauserLogin(
+        id: Long,
+        userLogin: String
     ): Optional<SuoritusarviointiDTO>
 
     fun delete(id: Long)

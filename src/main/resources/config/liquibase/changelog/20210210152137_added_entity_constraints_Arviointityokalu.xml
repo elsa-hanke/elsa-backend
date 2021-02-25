@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20210210152137-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="kayttaja_id"
+            baseTableName="arviointityokalu"
+            constraintName="fk_arviointityokalu_kayttaja_id"
+            referencedColumnNames="id"
+            referencedTableName="kayttaja"/>
+
+        <addForeignKeyConstraint baseColumnNames="suoritusarviointi_id"
+            baseTableName="suoritusarvioinnin_arviointityokalut"
+            constraintName="fk_suoritusarviointi_id"
+            referencedColumnNames="id"
+            referencedTableName="suoritusarviointi"/>
+
+        <addForeignKeyConstraint baseColumnNames="arviointityokalu_id"
+            baseTableName="suoritusarvioinnin_arviointityokalut"
+            constraintName="fk_arviointityokalu_id"
+            referencedColumnNames="id"
+            referencedTableName="arviointityokalu"/>
+
+    </changeSet>
+
+</databaseChangeLog>

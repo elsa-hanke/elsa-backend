@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.Lob
@@ -64,7 +65,13 @@ data class SuoritusarviointiDTO(
 
     var arvioitavaOsaalue: EpaOsaamisalueDTO? = null,
 
-    var tyoskentelyjakso: TyoskentelyjaksoDTO? = null
+    var tyoskentelyjakso: TyoskentelyjaksoDTO? = null,
+
+    var arviointityokalut: Set<ArviointityokaluDTO>? = null,
+
+    var arviointiPerustuu: ArvioinninPerustuminen? = null,
+
+    var muuPeruste: String? = null
 
 ) : Serializable {
 
