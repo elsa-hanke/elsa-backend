@@ -105,7 +105,7 @@ data class Suoritusarviointi(
         joinColumns = [JoinColumn(name = "suoritusarviointi_id", referencedColumnName = "id")],
         inverseJoinColumns = [JoinColumn(name = "arviointityokalu_id", referencedColumnName = "id")]
     )
-    var arviointityokalut: MutableSet<Arviointityokalu> = mutableSetOf(),
+    var arviointityokalut: MutableSet<Arviointityokalu>? = mutableSetOf(),
 
     @Enumerated(EnumType.STRING)
     @Column(name = "arviointi_perustuu")
