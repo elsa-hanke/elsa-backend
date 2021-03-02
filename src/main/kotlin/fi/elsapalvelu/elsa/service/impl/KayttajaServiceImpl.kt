@@ -53,6 +53,11 @@ class KayttajaServiceImpl(
             .map(kayttajaMapper::toDto)
     }
 
+    override fun findByUserId(id: String): Optional<KayttajaDTO> {
+        return kayttajaRepository.findOneByUserId(id)
+            .map(kayttajaMapper::toDto)
+    }
+
     override fun delete(id: Long) {
         kayttajaRepository.deleteById(id)
     }

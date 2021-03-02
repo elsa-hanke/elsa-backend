@@ -15,7 +15,10 @@ interface SuoritusarviointiRepository :
 
     fun findOneById(id: Long): Optional<Suoritusarviointi>
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariId(id: Long, pageable: Pageable): Page<Suoritusarviointi>
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariId(
+        id: Long,
+        pageable: Pageable
+    ): Page<Suoritusarviointi>
 
     fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         userId: String,
@@ -27,6 +30,11 @@ interface SuoritusarviointiRepository :
     ): List<Suoritusarviointi>
 
     fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+        id: Long,
+        userId: String
+    ): Optional<Suoritusarviointi>
+
+    fun findOneByIdAndArvioinninAntajaUserLogin(
         id: Long,
         userId: String
     ): Optional<Suoritusarviointi>
