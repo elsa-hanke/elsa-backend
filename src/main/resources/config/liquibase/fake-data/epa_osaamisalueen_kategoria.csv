@@ -1,2 +1,7 @@
 id;nimi;jarjestysnumero;voimassaolo_alkaa
-1;EPA-osaamisalueen kategoria 1;1;2020-01-01
+1;Toiminnan suunnittelu;1;2020-01-01
+2;Työpaikkaselvitys;2;2020-01-01
+3;Terveystarkastukset;3;2020-01-01
+4;Erilaiset yhteistyömuodot;4;2020-01-01
+5;Työterveyspainotteinen sairaanhoito;5;2020-01-01
+6;Yleiset työterveyslääkärin asiantuntijatoiminnot;6;2020-01-01

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20210210152137-1" author="jhipster">
+        <createTable tableName="arviointityokalu">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kayttaja_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="luontiaika" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="muokkausaika" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="suoritusarvioinnin_arviointityokalut">
+            <column name="suoritusarviointi_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arviointityokalu_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="suoritusarviointi_id, arviointityokalu_id"
+            tableName="suoritusarvioinnin_arviointityokalut"/>
+
+        <addColumn tableName="suoritusarviointi">
+            <column name="arviointi_perustuu" type="varchar(255)"/>
+            <column name="muu_peruste" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20210210152137-1-relations" author="jhipster">
+
+    </changeSet>
+    <changeSet id="20210210152137-1-data" author="jhipster">
+        <loadData
+            file="config/liquibase/data/arviointityokalu.csv"
+            separator=";"
+            tableName="arviointityokalu">
+            <column name="id" type="numeric"/>
+            <column name="name" type="string"/>
+            <column name="kayttaja_id" type="numeric"/>
+            <column name="luontiaika" type="datetime"/>
+            <column name="muokkausaika" type="datetime"/>
+        </loadData>
+    </changeSet>
+
+</databaseChangeLog>

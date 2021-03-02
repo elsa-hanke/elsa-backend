@@ -1,3 +1,3 @@
 id;nimi;voimassaolon_alkamispaiva;voimassaolon_paattymispaiva;erikoisala_id
-1;Oppimistavoitteen kategoria 1;2020-01-01;2020-12-31;1
-2;Oppimistavoitteen kategoria 2;2020-10-01;2020-11-01;1
+1;Gynekologiset osa-alueet;2020-01-01;2020-12-31;1
+2;Obstetriset osa-alueet;2020-10-01;2020-11-01;1

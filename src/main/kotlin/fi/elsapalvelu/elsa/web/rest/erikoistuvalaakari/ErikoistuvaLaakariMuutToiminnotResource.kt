@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.ErikoistuvaLaakariService
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
@@ -58,42 +59,50 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<KayttajaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let { kirjautunutErikoistuvaLaakari ->
-            val result = kayttajaService.save(
-                KayttajaDTO(nimi = uusiLahikouluttajaDTO.nimi),
-                UserDTO(
-                    id = UUID.randomUUID().toString(),
-                    login = uusiLahikouluttajaDTO.sahkoposti,
-                    email = uusiLahikouluttajaDTO.sahkoposti,
-                    activated = false
-                )
-            )
-            kouluttajavaltuutusService.findValtuutettuByValtuuttajaAndValtuutettu(user.id!!, result.userId!!).ifPresent {
-                throw BadRequestAlertException("Kouluttaja on jo lisätty",
-                    "kayttaja",
-                    "dataillegal")
-            }
-            val kouluttajavaltuutus = KouluttajavaltuutusDTO(
-                alkamispaiva = LocalDate.now(ZoneId.systemDefault()),
-                paattymispaiva = LocalDate.now(ZoneId.systemDefault()).plusMonths(6),
-                valtuutuksenLuontiaika = Instant.now(),
-                valtuutuksenMuokkausaika = Instant.now(),
-                valtuuttajaId = kirjautunutErikoistuvaLaakari.id,
-                valtuutettuId = result.id
-            )
-
-            kouluttajavaltuutusService.save(kouluttajavaltuutus)
-            return ResponseEntity.created(URI("/api/kayttajat/${result.id}"))
-                .headers(
-                    HeaderUtil.createEntityCreationAlert(
-                        applicationName,
-                        true,
-                        "kayttaja",
-                        result.id.toString()
+        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+            ?.let { kirjautunutErikoistuvaLaakari ->
+                val result = kayttajaService.save(
+                    KayttajaDTO(nimi = uusiLahikouluttajaDTO.nimi),
+                    UserDTO(
+                        id = UUID.randomUUID().toString(),
+                        login = uusiLahikouluttajaDTO.sahkoposti,
+                        email = uusiLahikouluttajaDTO.sahkoposti,
+                        activated = false,
+                        authorities = setOf(KOULUTTAJA)
                     )
                 )
-                .body(result)
-        } ?: throw BadRequestAlertException(
+
+                kouluttajavaltuutusService.findValtuutettuByValtuuttajaAndValtuutettu(
+                    user.id!!,
+                    result.userId!!
+                ).ifPresent {
+                    throw BadRequestAlertException(
+                        "Kouluttaja on jo lisätty",
+                        "kayttaja",
+                        "dataillegal"
+                    )
+                }
+                val kouluttajavaltuutus = KouluttajavaltuutusDTO(
+                    alkamispaiva = LocalDate.now(ZoneId.systemDefault()),
+                    paattymispaiva = LocalDate.now(ZoneId.systemDefault()).plusMonths(6),
+                    valtuutuksenLuontiaika = Instant.now(),
+                    valtuutuksenMuokkausaika = Instant.now(),
+                    valtuuttajaId = kirjautunutErikoistuvaLaakari.id,
+                    valtuutettuId = result.id
+                )
+
+                kouluttajavaltuutusService.save(kouluttajavaltuutus)
+                return ResponseEntity.created(URI("/api/kayttajat/${result.id}"))
+                    .headers(
+                        HeaderUtil.createEntityCreationAlert(
+                            applicationName,
+                            true,
+                            "kayttaja",
+                            result.id.toString()
+                        )
+                    )
+                    .body(result)
+            } ?: throw BadRequestAlertException(
             "Uuden lahikouluttajan voi lisätä vain erikoistuva lääkäri.",
             "kayttaja",
             "dataillegal"
