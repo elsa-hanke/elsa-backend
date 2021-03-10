@@ -51,7 +51,7 @@ stages:
               regionName: 'eu-west-1'
               imageSource: 'imagename'
               sourceImageName: 'elsabackend'
-              repositoryName: 'elsa-backend'
+              repositoryName: 'ecr-dev-backend'
             displayName: 'Push image'
   
   - stage: Deploy_backend_dev
