@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Kayttaja
+import fi.elsapalvelu.elsa.domain.Yliopisto
 import fi.elsapalvelu.elsa.web.rest.findAll
 import javax.persistence.EntityManager
 
@@ -22,6 +23,8 @@ class ErikoistuvaLaakariHelper {
         private const val DEFAULT_OPINTOJEN_ALOITUSVUOSI: Int = 1900
         private const val UPDATED_OPINTOJEN_ALOITUSVUOSI: Int = 1901
 
+        private const val DEFAULT_YLIOPISTO = "TAYS"
+
         @JvmStatic
         fun createEntity(em: EntityManager, userId: String? = null): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari(
@@ -40,6 +43,9 @@ class ErikoistuvaLaakariHelper {
             } else {
                 kayttaja = em.findAll(Kayttaja::class).get(0)
             }
+            val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
+            em.persist(yliopisto)
+            kayttaja.yliopisto = yliopisto
             erikoistuvaLaakari.kayttaja = kayttaja
 
             // Lisätään pakollinen tieto

@@ -35,15 +35,19 @@ class KayttajaHelper {
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): Kayttaja {
+        fun createUpdatedEntity(
+            em: EntityManager,
+            userId: String? = null,
+            nimi: String? = UPDATED_NIMI
+        ): Kayttaja {
             val kayttaja = Kayttaja(
-                nimi = UPDATED_NIMI,
+                nimi = nimi,
                 profiilikuva = UPDATED_PROFIILIKUVA,
                 profiilikuvaContentType = UPDATED_PROFIILIKUVA_CONTENT_TYPE
             )
 
             // Lisätään pakollinen tieto
-            val user = KayttajaResourceIT.createEntity()
+            val user = KayttajaResourceIT.createEntity(userId)
             em.persist(user)
             em.flush()
             kayttaja.user = user

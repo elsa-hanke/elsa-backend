@@ -2,10 +2,7 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.config.DEFAULT_LANGUAGE
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.getCurrentUserLogin
@@ -133,12 +130,14 @@ class UserService(
                 erikoistuvaLaakariRepository.save(
                     ErikoistuvaLaakari(
                         kayttaja = kayttaja,
-                        erikoisala = erikoisala
+                        erikoisala = erikoisala,
+                        koejakso = Koejakso()
                     )
                 )
             } ?: erikoistuvaLaakariRepository.save(
                 ErikoistuvaLaakari(
-                    kayttaja = kayttaja
+                    kayttaja = kayttaja,
+                    koejakso = Koejakso()
                 )
             )
         }

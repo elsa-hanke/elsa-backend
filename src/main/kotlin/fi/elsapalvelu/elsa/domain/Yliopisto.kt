@@ -27,7 +27,11 @@ data class Yliopisto(
         joinColumns = [JoinColumn(name = "yliopisto_id", referencedColumnName = "id")],
         inverseJoinColumns = [JoinColumn(name = "erikoisala_id", referencedColumnName = "id")]
     )
-    var erikoisalat: MutableSet<Erikoisala> = mutableSetOf()
+    var erikoisalat: MutableSet<Erikoisala> = mutableSetOf(),
+
+    @OneToMany(mappedBy = "yliopisto")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    var kayttajat: MutableSet<Kayttaja> = mutableSetOf()
 
 ) : Serializable {
 
