@@ -381,7 +381,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         em.persist(erikoistuvaLaakari)
 
         koejakso = erikoistuvaLaakari.koejakso!!
-        koejaksonKoulutussopimus = createKoulutussopimus(em, koejakso)
+        koejaksonKoulutussopimus = createKoulutussopimus(em, erikoistuvaLaakari)
         koulutussopimuksenKouluttajat =
             mutableSetOf(createKoulutussopimuksenKouluttaja(em, koejaksonKoulutussopimus))
         koulutussopimuksenKoulutuspaikat =
@@ -419,25 +419,25 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         @JvmStatic
         fun createKoulutussopimus(
             em: EntityManager,
-            koejakso: Koejakso
+            erikoistuvaLaakari: ErikoistuvaLaakari
         ): KoejaksonKoulutussopimus {
             val vastuuhenkilo = KayttajaHelper.createEntity(em, DEFAULT_VASTUUHENKILO_ID)
             em.persist(vastuuhenkilo)
             return KoejaksonKoulutussopimus(
-                erikoistuvanNimi = koejakso.erikoistuvaLaakari?.kayttaja?.nimi,
-                erikoistuvanOpiskelijatunnus = koejakso.erikoistuvaLaakari?.opiskelijatunnus,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanSyntymaaika = DEFAULT_SYNTYMAAIKA,
-                erikoistuvanYliopisto = koejakso.erikoistuvaLaakari?.kayttaja?.yliopisto?.nimi,
+                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 opintooikeudenMyontamispaiva = DEFAULT_MYONTAMISPAIVA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
-                erikoistuvanPuhelinnumero = koejakso.erikoistuvaLaakari?.puhelinnumero,
-                erikoistuvanSahkoposti = koejakso.erikoistuvaLaakari?.sahkoposti,
+                erikoistuvanPuhelinnumero = erikoistuvaLaakari.puhelinnumero,
+                erikoistuvanSahkoposti = erikoistuvaLaakari.sahkoposti,
                 lahetetty = false,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
                 vastuuhenkilonNimi = vastuuhenkilo.nimi,
                 vastuuhenkilonNimike = vastuuhenkilo.nimike,
-                koejakso = koejakso
+                koejakso = erikoistuvaLaakari.koejakso
             )
         }
 
