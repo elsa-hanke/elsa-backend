@@ -360,7 +360,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(testKoulutuspaikka.nimi).isEqualTo(UPDATED_KOULUTUSPAIKKA)
 
         assertThat(testKoulutussopimus.kouluttajat).hasSize(2)
-        val testKouluttaja = testKoulutussopimus.kouluttajat.last()
+        val testKouluttaja =
+            testKoulutussopimus.kouluttajat.filter { it.kouluttaja?.user?.id != DEFAULT_KOULUTTAJA_ID }[0]
         assertThat(testKouluttaja.kouluttaja?.user?.id).isEqualTo(UPDATED_KOULUTTAJA_ID)
 
         assertThat(testKoulutussopimus.vastuuhenkilo?.user?.id).isEqualTo(UPDATED_VASTUUHENKILO_ID)
