@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.KoejaksoService
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
+import fi.elsapalvelu.elsa.service.UnauthorizedException
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.KoejaksoDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
@@ -105,18 +106,25 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
         validateKoulutussopimus(koulutussopimusDTO)
 
-        val result = koejaksonKoulutussopimusService.save(koulutussopimusDTO, id, user.id!!)
-        return ResponseEntity.created(URI("/api/suoritusarvioinnit/${result.id}"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_SOPIMUS,
-                    result.id.toString()
+        try {
+            val result = koejaksonKoulutussopimusService.save(koulutussopimusDTO, id, user.id!!)
+            return ResponseEntity.created(URI("/api/suoritusarvioinnit/${result.id}"))
+                .headers(
+                    HeaderUtil.createEntityCreationAlert(
+                        applicationName,
+                        true,
+                        ENTITY_KOEJAKSON_SOPIMUS,
+                        result.id.toString()
+                    )
                 )
+                .body(result)
+        } catch (e: UnauthorizedException) {
+            throw BadRequestAlertException(
+                e.message.toString(),
+                "koejakso",
+                "dataillegal"
             )
-            .body(result)
-
+        }
     }
 
     @PutMapping("/koejakso/{id}/koulutussopimus")
@@ -142,18 +150,27 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
 
         val user = userService.getAuthenticatedUser(principal)
-        val result =
-            koejaksonKoulutussopimusService.save(koulutussopimusDTO, id, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_SOPIMUS,
-                    koulutussopimusDTO.id.toString()
+
+        try {
+            val result =
+                koejaksonKoulutussopimusService.save(koulutussopimusDTO, id, user.id!!)
+            return ResponseEntity.ok()
+                .headers(
+                    HeaderUtil.createEntityUpdateAlert(
+                        applicationName,
+                        true,
+                        ENTITY_KOEJAKSON_SOPIMUS,
+                        koulutussopimusDTO.id.toString()
+                    )
                 )
+                .body(result)
+        } catch (e: UnauthorizedException) {
+            throw BadRequestAlertException(
+                e.message.toString(),
+                "koejakso",
+                "dataillegal"
             )
-            .body(result)
+        }
     }
 
     private fun validateKoulutussopimus(koulutussopimusDTO: KoejaksonKoulutussopimusDTO) {
