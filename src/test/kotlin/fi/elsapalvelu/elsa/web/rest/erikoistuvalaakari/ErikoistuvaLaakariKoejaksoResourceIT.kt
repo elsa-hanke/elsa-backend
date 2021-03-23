@@ -172,6 +172,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         koejaksoRepository.saveAndFlush(koejakso)
 
+        val databaseSizeBeforeCreate = koejaksonKoulutussopimusRepository.findAll().size
+
         val koejaksonKoulutussopimusDTO =
             koejaksonKoulutussopimusMapper.toDto(koejaksonKoulutussopimus)
         restKoejaksoMockMvc.perform(
@@ -180,6 +182,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 .content(convertObjectToJsonBytes(koejaksonKoulutussopimusDTO))
                 .with(csrf())
         ).andExpect(status().isBadRequest)
+
+        val koulutussopimusList = koejaksonKoulutussopimusRepository.findAll()
+        assertThat(koulutussopimusList).hasSize(databaseSizeBeforeCreate)
     }
 
     @Test
@@ -375,7 +380,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, userId)
         em.persist(erikoistuvaLaakari)
 
-        koejakso = createKoejakso(erikoistuvaLaakari)
+        koejakso = erikoistuvaLaakari.koejakso!!
         koejaksonKoulutussopimus = createKoulutussopimus(em, koejakso)
         koulutussopimuksenKouluttajat =
             mutableSetOf(createKoulutussopimuksenKouluttaja(em, koejaksonKoulutussopimus))
@@ -410,15 +415,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         private const val DEFAULT_YLIOPISTO = "TAYS"
 
         private const val UPDATED_KOULUTUSPAIKKA = "HUS Päivystyskeskus"
-
-        @JvmStatic
-        fun createKoejakso(
-            erikoistuvaLaakari: ErikoistuvaLaakari
-        ): Koejakso {
-            return Koejakso(
-                erikoistuvaLaakari = erikoistuvaLaakari
-            )
-        }
 
         @JvmStatic
         fun createKoulutussopimus(

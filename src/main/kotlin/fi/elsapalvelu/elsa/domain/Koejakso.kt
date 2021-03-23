@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
-import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "koejakso")
@@ -17,9 +17,8 @@ data class Koejakso(
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
 
-    @NotNull
-    @OneToOne(optional = false)
-    @JoinColumn(unique = true)
+    @OneToOne(mappedBy = "koejakso")
+    @JsonIgnore
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
     @Column(name = "alkamispaiva")

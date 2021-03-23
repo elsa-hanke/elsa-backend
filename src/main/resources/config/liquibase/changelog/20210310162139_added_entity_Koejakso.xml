@@ -16,9 +16,6 @@
             <column name="paattymispaiva" type="date">
                 <constraints nullable="true"/>
             </column>
-            <column name="erikoistuva_laakari_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
         </createTable>
 
         <createTable tableName="koejakson_koulutussopimus">
@@ -141,6 +138,11 @@
             <column name="nimike" type="varchar(255)"/>
         </addColumn>
 
+        <addColumn tableName="erikoistuva_laakari">
+            <column name="koejakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
     </changeSet>
 
 </databaseChangeLog>

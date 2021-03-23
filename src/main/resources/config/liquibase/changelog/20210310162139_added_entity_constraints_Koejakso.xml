@@ -6,11 +6,11 @@
 
     <changeSet id="20210310162139-2" author="jhipster">
 
-        <addForeignKeyConstraint baseColumnNames="erikoistuva_laakari_id"
-            baseTableName="koejakso"
-            constraintName="fk_koejakso_erikoistuva_laakari_id"
+        <addForeignKeyConstraint baseColumnNames="koejakso_id"
+            baseTableName="erikoistuva_laakari"
+            constraintName="fk_erikoistuva_laakari_koejakso_id"
             referencedColumnNames="id"
-            referencedTableName="erikoistuva_laakari"/>
+            referencedTableName="koejakso"/>
 
         <addForeignKeyConstraint baseColumnNames="koejakso_id"
             baseTableName="tyoskentelyjakso"

@@ -50,8 +50,9 @@ data class ErikoistuvaLaakari(
     @JsonIgnoreProperties(value = ["erikoistuvatLaakarit"], allowSetters = true)
     var erikoisala: Erikoisala? = null,
 
-    @OneToOne(mappedBy = "erikoistuvaLaakari")
-    @JsonIgnore
+    @NotNull
+    @OneToOne(optional = false, cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JoinColumn(unique = true)
     var koejakso: Koejakso? = null
 
 ) : Serializable {
