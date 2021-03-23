@@ -3,14 +3,15 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.repository.KoejaksoRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
+import fi.elsapalvelu.elsa.service.UnauthorizedException
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
-import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
+import javax.persistence.EntityNotFoundException
 
 
 @Service
@@ -28,19 +29,11 @@ class KoejaksonKoulutussopimusServiceImpl(
     ): KoejaksonKoulutussopimusDTO {
         val koejakso =
             koejaksoRepository.findById(koejaksoId).orElseThrow {
-                BadRequestAlertException(
-                    "Epäkelvollinen id",
-                    "koejakso",
-                    "idnull"
-                )
+                EntityNotFoundException("Koejaksoa ei löydy")
             }
 
         if (koejakso.erikoistuvaLaakari?.kayttaja?.user?.id != userId) {
-            throw BadRequestAlertException(
-                "Koejakson täytyy kuulua kirjautuneelle käyttäjälle",
-                "koejakso",
-                "dataillegal"
-            )
+            throw UnauthorizedException("Koejakson täytyy kuulua kirjautuneelle käyttäjälle")
         }
 
         var koulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)

@@ -11,6 +11,7 @@ import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import javax.persistence.EntityNotFoundException
 
 
 @Service
@@ -55,18 +56,10 @@ class KoejaksoServiceImpl(
         userId: String
     ): TyoskentelyjaksoDTO {
         val koejakso = koejaksoRepository.findById(koejaksoId).orElseThrow {
-            BadRequestAlertException(
-                "Epäkelvollinen id",
-                "koejakso",
-                "idnull"
-            )
+            EntityNotFoundException("Koejaksoa ei löydy")
         }
         val tyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjaksoId).orElseThrow {
-            BadRequestAlertException(
-                "Epäkelvollinen id",
-                "tyojakso",
-                "idnull"
-            )
+            EntityNotFoundException("Työskentelyjaksoa ei löydy")
         }
 
         if (tyoskentelyjakso.erikoistuvaLaakari?.kayttaja?.user?.id == userId) {
@@ -83,11 +76,7 @@ class KoejaksoServiceImpl(
         userId: String
     ) {
         val tyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjaksoId).orElseThrow {
-            BadRequestAlertException(
-                "Epäkelvollinen id",
-                "tyojakso",
-                "idnull"
-            )
+            EntityNotFoundException("Työskentelyjaksoa ei löydy")
         }
 
         if (tyoskentelyjakso.erikoistuvaLaakari?.kayttaja?.user?.id == userId && tyoskentelyjakso.koejakso?.id == koejaksoId) {
