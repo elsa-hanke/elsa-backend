@@ -1,9 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.Erikoisala
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.Yliopisto
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.web.rest.findAll
 import javax.persistence.EntityManager
 
@@ -58,6 +55,7 @@ class ErikoistuvaLaakariHelper {
                 erikoisala = em.findAll(Erikoisala::class).get(0)
             }
             erikoistuvaLaakari.erikoisala = erikoisala
+            erikoistuvaLaakari.koejakso = Koejakso()
 
             return erikoistuvaLaakari
         }
