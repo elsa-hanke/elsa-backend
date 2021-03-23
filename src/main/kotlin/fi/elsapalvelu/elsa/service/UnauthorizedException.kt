@@ -1,11 +1,6 @@
-package fi.elsapalvelu.elsa.service;
+package fi.elsapalvelu.elsa.service
 
-public class UnauthorizedException extends RuntimeException {
+import java.lang.RuntimeException
 
-    public UnauthorizedException() {
-    }
-
-    public UnauthorizedException(String message) {
-        super(message);
-    }
+class UnauthorizedException(message: String?) : RuntimeException(message) {
 }
