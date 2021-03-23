@@ -171,7 +171,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         initTest(null)
 
         koejaksoRepository.saveAndFlush(koejakso)
-        erikoistuvaLaakariRepository.saveAndFlush(koejakso.erikoistuvaLaakari)
 
         val koejaksonKoulutussopimusDTO =
             koejaksonKoulutussopimusMapper.toDto(koejaksonKoulutussopimus)
