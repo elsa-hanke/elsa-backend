@@ -154,6 +154,17 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         return ResponseEntity.ok(table)
     }
 
+    @GetMapping("/tyoskentelyjaksot")
+    fun getTyoskentelyjaksot(
+        principal: Principal?
+    ): ResponseEntity<List<TyoskentelyjaksoDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val tyoskentelyjaksot =
+            tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        return ResponseEntity.ok(tyoskentelyjaksot)
+    }
+
     @GetMapping("/tyoskentelyjaksot/{id}")
     fun getTyoskentelyjakso(
         @PathVariable id: Long,
@@ -177,7 +188,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         tyoskentelyjaksoService.delete(id, user.id!!)
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build()
+            .headers(
+                HeaderUtil.createEntityDeletionAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    id.toString()
+                )
+            ).build()
     }
 
     @GetMapping("/tyoskentelyjakso-lomake")
@@ -308,7 +326,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         keskeytysaikaService.delete(id, user.id!!)
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, "keskeytysaika", id.toString()))
+            .headers(
+                HeaderUtil.createEntityDeletionAlert(
+                    applicationName,
+                    true,
+                    "keskeytysaika",
+                    id.toString()
+                )
+            )
             .build()
     }
 }
