@@ -29,8 +29,8 @@ stages:
               ./gradlew clean test integrationTest
             displayName: 'Test'
           - publish: $(System.DefaultWorkingDirectory)/build/reports/integrationTest/
-              artifact: IntegrationTests
-              displayName: 'Upload integration test artifact'
+            artifact: IntegrationTests
+            displayName: 'Upload integration test artifact'
           - script: |
               ./gradlew dependencyCheckAnalyze
             continueOnError: true
