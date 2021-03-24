@@ -90,9 +90,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             ).build()
     }
 
-    @PostMapping("/koejakso/{id}/koulutussopimus")
+    @PostMapping("/koejakso/koulutussopimus")
     fun createKoulutussopimus(
-        @PathVariable id: Long,
         @Valid @RequestBody koulutussopimusDTO: KoejaksonKoulutussopimusDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonKoulutussopimusDTO> {
@@ -106,8 +105,19 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
         validateKoulutussopimus(koulutussopimusDTO)
 
+        val koejakso = koejaksoService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        if (koejakso.koulutussopimus != null) {
+            throw BadRequestAlertException(
+                "Käyttäjällä on jo koulutussopimus.",
+                ENTITY_KOEJAKSON_SOPIMUS,
+                "entityexists"
+            )
+        }
+
         try {
-            val result = koejaksonKoulutussopimusService.save(koulutussopimusDTO, id, user.id!!)
+            val result =
+                koejaksonKoulutussopimusService.save(koulutussopimusDTO, koejakso.id!!, user.id!!)
             return ResponseEntity.created(URI("/api/suoritusarvioinnit/${result.id}"))
                 .headers(
                     HeaderUtil.createEntityCreationAlert(
@@ -127,9 +137,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
     }
 
-    @PutMapping("/koejakso/{id}/koulutussopimus")
+    @PutMapping("/koejakso/koulutussopimus")
     fun updateKoulutussopimus(
-        @PathVariable id: Long,
         @Valid @RequestBody koulutussopimusDTO: KoejaksonKoulutussopimusDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonKoulutussopimusDTO> {
@@ -139,9 +148,10 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         validateKoulutussopimus(koulutussopimusDTO)
 
-        val existingKoulutussopimusDTO =
-            koejaksonKoulutussopimusService.findOne(koulutussopimusDTO.id!!)
-        if (existingKoulutussopimusDTO.get().lahetetty == true) {
+        val user = userService.getAuthenticatedUser(principal)
+
+        val koejakso = koejaksoService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        if (koejakso.koulutussopimus?.lahetetty == true) {
             throw BadRequestAlertException(
                 "Lähetettyä koulutussopimusta ei saa muokata.",
                 ENTITY_KOEJAKSON_SOPIMUS,
@@ -149,11 +159,9 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        val user = userService.getAuthenticatedUser(principal)
-
         try {
             val result =
-                koejaksonKoulutussopimusService.save(koulutussopimusDTO, id, user.id!!)
+                koejaksonKoulutussopimusService.save(koulutussopimusDTO, koejakso.id!!, user.id!!)
             return ResponseEntity.ok()
                 .headers(
                     HeaderUtil.createEntityUpdateAlert(
