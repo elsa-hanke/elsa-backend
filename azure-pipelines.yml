@@ -28,6 +28,9 @@ stages:
               ./gradlew checkstyleNohttp
               ./gradlew clean test integrationTest
             displayName: 'Test'
+          - publish: $(System.DefaultWorkingDirectory)/build/reports/integrationTest/
+              artifact: IntegrationTests
+              displayName: 'Upload integration test artifact'
           - script: |
               ./gradlew dependencyCheckAnalyze
             continueOnError: true
@@ -53,7 +56,7 @@ stages:
               sourceImageName: 'elsabackend'
               repositoryName: 'elsa-backend'
             displayName: 'Push image'
-  
+
   - stage: Deploy_backend_dev
     displayName: Deploy backend dev
     dependsOn: Build
@@ -68,13 +71,13 @@ stages:
           runOnce:
             deploy:
               steps:
-              - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
-                inputs:
-                  awsCredentials: 'elsa-ci'
-                  regionName: 'eu-west-1'
-                  scriptType: inline
-                  inlineScript: 'aws ecs update-service --cluster elsa-dev-cluster --service ecs-dev-backend --force-new-deployment > /dev/null'
-                displayName: Force update ecs service
+                - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
+                  inputs:
+                    awsCredentials: 'elsa-ci'
+                    regionName: 'eu-west-1'
+                    scriptType: inline
+                    inlineScript: 'aws ecs update-service --cluster elsa-dev-cluster --service ecs-dev-backend --force-new-deployment > /dev/null'
+                  displayName: Force update ecs service
 
   - stage: Deploy_backend_testi
     displayName: Deploy testi
