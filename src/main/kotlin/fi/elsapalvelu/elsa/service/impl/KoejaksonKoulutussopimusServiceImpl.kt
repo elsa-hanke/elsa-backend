@@ -32,13 +32,15 @@ class KoejaksonKoulutussopimusServiceImpl(
                 EntityNotFoundException("Koejaksoa ei löydy")
             }
 
-        if (koejakso.erikoistuvaLaakari?.kayttaja?.user?.id != userId) {
+        var koulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
+
+        if (koejakso.erikoistuvaLaakari?.kayttaja?.user?.id == userId) {
+            koulutussopimus.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
+            koulutussopimus.koejakso = koejakso
+        } else {
             throw UnauthorizedException("Koejakson täytyy kuulua kirjautuneelle käyttäjälle")
         }
 
-        var koulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
-        koulutussopimus.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
-        koulutussopimus.koejakso = koejakso
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
         return koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
     }
