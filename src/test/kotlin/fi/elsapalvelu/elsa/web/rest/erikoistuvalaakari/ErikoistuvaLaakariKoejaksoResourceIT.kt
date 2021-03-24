@@ -155,7 +155,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val koejaksonKoulutussopimusDTO =
             koejaksonKoulutussopimusMapper.toDto(koejakso.koulutussopimus!!)
         restKoejaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/koejakso/" + koejakso.id + "/koulutussopimus")
+            post("/api/erikoistuva-laakari/koejakso/koulutussopimus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koejaksonKoulutussopimusDTO))
                 .with(csrf())
@@ -177,7 +177,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val koejaksonKoulutussopimusDTO =
             koejaksonKoulutussopimusMapper.toDto(koejaksonKoulutussopimus)
         restKoejaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/koejakso/" + koejakso.id + "/koulutussopimus")
+            post("/api/erikoistuva-laakari/koejakso/koulutussopimus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koejaksonKoulutussopimusDTO))
                 .with(csrf())
@@ -204,7 +204,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val koejaksonKoulutussopimusDTO =
             koejaksonKoulutussopimusMapper.toDto(koejaksonKoulutussopimus)
         restKoejaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/koejakso/" + koejakso.id + "/koulutussopimus")
+            post("/api/erikoistuva-laakari/koejakso/koulutussopimus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koejaksonKoulutussopimusDTO))
                 .with(csrf())
@@ -228,7 +228,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val koejaksonKoulutussopimusDTO =
             koejaksonKoulutussopimusMapper.toDto(koejaksonKoulutussopimus)
         restKoejaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/koejakso/" + koejakso.id + "/koulutussopimus")
+            post("/api/erikoistuva-laakari/koejakso/koulutussopimus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koejaksonKoulutussopimusDTO))
                 .with(csrf())
@@ -252,7 +252,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val koejaksonKoulutussopimusDTO =
             koejaksonKoulutussopimusMapper.toDto(koejaksonKoulutussopimus)
         restKoejaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/koejakso/" + koejakso.id + "/koulutussopimus")
+            post("/api/erikoistuva-laakari/koejakso/koulutussopimus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koejaksonKoulutussopimusDTO))
                 .with(csrf())
@@ -343,7 +343,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
         restKoejaksoMockMvc.perform(
-            put("/api/erikoistuva-laakari/koejakso/" + koejakso.id + "/koulutussopimus")
+            put("/api/erikoistuva-laakari/koejakso/koulutussopimus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koulutussopimusDTO))
                 .with(csrf())
