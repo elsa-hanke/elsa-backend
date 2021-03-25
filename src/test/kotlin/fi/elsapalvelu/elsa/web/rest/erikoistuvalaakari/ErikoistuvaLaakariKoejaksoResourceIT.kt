@@ -3,10 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KoejaksoRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
-import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -44,6 +41,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
     @Autowired
     private lateinit var koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
+
+    @Autowired
+    private lateinit var kayttajaRepository: KayttajaRepository
 
     @Autowired
     private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
@@ -303,11 +303,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         initTest()
 
         koejaksoRepository.saveAndFlush(koejakso)
-        koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
         koejakso.koulutussopimus = koejaksonKoulutussopimus
-        em.persist(koulutussopimuksenKouluttajat.iterator().next())
         koejaksonKoulutussopimus.kouluttajat = koulutussopimuksenKouluttajat
-        em.persist(koulutussopimuksenKoulutuspaikat.iterator().next())
         koejaksonKoulutussopimus.koulutuspaikat = koulutussopimuksenKoulutuspaikat
         koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
 
@@ -327,7 +324,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         val updatedKouluttaja =
             createKoulutussopimuksenKouluttaja(em, updatedKoulutussopimus, UPDATED_KOULUTTAJA_ID)
-        em.persist(updatedKouluttaja)
         updatedKoulutussopimus.kouluttajat.add(updatedKouluttaja)
 
         val updatedVastuuhenkilo = KayttajaHelper.createUpdatedEntity(
@@ -364,7 +360,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
             testKoulutussopimus.kouluttajat.filter { it.kouluttaja?.user?.id != DEFAULT_KOULUTTAJA_ID }[0]
         assertThat(testKouluttaja.kouluttaja?.user?.id).isEqualTo(UPDATED_KOULUTTAJA_ID)
 
-        assertThat(testKoulutussopimus.vastuuhenkilo?.user?.id).isEqualTo(UPDATED_VASTUUHENKILO_ID)
+        val testVastuuhenkilo = kayttajaRepository.findById(testKoulutussopimus.vastuuhenkilo?.id!!)
+        assertThat(testVastuuhenkilo.get().user?.id).isEqualTo(UPDATED_VASTUUHENKILO_ID)
         assertThat(testKoulutussopimus.vastuuhenkilonNimi).isEqualTo(UPDATED_VASTUUHENKILO_NIMI)
     }
 

@@ -5,9 +5,13 @@ import java.util.*
 
 interface KoejaksonKoulutussopimusService {
 
-    fun save(
+    fun create(
         koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO,
-        koejaksoId: Long,
+        userId: String
+    ): KoejaksonKoulutussopimusDTO
+
+    fun update(
+        koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO,
         userId: String
     ): KoejaksonKoulutussopimusDTO
 
