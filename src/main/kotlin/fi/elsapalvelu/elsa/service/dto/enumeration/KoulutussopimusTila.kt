@@ -3,12 +3,12 @@ package fi.elsapalvelu.elsa.service.dto.enumeration
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 
 enum class KoulutussopimusTila {
-    EI_ALOITETTU, TALLENNETTU_KESKENERAISENA, ODOTTAA_HYVAKSYNTAA, PALAUTETTU_KORJATTAVAKSI, HYVAKSYTTY;
+    UUSI, TALLENNETTU_KESKENERAISENA, ODOTTAA_HYVAKSYNTAA, PALAUTETTU_KORJATTAVAKSI, HYVAKSYTTY;
 
     companion object {
         fun fromSopimus(koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO?): KoulutussopimusTila {
             if (koejaksonKoulutussopimusDTO == null) {
-                return EI_ALOITETTU
+                return UUSI
             }
             if (koejaksonKoulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true) {
                 return HYVAKSYTTY
