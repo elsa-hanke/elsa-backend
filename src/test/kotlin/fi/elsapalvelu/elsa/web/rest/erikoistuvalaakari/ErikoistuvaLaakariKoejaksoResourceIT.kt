@@ -146,7 +146,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         initTest()
 
         koejaksoRepository.saveAndFlush(koejakso)
-        koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
         koejakso.koulutussopimus = koejaksonKoulutussopimus
         koejaksonKoulutussopimus.kouluttajat = koulutussopimuksenKouluttajat
         koejaksonKoulutussopimus.koulutuspaikat = koulutussopimuksenKoulutuspaikat
@@ -163,28 +162,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         val sopimus = koejaksonKoulutussopimusRepository.findById(koejakso.koulutussopimus?.id!!)
         assertThat(sopimus.get().muokkauspaiva).isEqualTo(koejakso.koulutussopimus?.muokkauspaiva)
-    }
-
-    @Test
-    @Transactional
-    fun createKoulutussopimusForAnotherUser() {
-        initTest(null)
-
-        koejaksoRepository.saveAndFlush(koejakso)
-
-        val databaseSizeBeforeCreate = koejaksonKoulutussopimusRepository.findAll().size
-
-        val koejaksonKoulutussopimusDTO =
-            koejaksonKoulutussopimusMapper.toDto(koejaksonKoulutussopimus)
-        restKoejaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/koejakso/koulutussopimus")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(koejaksonKoulutussopimusDTO))
-                .with(csrf())
-        ).andExpect(status().isBadRequest)
-
-        val koulutussopimusList = koejaksonKoulutussopimusRepository.findAll()
-        assertThat(koulutussopimusList).hasSize(databaseSizeBeforeCreate)
     }
 
     @Test
