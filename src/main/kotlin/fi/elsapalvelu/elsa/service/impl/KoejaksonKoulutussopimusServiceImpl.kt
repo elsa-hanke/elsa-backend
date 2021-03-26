@@ -80,6 +80,31 @@ class KoejaksonKoulutussopimusServiceImpl(
             }
         }
 
+        koulutussopimus.kouluttajat.forEach {
+            if (it.kouluttaja?.user?.id == userId) {
+                val updatedKouluttaja =
+                    updatedKoulutussopimus.kouluttajat.first { k -> k.id == it.id }
+                it.nimi = updatedKouluttaja.nimi
+                it.nimike = updatedKouluttaja.nimike
+                it.toimipaikka = updatedKouluttaja.toimipaikka
+                it.lahiosoite = updatedKouluttaja.lahiosoite
+                it.postitoimipaikka = updatedKouluttaja.postitoimipaikka
+                it.puhelin = updatedKouluttaja.puhelin
+                it.sahkoposti = updatedKouluttaja.sahkoposti
+
+                // Hyväksytty
+                if (updatedKoulutussopimus.korjausehdotus == null) {
+                    it.sopimusHyvaksytty = true
+                    it.kuittausaika = LocalDate.now(ZoneId.systemDefault())
+                }
+                // Palautettu korjattavaksi
+                else {
+                    koulutussopimus.korjausehdotus = updatedKoulutussopimus.korjausehdotus
+                    koulutussopimus.lahetetty = false
+                }
+            }
+        }
+
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
         return koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
     }
@@ -88,6 +113,17 @@ class KoejaksonKoulutussopimusServiceImpl(
     override fun findOne(id: Long): Optional<KoejaksonKoulutussopimusDTO> {
         return koejaksonKoulutussopimusRepository.findById(id)
             .map(koejaksonKoulutussopimusMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findOneByIdAndKouluttajaKayttajaUserId(
+        id: Long,
+        userId: String
+    ): Optional<KoejaksonKoulutussopimusDTO> {
+        return koejaksonKoulutussopimusRepository.findOneByIdAndKouluttajatKouluttajaUserId(
+            id,
+            userId
+        ).map(koejaksonKoulutussopimusMapper::toDto)
     }
 
     override fun delete(id: Long) {
