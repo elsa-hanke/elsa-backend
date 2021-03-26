@@ -45,8 +45,6 @@ data class KoejaksonKoulutussopimusDTO(
 
     var kouluttajat: MutableSet<KoulutussopimuksenKouluttajaDTO>? = mutableSetOf(),
 
-    var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikkaDTO>? = mutableSetOf(),
-
-    var tila: KoulutussopimusTila? = null
+    var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikkaDTO>? = mutableSetOf()
 
 ) : Serializable
