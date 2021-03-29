@@ -22,5 +22,10 @@ interface KoejaksonKoulutussopimusService {
         userId: String
     ): Optional<KoejaksonKoulutussopimusDTO>
 
+    fun findOneByIdAndVastuuhenkiloKayttajaUserId(
+        id: Long,
+        userId: String
+    ): Optional<KoejaksonKoulutussopimusDTO>
+
     fun delete(id: Long)
 }
