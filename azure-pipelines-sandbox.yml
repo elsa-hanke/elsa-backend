@@ -47,21 +47,21 @@ stages:
           - task: ECRPushImage@1
             condition: eq(variables.isMain, true)
             inputs:
-              awsCredentials: 'elsa-ci'
+              awsCredentials: 'sandbox-elsa-ci'
               regionName: 'eu-west-1'
               imageSource: 'imagename'
               sourceImageName: 'elsabackend'
-              repositoryName: 'ecr-dev-backend'
+              repositoryName: 'ecr-sandbox-backend'
             displayName: 'Push image'
 
-  - stage: Deploy_backend_dev
-    displayName: Deploy backend dev
+  - stage: Deploy_backend_sandbox
+    displayName: Deploy backend sandbox
     dependsOn: Build
     condition: and(succeeded(), eq(variables.isMain, true))
     jobs:
       - deployment: Deploy
-        displayName: Deploy backend dev
-        environment: "development"
+        displayName: Deploy backend sandbox
+        environment: "sandbox"
         pool:
           vmImage: $(vmImageName)
         strategy:
@@ -70,30 +70,8 @@ stages:
               steps:
               - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
                 inputs:
-                  awsCredentials: 'elsa-ci'
+                  awsCredentials: 'sandbox-elsa-ci'
                   regionName: 'eu-west-1'
                   scriptType: inline
-                  inlineScript: 'aws ecs update-service --cluster elsa-dev-cluster --service elsa-dev-backend-service --force-new-deployment > /dev/null'
+                  inlineScript: 'aws ecs update-service --cluster elsa-sandbox-cluster --service elsa-sandbox-backend-service --force-new-deployment > /dev/null'
                 displayName: Force update ecs service
-
-  - stage: Deploy_backend_testi
-    displayName: Deploy testi
-    dependsOn: Build
-    condition: and(succeeded(), eq(variables.isMain, true))
-    jobs:
-      - deployment: Deploy
-        displayName: Deploy testi
-        environment: "testi"
-        pool:
-          vmImage: $(vmImageName)
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
-                  inputs:
-                    awsCredentials: 'staging-elsa-ci'
-                    regionName: 'eu-west-1'
-                    scriptType: inline
-                    inlineScript: 'aws ecs update-service --cluster elsa-staging-cluster --service elsa-staging-backend-service --force-new-deployment > /dev/null'
-                  displayName: Force update ecs service
