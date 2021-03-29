@@ -105,6 +105,14 @@ class KoejaksonKoulutussopimusServiceImpl(
             }
         }
 
+        // Jos sopimus palautetaan, poistetaan kaikki aiemmat kuittaukset
+        if (!koulutussopimus.lahetetty) {
+            koulutussopimus.kouluttajat.forEach {
+                it.sopimusHyvaksytty = false
+                it.kuittausaika = null
+            }
+        }
+
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
         return koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
     }
