@@ -1,6 +1,5 @@
 variables:
   vmImageName: 'Ubuntu 16.04'
-  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
 
 stages:
   - stage: Build
@@ -45,7 +44,6 @@ stages:
               ./gradlew --stop
             displayName: 'Gradle daemon stop'
           - task: ECRPushImage@1
-            condition: eq(variables.isMain, true)
             inputs:
               awsCredentials: 'sandbox-elsa-ci'
               regionName: 'eu-west-1'
@@ -57,7 +55,6 @@ stages:
   - stage: Deploy_backend_sandbox
     displayName: Deploy backend sandbox
     dependsOn: Build
-    condition: and(succeeded(), eq(variables.isMain, true))
     jobs:
       - deployment: Deploy
         displayName: Deploy backend sandbox
