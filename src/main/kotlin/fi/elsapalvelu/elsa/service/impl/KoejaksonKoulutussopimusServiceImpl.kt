@@ -29,7 +29,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         var koulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
         koulutussopimus.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
-        koulutussopimus.koejakso = kirjautunutErikoistuvaLaakari?.koejakso
+        koulutussopimus.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         koulutussopimus.koulutuspaikat.forEach { it.koulutussopimus = koulutussopimus }
         koulutussopimus.kouluttajat.forEach { it.koulutussopimus = koulutussopimus }
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
@@ -51,7 +51,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         val updatedKoulutussopimus =
             koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
 
-        if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == koulutussopimus.koejakso?.erikoistuvaLaakari) {
+        if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == koulutussopimus.erikoistuvaLaakari) {
             koulutussopimus.erikoistuvanNimi = updatedKoulutussopimus.erikoistuvanNimi
             koulutussopimus.erikoistuvanOpiskelijatunnus =
                 updatedKoulutussopimus.erikoistuvanOpiskelijatunnus
@@ -120,6 +120,11 @@ class KoejaksonKoulutussopimusServiceImpl(
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<KoejaksonKoulutussopimusDTO> {
         return koejaksonKoulutussopimusRepository.findById(id)
+            .map(koejaksonKoulutussopimusMapper::toDto)
+    }
+
+    override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonKoulutussopimusDTO> {
+        return koejaksonKoulutussopimusRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
             .map(koejaksonKoulutussopimusMapper::toDto)
     }
 

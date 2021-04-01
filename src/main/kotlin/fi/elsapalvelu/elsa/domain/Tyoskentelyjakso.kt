@@ -64,11 +64,10 @@ data class Tyoskentelyjakso(
     @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
-    @ManyToOne(optional = true)
-    @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
-    var koejakso: Koejakso? = null
+    @Column(name = "liitetty_koejaksoon")
+    var liitettyKoejaksoon: Boolean = false,
 
-) : Serializable {
+    ) : Serializable {
 
     fun addSuoritusarviointi(suoritusarviointi: Suoritusarviointi): Tyoskentelyjakso {
         this.suoritusarvioinnit.add(suoritusarviointi)

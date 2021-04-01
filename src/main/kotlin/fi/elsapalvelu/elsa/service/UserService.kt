@@ -131,13 +131,11 @@ class UserService(
                     ErikoistuvaLaakari(
                         kayttaja = kayttaja,
                         erikoisala = erikoisala,
-                        koejakso = Koejakso()
                     )
                 )
             } ?: erikoistuvaLaakariRepository.save(
                 ErikoistuvaLaakari(
                     kayttaja = kayttaja,
-                    koejakso = Koejakso()
                 )
             )
         }

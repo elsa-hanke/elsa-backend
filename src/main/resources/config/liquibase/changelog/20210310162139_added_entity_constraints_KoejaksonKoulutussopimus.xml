@@ -6,29 +6,17 @@
 
     <changeSet id="20210310162139-2" author="jhipster">
 
-        <addForeignKeyConstraint baseColumnNames="koejakso_id"
-            baseTableName="erikoistuva_laakari"
-            constraintName="fk_erikoistuva_laakari_koejakso_id"
+        <addForeignKeyConstraint baseColumnNames="erikoistuva_laakari_id"
+            baseTableName="koejakson_koulutussopimus"
+            constraintName="fk_koejakson_koulutussopimus_erikoistuva_laakari_id"
             referencedColumnNames="id"
-            referencedTableName="koejakso"/>
-
-        <addForeignKeyConstraint baseColumnNames="koejakso_id"
-            baseTableName="tyoskentelyjakso"
-            constraintName="fk_tyoskentelyjakso_koejakso_id"
-            referencedColumnNames="id"
-            referencedTableName="koejakso"/>
+            referencedTableName="erikoistuva_laakari"/>
 
         <addForeignKeyConstraint baseColumnNames="vastuuhenkilo_id"
             baseTableName="koejakson_koulutussopimus"
             constraintName="fk_koejakson_koulutussopimus_vastuuhenkilo_id"
             referencedColumnNames="id"
             referencedTableName="kayttaja"/>
-
-        <addForeignKeyConstraint baseColumnNames="koejakso_id"
-            baseTableName="koejakson_koulutussopimus"
-            constraintName="fk_koejakson_koulutussopimus_koejakso_id"
-            referencedColumnNames="id"
-            referencedTableName="koejakso"/>
 
         <addForeignKeyConstraint baseColumnNames="kouluttaja_id"
             baseTableName="koulutussopimuksen_kouluttaja"

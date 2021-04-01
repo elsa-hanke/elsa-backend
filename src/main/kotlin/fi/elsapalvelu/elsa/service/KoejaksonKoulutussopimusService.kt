@@ -17,6 +17,10 @@ interface KoejaksonKoulutussopimusService {
 
     fun findOne(id: Long): Optional<KoejaksonKoulutussopimusDTO>
 
+    fun findByErikoistuvaLaakariKayttajaUserId(
+        userId: String
+    ): Optional<KoejaksonKoulutussopimusDTO>
+
     fun findOneByIdAndKouluttajaKayttajaUserId(
         id: Long,
         userId: String

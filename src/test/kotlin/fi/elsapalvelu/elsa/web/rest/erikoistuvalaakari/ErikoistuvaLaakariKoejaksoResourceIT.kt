@@ -3,13 +3,15 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.repository.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
+import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,22 +39,19 @@ import kotlin.test.assertNotNull
 class ErikoistuvaLaakariKoejaksoResourceIT {
 
     @Autowired
-    private lateinit var koejaksoRepository: KoejaksoRepository
+    private lateinit var koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
 
     @Autowired
-    private lateinit var koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
+    private lateinit var koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository
 
     @Autowired
     private lateinit var kayttajaRepository: KayttajaRepository
 
     @Autowired
-    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
-
-    @Autowired
-    private lateinit var tyoskentelyjaksoRepository: TyoskentelyjaksoRepository
-
-    @Autowired
     private lateinit var koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper
+
+    @Autowired
+    private lateinit var koejaksonAloituskeskusteluMapper: KoejaksonAloituskeskusteluMapper
 
     @Autowired
     private lateinit var em: EntityManager
@@ -60,13 +59,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Autowired
     private lateinit var restKoejaksoMockMvc: MockMvc
 
-    private lateinit var koejakso: Koejakso
-
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
 
-    private lateinit var koulutussopimuksenKouluttajat: MutableSet<KoulutussopimuksenKouluttaja>
-
-    private lateinit var koulutussopimuksenKoulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikka>
+    private lateinit var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu
 
     @BeforeEach
     fun setup() {
@@ -78,11 +73,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun getKoejakso() {
         initTest()
 
-        koejaksoRepository.saveAndFlush(koejakso)
-
-        val id = koejakso.id
-        assertNotNull(id)
-
         restKoejaksoMockMvc.perform(
             get(
                 "/api/erikoistuva-laakari/koejakso"
@@ -90,54 +80,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(koejakso.id as Any))
-            .andExpect(jsonPath("$.alkamispaiva").isEmpty)
-            .andExpect(jsonPath("$.paattymispaiva").isEmpty)
             .andExpect(jsonPath("$.koulutussopimus").isEmpty)
-            .andExpect(jsonPath("$.tyoskentelyjaksot").isEmpty)
-    }
-
-    @Test
-    @Transactional
-    fun addTyoskentelyjakso() {
-        initTest()
-
-        koejaksoRepository.saveAndFlush(koejakso)
-
-        var tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, DEFAULT_ID)
-        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
-        assertThat(koejakso.tyoskentelyjaksot).hasSize(0)
-
-        restKoejaksoMockMvc.perform(
-            put("/api/erikoistuva-laakari/koejakso/" + koejakso.id + "/tyoskentelyjaksot/" + tyoskentelyjakso.id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .with(csrf())
-        ).andExpect(status().isOk)
-
-        tyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
-        assertThat(tyoskentelyjakso.koejakso?.id).isEqualTo(koejakso.id)
-    }
-
-    @Test
-    @Transactional
-    fun removeTyoskentelyjakso() {
-        initTest()
-
-        koejaksoRepository.saveAndFlush(koejakso)
-
-        var tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, DEFAULT_ID)
-        tyoskentelyjakso.koejakso = koejakso
-        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
-        restKoejaksoMockMvc.perform(
-            delete("/api/erikoistuva-laakari/koejakso/" + koejakso.id + "/tyoskentelyjaksot/" + tyoskentelyjakso.id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .with(csrf())
-        ).andExpect(status().isNoContent)
-
-        tyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
-        assertThat(tyoskentelyjakso.koejakso).isNull()
     }
 
     @Test
@@ -145,14 +88,10 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createKoulutussopimusWithExistingId() {
         initTest()
 
-        koejaksoRepository.saveAndFlush(koejakso)
-        koejakso.koulutussopimus = koejaksonKoulutussopimus
-        koejaksonKoulutussopimus.kouluttajat = koulutussopimuksenKouluttajat
-        koejaksonKoulutussopimus.koulutuspaikat = koulutussopimuksenKoulutuspaikat
         koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
 
         val koejaksonKoulutussopimusDTO =
-            koejaksonKoulutussopimusMapper.toDto(koejakso.koulutussopimus!!)
+            koejaksonKoulutussopimusMapper.toDto(koejaksonKoulutussopimus)
         restKoejaksoMockMvc.perform(
             post("/api/erikoistuva-laakari/koejakso/koulutussopimus")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -160,8 +99,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 
-        val sopimus = koejaksonKoulutussopimusRepository.findById(koejakso.koulutussopimus?.id!!)
-        assertThat(sopimus.get().muokkauspaiva).isEqualTo(koejakso.koulutussopimus?.muokkauspaiva)
+        val sopimus = koejaksonKoulutussopimusRepository.findById(koejaksonKoulutussopimus.id!!)
+        assertThat(sopimus.get().muokkauspaiva).isEqualTo(koejaksonKoulutussopimus.muokkauspaiva)
     }
 
     @Test
@@ -169,12 +108,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createKoulutussopimusWithKouluttajaAck() {
         initTest()
 
-        koejaksoRepository.saveAndFlush(koejakso)
-
-        val kouluttaja = koulutussopimuksenKouluttajat.iterator().next()
+        val kouluttaja = koejaksonKoulutussopimus.kouluttajat.iterator().next()
         kouluttaja.sopimusHyvaksytty = true
         kouluttaja.kuittausaika = LocalDate.now()
-        koejaksonKoulutussopimus.kouluttajat = koulutussopimuksenKouluttajat
 
         val databaseSizeBeforeCreate = koejaksonKoulutussopimusRepository.findAll().size
 
@@ -195,8 +131,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Transactional
     fun createKoulutussopimusWithVastuuhenkiloAck() {
         initTest()
-
-        koejaksoRepository.saveAndFlush(koejakso)
 
         koejaksonKoulutussopimus.vastuuhenkilonKuittausaika = LocalDate.now()
 
@@ -219,10 +153,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Transactional
     fun createKoulutussopimus() {
         initTest()
-
-        koejaksoRepository.saveAndFlush(koejakso)
-        koejaksonKoulutussopimus.kouluttajat = koulutussopimuksenKouluttajat
-        koejaksonKoulutussopimus.koulutuspaikat = koulutussopimuksenKoulutuspaikat
 
         val databaseSizeBeforeCreate = koejaksonKoulutussopimusRepository.findAll().size
 
@@ -256,7 +186,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(sopimus.korjausehdotus).isNull()
         assertThat(sopimus.kouluttajat).hasSize(1)
         val kouluttaja = sopimus.kouluttajat.iterator().next()
-        val kouluttajaDTO = koulutussopimuksenKouluttajat.iterator().next()
+        val kouluttajaDTO = koejaksonKoulutussopimus.kouluttajat.iterator().next()
         assertThat(kouluttaja.nimi).isEqualTo(kouluttajaDTO.nimi)
         assertThat(kouluttaja.nimike).isEqualTo(kouluttajaDTO.nimike)
         assertThat(kouluttaja.kouluttaja?.id).isEqualTo(kouluttajaDTO.kouluttaja?.id)
@@ -269,7 +199,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(kouluttaja.kuittausaika).isNull()
         assertThat(sopimus.koulutuspaikat).hasSize(1)
         val koulutuspaikka = sopimus.koulutuspaikat.iterator().next()
-        val koulutuspaikkaDTO = koulutussopimuksenKoulutuspaikat.iterator().next()
+        val koulutuspaikkaDTO = koejaksonKoulutussopimus.koulutuspaikat.iterator().next()
         assertThat(koulutuspaikka.nimi).isEqualTo(koulutuspaikkaDTO.nimi)
         assertThat(koulutuspaikka.yliopisto).isEqualTo(koulutuspaikkaDTO.yliopisto)
     }
@@ -279,10 +209,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun updateKoulutussopimus() {
         initTest()
 
-        koejaksoRepository.saveAndFlush(koejakso)
-        koejakso.koulutussopimus = koejaksonKoulutussopimus
-        koejaksonKoulutussopimus.kouluttajat = koulutussopimuksenKouluttajat
-        koejaksonKoulutussopimus.koulutuspaikat = koulutussopimuksenKoulutuspaikat
         koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
 
         val databaseSizeBeforeUpdate = koejaksonKoulutussopimusRepository.findAll().size
@@ -299,9 +225,17 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val updatedKoulutuspaikka = updatedKoulutussopimus.koulutuspaikat.iterator().next()
         updatedKoulutuspaikka.nimi = UPDATED_KOULUTUSPAIKKA
 
-        val updatedKouluttaja =
-            createKoulutussopimuksenKouluttaja(em, updatedKoulutussopimus, UPDATED_KOULUTTAJA_ID)
-        updatedKoulutussopimus.kouluttajat.add(updatedKouluttaja)
+        val updatedKouluttaja = KayttajaHelper.createUpdatedEntity(
+            em,
+            UPDATED_KOULUTTAJA_ID
+        )
+        em.persist(updatedKouluttaja)
+        updatedKoulutussopimus.kouluttajat.add(
+            createKoulutussopimuksenKouluttaja(
+                updatedKoulutussopimus,
+                updatedKouluttaja
+            )
+        )
 
         val updatedVastuuhenkilo = KayttajaHelper.createUpdatedEntity(
             em,
@@ -342,6 +276,161 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(testKoulutussopimus.vastuuhenkilonNimi).isEqualTo(UPDATED_VASTUUHENKILO_NIMI)
     }
 
+    @Test
+    @Transactional
+    fun createAloituskeskusteluWithExistingId() {
+        initTest()
+
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        val koejaksonAloituskeskusteluDTO =
+            koejaksonAloituskeskusteluMapper.toDto(koejaksonAloituskeskustelu)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/aloituskeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonAloituskeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val keskustelu =
+            koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskustelu.id!!)
+        assertThat(keskustelu.get().muokkauspaiva).isEqualTo(koejaksonAloituskeskustelu.muokkauspaiva)
+    }
+
+    @Test
+    @Transactional
+    fun createAloituskeskusteluWithLahikouluttajaAck() {
+        initTest()
+
+        koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahikouluttajanKuittausaika = LocalDate.now()
+
+        val databaseSizeBeforeCreate = koejaksonAloituskeskusteluRepository.findAll().size
+
+        val koejaksonAloituskeskusteluDTO =
+            koejaksonAloituskeskusteluMapper.toDto(koejaksonAloituskeskustelu)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/aloituskeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonAloituskeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
+        assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
+    fun createAloituskeskusteluWithLahiesimiesAck() {
+        initTest()
+
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+
+        val databaseSizeBeforeCreate = koejaksonAloituskeskusteluRepository.findAll().size
+
+        val koejaksonAloituskeskusteluDTO =
+            koejaksonAloituskeskusteluMapper.toDto(koejaksonAloituskeskustelu)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/aloituskeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonAloituskeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
+        assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
+    fun createAloituskeskustelu() {
+        initTest()
+
+        val databaseSizeBeforeCreate = koejaksonAloituskeskusteluRepository.findAll().size
+
+        val koejaksonAloituskeskusteluDTO =
+            koejaksonAloituskeskusteluMapper.toDto(koejaksonAloituskeskustelu)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/aloituskeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonAloituskeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isCreated)
+
+        val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
+        assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeCreate + 1)
+        val keskustelu = aloituskeskusteluList[aloituskeskusteluList.size - 1]
+        assertThat(keskustelu.erikoistuvanNimi).isEqualTo(koejaksonAloituskeskusteluDTO.erikoistuvanNimi)
+        assertThat(keskustelu.erikoistuvanErikoisala).isEqualTo(koejaksonAloituskeskusteluDTO.erikoistuvanErikoisala)
+        assertThat(keskustelu.erikoistuvanOpiskelijatunnus).isEqualTo(koejaksonAloituskeskusteluDTO.erikoistuvanOpiskelijatunnus)
+        assertThat(keskustelu.erikoistuvanYliopisto).isEqualTo(koejaksonAloituskeskusteluDTO.erikoistuvanYliopisto)
+        assertThat(keskustelu.erikoistuvanSahkoposti).isEqualTo(koejaksonAloituskeskusteluDTO.erikoistuvanSahkoposti)
+        assertThat(keskustelu.koejaksonSuorituspaikka).isEqualTo(koejaksonAloituskeskusteluDTO.koejaksonSuorituspaikka)
+        assertThat(keskustelu.koejaksonToinenSuorituspaikka).isEqualTo(koejaksonAloituskeskusteluDTO.koejaksonToinenSuorituspaikka)
+        assertThat(keskustelu.koejaksonAlkamispaiva).isEqualTo(koejaksonAloituskeskusteluDTO.koejaksonAlkamispaiva)
+        assertThat(keskustelu.koejaksonPaattymispaiva).isEqualTo(koejaksonAloituskeskusteluDTO.koejaksonPaattymispaiva)
+        assertThat(keskustelu.suoritettuKokoaikatyossa).isEqualTo(koejaksonAloituskeskusteluDTO.suoritettuKokoaikatyossa)
+        assertThat(keskustelu.tyotunnitViikossa).isEqualTo(koejaksonAloituskeskusteluDTO.tyotunnitViikossa)
+        assertThat(keskustelu.lahikouluttaja?.id).isEqualTo(koejaksonAloituskeskusteluDTO.lahikouluttaja?.id)
+        assertThat(keskustelu.lahikouluttajanNimi).isEqualTo(koejaksonAloituskeskusteluDTO.lahikouluttaja?.nimi)
+        assertThat(keskustelu.lahiesimies?.id).isEqualTo(koejaksonAloituskeskusteluDTO.lahiesimies?.id)
+        assertThat(keskustelu.lahiesimies?.nimi).isEqualTo(koejaksonAloituskeskusteluDTO.lahiesimies?.nimi)
+        assertThat(keskustelu.koejaksonOsaamistavoitteet).isEqualTo(koejaksonAloituskeskusteluDTO.koejaksonOsaamistavoitteet)
+        assertThat(keskustelu.lahetetty).isEqualTo(koejaksonAloituskeskusteluDTO.lahetetty)
+        assertThat(keskustelu.muokkauspaiva).isNotNull
+    }
+
+    @Test
+    @Transactional
+    fun updateAloituskeskustelu() {
+        initTest()
+
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(id).get()
+        em.detach(updatedAloituskeskustelu)
+
+        updatedAloituskeskustelu.koejaksonAlkamispaiva = UPDATED_ALKAMISPAIVA
+        updatedAloituskeskustelu.koejaksonPaattymispaiva = UPDATED_PAATTYMISPAIVA
+        updatedAloituskeskustelu.erikoistuvanSahkoposti = UPDATED_EMAIL
+
+        val updatedKouluttaja = KayttajaHelper.createUpdatedEntity(
+            em,
+            UPDATED_KOULUTTAJA_ID,
+            UPDATED_VASTUUHENKILO_NIMI
+        )
+        em.persist(updatedKouluttaja)
+        updatedAloituskeskustelu.lahikouluttaja = updatedKouluttaja
+        updatedAloituskeskustelu.lahikouluttajanNimi = updatedKouluttaja.nimi
+
+        val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/erikoistuva-laakari/koejakso/aloituskeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(aloituskeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
+        assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeUpdate)
+        val testAloituskeskustelu = aloituskeskusteluList[aloituskeskusteluList.size - 1]
+        assertThat(testAloituskeskustelu.koejaksonAlkamispaiva).isEqualTo(UPDATED_ALKAMISPAIVA)
+        assertThat(testAloituskeskustelu.koejaksonPaattymispaiva).isEqualTo(UPDATED_PAATTYMISPAIVA)
+        assertThat(testAloituskeskustelu.erikoistuvanSahkoposti).isEqualTo(UPDATED_EMAIL)
+
+        val testLahikouluttaja =
+            kayttajaRepository.findById(testAloituskeskustelu.lahikouluttaja?.id!!)
+        assertThat(testLahikouluttaja.get().user?.id).isEqualTo(UPDATED_KOULUTTAJA_ID)
+        assertThat(testAloituskeskustelu.lahikouluttajanNimi).isEqualTo(UPDATED_VASTUUHENKILO_NIMI)
+    }
+
     fun initTest(userId: String? = DEFAULT_ID) {
         val userDetails = mapOf<String, Any>(
             "uid" to DEFAULT_ID,
@@ -355,12 +444,23 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, userId)
         em.persist(erikoistuvaLaakari)
 
-        koejakso = erikoistuvaLaakari.koejakso!!
-        koejaksonKoulutussopimus = createKoulutussopimus(em, erikoistuvaLaakari)
-        koulutussopimuksenKouluttajat =
-            mutableSetOf(createKoulutussopimuksenKouluttaja(em, koejaksonKoulutussopimus))
-        koulutussopimuksenKoulutuspaikat =
+        val vastuuhenkilo = KayttajaHelper.createEntity(em, DEFAULT_VASTUUHENKILO_ID)
+        em.persist(vastuuhenkilo)
+
+        val kouluttaja = KayttajaHelper.createEntity(em, DEFAULT_KOULUTTAJA_ID)
+        em.persist(kouluttaja)
+
+        val esimies = KayttajaHelper.createEntity(em, DEFAULT_ESIMIES_ID)
+        em.persist(esimies)
+
+        koejaksonKoulutussopimus = createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
+        koejaksonKoulutussopimus.kouluttajat =
+            mutableSetOf(createKoulutussopimuksenKouluttaja(koejaksonKoulutussopimus, kouluttaja))
+        koejaksonKoulutussopimus.koulutuspaikat =
             mutableSetOf(createKoulutussopimuksenKoulutuspaikka(koejaksonKoulutussopimus))
+
+        koejaksonAloituskeskustelu =
+            createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
     }
 
     companion object {
@@ -375,11 +475,14 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         private val DEFAULT_SYNTYMAAIKA: LocalDate = LocalDate.ofEpochDay(0L)
         private val DEFAULT_MYONTAMISPAIVA: LocalDate = LocalDate.ofEpochDay(1L)
         private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(2L)
+        private val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(5L)
         private val DEFAULT_MUOKKAUSPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         private val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(3L)
+        private val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
 
         private const val DEFAULT_KOULUTTAJA_ID = "4b73bc2c-88c4-11eb-8dcd-0242ac130003"
+        private const val DEFAULT_ESIMIES_ID = "43c0ebfa-92f9-11eb-a8b3-0242ac130003"
         private const val DEFAULT_VASTUUHENKILO_ID = "53d6e70e-88c4-11eb-8dcd-0242ac130003"
 
         private const val UPDATED_KOULUTTAJA_ID = "914cb8c5-c56d-4ab4-81a8-e51b5db0a85b"
@@ -391,14 +494,15 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         private const val UPDATED_KOULUTUSPAIKKA = "HUS Päivystyskeskus"
 
+        private const val DEFAULT_OSAAMISTAVOITTEET = "Lorem ipsum"
+
         @JvmStatic
         fun createKoulutussopimus(
-            em: EntityManager,
-            erikoistuvaLaakari: ErikoistuvaLaakari
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            vastuuhenkilo: Kayttaja
         ): KoejaksonKoulutussopimus {
-            val vastuuhenkilo = KayttajaHelper.createEntity(em, DEFAULT_VASTUUHENKILO_ID)
-            em.persist(vastuuhenkilo)
             return KoejaksonKoulutussopimus(
+                erikoistuvaLaakari = erikoistuvaLaakari,
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanSyntymaaika = DEFAULT_SYNTYMAAIKA,
@@ -412,18 +516,14 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 vastuuhenkilo = vastuuhenkilo,
                 vastuuhenkilonNimi = vastuuhenkilo.nimi,
                 vastuuhenkilonNimike = vastuuhenkilo.nimike,
-                koejakso = erikoistuvaLaakari.koejakso
             )
         }
 
         @JvmStatic
         fun createKoulutussopimuksenKouluttaja(
-            em: EntityManager,
             koejaksonKoulutussopimus: KoejaksonKoulutussopimus,
-            userId: String? = DEFAULT_KOULUTTAJA_ID
+            kouluttaja: Kayttaja
         ): KoulutussopimuksenKouluttaja {
-            val kouluttaja = KayttajaHelper.createEntity(em, userId)
-            em.persist(kouluttaja)
             return KoulutussopimuksenKouluttaja(
                 kouluttaja = kouluttaja,
                 nimi = kouluttaja.nimi,
@@ -439,6 +539,33 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 nimi = DEFAULT_KOULUTUSPAIKKA,
                 yliopisto = DEFAULT_YLIOPISTO,
                 koulutussopimus = koejaksonKoulutussopimus
+            )
+        }
+
+        @JvmStatic
+        fun createAloituskeskustelu(
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            lahikouluttaja: Kayttaja,
+            lahiesimies: Kayttaja
+        ): KoejaksonAloituskeskustelu {
+            return KoejaksonAloituskeskustelu(
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
+                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
+                erikoistuvanSahkoposti = erikoistuvaLaakari.sahkoposti,
+                koejaksonSuorituspaikka = DEFAULT_KOULUTUSPAIKKA,
+                koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
+                koejaksonPaattymispaiva = DEFAULT_PAATTYMISPAIVA,
+                suoritettuKokoaikatyossa = true,
+                lahikouluttaja = lahikouluttaja,
+                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahiesimies = lahiesimies,
+                lahiesimiehenNimi = lahiesimies.nimi,
+                koejaksonOsaamistavoitteet = DEFAULT_OSAAMISTAVOITTEET,
+                lahetetty = false,
+                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }
     }

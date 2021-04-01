@@ -7,8 +7,16 @@ import java.util.*
 
 @Repository
 interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutussopimus, Long> {
+
     fun findOneByIdAndKouluttajatKouluttajaUserId(
         id: Long,
         userId: String
     ): Optional<KoejaksonKoulutussopimus>
+
+    fun findOneByIdAndVastuuhenkiloUserId(
+        id: Long,
+        userId: String
+    ): Optional<KoejaksonKoulutussopimus>
+
+    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonKoulutussopimus>
 }

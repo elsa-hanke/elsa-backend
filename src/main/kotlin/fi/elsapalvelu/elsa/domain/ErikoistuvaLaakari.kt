@@ -1,12 +1,13 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import javax.persistence.*
-import javax.validation.constraints.*
+import javax.validation.constraints.Max
+import javax.validation.constraints.Min
+import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "erikoistuva_laakari")
@@ -51,9 +52,12 @@ data class ErikoistuvaLaakari(
     var erikoisala: Erikoisala? = null,
 
     @NotNull
-    @OneToOne(optional = false, cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JoinColumn(unique = true)
-    var koejakso: Koejakso? = null
+    @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var koejaksonKoulutussopimus: KoejaksonKoulutussopimus? = null,
+
+    @NotNull
+    @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu? = null
 
 ) : Serializable {
 

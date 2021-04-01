@@ -6,57 +6,48 @@
 
     <changeSet id="20210310162139-1" author="jhipster">
 
-        <createTable tableName="koejakso">
-            <column name="id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="alkamispaiva" type="date">
-                <constraints nullable="true"/>
-            </column>
-            <column name="paattymispaiva" type="date">
-                <constraints nullable="true"/>
-            </column>
-        </createTable>
-
         <createTable tableName="koejakson_koulutussopimus">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
             <column name="erikoistuvan_nimi" type="varchar(255)">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="erikoistuvan_opiskelijatunnus" type="varchar(255)">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="erikoistuvan_syntymaaika" type="date">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="erikoistuvan_yliopisto" type="varchar(255)">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="opintooikeuden_myontamispaiva" type="date">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="koejakson_alkamispaiva" type="date">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="erikoistuvan_puhelinnumero" type="varchar(255)">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="erikoistuvan_sahkoposti" type="varchar(255)">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="lahetetty" type="boolean">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="muokkauspaiva" type="date">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="vastuuhenkilo_id" type="bigint">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="vastuuhenkilon_nimi" type="varchar(255)">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="vastuuhenkilon_nimike" type="varchar(255)">
                 <constraints nullable="true"/>
@@ -70,9 +61,6 @@
             <column name="korjausehdotus" type="varchar(255)">
                 <constraints nullable="true"/>
             </column>
-            <column name="koejakso_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
         </createTable>
 
         <createTable tableName="koulutussopimuksen_kouluttaja">
@@ -80,10 +68,10 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="kouluttaja_id" type="bigint">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="nimi" type="varchar(255)">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="nimike" type="varchar(255)">
                 <constraints nullable="true"/>
@@ -119,7 +107,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="nimi" type="varchar(255)">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="yliopisto" type="varchar(255)">
                 <constraints nullable="true"/>
@@ -130,18 +118,12 @@
         </createTable>
 
         <addColumn tableName="tyoskentelyjakso">
-            <column name="koejakso_id" type="bigint"/>
+            <column name="liitetty_koejaksoon" type="boolean"/>
         </addColumn>
 
         <addColumn tableName="kayttaja">
             <column name="yliopisto_id" type="bigint"/>
             <column name="nimike" type="varchar(255)"/>
-        </addColumn>
-
-        <addColumn tableName="erikoistuva_laakari">
-            <column name="koejakso_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
         </addColumn>
     </changeSet>
 

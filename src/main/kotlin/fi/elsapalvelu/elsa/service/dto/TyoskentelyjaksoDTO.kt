@@ -35,7 +35,9 @@ data class TyoskentelyjaksoDTO(
 
     var omaaErikoisalaaTukeva: ErikoisalaDTO? = null,
 
-    var suoritusarvioinnit: Boolean? = null
+    var suoritusarvioinnit: Boolean? = null,
+
+    var liitettyKoejaksoon: Boolean? = null
 
 ) : Serializable {
 
