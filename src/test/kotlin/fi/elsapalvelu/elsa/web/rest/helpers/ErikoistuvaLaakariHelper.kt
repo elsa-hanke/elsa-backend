@@ -55,7 +55,6 @@ class ErikoistuvaLaakariHelper {
                 erikoisala = em.findAll(Erikoisala::class).get(0)
             }
             erikoistuvaLaakari.erikoisala = erikoisala
-            erikoistuvaLaakari.koejakso = Koejakso(erikoistuvaLaakari = erikoistuvaLaakari)
 
             return erikoistuvaLaakari
         }

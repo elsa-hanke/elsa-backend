@@ -1,10 +1,10 @@
-package fi.elsapalvelu.elsa.web.rest.kouluttaja
+package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
@@ -34,7 +34,7 @@ import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
-class KouluttajaKoejaksoResourceIT {
+class VastuuhenkiloKoejaksoResourceIT {
 
     @Autowired
     private lateinit var koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
@@ -65,7 +65,7 @@ class KouluttajaKoejaksoResourceIT {
 
         restKoejaksoMockMvc.perform(
             get(
-                "/api/kouluttaja/koejakso/koulutussopimus/{id}", id
+                "/api/vastuuhenkilo/koejakso/koulutussopimus/{id}", id
             )
         )
             .andExpect(status().isOk)
@@ -83,6 +83,68 @@ class KouluttajaKoejaksoResourceIT {
 
     @Test
     @Transactional
+    fun ackKoulutussopimusInProgressWithErikoistuva() {
+        initTest()
+
+        koejaksonKoulutussopimus.lahetetty = false
+        koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
+
+        val databaseSizeBeforeUpdate = koejaksonKoulutussopimusRepository.findAll().size
+
+        val id = koejaksonKoulutussopimus.id
+        assertNotNull(id)
+        val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
+        em.detach(updatedKoulutussopimus)
+
+        updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = true
+        updatedKoulutussopimus.vastuuhenkilonKuittausaika = DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+
+        val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/koulutussopimus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koulutussopimusDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val koulutussopimusList = koejaksonKoulutussopimusRepository.findAll()
+        assertThat(koulutussopimusList).hasSize(databaseSizeBeforeUpdate)
+    }
+
+    @Test
+    @Transactional
+    fun ackKoulutussopimusInProgressWithKouluttaja() {
+        initTest()
+
+        koejaksonKoulutussopimus.kouluttajat.forEach { it.sopimusHyvaksytty = false }
+        koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
+
+        val databaseSizeBeforeUpdate = koejaksonKoulutussopimusRepository.findAll().size
+
+        val id = koejaksonKoulutussopimus.id
+        assertNotNull(id)
+        val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
+        em.detach(updatedKoulutussopimus)
+
+        updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = true
+        updatedKoulutussopimus.vastuuhenkilonKuittausaika = DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+
+        val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/koulutussopimus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koulutussopimusDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val koulutussopimusList = koejaksonKoulutussopimusRepository.findAll()
+        assertThat(koulutussopimusList).hasSize(databaseSizeBeforeUpdate)
+    }
+
+    @Test
+    @Transactional
     fun ackKoulutussopimus() {
         initTest()
 
@@ -93,20 +155,13 @@ class KouluttajaKoejaksoResourceIT {
         val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
         em.detach(updatedKoulutussopimus)
 
-        updatedKoulutussopimus.kouluttajat.forEach {
-            it.nimike = UPDATED_NIMIKE
-            it.sahkoposti = UPDATED_EMAIL
-            it.puhelin = UPDATED_PHONE
-            it.lahiosoite = UPDATED_LAHIOSOITE
-            it.toimipaikka = UPDATED_TOIMIPAIKKA
-            it.postitoimipaikka = UPDATED_POSTITOIMIPAIKKA
-            it.sopimusHyvaksytty = true
-        }
+        updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = true
+        updatedKoulutussopimus.vastuuhenkilonKuittausaika = DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
         restKoejaksoMockMvc.perform(
-            put("/api/kouluttaja/koejakso/koulutussopimus")
+            put("/api/vastuuhenkilo/koejakso/koulutussopimus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koulutussopimusDTO))
                 .with(csrf())
@@ -116,17 +171,10 @@ class KouluttajaKoejaksoResourceIT {
         assertThat(koulutussopimusList).hasSize(databaseSizeBeforeUpdate)
         val testKoulutussopimus = koulutussopimusList[koulutussopimusList.size - 1]
         assertThat(testKoulutussopimus.korjausehdotus).isNull()
-
-        assertThat(testKoulutussopimus.kouluttajat).hasSize(1)
-        val testKouluttaja = testKoulutussopimus.kouluttajat.iterator().next()
-        assertThat(testKouluttaja.nimike).isEqualTo(UPDATED_NIMIKE)
-        assertThat(testKouluttaja.sahkoposti).isEqualTo(UPDATED_EMAIL)
-        assertThat(testKouluttaja.puhelin).isEqualTo(UPDATED_PHONE)
-        assertThat(testKouluttaja.lahiosoite).isEqualTo(UPDATED_LAHIOSOITE)
-        assertThat(testKouluttaja.toimipaikka).isEqualTo(UPDATED_TOIMIPAIKKA)
-        assertThat(testKouluttaja.postitoimipaikka).isEqualTo(UPDATED_POSTITOIMIPAIKKA)
-        assertThat(testKouluttaja.sopimusHyvaksytty).isEqualTo(true)
-        assertThat(testKouluttaja.kuittausaika).isNotNull
+        assertThat(testKoulutussopimus.vastuuhenkilonKuittausaika).isEqualTo(
+            DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        )
+        assertThat(testKoulutussopimus.vastuuhenkiloHyvaksynyt).isEqualTo(true)
     }
 
     @Test
@@ -141,22 +189,13 @@ class KouluttajaKoejaksoResourceIT {
         val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
         em.detach(updatedKoulutussopimus)
 
-        updatedKoulutussopimus.kouluttajat.forEach {
-            it.nimike = UPDATED_NIMIKE
-            it.sahkoposti = UPDATED_EMAIL
-            it.puhelin = UPDATED_PHONE
-            it.lahiosoite = UPDATED_LAHIOSOITE
-            it.toimipaikka = UPDATED_TOIMIPAIKKA
-            it.postitoimipaikka = UPDATED_POSTITOIMIPAIKKA
-            it.sopimusHyvaksytty = false
-        }
-
+        updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = false
         updatedKoulutussopimus.korjausehdotus = UPDATED_KORJAUSEHDOTUS
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
         restKoejaksoMockMvc.perform(
-            put("/api/kouluttaja/koejakso/koulutussopimus")
+            put("/api/vastuuhenkilo/koejakso/koulutussopimus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koulutussopimusDTO))
                 .with(csrf())
@@ -170,23 +209,17 @@ class KouluttajaKoejaksoResourceIT {
 
         assertThat(testKoulutussopimus.kouluttajat).hasSize(1)
         val testKouluttaja = testKoulutussopimus.kouluttajat.iterator().next()
-        assertThat(testKouluttaja.nimike).isEqualTo(UPDATED_NIMIKE)
-        assertThat(testKouluttaja.sahkoposti).isEqualTo(UPDATED_EMAIL)
-        assertThat(testKouluttaja.puhelin).isEqualTo(UPDATED_PHONE)
-        assertThat(testKouluttaja.lahiosoite).isEqualTo(UPDATED_LAHIOSOITE)
-        assertThat(testKouluttaja.toimipaikka).isEqualTo(UPDATED_TOIMIPAIKKA)
-        assertThat(testKouluttaja.postitoimipaikka).isEqualTo(UPDATED_POSTITOIMIPAIKKA)
         assertThat(testKouluttaja.sopimusHyvaksytty).isEqualTo(false)
         assertThat(testKouluttaja.kuittausaika).isNull()
     }
 
-    fun initTest(userId: String? = DEFAULT_KOULUTTAJA_ID) {
+    fun initTest(userId: String? = DEFAULT_VASTUUHENKILO_ID) {
         val userDetails = mapOf<String, Any>(
-            "uid" to DEFAULT_KOULUTTAJA_ID,
+            "uid" to DEFAULT_VASTUUHENKILO_ID,
             "sub" to DEFAULT_LOGIN,
             "email" to DEFAULT_EMAIL
         )
-        val authorities = listOf(SimpleGrantedAuthority(KOULUTTAJA))
+        val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
         val user = DefaultOAuth2User(authorities, userDetails, "sub")
         val authentication = OAuth2AuthenticationToken(user, authorities, "oidc")
         TestSecurityContextHolder.getContext().authentication = authentication
@@ -207,13 +240,13 @@ class KouluttajaKoejaksoResourceIT {
         private const val DEFAULT_LOGIN = "johndoe"
         private const val DEFAULT_EMAIL = "john.doe@example.com"
 
-        private const val UPDATED_EMAIL = "doe.john@example.com"
-        private const val UPDATED_PHONE = "+358101001010"
-
         private val DEFAULT_SYNTYMAAIKA: LocalDate = LocalDate.ofEpochDay(0L)
         private val DEFAULT_MYONTAMISPAIVA: LocalDate = LocalDate.ofEpochDay(1L)
         private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(2L)
         private val DEFAULT_MUOKKAUSPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
+        private val DEFAULT_KUITTAUSAIKA_KOULUTTAJA: LocalDate = LocalDate.ofEpochDay(3L)
+        private val DEFAULT_KUITTAUSAIKA_VASTUUHENKILO: LocalDate =
+            LocalDate.now(ZoneId.systemDefault())
 
         private const val DEFAULT_KOULUTTAJA_ID = "4b73bc2c-88c4-11eb-8dcd-0242ac130003"
         private const val DEFAULT_VASTUUHENKILO_ID = "53d6e70e-88c4-11eb-8dcd-0242ac130003"
@@ -221,10 +254,6 @@ class KouluttajaKoejaksoResourceIT {
         private const val DEFAULT_KOULUTUSPAIKKA = "TAYS Päivystyskeskus"
         private const val DEFAULT_YLIOPISTO = "TAYS"
 
-        private const val UPDATED_NIMIKE = "Nimike"
-        private const val UPDATED_LAHIOSOITE = "Testitie"
-        private const val UPDATED_TOIMIPAIKKA = "Sairaala"
-        private const val UPDATED_POSTITOIMIPAIKKA = "Tampere"
         private const val UPDATED_KORJAUSEHDOTUS = "Lorem Ipsum"
 
         @JvmStatic
@@ -263,7 +292,9 @@ class KouluttajaKoejaksoResourceIT {
             return KoulutussopimuksenKouluttaja(
                 kouluttaja = kouluttaja,
                 nimi = kouluttaja.nimi,
-                koulutussopimus = koejaksonKoulutussopimus
+                koulutussopimus = koejaksonKoulutussopimus,
+                sopimusHyvaksytty = true,
+                kuittausaika = DEFAULT_KUITTAUSAIKA_KOULUTTAJA
             )
         }
 
