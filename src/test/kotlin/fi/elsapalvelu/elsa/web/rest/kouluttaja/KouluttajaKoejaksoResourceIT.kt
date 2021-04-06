@@ -83,6 +83,44 @@ class KouluttajaKoejaksoResourceIT {
 
     @Test
     @Transactional
+    fun ackKoulutussopimusInProgress() {
+        initTest()
+
+        koejaksonKoulutussopimus.lahetetty = false
+        koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
+
+        val databaseSizeBeforeUpdate = koejaksonKoulutussopimusRepository.findAll().size
+
+        val id = koejaksonKoulutussopimus.id
+        assertNotNull(id)
+        val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
+        em.detach(updatedKoulutussopimus)
+
+        updatedKoulutussopimus.kouluttajat.forEach {
+            it.nimike = UPDATED_NIMIKE
+            it.sahkoposti = UPDATED_EMAIL
+            it.puhelin = UPDATED_PHONE
+            it.lahiosoite = UPDATED_LAHIOSOITE
+            it.toimipaikka = UPDATED_TOIMIPAIKKA
+            it.postitoimipaikka = UPDATED_POSTITOIMIPAIKKA
+            it.sopimusHyvaksytty = true
+        }
+
+        val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/koulutussopimus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koulutussopimusDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val koulutussopimusList = koejaksonKoulutussopimusRepository.findAll()
+        assertThat(koulutussopimusList).hasSize(databaseSizeBeforeUpdate)
+    }
+
+    @Test
+    @Transactional
     fun ackKoulutussopimus() {
         initTest()
 

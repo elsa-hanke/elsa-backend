@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
+package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.UserService
@@ -16,8 +16,8 @@ import javax.validation.Valid
 private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 
 @RestController
-@RequestMapping("/api/kouluttaja")
-class KouluttajaKoejaksoResource(
+@RequestMapping("/api/vastuuhenkilo")
+class VastuuhenkiloKoejaksoResource(
     private val userService: UserService,
     private val koejaksonKoulutussopimusService: KoejaksonKoulutussopimusService
 ) {
@@ -36,7 +36,7 @@ class KouluttajaKoejaksoResource(
 
         log.debug("REST request to get Koulutussopimus $id for user: $user.id")
         val koulutussopimusDTO =
-            koejaksonKoulutussopimusService.findOneByIdAndKouluttajaKayttajaUserId(id, user.id!!)
+            koejaksonKoulutussopimusService.findOneByIdAndVastuuhenkiloKayttajaUserId(id, user.id!!)
         return ResponseUtil.wrapOrNotFound(koulutussopimusDTO)
     }
 
@@ -49,14 +49,6 @@ class KouluttajaKoejaksoResource(
             throw BadRequestAlertException("Virheellinen id", ENTITY_KOEJAKSON_SOPIMUS, "idnull")
         }
 
-        if (koulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true || koulutussopimusDTO.vastuuhenkilo?.kuittausaika != null) {
-            throw BadRequestAlertException(
-                "Koulutussopimus ei saa sisältää vastuuhenkilön kuittausta. Vastuuhenkilö määrittelee sen.",
-                ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal"
-            )
-        }
-
         val user = userService.getAuthenticatedUser(principal)
 
         val existingKoulutussopimusDTO =
@@ -64,7 +56,15 @@ class KouluttajaKoejaksoResource(
 
         if (existingKoulutussopimusDTO.get().lahetetty != true) {
             throw BadRequestAlertException(
-                "Koulutussopimusta ei saa muokata, jos erikoistuva ei ole allekirjoittanut sitä",
+                "Vastuuhenkilö ei saa muokata sopimusta, jos erikoistuva ei ole allekirjoittanut sitä",
+                ENTITY_KOEJAKSON_SOPIMUS,
+                "dataillegal"
+            )
+        }
+
+        if (existingKoulutussopimusDTO.get().kouluttajat?.any { it.sopimusHyvaksytty == false } == true) {
+            throw BadRequestAlertException(
+                "Vastuuhenkilö ei saa muokata sopimusta, jos kouluttajat eivät ole allekirjoittaneet sitä",
                 ENTITY_KOEJAKSON_SOPIMUS,
                 "dataillegal"
             )
