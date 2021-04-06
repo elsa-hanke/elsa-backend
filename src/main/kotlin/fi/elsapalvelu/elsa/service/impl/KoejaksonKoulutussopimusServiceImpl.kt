@@ -93,7 +93,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                 it.sahkoposti = updatedKouluttaja.sahkoposti
 
                 // Hyväksytty
-                if (updatedKoulutussopimus.korjausehdotus == null) {
+                if (updatedKoulutussopimus.korjausehdotus.isNullOrBlank()) {
                     it.sopimusHyvaksytty = true
                     it.kuittausaika = LocalDate.now(ZoneId.systemDefault())
                 }
@@ -102,6 +102,19 @@ class KoejaksonKoulutussopimusServiceImpl(
                     koulutussopimus.korjausehdotus = updatedKoulutussopimus.korjausehdotus
                     koulutussopimus.lahetetty = false
                 }
+            }
+        }
+
+        if (koulutussopimus.vastuuhenkilo?.user?.id == userId) {
+            // Hyväksytty
+            if (updatedKoulutussopimus.korjausehdotus.isNullOrBlank()) {
+                koulutussopimus.vastuuhenkiloHyvaksynyt = true
+                koulutussopimus.vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            }
+            // Palautettu korjattavaksi
+            else {
+                koulutussopimus.korjausehdotus = updatedKoulutussopimus.korjausehdotus
+                koulutussopimus.lahetetty = false
             }
         }
 
@@ -134,6 +147,17 @@ class KoejaksonKoulutussopimusServiceImpl(
         userId: String
     ): Optional<KoejaksonKoulutussopimusDTO> {
         return koejaksonKoulutussopimusRepository.findOneByIdAndKouluttajatKouluttajaUserId(
+            id,
+            userId
+        ).map(koejaksonKoulutussopimusMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findOneByIdAndVastuuhenkiloKayttajaUserId(
+        id: Long,
+        userId: String
+    ): Optional<KoejaksonKoulutussopimusDTO> {
+        return koejaksonKoulutussopimusRepository.findOneByIdAndVastuuhenkiloUserId(
             id,
             userId
         ).map(koejaksonKoulutussopimusMapper::toDto)
