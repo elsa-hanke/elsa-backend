@@ -3,8 +3,10 @@ package fi.elsapalvelu.elsa.web.rest.kouluttaja
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
+import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
@@ -40,7 +42,13 @@ class KouluttajaKoejaksoResourceIT {
     private lateinit var koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
 
     @Autowired
+    private lateinit var koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository
+
+    @Autowired
     private lateinit var koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper
+
+    @Autowired
+    private lateinit var koejaksonAloituskeskusteluMapper: KoejaksonAloituskeskusteluMapper
 
     @Autowired
     private lateinit var em: EntityManager
@@ -49,6 +57,8 @@ class KouluttajaKoejaksoResourceIT {
     private lateinit var restKoejaksoMockMvc: MockMvc
 
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
+
+    private lateinit var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu
 
     @BeforeEach
     fun setup() {
@@ -218,9 +228,188 @@ class KouluttajaKoejaksoResourceIT {
         assertThat(testKouluttaja.kuittausaika).isNull()
     }
 
+    @Test
+    @Transactional
+    fun ackAloituskeskusteluInProgress() {
+        initTest()
+
+        koejaksonAloituskeskustelu.lahetetty = false
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(id).get()
+        em.detach(updatedAloituskeskustelu)
+
+        updatedAloituskeskustelu.lahikouluttajaHyvaksynyt = true
+        updatedAloituskeskustelu.lahikouluttajanKuittausaika = LocalDate.now()
+
+        val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/aloituskeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(aloituskeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
+        assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeUpdate)
+    }
+
+    @Test
+    @Transactional
+    fun ackAloituskeskusteluKouluttaja() {
+        initTest()
+
+        val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(id).get()
+        em.detach(updatedAloituskeskustelu)
+
+        updatedAloituskeskustelu.lahikouluttajaHyvaksynyt = true
+        updatedAloituskeskustelu.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+
+        val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/aloituskeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(aloituskeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
+        assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeUpdate)
+        val testAloituskeskustelu = aloituskeskusteluList[aloituskeskusteluList.size - 1]
+        assertThat(testAloituskeskustelu.korjausehdotus).isNull()
+        assertThat(testAloituskeskustelu.lahikouluttajaHyvaksynyt).isEqualTo(true)
+        assertThat(testAloituskeskustelu.lahikouluttajanKuittausaika).isNotNull
+        assertThat(testAloituskeskustelu.lahiesimiesHyvaksynyt).isEqualTo(false)
+        assertThat(testAloituskeskustelu.lahiesimiehenKuittausaika).isNull()
+        assertThat(testAloituskeskustelu.lahetetty).isEqualTo(true)
+    }
+
+    @Test
+    @Transactional
+    fun declineAloituskeskusteluKouluttaja() {
+        initTest()
+
+        val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(id).get()
+        em.detach(updatedAloituskeskustelu)
+
+        updatedAloituskeskustelu.lahikouluttajaHyvaksynyt = false
+        updatedAloituskeskustelu.korjausehdotus = UPDATED_KORJAUSEHDOTUS
+
+        val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/aloituskeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(aloituskeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
+        assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeUpdate)
+        val testAloituskeskustelu = aloituskeskusteluList[aloituskeskusteluList.size - 1]
+        assertThat(testAloituskeskustelu.korjausehdotus).isEqualTo(UPDATED_KORJAUSEHDOTUS)
+        assertThat(testAloituskeskustelu.lahiesimiesHyvaksynyt).isEqualTo(false)
+        assertThat(testAloituskeskustelu.lahiesimiehenKuittausaika).isNull()
+        assertThat(testAloituskeskustelu.lahikouluttajaHyvaksynyt).isEqualTo(false)
+        assertThat(testAloituskeskustelu.lahikouluttajanKuittausaika).isNull()
+        assertThat(testAloituskeskustelu.lahetetty).isEqualTo(false)
+    }
+
+    @Test
+    @Transactional
+    fun ackAloituskeskusteluEsimies() {
+        initTest(DEFAULT_ESIMIES_ID)
+
+        koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(id).get()
+        em.detach(updatedAloituskeskustelu)
+
+        updatedAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        updatedAloituskeskustelu.lahiesimiehenKuittausaika = DEFAULT_MYONTAMISPAIVA
+
+        val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/aloituskeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(aloituskeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
+        assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeUpdate)
+        val testAloituskeskustelu = aloituskeskusteluList[aloituskeskusteluList.size - 1]
+        assertThat(testAloituskeskustelu.korjausehdotus).isNull()
+        assertThat(testAloituskeskustelu.lahiesimiesHyvaksynyt).isEqualTo(true)
+        assertThat(testAloituskeskustelu.lahiesimiehenKuittausaika).isNotNull
+        assertThat(testAloituskeskustelu.lahikouluttajaHyvaksynyt).isEqualTo(true)
+        assertThat(testAloituskeskustelu.lahikouluttajanKuittausaika).isNotNull
+        assertThat(testAloituskeskustelu.lahetetty).isEqualTo(true)
+    }
+
+    @Test
+    @Transactional
+    fun declineAloituskeskusteluEsimies() {
+        initTest(DEFAULT_ESIMIES_ID)
+
+        koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(id).get()
+        em.detach(updatedAloituskeskustelu)
+
+        updatedAloituskeskustelu.lahiesimiesHyvaksynyt = false
+        updatedAloituskeskustelu.korjausehdotus = UPDATED_KORJAUSEHDOTUS
+
+        val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/aloituskeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(aloituskeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
+        assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeUpdate)
+        val testAloituskeskustelu = aloituskeskusteluList[aloituskeskusteluList.size - 1]
+        assertThat(testAloituskeskustelu.korjausehdotus).isEqualTo(UPDATED_KORJAUSEHDOTUS)
+        assertThat(testAloituskeskustelu.lahiesimiesHyvaksynyt).isEqualTo(false)
+        assertThat(testAloituskeskustelu.lahiesimiehenKuittausaika).isNull()
+        assertThat(testAloituskeskustelu.lahikouluttajaHyvaksynyt).isEqualTo(false)
+        assertThat(testAloituskeskustelu.lahikouluttajanKuittausaika).isNull()
+        assertThat(testAloituskeskustelu.lahetetty).isEqualTo(false)
+    }
+
     fun initTest(userId: String? = DEFAULT_KOULUTTAJA_ID) {
         val userDetails = mapOf<String, Any>(
-            "uid" to DEFAULT_KOULUTTAJA_ID,
+            "uid" to userId!!,
             "sub" to DEFAULT_LOGIN,
             "email" to DEFAULT_EMAIL
         )
@@ -231,12 +420,31 @@ class KouluttajaKoejaksoResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, DEFAULT_ID)
         em.persist(erikoistuvaLaakari)
 
-        koejaksonKoulutussopimus = createKoulutussopimus(em, erikoistuvaLaakari)
+        val vastuuhenkilo = KayttajaHelper.createEntity(
+            em, DEFAULT_VASTUUHENKILO_ID
+        )
+        em.persist(vastuuhenkilo)
+
+        val kouluttaja = KayttajaHelper.createEntity(
+            em, DEFAULT_KOULUTTAJA_ID
+        )
+        em.persist(kouluttaja)
+
+        val esimies = KayttajaHelper.createEntity(
+            em, DEFAULT_ESIMIES_ID
+        )
+        em.persist(esimies)
+
+        koejaksonKoulutussopimus = createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
         koejaksonKoulutussopimus.kouluttajat =
-            mutableSetOf(createKoulutussopimuksenKouluttaja(em, koejaksonKoulutussopimus))
+            mutableSetOf(createKoulutussopimuksenKouluttaja(koejaksonKoulutussopimus, kouluttaja))
         koejaksonKoulutussopimus.koulutuspaikat =
             mutableSetOf(createKoulutussopimuksenKoulutuspaikka(koejaksonKoulutussopimus))
         em.persist(koejaksonKoulutussopimus)
+
+        koejaksonAloituskeskustelu =
+            createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+        em.persist(koejaksonAloituskeskustelu)
     }
 
     companion object {
@@ -251,10 +459,12 @@ class KouluttajaKoejaksoResourceIT {
         private val DEFAULT_SYNTYMAAIKA: LocalDate = LocalDate.ofEpochDay(0L)
         private val DEFAULT_MYONTAMISPAIVA: LocalDate = LocalDate.ofEpochDay(1L)
         private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(2L)
+        private val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(5L)
         private val DEFAULT_MUOKKAUSPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         private const val DEFAULT_KOULUTTAJA_ID = "4b73bc2c-88c4-11eb-8dcd-0242ac130003"
         private const val DEFAULT_VASTUUHENKILO_ID = "53d6e70e-88c4-11eb-8dcd-0242ac130003"
+        private const val DEFAULT_ESIMIES_ID = "43c0ebfa-92f9-11eb-a8b3-0242ac130003"
 
         private const val DEFAULT_KOULUTUSPAIKKA = "TAYS Päivystyskeskus"
         private const val DEFAULT_YLIOPISTO = "TAYS"
@@ -265,13 +475,13 @@ class KouluttajaKoejaksoResourceIT {
         private const val UPDATED_POSTITOIMIPAIKKA = "Tampere"
         private const val UPDATED_KORJAUSEHDOTUS = "Lorem Ipsum"
 
+        private const val DEFAULT_OSAAMISTAVOITTEET = "Lorem ipsum"
+
         @JvmStatic
         fun createKoulutussopimus(
-            em: EntityManager,
-            erikoistuvaLaakari: ErikoistuvaLaakari
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            vastuuhenkilo: Kayttaja
         ): KoejaksonKoulutussopimus {
-            val vastuuhenkilo = KayttajaHelper.createEntity(em, DEFAULT_VASTUUHENKILO_ID)
-            em.persist(vastuuhenkilo)
             return KoejaksonKoulutussopimus(
                 erikoistuvaLaakari = erikoistuvaLaakari,
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
@@ -292,12 +502,9 @@ class KouluttajaKoejaksoResourceIT {
 
         @JvmStatic
         fun createKoulutussopimuksenKouluttaja(
-            em: EntityManager,
             koejaksonKoulutussopimus: KoejaksonKoulutussopimus,
-            userId: String? = DEFAULT_KOULUTTAJA_ID
+            kouluttaja: Kayttaja
         ): KoulutussopimuksenKouluttaja {
-            val kouluttaja = KayttajaHelper.createEntity(em, userId)
-            em.persist(kouluttaja)
             return KoulutussopimuksenKouluttaja(
                 kouluttaja = kouluttaja,
                 nimi = kouluttaja.nimi,
@@ -313,6 +520,33 @@ class KouluttajaKoejaksoResourceIT {
                 nimi = DEFAULT_KOULUTUSPAIKKA,
                 yliopisto = DEFAULT_YLIOPISTO,
                 koulutussopimus = koejaksonKoulutussopimus
+            )
+        }
+
+        @JvmStatic
+        fun createAloituskeskustelu(
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            lahikouluttaja: Kayttaja,
+            lahiesimies: Kayttaja
+        ): KoejaksonAloituskeskustelu {
+            return KoejaksonAloituskeskustelu(
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
+                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
+                erikoistuvanSahkoposti = erikoistuvaLaakari.sahkoposti,
+                koejaksonSuorituspaikka = DEFAULT_KOULUTUSPAIKKA,
+                koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
+                koejaksonPaattymispaiva = DEFAULT_PAATTYMISPAIVA,
+                suoritettuKokoaikatyossa = true,
+                lahikouluttaja = lahikouluttaja,
+                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahiesimies = lahiesimies,
+                lahiesimiehenNimi = lahiesimies.nimi,
+                koejaksonOsaamistavoitteet = DEFAULT_OSAAMISTAVOITTEET,
+                lahetetty = true,
+                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }
     }

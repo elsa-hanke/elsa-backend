@@ -1,7 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
+import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -14,12 +16,14 @@ import java.security.Principal
 import javax.validation.Valid
 
 private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
+private const val ENTITY_KOEJAKSON_ALOITUSKESKUSTELU = "koejakson_aloituskeskustelu"
 
 @RestController
 @RequestMapping("/api/kouluttaja")
 class KouluttajaKoejaksoResource(
     private val userService: UserService,
-    private val koejaksonKoulutussopimusService: KoejaksonKoulutussopimusService
+    private val koejaksonKoulutussopimusService: KoejaksonKoulutussopimusService,
+    private val koejaksonAloituskeskusteluService: KoejaksonAloituskeskusteluService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -79,6 +83,81 @@ class KouluttajaKoejaksoResource(
                     true,
                     ENTITY_KOEJAKSON_SOPIMUS,
                     koulutussopimusDTO.id.toString()
+                )
+            )
+            .body(result)
+    }
+
+    @PutMapping("/koejakso/aloituskeskustelu")
+    fun updateAloituskeskustelu(
+        @Valid @RequestBody aloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO,
+        principal: Principal?
+    ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
+        if (aloituskeskusteluDTO.id == null) {
+            throw BadRequestAlertException(
+                "Virheellinen id",
+                ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
+                "idnull"
+            )
+        }
+
+        val user = userService.getAuthenticatedUser(principal)
+
+        var aloituskeskustelu =
+            koejaksonAloituskeskusteluService.findOneByIdAndLahikouluttajaUserId(
+                aloituskeskusteluDTO.id!!,
+                user.id!!
+            )
+
+        if (!aloituskeskustelu.isPresent) {
+            aloituskeskustelu =
+                koejaksonAloituskeskusteluService.findOneByIdAndLahiesimiesUserId(
+                    aloituskeskusteluDTO.id!!,
+                    user.id!!
+                )
+
+            if (!aloituskeskustelu.isPresent) {
+                throw BadRequestAlertException(
+                    "Koejakson aloituskeskustelua ei löydy.",
+                    ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
+                    "dataillegal"
+                )
+            }
+
+            if (aloituskeskustelu.get().lahikouluttaja?.sopimusHyvaksytty != true) {
+                throw BadRequestAlertException(
+                    "Esimies ei saa muokata aloituskeskustelua, jos kouluttaja ei ole allekirjoittanut sitä",
+                    ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
+                    "dataillegal"
+                )
+            }
+        }
+
+        if (aloituskeskustelu.get().lahetetty == false) {
+            throw BadRequestAlertException(
+                "Aloituskeskustelua ei saa muokata, jos erikoistuva ei ole allekirjoittanut sitä",
+                ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
+                "dataillegal"
+            )
+        }
+
+        if (aloituskeskustelu.get().lahiesimies?.sopimusHyvaksytty == true) {
+            throw BadRequestAlertException(
+                "Hyväksyttyä aloituskeskustelua ei saa muokata",
+                ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
+                "dataillegal"
+            )
+        }
+
+        val result =
+            koejaksonAloituskeskusteluService.update(aloituskeskusteluDTO, user.id!!)
+        return ResponseEntity.ok()
+            .headers(
+                HeaderUtil.createEntityUpdateAlert(
+                    applicationName,
+                    true,
+                    ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
+                    aloituskeskusteluDTO.id.toString()
                 )
             )
             .body(result)
