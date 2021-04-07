@@ -13,7 +13,7 @@ enum class KoulutussopimusTila {
             if (koejaksonKoulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true) {
                 return HYVAKSYTTY
             }
-            if (koejaksonKoulutussopimusDTO.korjausehdotus != null) {
+            if (!koejaksonKoulutussopimusDTO.korjausehdotus.isNullOrBlank()) {
                 return PALAUTETTU_KORJATTAVAKSI
             }
             if (koejaksonKoulutussopimusDTO.lahetetty == false) {
