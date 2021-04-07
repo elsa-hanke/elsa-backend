@@ -26,5 +26,10 @@ interface KoejaksonAloituskeskusteluService {
         userId: String
     ): Optional<KoejaksonAloituskeskusteluDTO>
 
+    fun findOneByIdAndLahiesimiesUserId(
+        id: Long,
+        userId: String
+    ): Optional<KoejaksonAloituskeskusteluDTO>
+
     fun delete(id: Long)
 }

@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.service.dto.enumeration.KoulutussopimusTila
 import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
