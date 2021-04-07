@@ -13,5 +13,10 @@ interface KoejaksonAloituskeskusteluRepository : JpaRepository<KoejaksonAloitusk
         userId: String
     ): Optional<KoejaksonAloituskeskustelu>
 
+    fun findOneByIdAndLahiesimiesUserId(
+        id: Long,
+        userId: String
+    ): Optional<KoejaksonAloituskeskustelu>
+
     fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonAloituskeskustelu>
 }

@@ -83,11 +83,12 @@ class KoejaksonAloituskeskusteluServiceImpl(
             }
         }
 
-        if (aloituskeskustelu.lahikouluttaja?.user?.id == userId) {
+        if (aloituskeskustelu.lahikouluttaja?.user?.id == userId && !aloituskeskustelu.lahiesimiesHyvaksynyt) {
             // Hyväksytty
             if (updatedAloituskeskustelu.korjausehdotus.isNullOrBlank()) {
                 aloituskeskustelu.lahikouluttajaHyvaksynyt = true
-                aloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now(ZoneId.systemDefault())
+                aloituskeskustelu.lahikouluttajanKuittausaika =
+                    LocalDate.now(ZoneId.systemDefault())
             }
             // Palautettu korjattavaksi
             else {
@@ -96,7 +97,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
             }
         }
 
-        if (aloituskeskustelu.lahiesimies?.user?.id == userId) {
+        if (aloituskeskustelu.lahiesimies?.user?.id == userId && aloituskeskustelu.lahikouluttajaHyvaksynyt) {
             // Hyväksytty
             if (updatedAloituskeskustelu.korjausehdotus.isNullOrBlank()) {
                 aloituskeskustelu.lahiesimiesHyvaksynyt = true
@@ -132,6 +133,16 @@ class KoejaksonAloituskeskusteluServiceImpl(
         userId: String
     ): Optional<KoejaksonAloituskeskusteluDTO> {
         return koejaksonAloituskeskusteluRepository.findOneByIdAndLahikouluttajaUserId(
+            id,
+            userId
+        ).map(koejaksonAloituskeskusteluMapper::toDto)
+    }
+
+    override fun findOneByIdAndLahiesimiesUserId(
+        id: Long,
+        userId: String
+    ): Optional<KoejaksonAloituskeskusteluDTO> {
+        return koejaksonAloituskeskusteluRepository.findOneByIdAndLahiesimiesUserId(
             id,
             userId
         ).map(koejaksonAloituskeskusteluMapper::toDto)
