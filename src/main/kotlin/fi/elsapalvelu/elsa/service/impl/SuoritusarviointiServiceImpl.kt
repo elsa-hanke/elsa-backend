@@ -26,14 +26,14 @@ class SuoritusarviointiServiceImpl(
     private val kayttajaRepository: KayttajaRepository,
     private val suoritusarviointiMapper: SuoritusarviointiMapper,
     private val arviointityokaluRepository: ArviointityokaluRepository,
-    private val mailService: MailService
+    private val mailService: MailService,
 ) : SuoritusarviointiService {
 
     override fun save(suoritusarviointiDTO: SuoritusarviointiDTO): SuoritusarviointiDTO {
         var suoritusarviointi = suoritusarviointiMapper.toEntity(suoritusarviointiDTO)
         suoritusarviointi = suoritusarviointiRepository.save(suoritusarviointi)
         mailService.sendEmailFromTemplate(
-            suoritusarviointi.arvioinninAntaja?.user!!,
+            kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!).get().user!!,
             "arviointipyyntoKouluttajalleEmail.html",
             "email.arviointipyyntokouluttajalle.title",
             id = suoritusarviointi.id!!
@@ -124,7 +124,8 @@ class SuoritusarviointiServiceImpl(
             }
 
             mailService.sendEmailFromTemplate(
-                suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.user!!,
+                kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.id!!)
+                    .get().user!!,
                 templateName,
                 titleKey,
                 id = suoritusarviointi.id!!
