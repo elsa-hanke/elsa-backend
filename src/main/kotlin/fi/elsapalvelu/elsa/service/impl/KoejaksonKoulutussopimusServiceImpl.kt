@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
+import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import org.springframework.stereotype.Service
@@ -18,7 +19,8 @@ import javax.persistence.EntityNotFoundException
 class KoejaksonKoulutussopimusServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper,
-    private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
+    private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
+    private val mailService: MailService
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -33,6 +35,19 @@ class KoejaksonKoulutussopimusServiceImpl(
         koulutussopimus.koulutuspaikat.forEach { it.koulutussopimus = koulutussopimus }
         koulutussopimus.kouluttajat.forEach { it.koulutussopimus = koulutussopimus }
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
+
+        // Sähköposti kouluttajille allekirjoitetusta sopimuksesta
+        if (koulutussopimus.lahetetty) {
+            koulutussopimus.kouluttajat.forEach {
+                mailService.sendEmailFromTemplate(
+                    it.kouluttaja?.user!!,
+                    "koulutussopimusKouluttajalle.html",
+                    "email.koulutussopimuskouluttajalle.title",
+                    id = koulutussopimus.id!!
+                )
+            }
+        }
+
         return koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
     }
 
@@ -50,6 +65,8 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         val updatedKoulutussopimus =
             koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
+
+        var sopimuksenKouluttaja = false
 
         if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == koulutussopimus.erikoistuvaLaakari) {
             koulutussopimus.erikoistuvanNimi = updatedKoulutussopimus.erikoistuvanNimi
@@ -82,6 +99,7 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         koulutussopimus.kouluttajat.forEach {
             if (it.kouluttaja?.user?.id == userId) {
+                sopimuksenKouluttaja = true
                 val updatedKouluttaja =
                     updatedKoulutussopimus.kouluttajat.first { k -> k.id == it.id }
                 it.nimi = updatedKouluttaja.nimi
@@ -127,6 +145,91 @@ class KoejaksonKoulutussopimusServiceImpl(
         }
 
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
+
+        // Sähköposti kouluttajille allekirjoitetusta sopimuksesta
+        if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == koulutussopimus.erikoistuvaLaakari && koulutussopimus.lahetetty) {
+            koulutussopimus.kouluttajat.forEach {
+                mailService.sendEmailFromTemplate(
+                    it.kouluttaja?.user!!,
+                    "koulutussopimusKouluttajalle.html",
+                    "email.koulutussopimuskouluttajalle.title",
+                    id = koulutussopimus.id!!
+                )
+            }
+        } else if (sopimuksenKouluttaja) {
+
+            // Sähköposti vastuuhenkilölle hyväksytystä sopimuksesta
+            if (koulutussopimus.kouluttajat.all { it.sopimusHyvaksytty }) {
+                mailService.sendEmailFromTemplate(
+                    koulutussopimus.vastuuhenkilo?.user!!,
+                    "koulutussopimusKouluttajalle.html",
+                    "email.koulutussopimuskouluttajalle.title",
+                    id = koulutussopimus.id!!
+                )
+            }
+
+            // Sähköposti erikoistuvalle ja toiselle kouluttajalle palautetusta sopimuksesta
+            else if (koulutussopimus.korjausehdotus != null) {
+                mailService.sendEmailFromTemplate(
+                    koulutussopimus.erikoistuvaLaakari?.kayttaja?.user!!,
+                    "koulutussopimusKouluttajalle.html",
+                    "email.koulutussopimuskouluttajalle.title",
+                    id = koulutussopimus.id!!
+                )
+
+                koulutussopimus.kouluttajat.forEach {
+                    if (it.kouluttaja?.user?.id != userId) {
+                        mailService.sendEmailFromTemplate(
+                            it.kouluttaja?.user!!,
+                            "koulutussopimusKouluttajalle.html",
+                            "email.koulutussopimuskouluttajalle.title",
+                            id = koulutussopimus.id!!
+                        )
+                    }
+                }
+            }
+        } else if (koulutussopimus.vastuuhenkilo?.user?.id == userId) {
+
+            // Sähköposti erikoistujalle, kouluttajille ja opintohallinnolle hyväksytystä sopimuksesta
+            if (koulutussopimus.vastuuhenkiloHyvaksynyt) {
+                mailService.sendEmailFromTemplate(
+                    koulutussopimus.erikoistuvaLaakari?.kayttaja?.user!!,
+                    "koulutussopimusKouluttajalle.html",
+                    "email.koulutussopimuskouluttajalle.title",
+                    id = koulutussopimus.id!!
+                )
+
+                koulutussopimus.kouluttajat.forEach {
+                    mailService.sendEmailFromTemplate(
+                        it.kouluttaja?.user!!,
+                        "koulutussopimusKouluttajalle.html",
+                        "email.koulutussopimuskouluttajalle.title",
+                        id = koulutussopimus.id!!
+                    )
+                }
+
+                // TODO: Opintohallinto
+            }
+            // Sähköposti erikoistujalle ja kouluttajille palautetusta sopimuksesta
+            else {
+                mailService.sendEmailFromTemplate(
+                    koulutussopimus.erikoistuvaLaakari?.kayttaja?.user!!,
+                    "koulutussopimusKouluttajalle.html",
+                    "email.koulutussopimuskouluttajalle.title",
+                    id = koulutussopimus.id!!
+                )
+
+                koulutussopimus.kouluttajat.forEach {
+                    mailService.sendEmailFromTemplate(
+                        it.kouluttaja?.user!!,
+                        "koulutussopimusKouluttajalle.html",
+                        "email.koulutussopimuskouluttajalle.title",
+                        id = koulutussopimus.id!!
+                    )
+                }
+            }
+        }
+
         return koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
     }
 

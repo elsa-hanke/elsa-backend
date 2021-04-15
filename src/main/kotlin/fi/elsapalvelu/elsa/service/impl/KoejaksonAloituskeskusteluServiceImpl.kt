@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
 import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
+import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
 import org.springframework.stereotype.Service
@@ -18,7 +19,8 @@ import javax.persistence.EntityNotFoundException
 class KoejaksonAloituskeskusteluServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
-    private val koejaksonAloituskeskusteluMapper: KoejaksonAloituskeskusteluMapper
+    private val koejaksonAloituskeskusteluMapper: KoejaksonAloituskeskusteluMapper,
+    private val mailService: MailService
 ) : KoejaksonAloituskeskusteluService {
 
     override fun create(
@@ -32,6 +34,15 @@ class KoejaksonAloituskeskusteluServiceImpl(
         aloituskeskustelu.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         aloituskeskustelu.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
+
+        // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
+        mailService.sendEmailFromTemplate(
+            aloituskeskustelu.lahikouluttaja?.user!!,
+            "aloituskeskusteluKouluttajalle.html",
+            "email.aloituskeskusteluKouluttajalle.title",
+            id = aloituskeskustelu.id!!
+        )
+
         return koejaksonAloituskeskusteluMapper.toDto(aloituskeskustelu)
     }
 
@@ -113,6 +124,69 @@ class KoejaksonAloituskeskusteluServiceImpl(
         }
 
         aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
+
+        // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
+        if (aloituskeskustelu.erikoistuvaLaakari?.kayttaja?.user?.id == userId) {
+            mailService.sendEmailFromTemplate(
+                aloituskeskustelu.lahikouluttaja?.user!!,
+                "aloituskeskusteluKouluttajalle.html",
+                "email.aloituskeskusteluKouluttajalle.title",
+                id = aloituskeskustelu.id!!
+            )
+        } else if (aloituskeskustelu.lahikouluttaja?.user?.id == userId) {
+
+            // Sähköposti esimiehelle kouluttajan hyväksymästä aloituskeskustelusta
+            if (aloituskeskustelu.lahikouluttajaHyvaksynyt) {
+                mailService.sendEmailFromTemplate(
+                    aloituskeskustelu.lahiesimies?.user!!,
+                    "aloituskeskusteluKouluttajalle.html",
+                    "email.aloituskeskusteluKouluttajalle.title",
+                    id = aloituskeskustelu.id!!
+                )
+            }
+            // Sähköposti erikoistuvalle korjattavasta aloituskeskustelusta
+            else {
+                mailService.sendEmailFromTemplate(
+                    aloituskeskustelu.erikoistuvaLaakari?.kayttaja?.user!!,
+                    "aloituskeskusteluKouluttajalle.html",
+                    "email.aloituskeskusteluKouluttajalle.title",
+                    id = aloituskeskustelu.id!!
+                )
+            }
+        } else if (aloituskeskustelu.lahiesimies?.user?.id == userId) {
+
+            // Sähköposti erikoistuvalle ja kouluttajalle esimiehen hyväksymästä aloituskeskustelusta
+            if (aloituskeskustelu.lahikouluttajaHyvaksynyt) {
+                mailService.sendEmailFromTemplate(
+                    aloituskeskustelu.erikoistuvaLaakari?.kayttaja?.user!!,
+                    "aloituskeskusteluKouluttajalle.html",
+                    "email.aloituskeskusteluKouluttajalle.title",
+                    id = aloituskeskustelu.id!!
+                )
+                mailService.sendEmailFromTemplate(
+                    aloituskeskustelu.lahikouluttaja?.user!!,
+                    "aloituskeskusteluKouluttajalle.html",
+                    "email.aloituskeskusteluKouluttajalle.title",
+                    id = aloituskeskustelu.id!!
+                )
+            }
+            // Sähköposti erikoistuvalle ja kouluttajalle korjattavasta aloituskeskustelusta
+            else {
+                mailService.sendEmailFromTemplate(
+                    aloituskeskustelu.erikoistuvaLaakari?.kayttaja?.user!!,
+                    "aloituskeskusteluKouluttajalle.html",
+                    "email.aloituskeskusteluKouluttajalle.title",
+                    id = aloituskeskustelu.id!!
+                )
+                mailService.sendEmailFromTemplate(
+                    aloituskeskustelu.lahikouluttaja?.user!!,
+                    "aloituskeskusteluKouluttajalle.html",
+                    "email.aloituskeskusteluKouluttajalle.title",
+                    id = aloituskeskustelu.id!!
+                )
+            }
+        }
+
         return koejaksonAloituskeskusteluMapper.toDto(aloituskeskustelu)
     }
 
