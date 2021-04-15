@@ -19,7 +19,7 @@ management:
     web:
       base-path: /management
       exposure:
-        include: ['configprops', 'env', 'health', 'info', 'jhimetrics', 'logfile', 'loggers', 'prometheus', 'threaddump']
+        include: [ 'configprops', 'env', 'health', 'info', 'jhimetrics', 'logfile', 'loggers', 'prometheus', 'threaddump' ]
   endpoint:
     health:
       show-details: when_authorized
@@ -151,7 +151,7 @@ jhipster:
   #     allow-credentials: true
   #     max-age: 1800
   mail:
-    from: elsaBackend@localhost
+    from: no-reply@mail.kehitys.elsapalvelu.fi
   swagger:
     default-include-pattern: /api/.*
     title: ELSA-palvelu API

@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
@@ -24,13 +25,19 @@ class SuoritusarviointiServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val suoritusarviointiMapper: SuoritusarviointiMapper,
-    private val arviointityokaluRepository: ArviointityokaluRepository
+    private val arviointityokaluRepository: ArviointityokaluRepository,
+    private val mailService: MailService
 ) : SuoritusarviointiService {
 
     override fun save(suoritusarviointiDTO: SuoritusarviointiDTO): SuoritusarviointiDTO {
         var suoritusarviointi = suoritusarviointiMapper.toEntity(suoritusarviointiDTO)
         suoritusarviointi = suoritusarviointiRepository.save(suoritusarviointi)
-        // TODO: lähetä sähköposti arvioinnin tekijälle
+        mailService.sendEmailFromTemplate(
+            suoritusarviointi.arvioinninAntaja?.user!!,
+            "arviointipyyntoKouluttajalleEmail.html",
+            "email.arviointipyyntokouluttajalle.title",
+            id = suoritusarviointi.id!!
+        )
         return suoritusarviointiMapper.toDto(suoritusarviointi)
     }
 
@@ -40,6 +47,7 @@ class SuoritusarviointiServiceImpl(
     ): SuoritusarviointiDTO {
         var suoritusarviointi = suoritusarviointiRepository
             .findOneById(suoritusarviointiDTO.id!!).get()
+        val isNewArviointi = suoritusarviointi.arviointiAika == null
 
         // Erikoistuva lääkäri
         suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari.let {
@@ -101,9 +109,28 @@ class SuoritusarviointiServiceImpl(
             }
         }
 
-        // TODO: lähetä sähköposti arvioinnin tekijälle
-
         suoritusarviointi = suoritusarviointiRepository.save(suoritusarviointi)
+
+        if (suoritusarviointi.arviointiAika != null) {
+            val templateName = if (isNewArviointi) {
+                "arviointiAnnettuEmail"
+            } else {
+                "arviointiaMuokattuEmail"
+            }
+            val titleKey = if (isNewArviointi) {
+                "email.arviointiannettu.title"
+            } else {
+                "email.arviointiamuokattu.title"
+            }
+
+            mailService.sendEmailFromTemplate(
+                suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.user!!,
+                templateName,
+                titleKey,
+                id = suoritusarviointi.id!!
+            )
+        }
+
         return suoritusarviointiMapper.toDto(suoritusarviointi)
     }
 
