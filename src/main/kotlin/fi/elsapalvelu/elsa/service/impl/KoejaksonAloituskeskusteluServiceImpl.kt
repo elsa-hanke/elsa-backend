@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
 import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
 import fi.elsapalvelu.elsa.service.MailService
@@ -20,7 +21,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
     private val koejaksonAloituskeskusteluMapper: KoejaksonAloituskeskusteluMapper,
-    private val mailService: MailService
+    private val mailService: MailService,
+    private val kayttajaRepository: KayttajaRepository
 ) : KoejaksonAloituskeskusteluService {
 
     override fun create(
@@ -35,13 +37,15 @@ class KoejaksonAloituskeskusteluServiceImpl(
         aloituskeskustelu.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
 
-        // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
-        mailService.sendEmailFromTemplate(
-            aloituskeskustelu.lahikouluttaja?.user!!,
-            "aloituskeskusteluKouluttajalle.html",
-            "email.aloituskeskusteluKouluttajalle.title",
-            id = aloituskeskustelu.id!!
-        )
+        if (aloituskeskustelu.lahetetty) {
+            // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!).get().user!!,
+                "aloituskeskusteluKouluttajalle.html",
+                "email.aloituskeskusteluKouluttajalle.title",
+                id = aloituskeskustelu.id!!
+            )
+        }
 
         return koejaksonAloituskeskusteluMapper.toDto(aloituskeskustelu)
     }
@@ -126,9 +130,9 @@ class KoejaksonAloituskeskusteluServiceImpl(
         aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
 
         // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
-        if (aloituskeskustelu.erikoistuvaLaakari?.kayttaja?.user?.id == userId) {
+        if (aloituskeskustelu.erikoistuvaLaakari?.kayttaja?.user?.id == userId && aloituskeskustelu.lahetetty) {
             mailService.sendEmailFromTemplate(
-                aloituskeskustelu.lahikouluttaja?.user!!,
+                kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!).get().user!!,
                 "aloituskeskusteluKouluttajalle.html",
                 "email.aloituskeskusteluKouluttajalle.title",
                 id = aloituskeskustelu.id!!
@@ -138,7 +142,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
             // Sähköposti esimiehelle kouluttajan hyväksymästä aloituskeskustelusta
             if (aloituskeskustelu.lahikouluttajaHyvaksynyt) {
                 mailService.sendEmailFromTemplate(
-                    aloituskeskustelu.lahiesimies?.user!!,
+                    kayttajaRepository.findById(aloituskeskustelu.lahiesimies?.id!!).get().user!!,
                     "aloituskeskusteluKouluttajalle.html",
                     "email.aloituskeskusteluKouluttajalle.title",
                     id = aloituskeskustelu.id!!
@@ -147,7 +151,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
             // Sähköposti erikoistuvalle korjattavasta aloituskeskustelusta
             else {
                 mailService.sendEmailFromTemplate(
-                    aloituskeskustelu.erikoistuvaLaakari?.kayttaja?.user!!,
+                    kayttajaRepository.findById(aloituskeskustelu?.erikoistuvaLaakari?.kayttaja?.id!!)
+                        .get().user!!,
                     "aloituskeskusteluKouluttajalle.html",
                     "email.aloituskeskusteluKouluttajalle.title",
                     id = aloituskeskustelu.id!!
@@ -158,13 +163,15 @@ class KoejaksonAloituskeskusteluServiceImpl(
             // Sähköposti erikoistuvalle ja kouluttajalle esimiehen hyväksymästä aloituskeskustelusta
             if (aloituskeskustelu.lahikouluttajaHyvaksynyt) {
                 mailService.sendEmailFromTemplate(
-                    aloituskeskustelu.erikoistuvaLaakari?.kayttaja?.user!!,
+                    kayttajaRepository.findById(aloituskeskustelu?.erikoistuvaLaakari?.kayttaja?.id!!)
+                        .get().user!!,
                     "aloituskeskusteluKouluttajalle.html",
                     "email.aloituskeskusteluKouluttajalle.title",
                     id = aloituskeskustelu.id!!
                 )
                 mailService.sendEmailFromTemplate(
-                    aloituskeskustelu.lahikouluttaja?.user!!,
+                    kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!)
+                        .get().user!!,
                     "aloituskeskusteluKouluttajalle.html",
                     "email.aloituskeskusteluKouluttajalle.title",
                     id = aloituskeskustelu.id!!
@@ -173,13 +180,15 @@ class KoejaksonAloituskeskusteluServiceImpl(
             // Sähköposti erikoistuvalle ja kouluttajalle korjattavasta aloituskeskustelusta
             else {
                 mailService.sendEmailFromTemplate(
-                    aloituskeskustelu.erikoistuvaLaakari?.kayttaja?.user!!,
+                    kayttajaRepository.findById(aloituskeskustelu?.erikoistuvaLaakari?.kayttaja?.id!!)
+                        .get().user!!,
                     "aloituskeskusteluKouluttajalle.html",
                     "email.aloituskeskusteluKouluttajalle.title",
                     id = aloituskeskustelu.id!!
                 )
                 mailService.sendEmailFromTemplate(
-                    aloituskeskustelu.lahikouluttaja?.user!!,
+                    kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!)
+                        .get().user!!,
                     "aloituskeskusteluKouluttajalle.html",
                     "email.aloituskeskusteluKouluttajalle.title",
                     id = aloituskeskustelu.id!!

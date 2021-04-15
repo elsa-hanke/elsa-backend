@@ -58,8 +58,14 @@ class SuoritusarvioinninKommenttiServiceImpl(
         ) {
             suoritusarvioinninKommentti =
                 suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
+            val user =
+                if (kayttaja == suoritusarviointi.arvioinninAntaja) kayttajaRepository.findById(
+                    suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.id!!
+                ).get().user!!
+                else kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!)
+                    .get().user!!
             mailService.sendEmailFromTemplate(
-                if (kayttaja == suoritusarviointi.arvioinninAntaja) suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.user!! else suoritusarviointi.arvioinninAntaja?.user!!,
+                user,
                 "suoritusarvioinninKommenttiEmail.html",
                 "email.suoritusarvioinninkommentti.title",
                 id = suoritusarviointi.id!!
