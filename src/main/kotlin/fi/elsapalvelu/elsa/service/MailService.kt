@@ -15,9 +15,13 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 import javax.mail.MessagingException
 
-private const val USER = "user"
-private const val BASE_URL = "baseUrl"
-private const val ID = "id"
+enum class MailProperty(val property: String) {
+    USER("user"),
+    BASE_URL("baseUrl"),
+    ID("id"),
+    NAME("name"),
+    TEXT("text")
+}
 
 @Service
 class MailService(
@@ -60,7 +64,12 @@ class MailService(
     }
 
     @Async
-    fun sendEmailFromTemplate(user: User, templateName: String, titleKey: String, id: Long) {
+    fun sendEmailFromTemplate(
+        user: User,
+        templateName: String,
+        titleKey: String,
+        properties: Map<MailProperty, String>
+    ) {
         if (user.email == null) {
             log.debug("Email doesn't exist for user '${user.login}'")
             return
@@ -69,9 +78,11 @@ class MailService(
         if (user.langKey != null) locale = Locale.forLanguageTag(user.langKey)
 
         val context = Context(locale).apply {
-            setVariable(USER, user)
-            setVariable(BASE_URL, jHipsterProperties.mail.baseUrl)
-            setVariable(ID, id)
+            setVariable(MailProperty.USER.property, user)
+            setVariable(MailProperty.BASE_URL.property, jHipsterProperties.mail.baseUrl)
+            properties.forEach {
+                setVariable(it.key.property, it.value)
+            }
         }
         val content = templateEngine.process(templateName, context)
         val subject = messageSource.getMessage(titleKey, null, locale)

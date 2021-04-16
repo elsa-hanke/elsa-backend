@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
 <head>
-    <title>[ELSA-palvelu] Olet saanut uuden suoritusarvionnin</title>
+    <title>[ELSA-palvelu] Olet saanut koejakson koulutussopimuksen täydennettäväksi</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
 </head>
@@ -10,9 +10,9 @@
     Hei,
 </p>
 <p>
-    Olet saanut ELSA-palveluun uuden koulutussopimuksen.
+    Olet saanut ELSA-palveluun uuden koejakson koulutussopimuksen täydennettäväksi.
 
-    Pääset katsomaan koulutussopimusta alla olevan linkin kautta:
+    Pääset täydentämään koejakson koulutusopimuksen alla olevan linkin kautta:
 </p>
 <p>
     <a th:with="url=(@{|${baseUrl}/koejakso/koulutussopimus/${id}|})" th:href="${url}"
