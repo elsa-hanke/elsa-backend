@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
@@ -56,6 +57,11 @@ class KayttajaServiceImpl(
     override fun findByUserId(id: String): Optional<KayttajaDTO> {
         return kayttajaRepository.findOneByUserId(id)
             .map(kayttajaMapper::toDto)
+    }
+
+    override fun findKouluttajat(): MutableList<KayttajaDTO> {
+        return kayttajaRepository.findAllByUserAuthority(KOULUTTAJA)
+            .mapTo(mutableListOf(), kayttajaMapper::toDto)
     }
 
     override fun delete(id: Long) {
