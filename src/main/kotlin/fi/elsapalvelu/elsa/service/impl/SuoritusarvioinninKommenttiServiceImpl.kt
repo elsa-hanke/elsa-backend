@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.SuoritusarvioinninKommenttiRepository
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
+import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.SuoritusarvioinninKommenttiService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
@@ -68,7 +69,7 @@ class SuoritusarvioinninKommenttiServiceImpl(
                 user,
                 "suoritusarvioinninKommenttiEmail.html",
                 "email.suoritusarvioinninkommentti.title",
-                id = suoritusarviointi.id!!
+                properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
             )
             return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
         } else {
