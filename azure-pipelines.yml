@@ -73,7 +73,7 @@ stages:
                   awsCredentials: 'elsa-ci'
                   regionName: 'eu-west-1'
                   scriptType: inline
-                  inlineScript: 'aws ecs update-service --cluster elsa-dev-cluster --service elsa-dev-backend-service --force-new-deployment > /dev/null'
+                  inlineScript: 'aws ecs update-service --cluster elsa-dev-cluster --service elsa-dev-backend-service --task-definition elsa-dev-backend --force-new-deployment > /dev/null'
                 displayName: Force update ecs service
 
   - stage: Deploy_backend_testi
@@ -95,5 +95,5 @@ stages:
                     awsCredentials: 'staging-elsa-ci'
                     regionName: 'eu-west-1'
                     scriptType: inline
-                    inlineScript: 'aws ecs update-service --cluster elsa-staging-cluster --service elsa-staging-backend-service --force-new-deployment > /dev/null'
+                    inlineScript: 'aws ecs update-service --cluster elsa-staging-cluster --service elsa-staging-backend-service --task-definition elsa-staging-backend --force-new-deployment > /dev/null'
                   displayName: Force update ecs service
