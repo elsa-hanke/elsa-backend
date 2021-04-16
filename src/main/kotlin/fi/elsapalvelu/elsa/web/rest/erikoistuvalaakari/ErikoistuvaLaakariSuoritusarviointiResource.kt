@@ -28,7 +28,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val epaOsaamisalueService: EpaOsaamisalueService,
     private val epaOsaamisalueenKategoriaService: EpaOsaamisalueenKategoriaService,
-    private val kouluttajavaltuutusService: KouluttajavaltuutusService
+    private val kayttajaService: KayttajaService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -46,8 +46,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         options.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()
         options.tapahtumat = suoritusarviointiService
             .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
-        options.kouluttajat = kouluttajavaltuutusService
-            .findAllValtuutettuByValtuuttajaKayttajaUserId(id).toMutableSet()
+        options.kouluttajat = kayttajaService.findKouluttajat().toMutableSet()
 
         return ResponseEntity.ok(options)
     }
@@ -78,9 +77,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         form.kunnat = kuntaService.findAll().toMutableSet()
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
         form.epaOsaamisalueenKategoriat = epaOsaamisalueenKategoriaService.findAll().toMutableSet()
-        form.kouluttajat =
-            kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(id)
-                .toMutableSet()
+        form.kouluttajat = kayttajaService.findKouluttajat().toMutableSet()
 
         return ResponseEntity.ok(form)
     }
