@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
 import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
+import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
@@ -42,8 +43,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!).get().user!!,
                 "aloituskeskusteluKouluttajalle.html",
-                "email.aloituskeskusteluKouluttajalle.title",
-                id = aloituskeskustelu.id!!
+                "email.aloituskeskustelukouluttajalle.title",
+                properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
             )
         }
 
@@ -134,8 +135,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!).get().user!!,
                 "aloituskeskusteluKouluttajalle.html",
-                "email.aloituskeskusteluKouluttajalle.title",
-                id = aloituskeskustelu.id!!
+                "email.aloituskeskustelukouluttajalle.title",
+                properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
             )
         } else if (aloituskeskustelu.lahikouluttaja?.user?.id == userId) {
 
@@ -143,9 +144,9 @@ class KoejaksonAloituskeskusteluServiceImpl(
             if (aloituskeskustelu.lahikouluttajaHyvaksynyt) {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(aloituskeskustelu.lahiesimies?.id!!).get().user!!,
-                    "aloituskeskusteluKouluttajalle.html",
-                    "email.aloituskeskusteluKouluttajalle.title",
-                    id = aloituskeskustelu.id!!
+                    "aloituskeskustelukouluttajalle.html",
+                    "email.aloituskeskustelukouluttajalle.title",
+                    properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
                 )
             }
             // Sähköposti erikoistuvalle korjattavasta aloituskeskustelusta
@@ -153,45 +154,55 @@ class KoejaksonAloituskeskusteluServiceImpl(
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(aloituskeskustelu?.erikoistuvaLaakari?.kayttaja?.id!!)
                         .get().user!!,
-                    "aloituskeskusteluKouluttajalle.html",
-                    "email.aloituskeskusteluKouluttajalle.title",
-                    id = aloituskeskustelu.id!!
+                    "aloituskeskusteluPalautettu.html",
+                    "email.aloituskeskustelupalautettu.title",
+                    properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
                 )
             }
         } else if (aloituskeskustelu.lahiesimies?.user?.id == userId) {
 
             // Sähköposti erikoistuvalle ja kouluttajalle esimiehen hyväksymästä aloituskeskustelusta
             if (aloituskeskustelu.lahikouluttajaHyvaksynyt) {
-                mailService.sendEmailFromTemplate(
+                val erikoistuvaLaakari =
                     kayttajaRepository.findById(aloituskeskustelu?.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    "aloituskeskusteluKouluttajalle.html",
-                    "email.aloituskeskusteluKouluttajalle.title",
-                    id = aloituskeskustelu.id!!
+                        .get().user!!
+                mailService.sendEmailFromTemplate(
+                    erikoistuvaLaakari,
+                    "aloituskeskusteluHyvaksytty.html",
+                    "email.aloituskeskusteluhyvaksytty.title",
+                    properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
                 )
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!)
                         .get().user!!,
-                    "aloituskeskusteluKouluttajalle.html",
-                    "email.aloituskeskusteluKouluttajalle.title",
-                    id = aloituskeskustelu.id!!
+                    "aloituskeskusteluHyvaksyttyKouluttaja.html",
+                    "email.aloituskeskusteluhyvaksytty.title",
+                    properties = mapOf(
+                        Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()),
+                        Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                    )
                 )
             }
             // Sähköposti erikoistuvalle ja kouluttajalle korjattavasta aloituskeskustelusta
             else {
-                mailService.sendEmailFromTemplate(
+                val erikoistuvaLaakari =
                     kayttajaRepository.findById(aloituskeskustelu?.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    "aloituskeskusteluKouluttajalle.html",
-                    "email.aloituskeskusteluKouluttajalle.title",
-                    id = aloituskeskustelu.id!!
+                        .get().user!!
+                mailService.sendEmailFromTemplate(
+                    erikoistuvaLaakari,
+                    "aloituskeskusteluPalautettu.html",
+                    "email.aloituskeskustelupalautettu.title",
+                    properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
                 )
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!)
                         .get().user!!,
-                    "aloituskeskusteluKouluttajalle.html",
-                    "email.aloituskeskusteluKouluttajalle.title",
-                    id = aloituskeskustelu.id!!
+                    "aloituskeskusteluPalautettuKouluttaja.html",
+                    "email.aloituskeskustelupalautettu.title",
+                    properties = mapOf(
+                        Pair(MailProperty.NAME, erikoistuvaLaakari.getName()),
+                        Pair(MailProperty.TEXT, aloituskeskustelu.korjausehdotus!!)
+                    )
                 )
             }
         }

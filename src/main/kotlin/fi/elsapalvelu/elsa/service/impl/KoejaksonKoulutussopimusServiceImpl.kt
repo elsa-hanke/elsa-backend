@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
+import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
@@ -45,7 +46,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                     kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
                     "koulutussopimusKouluttajalle.html",
                     "email.koulutussopimuskouluttajalle.title",
-                    id = koulutussopimus.id!!
+                    properties = mapOf(Pair(MailProperty.ID, koulutussopimus.id!!.toString()))
                 )
             }
         }
@@ -155,7 +156,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                     kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
                     "koulutussopimusKouluttajalle.html",
                     "email.koulutussopimuskouluttajalle.title",
-                    id = koulutussopimus.id!!
+                    properties = mapOf(Pair(MailProperty.ID, koulutussopimus.id!!.toString()))
                 )
             }
         } else if (sopimuksenKouluttaja) {
@@ -164,29 +165,37 @@ class KoejaksonKoulutussopimusServiceImpl(
             if (koulutussopimus.kouluttajat.all { it.sopimusHyvaksytty }) {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(koulutussopimus.vastuuhenkilo?.id!!).get().user!!,
-                    "koulutussopimusKouluttajalle.html",
-                    "email.koulutussopimuskouluttajalle.title",
-                    id = koulutussopimus.id!!
+                    "koulutussopimusVastuuhenkilolle.html",
+                    "email.koulutussopimusvastuuhenkilolle.title",
+                    properties = mapOf(Pair(MailProperty.ID, koulutussopimus.id!!.toString()))
                 )
             }
 
             // Sähköposti erikoistuvalle ja toiselle kouluttajalle palautetusta sopimuksesta
             else if (koulutussopimus.korjausehdotus != null) {
-                mailService.sendEmailFromTemplate(
+                val erikoistuvaLaakari =
                     kayttajaRepository.findById(koulutussopimus.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    "koulutussopimusKouluttajalle.html",
-                    "email.koulutussopimuskouluttajalle.title",
-                    id = koulutussopimus.id!!
+                        .get().user!!
+                mailService.sendEmailFromTemplate(
+                    erikoistuvaLaakari,
+                    "koulutussopimusPalautettu.html",
+                    "email.koulutussopimuspalautettu.title",
+                    properties = mapOf(Pair(MailProperty.ID, koulutussopimus.id!!.toString()))
                 )
 
                 koulutussopimus.kouluttajat.forEach {
                     if (it.kouluttaja?.user?.id != userId) {
                         mailService.sendEmailFromTemplate(
                             kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
-                            "koulutussopimusKouluttajalle.html",
-                            "email.koulutussopimuskouluttajalle.title",
-                            id = koulutussopimus.id!!
+                            "koulutussopimusPalautettuKouluttaja.html",
+                            "email.koulutussopimuspalautettu.title",
+                            properties = mapOf(
+                                Pair(
+                                    MailProperty.NAME,
+                                    erikoistuvaLaakari.getName()
+                                ),
+                                Pair(MailProperty.TEXT, koulutussopimus.korjausehdotus!!)
+                            )
                         )
                     }
                 }
@@ -195,20 +204,25 @@ class KoejaksonKoulutussopimusServiceImpl(
 
             // Sähköposti erikoistujalle, kouluttajille ja opintohallinnolle hyväksytystä sopimuksesta
             if (koulutussopimus.vastuuhenkiloHyvaksynyt) {
-                mailService.sendEmailFromTemplate(
+                val erikoistuvaLaakari =
                     kayttajaRepository.findById(koulutussopimus.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    "koulutussopimusKouluttajalle.html",
-                    "email.koulutussopimuskouluttajalle.title",
-                    id = koulutussopimus.id!!
+                        .get().user!!
+                mailService.sendEmailFromTemplate(
+                    erikoistuvaLaakari,
+                    "koulutussopimusHyvaksytty.html",
+                    "email.koulutussopimushyvaksytty.title",
+                    properties = mapOf(Pair(MailProperty.ID, koulutussopimus.id!!.toString()))
                 )
 
                 koulutussopimus.kouluttajat.forEach {
                     mailService.sendEmailFromTemplate(
                         kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
-                        "koulutussopimusKouluttajalle.html",
-                        "email.koulutussopimuskouluttajalle.title",
-                        id = koulutussopimus.id!!
+                        "koulutussopimusHyvaksyttyKouluttaja.html",
+                        "email.koulutussopimushyvaksytty.title",
+                        properties = mapOf(
+                            Pair(MailProperty.ID, koulutussopimus.id!!.toString()),
+                            Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                        )
                     )
                 }
 
@@ -216,20 +230,25 @@ class KoejaksonKoulutussopimusServiceImpl(
             }
             // Sähköposti erikoistujalle ja kouluttajille palautetusta sopimuksesta
             else {
-                mailService.sendEmailFromTemplate(
+                val erikoistuvaLaakari =
                     kayttajaRepository.findById(koulutussopimus.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    "koulutussopimusKouluttajalle.html",
-                    "email.koulutussopimuskouluttajalle.title",
-                    id = koulutussopimus.id!!
+                        .get().user!!
+                mailService.sendEmailFromTemplate(
+                    erikoistuvaLaakari,
+                    "koulutussopimusPalautettu.html",
+                    "email.koulutussopimuspalautettu.title",
+                    properties = mapOf(Pair(MailProperty.ID, koulutussopimus.id!!.toString()))
                 )
 
                 koulutussopimus.kouluttajat.forEach {
                     mailService.sendEmailFromTemplate(
                         kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
-                        "koulutussopimusKouluttajalle.html",
-                        "email.koulutussopimuskouluttajalle.title",
-                        id = koulutussopimus.id!!
+                        "koulutussopimusPalautettuKouluttaja.html",
+                        "email.koulutussopimuspalautettu.title",
+                        properties = mapOf(
+                            Pair(MailProperty.NAME, erikoistuvaLaakari.getName()),
+                            Pair(MailProperty.TEXT, koulutussopimus.korjausehdotus!!)
+                        )
                     )
                 }
             }

@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
@@ -36,7 +37,7 @@ class SuoritusarviointiServiceImpl(
             kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!).get().user!!,
             "arviointipyyntoKouluttajalleEmail.html",
             "email.arviointipyyntokouluttajalle.title",
-            id = suoritusarviointi.id!!
+            properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
         )
         return suoritusarviointiMapper.toDto(suoritusarviointi)
     }
@@ -128,7 +129,7 @@ class SuoritusarviointiServiceImpl(
                     .get().user!!,
                 templateName,
                 titleKey,
-                id = suoritusarviointi.id!!
+                properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
             )
         }
 

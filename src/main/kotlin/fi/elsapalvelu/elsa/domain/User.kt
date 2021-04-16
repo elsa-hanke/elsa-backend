@@ -94,4 +94,8 @@ class User(
     companion object {
         private const val serialVersionUID = 1L
     }
+
+    fun getName(): String {
+        return "$firstName $lastName"
+    }
 }
