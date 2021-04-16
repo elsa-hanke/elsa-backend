@@ -11,7 +11,7 @@ import java.security.Principal
 
 @RestController
 @RequestMapping("/api/")
-class MuutToiminnotResourceResource(
+class MuutToiminnotResource(
     private val kayttajaService: KayttajaService
 ) {
 
