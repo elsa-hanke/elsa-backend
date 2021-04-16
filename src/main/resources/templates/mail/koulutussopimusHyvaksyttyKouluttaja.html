@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
 <head>
-    <title>[ELSA-palvelu] Olet saanut  koejakson  arviointilomake A:n kuitattavaksi</title>
+    <title>[ELSA-palvelu] Koejakson koulutussopimus on hyväksytty</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
 </head>
@@ -10,12 +10,12 @@
     Hei,
 </p>
 <p>
-    Olet saanut ELSA-palveluun koejakson arviointilomakkeen A kuitattavaksi.
+    Erikoistuvan lääkärin <span th:text="${name}"></span> koejakson koulutussopimus on hyväksytty.
 
-    Pääset kuittaamaan koejakson arviointilomakkeen A alla olevan linkin kautta:
+    Pääset katsomaan koejakson koulutusopimusta alla olevan linkin kautta:
 </p>
 <p>
-    <a th:with="url=(@{|${baseUrl}/koejakso/aloituskeskustelu/${id}|})" th:href="${url}"
+    <a th:with="url=(@{|${baseUrl}/koejakso/koulutussopimus/${id}|})" th:href="${url}"
        th:text="${url}"></a>
 </p>
 <p>
