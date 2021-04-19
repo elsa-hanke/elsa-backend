@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.KoejaksoDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
+import fi.elsapalvelu.elsa.service.dto.enumeration.AloituskeskusteluTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoulutussopimusTila
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -46,6 +47,12 @@ class ErikoistuvaLaakariKoejaksoResource(
                 result.koulutussopimus = it
             }
         result.koulutusSopimuksenTila = KoulutussopimusTila.fromSopimus(result.koulutussopimus)
+
+        koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            .ifPresent {
+                result.aloituskeskustelu = it
+            }
+        result.aloituskeskustelunTila = AloituskeskusteluTila.fromSopimus(result.aloituskeskustelu)
 
         return ResponseEntity.ok(result)
     }
