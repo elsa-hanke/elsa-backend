@@ -6,7 +6,7 @@ enum class AloituskeskusteluTila {
     UUSI, TALLENNETTU_KESKENERAISENA, ODOTTAA_HYVAKSYNTAA, PALAUTETTU_KORJATTAVAKSI, HYVAKSYTTY;
 
     companion object {
-        fun fromSopimus(aloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO?): AloituskeskusteluTila {
+        fun fromAloituskeskustelu(aloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO?): AloituskeskusteluTila {
             if (aloituskeskusteluDTO == null) {
                 return UUSI
             }

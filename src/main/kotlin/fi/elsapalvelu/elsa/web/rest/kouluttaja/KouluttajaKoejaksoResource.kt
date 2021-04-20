@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.enumeration.AloituskeskusteluTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoulutussopimusTila
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -51,9 +52,9 @@ class KouluttajaKoejaksoResource(
             koejaksonAloituskeskusteluService.findAllByKouluttajaUserId(user.id!!)
         aloituskeskustelut.forEach { (kayttaja, aloituskeskustelu) ->
             resultMap.putIfAbsent(kayttaja, KoejaksoDTO())
-            //TODO: lisää aloituskeskustelu
-            //result[kayttaja].aloituskeskustelu = aloituskeskustelu
-            //result[kayttaja].aloituskeskustelunTila = AloituskeskusteluTila.fromAloituskeskustelu(aloituskeskustelu)
+            resultMap[kayttaja]?.aloituskeskustelu = aloituskeskustelu
+            resultMap[kayttaja]?.aloituskeskustelunTila =
+                AloituskeskusteluTila.fromAloituskeskustelu(aloituskeskustelu)
         }
 
         return ResponseEntity.ok(resultMap.values.toList())
