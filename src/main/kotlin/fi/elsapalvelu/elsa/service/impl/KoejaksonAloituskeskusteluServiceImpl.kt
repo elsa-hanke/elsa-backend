@@ -6,7 +6,9 @@ import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
 import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
+import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,7 +25,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
     private val koejaksonAloituskeskusteluMapper: KoejaksonAloituskeskusteluMapper,
     private val mailService: MailService,
-    private val kayttajaRepository: KayttajaRepository
+    private val kayttajaRepository: KayttajaRepository,
+    private val kayttajaMapper: KayttajaMapper
 ) : KoejaksonAloituskeskusteluService {
 
     override fun create(
@@ -240,6 +243,18 @@ class KoejaksonAloituskeskusteluServiceImpl(
             id,
             userId
         ).map(koejaksonAloituskeskusteluMapper::toDto)
+    }
+
+    override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonAloituskeskusteluDTO> {
+        val aloituskeskustelut =
+            koejaksonAloituskeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
+                userId, userId
+            )
+        return aloituskeskustelut.associate {
+            kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonAloituskeskusteluMapper.toDto(
+                it
+            )
+        }
     }
 
     override fun delete(id: Long) {

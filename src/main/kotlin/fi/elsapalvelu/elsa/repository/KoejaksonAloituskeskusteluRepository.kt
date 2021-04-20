@@ -19,4 +19,9 @@ interface KoejaksonAloituskeskusteluRepository : JpaRepository<KoejaksonAloitusk
     ): Optional<KoejaksonAloituskeskustelu>
 
     fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonAloituskeskustelu>
+
+    fun findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
+        kouluttajaId: String,
+        esimiesId: String
+    ): List<KoejaksonAloituskeskustelu>
 }
