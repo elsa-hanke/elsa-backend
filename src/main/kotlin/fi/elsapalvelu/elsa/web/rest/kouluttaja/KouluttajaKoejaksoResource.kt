@@ -3,8 +3,8 @@ package fi.elsapalvelu.elsa.web.rest.kouluttaja
 import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
-import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
+import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.enumeration.KoulutussopimusTila
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
@@ -30,6 +30,34 @@ class KouluttajaKoejaksoResource(
 
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
+
+    @GetMapping("/koejaksot")
+    fun getKoejaksot(principal: Principal?): ResponseEntity<List<KoejaksoDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+
+        val resultMap = HashMap<KayttajaDTO, KoejaksoDTO>()
+
+        val koulutussopimukset =
+            koejaksonKoulutussopimusService.findAllByKouluttajaKayttajaUserId(user.id!!)
+
+        koulutussopimukset.forEach { (kayttaja, sopimus) ->
+            val koejaksoDTO = KoejaksoDTO()
+            koejaksoDTO.koulutussopimus = sopimus
+            koejaksoDTO.koulutusSopimuksenTila = KoulutussopimusTila.fromSopimus(sopimus)
+            resultMap[kayttaja] = koejaksoDTO
+        }
+
+        val aloituskeskustelut =
+            koejaksonAloituskeskusteluService.findAllByKouluttajaUserId(user.id!!)
+        aloituskeskustelut.forEach { (kayttaja, aloituskeskustelu) ->
+            resultMap.putIfAbsent(kayttaja, KoejaksoDTO())
+            //TODO: lisää aloituskeskustelu
+            //result[kayttaja].aloituskeskustelu = aloituskeskustelu
+            //result[kayttaja].aloituskeskustelunTila = AloituskeskusteluTila.fromAloituskeskustelu(aloituskeskustelu)
+        }
+
+        return ResponseEntity.ok(resultMap.values.toList())
+    }
 
     @GetMapping("/koejakso/koulutussopimus/{id}")
     fun getKoulutussopimus(
@@ -86,6 +114,24 @@ class KouluttajaKoejaksoResource(
                 )
             )
             .body(result)
+    }
+
+    @GetMapping("/koejakso/aloituskeskustelu/{id}")
+    fun getAloituskeskustelu(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+
+        log.debug("REST request to get Aloituskeskustleu $id for user: $user.id")
+        var aloituskeskusteluDTO =
+            koejaksonAloituskeskusteluService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
+
+        if (!aloituskeskusteluDTO.isPresent) {
+            aloituskeskusteluDTO =
+                koejaksonAloituskeskusteluService.findOneByIdAndLahiesimiesUserId(id, user.id!!)
+        }
+        return ResponseUtil.wrapOrNotFound(aloituskeskusteluDTO)
     }
 
     @PutMapping("/koejakso/aloituskeskustelu")

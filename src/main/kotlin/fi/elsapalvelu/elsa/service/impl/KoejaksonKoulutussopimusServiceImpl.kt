@@ -6,7 +6,9 @@ import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
+import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,7 +25,8 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper,
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val mailService: MailService,
-    private val kayttajaRepository: KayttajaRepository
+    private val kayttajaRepository: KayttajaRepository,
+    private val kayttajaMapper: KayttajaMapper
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -277,6 +280,18 @@ class KoejaksonKoulutussopimusServiceImpl(
             id,
             userId
         ).map(koejaksonKoulutussopimusMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAllByKouluttajaKayttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO> {
+        val sopimukset = koejaksonKoulutussopimusRepository.findAllByKouluttajatKouluttajaUserId(
+            userId
+        )
+        return sopimukset.associate {
+            kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonKoulutussopimusMapper.toDto(
+                it
+            )
+        }
     }
 
     @Transactional(readOnly = true)
