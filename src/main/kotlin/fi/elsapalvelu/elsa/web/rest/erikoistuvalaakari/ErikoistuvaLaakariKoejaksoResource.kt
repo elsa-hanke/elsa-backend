@@ -52,7 +52,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             .ifPresent {
                 result.aloituskeskustelu = it
             }
-        result.aloituskeskustelunTila = AloituskeskusteluTila.fromSopimus(result.aloituskeskustelu)
+        result.aloituskeskustelunTila =
+            AloituskeskusteluTila.fromAloituskeskustelu(result.aloituskeskustelu)
 
         return ResponseEntity.ok(result)
     }
