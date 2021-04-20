@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.service.dto.enumeration.KoulutussopimusTila
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -63,6 +64,21 @@ class KouluttajaKoejaksoResourceIT {
     @BeforeEach
     fun setup() {
         MockitoAnnotations.initMocks(this)
+    }
+
+    @Test
+    @Transactional
+    fun getKoejaksot() {
+        initTest()
+
+        val id = koejaksonKoulutussopimus.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(get("/api/kouluttaja/koejaksot"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$[0].koulutussopimus.id").value(koejaksonKoulutussopimus.id as Any))
+            .andExpect(jsonPath("$[0].koulutusSopimuksenTila").value(KoulutussopimusTila.ODOTTAA_HYVAKSYNTAA.name as Any))
     }
 
     @Test

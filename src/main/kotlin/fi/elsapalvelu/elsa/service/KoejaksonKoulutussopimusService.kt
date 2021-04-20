@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import java.util.*
 
@@ -25,6 +26,10 @@ interface KoejaksonKoulutussopimusService {
         id: Long,
         userId: String
     ): Optional<KoejaksonKoulutussopimusDTO>
+
+    fun findAllByKouluttajaKayttajaUserId(
+        userId: String
+    ): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO>
 
     fun findOneByIdAndVastuuhenkiloKayttajaUserId(
         id: Long,

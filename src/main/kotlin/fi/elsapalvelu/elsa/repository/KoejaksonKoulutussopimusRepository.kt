@@ -19,4 +19,8 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
     ): Optional<KoejaksonKoulutussopimus>
 
     fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonKoulutussopimus>
+
+    fun findAllByKouluttajatKouluttajaUserId(
+        userId: String
+    ): List<KoejaksonKoulutussopimus>
 }
