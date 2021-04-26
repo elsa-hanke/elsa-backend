@@ -39,7 +39,11 @@ class KoejaksonKoulutussopimusServiceImpl(
         koulutussopimus.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         koulutussopimus.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         koulutussopimus.koulutuspaikat.forEach { it.koulutussopimus = koulutussopimus }
-        koulutussopimus.kouluttajat.forEach { it.koulutussopimus = koulutussopimus }
+        koulutussopimus.kouluttajat.forEach {
+            it.kouluttaja?.id = it.id
+            it.id = null
+            it.koulutussopimus = koulutussopimus
+        }
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
         // Sähköposti kouluttajille allekirjoitetusta sopimuksesta
@@ -266,6 +270,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             .map(koejaksonKoulutussopimusMapper::toDto)
     }
 
+    @Transactional(readOnly = true)
     override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonKoulutussopimusDTO> {
         return koejaksonKoulutussopimusRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
             .map(koejaksonKoulutussopimusMapper::toDto)
