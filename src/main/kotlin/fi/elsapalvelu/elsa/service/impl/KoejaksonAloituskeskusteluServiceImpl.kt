@@ -61,7 +61,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
 
         var aloituskeskustelu =
             koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskusteluDTO.id!!)
-                .orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
+                .orElseThrow { EntityNotFoundException("Aloituskeskustelua ei löydy") }
 
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
@@ -147,7 +147,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
             if (aloituskeskustelu.lahikouluttajaHyvaksynyt) {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(aloituskeskustelu.lahiesimies?.id!!).get().user!!,
-                    "aloituskeskustelukouluttajalle.html",
+                    "aloituskeskusteluKouluttajalle.html",
                     "email.aloituskeskustelukouluttajalle.title",
                     properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
                 )
@@ -219,6 +219,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
             .map(koejaksonAloituskeskusteluMapper::toDto)
     }
 
+    @Transactional(readOnly = true)
     override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonAloituskeskusteluDTO> {
         return koejaksonAloituskeskusteluRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
             .map(koejaksonAloituskeskusteluMapper::toDto)
@@ -235,6 +236,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         ).map(koejaksonAloituskeskusteluMapper::toDto)
     }
 
+    @Transactional(readOnly = true)
     override fun findOneByIdAndLahiesimiesUserId(
         id: Long,
         userId: String
@@ -245,6 +247,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         ).map(koejaksonAloituskeskusteluMapper::toDto)
     }
 
+    @Transactional(readOnly = true)
     override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonAloituskeskusteluDTO> {
         val aloituskeskustelut =
             koejaksonAloituskeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(

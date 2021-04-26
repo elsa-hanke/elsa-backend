@@ -4,8 +4,7 @@ import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.*
-import fi.elsapalvelu.elsa.service.dto.enumeration.AloituskeskusteluTila
-import fi.elsapalvelu.elsa.service.dto.enumeration.KoulutussopimusTila
+import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
@@ -44,7 +43,7 @@ class KouluttajaKoejaksoResource(
         koulutussopimukset.forEach { (kayttaja, sopimus) ->
             val koejaksoDTO = KoejaksoDTO()
             koejaksoDTO.koulutussopimus = sopimus
-            koejaksoDTO.koulutusSopimuksenTila = KoulutussopimusTila.fromSopimus(sopimus)
+            koejaksoDTO.koulutusSopimuksenTila = KoejaksoTila.fromSopimus(sopimus)
             resultMap[kayttaja] = koejaksoDTO
         }
 
@@ -54,7 +53,7 @@ class KouluttajaKoejaksoResource(
             resultMap.putIfAbsent(kayttaja, KoejaksoDTO())
             resultMap[kayttaja]?.aloituskeskustelu = aloituskeskustelu
             resultMap[kayttaja]?.aloituskeskustelunTila =
-                AloituskeskusteluTila.fromAloituskeskustelu(aloituskeskustelu)
+                KoejaksoTila.fromAloituskeskustelu(aloituskeskustelu)
         }
 
         return ResponseEntity.ok(resultMap.values.toList())

@@ -37,6 +37,10 @@
     <include file="config/liquibase/changelog/20210210152137_added_entity_Arviointityokalu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210310162139_added_entity_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210331163926_added_entity_KoejaksonAloituskeskustelu.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210421110624_added_entity_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210421111507_added_entity_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210421111903_added_entity_KoejaksonLoppukeskustelu.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210421112408_added_entity_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
@@ -55,4 +59,8 @@
     <include file="config/liquibase/changelog/20210210152137_added_entity_constraints_Arviointityokalu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210310162139_added_entity_constraints_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210331163926_added_entity_constraints_KoejaksonAloituskeskustelu.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210421111903_added_entity_constraints_KoejaksonLoppukeskustelu.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210421112408_added_entity_constraints_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
