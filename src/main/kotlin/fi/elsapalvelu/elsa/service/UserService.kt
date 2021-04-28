@@ -88,6 +88,7 @@ class UserService(
         // save account in to sync users between IdP and JHipster's local database
         val existingUser = userRepository.findOneByLogin(user.login!!)
         if (existingUser.isPresent) {
+            user.id = existingUser.get().id
             user.authorities = existingUser.get().authorities
             // if IdP sends last updated information, use it to determine if an update should happen
             if (details["updated_at"] != null) {
