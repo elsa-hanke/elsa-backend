@@ -11,6 +11,22 @@ data class KoejaksoDTO(
 
     var aloituskeskustelu: KoejaksonAloituskeskusteluDTO? = null,
 
-    var aloituskeskustelunTila: KoejaksoTila? = null
+    var aloituskeskustelunTila: KoejaksoTila? = null,
+
+    var valiarviointi: KoejaksonValiarviointiDTO? = null,
+
+    var valiarvioinninTila: KoejaksoTila? = null,
+
+    var kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteetDTO? = null,
+
+    var kehittamistoimenpiteidenTila: KoejaksoTila? = null,
+
+    var loppukeskustelu: KoejaksonLoppukeskusteluDTO? = null,
+
+    var loppukeskustelunTila: KoejaksoTila? = null,
+
+    var vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvioDTO? = null,
+
+    var vastuuhenkilonArvionTila: KoejaksoTila? = null
 
 ) : Serializable

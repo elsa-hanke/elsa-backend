@@ -1,11 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
-import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksoDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
+import fi.elsapalvelu.elsa.service.dto.KoejaksonValiarviointiDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -19,13 +18,21 @@ import javax.validation.Valid
 
 private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 private const val ENTITY_KOEJAKSON_ALOITUSKESKUSTELU = "koejakson_aloituskeskustelu"
+private const val ENTITY_KOEJAKSON_VALIARVIOINTI = "koejakson_valiarviointi"
+private const val ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET = "koejakson_kehittamistoimenpiteet"
+private const val ENTITY_KOEJAKSON_LOPPUKESKUSTELU = "koejakson_loppukeskustelu"
+private const val ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO = "koejakson_vastuuhenkilon_arvio"
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariKoejaksoResource(
     private val userService: UserService,
     private val koejaksonKoulutussopimusService: KoejaksonKoulutussopimusService,
-    private val koejaksonAloituskeskusteluService: KoejaksonAloituskeskusteluService
+    private val koejaksonAloituskeskusteluService: KoejaksonAloituskeskusteluService,
+    private val koejaksonValiarviointiService: KoejaksonValiarviointiService,
+    private val koejaksonKehittamistoimenpiteetService: KoejaksonKehittamistoimenpiteetService,
+    private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService,
+    private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -53,6 +60,49 @@ class ErikoistuvaLaakariKoejaksoResource(
             }
         result.aloituskeskustelunTila =
             KoejaksoTila.fromAloituskeskustelu(result.aloituskeskustelu)
+
+        koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            .ifPresent {
+                result.valiarviointi = it
+            }
+        result.valiarvioinninTila =
+            KoejaksoTila.fromValiarvointi(
+                result.aloituskeskustelunTila == KoejaksoTila.HYVAKSYTTY,
+                result.valiarviointi
+            )
+
+        val valiarviointiHyvaksytty = result.valiarvioinninTila == KoejaksoTila.HYVAKSYTTY
+
+        koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            .ifPresent {
+                result.kehittamistoimenpiteet = it
+            }
+        result.kehittamistoimenpiteidenTila =
+            KoejaksoTila.fromKehittamistoimenpiteet(
+                valiarviointiHyvaksytty && !result.valiarviointi?.kehittamistoimenpiteet.isNullOrBlank(),
+                result.kehittamistoimenpiteet
+            )
+
+        koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            .ifPresent {
+                result.loppukeskustelu = it
+            }
+        result.loppukeskustelunTila =
+            KoejaksoTila.fromLoppukeskustelu(
+                result.kehittamistoimenpiteidenTila == KoejaksoTila.HYVAKSYTTY
+                    || (valiarviointiHyvaksytty && result.valiarviointi?.kehittamistoimenpiteet.isNullOrBlank()),
+                result.loppukeskustelu
+            )
+
+        koejaksonVastuuhenkilonArvioService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            .ifPresent {
+                result.vastuuhenkilonArvio = it
+            }
+        result.vastuuhenkilonArvionTila =
+            KoejaksoTila.fromVastuuhenkilonArvio(
+                result.loppukeskustelunTila == KoejaksoTila.HYVAKSYTTY,
+                result.vastuuhenkilonArvio
+            )
 
         return ResponseEntity.ok(result)
     }
@@ -164,7 +214,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         if (aloituskeskustelu.isPresent) {
             throw BadRequestAlertException(
                 "Käyttäjällä on jo koejakson aloituskeskustelu.",
-                ENTITY_KOEJAKSON_SOPIMUS,
+                ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
                 "entityexists"
             )
         }
@@ -176,7 +226,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 HeaderUtil.createEntityCreationAlert(
                     applicationName,
                     true,
-                    ENTITY_KOEJAKSON_SOPIMUS,
+                    ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
                     result.id.toString()
                 )
             )
@@ -228,6 +278,94 @@ class ErikoistuvaLaakariKoejaksoResource(
                     true,
                     ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
                     aloituskeskusteluDTO.id.toString()
+                )
+            )
+            .body(result)
+    }
+
+    @PostMapping("/koejakso/valiarviointi")
+    fun createValiarviointi(
+        @Valid @RequestBody valiarviointiDTO: KoejaksonValiarviointiDTO,
+        principal: Principal?
+    ): ResponseEntity<KoejaksonValiarviointiDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        if (valiarviointiDTO.id != null) {
+            throw BadRequestAlertException(
+                "Uusi Väliarviointi ei saa sisältää ID:tä.",
+                ENTITY_KOEJAKSON_VALIARVIOINTI,
+                "idexists"
+            )
+        }
+        //validateAloituskeskustelu(aloituskeskusteluDTO)
+
+        val valiarviointi =
+            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        if (valiarviointi.isPresent) {
+            throw BadRequestAlertException(
+                "Käyttäjällä on jo koejakson väliarviointi.",
+                ENTITY_KOEJAKSON_VALIARVIOINTI,
+                "entityexists"
+            )
+        }
+
+        val result = koejaksonValiarviointiService.create(valiarviointiDTO, user.id!!)
+        return ResponseEntity.created(URI("/api/koejakso/valiarviointi/${result.id}"))
+            .headers(
+                HeaderUtil.createEntityCreationAlert(
+                    applicationName,
+                    true,
+                    ENTITY_KOEJAKSON_VALIARVIOINTI,
+                    result.id.toString()
+                )
+            )
+            .body(result)
+    }
+
+    @PutMapping("/koejakso/valiarviointi")
+    fun updateValiarviointi(
+        @Valid @RequestBody valiarviointiDTO: KoejaksonValiarviointiDTO,
+        principal: Principal?
+    ): ResponseEntity<KoejaksonValiarviointiDTO> {
+        if (valiarviointiDTO.id == null) {
+            throw BadRequestAlertException(
+                "Virheellinen id",
+                ENTITY_KOEJAKSON_VALIARVIOINTI,
+                "idnull"
+            )
+        }
+
+        //validateAloituskeskustelu(aloituskeskusteluDTO)
+
+        val user = userService.getAuthenticatedUser(principal)
+
+        val valiarviointi =
+            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        if (!valiarviointi.isPresent) {
+            throw BadRequestAlertException(
+                "Koejakson väliarviointia ei löydy.",
+                ENTITY_KOEJAKSON_VALIARVIOINTI,
+                "dataillegal"
+            )
+        }
+
+        if (valiarviointi.get().lahetetty == true) {
+            throw BadRequestAlertException(
+                "Lähetettyä väliarviointia ei saa muokata.",
+                ENTITY_KOEJAKSON_VALIARVIOINTI,
+                "dataillegal"
+            )
+        }
+
+        val result = koejaksonValiarviointiService.update(valiarviointiDTO, user.id!!)
+        return ResponseEntity.ok()
+            .headers(
+                HeaderUtil.createEntityUpdateAlert(
+                    applicationName,
+                    true,
+                    ENTITY_KOEJAKSON_VALIARVIOINTI,
+                    valiarviointiDTO.id.toString()
                 )
             )
             .body(result)
