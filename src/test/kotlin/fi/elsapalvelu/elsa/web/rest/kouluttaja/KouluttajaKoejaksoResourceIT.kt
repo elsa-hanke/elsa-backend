@@ -6,8 +6,7 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
-import fi.elsapalvelu.elsa.service.dto.enumeration.AloituskeskusteluTila
-import fi.elsapalvelu.elsa.service.dto.enumeration.KoulutussopimusTila
+import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -79,9 +78,9 @@ class KouluttajaKoejaksoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$[0].koulutussopimus.id").value(koejaksonKoulutussopimus.id as Any))
-            .andExpect(jsonPath("$[0].koulutusSopimuksenTila").value(KoulutussopimusTila.ODOTTAA_HYVAKSYNTAA.name as Any))
+            .andExpect(jsonPath("$[0].koulutusSopimuksenTila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
             .andExpect(jsonPath("$[0].aloituskeskustelu.id").value(koejaksonAloituskeskustelu.id as Any))
-            .andExpect(jsonPath("$[0].aloituskeskustelunTila").value(AloituskeskusteluTila.ODOTTAA_HYVAKSYNTAA.name as Any))
+            .andExpect(jsonPath("$[0].aloituskeskustelunTila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
     }
 
     @Test
