@@ -50,6 +50,13 @@ spring:
     port: 25
     username:
     password:
+    protocol: smtps
+    properties.mail.smtp:
+      starttls.enable: true
+      starttls.required: true
+      ssl.enable: true
+    properties.mail.smtps:
+      auth: true
   thymeleaf:
     cache: true
 
