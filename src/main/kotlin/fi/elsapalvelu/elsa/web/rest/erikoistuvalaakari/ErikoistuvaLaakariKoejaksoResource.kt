@@ -322,46 +322,6 @@ class ErikoistuvaLaakariKoejaksoResource(
             .body(result)
     }
 
-    @PutMapping("/koejakso/valiarviointi")
-    fun updateValiarviointi(
-        @Valid @RequestBody valiarviointiDTO: KoejaksonValiarviointiDTO,
-        principal: Principal?
-    ): ResponseEntity<KoejaksonValiarviointiDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-
-        val valiarviointi =
-            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
-
-        if (!valiarviointi.isPresent) {
-            throw BadRequestAlertException(
-                "Koejakson väliarviointia ei löydy.",
-                ENTITY_KOEJAKSON_VALIARVIOINTI,
-                "dataillegal"
-            )
-        }
-
-        validateArviointi(
-            true,
-            valiarviointiDTO.id,
-            valiarviointi.get().erikoistuvaAllekirjoittanut,
-            valiarviointiDTO.lahikouluttaja,
-            valiarviointiDTO.lahiesimies,
-            ENTITY_KOEJAKSON_VALIARVIOINTI
-        )
-
-        val result = koejaksonValiarviointiService.update(valiarviointiDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_VALIARVIOINTI,
-                    valiarviointiDTO.id.toString()
-                )
-            )
-            .body(result)
-    }
-
     @PostMapping("/koejakso/kehittamistoimenpiteet")
     fun createKehittamistoimenpiteet(
         @Valid @RequestBody kehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO,
@@ -408,47 +368,6 @@ class ErikoistuvaLaakariKoejaksoResource(
                     true,
                     ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
                     result.id.toString()
-                )
-            )
-            .body(result)
-    }
-
-    @PutMapping("/koejakso/kehittamistoimenpiteet")
-    fun updateKehittamistoimenpiteet(
-        @Valid @RequestBody kehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO,
-        principal: Principal?
-    ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-
-        val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
-
-        if (!kehittamistoimenpiteet.isPresent) {
-            throw BadRequestAlertException(
-                "Koejakson kehittämistoimenpiteitä ei löydy.",
-                ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                "dataillegal"
-            )
-        }
-
-        validateArviointi(
-            true,
-            kehittamistoimenpiteetDTO.id,
-            kehittamistoimenpiteet.get().erikoistuvaAllekirjoittanut,
-            kehittamistoimenpiteetDTO.lahikouluttaja,
-            kehittamistoimenpiteetDTO.lahiesimies,
-            ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
-        )
-
-        val result =
-            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                    kehittamistoimenpiteetDTO.id.toString()
                 )
             )
             .body(result)
@@ -511,47 +430,6 @@ class ErikoistuvaLaakariKoejaksoResource(
             .body(result)
     }
 
-    @PutMapping("/koejakso/loppukeskustelu")
-    fun updateLoppukeskustelu(
-        @Valid @RequestBody loppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
-        principal: Principal?
-    ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-
-        val loppukeskustelu =
-            koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
-
-        if (!loppukeskustelu.isPresent) {
-            throw BadRequestAlertException(
-                "Koejakson loppukeskustelua ei löydy.",
-                ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                "dataillegal"
-            )
-        }
-
-        validateArviointi(
-            true,
-            loppukeskusteluDTO.id,
-            loppukeskustelu.get().erikoistuvaAllekirjoittanut,
-            loppukeskusteluDTO.lahikouluttaja,
-            loppukeskusteluDTO.lahiesimies,
-            ENTITY_KOEJAKSON_LOPPUKESKUSTELU
-        )
-
-        val result =
-            koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                    loppukeskusteluDTO.id.toString()
-                )
-            )
-            .body(result)
-    }
-
     @PostMapping("/koejakso/vastuuhenkilonarvio")
     fun createVastuuhenkilonArvio(
         @Valid @RequestBody vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
@@ -605,62 +483,6 @@ class ErikoistuvaLaakariKoejaksoResource(
                     true,
                     ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
                     result.id.toString()
-                )
-            )
-            .body(result)
-    }
-
-    @PutMapping("/koejakso/vastuuhenkilonarvio")
-    fun updateVastuuhenkilonArvio(
-        @Valid @RequestBody vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
-        principal: Principal?
-    ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-
-        val vastuuhenkilonArvio =
-            koejaksonVastuuhenkilonArvioService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
-
-        if (!vastuuhenkilonArvio.isPresent) {
-            throw BadRequestAlertException(
-                "Koejakson vastuuhenkilön arviota ei löydy.",
-                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal"
-            )
-        }
-
-        if (vastuuhenkilonArvioDTO.id == null) {
-            throw BadRequestAlertException(
-                "Virheellinen id",
-                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "idnull"
-            )
-        }
-
-        if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true || vastuuhenkilonArvioDTO.vastuuhenkilo?.kuittausaika != null) {
-            throw BadRequestAlertException(
-                "Erikoistuvan koejakson vastuhenkilön arvio ei saa sisältää vastuuhenkilön kuittausta. Vastuuhenkilö määrittelee sen.",
-                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal"
-            )
-        }
-
-        if (vastuuhenkilonArvio.get().erikoistuvaAllekirjoittanut == true) {
-            throw BadRequestAlertException(
-                "Allekirjoitettua arviointia ei saa muokata.",
-                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal"
-            )
-        }
-
-        val result =
-            koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                    vastuuhenkilonArvioDTO.id.toString()
                 )
             )
             .body(result)
