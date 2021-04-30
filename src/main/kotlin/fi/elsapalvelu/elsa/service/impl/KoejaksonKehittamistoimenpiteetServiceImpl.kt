@@ -202,6 +202,12 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         ).map(koejaksonKehittamistoimenpiteetMapper::toDto)
     }
 
+    override fun findByLoppukeskusteluId(id: Long): Optional<KoejaksonKehittamistoimenpiteetDTO> {
+        return koejaksonKehittamistoimenpiteetRepository.findByLoppukeskusteluId(
+            id
+        ).map(koejaksonKehittamistoimenpiteetMapper::toDto)
+    }
+
     @Transactional(readOnly = true)
     override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonKehittamistoimenpiteetDTO> {
         val kehittamistoimenpiteet =
