@@ -211,7 +211,6 @@ class ErikoistuvaLaakariKoejaksoResource(
         validateArviointi(
             false,
             aloituskeskusteluDTO.id,
-            null,
             aloituskeskusteluDTO.lahikouluttaja,
             aloituskeskusteluDTO.lahiesimies,
             ENTITY_KOEJAKSON_ALOITUSKESKUSTELU
@@ -249,10 +248,17 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
+        if (aloituskeskustelu.get().lahetetty == true) {
+            throw BadRequestAlertException(
+                "Allekirjoitettua arviointia ei saa muokata.",
+                ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
+                "dataillegal"
+            )
+        }
+
         validateArviointi(
             true,
             aloituskeskusteluDTO.id,
-            aloituskeskustelu.get().lahetetty,
             aloituskeskusteluDTO.lahikouluttaja,
             aloituskeskusteluDTO.lahiesimies,
             ENTITY_KOEJAKSON_ALOITUSKESKUSTELU
@@ -293,7 +299,6 @@ class ErikoistuvaLaakariKoejaksoResource(
         validateArviointi(
             false,
             valiarviointiDTO.id,
-            null,
             valiarviointiDTO.lahikouluttaja,
             valiarviointiDTO.lahiesimies,
             ENTITY_KOEJAKSON_VALIARVIOINTI
@@ -343,7 +348,6 @@ class ErikoistuvaLaakariKoejaksoResource(
         validateArviointi(
             false,
             kehittamistoimenpiteetDTO.id,
-            null,
             kehittamistoimenpiteetDTO.lahikouluttaja,
             kehittamistoimenpiteetDTO.lahiesimies,
             ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
@@ -351,7 +355,7 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         val valiarviointi =
             koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
-        if (!valiarviointi.isPresent || valiarviointi.get().lahiesimies?.sopimusHyvaksytty != true || valiarviointi.get().kehittamistoimenpiteet == null) {
+        if (!valiarviointi.isPresent || valiarviointi.get().erikoistuvaAllekirjoittanut != true || valiarviointi.get().kehittamistoimenpiteet == null) {
             throw BadRequestAlertException(
                 "Väliarviointi täytyy hyväksyä kehitettävillä asioilla ennen kehittämistoimenpiteitä.",
                 ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
@@ -394,7 +398,6 @@ class ErikoistuvaLaakariKoejaksoResource(
         validateArviointi(
             false,
             loppukeskusteluDTO.id,
-            null,
             loppukeskusteluDTO.lahikouluttaja,
             loppukeskusteluDTO.lahiesimies,
             ENTITY_KOEJAKSON_LOPPUKESKUSTELU
@@ -405,9 +408,9 @@ class ErikoistuvaLaakariKoejaksoResource(
         val kehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
         val validValiarviointi =
-            valiarviointi.isPresent && valiarviointi.get().lahiesimies?.sopimusHyvaksytty == true && valiarviointi.get().kehittamistoimenpiteet != null
+            valiarviointi.isPresent && valiarviointi.get().erikoistuvaAllekirjoittanut == true && valiarviointi.get().kehittamistoimenpiteet == null
         val validKehittamistoimenpiteet =
-            kehittamistoimenpiteet.isPresent && kehittamistoimenpiteet.get().lahiesimies?.sopimusHyvaksytty == true
+            kehittamistoimenpiteet.isPresent && kehittamistoimenpiteet.get().erikoistuvaAllekirjoittanut == true
         if (!validValiarviointi && !validKehittamistoimenpiteet) {
             throw BadRequestAlertException(
                 "Väliarviointi täytyy hyväksyä ilman kehitettäviä asioita tai kehittämistoimenpiteet täytyy hyväksyä ennen loppukeskustelua.",
@@ -508,7 +511,6 @@ class ErikoistuvaLaakariKoejaksoResource(
     private fun validateArviointi(
         update: Boolean,
         id: Long?,
-        allekirjoitettu: Boolean?,
         kouluttaja: KoejaksonKouluttajaDTO?,
         esimies: KoejaksonKouluttajaDTO?,
         entity: String
@@ -519,14 +521,6 @@ class ErikoistuvaLaakariKoejaksoResource(
                     "Virheellinen id",
                     entity,
                     "idnull"
-                )
-            }
-
-            if (allekirjoitettu == true) {
-                throw BadRequestAlertException(
-                    "Allekirjoitettua arviointia ei saa muokata.",
-                    entity,
-                    "dataillegal"
                 )
             }
         } else {

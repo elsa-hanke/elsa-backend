@@ -29,9 +29,6 @@ data class KoejaksonLoppukeskusteluDTO(
     @get: NotNull
     var lahiesimies: KoejaksonKouluttajaDTO? = null,
 
-    @get: NotNull
-    var lahetetty: Boolean? = null,
-
     var muokkauspaiva: LocalDate? = null,
 
     var korjausehdotus: String? = null,

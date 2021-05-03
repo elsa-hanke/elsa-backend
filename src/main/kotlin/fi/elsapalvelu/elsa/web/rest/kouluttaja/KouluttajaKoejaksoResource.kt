@@ -182,8 +182,15 @@ class KouluttajaKoejaksoResource(
             }
         }
 
+        if (aloituskeskustelu.get().lahetetty != true) {
+            throw BadRequestAlertException(
+                "Arviointia ei saa muokata, jos erikoistuva ei ole lähettänyt pyyntöä.",
+                ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
+                "dataillegal"
+            )
+        }
+
         validateArviointi(
-            aloituskeskustelu.get().lahetetty,
             aloituskeskustelu.get().lahiesimies?.sopimusHyvaksytty,
             ENTITY_KOEJAKSON_ALOITUSKESKUSTELU
         )
@@ -265,7 +272,6 @@ class KouluttajaKoejaksoResource(
         }
 
         validateArviointi(
-            valiarviointi.get().lahetetty,
             valiarviointi.get().erikoistuvaAllekirjoittanut,
             ENTITY_KOEJAKSON_VALIARVIOINTI
         )
@@ -360,7 +366,6 @@ class KouluttajaKoejaksoResource(
         }
 
         validateArviointi(
-            kehittamistoimenpiteet.get().lahetetty,
             kehittamistoimenpiteet.get().erikoistuvaAllekirjoittanut,
             ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
         )
@@ -455,7 +460,6 @@ class KouluttajaKoejaksoResource(
         }
 
         validateArviointi(
-            loppukeskustelu.get().lahetetty,
             loppukeskustelu.get().erikoistuvaAllekirjoittanut,
             ENTITY_KOEJAKSON_LOPPUKESKUSTELU
         )
@@ -498,17 +502,9 @@ class KouluttajaKoejaksoResource(
     }
 
     private fun validateArviointi(
-        lahetetty: Boolean?,
         hyvaksytty: Boolean?,
         entity: String
     ) {
-        if (lahetetty != true) {
-            throw BadRequestAlertException(
-                "Arviointia ei saa muokata, jos erikoistuva ei ole lähettänyt pyyntöä.",
-                entity,
-                "dataillegal"
-            )
-        }
         if (hyvaksytty == true) {
             throw BadRequestAlertException(
                 "Hyväksyttyä arviointia ei saa muokata",
