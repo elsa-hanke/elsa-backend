@@ -120,9 +120,6 @@ enum class KoejaksoTila {
             if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true) {
                 return ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
             }
-            if (vastuuhenkilonArvioDTO.lahetetty == false) {
-                return TALLENNETTU_KESKENERAISENA
-            }
             return ODOTTAA_HYVAKSYNTAA
         }
     }

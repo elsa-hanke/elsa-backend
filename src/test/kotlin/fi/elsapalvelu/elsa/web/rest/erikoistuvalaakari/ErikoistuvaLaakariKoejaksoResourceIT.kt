@@ -3,12 +3,9 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
-import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
+import fi.elsapalvelu.elsa.service.mapper.*
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
@@ -45,6 +42,18 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     private lateinit var koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository
 
     @Autowired
+    private lateinit var koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository
+
+    @Autowired
+    private lateinit var koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository
+
+    @Autowired
+    private lateinit var koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
+
+    @Autowired
+    private lateinit var koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
+
+    @Autowired
     private lateinit var kayttajaRepository: KayttajaRepository
 
     @Autowired
@@ -52,6 +61,18 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
     @Autowired
     private lateinit var koejaksonAloituskeskusteluMapper: KoejaksonAloituskeskusteluMapper
+
+    @Autowired
+    private lateinit var koejaksonValiarviointiMapper: KoejaksonValiarviointiMapper
+
+    @Autowired
+    private lateinit var koejaksonKehittamistoimenpiteetMapper: KoejaksonKehittamistoimenpiteetMapper
+
+    @Autowired
+    private lateinit var koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper
+
+    @Autowired
+    private lateinit var koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
 
     @Autowired
     private lateinit var em: EntityManager
@@ -62,6 +83,14 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
 
     private lateinit var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu
+
+    private lateinit var koejaksonValiarviointi: KoejaksonValiarviointi
+
+    private lateinit var koejaksonKehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet
+
+    private lateinit var koejaksonLoppukeskustelu: KoejaksonLoppukeskustelu
+
+    private lateinit var koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
 
     @BeforeEach
     fun setup() {
@@ -431,6 +460,303 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(testAloituskeskustelu.lahikouluttajanNimi).isEqualTo(UPDATED_VASTUUHENKILO_NIMI)
     }
 
+    @Test
+    @Transactional
+    fun createValiarviointi() {
+        initTest()
+
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        val databaseSizeBeforeCreate = koejaksonValiarviointiRepository.findAll().size
+
+        val koejaksonValiarviointiDTO =
+            koejaksonValiarviointiMapper.toDto(koejaksonValiarviointi)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/valiarviointi")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonValiarviointiDTO))
+                .with(csrf())
+        ).andExpect(status().isCreated)
+
+        val valiarviointiList = koejaksonValiarviointiRepository.findAll()
+        assertThat(valiarviointiList).hasSize(databaseSizeBeforeCreate + 1)
+        val arviointi = valiarviointiList[valiarviointiList.size - 1]
+        assertThat(arviointi.erikoistuvanNimi).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanNimi)
+        assertThat(arviointi.erikoistuvanErikoisala).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanErikoisala)
+        assertThat(arviointi.erikoistuvanOpiskelijatunnus).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanOpiskelijatunnus)
+        assertThat(arviointi.erikoistuvanYliopisto).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonValiarviointiDTO.lahikouluttaja?.id)
+        assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonValiarviointiDTO.lahikouluttaja?.nimi)
+        assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonValiarviointiDTO.lahiesimies?.id)
+        assertThat(arviointi.lahiesimies?.nimi).isEqualTo(koejaksonValiarviointiDTO.lahiesimies?.nimi)
+        assertThat(arviointi.muokkauspaiva).isNotNull
+    }
+
+    @Test
+    @Transactional
+    fun createValiarviointiWithoutAloituskeskustelu() {
+        initTest()
+
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        val databaseSizeBeforeCreate = koejaksonValiarviointiRepository.findAll().size
+
+        val koejaksonValiarviointiDTO =
+            koejaksonValiarviointiMapper.toDto(koejaksonValiarviointi)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/valiarviointi")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonValiarviointiDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val valiarviointiList = koejaksonValiarviointiRepository.findAll()
+        assertThat(valiarviointiList).hasSize(databaseSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
+    fun createKehittamistoimenpiteet() {
+        initTest()
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        val databaseSizeBeforeCreate = koejaksonKehittamistoimenpiteetRepository.findAll().size
+
+        val koejaksonKehittamistoimenpiteetDTO =
+            koejaksonKehittamistoimenpiteetMapper.toDto(koejaksonKehittamistoimenpiteet)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/kehittamistoimenpiteet")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonKehittamistoimenpiteetDTO))
+                .with(csrf())
+        ).andExpect(status().isCreated)
+
+        val kehittamistoimenpiteetList = koejaksonKehittamistoimenpiteetRepository.findAll()
+        assertThat(kehittamistoimenpiteetList).hasSize(databaseSizeBeforeCreate + 1)
+        val arviointi = kehittamistoimenpiteetList[kehittamistoimenpiteetList.size - 1]
+        assertThat(arviointi.erikoistuvanNimi).isEqualTo(koejaksonKehittamistoimenpiteetDTO.erikoistuvanNimi)
+        assertThat(arviointi.erikoistuvanErikoisala).isEqualTo(koejaksonKehittamistoimenpiteetDTO.erikoistuvanErikoisala)
+        assertThat(arviointi.erikoistuvanOpiskelijatunnus).isEqualTo(
+            koejaksonKehittamistoimenpiteetDTO.erikoistuvanOpiskelijatunnus
+        )
+        assertThat(arviointi.erikoistuvanYliopisto).isEqualTo(koejaksonKehittamistoimenpiteetDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahikouluttaja?.id)
+        assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahikouluttaja?.nimi)
+        assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahiesimies?.id)
+        assertThat(arviointi.lahiesimies?.nimi).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahiesimies?.nimi)
+        assertThat(arviointi.muokkauspaiva).isNotNull
+    }
+
+    @Test
+    @Transactional
+    fun createKehittamistoimenpiteetWithoutValiarviointi() {
+        initTest()
+
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        val databaseSizeBeforeCreate = koejaksonKehittamistoimenpiteetRepository.findAll().size
+
+        val koejaksonKehittamistoimenpiteetDTO =
+            koejaksonKehittamistoimenpiteetMapper.toDto(koejaksonKehittamistoimenpiteet)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/kehittamistoimenpiteet")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonKehittamistoimenpiteetDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val kehittamistoimenpiteetList = koejaksonKehittamistoimenpiteetRepository.findAll()
+        assertThat(kehittamistoimenpiteetList).hasSize(databaseSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
+    fun createLoppukeskusteluWithKehittamistoimenpiteet() {
+        initTest()
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        koejaksonKehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
+        koejaksonKehittamistoimenpiteet.muokkauspaiva = LocalDate.now()
+        koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
+
+        val databaseSizeBeforeCreate = koejaksonLoppukeskusteluRepository.findAll().size
+
+        val koejaksonLoppukeskusteluDTO =
+            koejaksonLoppukeskusteluMapper.toDto(koejaksonLoppukeskustelu)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/loppukeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonLoppukeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isCreated)
+
+        val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
+        assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeCreate + 1)
+        val arviointi = loppukeskusteluList[loppukeskusteluList.size - 1]
+        assertThat(arviointi.erikoistuvanNimi).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanNimi)
+        assertThat(arviointi.erikoistuvanErikoisala).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanErikoisala)
+        assertThat(arviointi.erikoistuvanOpiskelijatunnus).isEqualTo(
+            koejaksonLoppukeskusteluDTO.erikoistuvanOpiskelijatunnus
+        )
+        assertThat(arviointi.erikoistuvanYliopisto).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.id)
+        assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.nimi)
+        assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.id)
+        assertThat(arviointi.lahiesimies?.nimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.nimi)
+        assertThat(arviointi.muokkauspaiva).isNotNull
+    }
+
+    @Test
+    @Transactional
+    fun createLoppukeskusteluWithKehittamistoimenpiteetInvalid() {
+        initTest()
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
+
+        val databaseSizeBeforeCreate = koejaksonLoppukeskusteluRepository.findAll().size
+
+        val koejaksonLoppukeskusteluDTO =
+            koejaksonLoppukeskusteluMapper.toDto(koejaksonLoppukeskustelu)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/loppukeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonLoppukeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
+        assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
+    fun createLoppukeskusteluWithoutKehittamistoimenpiteet() {
+        initTest()
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
+        koejaksonValiarviointi.kehittamistoimenpiteet = null
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        val databaseSizeBeforeCreate = koejaksonLoppukeskusteluRepository.findAll().size
+
+        val koejaksonLoppukeskusteluDTO =
+            koejaksonLoppukeskusteluMapper.toDto(koejaksonLoppukeskustelu)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/loppukeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonLoppukeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isCreated)
+
+        val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
+        assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeCreate + 1)
+        val arviointi = loppukeskusteluList[loppukeskusteluList.size - 1]
+        assertThat(arviointi.erikoistuvanNimi).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanNimi)
+        assertThat(arviointi.erikoistuvanErikoisala).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanErikoisala)
+        assertThat(arviointi.erikoistuvanOpiskelijatunnus).isEqualTo(
+            koejaksonLoppukeskusteluDTO.erikoistuvanOpiskelijatunnus
+        )
+        assertThat(arviointi.erikoistuvanYliopisto).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.id)
+        assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.nimi)
+        assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.id)
+        assertThat(arviointi.lahiesimies?.nimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.nimi)
+        assertThat(arviointi.muokkauspaiva).isNotNull
+    }
+
+    @Test
+    @Transactional
+    fun createLoppukeskusteluWithoutKehittamistoimenpiteetInvalid() {
+        initTest()
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        val databaseSizeBeforeCreate = koejaksonLoppukeskusteluRepository.findAll().size
+
+        val koejaksonLoppukeskusteluDTO =
+            koejaksonLoppukeskusteluMapper.toDto(koejaksonLoppukeskustelu)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/loppukeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonLoppukeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
+        assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
+    fun createVastuuhenkilonArvio() {
+        initTest()
+
+        koejaksonLoppukeskustelu.erikoistuvaAllekirjoittanut = true
+        koejaksonLoppukeskustelu.muokkauspaiva = LocalDate.now()
+        koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
+
+        val databaseSizeBeforeCreate = koejaksonVastuuhenkilonArvioRepository.findAll().size
+
+        val koejaksonVastuuhenkilonArvioDTO =
+            koejaksonVastuuhenkilonArvioMapper.toDto(koejaksonVastuuhenkilonArvio)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/vastuuhenkilonarvio")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonVastuuhenkilonArvioDTO))
+                .with(csrf())
+        ).andExpect(status().isCreated)
+
+        val vastuuhenkilonArvioList = koejaksonVastuuhenkilonArvioRepository.findAll()
+        assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeCreate + 1)
+        val arviointi = vastuuhenkilonArvioList[vastuuhenkilonArvioList.size - 1]
+        assertThat(arviointi.erikoistuvanNimi).isEqualTo(koejaksonVastuuhenkilonArvioDTO.erikoistuvanNimi)
+        assertThat(arviointi.erikoistuvanErikoisala).isEqualTo(koejaksonVastuuhenkilonArvioDTO.erikoistuvanErikoisala)
+        assertThat(arviointi.erikoistuvanOpiskelijatunnus).isEqualTo(
+            koejaksonVastuuhenkilonArvioDTO.erikoistuvanOpiskelijatunnus
+        )
+        assertThat(arviointi.erikoistuvanYliopisto).isEqualTo(koejaksonVastuuhenkilonArvioDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.vastuuhenkilo?.id).isEqualTo(koejaksonVastuuhenkilonArvioDTO.vastuuhenkilo?.id)
+        assertThat(arviointi.vastuuhenkilonNimi).isEqualTo(koejaksonVastuuhenkilonArvioDTO.vastuuhenkilo?.nimi)
+        assertThat(arviointi.muokkauspaiva).isNotNull
+    }
+
+    @Test
+    @Transactional
+    fun createVastuuhenkilonArvioWithoutLoppukeskustelu() {
+        initTest()
+
+        koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
+
+        val databaseSizeBeforeCreate = koejaksonVastuuhenkilonArvioRepository.findAll().size
+
+        val koejaksonVastuuhenkilonArvioDTO =
+            koejaksonVastuuhenkilonArvioMapper.toDto(koejaksonVastuuhenkilonArvio)
+        restKoejaksoMockMvc.perform(
+            post("/api/erikoistuva-laakari/koejakso/vastuuhenkilonarvio")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(koejaksonVastuuhenkilonArvioDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val vastuuhenkilonArvioList = koejaksonVastuuhenkilonArvioRepository.findAll()
+        assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeCreate)
+    }
+
     fun initTest(userId: String? = DEFAULT_ID) {
         val userDetails = mapOf<String, Any>(
             "uid" to DEFAULT_ID,
@@ -461,6 +787,16 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         koejaksonAloituskeskustelu =
             createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+
+        koejaksonValiarviointi =
+            createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
+
+        koejaksonKehittamistoimenpiteet =
+            createKehittamistoimenpiteet(erikoistuvaLaakari, kouluttaja, esimies)
+
+        koejaksonLoppukeskustelu = createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+
+        koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
     }
 
     companion object {
@@ -495,6 +831,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         private const val UPDATED_KOULUTUSPAIKKA = "HUS Päivystyskeskus"
 
         private const val DEFAULT_OSAAMISTAVOITTEET = "Lorem ipsum"
+
+        private const val DEFAULT_VAHVUUDET = "Lorem ipsum"
+        private const val DEFAULT_KEHITTAMISTOIMENPITEET = "Lorem ipsum"
 
         @JvmStatic
         fun createKoulutussopimus(
@@ -565,6 +904,88 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 lahiesimiehenNimi = lahiesimies.nimi,
                 koejaksonOsaamistavoitteet = DEFAULT_OSAAMISTAVOITTEET,
                 lahetetty = false,
+                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
+            )
+        }
+
+        @JvmStatic
+        fun createValiarviointi(
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            lahikouluttaja: Kayttaja,
+            lahiesimies: Kayttaja
+        ): KoejaksonValiarviointi {
+            return KoejaksonValiarviointi(
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
+                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
+                edistyminenTavoitteidenMukaista = true,
+                vahvuudet = DEFAULT_VAHVUUDET,
+                kehittamistoimenpiteet = DEFAULT_KEHITTAMISTOIMENPITEET,
+                lahikouluttaja = lahikouluttaja,
+                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahiesimies = lahiesimies,
+                lahiesimiehenNimi = lahiesimies.nimi,
+                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
+            )
+        }
+
+        @JvmStatic
+        fun createKehittamistoimenpiteet(
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            lahikouluttaja: Kayttaja,
+            lahiesimies: Kayttaja
+        ): KoejaksonKehittamistoimenpiteet {
+            return KoejaksonKehittamistoimenpiteet(
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
+                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
+                kehittamistoimenpiteetRiittavat = true,
+                lahikouluttaja = lahikouluttaja,
+                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahiesimies = lahiesimies,
+                lahiesimiehenNimi = lahiesimies.nimi,
+                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
+            )
+        }
+
+        @JvmStatic
+        fun createLoppukeskustelu(
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            lahikouluttaja: Kayttaja,
+            lahiesimies: Kayttaja
+        ): KoejaksonLoppukeskustelu {
+            return KoejaksonLoppukeskustelu(
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
+                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
+                esitetaanKoejaksonHyvaksymista = true,
+                lahikouluttaja = lahikouluttaja,
+                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahiesimies = lahiesimies,
+                lahiesimiehenNimi = lahiesimies.nimi,
+                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
+            )
+        }
+
+        @JvmStatic
+        fun createVastuuhenkilonArvio(
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            vastuuhenkilo: Kayttaja
+        ): KoejaksonVastuuhenkilonArvio {
+            return KoejaksonVastuuhenkilonArvio(
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
+                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
+                vastuuhenkilo = vastuuhenkilo,
+                vastuuhenkilonNimi = vastuuhenkilo.nimi,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }

@@ -23,9 +23,6 @@ data class KoejaksonVastuuhenkilonArvioDTO(
     @get: NotNull
     var vastuuhenkilo: KoejaksonKouluttajaDTO? = null,
 
-    @get: NotNull
-    var lahetetty: Boolean? = null,
-
     var muokkauspaiva: LocalDate? = null,
 
     var erikoistuvaAllekirjoittanut: Boolean? = null
