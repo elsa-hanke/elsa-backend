@@ -45,55 +45,42 @@ class KouluttajaKoejaksoResource(
             koejaksonKoulutussopimusService.findAllByKouluttajaKayttajaUserId(user.id!!)
 
         koulutussopimukset.forEach { (kayttaja, sopimus) ->
-            resultMap[kayttaja] = createKoejakso(sopimus)
+            resultMap[kayttaja] = KoejaksoDTO()
+            resultMap[kayttaja]?.addKoulutussopimus(sopimus)
         }
 
         val aloituskeskustelut =
             koejaksonAloituskeskusteluService.findAllByKouluttajaUserId(user.id!!)
         aloituskeskustelut.forEach { (kayttaja, aloituskeskustelu) ->
             resultMap.putIfAbsent(kayttaja, KoejaksoDTO())
-            addAloitusKeskustelu(resultMap[kayttaja]!!, aloituskeskustelu)
+            resultMap[kayttaja]?.addAloitusKeskustelu(aloituskeskustelu)
         }
 
         val valiarvioinnit =
             koejaksonValiarviointiService.findAllByKouluttajaUserId(user.id!!)
         valiarvioinnit.forEach { (kayttaja, valiarviointi) ->
             resultMap.putIfAbsent(kayttaja, KoejaksoDTO())
-            addValiarviointi(resultMap[kayttaja]!!, valiarviointi)
-            if (resultMap[kayttaja]?.aloituskeskustelu == null) {
-                addAloitusKeskustelu(resultMap[kayttaja]!!, valiarviointi.id!!)
-            }
+            resultMap[kayttaja]?.addValiarviointi(valiarviointi)
+            addAloitusKeskustelu(resultMap[kayttaja]!!, valiarviointi.id!!)
         }
 
         val kehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetService.findAllByKouluttajaUserId(user.id!!)
         kehittamistoimenpiteet.forEach { (kayttaja, toimenpiteet) ->
             resultMap.putIfAbsent(kayttaja, KoejaksoDTO())
-            val koejakso = resultMap[kayttaja]!!
-            addKehittamistoimenpiteet(koejakso, toimenpiteet)
-            if (koejakso.valiarviointi == null) {
-                addValiarviointi(koejakso, toimenpiteet.id!!)
-                if (resultMap[kayttaja]?.aloituskeskustelu == null) {
-                    addAloitusKeskustelu(koejakso, koejakso.valiarviointi?.id!!)
-                }
-            }
+            resultMap[kayttaja]?.addKehittamistoimenpiteet(toimenpiteet)
+            addValiarviointi(resultMap[kayttaja]!!, toimenpiteet.id!!)
+            addAloitusKeskustelu(resultMap[kayttaja]!!, resultMap[kayttaja]!!.valiarviointi?.id!!)
         }
 
         val loppukeskustelut =
             koejaksonLoppukeskusteluService.findAllByKouluttajaUserId(user.id!!)
         loppukeskustelut.forEach { (kayttaja, loppukeskustelu) ->
             resultMap.putIfAbsent(kayttaja, KoejaksoDTO())
-            val koejakso = resultMap[kayttaja]!!
-            addLoppukeskustelu(koejakso, loppukeskustelu)
-            if (koejakso.valiarviointi == null) {
-                addValiarviointi(koejakso, loppukeskustelu.id!!)
-                if (koejakso.kehittamistoimenpiteet == null && koejakso.valiarviointi?.kehittamistoimenpiteet != null) {
-                    addKehittamistoimenpiteet(koejakso, loppukeskustelu.id!!)
-                }
-                if (resultMap[kayttaja]?.aloituskeskustelu == null) {
-                    addAloitusKeskustelu(koejakso, koejakso.valiarviointi?.id!!)
-                }
-            }
+            resultMap[kayttaja]?.addLoppukeskustelu(loppukeskustelu)
+            addValiarviointi(resultMap[kayttaja]!!, loppukeskustelu.id!!)
+            addKehittamistoimenpiteet(resultMap[kayttaja]!!, loppukeskustelu.id!!)
+            addAloitusKeskustelu(resultMap[kayttaja]!!, resultMap[kayttaja]!!.valiarviointi?.id!!)
         }
         return ResponseEntity.ok(resultMap.values.toList())
     }
@@ -118,9 +105,12 @@ class KouluttajaKoejaksoResource(
     ): ResponseEntity<KoejaksonKoulutussopimusDTO> {
         validateId(koulutussopimusDTO.id, ENTITY_KOEJAKSON_SOPIMUS)
 
-        if (koulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true || koulutussopimusDTO.vastuuhenkilo?.kuittausaika != null) {
+        if (koulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true
+            || koulutussopimusDTO.vastuuhenkilo?.kuittausaika != null
+        ) {
             throw BadRequestAlertException(
-                "Koulutussopimus ei saa sisältää vastuuhenkilön kuittausta. Vastuuhenkilö määrittelee sen.",
+                "Koulutussopimus ei saa sisältää vastuuhenkilön kuittausta. " +
+                    "Vastuuhenkilö määrittelee sen.",
                 ENTITY_KOEJAKSON_SOPIMUS,
                 "dataillegal"
             )
@@ -202,7 +192,8 @@ class KouluttajaKoejaksoResource(
 
             if (aloituskeskustelu.get().lahikouluttaja?.sopimusHyvaksytty != true) {
                 throw BadRequestAlertException(
-                    "Esimies ei saa muokata aloituskeskustelua, jos kouluttaja ei ole allekirjoittanut sitä",
+                    "Esimies ei saa muokata aloituskeskustelua, " +
+                        "jos kouluttaja ei ole allekirjoittanut sitä",
                     ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
                     "dataillegal"
                 )
@@ -285,7 +276,8 @@ class KouluttajaKoejaksoResource(
 
             if (valiarviointi.get().lahikouluttaja?.sopimusHyvaksytty != true) {
                 throw BadRequestAlertException(
-                    "Esimies ei saa muokata väliarviointia, jos kouluttaja ei ole allekirjoittanut sitä",
+                    "Esimies ei saa muokata väliarviointia, " +
+                        "jos kouluttaja ei ole allekirjoittanut sitä",
                     ENTITY_KOEJAKSON_VALIARVIOINTI,
                     "dataillegal"
                 )
@@ -296,16 +288,6 @@ class KouluttajaKoejaksoResource(
             valiarviointi.get().erikoistuvaAllekirjoittanut,
             ENTITY_KOEJAKSON_VALIARVIOINTI
         )
-
-        val aloituskeskustelu =
-            koejaksonAloituskeskusteluService.findByValiarviointiId(valiarviointiDTO.id!!)
-        if (!aloituskeskustelu.isPresent || aloituskeskustelu.get().lahiesimies?.sopimusHyvaksytty != true) {
-            throw BadRequestAlertException(
-                "Väliarviointia ei voi päivittää, jos aloituskeskustelua ei ole hyväksytty",
-                ENTITY_KOEJAKSON_VALIARVIOINTI,
-                "dataillegal"
-            )
-        }
 
         val result =
             koejaksonValiarviointiService.update(valiarviointiDTO, user.id!!)
@@ -373,7 +355,8 @@ class KouluttajaKoejaksoResource(
 
             if (kehittamistoimenpiteet.get().lahikouluttaja?.sopimusHyvaksytty != true) {
                 throw BadRequestAlertException(
-                    "Esimies ei saa muokata kehittämistoimenpiteitä, jos kouluttaja ei ole allekirjoittanut niitä",
+                    "Esimies ei saa muokata kehittämistoimenpiteitä, " +
+                        "jos kouluttaja ei ole allekirjoittanut niitä",
                     ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
                     "dataillegal"
                 )
@@ -384,16 +367,6 @@ class KouluttajaKoejaksoResource(
             kehittamistoimenpiteet.get().erikoistuvaAllekirjoittanut,
             ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
         )
-
-        val valiarviointi =
-            koejaksonValiarviointiService.findByKehittamistoimenpiteetId(kehittamistoimenpiteetDTO.id!!)
-        if (!valiarviointi.isPresent || valiarviointi.get().erikoistuvaAllekirjoittanut != true || valiarviointi.get().kehittamistoimenpiteet == null) {
-            throw BadRequestAlertException(
-                "Kehittämistoimenpiteitä ei voi päivittää, jos väliarviointia ei ole hyväksytty kehittämistoimenpiteillä",
-                ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                "dataillegal"
-            )
-        }
 
         val result =
             koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
@@ -461,7 +434,8 @@ class KouluttajaKoejaksoResource(
 
             if (loppukeskustelu.get().lahikouluttaja?.sopimusHyvaksytty != true) {
                 throw BadRequestAlertException(
-                    "Esimies ei saa muokata loppukeskustelua, jos kouluttaja ei ole allekirjoittanut niitä",
+                    "Esimies ei saa muokata loppukeskustelua, " +
+                        "jos kouluttaja ei ole allekirjoittanut niitä",
                     ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
                     "dataillegal"
                 )
@@ -472,22 +446,6 @@ class KouluttajaKoejaksoResource(
             loppukeskustelu.get().erikoistuvaAllekirjoittanut,
             ENTITY_KOEJAKSON_LOPPUKESKUSTELU
         )
-
-        val valiarviointi =
-            koejaksonValiarviointiService.findByLoppukeskusteluId(loppukeskusteluDTO.id!!)
-        val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByLoppukeskusteluId(loppukeskusteluDTO.id!!)
-        val validValiarviointi =
-            valiarviointi.isPresent && valiarviointi.get().erikoistuvaAllekirjoittanut == true && valiarviointi.get().kehittamistoimenpiteet == null
-        val validKehittamistoimenpiteet =
-            kehittamistoimenpiteet.isPresent && kehittamistoimenpiteet.get().erikoistuvaAllekirjoittanut == true
-        if (!validValiarviointi && !validKehittamistoimenpiteet) {
-            throw BadRequestAlertException(
-                "Väliarviointi täytyy hyväksyä ilman kehitettäviä asioita tai kehittämistoimenpiteet täytyy hyväksyä ennen loppukeskustelua.",
-                ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                "dataillegal"
-            )
-        }
 
         val result =
             koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, user.id!!)
@@ -526,77 +484,42 @@ class KouluttajaKoejaksoResource(
         }
     }
 
-    private fun createKoejakso(sopimus: KoejaksonKoulutussopimusDTO): KoejaksoDTO {
-        val koejaksoDTO = KoejaksoDTO()
-        koejaksoDTO.koulutussopimus = sopimus
-        koejaksoDTO.koulutusSopimuksenTila = KoejaksoTila.fromSopimus(sopimus)
-        return koejaksoDTO
-    }
-
-    private fun addAloitusKeskustelu(
-        koejaksoDTO: KoejaksoDTO,
-        aloituskeskustelu: KoejaksonAloituskeskusteluDTO
-    ) {
-        koejaksoDTO.aloituskeskustelu = aloituskeskustelu
-        koejaksoDTO.aloituskeskustelunTila = KoejaksoTila.fromAloituskeskustelu(aloituskeskustelu)
-    }
-
     private fun addAloitusKeskustelu(
         koejaksoDTO: KoejaksoDTO,
         valiarviointiId: Long
     ) {
-        val aloituskeskustelu =
-            koejaksonAloituskeskusteluService.findByValiarviointiId(valiarviointiId)
-                .get()
-        koejaksoDTO.aloituskeskustelu = aloituskeskustelu
-        koejaksoDTO.aloituskeskustelunTila = KoejaksoTila.fromAloituskeskustelu(aloituskeskustelu)
-    }
-
-    private fun addValiarviointi(
-        koejaksoDTO: KoejaksoDTO,
-        valiarviointi: KoejaksonValiarviointiDTO
-    ) {
-        koejaksoDTO.valiarviointi = valiarviointi
-        koejaksoDTO.valiarvioinninTila = KoejaksoTila.fromValiarvointi(true, valiarviointi)
+        if (koejaksoDTO.aloituskeskustelu == null) {
+            koejaksoDTO.addAloitusKeskustelu(
+                koejaksonAloituskeskusteluService.findByValiarviointiId(valiarviointiId)
+                    .get()
+            )
+        }
     }
 
     private fun addValiarviointi(
         koejaksoDTO: KoejaksoDTO,
         kehittamistoimenpiteetId: Long
     ) {
-        val valiarviointi =
-            koejaksonValiarviointiService.findByKehittamistoimenpiteetId(kehittamistoimenpiteetId)
-                .get()
-        koejaksoDTO.valiarviointi = valiarviointi
-        koejaksoDTO.valiarvioinninTila = KoejaksoTila.fromValiarvointi(true, valiarviointi)
-    }
-
-    private fun addKehittamistoimenpiteet(
-        koejaksoDTO: KoejaksoDTO,
-        kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteetDTO
-    ) {
-        koejaksoDTO.kehittamistoimenpiteet = kehittamistoimenpiteet
-        koejaksoDTO.kehittamistoimenpiteidenTila =
-            KoejaksoTila.fromKehittamistoimenpiteet(true, kehittamistoimenpiteet)
+        if (koejaksoDTO.valiarviointi == null) {
+            koejaksoDTO.addValiarviointi(
+                koejaksonValiarviointiService.findByKehittamistoimenpiteetId(
+                    kehittamistoimenpiteetId
+                )
+                    .get()
+            )
+        }
     }
 
     private fun addKehittamistoimenpiteet(
         koejaksoDTO: KoejaksoDTO,
         loppukeskusteluId: Long
     ) {
-        val kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetService.findByLoppukeskusteluId(
-            loppukeskusteluId
-        ).get()
-        koejaksoDTO.kehittamistoimenpiteet = kehittamistoimenpiteet
-        koejaksoDTO.kehittamistoimenpiteidenTila =
-            KoejaksoTila.fromKehittamistoimenpiteet(true, kehittamistoimenpiteet)
-    }
-
-    private fun addLoppukeskustelu(
-        koejaksoDTO: KoejaksoDTO,
-        loppukeskustelu: KoejaksonLoppukeskusteluDTO
-    ) {
-        koejaksoDTO.loppukeskustelu = loppukeskustelu
-        koejaksoDTO.loppukeskustelunTila = KoejaksoTila.fromLoppukeskustelu(true, loppukeskustelu)
+        if (koejaksoDTO.kehittamistoimenpiteet == null && koejaksoDTO.valiarviointi?.kehittamistoimenpiteet != null) {
+            koejaksoDTO.addKehittamistoimenpiteet(
+                koejaksonKehittamistoimenpiteetService.findByLoppukeskusteluId(
+                    loppukeskusteluId
+                ).get()
+            )
+        }
     }
 }
