@@ -64,7 +64,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val updatedVastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
 
-        if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.user?.id == userId && vastuuhenkilonArvio.vastuuhenkiloHyvaksynyt) {
+        if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.user?.id == userId && vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
             vastuuhenkilonArvio.erikoistuvaAllekirjoittanut = true
             vastuuhenkilonArvio.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         }
