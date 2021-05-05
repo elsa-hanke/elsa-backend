@@ -60,6 +60,76 @@ class KouluttajaKoejaksoResource(
                 KoejaksoTila.fromAloituskeskustelu(aloituskeskustelu)
         }
 
+        val valiarvioinnit =
+            koejaksonValiarviointiService.findAllByKouluttajaUserId(user.id!!)
+        valiarvioinnit.forEach { (kayttaja, valiarviointi) ->
+            resultMap.putIfAbsent(kayttaja, KoejaksoDTO())
+            resultMap[kayttaja]?.valiarviointi = valiarviointi
+            if (resultMap[kayttaja]?.aloituskeskustelu == null) {
+                resultMap[kayttaja]?.aloituskeskustelu =
+                    koejaksonAloituskeskusteluService.findByValiarviointiId(valiarviointi.id!!)
+                        .get()
+                resultMap[kayttaja]?.aloituskeskustelunTila = KoejaksoTila.HYVAKSYTTY
+            }
+            resultMap[kayttaja]?.valiarvioinninTila =
+                KoejaksoTila.fromValiarvointi(true, valiarviointi)
+        }
+
+        val kehittamistoimenpiteet =
+            koejaksonKehittamistoimenpiteetService.findAllByKouluttajaUserId(user.id!!)
+        kehittamistoimenpiteet.forEach { (kayttaja, toimenpiteet) ->
+            resultMap.putIfAbsent(kayttaja, KoejaksoDTO())
+            resultMap[kayttaja]?.kehittamistoimenpiteet = toimenpiteet
+            if (resultMap[kayttaja]?.valiarviointi == null) {
+                resultMap[kayttaja]?.valiarviointi =
+                    koejaksonValiarviointiService.findByKehittamistoimenpiteetId(toimenpiteet.id!!)
+                        .get()
+                resultMap[kayttaja]?.valiarvioinninTila = KoejaksoTila.HYVAKSYTTY
+
+                if (resultMap[kayttaja]?.aloituskeskustelu == null) {
+                    resultMap[kayttaja]?.aloituskeskustelu =
+                        koejaksonAloituskeskusteluService.findByValiarviointiId(resultMap[kayttaja]?.valiarviointi?.id!!)
+                            .get()
+                    resultMap[kayttaja]?.aloituskeskustelunTila = KoejaksoTila.HYVAKSYTTY
+                }
+            }
+
+            resultMap[kayttaja]?.kehittamistoimenpiteidenTila =
+                KoejaksoTila.fromKehittamistoimenpiteet(true, toimenpiteet)
+        }
+
+        val loppukeskustelut =
+            koejaksonLoppukeskusteluService.findAllByKouluttajaUserId(user.id!!)
+        loppukeskustelut.forEach { (kayttaja, loppukeskustelu) ->
+            resultMap.putIfAbsent(kayttaja, KoejaksoDTO())
+            resultMap[kayttaja]?.loppukeskustelu = loppukeskustelu
+            if (resultMap[kayttaja]?.valiarviointi == null) {
+                resultMap[kayttaja]?.valiarviointi =
+                    koejaksonValiarviointiService.findByLoppukeskusteluId(loppukeskustelu.id!!)
+                        .get()
+                resultMap[kayttaja]?.valiarvioinninTila = KoejaksoTila.HYVAKSYTTY
+
+                if (resultMap[kayttaja]?.kehittamistoimenpiteet == null && resultMap[kayttaja]?.valiarviointi?.kehittamistoimenpiteet != null) {
+                    resultMap[kayttaja]?.kehittamistoimenpiteet =
+                        koejaksonKehittamistoimenpiteetService.findByLoppukeskusteluId(
+                            loppukeskustelu.id!!
+                        )
+                            .get()
+                    resultMap[kayttaja]?.kehittamistoimenpiteidenTila = KoejaksoTila.HYVAKSYTTY
+                }
+
+                if (resultMap[kayttaja]?.aloituskeskustelu == null) {
+                    resultMap[kayttaja]?.aloituskeskustelu =
+                        koejaksonAloituskeskusteluService.findByValiarviointiId(resultMap[kayttaja]?.valiarviointi?.id!!)
+                            .get()
+                    resultMap[kayttaja]?.aloituskeskustelunTila = KoejaksoTila.HYVAKSYTTY
+                }
+            }
+
+            resultMap[kayttaja]?.loppukeskustelunTila =
+                KoejaksoTila.fromLoppukeskustelu(true, loppukeskustelu)
+        }
+
         return ResponseEntity.ok(resultMap.values.toList())
     }
 
@@ -372,7 +442,7 @@ class KouluttajaKoejaksoResource(
 
         val valiarviointi =
             koejaksonValiarviointiService.findByKehittamistoimenpiteetId(kehittamistoimenpiteetDTO.id!!)
-        if (!valiarviointi.isPresent || valiarviointi.get().lahiesimies?.sopimusHyvaksytty != true || valiarviointi.get().kehittamistoimenpiteet == null) {
+        if (!valiarviointi.isPresent || valiarviointi.get().erikoistuvaAllekirjoittanut != true || valiarviointi.get().kehittamistoimenpiteet == null) {
             throw BadRequestAlertException(
                 "Kehittämistoimenpiteitä ei voi päivittää, jos väliarviointia ei ole hyväksytty kehittämistoimenpiteillä",
                 ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
@@ -469,20 +539,13 @@ class KouluttajaKoejaksoResource(
         val kehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetService.findByLoppukeskusteluId(loppukeskusteluDTO.id!!)
         val validValiarviointi =
-            valiarviointi.isPresent && valiarviointi.get().lahiesimies?.sopimusHyvaksytty == true && valiarviointi.get().kehittamistoimenpiteet != null
+            valiarviointi.isPresent && valiarviointi.get().erikoistuvaAllekirjoittanut == true && valiarviointi.get().kehittamistoimenpiteet == null
         val validKehittamistoimenpiteet =
-            kehittamistoimenpiteet.isPresent && kehittamistoimenpiteet.get().lahiesimies?.sopimusHyvaksytty == true
+            kehittamistoimenpiteet.isPresent && kehittamistoimenpiteet.get().erikoistuvaAllekirjoittanut == true
         if (!validValiarviointi && !validKehittamistoimenpiteet) {
             throw BadRequestAlertException(
                 "Väliarviointi täytyy hyväksyä ilman kehitettäviä asioita tai kehittämistoimenpiteet täytyy hyväksyä ennen loppukeskustelua.",
                 ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                "dataillegal"
-            )
-        }
-        if (!valiarviointi.isPresent || valiarviointi.get().lahiesimies?.sopimusHyvaksytty != true) {
-            throw BadRequestAlertException(
-                "Kehittämistoimenpiteitä ei voi päivittää, jos väliarviointia ei ole hyväksytty",
-                ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
                 "dataillegal"
             )
         }
