@@ -3,12 +3,10 @@ package fi.elsapalvelu.elsa.web.rest.kouluttaja
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
-import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
-import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
+import fi.elsapalvelu.elsa.service.mapper.*
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
@@ -46,10 +44,28 @@ class KouluttajaKoejaksoResourceIT {
     private lateinit var koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository
 
     @Autowired
+    private lateinit var koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository
+
+    @Autowired
+    private lateinit var koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository
+
+    @Autowired
+    private lateinit var koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
+
+    @Autowired
     private lateinit var koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper
 
     @Autowired
     private lateinit var koejaksonAloituskeskusteluMapper: KoejaksonAloituskeskusteluMapper
+
+    @Autowired
+    private lateinit var koejaksonValiarviointiMapper: KoejaksonValiarviointiMapper
+
+    @Autowired
+    private lateinit var koejaksonKehittamistoimenpiteetMapper: KoejaksonKehittamistoimenpiteetMapper
+
+    @Autowired
+    private lateinit var koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper
 
     @Autowired
     private lateinit var em: EntityManager
@@ -60,6 +76,12 @@ class KouluttajaKoejaksoResourceIT {
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
 
     private lateinit var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu
+
+    private lateinit var koejaksonValiarviointi: KoejaksonValiarviointi
+
+    private lateinit var koejaksonKehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet
+
+    private lateinit var koejaksonLoppukeskustelu: KoejaksonLoppukeskustelu
 
     @BeforeEach
     fun setup() {
@@ -74,13 +96,27 @@ class KouluttajaKoejaksoResourceIT {
         val id = koejaksonKoulutussopimus.id
         assertNotNull(id)
 
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.kehittamistoimenpiteet = DEFAULT_KEHITTAMISTOIMENPITEET
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        koejaksonKehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
+        koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
+
         restKoejaksoMockMvc.perform(get("/api/kouluttaja/koejaksot"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$[0].koulutussopimus.id").value(koejaksonKoulutussopimus.id as Any))
             .andExpect(jsonPath("$[0].koulutusSopimuksenTila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
             .andExpect(jsonPath("$[0].aloituskeskustelu.id").value(koejaksonAloituskeskustelu.id as Any))
-            .andExpect(jsonPath("$[0].aloituskeskustelunTila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
+            .andExpect(jsonPath("$[0].aloituskeskustelunTila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
+            .andExpect(jsonPath("$[0].valiarvioinninTila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
+            .andExpect(jsonPath("$[0].kehittamistoimenpiteidenTila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
+            .andExpect(jsonPath("$[0].loppukeskustelunTila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
     }
 
     @Test
@@ -106,6 +142,108 @@ class KouluttajaKoejaksoResourceIT {
             .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonKoulutussopimus.erikoistuvanSahkoposti as Any))
             .andExpect(jsonPath("$.lahetetty").value(koejaksonKoulutussopimus.lahetetty as Any))
             .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonKoulutussopimus.vastuuhenkilo?.id as Any))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getAloituskeskustelu() {
+        initTest()
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/kouluttaja/koejakso/aloituskeskustelu/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonAloituskeskustelu.id as Any))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonAloituskeskustelu.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonAloituskeskustelu.erikoistuvanOpiskelijatunnus as Any))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonAloituskeskustelu.erikoistuvanYliopisto as Any))
+            .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonAloituskeskustelu.erikoistuvanSahkoposti as Any))
+            .andExpect(jsonPath("$.lahetetty").value(koejaksonAloituskeskustelu.lahetetty as Any))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonAloituskeskustelu.lahikouluttaja?.id as Any))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonAloituskeskustelu.lahiesimies?.id as Any))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getValiarviointi() {
+        initTest()
+
+        val id = koejaksonValiarviointi.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/kouluttaja/koejakso/valiarviointi/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonValiarviointi.id as Any))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonValiarviointi.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonValiarviointi.erikoistuvanOpiskelijatunnus as Any))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonValiarviointi.erikoistuvanYliopisto as Any))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonValiarviointi.lahikouluttaja?.id as Any))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonValiarviointi.lahiesimies?.id as Any))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getKehittamistoimenpiteet() {
+        initTest()
+
+        val id = koejaksonKehittamistoimenpiteet.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/kouluttaja/koejakso/kehittamistoimenpiteet/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonKehittamistoimenpiteet.id as Any))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKehittamistoimenpiteet.erikoistuvanNimi as Any))
+            .andExpect(
+                jsonPath("$.erikoistuvanOpiskelijatunnus").value(
+                    koejaksonKehittamistoimenpiteet.erikoistuvanOpiskelijatunnus as Any
+                )
+            )
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKehittamistoimenpiteet.erikoistuvanYliopisto as Any))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonKehittamistoimenpiteet.lahikouluttaja?.id as Any))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonKehittamistoimenpiteet.lahiesimies?.id as Any))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getLoppukeskustelu() {
+        initTest()
+
+        val id = koejaksonLoppukeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/kouluttaja/koejakso/loppukeskustelu/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonLoppukeskustelu.id as Any))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonLoppukeskustelu.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonLoppukeskustelu.erikoistuvanOpiskelijatunnus as Any))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonLoppukeskustelu.erikoistuvanYliopisto as Any))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonLoppukeskustelu.lahikouluttaja?.id as Any))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonLoppukeskustelu.lahiesimies?.id as Any))
             .andExpect(jsonPath("$.korjausehdotus").isEmpty)
     }
 
@@ -425,6 +563,420 @@ class KouluttajaKoejaksoResourceIT {
         assertThat(testAloituskeskustelu.lahetetty).isEqualTo(false)
     }
 
+    @Test
+    @Transactional
+    fun updateValiarviointiKouluttaja() {
+        initTest()
+
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        val databaseSizeBeforeUpdate = koejaksonValiarviointiRepository.findAll().size
+
+        val id = koejaksonValiarviointi.id
+        assertNotNull(id)
+        val updatedValiarviointi = koejaksonValiarviointiRepository.findById(id).get()
+        em.detach(updatedValiarviointi)
+
+        updatedValiarviointi.kehittamistoimenpiteet = DEFAULT_KEHITTAMISTOIMENPITEET
+        updatedValiarviointi.edistyminenTavoitteidenMukaista = false
+        updatedValiarviointi.vahvuudet = DEFAULT_VAHVUUDET
+        updatedValiarviointi.lahikouluttajaHyvaksynyt = true
+        updatedValiarviointi.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+
+        val valiarvointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/valiarviointi")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(valiarvointiDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val valiarviointiList = koejaksonValiarviointiRepository.findAll()
+        assertThat(valiarviointiList).hasSize(databaseSizeBeforeUpdate)
+        val testValiarviointi = valiarviointiList[valiarviointiList.size - 1]
+        assertThat(testValiarviointi.korjausehdotus).isNull()
+        assertThat(testValiarviointi.lahikouluttajaHyvaksynyt).isEqualTo(true)
+        assertThat(testValiarviointi.lahikouluttajanKuittausaika).isNotNull
+        assertThat(testValiarviointi.lahiesimiesHyvaksynyt).isEqualTo(false)
+        assertThat(testValiarviointi.lahiesimiehenKuittausaika).isNull()
+        assertThat(testValiarviointi.edistyminenTavoitteidenMukaista).isEqualTo(false)
+        assertThat(testValiarviointi.kehittamistoimenpiteet).isEqualTo(
+            DEFAULT_KEHITTAMISTOIMENPITEET
+        )
+        assertThat(testValiarviointi.vahvuudet).isEqualTo(DEFAULT_VAHVUUDET)
+    }
+
+    @Test
+    @Transactional
+    fun ackValiarviointiEsimies() {
+        initTest(DEFAULT_ESIMIES_ID)
+
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
+        koejaksonValiarviointi.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        val databaseSizeBeforeUpdate = koejaksonValiarviointiRepository.findAll().size
+
+        val id = koejaksonValiarviointi.id
+        assertNotNull(id)
+        val updatedValiarviointi = koejaksonValiarviointiRepository.findById(id).get()
+        em.detach(updatedValiarviointi)
+
+        updatedValiarviointi.lahiesimiesHyvaksynyt = true
+        updatedValiarviointi.lahiesimiehenKuittausaika = DEFAULT_MYONTAMISPAIVA
+
+        val valiarviointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/valiarviointi")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(valiarviointiDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val valiarviointiList = koejaksonValiarviointiRepository.findAll()
+        assertThat(valiarviointiList).hasSize(databaseSizeBeforeUpdate)
+        val testValiarviointi = valiarviointiList[valiarviointiList.size - 1]
+        assertThat(testValiarviointi.korjausehdotus).isNull()
+        assertThat(testValiarviointi.lahiesimiesHyvaksynyt).isEqualTo(true)
+        assertThat(testValiarviointi.lahiesimiehenKuittausaika).isNotNull
+        assertThat(testValiarviointi.lahikouluttajaHyvaksynyt).isEqualTo(true)
+        assertThat(testValiarviointi.lahikouluttajanKuittausaika).isNotNull
+    }
+
+    @Test
+    @Transactional
+    fun declineValiarviointiEsimies() {
+        initTest(DEFAULT_ESIMIES_ID)
+
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
+        koejaksonValiarviointi.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        val databaseSizeBeforeUpdate = koejaksonValiarviointiRepository.findAll().size
+
+        val id = koejaksonValiarviointi.id
+        assertNotNull(id)
+        val updatedValiarviointi = koejaksonValiarviointiRepository.findById(id).get()
+        em.detach(updatedValiarviointi)
+
+        updatedValiarviointi.lahiesimiesHyvaksynyt = false
+        updatedValiarviointi.korjausehdotus = UPDATED_KORJAUSEHDOTUS
+
+        val valiarviointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/valiarviointi")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(valiarviointiDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val valiarviointiList = koejaksonValiarviointiRepository.findAll()
+        assertThat(valiarviointiList).hasSize(databaseSizeBeforeUpdate)
+        val testValiarviointi = valiarviointiList[valiarviointiList.size - 1]
+        assertThat(testValiarviointi.korjausehdotus).isEqualTo(UPDATED_KORJAUSEHDOTUS)
+        assertThat(testValiarviointi.lahiesimiesHyvaksynyt).isEqualTo(false)
+        assertThat(testValiarviointi.lahiesimiehenKuittausaika).isNull()
+        assertThat(testValiarviointi.lahikouluttajaHyvaksynyt).isEqualTo(false)
+        assertThat(testValiarviointi.lahikouluttajanKuittausaika).isNull()
+    }
+
+    @Test
+    @Transactional
+    fun updateKehittamistoimenpiteetKouluttaja() {
+        initTest()
+
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
+        koejaksonValiarviointi.kehittamistoimenpiteet = DEFAULT_KEHITTAMISTOIMENPITEET
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
+
+        val id = koejaksonKehittamistoimenpiteet.id
+        assertNotNull(id)
+        val updatedKehittamistoimenpiteet =
+            koejaksonKehittamistoimenpiteetRepository.findById(id).get()
+        em.detach(updatedKehittamistoimenpiteet)
+
+        updatedKehittamistoimenpiteet.kehittamistoimenpiteetRiittavat = true
+        updatedKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
+        updatedKehittamistoimenpiteet.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+
+        val kehittamistoimenpiteetDTO =
+            koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/kehittamistoimenpiteet")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kehittamistoimenpiteetDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val kehittamistoimenpiteetList = koejaksonKehittamistoimenpiteetRepository.findAll()
+        assertThat(kehittamistoimenpiteetList).hasSize(databaseSizeBeforeUpdate)
+        val testKehittamistoimenpiteet =
+            kehittamistoimenpiteetList[kehittamistoimenpiteetList.size - 1]
+        assertThat(testKehittamistoimenpiteet.korjausehdotus).isNull()
+        assertThat(testKehittamistoimenpiteet.lahikouluttajaHyvaksynyt).isEqualTo(true)
+        assertThat(testKehittamistoimenpiteet.lahikouluttajanKuittausaika).isNotNull
+        assertThat(testKehittamistoimenpiteet.lahiesimiesHyvaksynyt).isEqualTo(false)
+        assertThat(testKehittamistoimenpiteet.lahiesimiehenKuittausaika).isNull()
+        assertThat(testKehittamistoimenpiteet.kehittamistoimenpiteetRiittavat).isEqualTo(true)
+    }
+
+    @Test
+    @Transactional
+    fun ackKehittamistoimenpiteetEsimies() {
+        initTest(DEFAULT_ESIMIES_ID)
+
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
+        koejaksonValiarviointi.kehittamistoimenpiteet = DEFAULT_KEHITTAMISTOIMENPITEET
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
+        koejaksonKehittamistoimenpiteet.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+        koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
+
+        val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
+
+        val id = koejaksonKehittamistoimenpiteet.id
+        assertNotNull(id)
+        val updatedKehittamistoimenpiteet =
+            koejaksonKehittamistoimenpiteetRepository.findById(id).get()
+        em.detach(updatedKehittamistoimenpiteet)
+
+        updatedKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
+        updatedKehittamistoimenpiteet.lahiesimiehenKuittausaika = DEFAULT_MYONTAMISPAIVA
+
+        val kehittamistoimenpiteetDTO =
+            koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/kehittamistoimenpiteet")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kehittamistoimenpiteetDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val kehittamistoimenpiteetList = koejaksonKehittamistoimenpiteetRepository.findAll()
+        assertThat(kehittamistoimenpiteetList).hasSize(databaseSizeBeforeUpdate)
+        val testKehittamistoimenpiteet =
+            kehittamistoimenpiteetList[kehittamistoimenpiteetList.size - 1]
+        assertThat(testKehittamistoimenpiteet.korjausehdotus).isNull()
+        assertThat(testKehittamistoimenpiteet.lahiesimiesHyvaksynyt).isEqualTo(true)
+        assertThat(testKehittamistoimenpiteet.lahiesimiehenKuittausaika).isNotNull
+        assertThat(testKehittamistoimenpiteet.lahikouluttajaHyvaksynyt).isEqualTo(true)
+        assertThat(testKehittamistoimenpiteet.lahikouluttajanKuittausaika).isNotNull
+    }
+
+    @Test
+    @Transactional
+    fun declineKehittamistoimenpiteetEsimies() {
+        initTest(DEFAULT_ESIMIES_ID)
+
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
+        koejaksonValiarviointi.kehittamistoimenpiteet = DEFAULT_KEHITTAMISTOIMENPITEET
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
+        koejaksonKehittamistoimenpiteet.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+        koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
+
+        val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
+
+        val id = koejaksonKehittamistoimenpiteet.id
+        assertNotNull(id)
+        val updatedKehittamistoimenpiteet =
+            koejaksonKehittamistoimenpiteetRepository.findById(id).get()
+        em.detach(updatedKehittamistoimenpiteet)
+
+        updatedKehittamistoimenpiteet.lahiesimiesHyvaksynyt = false
+        updatedKehittamistoimenpiteet.korjausehdotus = UPDATED_KORJAUSEHDOTUS
+
+        val kehittamistoimenpiteetDTO =
+            koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/kehittamistoimenpiteet")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kehittamistoimenpiteetDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val kehittamistoimenpiteetList = koejaksonKehittamistoimenpiteetRepository.findAll()
+        assertThat(kehittamistoimenpiteetList).hasSize(databaseSizeBeforeUpdate)
+        val testKehittamistoimenpiteet =
+            kehittamistoimenpiteetList[kehittamistoimenpiteetList.size - 1]
+        assertThat(testKehittamistoimenpiteet.korjausehdotus).isEqualTo(UPDATED_KORJAUSEHDOTUS)
+        assertThat(testKehittamistoimenpiteet.lahiesimiesHyvaksynyt).isEqualTo(false)
+        assertThat(testKehittamistoimenpiteet.lahiesimiehenKuittausaika).isNull()
+        assertThat(testKehittamistoimenpiteet.lahikouluttajaHyvaksynyt).isEqualTo(false)
+        assertThat(testKehittamistoimenpiteet.lahikouluttajanKuittausaika).isNull()
+    }
+
+    @Test
+    @Transactional
+    fun updateLoppukeskusteluKouluttaja() {
+        initTest()
+
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        val databaseSizeBeforeUpdate = koejaksonLoppukeskusteluRepository.findAll().size
+
+        val id = koejaksonLoppukeskustelu.id
+        assertNotNull(id)
+        val updatedLoppukeskustelu = koejaksonLoppukeskusteluRepository.findById(id).get()
+        em.detach(updatedLoppukeskustelu)
+
+        updatedLoppukeskustelu.esitetaanKoejaksonHyvaksymista = true
+        updatedLoppukeskustelu.lahikouluttajaHyvaksynyt = true
+        updatedLoppukeskustelu.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+
+        val loppukeskusteluDTO = koejaksonLoppukeskusteluMapper.toDto(updatedLoppukeskustelu)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/loppukeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(loppukeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
+        assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeUpdate)
+        val testLoppukeskustelu = loppukeskusteluList[loppukeskusteluList.size - 1]
+        assertThat(testLoppukeskustelu.korjausehdotus).isNull()
+        assertThat(testLoppukeskustelu.lahikouluttajaHyvaksynyt).isEqualTo(true)
+        assertThat(testLoppukeskustelu.lahikouluttajanKuittausaika).isNotNull
+        assertThat(testLoppukeskustelu.lahiesimiesHyvaksynyt).isEqualTo(false)
+        assertThat(testLoppukeskustelu.lahiesimiehenKuittausaika).isNull()
+        assertThat(testLoppukeskustelu.esitetaanKoejaksonHyvaksymista).isEqualTo(true)
+    }
+
+    @Test
+    @Transactional
+    fun ackLoppukeskusteluEsimies() {
+        initTest(DEFAULT_ESIMIES_ID)
+
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonLoppukeskustelu.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+        koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
+
+        val databaseSizeBeforeUpdate = koejaksonLoppukeskusteluRepository.findAll().size
+
+        val id = koejaksonLoppukeskustelu.id
+        assertNotNull(id)
+        val updatedLoppukeskustelu = koejaksonLoppukeskusteluRepository.findById(id).get()
+        em.detach(updatedLoppukeskustelu)
+
+        updatedLoppukeskustelu.lahiesimiesHyvaksynyt = true
+        updatedLoppukeskustelu.lahiesimiehenKuittausaika = DEFAULT_MYONTAMISPAIVA
+
+        val loppukeskusteluDTO = koejaksonLoppukeskusteluMapper.toDto(updatedLoppukeskustelu)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/loppukeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(loppukeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
+        assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeUpdate)
+        val testLoppukeskustelu = loppukeskusteluList[loppukeskusteluList.size - 1]
+        assertThat(testLoppukeskustelu.korjausehdotus).isNull()
+        assertThat(testLoppukeskustelu.lahiesimiesHyvaksynyt).isEqualTo(true)
+        assertThat(testLoppukeskustelu.lahiesimiehenKuittausaika).isNotNull
+        assertThat(testLoppukeskustelu.lahikouluttajaHyvaksynyt).isEqualTo(true)
+        assertThat(testLoppukeskustelu.lahikouluttajanKuittausaika).isNotNull
+    }
+
+    @Test
+    @Transactional
+    fun declineLoppukeskusteluEsimies() {
+        initTest(DEFAULT_ESIMIES_ID)
+
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+
+        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+
+        koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonLoppukeskustelu.lahikouluttajanKuittausaika = DEFAULT_MYONTAMISPAIVA
+        koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
+
+        val databaseSizeBeforeUpdate = koejaksonLoppukeskusteluRepository.findAll().size
+
+        val id = koejaksonLoppukeskustelu.id
+        assertNotNull(id)
+        val updatedLoppukeskustelu = koejaksonLoppukeskusteluRepository.findById(id).get()
+        em.detach(updatedLoppukeskustelu)
+
+        updatedLoppukeskustelu.lahiesimiesHyvaksynyt = false
+        updatedLoppukeskustelu.korjausehdotus = UPDATED_KORJAUSEHDOTUS
+
+        val loppukeskusteluDTO = koejaksonLoppukeskusteluMapper.toDto(updatedLoppukeskustelu)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/kouluttaja/koejakso/loppukeskustelu")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(loppukeskusteluDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
+        assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeUpdate)
+        val testLoppukeskustelu = loppukeskusteluList[loppukeskusteluList.size - 1]
+        assertThat(testLoppukeskustelu.korjausehdotus).isEqualTo(UPDATED_KORJAUSEHDOTUS)
+        assertThat(testLoppukeskustelu.lahiesimiesHyvaksynyt).isEqualTo(false)
+        assertThat(testLoppukeskustelu.lahiesimiehenKuittausaika).isNull()
+        assertThat(testLoppukeskustelu.lahikouluttajaHyvaksynyt).isEqualTo(false)
+        assertThat(testLoppukeskustelu.lahikouluttajanKuittausaika).isNull()
+    }
+
     fun initTest(userId: String? = DEFAULT_KOULUTTAJA_ID) {
         val userDetails = mapOf<String, Any>(
             "uid" to userId!!,
@@ -463,6 +1015,15 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonAloituskeskustelu =
             createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
         em.persist(koejaksonAloituskeskustelu)
+        koejaksonValiarviointi =
+            createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
+        em.persist(koejaksonValiarviointi)
+        koejaksonKehittamistoimenpiteet =
+            createKehittamistoimenpiteet(erikoistuvaLaakari, kouluttaja, esimies)
+        em.persist(koejaksonKehittamistoimenpiteet)
+        koejaksonLoppukeskustelu =
+            createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+        em.persist(koejaksonLoppukeskustelu)
     }
 
     companion object {
@@ -494,6 +1055,9 @@ class KouluttajaKoejaksoResourceIT {
         private const val UPDATED_KORJAUSEHDOTUS = "Lorem Ipsum"
 
         private const val DEFAULT_OSAAMISTAVOITTEET = "Lorem ipsum"
+
+        private const val DEFAULT_VAHVUUDET = "Lorem ipsum"
+        private const val DEFAULT_KEHITTAMISTOIMENPITEET = "Lorem ipsum"
 
         @JvmStatic
         fun createKoulutussopimus(
@@ -564,6 +1128,66 @@ class KouluttajaKoejaksoResourceIT {
                 lahiesimiehenNimi = lahiesimies.nimi,
                 koejaksonOsaamistavoitteet = DEFAULT_OSAAMISTAVOITTEET,
                 lahetetty = true,
+                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
+            )
+        }
+
+        @JvmStatic
+        fun createValiarviointi(
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            lahikouluttaja: Kayttaja,
+            lahiesimies: Kayttaja
+        ): KoejaksonValiarviointi {
+            return KoejaksonValiarviointi(
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
+                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
+                lahikouluttaja = lahikouluttaja,
+                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahiesimies = lahiesimies,
+                lahiesimiehenNimi = lahiesimies.nimi,
+                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
+            )
+        }
+
+        @JvmStatic
+        fun createKehittamistoimenpiteet(
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            lahikouluttaja: Kayttaja,
+            lahiesimies: Kayttaja
+        ): KoejaksonKehittamistoimenpiteet {
+            return KoejaksonKehittamistoimenpiteet(
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
+                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
+                lahikouluttaja = lahikouluttaja,
+                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahiesimies = lahiesimies,
+                lahiesimiehenNimi = lahiesimies.nimi,
+                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
+            )
+        }
+
+        @JvmStatic
+        fun createLoppukeskustelu(
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            lahikouluttaja: Kayttaja,
+            lahiesimies: Kayttaja
+        ): KoejaksonLoppukeskustelu {
+            return KoejaksonLoppukeskustelu(
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
+                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
+                lahikouluttaja = lahikouluttaja,
+                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahiesimies = lahiesimies,
+                lahiesimiehenNimi = lahiesimies.nimi,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }
