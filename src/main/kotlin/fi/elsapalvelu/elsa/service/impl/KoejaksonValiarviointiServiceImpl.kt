@@ -81,7 +81,7 @@ class KoejaksonValiarviointiServiceImpl(
 
         if (valiarviointi.lahiesimies?.user?.id == userId && valiarviointi.lahikouluttajaHyvaksynyt) {
             // Hyväksytty
-            if (valiarviointi.korjausehdotus.isNullOrBlank()) {
+            if (updatedValiarviointi.korjausehdotus.isNullOrBlank()) {
                 valiarviointi.lahiesimiesHyvaksynyt = true
                 valiarviointi.lahiesimiehenKuittausaika = LocalDate.now(ZoneId.systemDefault())
             }

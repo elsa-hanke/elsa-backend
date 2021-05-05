@@ -78,7 +78,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
 
         if (loppukeskustelu.lahiesimies?.user?.id == userId && loppukeskustelu.lahikouluttajaHyvaksynyt) {
             // Hyväksytty
-            if (loppukeskustelu.korjausehdotus.isNullOrBlank()) {
+            if (updatedLoppukeskustelu.korjausehdotus.isNullOrBlank()) {
                 loppukeskustelu.lahiesimiesHyvaksynyt = true
                 loppukeskustelu.lahiesimiehenKuittausaika =
                     LocalDate.now(ZoneId.systemDefault())

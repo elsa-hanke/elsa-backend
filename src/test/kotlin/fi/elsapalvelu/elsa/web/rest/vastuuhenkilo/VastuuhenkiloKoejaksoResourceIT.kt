@@ -4,8 +4,10 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
+import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
+import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
@@ -43,12 +45,20 @@ class VastuuhenkiloKoejaksoResourceIT {
     private lateinit var koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper
 
     @Autowired
+    private lateinit var koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
+
+    @Autowired
+    private lateinit var koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
+
+    @Autowired
     private lateinit var em: EntityManager
 
     @Autowired
     private lateinit var restKoejaksoMockMvc: MockMvc
 
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
+
+    private lateinit var koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
 
     @BeforeEach
     fun setup() {
@@ -79,6 +89,28 @@ class VastuuhenkiloKoejaksoResourceIT {
             .andExpect(jsonPath("$.lahetetty").value(koejaksonKoulutussopimus.lahetetty as Any))
             .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonKoulutussopimus.vastuuhenkilo?.id as Any))
             .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getVastuuhenkilonArvio() {
+        initTest()
+
+        val id = koejaksonVastuuhenkilonArvio.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/vastuuhenkilonarvio/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonVastuuhenkilonArvio.id as Any))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonVastuuhenkilonArvio.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonVastuuhenkilonArvio.erikoistuvanOpiskelijatunnus as Any))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonVastuuhenkilonArvio.erikoistuvanYliopisto as Any))
+            .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonVastuuhenkilonArvio.vastuuhenkilo?.id as Any))
     }
 
     @Test
@@ -213,6 +245,72 @@ class VastuuhenkiloKoejaksoResourceIT {
         assertThat(testKouluttaja.kuittausaika).isNull()
     }
 
+    @Test
+    @Transactional
+    fun ackVastuuhenkilonArvio() {
+        initTest()
+
+        val databaseSizeBeforeUpdate = koejaksonVastuuhenkilonArvioRepository.findAll().size
+
+        val id = koejaksonVastuuhenkilonArvio.id
+        assertNotNull(id)
+        val updatedVastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.findById(id).get()
+        em.detach(updatedVastuuhenkilonArvio)
+
+        updatedVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = true
+        updatedVastuuhenkilonArvio.vastuuhenkilonKuittausaika = DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+
+        val vastuuhenkilonArvioDTO =
+            koejaksonVastuuhenkilonArvioMapper.toDto(updatedVastuuhenkilonArvio)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/vastuuhenkilo/koejakso/vastuuhenkilonarvio")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(vastuuhenkilonArvioDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val vastuuhenkilonArvioList = koejaksonVastuuhenkilonArvioRepository.findAll()
+        assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeUpdate)
+        val testVastuuhenkilonArvio = vastuuhenkilonArvioList[vastuuhenkilonArvioList.size - 1]
+        assertThat(testVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt).isEqualTo(true)
+        assertThat(testVastuuhenkilonArvio.vastuuhenkilonKuittausaika).isEqualTo(
+            DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        )
+    }
+
+    @Test
+    @Transactional
+    fun declineVastuuhenkilonArvio() {
+        initTest()
+
+        val databaseSizeBeforeUpdate = koejaksonVastuuhenkilonArvioRepository.findAll().size
+
+        val id = koejaksonVastuuhenkilonArvio.id
+        assertNotNull(id)
+        val updatedVastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.findById(id).get()
+        em.detach(updatedVastuuhenkilonArvio)
+
+        updatedVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
+        updatedVastuuhenkilonArvio.vastuuhenkilonKuittausaika = DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+
+        val vastuuhenkilonArvioDTO =
+            koejaksonVastuuhenkilonArvioMapper.toDto(updatedVastuuhenkilonArvio)
+
+        restKoejaksoMockMvc.perform(
+            put("/api/vastuuhenkilo/koejakso/vastuuhenkilonarvio")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(vastuuhenkilonArvioDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val vastuuhenkilonArvioList = koejaksonVastuuhenkilonArvioRepository.findAll()
+        assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeUpdate)
+        val testVastuuhenkilonArvio = vastuuhenkilonArvioList[vastuuhenkilonArvioList.size - 1]
+        assertThat(testVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt).isEqualTo(false)
+        assertThat(testVastuuhenkilonArvio.vastuuhenkilonKuittausaika).isNotNull
+    }
+
     fun initTest(userId: String? = DEFAULT_VASTUUHENKILO_ID) {
         val userDetails = mapOf<String, Any>(
             "uid" to DEFAULT_VASTUUHENKILO_ID,
@@ -226,12 +324,18 @@ class VastuuhenkiloKoejaksoResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, DEFAULT_ID)
         em.persist(erikoistuvaLaakari)
 
-        koejaksonKoulutussopimus = createKoulutussopimus(em, erikoistuvaLaakari)
+        val vastuuhenkilo = KayttajaHelper.createEntity(em, DEFAULT_VASTUUHENKILO_ID)
+        em.persist(vastuuhenkilo)
+
+        koejaksonKoulutussopimus = createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
         koejaksonKoulutussopimus.kouluttajat =
             mutableSetOf(createKoulutussopimuksenKouluttaja(em, koejaksonKoulutussopimus))
         koejaksonKoulutussopimus.koulutuspaikat =
             mutableSetOf(createKoulutussopimuksenKoulutuspaikka(koejaksonKoulutussopimus))
         em.persist(koejaksonKoulutussopimus)
+
+        koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+        em.persist(koejaksonVastuuhenkilonArvio)
     }
 
     companion object {
@@ -256,13 +360,13 @@ class VastuuhenkiloKoejaksoResourceIT {
 
         private const val UPDATED_KORJAUSEHDOTUS = "Lorem Ipsum"
 
+        private const val DEFAULT_ERIKOISALA = "Erikoisala"
+
         @JvmStatic
         fun createKoulutussopimus(
-            em: EntityManager,
-            erikoistuvaLaakari: ErikoistuvaLaakari
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            vastuuhenkilo: Kayttaja
         ): KoejaksonKoulutussopimus {
-            val vastuuhenkilo = KayttajaHelper.createEntity(em, DEFAULT_VASTUUHENKILO_ID)
-            em.persist(vastuuhenkilo)
             return KoejaksonKoulutussopimus(
                 erikoistuvaLaakari = erikoistuvaLaakari,
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
@@ -306,6 +410,23 @@ class VastuuhenkiloKoejaksoResourceIT {
                 nimi = DEFAULT_KOULUTUSPAIKKA,
                 yliopisto = DEFAULT_YLIOPISTO,
                 koulutussopimus = koejaksonKoulutussopimus
+            )
+        }
+
+        @JvmStatic
+        fun createVastuuhenkilonArvio(
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            vastuuhenkilo: Kayttaja
+        ): KoejaksonVastuuhenkilonArvio {
+            return KoejaksonVastuuhenkilonArvio(
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
+                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
+                erikoistuvanErikoisala = DEFAULT_ERIKOISALA,
+                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
+                vastuuhenkilo = vastuuhenkilo,
+                vastuuhenkilonNimi = vastuuhenkilo.nimi,
             )
         }
     }

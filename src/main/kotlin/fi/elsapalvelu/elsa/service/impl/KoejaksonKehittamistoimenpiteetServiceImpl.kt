@@ -80,7 +80,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
 
         if (kehittamistoimenpiteet.lahiesimies?.user?.id == userId && kehittamistoimenpiteet.lahikouluttajaHyvaksynyt) {
             // Hyväksytty
-            if (kehittamistoimenpiteet.korjausehdotus.isNullOrBlank()) {
+            if (updatedKehittamistoimenpiteet.korjausehdotus.isNullOrBlank()) {
                 kehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
                 kehittamistoimenpiteet.lahiesimiehenKuittausaika =
                     LocalDate.now(ZoneId.systemDefault())
