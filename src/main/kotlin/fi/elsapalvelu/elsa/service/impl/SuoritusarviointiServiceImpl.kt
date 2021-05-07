@@ -52,7 +52,9 @@ class SuoritusarviointiServiceImpl(
 
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari) {
+        if (kirjautunutErikoistuvaLaakari != null
+            && kirjautunutErikoistuvaLaakari == suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari
+        ) {
             suoritusarviointi = handleErikoistuva(suoritusarviointiDTO, suoritusarviointi)
         }
 

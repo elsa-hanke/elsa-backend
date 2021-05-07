@@ -3,124 +3,76 @@ package fi.elsapalvelu.elsa.service.dto.enumeration
 import fi.elsapalvelu.elsa.service.dto.*
 
 enum class KoejaksoTila {
-    EI_AKTIIVINEN, UUSI, TALLENNETTU_KESKENERAISENA, ODOTTAA_HYVAKSYNTAA, ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA, PALAUTETTU_KORJATTAVAKSI, HYVAKSYTTY;
+    EI_AKTIIVINEN,
+    UUSI,
+    TALLENNETTU_KESKENERAISENA,
+    ODOTTAA_HYVAKSYNTAA,
+    ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA,
+    PALAUTETTU_KORJATTAVAKSI,
+    HYVAKSYTTY;
 
     companion object {
         fun fromSopimus(koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO?): KoejaksoTila {
-            if (koejaksonKoulutussopimusDTO == null) {
-                return UUSI
-            }
-            if (koejaksonKoulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true) {
-                return HYVAKSYTTY
-            }
-            if (!koejaksonKoulutussopimusDTO.korjausehdotus.isNullOrBlank()) {
-                return PALAUTETTU_KORJATTAVAKSI
-            }
-            if (koejaksonKoulutussopimusDTO.lahetetty == false) {
-                return TALLENNETTU_KESKENERAISENA
-            }
-            return ODOTTAA_HYVAKSYNTAA
+            return if (koejaksonKoulutussopimusDTO == null) UUSI
+            else if (koejaksonKoulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true) HYVAKSYTTY
+            else if (!koejaksonKoulutussopimusDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
+            else if (koejaksonKoulutussopimusDTO.lahetetty == false) TALLENNETTU_KESKENERAISENA
+            else ODOTTAA_HYVAKSYNTAA
         }
 
         fun fromAloituskeskustelu(aloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO?): KoejaksoTila {
-            if (aloituskeskusteluDTO == null) {
-                return UUSI
-            }
-            if (aloituskeskusteluDTO.lahiesimies?.sopimusHyvaksytty == true) {
-                return HYVAKSYTTY
-            }
-            if (!aloituskeskusteluDTO.korjausehdotus.isNullOrBlank()) {
-                return PALAUTETTU_KORJATTAVAKSI
-            }
-            if (aloituskeskusteluDTO.lahetetty == false) {
-                return TALLENNETTU_KESKENERAISENA
-            }
-            return ODOTTAA_HYVAKSYNTAA
+            return if (aloituskeskusteluDTO == null) UUSI
+            else if (aloituskeskusteluDTO.lahiesimies?.sopimusHyvaksytty == true) HYVAKSYTTY
+            else if (!aloituskeskusteluDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
+            else if (aloituskeskusteluDTO.lahetetty == false) TALLENNETTU_KESKENERAISENA
+            else ODOTTAA_HYVAKSYNTAA
         }
 
         fun fromValiarvointi(
             aloituskeskusteluHyvaksytty: Boolean,
             valiarviointiDTO: KoejaksonValiarviointiDTO?
         ): KoejaksoTila {
-            if (!aloituskeskusteluHyvaksytty) {
-                return EI_AKTIIVINEN
-            }
-            if (valiarviointiDTO == null) {
-                return UUSI
-            }
-            if (valiarviointiDTO.erikoistuvaAllekirjoittanut == true) {
-                return HYVAKSYTTY
-            }
-            if (valiarviointiDTO.lahiesimies?.sopimusHyvaksytty == true) {
-                return ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
-            }
-            if (!valiarviointiDTO.korjausehdotus.isNullOrBlank()) {
-                return PALAUTETTU_KORJATTAVAKSI
-            }
-            return ODOTTAA_HYVAKSYNTAA
+            return if (!aloituskeskusteluHyvaksytty) EI_AKTIIVINEN
+            else if (valiarviointiDTO == null) UUSI
+            else if (valiarviointiDTO.erikoistuvaAllekirjoittanut == true) HYVAKSYTTY
+            else if (valiarviointiDTO.lahiesimies?.sopimusHyvaksytty == true) ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
+            else if (!valiarviointiDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
+            else ODOTTAA_HYVAKSYNTAA
         }
 
         fun fromKehittamistoimenpiteet(
             kehittamistoimenpiteita: Boolean,
             kehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO?
         ): KoejaksoTila {
-            if (!kehittamistoimenpiteita) {
-                return EI_AKTIIVINEN
-            }
-            if (kehittamistoimenpiteetDTO == null) {
-                return UUSI
-            }
-            if (kehittamistoimenpiteetDTO.erikoistuvaAllekirjoittanut == true) {
-                return HYVAKSYTTY
-            }
-            if (kehittamistoimenpiteetDTO.lahiesimies?.sopimusHyvaksytty == true) {
-                return ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
-            }
-            if (!kehittamistoimenpiteetDTO.korjausehdotus.isNullOrBlank()) {
-                return PALAUTETTU_KORJATTAVAKSI
-            }
-            return ODOTTAA_HYVAKSYNTAA
+            return if (!kehittamistoimenpiteita) EI_AKTIIVINEN
+            else if (kehittamistoimenpiteetDTO == null) UUSI
+            else if (kehittamistoimenpiteetDTO.erikoistuvaAllekirjoittanut == true) HYVAKSYTTY
+            else if (kehittamistoimenpiteetDTO.lahiesimies?.sopimusHyvaksytty == true) ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
+            else if (!kehittamistoimenpiteetDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
+            else ODOTTAA_HYVAKSYNTAA
         }
 
         fun fromLoppukeskustelu(
             aktiivinen: Boolean,
             loppukeskusteluDTO: KoejaksonLoppukeskusteluDTO?
         ): KoejaksoTila {
-            if (!aktiivinen) {
-                return EI_AKTIIVINEN
-            }
-            if (loppukeskusteluDTO == null) {
-                return UUSI
-            }
-            if (loppukeskusteluDTO.erikoistuvaAllekirjoittanut == true) {
-                return HYVAKSYTTY
-            }
-            if (loppukeskusteluDTO.lahiesimies?.sopimusHyvaksytty == true) {
-                return ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
-            }
-            if (!loppukeskusteluDTO.korjausehdotus.isNullOrBlank()) {
-                return PALAUTETTU_KORJATTAVAKSI
-            }
-            return ODOTTAA_HYVAKSYNTAA
+            return if (!aktiivinen) EI_AKTIIVINEN
+            else if (loppukeskusteluDTO == null) UUSI
+            else if (loppukeskusteluDTO.erikoistuvaAllekirjoittanut == true) HYVAKSYTTY
+            else if (loppukeskusteluDTO.lahiesimies?.sopimusHyvaksytty == true) ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
+            else if (!loppukeskusteluDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
+            else ODOTTAA_HYVAKSYNTAA
         }
 
         fun fromVastuuhenkilonArvio(
             loppukeskusteluHyvaksytty: Boolean,
             vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO?
         ): KoejaksoTila {
-            if (!loppukeskusteluHyvaksytty) {
-                return EI_AKTIIVINEN
-            }
-            if (vastuuhenkilonArvioDTO == null) {
-                return UUSI
-            }
-            if (vastuuhenkilonArvioDTO.erikoistuvaAllekirjoittanut == true) {
-                return HYVAKSYTTY
-            }
-            if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true) {
-                return ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
-            }
-            return ODOTTAA_HYVAKSYNTAA
+            return if (!loppukeskusteluHyvaksytty) EI_AKTIIVINEN
+            else if (vastuuhenkilonArvioDTO == null) UUSI
+            else if (vastuuhenkilonArvioDTO.erikoistuvaAllekirjoittanut == true) HYVAKSYTTY
+            else if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true) ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
+            else ODOTTAA_HYVAKSYNTAA
         }
     }
 }

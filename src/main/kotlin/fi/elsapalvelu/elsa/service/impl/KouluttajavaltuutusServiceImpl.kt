@@ -34,13 +34,23 @@ class KouluttajavaltuutusServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findAllValtuutettuByValtuuttajaKayttajaUserId(id: String): MutableList<KayttajaDTO> {
-        return kouluttajavaltuutusRepository.findAllByValtuuttajaKayttajaUserIdAndPaattymispaivaAfter(id, LocalDate.now()).map { it.valtuutettu!! }
+        return kouluttajavaltuutusRepository.findAllByValtuuttajaKayttajaUserIdAndPaattymispaivaAfter(
+            id,
+            LocalDate.now()
+        ).map { it.valtuutettu!! }
             .mapTo(mutableListOf(), kayttajaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findValtuutettuByValtuuttajaAndValtuutettu(valtuutettuId: String, valtuuttajaId: String): Optional<KouluttajavaltuutusDTO> {
-        return kouluttajavaltuutusRepository.findByValtuuttajaKayttajaUserIdAndValtuutettuUserIdAndPaattymispaivaAfter(valtuutettuId, valtuuttajaId, LocalDate.now())
+    override fun findValtuutettuByValtuuttajaAndValtuutettu(
+        valtuutettuId: String,
+        valtuuttajaId: String
+    ): Optional<KouluttajavaltuutusDTO> {
+        return kouluttajavaltuutusRepository.findByValtuuttajaKayttajaUserIdAndValtuutettuUserIdAndPaattymispaivaAfter(
+            valtuutettuId,
+            valtuuttajaId,
+            LocalDate.now()
+        )
             .map(kouluttajavaltuutusMapper::toDto)
     }
 

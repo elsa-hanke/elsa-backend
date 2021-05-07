@@ -29,7 +29,9 @@ class SuoritemerkintaServiceImpl(
             ?.let { tyoskentelyjakso ->
                 val kirjautunutErikoistuvaLaakari =
                     erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-                if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == tyoskentelyjakso.erikoistuvaLaakari) {
+                if (kirjautunutErikoistuvaLaakari != null
+                    && kirjautunutErikoistuvaLaakari == tyoskentelyjakso.erikoistuvaLaakari
+                ) {
                     val suoritemerkinta = suoritemerkintaMapper.toEntity(suoritemerkintaDTO)
                     // Jos päivitetään olemassa olevaa, tarkistetaan että suoritemerkintä ei ole lukittu
                     if (suoritemerkinta.id != null) {

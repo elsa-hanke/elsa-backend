@@ -21,10 +21,18 @@ interface KoejaksonValiarviointiRepository : JpaRepository<KoejaksonValiarvioint
 
     fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonValiarviointi>
 
-    @Query("select v from KoejaksonValiarviointi v where v.erikoistuvaLaakari = (select k.erikoistuvaLaakari from KoejaksonKehittamistoimenpiteet k where k.id = :id)")
+    @Query(
+        "select v from KoejaksonValiarviointi v " +
+            "where v.erikoistuvaLaakari = (" +
+            "select k.erikoistuvaLaakari from KoejaksonKehittamistoimenpiteet k where k.id = :id)"
+    )
     fun findByKehittamistoimenpiteetId(id: Long): Optional<KoejaksonValiarviointi>
 
-    @Query("select v from KoejaksonValiarviointi v where v.erikoistuvaLaakari = (select l.erikoistuvaLaakari from KoejaksonLoppukeskustelu l where l.id = :id)")
+    @Query(
+        "select v from KoejaksonValiarviointi v " +
+            "where v.erikoistuvaLaakari = (" +
+            "select l.erikoistuvaLaakari from KoejaksonLoppukeskustelu l where l.id = :id)"
+    )
     fun findByLoppukeskusteluId(id: Long): Optional<KoejaksonValiarviointi>
 
     fun findAllByLahikouluttajaUserIdOrLahiesimiesUserId(

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.KoejaksonValiarviointi
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository
@@ -61,97 +62,123 @@ class KoejaksonValiarviointiServiceImpl(
             koejaksonValiarviointiRepository.findById(koejaksonValiarviointiDTO.id!!)
                 .orElseThrow { EntityNotFoundException("Väliarviointia ei löydy") }
 
-        val updatedValiarviointi =
-            koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
+        val updatedValiarviointi = koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
 
         if (valiarviointi.erikoistuvaLaakari?.kayttaja?.user?.id == userId && valiarviointi.lahiesimiesHyvaksynyt) {
-            valiarviointi.erikoistuvaAllekirjoittanut = true
-            valiarviointi.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
+            valiarviointi = handleErikoistuva(valiarviointi)
         }
 
         if (valiarviointi.lahikouluttaja?.user?.id == userId && !valiarviointi.lahiesimiesHyvaksynyt) {
-            valiarviointi.edistyminenTavoitteidenMukaista =
-                updatedValiarviointi.edistyminenTavoitteidenMukaista
-            valiarviointi.vahvuudet = updatedValiarviointi.vahvuudet
-            valiarviointi.kehittamistoimenpiteet = updatedValiarviointi.kehittamistoimenpiteet
-            valiarviointi.lahikouluttajaHyvaksynyt = true
-            valiarviointi.lahikouluttajanKuittausaika =
-                LocalDate.now(ZoneId.systemDefault())
+            valiarviointi = handleKouluttaja(valiarviointi, updatedValiarviointi)
         }
 
         if (valiarviointi.lahiesimies?.user?.id == userId && valiarviointi.lahikouluttajaHyvaksynyt) {
-            // Hyväksytty
-            if (updatedValiarviointi.korjausehdotus.isNullOrBlank()) {
-                valiarviointi.lahiesimiesHyvaksynyt = true
-                valiarviointi.lahiesimiehenKuittausaika = LocalDate.now(ZoneId.systemDefault())
-            }
-            // Palautettu korjattavaksi
-            else {
-                valiarviointi.korjausehdotus = updatedValiarviointi.korjausehdotus
-                valiarviointi.lahikouluttajaHyvaksynyt = false
-                valiarviointi.lahikouluttajanKuittausaika = null
-            }
-        }
-
-        valiarviointi = koejaksonValiarviointiRepository.save(valiarviointi)
-
-        // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
-        if (valiarviointi.erikoistuvaLaakari?.kayttaja?.user?.id == userId && valiarviointi.erikoistuvaAllekirjoittanut) {
-            val erikoistuvaLaakari =
-                kayttajaRepository.findById(valiarviointi?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(valiarviointi.lahikouluttaja?.id!!).get().user!!,
-                "valiarviointiHyvaksytty.html",
-                "email.valiarviointihyvaksytty.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, valiarviointi.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                )
-            )
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(valiarviointi.lahiesimies?.id!!).get().user!!,
-                "valiarviointiHyvaksytty.html",
-                "email.valiarviointihyvaksytty.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, valiarviointi.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                )
-            )
-        } else if (valiarviointi.lahikouluttaja?.user?.id == userId && valiarviointi.lahikouluttajaHyvaksynyt) {
-
-            // Sähköposti esimiehelle kouluttajan hyväksymästä väliarvioinnista
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(valiarviointi.lahiesimies?.id!!).get().user!!,
-                "valiarviointiKuitattava.html",
-                "email.valiarviointikuitattava.title",
-                properties = mapOf(Pair(MailProperty.ID, valiarviointi.id!!.toString()))
-            )
-        } else if (valiarviointi.lahiesimies?.user?.id == userId) {
-
-            // Sähköposti erikoistuvalle esimiehen hyväksymästä väliarvioinnista
-            if (valiarviointi.lahikouluttajaHyvaksynyt) {
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(valiarviointi?.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    "valiarviointiKuitattava.html",
-                    "email.valiarviointikuitattava.title",
-                    properties = mapOf(Pair(MailProperty.ID, valiarviointi.id!!.toString()))
-                )
-            }
-            // Sähköposti kouluttajalle korjattavasta väliarvioinnista
-            else {
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(valiarviointi.lahikouluttaja?.id!!)
-                        .get().user!!,
-                    "valiarviointiPalautettu.html",
-                    "email.valiarviointipalautettu.title",
-                    properties = mapOf(Pair(MailProperty.ID, valiarviointi.id!!.toString()))
-                )
-            }
+            valiarviointi = handleEsimies(valiarviointi, updatedValiarviointi)
         }
 
         return koejaksonValiarviointiMapper.toDto(valiarviointi)
+    }
+
+    private fun handleErikoistuva(valiarviointi: KoejaksonValiarviointi): KoejaksonValiarviointi {
+        valiarviointi.erikoistuvaAllekirjoittanut = true
+        valiarviointi.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
+
+        val result = koejaksonValiarviointiRepository.save(valiarviointi)
+
+        // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
+        if (result.erikoistuvaAllekirjoittanut) {
+            val erikoistuvaLaakari =
+                kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
+                    .get().user!!
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(result.lahikouluttaja?.id!!).get().user!!,
+                "valiarviointiHyvaksytty.html",
+                "email.valiarviointihyvaksytty.title",
+                properties = mapOf(
+                    Pair(MailProperty.ID, result.id!!.toString()),
+                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                )
+            )
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                "valiarviointiHyvaksytty.html",
+                "email.valiarviointihyvaksytty.title",
+                properties = mapOf(
+                    Pair(MailProperty.ID, result.id!!.toString()),
+                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                )
+            )
+        }
+
+        return result
+    }
+
+    private fun handleKouluttaja(
+        valiarviointi: KoejaksonValiarviointi,
+        updated: KoejaksonValiarviointi
+    ): KoejaksonValiarviointi {
+        valiarviointi.edistyminenTavoitteidenMukaista = updated.edistyminenTavoitteidenMukaista
+        valiarviointi.vahvuudet = updated.vahvuudet
+        valiarviointi.kehittamistoimenpiteet = updated.kehittamistoimenpiteet
+        valiarviointi.lahikouluttajaHyvaksynyt = true
+        valiarviointi.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+
+        val result = koejaksonValiarviointiRepository.save(valiarviointi)
+
+        // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
+        if (result.lahikouluttajaHyvaksynyt) {
+            // Sähköposti esimiehelle kouluttajan hyväksymästä väliarvioinnista
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                "valiarviointiKuitattava.html",
+                "email.valiarviointikuitattava.title",
+                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+            )
+        }
+
+        return result
+    }
+
+    private fun handleEsimies(
+        valiarviointi: KoejaksonValiarviointi,
+        updated: KoejaksonValiarviointi
+    ): KoejaksonValiarviointi {
+        // Hyväksytty
+        if (updated.korjausehdotus.isNullOrBlank()) {
+            valiarviointi.lahiesimiesHyvaksynyt = true
+            valiarviointi.lahiesimiehenKuittausaika = LocalDate.now(ZoneId.systemDefault())
+        }
+        // Palautettu korjattavaksi
+        else {
+            valiarviointi.korjausehdotus = updated.korjausehdotus
+            valiarviointi.lahikouluttajaHyvaksynyt = false
+            valiarviointi.lahikouluttajanKuittausaika = null
+        }
+
+        val result = koejaksonValiarviointiRepository.save(valiarviointi)
+
+        // Sähköposti erikoistuvalle esimiehen hyväksymästä väliarvioinnista
+        if (result.lahikouluttajaHyvaksynyt) {
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
+                    .get().user!!,
+                "valiarviointiKuitattava.html",
+                "email.valiarviointikuitattava.title",
+                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+            )
+        }
+        // Sähköposti kouluttajalle korjattavasta väliarvioinnista
+        else {
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(result.lahikouluttaja?.id!!)
+                    .get().user!!,
+                "valiarviointiPalautettu.html",
+                "email.valiarviointipalautettu.title",
+                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+            )
+        }
+
+        return result
     }
 
     @Transactional(readOnly = true)

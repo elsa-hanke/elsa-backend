@@ -38,9 +38,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     private var applicationName: String? = null
 
     @GetMapping("/koejakso")
-    fun getKoejakso(
-        principal: Principal?
-    ): ResponseEntity<KoejaksoDTO> {
+    fun getKoejakso(principal: Principal?): ResponseEntity<KoejaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
         log.debug("REST request to get Koejakso for user: $user.id")
         val result = KoejaksoDTO()
@@ -255,16 +253,22 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        if (aloituskeskusteluDTO.lahikouluttaja?.sopimusHyvaksytty == true || aloituskeskusteluDTO.lahikouluttaja?.kuittausaika != null) {
+        if (aloituskeskusteluDTO.lahikouluttaja?.sopimusHyvaksytty == true
+            || aloituskeskusteluDTO.lahikouluttaja?.kuittausaika != null
+        ) {
             throw BadRequestAlertException(
-                "Erikoistuvan koejakson arviointi ei saa sisältää lähikouluttaja kuittausta. Lähikouluttaja määrittelee sen.",
+                "Erikoistuvan koejakson arviointi ei saa sisältää lähikouluttaja kuittausta. " +
+                    "Lähikouluttaja määrittelee sen.",
                 ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
                 "dataillegal"
             )
         }
-        if (aloituskeskusteluDTO.lahiesimies?.sopimusHyvaksytty == true || aloituskeskusteluDTO.lahiesimies?.kuittausaika != null) {
+        if (aloituskeskusteluDTO.lahiesimies?.sopimusHyvaksytty == true
+            || aloituskeskusteluDTO.lahiesimies?.kuittausaika != null
+        ) {
             throw BadRequestAlertException(
-                "Erikoistuvan koejakson arviointi ei saa sisältää lähiesimiehen kuittausta. Lähiesimies määrittelee sen.",
+                "Erikoistuvan koejakson arviointi ei saa sisältää lähiesimiehen kuittausta. " +
+                    "Lähiesimies määrittelee sen.",
                 ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
                 "dataillegal"
             )
@@ -395,7 +399,9 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         val valiarviointi =
             koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
-        if (!valiarviointi.isPresent || valiarviointi.get().erikoistuvaAllekirjoittanut != true || valiarviointi.get().kehittamistoimenpiteet == null) {
+        if (!valiarviointi.isPresent || valiarviointi.get().erikoistuvaAllekirjoittanut != true
+            || valiarviointi.get().kehittamistoimenpiteet == null
+        ) {
             throw BadRequestAlertException(
                 "Väliarviointi täytyy hyväksyä kehitettävillä asioilla ennen kehittämistoimenpiteitä.",
                 ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
@@ -484,12 +490,14 @@ class ErikoistuvaLaakariKoejaksoResource(
         val kehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
         val validValiarviointi =
-            valiarviointi.isPresent && valiarviointi.get().erikoistuvaAllekirjoittanut == true && valiarviointi.get().kehittamistoimenpiteet == null
+            valiarviointi.isPresent && valiarviointi.get().erikoistuvaAllekirjoittanut == true
+                && valiarviointi.get().kehittamistoimenpiteet == null
         val validKehittamistoimenpiteet =
             kehittamistoimenpiteet.isPresent && kehittamistoimenpiteet.get().erikoistuvaAllekirjoittanut == true
         if (!validValiarviointi && !validKehittamistoimenpiteet) {
             throw BadRequestAlertException(
-                "Väliarviointi täytyy hyväksyä ilman kehitettäviä asioita tai kehittämistoimenpiteet täytyy hyväksyä ennen loppukeskustelua.",
+                "Väliarviointi täytyy hyväksyä ilman kehitettäviä asioita " +
+                    "tai kehittämistoimenpiteet täytyy hyväksyä ennen loppukeskustelua.",
                 ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
                 "dataillegal"
             )
@@ -571,9 +579,12 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true || vastuuhenkilonArvioDTO.vastuuhenkilo?.kuittausaika != null) {
+        if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true
+            || vastuuhenkilonArvioDTO.vastuuhenkilo?.kuittausaika != null
+        ) {
             throw BadRequestAlertException(
-                "Erikoistuvan koejakson vastuhenkilön arvio ei saa sisältää vastuuhenkilön kuittausta. Vastuuhenkilö määrittelee sen.",
+                "Erikoistuvan koejakson vastuhenkilön arvio ei saa sisältää vastuuhenkilön " +
+                    "kuittausta. Vastuuhenkilö määrittelee sen.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
                 "dataillegal"
             )
@@ -648,14 +659,19 @@ class ErikoistuvaLaakariKoejaksoResource(
     }
 
     private fun validateKoulutussopimus(koulutussopimusDTO: KoejaksonKoulutussopimusDTO) {
-        if (koulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true || koulutussopimusDTO.vastuuhenkilo?.kuittausaika != null) {
+        if (koulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true
+            || koulutussopimusDTO.vastuuhenkilo?.kuittausaika != null
+        ) {
             throw BadRequestAlertException(
                 "Koulutussopimus ei saa sisältää vastuuhenkilön kuittausta. Vastuuhenkilö määrittelee sen.",
                 ENTITY_KOEJAKSON_SOPIMUS,
                 "dataillegal"
             )
         }
-        if (koulutussopimusDTO.kouluttajat?.any { k -> k.sopimusHyvaksytty == true || k.kuittausaika != null }!!) {
+        if (koulutussopimusDTO.kouluttajat?.any { k ->
+                k.sopimusHyvaksytty == true
+                    || k.kuittausaika != null
+            }!!) {
             throw BadRequestAlertException(
                 "Koulutussopimus ei saa sisältää kouluttajan kuittausta. Kouluttaja määrittelee sen.",
                 ENTITY_KOEJAKSON_SOPIMUS,

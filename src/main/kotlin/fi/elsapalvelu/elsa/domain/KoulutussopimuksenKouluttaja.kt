@@ -57,28 +57,25 @@ data class KoulutussopimuksenKouluttaja(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other !is KoulutussopimuksenKouluttaja) return false
 
-        other as KoulutussopimuksenKouluttaja
-
-        if (id != other.id) return false
-        if (kouluttaja != other.kouluttaja) return false
-        if (nimi != other.nimi) return false
-        if (nimike != other.nimike) return false
-        if (toimipaikka != other.toimipaikka) return false
-        if (lahiosoite != other.lahiosoite) return false
-        if (postitoimipaikka != other.postitoimipaikka) return false
-        if (puhelin != other.puhelin) return false
-        if (sahkoposti != other.sahkoposti) return false
-        if (sopimusHyvaksytty != other.sopimusHyvaksytty) return false
-        if (kuittausaika != other.kuittausaika) return false
-        if (koulutussopimus != other.koulutussopimus) return false
-
-        return true
+        return id != null && other.id != null && id == other.id
     }
 
     override fun toString(): String {
-        return "KoulutussopimuksenKouluttaja(id=$id, kouluttaja=$kouluttaja, nimi=$nimi, nimike=$nimike, toimipaikka=$toimipaikka, lahiosoite=$lahiosoite, postitoiminpaikka=$postitoimipaikka, puhelin=$puhelin, sahkoposti=$sahkoposti, sopimusHyvaksytty=$sopimusHyvaksytty, sopimuksenKuittausaika=$kuittausaika, koulutussopimus=$koulutussopimus)"
+        return "KoulutussopimuksenKouluttaja(" +
+            "id=$id, " +
+            "kouluttaja=$kouluttaja, " +
+            "nimi=$nimi, " +
+            "nimike=$nimike, " +
+            "toimipaikka=$toimipaikka, " +
+            "lahiosoite=$lahiosoite, " +
+            "postitoiminpaikka=$postitoimipaikka, " +
+            "puhelin=$puhelin, " +
+            "sahkoposti=$sahkoposti, " +
+            "sopimusHyvaksytty=$sopimusHyvaksytty, " +
+            "sopimuksenKuittausaika=$kuittausaika, " +
+            "koulutussopimus=$koulutussopimus)"
     }
 
     companion object {
