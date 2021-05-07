@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.KoejaksonKehittamistoimenpiteet
+import fi.elsapalvelu.elsa.domain.KoejaksonValiarviointi
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKehittamistoimenpiteetRepository
@@ -66,104 +68,131 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             koejaksonKehittamistoimenpiteetMapper.toEntity(koejaksonKehittamistoimenpiteetDTO)
 
         if (kehittamistoimenpiteet.erikoistuvaLaakari?.kayttaja?.user?.id == userId && kehittamistoimenpiteet.lahiesimiesHyvaksynyt) {
-            kehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
-            kehittamistoimenpiteet.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
+            kehittamistoimenpiteet = handleErikoistuva(kehittamistoimenpiteet)
         }
 
         if (kehittamistoimenpiteet.lahikouluttaja?.user?.id == userId && !kehittamistoimenpiteet.lahiesimiesHyvaksynyt) {
-            kehittamistoimenpiteet.kehittamistoimenpiteetRiittavat =
-                updatedKehittamistoimenpiteet.kehittamistoimenpiteetRiittavat
-            kehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
-            kehittamistoimenpiteet.lahikouluttajanKuittausaika =
-                LocalDate.now(ZoneId.systemDefault())
+            kehittamistoimenpiteet =
+                handleKouluttaja(kehittamistoimenpiteet, updatedKehittamistoimenpiteet)
         }
 
         if (kehittamistoimenpiteet.lahiesimies?.user?.id == userId && kehittamistoimenpiteet.lahikouluttajaHyvaksynyt) {
-            // Hyväksytty
-            if (updatedKehittamistoimenpiteet.korjausehdotus.isNullOrBlank()) {
-                kehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
-                kehittamistoimenpiteet.lahiesimiehenKuittausaika =
-                    LocalDate.now(ZoneId.systemDefault())
-            }
-            // Palautettu korjattavaksi
-            else {
-                kehittamistoimenpiteet.korjausehdotus = updatedKehittamistoimenpiteet.korjausehdotus
-                kehittamistoimenpiteet.lahikouluttajaHyvaksynyt = false
-                kehittamistoimenpiteet.lahikouluttajanKuittausaika = null
-            }
-        }
-
-        kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
-
-        // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta kehittämistoimenpteistä
-        if (kehittamistoimenpiteet.erikoistuvaLaakari?.kayttaja?.user?.id == userId && kehittamistoimenpiteet.erikoistuvaAllekirjoittanut) {
-            val erikoistuvaLaakari =
-                kayttajaRepository.findById(kehittamistoimenpiteet?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(kehittamistoimenpiteet.lahikouluttaja?.id!!)
-                    .get().user!!,
-                "kehittamistoimenpiteetHyvaksytty.html",
-                "email.kehittamistoimenpiteethyvaksytty.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, kehittamistoimenpiteet.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                )
-            )
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(kehittamistoimenpiteet.lahiesimies?.id!!).get().user!!,
-                "kehittamistoimenpiteetHyvaksytty.html",
-                "email.kehittamistoimenpiteethyvaksytty.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, kehittamistoimenpiteet.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                )
-            )
-        } else if (kehittamistoimenpiteet.lahikouluttaja?.user?.id == userId && kehittamistoimenpiteet.lahikouluttajaHyvaksynyt) {
-
-            // Sähköposti esimiehelle kouluttajan hyväksymästä kehittämistoimenpiteestä
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(kehittamistoimenpiteet.lahiesimies?.id!!).get().user!!,
-                "kehittamistoimenpiteetKuitattava.html",
-                "email.kehittamistoimenpiteetkuitattava.title",
-                properties = mapOf(Pair(MailProperty.ID, kehittamistoimenpiteet.id!!.toString()))
-            )
-        } else if (kehittamistoimenpiteet.lahiesimies?.user?.id == userId) {
-
-            // Sähköposti erikoistuvalle esimiehen hyväksymästä kehittämistoimenpiteestä
-            if (kehittamistoimenpiteet.lahikouluttajaHyvaksynyt) {
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(kehittamistoimenpiteet?.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    "kehittamistoimenpiteetKuitattava.html",
-                    "email.kehittamistoimenpiteetkuitattava.title",
-                    properties = mapOf(
-                        Pair(
-                            MailProperty.ID,
-                            kehittamistoimenpiteet.id!!.toString()
-                        )
-                    )
-                )
-            }
-            // Sähköposti kouluttajalle korjattavasta kehittämistoimenpiteestä
-            else {
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(kehittamistoimenpiteet.lahikouluttaja?.id!!)
-                        .get().user!!,
-                    "kehittamistoimenpiteetPalautettu.html",
-                    "email.kehittamistoimenpiteetpalautettu.title",
-                    properties = mapOf(
-                        Pair(
-                            MailProperty.ID,
-                            kehittamistoimenpiteet.id!!.toString()
-                        )
-                    )
-                )
-            }
+            kehittamistoimenpiteet =
+                handleEsimies(kehittamistoimenpiteet, updatedKehittamistoimenpiteet)
         }
 
         return koejaksonKehittamistoimenpiteetMapper.toDto(kehittamistoimenpiteet)
+    }
+
+    private fun handleErikoistuva(kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet): KoejaksonKehittamistoimenpiteet {
+        kehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
+        kehittamistoimenpiteet.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
+
+        val result = koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
+
+        // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
+        if (result.erikoistuvaAllekirjoittanut) {
+            val erikoistuvaLaakari =
+                kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!).get().user!!
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(result.lahikouluttaja?.id!!).get().user!!,
+                "kehittamistoimenpiteetHyvaksytty.html",
+                "email.kehittamistoimenpiteethyvaksytty.title",
+                properties = mapOf(
+                    Pair(MailProperty.ID, result.id!!.toString()),
+                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                )
+            )
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                "kehittamistoimenpiteetHyvaksytty.html",
+                "email.kehittamistoimenpiteethyvaksytty.title",
+                properties = mapOf(
+                    Pair(MailProperty.ID, result.id!!.toString()),
+                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                )
+            )
+        }
+
+        return result
+    }
+
+    private fun handleKouluttaja(
+        kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet,
+        updated: KoejaksonKehittamistoimenpiteet
+    ): KoejaksonKehittamistoimenpiteet {
+        kehittamistoimenpiteet.kehittamistoimenpiteetRiittavat =
+            updated.kehittamistoimenpiteetRiittavat
+        kehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
+        kehittamistoimenpiteet.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+
+        val result = koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
+
+        // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
+        if (result.lahikouluttajaHyvaksynyt) {
+            // Sähköposti esimiehelle kouluttajan hyväksymästä kehittämistoimenpiteestä
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                "kehittamistoimenpiteetKuitattava.html",
+                "email.kehittamistoimenpiteetkuitattava.title",
+                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+            )
+        }
+
+        return result
+    }
+
+    private fun handleEsimies(
+        kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet,
+        updated: KoejaksonKehittamistoimenpiteet
+    ): KoejaksonKehittamistoimenpiteet {
+        // Hyväksytty
+        if (updated.korjausehdotus.isNullOrBlank()) {
+            kehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
+            kehittamistoimenpiteet.lahiesimiehenKuittausaika =
+                LocalDate.now(ZoneId.systemDefault())
+        }
+        // Palautettu korjattavaksi
+        else {
+            kehittamistoimenpiteet.korjausehdotus = updated.korjausehdotus
+            kehittamistoimenpiteet.lahikouluttajaHyvaksynyt = false
+            kehittamistoimenpiteet.lahikouluttajanKuittausaika = null
+        }
+
+        val result = koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
+
+        // Sähköposti erikoistuvalle esimiehen hyväksymästä kehittämistoimenpiteestä
+        if (result.lahikouluttajaHyvaksynyt) {
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
+                    .get().user!!,
+                "kehittamistoimenpiteetKuitattava.html",
+                "email.kehittamistoimenpiteetkuitattava.title",
+                properties = mapOf(
+                    Pair(
+                        MailProperty.ID,
+                        result.id!!.toString()
+                    )
+                )
+            )
+        }
+        // Sähköposti kouluttajalle korjattavasta kehittämistoimenpiteestä
+        else {
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(result.lahikouluttaja?.id!!)
+                    .get().user!!,
+                "kehittamistoimenpiteetPalautettu.html",
+                "email.kehittamistoimenpiteetpalautettu.title",
+                properties = mapOf(
+                    Pair(
+                        MailProperty.ID,
+                        result.id!!.toString()
+                    )
+                )
+            )
+        }
+
+        return result
     }
 
     @Transactional(readOnly = true)

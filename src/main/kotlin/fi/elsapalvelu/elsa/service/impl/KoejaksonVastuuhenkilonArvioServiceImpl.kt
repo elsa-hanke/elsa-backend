@@ -64,7 +64,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val updatedVastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
 
-        if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.user?.id == userId && vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
+        if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.user?.id == userId
+            && vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
             vastuuhenkilonArvio.erikoistuvaAllekirjoittanut = true
             vastuuhenkilonArvio.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         }
@@ -78,7 +79,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
         // Sähköposti vastuuhenkilölle allekirjoitetusta loppukeskustelusta
-        if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.user?.id == userId && vastuuhenkilonArvio.erikoistuvaAllekirjoittanut) {
+        if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.user?.id == userId
+            && vastuuhenkilonArvio.erikoistuvaAllekirjoittanut) {
             val erikoistuvaLaakari =
                 kayttajaRepository.findById(vastuuhenkilonArvio?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!
