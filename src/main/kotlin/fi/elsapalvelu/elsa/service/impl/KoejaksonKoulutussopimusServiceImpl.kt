@@ -74,7 +74,8 @@ class KoejaksonKoulutussopimusServiceImpl(
         val updatedKoulutussopimus =
             koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
 
-        if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == koulutussopimus.erikoistuvaLaakari) {
+        if (kirjautunutErikoistuvaLaakari != null
+            && kirjautunutErikoistuvaLaakari == koulutussopimus.erikoistuvaLaakari) {
             koulutussopimus = handleErikoistuva(koulutussopimus, updatedKoulutussopimus)
         }
 
@@ -258,7 +259,6 @@ class KoejaksonKoulutussopimusServiceImpl(
                     )
                 )
             }
-
             // TODO: Opintohallinto
         }
         // Sähköposti erikoistujalle ja kouluttajille palautetusta sopimuksesta

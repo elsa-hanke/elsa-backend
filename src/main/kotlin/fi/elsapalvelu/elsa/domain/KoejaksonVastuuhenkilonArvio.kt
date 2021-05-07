@@ -65,28 +65,25 @@ data class KoejaksonVastuuhenkilonArvio(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other !is KoejaksonVastuuhenkilonArvio) return false
 
-        other as KoejaksonVastuuhenkilonArvio
-
-        if (id != other.id) return false
-        if (erikoistuvaLaakari != other.erikoistuvaLaakari) return false
-        if (erikoistuvanNimi != other.erikoistuvanNimi) return false
-        if (erikoistuvanErikoisala != other.erikoistuvanErikoisala) return false
-        if (erikoistuvanOpiskelijatunnus != other.erikoistuvanOpiskelijatunnus) return false
-        if (erikoistuvanYliopisto != other.erikoistuvanYliopisto) return false
-        if (vastuuhenkilo != other.vastuuhenkilo) return false
-        if (vastuuhenkilonNimi != other.vastuuhenkilonNimi) return false
-        if (vastuuhenkiloHyvaksynyt != other.vastuuhenkiloHyvaksynyt) return false
-        if (vastuuhenkilonKuittausaika != other.vastuuhenkilonKuittausaika) return false
-        if (muokkauspaiva != other.muokkauspaiva) return false
-        if (erikoistuvaAllekirjoittanut != other.erikoistuvaAllekirjoittanut) return false
-
-        return true
+        return id != null && other.id != null && id == other.id
     }
 
     override fun toString(): String {
-        return "KoejaksonVastuuhenkilonArvio(id=$id, erikoistuvaLaakari=$erikoistuvaLaakari, erikoistuvanNimi=$erikoistuvanNimi, erikoistuvanErikoisala=$erikoistuvanErikoisala, erikoistuvanOpiskelijatunnus=$erikoistuvanOpiskelijatunnus, erikoistuvanYliopisto=$erikoistuvanYliopisto, vastuuhenkilo=$vastuuhenkilo, vastuuhenkilonNimi=$vastuuhenkilonNimi, vastuuhenkiloHyvaksynyt=$vastuuhenkiloHyvaksynyt, vastuuhenkilonKuittausaika=$vastuuhenkilonKuittausaika, muokkauspaiva=$muokkauspaiva, erikoistuvaAllekirjoittanut=$erikoistuvaAllekirjoittanut)"
+        return "KoejaksonVastuuhenkilonArvio(" +
+            "id=$id, " +
+            "erikoistuvaLaakari=$erikoistuvaLaakari, " +
+            "erikoistuvanNimi=$erikoistuvanNimi, " +
+            "erikoistuvanErikoisala=$erikoistuvanErikoisala, " +
+            "erikoistuvanOpiskelijatunnus=$erikoistuvanOpiskelijatunnus, " +
+            "erikoistuvanYliopisto=$erikoistuvanYliopisto, " +
+            "vastuuhenkilo=$vastuuhenkilo, " +
+            "vastuuhenkilonNimi=$vastuuhenkilonNimi, " +
+            "vastuuhenkiloHyvaksynyt=$vastuuhenkiloHyvaksynyt, " +
+            "vastuuhenkilonKuittausaika=$vastuuhenkilonKuittausaika, " +
+            "muokkauspaiva=$muokkauspaiva, " +
+            "erikoistuvaAllekirjoittanut=$erikoistuvaAllekirjoittanut)"
     }
 
     companion object {

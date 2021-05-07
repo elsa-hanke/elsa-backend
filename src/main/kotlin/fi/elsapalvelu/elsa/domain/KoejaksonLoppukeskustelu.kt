@@ -86,34 +86,31 @@ data class KoejaksonLoppukeskustelu(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other !is KoejaksonLoppukeskustelu) return false
 
-        other as KoejaksonLoppukeskustelu
-
-        if (id != other.id) return false
-        if (erikoistuvaLaakari != other.erikoistuvaLaakari) return false
-        if (erikoistuvanNimi != other.erikoistuvanNimi) return false
-        if (erikoistuvanErikoisala != other.erikoistuvanErikoisala) return false
-        if (erikoistuvanOpiskelijatunnus != other.erikoistuvanOpiskelijatunnus) return false
-        if (erikoistuvanYliopisto != other.erikoistuvanYliopisto) return false
-        if (esitetaanKoejaksonHyvaksymista != other.esitetaanKoejaksonHyvaksymista) return false
-        if (lahikouluttaja != other.lahikouluttaja) return false
-        if (lahikouluttajanNimi != other.lahikouluttajanNimi) return false
-        if (lahikouluttajaHyvaksynyt != other.lahikouluttajaHyvaksynyt) return false
-        if (lahikouluttajanKuittausaika != other.lahikouluttajanKuittausaika) return false
-        if (lahiesimies != other.lahiesimies) return false
-        if (lahiesimiehenNimi != other.lahiesimiehenNimi) return false
-        if (lahiesimiesHyvaksynyt != other.lahiesimiesHyvaksynyt) return false
-        if (lahiesimiehenKuittausaika != other.lahiesimiehenKuittausaika) return false
-        if (muokkauspaiva != other.muokkauspaiva) return false
-        if (korjausehdotus != other.korjausehdotus) return false
-        if (erikoistuvaAllekirjoittanut != other.erikoistuvaAllekirjoittanut) return false
-
-        return true
+        return id != null && other.id != null && id == other.id
     }
 
     override fun toString(): String {
-        return "KoejaksonLoppukeskustelu(id=$id, erikoistuvaLaakari=$erikoistuvaLaakari, erikoistuvanNimi=$erikoistuvanNimi, erikoistuvanErikoisala=$erikoistuvanErikoisala, erikoistuvanOpiskelijatunnus=$erikoistuvanOpiskelijatunnus, erikoistuvanYliopisto=$erikoistuvanYliopisto, esitetaanKoejaksonHyvaksymista=$esitetaanKoejaksonHyvaksymista, lahikouluttaja=$lahikouluttaja, lahikouluttajanNimi=$lahikouluttajanNimi, lahikouluttajaHyvaksynyt=$lahikouluttajaHyvaksynyt, lahikouluttajanKuittausaika=$lahikouluttajanKuittausaika, lahiesimies=$lahiesimies, lahiesimiehenNimi=$lahiesimiehenNimi, lahiesimiesHyvaksynyt=$lahiesimiesHyvaksynyt, lahiesimiehenKuittausaika=$lahiesimiehenKuittausaika, muokkauspaiva=$muokkauspaiva, korjausehdotus=$korjausehdotus, erikoistuvaAllekirjoittanut=$erikoistuvaAllekirjoittanut)"
+        return "KoejaksonLoppukeskustelu(" +
+            "id=$id, " +
+            "erikoistuvaLaakari=$erikoistuvaLaakari, " +
+            "erikoistuvanNimi=$erikoistuvanNimi, " +
+            "erikoistuvanErikoisala=$erikoistuvanErikoisala, " +
+            "erikoistuvanOpiskelijatunnus=$erikoistuvanOpiskelijatunnus, " +
+            "erikoistuvanYliopisto=$erikoistuvanYliopisto, " +
+            "esitetaanKoejaksonHyvaksymista=$esitetaanKoejaksonHyvaksymista, " +
+            "lahikouluttaja=$lahikouluttaja, " +
+            "lahikouluttajanNimi=$lahikouluttajanNimi, " +
+            "lahikouluttajaHyvaksynyt=$lahikouluttajaHyvaksynyt, " +
+            "lahikouluttajanKuittausaika=$lahikouluttajanKuittausaika, " +
+            "lahiesimies=$lahiesimies, " +
+            "lahiesimiehenNimi=$lahiesimiehenNimi, " +
+            "lahiesimiesHyvaksynyt=$lahiesimiesHyvaksynyt, " +
+            "lahiesimiehenKuittausaika=$lahiesimiehenKuittausaika, " +
+            "muokkauspaiva=$muokkauspaiva, " +
+            "korjausehdotus=$korjausehdotus, " +
+            "erikoistuvaAllekirjoittanut=$erikoistuvaAllekirjoittanut)"
     }
 
     companion object {

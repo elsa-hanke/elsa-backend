@@ -113,41 +113,37 @@ data class KoejaksonAloituskeskustelu(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other !is KoejaksonAloituskeskustelu) return false
 
-        other as KoejaksonAloituskeskustelu
-
-        if (id != other.id) return false
-        if (erikoistuvaLaakari != other.erikoistuvaLaakari) return false
-        if (erikoistuvanNimi != other.erikoistuvanNimi) return false
-        if (erikoistuvanErikoisala != other.erikoistuvanErikoisala) return false
-        if (erikoistuvanOpiskelijatunnus != other.erikoistuvanOpiskelijatunnus) return false
-        if (erikoistuvanYliopisto != other.erikoistuvanYliopisto) return false
-        if (erikoistuvanSahkoposti != other.erikoistuvanSahkoposti) return false
-        if (koejaksonSuorituspaikka != other.koejaksonSuorituspaikka) return false
-        if (koejaksonToinenSuorituspaikka != other.koejaksonToinenSuorituspaikka) return false
-        if (koejaksonAlkamispaiva != other.koejaksonAlkamispaiva) return false
-        if (koejaksonPaattymispaiva != other.koejaksonPaattymispaiva) return false
-        if (suoritettuKokoaikatyossa != other.suoritettuKokoaikatyossa) return false
-        if (tyotunnitViikossa != other.tyotunnitViikossa) return false
-        if (lahikouluttaja != other.lahikouluttaja) return false
-        if (lahikouluttajanNimi != other.lahikouluttajanNimi) return false
-        if (lahikouluttajaHyvaksynyt != other.lahikouluttajaHyvaksynyt) return false
-        if (lahikouluttajanKuittausaika != other.lahikouluttajanKuittausaika) return false
-        if (lahiesimies != other.lahiesimies) return false
-        if (lahiesimiehenNimi != other.lahiesimiehenNimi) return false
-        if (lahiesimiesHyvaksynyt != other.lahiesimiesHyvaksynyt) return false
-        if (lahiesimiehenKuittausaika != other.lahiesimiehenKuittausaika) return false
-        if (koejaksonOsaamistavoitteet != other.koejaksonOsaamistavoitteet) return false
-        if (lahetetty != other.lahetetty) return false
-        if (muokkauspaiva != other.muokkauspaiva) return false
-        if (korjausehdotus != other.korjausehdotus) return false
-
-        return true
+        return id != null && other.id != null && id == other.id
     }
 
     override fun toString(): String {
-        return "Aloituskeskustelu(id=$id, erikoistuvaLaakari=$erikoistuvaLaakari, erikoistuvanNimi=$erikoistuvanNimi, erikoistuvanErikoisala=$erikoistuvanErikoisala, erikoistuvanOpiskelijatunnus=$erikoistuvanOpiskelijatunnus, erikoistuvanYliopisto=$erikoistuvanYliopisto, erikoistuvanSahkoposti=$erikoistuvanSahkoposti, koejaksonSuorituspaikka=$koejaksonSuorituspaikka, koejaksonToinenSuorituspaikka=$koejaksonToinenSuorituspaikka, koejaksonAlkamispaiva=$koejaksonAlkamispaiva, koejaksonPaattymispaiva=$koejaksonPaattymispaiva, suoritettuKokoaikatyossa=$suoritettuKokoaikatyossa, tyotunnitViikossa=$tyotunnitViikossa, lahikouluttaja=$lahikouluttaja, lahikouluttajanNimi=$lahikouluttajanNimi, lahikouluttajaHyvaksynyt=$lahikouluttajaHyvaksynyt, lahikouluttajanKuittausaika=$lahikouluttajanKuittausaika, lahiesimies=$lahiesimies, lahiesimiehenNimi=$lahiesimiehenNimi, lahiesimiesHyvaksynyt=$lahiesimiesHyvaksynyt, lahiesimiehenKuittausaika=$lahiesimiehenKuittausaika, koejaksonOsaamistavoitteet=$koejaksonOsaamistavoitteet, lahetetty=$lahetetty, muokkauspaiva=$muokkauspaiva, korjausehdotus=$korjausehdotus)"
+        return "Aloituskeskustelu(" +
+            "id=$id, " +
+            "erikoistuvaLaakari=$erikoistuvaLaakari, " +
+            "erikoistuvanNimi=$erikoistuvanNimi, " +
+            "erikoistuvanErikoisala=$erikoistuvanErikoisala, " +
+            "erikoistuvanOpiskelijatunnus=$erikoistuvanOpiskelijatunnus, " +
+            "erikoistuvanYliopisto=$erikoistuvanYliopisto, " +
+            "erikoistuvanSahkoposti=$erikoistuvanSahkoposti, " +
+            "koejaksonSuorituspaikka=$koejaksonSuorituspaikka, " +
+            "koejaksonToinenSuorituspaikka=$koejaksonToinenSuorituspaikka, " +
+            "koejaksonAlkamispaiva=$koejaksonAlkamispaiva, " +
+            "koejaksonPaattymispaiva=$koejaksonPaattymispaiva, " +
+            "suoritettuKokoaikatyossa=$suoritettuKokoaikatyossa, " +
+            "tyotunnitViikossa=$tyotunnitViikossa, " +
+            "lahikouluttaja=$lahikouluttaja, " +
+            "lahikouluttajanNimi=$lahikouluttajanNimi, " +
+            "lahikouluttajaHyvaksynyt=$lahikouluttajaHyvaksynyt, " +
+            "lahikouluttajanKuittausaika=$lahikouluttajanKuittausaika, " +
+            "lahiesimies=$lahiesimies, lahiesimiehenNimi=$lahiesimiehenNimi, " +
+            "lahiesimiesHyvaksynyt=$lahiesimiesHyvaksynyt, " +
+            "lahiesimiehenKuittausaika=$lahiesimiehenKuittausaika, " +
+            "koejaksonOsaamistavoitteet=$koejaksonOsaamistavoitteet, " +
+            "lahetetty=$lahetetty, " +
+            "muokkauspaiva=$muokkauspaiva, " +
+            "korjausehdotus=$korjausehdotus)"
     }
 
     companion object {
