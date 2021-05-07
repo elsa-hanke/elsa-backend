@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.KoejaksonLoppukeskustelu
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonLoppukeskusteluRepository
@@ -65,97 +66,119 @@ class KoejaksonLoppukeskusteluServiceImpl(
             koejaksonLoppukeskusteluMapper.toEntity(koejaksonLoppukeskusteluDTO)
 
         if (loppukeskustelu.erikoistuvaLaakari?.kayttaja?.user?.id == userId && loppukeskustelu.lahiesimiesHyvaksynyt) {
-            loppukeskustelu.erikoistuvaAllekirjoittanut = true
-            loppukeskustelu.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
+            loppukeskustelu = handleErikoistuva(loppukeskustelu)
         }
 
         if (loppukeskustelu.lahikouluttaja?.user?.id == userId && !loppukeskustelu.lahiesimiesHyvaksynyt) {
-            loppukeskustelu.esitetaanKoejaksonHyvaksymista =
-                updatedLoppukeskustelu.esitetaanKoejaksonHyvaksymista
-            loppukeskustelu.lahikouluttajaHyvaksynyt = true
-            loppukeskustelu.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            loppukeskustelu = handleKouluttaja(loppukeskustelu, updatedLoppukeskustelu)
         }
 
         if (loppukeskustelu.lahiesimies?.user?.id == userId && loppukeskustelu.lahikouluttajaHyvaksynyt) {
-            // Hyväksytty
-            if (updatedLoppukeskustelu.korjausehdotus.isNullOrBlank()) {
-                loppukeskustelu.lahiesimiesHyvaksynyt = true
-                loppukeskustelu.lahiesimiehenKuittausaika =
-                    LocalDate.now(ZoneId.systemDefault())
-            }
-            // Palautettu korjattavaksi
-            else {
-                loppukeskustelu.korjausehdotus = updatedLoppukeskustelu.korjausehdotus
-                loppukeskustelu.lahikouluttajaHyvaksynyt = false
-                loppukeskustelu.lahikouluttajanKuittausaika = null
-            }
+            loppukeskustelu = handleEsimies(loppukeskustelu, updatedLoppukeskustelu)
         }
 
-        loppukeskustelu = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
+        return koejaksonLoppukeskusteluMapper.toDto(loppukeskustelu)
+    }
+
+    private fun handleErikoistuva(loppukeskustelu: KoejaksonLoppukeskustelu): KoejaksonLoppukeskustelu {
+        loppukeskustelu.erikoistuvaAllekirjoittanut = true
+        loppukeskustelu.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
+
+        val result = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
 
         // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta loppukeskustelusta
-        if (loppukeskustelu.erikoistuvaLaakari?.kayttaja?.user?.id == userId && loppukeskustelu.erikoistuvaAllekirjoittanut) {
-            val erikoistuvaLaakari =
-                kayttajaRepository.findById(loppukeskustelu?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!)
-                    .get().user!!,
-                "loppukeskusteluHyvaksytty.html",
-                "email.loppukeskusteluhyvaksytty.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, loppukeskustelu.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                )
+        val erikoistuvaLaakari =
+            kayttajaRepository.findById(loppukeskustelu.erikoistuvaLaakari?.kayttaja?.id!!)
+                .get().user!!
+        mailService.sendEmailFromTemplate(
+            kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!).get().user!!,
+            "loppukeskusteluHyvaksytty.html",
+            "email.loppukeskusteluhyvaksytty.title",
+            properties = mapOf(
+                Pair(MailProperty.ID, loppukeskustelu.id!!.toString()),
+                Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
             )
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id!!).get().user!!,
-                "loppukeskusteluHyvaksytty.html",
-                "email.loppukeskusteluhyvaksytty.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, loppukeskustelu.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                )
+        )
+        mailService.sendEmailFromTemplate(
+            kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id!!).get().user!!,
+            "loppukeskusteluHyvaksytty.html",
+            "email.loppukeskusteluhyvaksytty.title",
+            properties = mapOf(
+                Pair(MailProperty.ID, loppukeskustelu.id!!.toString()),
+                Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
             )
-        } else if (loppukeskustelu.lahikouluttaja?.user?.id == userId && loppukeskustelu.lahikouluttajaHyvaksynyt) {
+        )
 
-            // Sähköposti esimiehelle kouluttajan hyväksymästä loppukeskustelusta
+        return result
+    }
+
+    private fun handleKouluttaja(
+        loppukeskustelu: KoejaksonLoppukeskustelu,
+        updated: KoejaksonLoppukeskustelu
+    ): KoejaksonLoppukeskustelu {
+        loppukeskustelu.esitetaanKoejaksonHyvaksymista = updated.esitetaanKoejaksonHyvaksymista
+        loppukeskustelu.lahikouluttajaHyvaksynyt = true
+        loppukeskustelu.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+
+        val result = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
+
+        // Sähköposti esimiehelle kouluttajan hyväksymästä loppukeskustelusta
+        mailService.sendEmailFromTemplate(
+            kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id!!).get().user!!,
+            "loppukeskusteluKuitattava.html",
+            "email.loppukeskustelukuitattava.title",
+            properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
+        )
+
+        return result
+    }
+
+    private fun handleEsimies(
+        loppukeskustelu: KoejaksonLoppukeskustelu,
+        updated: KoejaksonLoppukeskustelu
+    ): KoejaksonLoppukeskustelu {
+        // Hyväksytty
+        if (updated.korjausehdotus.isNullOrBlank()) {
+            loppukeskustelu.lahiesimiesHyvaksynyt = true
+            loppukeskustelu.lahiesimiehenKuittausaika =
+                LocalDate.now(ZoneId.systemDefault())
+        }
+        // Palautettu korjattavaksi
+        else {
+            loppukeskustelu.korjausehdotus = updated.korjausehdotus
+            loppukeskustelu.lahikouluttajaHyvaksynyt = false
+            loppukeskustelu.lahikouluttajanKuittausaika = null
+        }
+
+        val result = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
+
+        // Sähköposti erikoistuvalle esimiehen hyväksymästä loppukeskustelusta
+        if (loppukeskustelu.lahikouluttajaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id!!).get().user!!,
+                kayttajaRepository.findById(loppukeskustelu.erikoistuvaLaakari?.kayttaja?.id!!)
+                    .get().user!!,
                 "loppukeskusteluKuitattava.html",
                 "email.loppukeskustelukuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
             )
-        } else if (loppukeskustelu.lahiesimies?.user?.id == userId) {
-
-            // Sähköposti erikoistuvalle esimiehen hyväksymästä loppukeskustelusta
-            if (loppukeskustelu.lahikouluttajaHyvaksynyt) {
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(loppukeskustelu?.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    "loppukeskusteluKuitattava.html",
-                    "email.loppukeskustelukuitattava.title",
-                    properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
-                )
-            }
-            // Sähköposti kouluttajalle korjattavasta loppukeskustelusta
-            else {
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!)
-                        .get().user!!,
-                    "loppukeskusteluPalautettu.html",
-                    "email.loppukeskustelupalautettu.title",
-                    properties = mapOf(
-                        Pair(
-                            MailProperty.ID,
-                            loppukeskustelu.id!!.toString()
-                        )
+        }
+        // Sähköposti kouluttajalle korjattavasta loppukeskustelusta
+        else {
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!)
+                    .get().user!!,
+                "loppukeskusteluPalautettu.html",
+                "email.loppukeskustelupalautettu.title",
+                properties = mapOf(
+                    Pair(
+                        MailProperty.ID,
+                        loppukeskustelu.id!!.toString()
                     )
                 )
-            }
+            )
         }
 
-        return koejaksonLoppukeskusteluMapper.toDto(loppukeskustelu)
+        return result
     }
 
     @Transactional(readOnly = true)

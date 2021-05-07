@@ -25,24 +25,32 @@ class SuoritemerkintaServiceImpl(
     override fun save(suoritemerkintaDTO: SuoritemerkintaDTO, userId: String): SuoritemerkintaDTO? {
         log.debug("Request to save Suoritemerkinta : $suoritemerkintaDTO")
 
-        tyoskentelyjaksoRepository.findByIdOrNull(suoritemerkintaDTO.tyoskentelyjaksoId!!)?.let { tyoskentelyjakso ->
-            tyoskentelyjakso.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
-                    if (kirjautunutErikoistuvaLaakari == it) {
-                        val suoritemerkinta = suoritemerkintaMapper.toEntity(suoritemerkintaDTO)
-                        // Jos päivitetään olemassa olevaa, tarkistetaan että suoritemerkintä ei ole lukittu
-                        if (suoritemerkinta.id != null) {
-                            val suoritemerkintaOptional = suoritemerkintaRepository.findOneById(suoritemerkinta.id!!)
-                            if (suoritemerkintaOptional.isPresent && !suoritemerkintaOptional.get().lukittu) {
-                                return suoritemerkintaMapper.toDto(suoritemerkintaRepository.save(suoritemerkinta))
-                            }
-                        } else {
-                            return suoritemerkintaMapper.toDto(suoritemerkintaRepository.save(suoritemerkinta))
+        tyoskentelyjaksoRepository.findByIdOrNull(suoritemerkintaDTO.tyoskentelyjaksoId!!)
+            ?.let { tyoskentelyjakso ->
+                val kirjautunutErikoistuvaLaakari =
+                    erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == tyoskentelyjakso.erikoistuvaLaakari) {
+                    val suoritemerkinta = suoritemerkintaMapper.toEntity(suoritemerkintaDTO)
+                    // Jos päivitetään olemassa olevaa, tarkistetaan että suoritemerkintä ei ole lukittu
+                    if (suoritemerkinta.id != null) {
+                        val suoritemerkintaOptional =
+                            suoritemerkintaRepository.findOneById(suoritemerkinta.id!!)
+                        if (suoritemerkintaOptional.isPresent && !suoritemerkintaOptional.get().lukittu) {
+                            return suoritemerkintaMapper.toDto(
+                                suoritemerkintaRepository.save(
+                                    suoritemerkinta
+                                )
+                            )
                         }
+                    } else {
+                        return suoritemerkintaMapper.toDto(
+                            suoritemerkintaRepository.save(
+                                suoritemerkinta
+                            )
+                        )
                     }
                 }
             }
-        }
         return null
     }
 
@@ -52,7 +60,9 @@ class SuoritemerkintaServiceImpl(
     ): MutableList<SuoritemerkintaDTO> {
         log.debug("Request to get list of Suoritemerkinta by user id : $userId")
 
-        return suoritemerkintaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId)
+        return suoritemerkintaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+            userId
+        )
             .mapTo(mutableListOf(), suoritemerkintaMapper::toDto)
     }
 
@@ -62,11 +72,12 @@ class SuoritemerkintaServiceImpl(
 
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
             suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
-                    if (kirjautunutErikoistuvaLaakari == it) {
-                        return suoritemerkintaMapper.toDto(suoritemerkinta)
+                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                    ?.let { kirjautunutErikoistuvaLaakari ->
+                        if (kirjautunutErikoistuvaLaakari == it) {
+                            return suoritemerkintaMapper.toDto(suoritemerkinta)
+                        }
                     }
-                }
             }
         }
 
@@ -78,13 +89,14 @@ class SuoritemerkintaServiceImpl(
 
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
             suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
-                    if (kirjautunutErikoistuvaLaakari == it &&
-                        !suoritemerkinta.lukittu
-                    ) {
-                        suoritemerkintaRepository.deleteById(id)
+                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                    ?.let { kirjautunutErikoistuvaLaakari ->
+                        if (kirjautunutErikoistuvaLaakari == it &&
+                            !suoritemerkinta.lukittu
+                        ) {
+                            suoritemerkintaRepository.deleteById(id)
+                        }
                     }
-                }
             }
         }
     }

@@ -57,6 +57,13 @@ class KouluttajaSuoritusarviointiResource(
         if (suoritusarviointiDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
+        if (suoritusarviointiDTO.vaativuustaso == null || suoritusarviointiDTO.luottamuksenTaso == null || suoritusarviointiDTO.sanallinenArviointi == null) {
+            throw BadRequestAlertException(
+                "Kouluttajan arvioinnin täytyy sisältää vaativuustaso, luottamuksen taso ja sanallien arviointi",
+                ENTITY_NAME,
+                "dataillegal"
+            )
+        }
         val user = userService.getAuthenticatedUser(principal)
         val result = suoritusarviointiService.save(suoritusarviointiDTO, user.login!!)
         return ResponseEntity.ok()
