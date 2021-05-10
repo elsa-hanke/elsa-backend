@@ -60,7 +60,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
     ): ResponseEntity<KayttajaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
-            ?.let { kirjautunutErikoistuvaLaakari ->
+            ?.let { _ ->
                 val result = kayttajaService.save(
                     KayttajaDTO(nimi = uusiLahikouluttajaDTO.nimi),
                     UserDTO(
@@ -72,26 +72,6 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                     )
                 )
 
-                kouluttajavaltuutusService.findValtuutettuByValtuuttajaAndValtuutettu(
-                    user.id!!,
-                    result.userId!!
-                ).ifPresent {
-                    throw BadRequestAlertException(
-                        "Kouluttaja on jo lisätty",
-                        "kayttaja",
-                        "dataillegal"
-                    )
-                }
-                val kouluttajavaltuutus = KouluttajavaltuutusDTO(
-                    alkamispaiva = LocalDate.now(ZoneId.systemDefault()),
-                    paattymispaiva = LocalDate.now(ZoneId.systemDefault()).plusMonths(6),
-                    valtuutuksenLuontiaika = Instant.now(),
-                    valtuutuksenMuokkausaika = Instant.now(),
-                    valtuuttajaId = kirjautunutErikoistuvaLaakari.id,
-                    valtuutettuId = result.id
-                )
-
-                kouluttajavaltuutusService.save(kouluttajavaltuutus)
                 return ResponseEntity.created(URI("/api/kayttajat/${result.id}"))
                     .headers(
                         HeaderUtil.createEntityCreationAlert(

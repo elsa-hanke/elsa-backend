@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20210510161855-1" author="jhipster">
+
+        <dropColumn tableName="kayttaja">
+            <column name="nimi"/>
+        </dropColumn>
+
+        <dropColumn tableName="erikoistuva_laakari">
+            <column name="sahkoposti"/>
+        </dropColumn>
+    </changeSet>
+
+</databaseChangeLog>

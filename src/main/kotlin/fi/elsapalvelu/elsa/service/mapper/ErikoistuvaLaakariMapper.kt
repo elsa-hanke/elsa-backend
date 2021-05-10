@@ -20,7 +20,8 @@ interface ErikoistuvaLaakariMapper :
 
     @Mappings(
         Mapping(source = "kayttaja.id", target = "kayttajaId"),
-        Mapping(source = "erikoisala.id", target = "erikoisalaId")
+        Mapping(source = "erikoisala.id", target = "erikoisalaId"),
+        Mapping(source = "kayttaja.user.email", target = "sahkoposti")
     )
     override fun toDto(entity: ErikoistuvaLaakari): ErikoistuvaLaakariDTO
 

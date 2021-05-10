@@ -41,6 +41,7 @@
     <include file="config/liquibase/changelog/20210421111507_added_entity_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111903_added_entity_KoejaksonLoppukeskustelu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421112408_added_entity_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210510161855_modify_user_information.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>

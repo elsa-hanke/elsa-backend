@@ -34,6 +34,9 @@ class KayttajaServiceImpl(
             kayttajaMapper.toDto(kayttaja)
         } else {
             var user = userMapper.userDTOToUser(userDTO)!!
+            val names = kayttajaDTO.nimi?.split(" ")
+            user.firstName = names?.dropLast(1)?.joinToString()
+            user.lastName = names?.last()
             user = userRepository.save(user)
             var kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
             kayttaja.user = user
