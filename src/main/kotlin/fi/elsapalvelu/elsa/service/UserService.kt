@@ -122,7 +122,6 @@ class UserService(
             val kayttaja = kayttajaRepository.save(
                 Kayttaja(
                     user = user,
-                    nimi = user.firstName + " " + user.lastName
                 )
             )
             // TODO: erikoisalan valinta opinto-oikeuden mukaan
