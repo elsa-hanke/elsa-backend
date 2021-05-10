@@ -16,10 +16,6 @@ data class Kayttaja(
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
 
-    @get: NotNull
-    @Column(name = "nimi", nullable = false)
-    var nimi: String? = null,
-
     @Column(name = "nimike", nullable = true)
     var nimike: String? = null,
 
@@ -68,7 +64,6 @@ data class Kayttaja(
 
     override fun toString() = "Kayttaja{" +
         "id=$id" +
-        ", nimi='$nimi'" +
         ", nimike='$nimike'" +
         ", profiilikuva='?'" +
         ", profiilikuvaContentType='$profiilikuvaContentType'" +
