@@ -21,7 +21,7 @@ interface KayttajaMapper :
         Mapping(source = "user.id", target = "userId"),
         Mapping(
             target = "nimi",
-            expression = "java(entity.getUser().getFirstName() + \" \" + entity.getUser().getLastName())"
+            expression = "java(entity.getUser() == null ? \"\" : entity.getUser().getFirstName() + \" \" + entity.getUser().getLastName())"
         )
 
     )
