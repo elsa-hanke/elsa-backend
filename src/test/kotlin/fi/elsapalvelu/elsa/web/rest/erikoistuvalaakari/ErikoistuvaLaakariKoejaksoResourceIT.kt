@@ -273,7 +273,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         )
         em.persist(updatedVastuuhenkilo)
         updatedKoulutussopimus.vastuuhenkilo = updatedVastuuhenkilo
-        updatedKoulutussopimus.vastuuhenkilonNimi = updatedVastuuhenkilo.nimi
+        updatedKoulutussopimus.vastuuhenkilonNimi = updatedVastuuhenkilo.getNimi()
         updatedKoulutussopimus.vastuuhenkilonNimike = updatedVastuuhenkilo.nimike
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
@@ -405,7 +405,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(keskustelu.lahikouluttaja?.id).isEqualTo(koejaksonAloituskeskusteluDTO.lahikouluttaja?.id)
         assertThat(keskustelu.lahikouluttajanNimi).isEqualTo(koejaksonAloituskeskusteluDTO.lahikouluttaja?.nimi)
         assertThat(keskustelu.lahiesimies?.id).isEqualTo(koejaksonAloituskeskusteluDTO.lahiesimies?.id)
-        assertThat(keskustelu.lahiesimies?.nimi).isEqualTo(koejaksonAloituskeskusteluDTO.lahiesimies?.nimi)
+        assertThat(keskustelu.lahiesimiehenNimi).isEqualTo(koejaksonAloituskeskusteluDTO.lahiesimies?.nimi)
         assertThat(keskustelu.koejaksonOsaamistavoitteet).isEqualTo(koejaksonAloituskeskusteluDTO.koejaksonOsaamistavoitteet)
         assertThat(keskustelu.lahetetty).isEqualTo(koejaksonAloituskeskusteluDTO.lahetetty)
         assertThat(keskustelu.muokkauspaiva).isNotNull
@@ -436,7 +436,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         )
         em.persist(updatedKouluttaja)
         updatedAloituskeskustelu.lahikouluttaja = updatedKouluttaja
-        updatedAloituskeskustelu.lahikouluttajanNimi = updatedKouluttaja.nimi
+        updatedAloituskeskustelu.lahikouluttajanNimi = updatedKouluttaja.getNimi()
 
         val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
 
@@ -490,7 +490,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonValiarviointiDTO.lahikouluttaja?.id)
         assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonValiarviointiDTO.lahikouluttaja?.nimi)
         assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonValiarviointiDTO.lahiesimies?.id)
-        assertThat(arviointi.lahiesimies?.nimi).isEqualTo(koejaksonValiarviointiDTO.lahiesimies?.nimi)
+        assertThat(arviointi.lahiesimiehenNimi).isEqualTo(koejaksonValiarviointiDTO.lahiesimies?.nimi)
         assertThat(arviointi.muokkauspaiva).isNotNull
     }
 
@@ -583,7 +583,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahikouluttaja?.id)
         assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahikouluttaja?.nimi)
         assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahiesimies?.id)
-        assertThat(arviointi.lahiesimies?.nimi).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahiesimies?.nimi)
+        assertThat(arviointi.lahiesimiehenNimi).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahiesimies?.nimi)
         assertThat(arviointi.muokkauspaiva).isNotNull
     }
 
@@ -683,7 +683,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.id)
         assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.nimi)
         assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.id)
-        assertThat(arviointi.lahiesimies?.nimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.nimi)
+        assertThat(arviointi.lahiesimiehenNimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.nimi)
         assertThat(arviointi.muokkauspaiva).isNotNull
     }
 
@@ -746,7 +746,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.id)
         assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.nimi)
         assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.id)
-        assertThat(arviointi.lahiesimies?.nimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.nimi)
+        assertThat(arviointi.lahiesimiehenNimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.nimi)
         assertThat(arviointi.muokkauspaiva).isNotNull
     }
 
@@ -986,18 +986,18 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         ): KoejaksonKoulutussopimus {
             return KoejaksonKoulutussopimus(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanSyntymaaika = DEFAULT_SYNTYMAAIKA,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 opintooikeudenMyontamispaiva = DEFAULT_MYONTAMISPAIVA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
                 erikoistuvanPuhelinnumero = erikoistuvaLaakari.puhelinnumero,
-                erikoistuvanSahkoposti = erikoistuvaLaakari.sahkoposti,
+                erikoistuvanSahkoposti = erikoistuvaLaakari.kayttaja?.user?.email,
                 lahetetty = false,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
-                vastuuhenkilonNimi = vastuuhenkilo.nimi,
+                vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
                 vastuuhenkilonNimike = vastuuhenkilo.nimike,
             )
         }
@@ -1009,7 +1009,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         ): KoulutussopimuksenKouluttaja {
             return KoulutussopimuksenKouluttaja(
                 kouluttaja = kouluttaja,
-                nimi = kouluttaja.nimi,
+                nimi = kouluttaja.getNimi(),
                 koulutussopimus = koejaksonKoulutussopimus
             )
         }
@@ -1033,19 +1033,19 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         ): KoejaksonAloituskeskustelu {
             return KoejaksonAloituskeskustelu(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
-                erikoistuvanSahkoposti = erikoistuvaLaakari.sahkoposti,
+                erikoistuvanSahkoposti = erikoistuvaLaakari.kayttaja?.user?.email,
                 koejaksonSuorituspaikka = DEFAULT_KOULUTUSPAIKKA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
                 koejaksonPaattymispaiva = DEFAULT_PAATTYMISPAIVA,
                 suoritettuKokoaikatyossa = true,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.nimi,
+                lahiesimiehenNimi = lahiesimies.getNimi(),
                 koejaksonOsaamistavoitteet = DEFAULT_OSAAMISTAVOITTEET,
                 lahetetty = false,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
@@ -1060,7 +1060,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         ): KoejaksonValiarviointi {
             return KoejaksonValiarviointi(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
@@ -1068,9 +1068,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 vahvuudet = DEFAULT_VAHVUUDET,
                 kehittamistoimenpiteet = DEFAULT_KEHITTAMISTOIMENPITEET,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.nimi,
+                lahiesimiehenNimi = lahiesimies.getNimi(),
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }
@@ -1083,15 +1083,15 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         ): KoejaksonKehittamistoimenpiteet {
             return KoejaksonKehittamistoimenpiteet(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 kehittamistoimenpiteetRiittavat = true,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.nimi,
+                lahiesimiehenNimi = lahiesimies.getNimi(),
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }
@@ -1104,15 +1104,15 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         ): KoejaksonLoppukeskustelu {
             return KoejaksonLoppukeskustelu(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 esitetaanKoejaksonHyvaksymista = true,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.nimi,
+                lahiesimiehenNimi = lahiesimies.getNimi(),
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }
@@ -1124,12 +1124,12 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         ): KoejaksonVastuuhenkilonArvio {
             return KoejaksonVastuuhenkilonArvio(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 vastuuhenkilo = vastuuhenkilo,
-                vastuuhenkilonNimi = vastuuhenkilo.nimi,
+                vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }

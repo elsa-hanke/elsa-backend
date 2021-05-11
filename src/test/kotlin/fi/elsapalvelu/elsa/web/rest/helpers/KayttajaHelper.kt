@@ -20,7 +20,6 @@ class KayttajaHelper {
         @JvmStatic
         fun createEntity(em: EntityManager, userId: String? = null): Kayttaja {
             val kayttaja = Kayttaja(
-                nimi = DEFAULT_NIMI,
                 profiilikuva = DEFAULT_PROFIILIKUVA,
                 profiilikuvaContentType = DEFAULT_PROFIILIKUVA_CONTENT_TYPE
             )
@@ -41,13 +40,12 @@ class KayttajaHelper {
             nimi: String? = UPDATED_NIMI
         ): Kayttaja {
             val kayttaja = Kayttaja(
-                nimi = nimi,
                 profiilikuva = UPDATED_PROFIILIKUVA,
                 profiilikuvaContentType = UPDATED_PROFIILIKUVA_CONTENT_TYPE
             )
 
             // Lisätään pakollinen tieto
-            val user = KayttajaResourceIT.createEntity(userId)
+            val user = KayttajaResourceIT.createEntity(userId, nimi)
             em.persist(user)
             em.flush()
             kayttaja.user = user

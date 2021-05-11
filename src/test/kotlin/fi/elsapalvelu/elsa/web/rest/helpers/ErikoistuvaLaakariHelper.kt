@@ -26,7 +26,6 @@ class ErikoistuvaLaakariHelper {
         fun createEntity(em: EntityManager, userId: String? = null): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari(
                 puhelinnumero = DEFAULT_PUHELINNUMERO,
-                sahkoposti = DEFAULT_SAHKOPOSTI,
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
                 opintojenAloitusvuosi = DEFAULT_OPINTOJEN_ALOITUSVUOSI
             )
@@ -63,7 +62,6 @@ class ErikoistuvaLaakariHelper {
         fun createUpdatedEntity(em: EntityManager): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari(
                 puhelinnumero = UPDATED_PUHELINNUMERO,
-                sahkoposti = UPDATED_SAHKOPOSTI,
                 opiskelijatunnus = UPDATED_OPISKELIJATUNNUS,
                 opintojenAloitusvuosi = UPDATED_OPINTOJEN_ALOITUSVUOSI
             )

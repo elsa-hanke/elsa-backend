@@ -158,14 +158,18 @@ class KayttajaResourceIT {
         private const val DEFAULT_LANGKEY = "en"
 
         @JvmStatic
-        fun createEntity(userId: String? = null): User {
+        fun createEntity(
+            userId: String? = null,
+            nimi: String? = "$DEFAULT_FIRSTNAME $DEFAULT_LASTNAME"
+        ): User {
+            val names = nimi?.split(" ")
             return User(
                 id = userId ?: UUID.randomUUID().toString(),
                 login = DEFAULT_LOGIN + RandomStringUtils.randomAlphabetic(5),
                 activated = true,
                 email = RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL,
-                firstName = DEFAULT_FIRSTNAME,
-                lastName = DEFAULT_LASTNAME,
+                firstName = names?.dropLast(1)?.joinToString(),
+                lastName = names?.last(),
                 langKey = DEFAULT_LANGKEY
             )
         }
