@@ -1066,18 +1066,18 @@ class KouluttajaKoejaksoResourceIT {
         ): KoejaksonKoulutussopimus {
             return KoejaksonKoulutussopimus(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanSyntymaaika = DEFAULT_SYNTYMAAIKA,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 opintooikeudenMyontamispaiva = DEFAULT_MYONTAMISPAIVA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
                 erikoistuvanPuhelinnumero = erikoistuvaLaakari.puhelinnumero,
-                erikoistuvanSahkoposti = erikoistuvaLaakari.sahkoposti,
+                erikoistuvanSahkoposti = erikoistuvaLaakari.kayttaja?.user?.email,
                 lahetetty = true,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
-                vastuuhenkilonNimi = vastuuhenkilo.nimi,
+                vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
                 vastuuhenkilonNimike = vastuuhenkilo.nimike,
             )
         }
@@ -1089,7 +1089,7 @@ class KouluttajaKoejaksoResourceIT {
         ): KoulutussopimuksenKouluttaja {
             return KoulutussopimuksenKouluttaja(
                 kouluttaja = kouluttaja,
-                nimi = kouluttaja.nimi,
+                nimi = kouluttaja.getNimi(),
                 koulutussopimus = koejaksonKoulutussopimus
             )
         }
@@ -1113,19 +1113,19 @@ class KouluttajaKoejaksoResourceIT {
         ): KoejaksonAloituskeskustelu {
             return KoejaksonAloituskeskustelu(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
-                erikoistuvanSahkoposti = erikoistuvaLaakari.sahkoposti,
+                erikoistuvanSahkoposti = erikoistuvaLaakari.kayttaja?.user?.email,
                 koejaksonSuorituspaikka = DEFAULT_KOULUTUSPAIKKA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
                 koejaksonPaattymispaiva = DEFAULT_PAATTYMISPAIVA,
                 suoritettuKokoaikatyossa = true,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.nimi,
+                lahiesimiehenNimi = lahiesimies.getNimi(),
                 koejaksonOsaamistavoitteet = DEFAULT_OSAAMISTAVOITTEET,
                 lahetetty = true,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
@@ -1140,14 +1140,14 @@ class KouluttajaKoejaksoResourceIT {
         ): KoejaksonValiarviointi {
             return KoejaksonValiarviointi(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.nimi,
+                lahiesimiehenNimi = lahiesimies.getNimi(),
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }
@@ -1160,14 +1160,14 @@ class KouluttajaKoejaksoResourceIT {
         ): KoejaksonKehittamistoimenpiteet {
             return KoejaksonKehittamistoimenpiteet(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.nimi,
+                lahiesimiehenNimi = lahiesimies.getNimi(),
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }
@@ -1180,14 +1180,14 @@ class KouluttajaKoejaksoResourceIT {
         ): KoejaksonLoppukeskustelu {
             return KoejaksonLoppukeskustelu(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.nimi,
+                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.nimi,
+                lahiesimiehenNimi = lahiesimies.getNimi(),
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }

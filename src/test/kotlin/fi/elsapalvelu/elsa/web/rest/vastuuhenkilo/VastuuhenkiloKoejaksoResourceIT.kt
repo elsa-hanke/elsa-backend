@@ -369,18 +369,18 @@ class VastuuhenkiloKoejaksoResourceIT {
         ): KoejaksonKoulutussopimus {
             return KoejaksonKoulutussopimus(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanSyntymaaika = DEFAULT_SYNTYMAAIKA,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 opintooikeudenMyontamispaiva = DEFAULT_MYONTAMISPAIVA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
                 erikoistuvanPuhelinnumero = erikoistuvaLaakari.puhelinnumero,
-                erikoistuvanSahkoposti = erikoistuvaLaakari.sahkoposti,
+                erikoistuvanSahkoposti = erikoistuvaLaakari.kayttaja?.user?.email,
                 lahetetty = true,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
-                vastuuhenkilonNimi = vastuuhenkilo.nimi,
+                vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
                 vastuuhenkilonNimike = vastuuhenkilo.nimike,
             )
         }
@@ -395,7 +395,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             em.persist(kouluttaja)
             return KoulutussopimuksenKouluttaja(
                 kouluttaja = kouluttaja,
-                nimi = kouluttaja.nimi,
+                nimi = kouluttaja.getNimi(),
                 koulutussopimus = koejaksonKoulutussopimus,
                 sopimusHyvaksytty = true,
                 kuittausaika = DEFAULT_KUITTAUSAIKA_KOULUTTAJA
@@ -420,13 +420,13 @@ class VastuuhenkiloKoejaksoResourceIT {
         ): KoejaksonVastuuhenkilonArvio {
             return KoejaksonVastuuhenkilonArvio(
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.nimi,
+                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 erikoistuvanErikoisala = DEFAULT_ERIKOISALA,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
-                vastuuhenkilonNimi = vastuuhenkilo.nimi,
+                vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
             )
         }
     }

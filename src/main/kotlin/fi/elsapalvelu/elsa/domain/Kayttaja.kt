@@ -53,6 +53,10 @@ data class Kayttaja(
         return this
     }
 
+    fun getNimi(): String {
+        return this.user?.firstName + " " + this.user?.lastName
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Kayttaja) return false
