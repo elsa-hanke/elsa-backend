@@ -35,7 +35,7 @@ data class Asiakirja(
 
     @NotNull
     @Column(name = "lisattypvm", nullable = false)
-    var lisattypvm : LocalDateTime? = null,
+    var lisattypvm: LocalDateTime? = null,
 
     @NotNull
     @Column(name = "data", nullable = false)
