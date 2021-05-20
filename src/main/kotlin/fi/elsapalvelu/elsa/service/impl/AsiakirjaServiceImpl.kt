@@ -33,7 +33,7 @@ class AsiakirjaServiceImpl(
                 it.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.id
                 it.lisattypvm = LocalDateTime.now()
             }
-            var asiakirjaEntities = asiakirjat.mapNotNull { asiakirjaMapper.toEntity(it) }
+            var asiakirjaEntities = asiakirjat.map { asiakirjaMapper.toEntity(it) }
             asiakirjaEntities = asiakirjaRepository.saveAll(asiakirjaEntities)
             return asiakirjaEntities.map { asiakirjaMapper.toDto(it) }
         }
@@ -44,16 +44,17 @@ class AsiakirjaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakari(userId: String): MutableList<AsiakirjaListProjection> {
+    override fun findAllByErikoistuvaLaakariUserId(userId: String): MutableList<AsiakirjaListProjection> {
         return asiakirjaRepository.findAllByErikoistuvaLaakari(userId).toMutableList()
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariAndTyoskentelyjakso(
+    override fun findAllByErikoistuvaLaakariIdAndTyoskentelyjaksoId(
         userId: String,
         tyoskentelyJaksoId: Long?
     ): MutableList<AsiakirjaListProjection> {
-        return asiakirjaRepository.findAllByErikoistuvaLaakariAndTyoskentelyjakso(userId, tyoskentelyJaksoId).toMutableList()
+        return asiakirjaRepository.findAllByErikoistuvaLaakariAndTyoskentelyjakso(userId, tyoskentelyJaksoId)
+            .toMutableList()
     }
 
     @Transactional(readOnly = true)
@@ -65,6 +66,7 @@ class AsiakirjaServiceImpl(
         return asiakirja
     }
 
+
     override fun delete(id: Long, userId: String) {
         asiakirjaRepository.findByIdOrNull(id)?.let { asiakirja ->
             asiakirja.erikoistuvaLaakari.let {
@@ -75,5 +77,20 @@ class AsiakirjaServiceImpl(
                 }
             }
         }
+    }
+
+    override fun delete(ids: List<Long>, userId: String) {
+        asiakirjaRepository.findAllById(ids.toMutableList()).let { asiakirjaRepository.deleteAll(it) }
+    }
+
+    override fun removeTyoskentelyjaksoReference(userId: String, tyoskentelyJaksoId: Long?) {
+        val asiakirjaIdsByTyoskentelyjakso =
+            asiakirjaRepository.findAllByErikoistuvaLaakariAndTyoskentelyjakso(userId, tyoskentelyJaksoId).map { it.id }
+        val asiakirjaEntitiesByTyoskentelyjakso = asiakirjaRepository.findAllById(asiakirjaIdsByTyoskentelyjakso)
+        asiakirjaEntitiesByTyoskentelyjakso.forEach {
+            it.tyoskentelyjakso = null
+        }
+
+        asiakirjaRepository.saveAll(asiakirjaEntitiesByTyoskentelyjakso)
     }
 }

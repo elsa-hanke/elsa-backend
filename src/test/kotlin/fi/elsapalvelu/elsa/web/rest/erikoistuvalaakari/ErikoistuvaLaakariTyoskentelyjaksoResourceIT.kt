@@ -1,20 +1,23 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.nhaarman.mockitokotlin2.inOrder
+import com.nhaarman.mockitokotlin2.isNull
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Keskeytysaika
-import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
-import fi.elsapalvelu.elsa.domain.Tyoskentelypaikka
+import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.User_.login
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.security.getCurrentUserLogin
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
+import io.undertow.servlet.core.ServletExtensionHolder
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
@@ -24,17 +27,33 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockMultipartFile
+import org.springframework.mock.web.MockServletContext
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.request.RequestPostProcessor
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.setup.ConfigurableMockMvcBuilder
 import org.springframework.transaction.annotation.Transactional
+import org.testcontainers.shaded.com.trilead.ssh2.Session
+import java.io.File
+import java.security.Principal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.persistence.EntityManager
+import javax.servlet.ServletContext
+import javax.servlet.ServletRequest
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
@@ -57,6 +76,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     private lateinit var poissaolonSyyRepository: PoissaolonSyyRepository
 
     @Autowired
+    private lateinit var asiakirjaRepository: AsiakirjaRepository
+
+    @Autowired
     private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
 
     @Autowired
@@ -71,9 +93,22 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     @Autowired
     private lateinit var restKeskeytysaikaMockMvc: MockMvc
 
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
     private lateinit var tyoskentelyjakso: Tyoskentelyjakso
 
     private lateinit var keskeytysaika: Keskeytysaika
+
+    private lateinit var asiakirja: Asiakirja
+
+    private lateinit var tempFile1: File
+
+    private lateinit var tempFile2: File
+
+    private lateinit var mockMultipartFile1: MockMultipartFile
+
+    private lateinit var mockMultipartFile2: MockMultipartFile
 
     @BeforeEach
     fun setup() {
@@ -84,19 +119,24 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     @Transactional
     fun createTyoskentelyjakso() {
         initTest()
+        initMockFiles()
 
-        val databaseSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
+        val asiakirjaTableSizeBeforeCreate = asiakirjaRepository.findAll().size
 
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
         restTyoskentelyjaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
+            multipart("/api/erikoistuva-laakari/tyoskentelyjaksot")
+                .file(mockMultipartFile1).file(mockMultipartFile2)
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
                 .with(csrf())
         ).andExpect(status().isCreated)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeCreate + 1)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate + 1)
         val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
         assertThat(testTyoskentelyjakso.alkamispaiva).isEqualTo(DEFAULT_ALKAMISPAIVA)
         assertThat(testTyoskentelyjakso.paattymispaiva).isEqualTo(DEFAULT_PAATTYMISPAIVA)
@@ -104,6 +144,18 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         assertThat(testTyoskentelyjakso.kaytannonKoulutus).isEqualTo(DEFAULT_KAYTANNON_KOULUTUS)
         assertThat(testTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan)
             .isEqualTo(DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN)
+
+        val asiakirjaList =
+            asiakirjaRepository.findAllByErikoistuvaLaakariAndTyoskentelyjakso(KayttajaHelper.DEFAULT_ID, testTyoskentelyjakso.id)
+        assertThat(asiakirjaList).hasSize(asiakirjaTableSizeBeforeCreate + 2)
+
+        val testAsiakirja = asiakirjaList[asiakirjaList.size - 2]
+        assertThat(testAsiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
+        assertThat(testAsiakirja.lisattypvm.toLocalDate()).isEqualTo(LocalDate.now())
+
+        val testAsiakirja2 = asiakirjaList[asiakirjaList.size - 1]
+        assertThat(testAsiakirja2.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI)
+        assertThat(testAsiakirja2.lisattypvm.toLocalDate()).isEqualTo(LocalDate.now())
     }
 
     @Test
@@ -111,18 +163,18 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     fun createTyoskentelyjaksoForAnotherUser() {
         initTest(null)
 
-        val databaseSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
-
+        val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
         restTyoskentelyjaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
+            multipart("/api/erikoistuva-laakari/tyoskentelyjaksot")
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeCreate)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
@@ -130,39 +182,41 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     fun createTyoskentelyjaksoWithExistingId() {
         initTest()
 
-        val databaseSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
 
         tyoskentelyjakso.id = 1L
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
         restTyoskentelyjaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
+            multipart("/api/erikoistuva-laakari/tyoskentelyjaksot")
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeCreate)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
     @Transactional
-    fun createTyoskentelyjaksoWithExistingTyoskenetelypaikkaId() {
+    fun createTyoskentelyjaksoWithExistingTyoskentelypaikkaId() {
         initTest()
 
-        val databaseSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
 
         tyoskentelyjakso.tyoskentelypaikka!!.id = 1L
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
         restTyoskentelyjaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
+            multipart("/api/erikoistuva-laakari/tyoskentelyjaksot")
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeCreate)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
@@ -170,20 +224,21 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     fun createTyoskentelyjaksoWithShortPeriod() {
         initTest()
 
-        val databaseSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
 
         tyoskentelyjakso.alkamispaiva = LocalDate.of(2020, 1, 25)
         tyoskentelyjakso.paattymispaiva = LocalDate.of(2020, 2, 5)
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
         restTyoskentelyjaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
+            multipart("/api/erikoistuva-laakari/tyoskentelyjaksot")
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeCreate)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
@@ -191,28 +246,31 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     fun createTyoskentelyjaksoWithInvalidDates() {
         initTest()
 
-        val databaseSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
 
         tyoskentelyjakso.alkamispaiva = LocalDate.of(2020, 1, 25)
         tyoskentelyjakso.paattymispaiva = LocalDate.of(2020, 1, 5)
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
         restTyoskentelyjaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
+            multipart("/api/erikoistuva-laakari/tyoskentelyjaksot")
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeCreate)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
     @Transactional
     fun getTyoskentelyjakso() {
         initTest()
+        initAsiakirja(null, tyoskentelyjakso)
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        asiakirjaRepository.saveAndFlush(asiakirja)
 
         val id = tyoskentelyjakso.id
         assertNotNull(id)
@@ -226,6 +284,16 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.osaaikaprosentti").value(DEFAULT_OSAAIKAPROSENTTI))
             .andExpect(jsonPath("$.kaytannonKoulutus").value(DEFAULT_KAYTANNON_KOULUTUS.toString()))
             .andExpect(jsonPath("$.hyvaksyttyAiempaanErikoisalaan").value(DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN))
+            .andExpect(jsonPath("$.asiakirjat").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.asiakirjat[0].nimi").value(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI))
+            .andExpect(
+                jsonPath("$.asiakirjat[0].lisattypvm").value(
+                    Matchers.containsString(
+                        LocalDate.now().toString()
+                    )
+                )
+            )
+            .andExpect(jsonPath("$.kaikkiAsiakirjaNimet[0]").value(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI))
     }
 
     @Test
@@ -246,10 +314,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     @Transactional
     fun updateTyoskentelyjakso() {
         initTest()
+        initAsiakirja(null, tyoskentelyjakso)
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
-        val databaseSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
 
         val id = tyoskentelyjakso.id
         assertNotNull(id)
@@ -261,16 +330,16 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         updatedTyoskentelyjakso.kaytannonKoulutus = UPDATED_KAYTANNON_KOULUTUS
         updatedTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan = UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(updatedTyoskentelyjakso)
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
 
         restTyoskentelyjaksoMockMvc.perform(
             put("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
                 .with(csrf())
         ).andExpect(status().isOk)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeUpdate)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeUpdate)
         val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
         assertThat(testTyoskentelyjakso.alkamispaiva).isEqualTo(UPDATED_ALKAMISPAIVA)
         assertThat(testTyoskentelyjakso.paattymispaiva).isEqualTo(UPDATED_PAATTYMISPAIVA)
@@ -287,7 +356,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
-        val databaseSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
 
         val id = tyoskentelyjakso.id
         assertNotNull(id)
@@ -301,16 +370,16 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         updatedTyoskentelyjakso.kaytannonKoulutus = UPDATED_KAYTANNON_KOULUTUS
         updatedTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan = UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(updatedTyoskentelyjakso)
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
 
         restTyoskentelyjaksoMockMvc.perform(
             put("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeUpdate)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeUpdate)
     }
 
     @Test
@@ -320,18 +389,19 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
-        val databaseSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
 
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
         restTyoskentelyjaksoMockMvc.perform(
             put("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeUpdate)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeUpdate)
     }
 
     @Test
@@ -341,7 +411,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
-        val databaseSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
 
         restTyoskentelyjaksoMockMvc.perform(
             delete("/api/erikoistuva-laakari/tyoskentelyjaksot/{id}", tyoskentelyjakso.id)
@@ -350,7 +420,41 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isNoContent)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeDelete - 1)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete - 1)
+    }
+
+    @Test
+    @Transactional
+    fun deleteTyoskentelyjaksoWhichContainsAsiakirja() {
+        initTest()
+        initAsiakirja(null, tyoskentelyjakso)
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        asiakirjaRepository.saveAndFlush(asiakirja)
+
+        val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
+        val asiakirjaTableSizeBeforeDelete = asiakirjaRepository.findAll().size
+
+        restTyoskentelyjaksoMockMvc.perform(
+            delete("/api/erikoistuva-laakari/tyoskentelyjaksot/{id}", tyoskentelyjakso.id)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(csrf())
+        ).andExpect(status().isNoContent)
+
+        val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete - 1)
+
+        val asiakirjaListByTyoskentelyjakso =
+            asiakirjaRepository.findAllByErikoistuvaLaakariAndTyoskentelyjakso(KayttajaHelper.DEFAULT_ID, tyoskentelyjakso.id)
+        assertThat(asiakirjaListByTyoskentelyjakso).hasSize(asiakirjaTableSizeBeforeDelete - 1)
+
+        val asiakirjaList = asiakirjaRepository.findAll()
+
+        // Mikäli työskentelyjakso poistetaan, jätetään asiakirja edelleen saataville Asiakirjat-osioon
+        assertThat(asiakirjaList).hasSize(asiakirjaTableSizeBeforeDelete)
+
+        val updatedAsiakirja = asiakirjaList.find { it.nimi == asiakirja.nimi }?.takeIf { it.tyoskentelyjakso == null }
+        assertThat(updatedAsiakirja).isNotNull
     }
 
     @Test
@@ -360,7 +464,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
-        val databaseSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
 
         restTyoskentelyjaksoMockMvc.perform(
             delete("/api/erikoistuva-laakari/tyoskentelyjaksot/{id}", tyoskentelyjakso.id)
@@ -369,7 +473,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isNoContent)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeDelete)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete)
     }
 
     @Test
@@ -379,11 +483,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
-        val databaseSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
 
         em.detach(tyoskentelyjakso)
 
-        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em, DEFAULT_ID)
+        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em, KayttajaHelper.DEFAULT_ID)
 
         suoritusarviointiRepository.saveAndFlush(suoritusarviointi)
 
@@ -394,7 +498,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isNoContent)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(databaseSizeBeforeDelete)
+        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete)
     }
 
     @Test
@@ -406,7 +510,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
 
-        val databaseSizeBeforeCreate = keskeytysaikaRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeCreate = keskeytysaikaRepository.findAll().size
 
         val keskeytysaikaDTO = keskeytysaikaMapper.toDto(keskeytysaika)
         keskeytysaikaDTO.tyoskentelyjaksoId = tyoskentelyjakso.id
@@ -418,7 +522,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isCreated)
 
         val keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeCreate + 1)
+        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate + 1)
         val testKeskeytysaika = keskeytysaikaList[keskeytysaikaList.size - 1]
         assertThat(testKeskeytysaika.alkamispaiva).isEqualTo(KeskeytysaikaHelper.DEFAULT_ALKAMISPAIVA)
         assertThat(testKeskeytysaika.paattymispaiva).isEqualTo(KeskeytysaikaHelper.DEFAULT_PAATTYMISPAIVA)
@@ -434,7 +538,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
 
-        val databaseSizeBeforeCreate = keskeytysaikaRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeCreate = keskeytysaikaRepository.findAll().size
 
         keskeytysaika.id = 1L
         val keskeytysaikaDTO = keskeytysaikaMapper.toDto(keskeytysaika)
@@ -447,7 +551,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isBadRequest)
 
         val keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeCreate)
+        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
@@ -459,7 +563,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
 
-        val databaseSizeBeforeCreate = keskeytysaikaRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeCreate = keskeytysaikaRepository.findAll().size
 
         val keskeytysaikaDTO = keskeytysaikaMapper.toDto(keskeytysaika)
         keskeytysaikaDTO.tyoskentelyjaksoId = tyoskentelyjakso.id
@@ -471,7 +575,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isBadRequest)
 
         val keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeCreate)
+        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
@@ -485,7 +589,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         keskeytysaika.alkamispaiva = LocalDate.of(2020, 1, 1)
         keskeytysaika.paattymispaiva = LocalDate.of(2020, 12, 1)
 
-        val databaseSizeBeforeCreate = keskeytysaikaRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeCreate = keskeytysaikaRepository.findAll().size
 
         var keskeytysaikaDTO = keskeytysaikaMapper.toDto(keskeytysaika)
         keskeytysaikaDTO.tyoskentelyjaksoId = tyoskentelyjakso.id
@@ -497,7 +601,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isBadRequest)
 
         var keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeCreate)
+        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
 
         keskeytysaika.alkamispaiva = LocalDate.of(2019, 12, 1)
         keskeytysaika.paattymispaiva = LocalDate.of(2020, 1, 10)
@@ -512,7 +616,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isBadRequest)
 
         keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeCreate)
+        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
 
         keskeytysaika.alkamispaiva = LocalDate.of(2020, 1, 15)
         keskeytysaika.paattymispaiva = LocalDate.of(2020, 1, 10)
@@ -527,7 +631,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isBadRequest)
 
         keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeCreate)
+        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
@@ -579,7 +683,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
-        val databaseSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
 
         val id = keskeytysaika.id
         assertNotNull(id)
@@ -599,7 +703,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isOk)
 
         val keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeUpdate)
+        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeUpdate)
         val testKeskeytysaika = keskeytysaikaList[keskeytysaikaList.size - 1]
         assertThat(testKeskeytysaika.alkamispaiva).isEqualTo(KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA)
         assertThat(testKeskeytysaika.paattymispaiva).isEqualTo(KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA)
@@ -616,7 +720,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
-        val databaseSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
 
         val id = keskeytysaika.id
         assertNotNull(id)
@@ -636,7 +740,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isBadRequest)
 
         val keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeUpdate)
+        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeUpdate)
     }
 
     @Test
@@ -649,7 +753,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
-        val databaseSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
 
         val id = keskeytysaika.id
         assertNotNull(id)
@@ -670,7 +774,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isBadRequest)
 
         val keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeUpdate)
+        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeUpdate)
     }
 
     @Test
@@ -683,7 +787,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
-        val databaseSizeBeforeDelete = keskeytysaikaRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeDelete = keskeytysaikaRepository.findAll().size
 
         restKeskeytysaikaMockMvc.perform(
             delete("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot/{id}", keskeytysaika.id)
@@ -692,7 +796,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isNoContent)
 
         val keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeDelete - 1)
+        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete - 1)
     }
 
     @Test
@@ -705,7 +809,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
-        val databaseSizeBeforeDelete = keskeytysaikaRepository.findAll().size
+        val tyoskentelyjaksoTableSizeBeforeDelete = keskeytysaikaRepository.findAll().size
 
         restKeskeytysaikaMockMvc.perform(
             delete("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot/{id}", keskeytysaika.id)
@@ -714,7 +818,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isNoContent)
 
         val keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(databaseSizeBeforeDelete)
+        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete)
     }
 
     @Test
@@ -766,7 +870,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         em.detach(tyoskentelyjakso)
 
-        val tyoskentelyjakso2 = createEntity(em, DEFAULT_ID)
+        val tyoskentelyjakso2 = createEntity(em, KayttajaHelper.DEFAULT_ID)
         tyoskentelyjakso2.hyvaksyttyAiempaanErikoisalaan = true
         tyoskentelyjakso2.kaytannonKoulutus = KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
         tyoskentelyjakso2.tyoskentelypaikka!!.tyyppi = TyoskentelyjaksoTyyppi.YLIOPISTOLLINEN_SAIRAALA
@@ -802,11 +906,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[1].suoritettu").value(30.0))
     }
 
-    fun initTest(userId: String? = DEFAULT_ID) {
+    fun initTest(userId: String? = KayttajaHelper.DEFAULT_ID) {
         val userDetails = mapOf<String, Any>(
-            "uid" to DEFAULT_ID,
-            "sub" to DEFAULT_LOGIN,
-            "email" to DEFAULT_EMAIL
+            "uid" to KayttajaHelper.DEFAULT_ID,
+            "sub" to KayttajaHelper.DEFAULT_LOGIN,
+            "email" to KayttajaHelper.DEFAULT_EMAIL
         )
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
         val user = DefaultOAuth2User(authorities, userDetails, "sub")
@@ -816,11 +920,35 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         tyoskentelyjakso = createEntity(em, userId)
     }
 
-    companion object {
+    fun initMockFiles() {
+        tempFile1 = File.createTempFile("file", "pdf")
+        tempFile1.writeBytes(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        tempFile1.deleteOnExit()
 
-        private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
-        private const val DEFAULT_LOGIN = "johndoe"
-        private const val DEFAULT_EMAIL = "john.doe@example.com"
+        tempFile2 = File.createTempFile("file", "png")
+        tempFile2.writeBytes(AsiakirjaHelper.ASIAKIRJA_PNG_DATA)
+        tempFile2.deleteOnExit()
+
+        mockMultipartFile1 = MockMultipartFile(
+            "files",
+            AsiakirjaHelper.ASIAKIRJA_PDF_NIMI,
+            AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI,
+            tempFile1.readBytes()
+        )
+
+        mockMultipartFile2 = MockMultipartFile(
+            "files",
+            AsiakirjaHelper.ASIAKIRJA_PNG_NIMI,
+            AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI,
+            tempFile2.readBytes()
+        )
+    }
+
+    fun initAsiakirja(userId: String? = KayttajaHelper.DEFAULT_ID, tyoskentelyjakso: Tyoskentelyjakso?) {
+        asiakirja = AsiakirjaHelper.createEntity(em, userId, tyoskentelyjakso)
+    }
+
+    companion object {
 
         private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 1, 1)
         private val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 2, 1)

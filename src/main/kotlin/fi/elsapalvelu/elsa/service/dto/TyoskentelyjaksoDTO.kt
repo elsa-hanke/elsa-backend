@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
+import fi.elsapalvelu.elsa.service.projection.AsiakirjaListProjection
 import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.Max
@@ -37,7 +38,11 @@ data class TyoskentelyjaksoDTO(
 
     var suoritusarvioinnit: Boolean? = null,
 
-    var liitettyKoejaksoon: Boolean? = null
+    var liitettyKoejaksoon: Boolean? = null,
+
+    var asiakirjat: MutableList<AsiakirjaListProjection>? = null,
+
+    var kaikkiAsiakirjaNimet: MutableSet<String>? = null
 
 ) : Serializable {
 
