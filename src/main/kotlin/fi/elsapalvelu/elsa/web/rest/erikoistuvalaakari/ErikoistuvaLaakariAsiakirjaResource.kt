@@ -1,9 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.AsiakirjaService
+import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.projection.AsiakirjaListProjection
+import fi.elsapalvelu.elsa.validation.FileValidator
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
@@ -16,28 +18,34 @@ import java.security.Principal
 import javax.validation.Valid
 
 private const val ENTITY_NAME = "asiakirja"
-private const val MAXIMUM_FILE_NAME_LENGTH = 255
-private val allowedContentTypes = listOf("application/pdf", "image/jpg", "image/jpeg", "image/png")
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariAsiakirjaResource(
     private val userService: UserService,
-    private val asiakirjaService: AsiakirjaService
+    private val tyoskentelyjaksoService: TyoskentelyjaksoService,
+    private val asiakirjaService: AsiakirjaService,
+    private val fileValidator: FileValidator
 ) {
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 
     @PostMapping("/asiakirjat")
     fun createAsiakirjat(
-        @Valid @RequestParam("files") files: List<MultipartFile>,
+        @Valid @RequestParam files: List<MultipartFile>,
         principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        validateFiles(files, user.id!!)
+        fileValidator.validate(files, user.id!!)
 
         val asiakirjat =
-            files.map { AsiakirjaDTO(nimi = it.originalFilename, tyyppi = it.contentType, data = it.bytes) }
+            files.map {
+                AsiakirjaDTO(
+                    nimi = it.originalFilename,
+                    tyyppi = it.contentType,
+                    data = it.bytes
+                )
+            }
         val result = asiakirjaService.create(asiakirjat, user.id!!)
         return ResponseEntity.created(URI("/api/asiakirjat"))
             .headers(
@@ -49,34 +57,6 @@ class ErikoistuvaLaakariAsiakirjaResource(
                 )
             )
             .body(result)
-
-    }
-
-    private fun validateFiles(files: List<MultipartFile>, userId: String) {
-        val existingFileNames = asiakirjaService.findAllByErikoistuvaLaakari(userId).map { it.nimi }
-        if (files.any { it.originalFilename in existingFileNames }) {
-            throw BadRequestAlertException(
-                "Samanniminen tiedosto on jo olemassa",
-                "asiakirja",
-                "idexists"
-            )
-        }
-
-        if (files.any { it.contentType?.toString() !in allowedContentTypes }) {
-            throw BadRequestAlertException(
-                "Sallitut tiedostomuodot: .pdf, .png, .jpeg ja .jpg",
-                "asiakirja",
-                "dataillegal"
-            )
-        }
-
-        if (files.any { it.name.length > MAXIMUM_FILE_NAME_LENGTH }) {
-            throw BadRequestAlertException(
-                "Tiedostonimen maksimipituus: 255 merkkiä",
-                "asiakirja",
-                "dataillegal"
-            )
-        }
     }
 
     @GetMapping("/asiakirjat")
@@ -84,21 +64,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<List<AsiakirjaListProjection>> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirjat = asiakirjaService.findAllByErikoistuvaLaakari(user.id!!)
-
-        return ResponseEntity.ok(asiakirjat)
-    }
-
-    @GetMapping("/asiakirjat/tyoskentelyjakso/{id}")
-    fun getAllAsiakirjatByTyoskentelyJaksoId(
-        tyoskentelyjaksoId: Long?,
-        principal: Principal?
-    ): ResponseEntity<List<AsiakirjaListProjection>> {
-        val user = userService.getAuthenticatedUser(principal)
-        val asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariAndTyoskentelyjakso(
-            user.id!!,
-            tyoskentelyjaksoId
-        )
+        val asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!)
 
         return ResponseEntity.ok(asiakirjat)
     }
@@ -115,7 +81,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + asiakirja.nimi + "\"")
                 .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
-                .body(asiakirja.data);
+                .body(asiakirja.data)
         }
         return ResponseEntity.notFound().build()
     }

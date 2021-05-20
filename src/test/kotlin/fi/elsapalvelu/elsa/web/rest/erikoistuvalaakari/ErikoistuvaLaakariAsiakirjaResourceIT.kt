@@ -3,40 +3,34 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.Asiakirja
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.repository.AsiakirjaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
-import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
-import fi.elsapalvelu.elsa.web.rest.findAll
-import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import junit.framework.TestCase.assertNotNull
+import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User
-import org.springframework.security.test.context.TestSecurityContextHolder
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.transaction.annotation.Transactional
-import javax.persistence.EntityManager
-import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.Matchers
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User
+import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import java.io.BufferedReader
+import org.springframework.transaction.annotation.Transactional
 import java.io.File
-import java.nio.file.Files
-
 import java.time.LocalDate
 import java.time.LocalDateTime
+import javax.persistence.EntityManager
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
@@ -44,9 +38,6 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
 
     @Autowired
     private lateinit var asiakirjaRepository: AsiakirjaRepository
-
-    @Autowired
-    private lateinit var asiakirjaMapper: AsiakirjaMapper
 
     @Autowired
     private lateinit var em: EntityManager
@@ -87,9 +78,9 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         assertThat(asiakirjaList).hasSize(databaseSizeBeforeCreate + 1)
 
         val testAsiakirja = asiakirjaList[asiakirjaList.size - 1]
-        assertThat(testAsiakirja.nimi).isEqualTo(ASIAKIRJA_PDF_NIMI)
-        assertThat(testAsiakirja.tyyppi).isEqualTo(ASIAKIRJA_PDF_TYYPPI)
-        assertThat(testAsiakirja.data).isEqualTo(ASIAKIRJA_PDF_DATA)
+        assertThat(testAsiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
+        assertThat(testAsiakirja.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
+        assertThat(testAsiakirja.data).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
         assertThat(testAsiakirja.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
     }
 
@@ -111,15 +102,15 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         assertThat(asiakirjaList).hasSize(databaseSizeBeforeCreate + 2)
 
         val testAsiakirja = asiakirjaList[asiakirjaList.size - 2]
-        assertThat(testAsiakirja.nimi).isEqualTo(ASIAKIRJA_PDF_NIMI)
-        assertThat(testAsiakirja.tyyppi).isEqualTo(ASIAKIRJA_PDF_TYYPPI)
-        assertThat(testAsiakirja.data).isEqualTo(ASIAKIRJA_PDF_DATA)
+        assertThat(testAsiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
+        assertThat(testAsiakirja.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
+        assertThat(testAsiakirja.data).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
         assertThat(testAsiakirja.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
 
         val testAsiakirja2 = asiakirjaList[asiakirjaList.size - 1]
-        assertThat(testAsiakirja2.nimi).isEqualTo(ASIAKIRJA_PNG_NIMI)
-        assertThat(testAsiakirja2.tyyppi).isEqualTo(ASIAKIRJA_PNG_TYYPPI)
-        assertThat(testAsiakirja2.data).isEqualTo(ASIAKIRJA_PNG_DATA)
+        assertThat(testAsiakirja2.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI)
+        assertThat(testAsiakirja2.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI)
+        assertThat(testAsiakirja2.data).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_DATA)
         assertThat(testAsiakirja2.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
     }
 
@@ -207,11 +198,11 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         asiakirjaRepository.saveAndFlush(asiakirja)
         em.detach(asiakirja)
 
-        val asiakirja2 = createEntity(em, DEFAULT_ID)
-        asiakirja2.nimi = ASIAKIRJA_PNG_NIMI
-        asiakirja2.tyyppi = ASIAKIRJA_PNG_TYYPPI
+        val asiakirja2 = AsiakirjaHelper.createEntity(em, KayttajaHelper.DEFAULT_ID)
+        asiakirja2.nimi = AsiakirjaHelper.ASIAKIRJA_PNG_NIMI
+        asiakirja2.tyyppi = AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI
         asiakirja2.lisattypvm = LocalDateTime.now().minusDays(1)
-        asiakirja2.data = ASIAKIRJA_PNG_DATA
+        asiakirja2.data = AsiakirjaHelper.ASIAKIRJA_PNG_DATA
 
         asiakirjaRepository.saveAndFlush(asiakirja2)
         em.detach(asiakirja2)
@@ -221,12 +212,12 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$[0].id").exists())
-            .andExpect(jsonPath("$[0].nimi").value(ASIAKIRJA_PDF_NIMI))
+            .andExpect(jsonPath("$[0].nimi").value(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI))
             .andExpect(jsonPath("$[0].lisattypvm").value(Matchers.containsString(LocalDate.now().toString())))
             .andExpect(jsonPath("$[0].tyyppi").doesNotExist())
             .andExpect(jsonPath("$[0].data").doesNotExist())
             .andExpect(jsonPath("$[1].id").exists())
-            .andExpect(jsonPath("$[1].nimi").value(ASIAKIRJA_PNG_NIMI))
+            .andExpect(jsonPath("$[1].nimi").value(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI))
             .andExpect(
                 jsonPath("$[1].lisattypvm").value(
                     Matchers.containsString(
@@ -251,7 +242,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         restAsiakirjaMockMvc.perform(get("/api/erikoistuva-laakari/asiakirjat/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/pdf;charset=UTF-8"))
-            .andExpect(content().bytes(ASIAKIRJA_PDF_DATA))
+            .andExpect(content().bytes(AsiakirjaHelper.ASIAKIRJA_PDF_DATA))
     }
 
     @Test
@@ -292,77 +283,41 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         assertThat(asiakirjaList).hasSize(databaseSizeBeforeDelete)
     }
 
-    fun initTest(userId: String? = DEFAULT_ID) {
+    fun initTest(userId: String? = KayttajaHelper.DEFAULT_ID) {
         val userDetails = mapOf<String, Any>(
-            "uid" to DEFAULT_ID,
-            "sub" to DEFAULT_LOGIN,
-            "email" to DEFAULT_EMAIL
+            "uid" to KayttajaHelper.DEFAULT_ID,
+            "sub" to KayttajaHelper.DEFAULT_LOGIN,
+            "email" to KayttajaHelper.DEFAULT_EMAIL
         )
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
         val user = DefaultOAuth2User(authorities, userDetails, "sub")
         val authentication = OAuth2AuthenticationToken(user, authorities, "oidc")
         TestSecurityContextHolder.getContext().authentication = authentication
 
-        asiakirja = createEntity(em, userId)
+        asiakirja = AsiakirjaHelper.createEntity(em, userId)
     }
 
     fun initMockFiles() {
         tempFile1 = File.createTempFile("file", "pdf")
-        tempFile1.writeBytes(ASIAKIRJA_PDF_DATA)
+        tempFile1.writeBytes(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
         tempFile1.deleteOnExit()
 
         tempFile2 = File.createTempFile("file", "png")
-        tempFile2.writeBytes(ASIAKIRJA_PNG_DATA)
+        tempFile2.writeBytes(AsiakirjaHelper.ASIAKIRJA_PNG_DATA)
         tempFile2.deleteOnExit()
 
         mockMultipartFile1 = MockMultipartFile(
             "files",
-            ASIAKIRJA_PDF_NIMI,
-            ASIAKIRJA_PDF_TYYPPI,
+            AsiakirjaHelper.ASIAKIRJA_PDF_NIMI,
+            AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI,
             tempFile1.readBytes()
         )
 
         mockMultipartFile2 = MockMultipartFile(
             "files",
-            ASIAKIRJA_PNG_NIMI,
-            ASIAKIRJA_PNG_TYYPPI,
+            AsiakirjaHelper.ASIAKIRJA_PNG_NIMI,
+            AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI,
             tempFile2.readBytes()
         )
-    }
-
-    companion object {
-
-        private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
-        private const val DEFAULT_LOGIN = "johndoe"
-        private const val DEFAULT_EMAIL = "john.doe@example.com"
-
-        private const val ASIAKIRJA_PDF_NIMI: String = "Asiakirja.pdf"
-        private const val ASIAKIRJA_PNG_NIMI: String = "Asiakirja.png"
-        private const val ASIAKIRJA_PDF_TYYPPI: String = "application/pdf"
-        private const val ASIAKIRJA_PNG_TYYPPI: String = "image/png"
-        private val ASIAKIRJA_PDF_DATA = byteArrayOf(0x2E, 0x38)
-        private val ASIAKIRJA_PNG_DATA = byteArrayOf(0x2E, 0x14)
-
-        @JvmStatic
-        fun createEntity(em: EntityManager, userId: String? = null): Asiakirja {
-            val asiakirja = Asiakirja(
-                nimi = ASIAKIRJA_PDF_NIMI,
-                tyyppi = ASIAKIRJA_PDF_TYYPPI,
-                lisattypvm = LocalDateTime.now(),
-                data = ASIAKIRJA_PDF_DATA
-            )
-
-            val erikoistuvaLaakari: ErikoistuvaLaakari
-            if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
-                erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, userId)
-                em.persist(erikoistuvaLaakari)
-                em.flush()
-            } else {
-                erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
-            }
-            asiakirja.erikoistuvaLaakari = erikoistuvaLaakari
-
-            return asiakirja
-        }
     }
 }
