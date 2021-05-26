@@ -119,9 +119,14 @@ class UserService(
     private fun handleHetu(user: User, hetu: String) {
         val decodedKey =
             Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
-        val originalKey: SecretKey = SecretKeySpec(decodedKey, 0, decodedKey.size, "AES")
+        val originalKey: SecretKey = SecretKeySpec(
+            decodedKey,
+            0,
+            decodedKey.size,
+            applicationProperties.getSecurity().secretKeyAlgorithm
+        )
 
-        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
 
         userRepository.findAll().filter { u -> u.hetu != null }.forEach { u ->
             cipher.init(Cipher.DECRYPT_MODE, originalKey, IvParameterSpec(u.initVector))
