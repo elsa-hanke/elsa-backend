@@ -47,5 +47,7 @@ class ApplicationProperties {
 
     class Security {
         var encodedKey: String? = null
+        var secretKeyAlgorithm: String? = null
+        var cipherAlgorithm: String? = null
     }
 }

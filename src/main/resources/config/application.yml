@@ -190,3 +190,5 @@ application:
       client-secret: web-app-admin
   security:
     encoded-key:
+    secret-key-algorithm:
+    cipher-algorithm:
