@@ -21,7 +21,6 @@ interface AsiakirjaMapper : EntityMapper<AsiakirjaDTO, Asiakirja> {
         /** Asiakirjan sisältöä ei haeta listausta varten. Yksittäisen asiakirjan
          * sisältöä varten käytetään rajapintaa AsiakirjaItemProjection
          */
-        Mapping(target = "data", ignore = true),
         Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId"),
         Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId")
     )

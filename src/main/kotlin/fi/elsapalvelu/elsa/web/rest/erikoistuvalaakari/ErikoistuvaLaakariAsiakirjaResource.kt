@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.projection.AsiakirjaListProjection
 import fi.elsapalvelu.elsa.validation.FileValidator
-import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -43,7 +42,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
                 AsiakirjaDTO(
                     nimi = it.originalFilename,
                     tyyppi = it.contentType,
-                    data = it.bytes
+                    inputStream = it.inputStream
                 )
             }
         val result = asiakirjaService.create(asiakirjat, user.id!!)
