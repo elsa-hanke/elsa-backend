@@ -1,8 +1,12 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.DEFAULT_LANGUAGE
-import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.Authority
+import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.Kayttaja
+import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.getCurrentUserLogin
@@ -19,10 +23,17 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.nio.charset.StandardCharsets
 import java.security.Principal
 import java.time.Instant
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 import javax.servlet.http.HttpServletRequest
+
 
 @Service
 @Transactional
@@ -34,6 +45,7 @@ class UserService(
     private val erikoisalaRepository: ErikoisalaRepository,
     private val cacheManager: CacheManager,
     private val keycloak: Keycloak,
+    private val applicationProperties: ApplicationProperties
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -88,27 +100,65 @@ class UserService(
         // save account in to sync users between IdP and JHipster's local database
         val existingUser = userRepository.findOneByLogin(user.login!!)
         if (existingUser.isPresent) {
-            user.id = existingUser.get().id
-            user.authorities = existingUser.get().authorities
-            // if IdP sends last updated information, use it to determine if an update should happen
-            if (details["updated_at"] != null) {
-                val dbModifiedDate = existingUser.get().lastModifiedDate
-                val idpModifiedDate = details["updated_at"] as Instant
-                if (idpModifiedDate.isAfter(dbModifiedDate)) {
-                    log.debug("Updating user '${user.login}' in local database")
-                    updateUser(user.firstName, user.lastName, user.email, user.langKey)
-                }
-                // no last updated info, blindly update
-            } else {
-                log.debug("Updating user '${user.login}' in local database")
-                updateUser(user.firstName, user.lastName, user.email, user.langKey)
-            }
+            handleExistingUser(user, existingUser.get(), details)
         } else {
             log.debug("Saving user '${user.login}' in local database")
+
+            // TODO: replace with actual property when available
+            val hetu = details["hetu"]
+            if (hetu != null) {
+                handleHetu(user, hetu.toString())
+            }
+
             userRepository.saveAndFlush(user)
             clearUserCaches(user)
         }
         return user
+    }
+
+    private fun handleHetu(user: User, hetu: String) {
+        val decodedKey =
+            Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
+        val originalKey: SecretKey = SecretKeySpec(decodedKey, 0, decodedKey.size, "AES")
+
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+
+        userRepository.findAll().filter { u -> u.hetu != null }.forEach { u ->
+            cipher.init(Cipher.DECRYPT_MODE, originalKey, IvParameterSpec(u.initVector))
+            val userHetu = String(cipher.doFinal(u.hetu), StandardCharsets.UTF_8)
+
+            // Same user from different idp
+            if (userHetu == hetu) {
+                handleExistingUser(user, u, HashMap())
+                return
+            }
+        }
+
+        cipher.init(Cipher.ENCRYPT_MODE, originalKey)
+        val params = cipher.parameters
+        val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
+        val ciphertext = cipher.doFinal(hetu.toByteArray(StandardCharsets.UTF_8))
+
+        user.hetu = ciphertext
+        user.initVector = iv
+    }
+
+    private fun handleExistingUser(user: User, existingUser: User, details: Map<String, Any>) {
+        user.id = existingUser.id
+        user.authorities = existingUser.authorities
+        // if IdP sends last updated information, use it to determine if an update should happen
+        if (details["updated_at"] != null) {
+            val dbModifiedDate = existingUser.lastModifiedDate
+            val idpModifiedDate = details["updated_at"] as Instant
+            if (idpModifiedDate.isAfter(dbModifiedDate)) {
+                log.debug("Updating user '${user.login}' in local database")
+                updateUser(user.firstName, user.lastName, user.email, user.langKey)
+            }
+            // no last updated info, blindly update
+        } else {
+            log.debug("Updating user '${user.login}' in local database")
+            updateUser(user.firstName, user.lastName, user.email, user.langKey)
+        }
     }
 
     /**
