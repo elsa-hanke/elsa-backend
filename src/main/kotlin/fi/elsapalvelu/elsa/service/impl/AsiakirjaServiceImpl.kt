@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.projection.AsiakirjaItemProjection
 import fi.elsapalvelu.elsa.service.projection.AsiakirjaListProjection
+import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -33,7 +34,12 @@ class AsiakirjaServiceImpl(
                 it.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.id
                 it.lisattypvm = LocalDateTime.now()
             }
-            var asiakirjaEntities = asiakirjat.map { asiakirjaMapper.toEntity(it) }
+            var asiakirjaEntities = asiakirjat.map {
+                asiakirjaMapper.toEntity(it).apply {
+                    data = IOUtils.toByteArray(it.inputStream)
+                }
+            }
+
             asiakirjaEntities = asiakirjaRepository.saveAll(asiakirjaEntities)
             return asiakirjaEntities.map { asiakirjaMapper.toDto(it) }
         }

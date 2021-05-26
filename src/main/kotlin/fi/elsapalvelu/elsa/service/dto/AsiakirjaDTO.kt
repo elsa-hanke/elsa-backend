@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import java.io.InputStream
 import java.io.Serializable
 import java.time.LocalDateTime
 import javax.validation.constraints.NotNull
@@ -21,7 +22,7 @@ data class AsiakirjaDTO (
     var lisattypvm: LocalDateTime? = null,
 
     @get: NotNull
-    var data: ByteArray? = null
+    var inputStream: InputStream? = null
 
 ): Serializable {
     override fun equals(other: Any?): Boolean {
