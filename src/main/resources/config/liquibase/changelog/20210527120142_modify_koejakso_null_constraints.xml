@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20210527120142-1" author="jhipster">
+
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus"
+            columnName="opintooikeuden_myontamispaiva"
+            columnDataType="date"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus"
+            columnName="koejakson_alkamispaiva"
+            columnDataType="date"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus"
+            columnName="erikoistuvan_puhelinnumero"
+            columnDataType="varchar(255)"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus"
+            columnName="erikoistuvan_sahkoposti"
+            columnDataType="varchar(255)"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus"
+            columnName="vastuuhenkilo_id"
+            columnDataType="bigint"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus"
+            columnName="vastuuhenkilon_nimi"
+            columnDataType="varchar(255)"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu"
+            columnName="erikoistuvan_sahkoposti"
+            columnDataType="varchar(255)"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu"
+            columnName="koejakson_suorituspaikka"
+            columnDataType="varchar(255)"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu"
+            columnName="koejakson_alkamispaiva"
+            columnDataType="date"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu"
+            columnName="koejakson_paattymispaiva"
+            columnDataType="date"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu"
+            columnName="suoritettu_kokoaikatyossa"
+            columnDataType="boolean"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu"
+            columnName="lahikouluttaja_id"
+            columnDataType="bigint"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu"
+            columnName="lahikouluttajan_nimi"
+            columnDataType="varchar(255)"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu"
+            columnName="lahiesimies_id"
+            columnDataType="bigint"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu"
+            columnName="lahiesimiehen_nimi"
+            columnDataType="varchar(255)"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu"
+            columnName="koejakson_osaamistavoitteet"
+            columnDataType="varchar(255)"
+        />
+
+    </changeSet>
+
+</databaseChangeLog>

@@ -20,35 +20,26 @@ data class KoejaksonAloituskeskusteluDTO(
     @get: NotNull
     var erikoistuvanYliopisto: String? = null,
 
-    @get: NotNull
     var erikoistuvanSahkoposti: String? = null,
 
-    @get: NotNull
     var koejaksonSuorituspaikka: String? = null,
 
     var koejaksonToinenSuorituspaikka: String? = null,
 
-    @get: NotNull
     var koejaksonAlkamispaiva: LocalDate? = null,
 
-    @get: NotNull
     var koejaksonPaattymispaiva: LocalDate? = null,
 
-    @get: NotNull
     var suoritettuKokoaikatyossa: Boolean? = null,
 
     var tyotunnitViikossa: Double? = null,
 
-    @get: NotNull
     var lahikouluttaja: KoejaksonKouluttajaDTO? = null,
 
-    @get: NotNull
     var lahiesimies: KoejaksonKouluttajaDTO? = null,
 
-    @get: NotNull
     var koejaksonOsaamistavoitteet: String? = null,
 
-    @get: NotNull
     var lahetetty: Boolean? = null,
 
     var muokkauspaiva: LocalDate? = null,
