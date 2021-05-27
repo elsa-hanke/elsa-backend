@@ -38,20 +38,16 @@ data class KoejaksonKoulutussopimus(
     @Column(name = "erikoistuvan_yliopisto", nullable = false)
     var erikoistuvanYliopisto: String? = null,
 
-    @NotNull
-    @Column(name = "opintooikeuden_myontamispaiva", nullable = false)
+    @Column(name = "opintooikeuden_myontamispaiva")
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
-    @NotNull
-    @Column(name = "koejakson_alkamispaiva", nullable = false)
+    @Column(name = "koejakson_alkamispaiva")
     var koejaksonAlkamispaiva: LocalDate? = null,
 
-    @NotNull
-    @Column(name = "erikoistuvan_puhelinnumero", nullable = false)
+    @Column(name = "erikoistuvan_puhelinnumero")
     var erikoistuvanPuhelinnumero: String? = null,
 
-    @NotNull
-    @Column(name = "erikoistuvan_sahkoposti", nullable = false)
+    @Column(name = "erikoistuvan_sahkoposti")
     var erikoistuvanSahkoposti: String? = null,
 
     @NotNull
@@ -62,11 +58,9 @@ data class KoejaksonKoulutussopimus(
     @Column(name = "muokkauspaiva", nullable = false)
     var muokkauspaiva: LocalDate? = null,
 
-    @NotNull
-    @ManyToOne(optional = false)
+    @ManyToOne
     var vastuuhenkilo: Kayttaja? = null,
 
-    @NotNull
     @Column(name = "vastuuhenkilon_nimi", nullable = false)
     var vastuuhenkilonNimi: String? = null,
 
