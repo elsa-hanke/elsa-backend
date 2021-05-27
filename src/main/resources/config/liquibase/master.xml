@@ -43,6 +43,7 @@
     <include file="config/liquibase/changelog/20210421112408_added_entity_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210510161855_modify_user_information.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210503131107_added_entity_Asiakirja.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210527120142_modify_koejakso_null_constraints.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
