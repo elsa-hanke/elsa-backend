@@ -40,6 +40,7 @@ class AsiakirjaServiceImpl(
                     data = BlobProxy.generateProxy(it.fileInputStream, it.fileSize!!)
                 }
             }
+
             asiakirjaEntities = asiakirjaRepository.saveAll(asiakirjaEntities)
 
             return asiakirjaEntities.map { asiakirjaMapper.toDto(it) }
