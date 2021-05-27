@@ -103,7 +103,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                     AsiakirjaDTO(
                         nimi = file.originalFilename,
                         tyyppi = file.contentType,
-                        inputStream = file.inputStream,
+                        fileInputStream = file.inputStream,
+                        fileSize = file.size,
                         tyoskentelyjaksoId = result.id
                     )
                 }?.let { asiakirjat -> asiakirjaService.create(asiakirjat, user.id!!) }
@@ -148,7 +149,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 AsiakirjaDTO(
                     nimi = it.originalFilename,
                     tyyppi = it.contentType,
-                    inputStream = it.inputStream,
+                    fileInputStream = it.inputStream,
+                    fileSize = it.size,
                     tyoskentelyjaksoId = id
                 )
             }?.let { asiakirjat -> asiakirjaService.create(asiakirjat, user.id!!) }

@@ -42,9 +42,11 @@ class ErikoistuvaLaakariAsiakirjaResource(
                 AsiakirjaDTO(
                     nimi = it.originalFilename,
                     tyyppi = it.contentType,
-                    inputStream = it.inputStream
+                    fileInputStream = it.inputStream,
+                    fileSize = it.size
                 )
             }
+
         val result = asiakirjaService.create(asiakirjat, user.id!!)
         return ResponseEntity.created(URI("/api/asiakirjat"))
             .headers(
