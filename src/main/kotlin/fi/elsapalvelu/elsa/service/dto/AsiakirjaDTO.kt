@@ -21,8 +21,9 @@ data class AsiakirjaDTO (
     @get: NotNull
     var lisattypvm: LocalDateTime? = null,
 
-    @get: NotNull
-    var inputStream: InputStream? = null
+    var fileInputStream: InputStream? = null,
+
+    var fileSize: Long? = null
 
 ): Serializable {
     override fun equals(other: Any?): Boolean {
