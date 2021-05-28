@@ -38,38 +38,31 @@ data class KoejaksonAloituskeskustelu(
     @Column(name = "erikoistuvan_yliopisto", nullable = false)
     var erikoistuvanYliopisto: String? = null,
 
-    @NotNull
-    @Column(name = "erikoistuvan_sahkoposti", nullable = false)
+    @Column(name = "erikoistuvan_sahkoposti")
     var erikoistuvanSahkoposti: String? = null,
 
-    @NotNull
-    @Column(name = "koejakson_suorituspaikka", nullable = false)
+    @Column(name = "koejakson_suorituspaikka")
     var koejaksonSuorituspaikka: String? = null,
 
     @Column(name = "koejakson_toinen_suorituspaikka")
     var koejaksonToinenSuorituspaikka: String? = null,
 
-    @NotNull
-    @Column(name = "koejakson_alkamispaiva", nullable = false)
+    @Column(name = "koejakson_alkamispaiva")
     var koejaksonAlkamispaiva: LocalDate? = null,
 
-    @NotNull
-    @Column(name = "koejakson_paattymispaiva", nullable = false)
+    @Column(name = "koejakson_paattymispaiva")
     var koejaksonPaattymispaiva: LocalDate? = null,
 
-    @NotNull
-    @Column(name = "suoritettu_kokoaikatyossa", nullable = false)
+    @Column(name = "suoritettu_kokoaikatyossa")
     var suoritettuKokoaikatyossa: Boolean = false,
 
     @Column(name = "tyotunnit_viikossa")
     var tyotunnitViikossa: Double? = null,
 
-    @NotNull
-    @ManyToOne(optional = false)
+    @ManyToOne
     var lahikouluttaja: Kayttaja? = null,
 
-    @NotNull
-    @Column(name = "lahikouluttajan_nimi", nullable = false)
+    @Column(name = "lahikouluttajan_nimi")
     var lahikouluttajanNimi: String? = null,
 
     @Column(name = "lahikouluttaja_hyvaksynyt")
@@ -78,12 +71,10 @@ data class KoejaksonAloituskeskustelu(
     @Column(name = "lahikouluttajan_kuittausaika")
     var lahikouluttajanKuittausaika: LocalDate? = null,
 
-    @NotNull
-    @ManyToOne(optional = false)
+    @ManyToOne
     var lahiesimies: Kayttaja? = null,
 
-    @NotNull
-    @Column(name = "lahiesimiehen_nimi", nullable = false)
+    @Column(name = "lahiesimiehen_nimi")
     var lahiesimiehenNimi: String? = null,
 
     @Column(name = "lahiesimies_hyvaksynyt")
@@ -92,8 +83,7 @@ data class KoejaksonAloituskeskustelu(
     @Column(name = "lahiesimiehen_kuittausaika")
     var lahiesimiehenKuittausaika: LocalDate? = null,
 
-    @NotNull
-    @Column(name = "koejakson_osaamistavoitteet", nullable = false)
+    @Column(name = "koejakson_osaamistavoitteet")
     var koejaksonOsaamistavoitteet: String? = null,
 
     @NotNull

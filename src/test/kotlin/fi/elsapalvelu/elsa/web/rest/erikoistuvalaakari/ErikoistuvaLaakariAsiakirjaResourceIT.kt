@@ -10,6 +10,8 @@ import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import junit.framework.TestCase.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
+import org.hibernate.engine.jdbc.BinaryStream
+import org.hibernate.engine.jdbc.BlobProxy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
@@ -80,7 +82,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         val testAsiakirja = asiakirjaList[asiakirjaList.size - 1]
         assertThat(testAsiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(testAsiakirja.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
-        assertThat(testAsiakirja.data).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        assertThat(testAsiakirja.data?.binaryStream?.readBytes()).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
         assertThat(testAsiakirja.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
     }
 
@@ -104,13 +106,13 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         val testAsiakirja = asiakirjaList[asiakirjaList.size - 2]
         assertThat(testAsiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(testAsiakirja.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
-        assertThat(testAsiakirja.data).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        assertThat(testAsiakirja.data?.binaryStream?.readBytes()).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
         assertThat(testAsiakirja.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
 
         val testAsiakirja2 = asiakirjaList[asiakirjaList.size - 1]
         assertThat(testAsiakirja2.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI)
         assertThat(testAsiakirja2.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI)
-        assertThat(testAsiakirja2.data).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_DATA)
+        assertThat(testAsiakirja2.data?.binaryStream?.readBytes()).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_DATA)
         assertThat(testAsiakirja2.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
     }
 
@@ -202,7 +204,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         asiakirja2.nimi = AsiakirjaHelper.ASIAKIRJA_PNG_NIMI
         asiakirja2.tyyppi = AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI
         asiakirja2.lisattypvm = LocalDateTime.now().minusDays(1)
-        asiakirja2.data = AsiakirjaHelper.ASIAKIRJA_PNG_DATA
+        asiakirja2.data = BlobProxy.generateProxy(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
 
         asiakirjaRepository.saveAndFlush(asiakirja2)
         em.detach(asiakirja2)
