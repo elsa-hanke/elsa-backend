@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.projection.AsiakirjaListProjection
+import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.validation.FileValidator
 import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
@@ -42,8 +42,10 @@ class ErikoistuvaLaakariAsiakirjaResource(
                 AsiakirjaDTO(
                     nimi = it.originalFilename,
                     tyyppi = it.contentType,
-                    fileInputStream = it.inputStream,
-                    fileSize = it.size
+                    asiakirjaData = AsiakirjaDataDTO(
+                        fileInputStream = it.inputStream,
+                        fileSize = it.size
+                    )
                 )
             }
 
@@ -63,7 +65,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
     @GetMapping("/asiakirjat")
     fun getAllAsiakirjat(
         principal: Principal?
-    ): ResponseEntity<List<AsiakirjaListProjection>> {
+    ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!)
 
@@ -82,7 +84,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + asiakirja.nimi + "\"")
                 .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
-                .body(asiakirja.data)
+                .body(asiakirja.asiakirjaData?.fileInputStream?.readBytes())
         }
         return ResponseEntity.notFound().build()
     }

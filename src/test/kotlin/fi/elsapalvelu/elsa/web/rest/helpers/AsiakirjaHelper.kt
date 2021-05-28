@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.Asiakirja
+import fi.elsapalvelu.elsa.domain.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -29,8 +30,10 @@ class AsiakirjaHelper {
                 nimi = ASIAKIRJA_PDF_NIMI,
                 tyyppi = ASIAKIRJA_PDF_TYYPPI,
                 lisattypvm = LocalDateTime.now(),
-                data = BlobProxy.generateProxy(ASIAKIRJA_PDF_DATA),
-                tyoskentelyjakso = tyoskentelyjakso
+                tyoskentelyjakso = tyoskentelyjakso,
+                asiakirjaData = AsiakirjaData(
+                    data = BlobProxy.generateProxy(ASIAKIRJA_PDF_DATA)
+                )
             )
 
             val erikoistuvaLaakari: ErikoistuvaLaakari

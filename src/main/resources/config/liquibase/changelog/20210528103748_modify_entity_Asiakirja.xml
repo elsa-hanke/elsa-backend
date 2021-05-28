@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20210528103748-1" author="jhipster">
+        <dropColumn tableName="asiakirja">
+            <column name="data"/>
+        </dropColumn>
+
+        <addColumn tableName="asiakirja">
+            <column name="asiakirja_data_id" type="bigint">
+                <constraints unique="true" nullable="false" uniqueConstraintName="ux_asiakirja_asiakirja_data_id"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
