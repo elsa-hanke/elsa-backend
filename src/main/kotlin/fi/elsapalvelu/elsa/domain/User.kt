@@ -50,12 +50,10 @@ class User(
     @Column(nullable = false)
     var activated: Boolean = false,
 
-    @field:NotNull
-    @Column(nullable = false)
+    @Column
     var hetu: ByteArray? = null,
 
-    @field:NotNull
-    @Column(name = "init_vector", nullable = false)
+    @Column(name = "init_vector")
     var initVector: ByteArray? = null,
 
     @field:Size(min = 2, max = 10)
