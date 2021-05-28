@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import java.io.InputStream
 import java.io.Serializable
 import java.time.LocalDateTime
 import javax.validation.constraints.NotNull
@@ -20,8 +21,9 @@ data class AsiakirjaDTO (
     @get: NotNull
     var lisattypvm: LocalDateTime? = null,
 
-    @get: NotNull
-    var data: ByteArray? = null
+    var fileInputStream: InputStream? = null,
+
+    var fileSize: Long? = null
 
 ): Serializable {
     override fun equals(other: Any?): Boolean {

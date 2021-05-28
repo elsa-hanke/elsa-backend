@@ -47,7 +47,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        tyoskentelyjaksoJson?.let {
+        tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
         }?.apply {
             log.debug("REST request to create Tyoskentelyjakso : $this")
@@ -103,7 +103,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                     AsiakirjaDTO(
                         nimi = file.originalFilename,
                         tyyppi = file.contentType,
-                        data = file.bytes,
+                        fileInputStream = file.inputStream,
+                        fileSize = file.size,
                         tyoskentelyjaksoId = result.id
                     )
                 }?.let { asiakirjat -> asiakirjaService.create(asiakirjat, user.id!!) }
@@ -134,7 +135,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        tyoskentelyjaksoJson?.let {
+        tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
         }?.apply {
             log.debug("REST request to update Tyoskentelyjakso : $this")
@@ -148,7 +149,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 AsiakirjaDTO(
                     nimi = it.originalFilename,
                     tyyppi = it.contentType,
-                    data = it.bytes,
+                    fileInputStream = it.inputStream,
+                    fileSize = it.size,
                     tyoskentelyjaksoId = id
                 )
             }?.let { asiakirjat -> asiakirjaService.create(asiakirjat, user.id!!) }
