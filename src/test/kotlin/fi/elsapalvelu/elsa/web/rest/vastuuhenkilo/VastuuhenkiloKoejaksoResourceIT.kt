@@ -149,7 +149,7 @@ class VastuuhenkiloKoejaksoResourceIT {
     fun ackKoulutussopimusInProgressWithKouluttaja() {
         initTest()
 
-        koejaksonKoulutussopimus.kouluttajat.forEach { it.sopimusHyvaksytty = false }
+        koejaksonKoulutussopimus.kouluttajat?.forEach { it.sopimusHyvaksytty = false }
         koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
 
         val databaseSizeBeforeUpdate = koejaksonKoulutussopimusRepository.findAll().size
@@ -240,9 +240,9 @@ class VastuuhenkiloKoejaksoResourceIT {
         assertThat(testKoulutussopimus.lahetetty).isEqualTo(false)
 
         assertThat(testKoulutussopimus.kouluttajat).hasSize(1)
-        val testKouluttaja = testKoulutussopimus.kouluttajat.iterator().next()
-        assertThat(testKouluttaja.sopimusHyvaksytty).isEqualTo(false)
-        assertThat(testKouluttaja.kuittausaika).isNull()
+        val testKouluttaja = testKoulutussopimus.kouluttajat?.iterator()?.next()
+        assertThat(testKouluttaja?.sopimusHyvaksytty).isEqualTo(false)
+        assertThat(testKouluttaja?.kuittausaika).isNull()
     }
 
     @Test
