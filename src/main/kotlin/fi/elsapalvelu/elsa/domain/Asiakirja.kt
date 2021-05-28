@@ -1,17 +1,16 @@
 package fi.elsapalvelu.elsa.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.sun.istack.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Type
 import java.io.Serializable
-import java.sql.Blob
 import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
 @Table(name = "asiakirja")
-@Cache(usage = CacheConcurrencyStrategy.NONE)
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Asiakirja(
 
     @Id
@@ -24,7 +23,7 @@ data class Asiakirja(
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
     @ManyToOne(optional = true)
-    @JoinColumn(unique = true)
+    @JsonIgnoreProperties(value = ["asiakirjat"], allowSetters = true)
     var tyoskentelyjakso: Tyoskentelyjakso? = null,
 
     @NotNull
@@ -40,9 +39,9 @@ data class Asiakirja(
     var lisattypvm: LocalDateTime? = null,
 
     @NotNull
-    @Lob
-    @Column(name = "data", nullable = false)
-    var data: Blob? = null
+    @OneToOne(optional = false, cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    var asiakirjaData: AsiakirjaData? = null
 
 ) : Serializable {
 

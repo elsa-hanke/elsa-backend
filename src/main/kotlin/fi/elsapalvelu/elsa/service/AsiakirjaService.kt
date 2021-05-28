@@ -1,18 +1,16 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.projection.AsiakirjaItemProjection
-import fi.elsapalvelu.elsa.service.projection.AsiakirjaListProjection
 
 interface AsiakirjaService {
 
     fun create(asiakirjat: List<AsiakirjaDTO>, userId: String, tyoskentelyJaksoId: Long? = null): List<AsiakirjaDTO>?
 
-    fun findAllByErikoistuvaLaakariUserId(userId: String): MutableList<AsiakirjaListProjection>
+    fun findAllByErikoistuvaLaakariUserId(userId: String): MutableList<AsiakirjaDTO>
 
-    fun findAllByErikoistuvaLaakariIdAndTyoskentelyjaksoId(userId: String, tyoskentelyJaksoId: Long?): MutableList<AsiakirjaListProjection>
+    fun findAllByErikoistuvaLaakariUserIdAndTyoskentelyjaksoId(userId: String, tyoskentelyJaksoId: Long?): MutableList<AsiakirjaDTO>
 
-    fun findOne(id: Long, userId: String): AsiakirjaItemProjection?
+    fun findOne(id: Long, userId: String): AsiakirjaDTO?
 
     fun delete(id: Long, userId: String)
 

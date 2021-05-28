@@ -5,8 +5,6 @@ import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
-import fi.elsapalvelu.elsa.service.projection.AsiakirjaItemProjection
-import fi.elsapalvelu.elsa.service.projection.AsiakirjaListProjection
 import org.hibernate.engine.jdbc.BlobProxy
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
@@ -37,7 +35,8 @@ class AsiakirjaServiceImpl(
 
             var asiakirjaEntities = asiakirjat.map {
                 asiakirjaMapper.toEntity(it).apply {
-                    data = BlobProxy.generateProxy(it.fileInputStream, it.fileSize!!)
+                    this.asiakirjaData?.data =
+                        BlobProxy.generateProxy(it.asiakirjaData?.fileInputStream, it.asiakirjaData?.fileSize!!)
                 }
             }
 
@@ -52,28 +51,31 @@ class AsiakirjaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariUserId(userId: String): MutableList<AsiakirjaListProjection> {
-        return asiakirjaRepository.findAllByErikoistuvaLaakari(userId).toMutableList()
+    override fun findAllByErikoistuvaLaakariUserId(userId: String): MutableList<AsiakirjaDTO> {
+        return asiakirjaRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+            .mapTo(mutableListOf(), asiakirjaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariIdAndTyoskentelyjaksoId(
+    override fun findAllByErikoistuvaLaakariUserIdAndTyoskentelyjaksoId(
         userId: String,
         tyoskentelyJaksoId: Long?
-    ): MutableList<AsiakirjaListProjection> {
-        return asiakirjaRepository.findAllByErikoistuvaLaakariAndTyoskentelyjakso(userId, tyoskentelyJaksoId)
-            .toMutableList()
+    ): MutableList<AsiakirjaDTO> {
+        return asiakirjaRepository.findAllByErikoistuvaLaakariKayttajaUserIdAndTyoskentelyjaksoId(
+            userId,
+            tyoskentelyJaksoId
+        )
+            .mapTo(mutableListOf(), asiakirjaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOne(id: Long, userId: String): AsiakirjaItemProjection? {
-        val asiakirja = asiakirjaRepository.findAsiakirjaByIdAndErikoistuvaLaakari(userId, id)
-        if (asiakirja == null) {
-            log.error("Asiakirja $id requested by user $userId was not found.")
+    override fun findOne(id: Long, userId: String): AsiakirjaDTO? {
+        asiakirjaRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(id, userId).let {
+            return asiakirjaMapper.toDto(it).apply {
+                asiakirjaData?.fileInputStream = it.asiakirjaData?.data?.binaryStream
+            }
         }
-        return asiakirja
     }
-
 
     override fun delete(id: Long, userId: String) {
         asiakirjaRepository.findByIdOrNull(id)?.let { asiakirja ->
@@ -93,7 +95,10 @@ class AsiakirjaServiceImpl(
 
     override fun removeTyoskentelyjaksoReference(userId: String, tyoskentelyJaksoId: Long?) {
         val asiakirjaIdsByTyoskentelyjakso =
-            asiakirjaRepository.findAllByErikoistuvaLaakariAndTyoskentelyjakso(userId, tyoskentelyJaksoId).map { it.id }
+            asiakirjaRepository.findAllByErikoistuvaLaakariKayttajaUserIdAndTyoskentelyjaksoId(
+                userId,
+                tyoskentelyJaksoId
+            ).map { it.id }
         val asiakirjaEntitiesByTyoskentelyjakso = asiakirjaRepository.findAllById(asiakirjaIdsByTyoskentelyjakso)
         asiakirjaEntitiesByTyoskentelyjakso.forEach {
             it.tyoskentelyjakso = null

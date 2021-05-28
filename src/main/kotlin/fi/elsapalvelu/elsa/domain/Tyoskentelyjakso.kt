@@ -7,7 +7,9 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
-import javax.validation.constraints.*
+import javax.validation.constraints.Max
+import javax.validation.constraints.Min
+import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "tyoskentelyjakso")
@@ -67,7 +69,10 @@ data class Tyoskentelyjakso(
     @Column(name = "liitetty_koejaksoon")
     var liitettyKoejaksoon: Boolean = false,
 
-    ) : Serializable {
+    @OneToMany(mappedBy = "tyoskentelyjakso", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    var asiakirjat: MutableSet<Asiakirja> = mutableSetOf()
+
+) : Serializable {
 
     fun addSuoritusarviointi(suoritusarviointi: Suoritusarviointi): Tyoskentelyjakso {
         this.suoritusarvioinnit.add(suoritusarviointi)
