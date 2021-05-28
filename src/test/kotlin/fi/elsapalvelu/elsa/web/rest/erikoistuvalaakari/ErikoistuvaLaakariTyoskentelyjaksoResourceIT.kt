@@ -1,23 +1,18 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.nhaarman.mockitokotlin2.inOrder
-import com.nhaarman.mockitokotlin2.isNull
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.User_.login
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.security.getCurrentUserLogin
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
-import io.undertow.servlet.core.ServletExtensionHolder
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
@@ -27,33 +22,19 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockMultipartFile
-import org.springframework.mock.web.MockServletContext
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
-import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.request.RequestPostProcessor
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import org.springframework.test.web.servlet.setup.ConfigurableMockMvcBuilder
 import org.springframework.transaction.annotation.Transactional
-import org.testcontainers.shaded.com.trilead.ssh2.Session
 import java.io.File
-import java.security.Principal
 import java.time.LocalDate
-import java.time.LocalDateTime
 import javax.persistence.EntityManager
-import javax.servlet.ServletContext
-import javax.servlet.ServletRequest
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
@@ -70,13 +51,10 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     private lateinit var keskeytysaikaRepository: KeskeytysaikaRepository
 
     @Autowired
-    private lateinit var erikoisalaRepository: ErikoisalaRepository
+    private lateinit var asiakirjaRepository: AsiakirjaRepository
 
     @Autowired
     private lateinit var poissaolonSyyRepository: PoissaolonSyyRepository
-
-    @Autowired
-    private lateinit var asiakirjaRepository: AsiakirjaRepository
 
     @Autowired
     private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
@@ -122,10 +100,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         initMockFiles()
 
         val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
-        val asiakirjaTableSizeBeforeCreate = asiakirjaRepository.findAll().size
-
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
-
         val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
 
         restTyoskentelyjaksoMockMvc.perform(
@@ -142,20 +117,25 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         assertThat(testTyoskentelyjakso.paattymispaiva).isEqualTo(DEFAULT_PAATTYMISPAIVA)
         assertThat(testTyoskentelyjakso.osaaikaprosentti).isEqualTo(DEFAULT_OSAAIKAPROSENTTI)
         assertThat(testTyoskentelyjakso.kaytannonKoulutus).isEqualTo(DEFAULT_KAYTANNON_KOULUTUS)
-        assertThat(testTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan)
-            .isEqualTo(DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN)
+        assertThat(testTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan).isEqualTo(
+            DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
+        )
+        val asiakirjaList = testTyoskentelyjakso.asiakirjat
+        assertThat(asiakirjaList).hasSize(2)
 
-        val asiakirjaList =
-            asiakirjaRepository.findAllByErikoistuvaLaakariAndTyoskentelyjakso(KayttajaHelper.DEFAULT_ID, testTyoskentelyjakso.id)
-        assertThat(asiakirjaList).hasSize(asiakirjaTableSizeBeforeCreate + 2)
-
-        val testAsiakirja = asiakirjaList[asiakirjaList.size - 2]
+        val testAsiakirja = asiakirjaList.first()
+        assertThat(testAsiakirja.id).isNotNull
         assertThat(testAsiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
-        assertThat(testAsiakirja.lisattypvm.toLocalDate()).isEqualTo(LocalDate.now())
+        assertThat(testAsiakirja.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
+        assertThat(testAsiakirja.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
+        assertThat(testAsiakirja.asiakirjaData?.data?.binaryStream?.readBytes()).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
 
-        val testAsiakirja2 = asiakirjaList[asiakirjaList.size - 1]
+        val testAsiakirja2 = asiakirjaList.last()
+        assertThat(testAsiakirja2.id).isNotNull
         assertThat(testAsiakirja2.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI)
-        assertThat(testAsiakirja2.lisattypvm.toLocalDate()).isEqualTo(LocalDate.now())
+        assertThat(testAsiakirja2.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
+        assertThat(testAsiakirja2.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI)
+        assertThat(testAsiakirja2.asiakirjaData?.data?.binaryStream?.readBytes()).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_DATA)
     }
 
     @Test
@@ -267,10 +247,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     @Transactional
     fun getTyoskentelyjakso() {
         initTest()
-        initAsiakirja(null, tyoskentelyjakso)
 
+        tyoskentelyjakso.asiakirjat.add(AsiakirjaHelper.createEntity(em, KayttajaHelper.DEFAULT_ID, tyoskentelyjakso))
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-        asiakirjaRepository.saveAndFlush(asiakirja)
 
         val id = tyoskentelyjakso.id
         assertNotNull(id)
@@ -285,6 +264,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.kaytannonKoulutus").value(DEFAULT_KAYTANNON_KOULUTUS.toString()))
             .andExpect(jsonPath("$.hyvaksyttyAiempaanErikoisalaan").value(DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN))
             .andExpect(jsonPath("$.asiakirjat").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.asiakirjat[0].id").exists())
             .andExpect(jsonPath("$.asiakirjat[0].nimi").value(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI))
             .andExpect(
                 jsonPath("$.asiakirjat[0].lisattypvm").value(
@@ -293,6 +273,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
                     )
                 )
             )
+            .andExpect(jsonPath("$.asiakirjat[0].tyyppi").value(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI))
+            .andExpect(jsonPath("$.asiakirjat[0].asiakirjaData.fileInputStream").doesNotExist())
+            .andExpect(jsonPath("$.asiakirjat[0].asiakirjaData.fileSize").doesNotExist())
             .andExpect(jsonPath("$.kaikkiAsiakirjaNimet[0]").value(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI))
     }
 
@@ -314,7 +297,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     @Transactional
     fun updateTyoskentelyjakso() {
         initTest()
-        initAsiakirja(null, tyoskentelyjakso)
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
@@ -421,40 +403,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete - 1)
-    }
-
-    @Test
-    @Transactional
-    fun deleteTyoskentelyjaksoWhichContainsAsiakirja() {
-        initTest()
-        initAsiakirja(null, tyoskentelyjakso)
-
-        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-        asiakirjaRepository.saveAndFlush(asiakirja)
-
-        val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
-        val asiakirjaTableSizeBeforeDelete = asiakirjaRepository.findAll().size
-
-        restTyoskentelyjaksoMockMvc.perform(
-            delete("/api/erikoistuva-laakari/tyoskentelyjaksot/{id}", tyoskentelyjakso.id)
-                .accept(MediaType.APPLICATION_JSON)
-                .with(csrf())
-        ).andExpect(status().isNoContent)
-
-        val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete - 1)
-
-        val asiakirjaListByTyoskentelyjakso =
-            asiakirjaRepository.findAllByErikoistuvaLaakariAndTyoskentelyjakso(KayttajaHelper.DEFAULT_ID, tyoskentelyjakso.id)
-        assertThat(asiakirjaListByTyoskentelyjakso).hasSize(asiakirjaTableSizeBeforeDelete - 1)
-
-        val asiakirjaList = asiakirjaRepository.findAll()
-
-        // Mikäli työskentelyjakso poistetaan, jätetään asiakirja edelleen saataville Asiakirjat-osioon
-        assertThat(asiakirjaList).hasSize(asiakirjaTableSizeBeforeDelete)
-
-        val updatedAsiakirja = asiakirjaList.find { it.nimi == asiakirja.nimi }?.takeIf { it.tyoskentelyjakso == null }
-        assertThat(updatedAsiakirja).isNotNull
     }
 
     @Test
@@ -942,10 +890,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI,
             tempFile2.readBytes()
         )
-    }
-
-    fun initAsiakirja(userId: String? = KayttajaHelper.DEFAULT_ID, tyoskentelyjakso: Tyoskentelyjakso?) {
-        asiakirja = AsiakirjaHelper.createEntity(em, userId, tyoskentelyjakso)
     }
 
     companion object {

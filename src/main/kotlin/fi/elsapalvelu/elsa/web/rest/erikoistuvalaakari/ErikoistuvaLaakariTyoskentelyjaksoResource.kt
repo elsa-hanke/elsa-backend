@@ -96,18 +96,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 }
             }
         }?.let {
-            tyoskentelyjaksoService.save(it, user.id!!)?.let { result ->
-                files?.also { files ->
-                    fileValidator.validate(files, user.id!!)
-                }?.map { file ->
-                    AsiakirjaDTO(
-                        nimi = file.originalFilename,
-                        tyyppi = file.contentType,
-                        fileInputStream = file.inputStream,
-                        fileSize = file.size,
-                        tyoskentelyjaksoId = result.id
-                    )
-                }?.let { asiakirjat -> asiakirjaService.create(asiakirjat, user.id!!) }
+            val asiakirjaDTOs = getMappedFiles(files, user.id!!) ?: mutableSetOf()
+            tyoskentelyjaksoService.save(it, user.id!!, asiakirjaDTOs)?.let { result ->
                 return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${result.id}"))
                     .headers(
                         HeaderUtil.createEntityCreationAlert(
@@ -127,6 +117,24 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         )
     }
 
+    private fun getMappedFiles(files: List<MultipartFile>?, userId: String): MutableSet<AsiakirjaDTO>? {
+        files?.let {
+            fileValidator.validate(it, userId)
+            return it.map { file ->
+                AsiakirjaDTO(
+                    nimi = file.originalFilename,
+                    tyyppi = file.contentType,
+                    asiakirjaData = AsiakirjaDataDTO(
+                        fileInputStream = file.inputStream,
+                        fileSize = file.size
+                    )
+                )
+            }?.toMutableSet()
+        }
+
+        return null
+    }
+
     @PutMapping("/tyoskentelyjaksot")
     fun updateTyoskentelyjakso(
         @Valid @RequestParam tyoskentelyjaksoJson: String,
@@ -142,27 +150,12 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             if (id == null) {
                 throw BadRequestAlertException("Työskentelyjakson ID puuttuu.", ENTITY_NAME, "idnull")
             }
-
-            files?.also { files ->
-                fileValidator.validate(files, user.id!!)
-            }?.map {
-                AsiakirjaDTO(
-                    nimi = it.originalFilename,
-                    tyyppi = it.contentType,
-                    fileInputStream = it.inputStream,
-                    fileSize = it.size,
-                    tyoskentelyjaksoId = id
-                )
-            }?.let { asiakirjat -> asiakirjaService.create(asiakirjat, user.id!!) }
-
-            deletedAsiakirjaIdsJson?.let {
-                objectMapper.readValue(it, mutableListOf<Long>()::class.java)
-            }?.let {
-                it.forEach { id -> asiakirjaService.delete(id, user.id!!) }
-            }
-
         }?.let {
-            tyoskentelyjaksoService.save(it, user.id!!)?.let { result ->
+            val newAsiakirjat = getMappedFiles(files, user.id!!) ?: mutableSetOf()
+            val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let { id ->
+                objectMapper.readValue(id, mutableSetOf<Int>()::class.java)
+            }
+            tyoskentelyjaksoService.save(it, user.id!!, newAsiakirjat, deletedAsiakirjaIds)?.let { result ->
                 return ResponseEntity.ok()
                     .headers(
                         HeaderUtil.createEntityUpdateAlert(
@@ -219,9 +212,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         val user = userService.getAuthenticatedUser(principal)
         tyoskentelyjaksoService.findOne(id, user.id!!)?.let {
-            it.asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariIdAndTyoskentelyjaksoId(user.id!!, id)
             it.kaikkiAsiakirjaNimet =
-                asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { asiakirja -> asiakirja.nimi }
+                asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { asiakirja -> asiakirja.nimi!! }
                     .toMutableSet()
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -263,7 +255,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
 
         form.kaikkiAsiakirjaNimet =
-            asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { it.nimi }.toMutableSet()
+            asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { it.nimi!! }.toMutableSet()
 
         return ResponseEntity.ok(form)
     }
