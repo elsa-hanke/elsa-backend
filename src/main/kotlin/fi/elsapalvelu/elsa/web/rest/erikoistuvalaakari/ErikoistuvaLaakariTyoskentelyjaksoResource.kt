@@ -1,7 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.validation.FileValidator
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import org.slf4j.LoggerFactory
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
@@ -26,7 +29,10 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
     private val poissaolonSyyService: PoissaolonSyyService,
-    private val keskeytysaikaService: KeskeytysaikaService
+    private val keskeytysaikaService: KeskeytysaikaService,
+    private val asiakirjaService: AsiakirjaService,
+    private val objectMapper: ObjectMapper,
+    private val fileValidator: FileValidator
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -36,68 +42,84 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
     @PostMapping("/tyoskentelyjaksot")
     fun createTyoskentelyjakso(
-        @Valid @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
+        @Valid @RequestParam tyoskentelyjaksoJson: String,
+        @Valid @RequestParam files: List<MultipartFile>?,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
-        log.debug("REST request to create Tyoskentelyjakso : $tyoskentelyjaksoDTO")
+        val user = userService.getAuthenticatedUser(principal)
+        tyoskentelyjaksoJson.let {
+            objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
+        }?.apply {
+            log.debug("REST request to create Tyoskentelyjakso : $this")
 
-        if (tyoskentelyjaksoDTO.id != null) {
-            throw BadRequestAlertException(
-                "Uusi tyoskentelyjakso ei saa sisältää ID:tä.",
-                ENTITY_NAME,
-                "idexists"
-            )
-        }
-        val tyoskentelypaikka = tyoskentelyjaksoDTO.tyoskentelypaikka
-        if (tyoskentelypaikka == null || tyoskentelypaikka.id != null) {
-            throw BadRequestAlertException(
-                "Uusi tyoskentelypaikka ei saa sisältää ID:tä.",
-                "tyoskentelypaikka",
-                "idexists"
-            )
-        }
-        if (tyoskentelyjaksoDTO.paattymispaiva != null
-        ) {
-            val daysBetween = ChronoUnit.DAYS.between(
-                tyoskentelyjaksoDTO.alkamispaiva,
-                tyoskentelyjaksoDTO.paattymispaiva
-            ) + 1
-            val minDays = ceil(
-                (
-                    30 * (
-                        100 / tyoskentelyjaksoDTO.osaaikaprosentti!!
-                            .coerceIn(50, 100)
-                        )
-                    ).toDouble()
-            ).toInt()
-            if (tyoskentelyjaksoDTO.paattymispaiva!!.isBefore(tyoskentelyjaksoDTO.alkamispaiva!!)) {
+            if (id != null) {
                 throw BadRequestAlertException(
-                    "Työskentelyjakson päättymispäivä ei saa olla ennen alkamisaikaa",
-                    "tyoskentelypaikka",
-                    "dataillegal"
-                )
-            } else if (daysBetween < minDays) {
-                throw BadRequestAlertException(
-                    "Työskentelyjakson minimikesto on 30 täyttä työpäivää",
-                    "tyoskentelypaikka",
-                    "dataillegal"
+                    "Uusi tyoskentelyjakso ei saa sisältää ID:tä.",
+                    ENTITY_NAME,
+                    "idexists"
                 )
             }
-        }
-
-        val user = userService.getAuthenticatedUser(principal)
-
-        tyoskentelyjaksoService.save(tyoskentelyjaksoDTO, user.id!!)?.let {
-            return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${it.id}"))
-                .headers(
-                    HeaderUtil.createEntityCreationAlert(
-                        applicationName,
-                        true,
-                        ENTITY_NAME,
-                        it.id.toString()
-                    )
+            val tyoskentelypaikka = tyoskentelypaikka
+            if (tyoskentelypaikka == null || tyoskentelypaikka.id != null) {
+                throw BadRequestAlertException(
+                    "Uusi tyoskentelypaikka ei saa sisältää ID:tä.",
+                    "tyoskentelypaikka",
+                    "idexists"
                 )
-                .body(it)
+            }
+            if (paattymispaiva != null
+            ) {
+                val daysBetween = ChronoUnit.DAYS.between(
+                    alkamispaiva,
+                    paattymispaiva
+                ) + 1
+                val minDays = ceil(
+                    (
+                        30 * (
+                            100 / osaaikaprosentti!!
+                                .coerceIn(50, 100)
+                            )
+                        ).toDouble()
+                ).toInt()
+                if (paattymispaiva!!.isBefore(alkamispaiva!!)) {
+                    throw BadRequestAlertException(
+                        "Työskentelyjakson päättymispäivä ei saa olla ennen alkamisaikaa",
+                        "tyoskentelypaikka",
+                        "dataillegal"
+                    )
+                } else if (daysBetween < minDays) {
+                    throw BadRequestAlertException(
+                        "Työskentelyjakson minimikesto on 30 täyttä työpäivää",
+                        "tyoskentelypaikka",
+                        "dataillegal"
+                    )
+                }
+            }
+        }?.let {
+            tyoskentelyjaksoService.save(it, user.id!!)?.let { result ->
+                files?.also { files ->
+                    fileValidator.validate(files, user.id!!)
+                }?.map { file ->
+                    AsiakirjaDTO(
+                        nimi = file.originalFilename,
+                        tyyppi = file.contentType,
+                        fileInputStream = file.inputStream,
+                        fileSize = file.size,
+                        tyoskentelyjaksoId = result.id
+                    )
+                }?.let { asiakirjat -> asiakirjaService.create(asiakirjat, user.id!!) }
+                return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${result.id}"))
+                    .headers(
+                        HeaderUtil.createEntityCreationAlert(
+                            applicationName,
+                            true,
+                            ENTITY_NAME,
+                            result.id.toString()
+                        )
+                    )
+                    .body(result)
+            }
+
         } ?: throw BadRequestAlertException(
             "Työskentelyjakson lisääminen epäonnistui.",
             ENTITY_NAME,
@@ -107,28 +129,51 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
     @PutMapping("/tyoskentelyjaksot")
     fun updateTyoskentelyjakso(
-        @Valid @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
+        @Valid @RequestParam tyoskentelyjaksoJson: String,
+        @Valid @RequestParam files: List<MultipartFile>?,
+        @RequestParam deletedAsiakirjaIdsJson: String?,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
-        log.debug("REST request to update Tyoskentelyjakso : $tyoskentelyjaksoDTO")
-
-        if (tyoskentelyjaksoDTO.id == null) {
-            throw BadRequestAlertException("Työskentelyjakson ID puuttuu.", ENTITY_NAME, "idnull")
-        }
-
         val user = userService.getAuthenticatedUser(principal)
+        tyoskentelyjaksoJson.let {
+            objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
+        }?.apply {
+            log.debug("REST request to update Tyoskentelyjakso : $this")
+            if (id == null) {
+                throw BadRequestAlertException("Työskentelyjakson ID puuttuu.", ENTITY_NAME, "idnull")
+            }
 
-        tyoskentelyjaksoService.save(tyoskentelyjaksoDTO, user.id!!)?.let {
-            return ResponseEntity.ok()
-                .headers(
-                    HeaderUtil.createEntityUpdateAlert(
-                        applicationName,
-                        true,
-                        ENTITY_NAME,
-                        tyoskentelyjaksoDTO.id.toString()
-                    )
+            files?.also { files ->
+                fileValidator.validate(files, user.id!!)
+            }?.map {
+                AsiakirjaDTO(
+                    nimi = it.originalFilename,
+                    tyyppi = it.contentType,
+                    fileInputStream = it.inputStream,
+                    fileSize = it.size,
+                    tyoskentelyjaksoId = id
                 )
-                .body(it)
+            }?.let { asiakirjat -> asiakirjaService.create(asiakirjat, user.id!!) }
+
+            deletedAsiakirjaIdsJson?.let {
+                objectMapper.readValue(it, mutableListOf<Long>()::class.java)
+            }?.let {
+                it.forEach { id -> asiakirjaService.delete(id, user.id!!) }
+            }
+
+        }?.let {
+            tyoskentelyjaksoService.save(it, user.id!!)?.let { result ->
+                return ResponseEntity.ok()
+                    .headers(
+                        HeaderUtil.createEntityUpdateAlert(
+                            applicationName,
+                            true,
+                            ENTITY_NAME,
+                            result.id.toString()
+                        )
+                    )
+                    .body(result)
+            }
         } ?: throw BadRequestAlertException(
             "Työskentelyjakson päivittäminen epäonnistui.",
             ENTITY_NAME,
@@ -154,6 +199,17 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         return ResponseEntity.ok(table)
     }
 
+    @GetMapping("/tyoskentelyjaksot")
+    fun getTyoskentelyjaksot(
+        principal: Principal?
+    ): ResponseEntity<List<TyoskentelyjaksoDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val tyoskentelyjaksot =
+            tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        return ResponseEntity.ok(tyoskentelyjaksot)
+    }
+
     @GetMapping("/tyoskentelyjaksot/{id}")
     fun getTyoskentelyjakso(
         @PathVariable id: Long,
@@ -163,6 +219,10 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         val user = userService.getAuthenticatedUser(principal)
         tyoskentelyjaksoService.findOne(id, user.id!!)?.let {
+            it.asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariIdAndTyoskentelyjaksoId(user.id!!, id)
+            it.kaikkiAsiakirjaNimet =
+                asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { asiakirja -> asiakirja.nimi }
+                    .toMutableSet()
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -175,9 +235,18 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         log.debug("REST request to delete Tyoskentelyjakso : $id")
 
         val user = userService.getAuthenticatedUser(principal)
+
+        asiakirjaService.removeTyoskentelyjaksoReference(user.id!!, id)
         tyoskentelyjaksoService.delete(id, user.id!!)
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build()
+            .headers(
+                HeaderUtil.createEntityDeletionAlert(
+                    applicationName,
+                    true,
+                    ENTITY_NAME,
+                    id.toString()
+                )
+            ).build()
     }
 
     @GetMapping("/tyoskentelyjakso-lomake")
@@ -186,11 +255,15 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     ): ResponseEntity<TyoskentelyjaksoFormDTO> {
         log.debug("REST request to get TyoskentelyjaksoForm")
 
+        val user = userService.getAuthenticatedUser(principal)
         val form = TyoskentelyjaksoFormDTO()
 
         form.kunnat = kuntaService.findAll().toMutableSet()
 
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
+
+        form.kaikkiAsiakirjaNimet =
+            asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { it.nimi }.toMutableSet()
 
         return ResponseEntity.ok(form)
     }
@@ -308,7 +381,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         keskeytysaikaService.delete(id, user.id!!)
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, "keskeytysaika", id.toString()))
+            .headers(
+                HeaderUtil.createEntityDeletionAlert(
+                    applicationName,
+                    true,
+                    "keskeytysaika",
+                    id.toString()
+                )
+            )
             .build()
     }
 }

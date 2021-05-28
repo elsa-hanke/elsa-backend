@@ -2,10 +2,7 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.config.DEFAULT_LANGUAGE
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.getCurrentUserLogin
@@ -91,6 +88,7 @@ class UserService(
         // save account in to sync users between IdP and JHipster's local database
         val existingUser = userRepository.findOneByLogin(user.login!!)
         if (existingUser.isPresent) {
+            user.id = existingUser.get().id
             user.authorities = existingUser.get().authorities
             // if IdP sends last updated information, use it to determine if an update should happen
             if (details["updated_at"] != null) {
@@ -124,7 +122,6 @@ class UserService(
             val kayttaja = kayttajaRepository.save(
                 Kayttaja(
                     user = user,
-                    nimi = user.firstName + " " + user.lastName
                 )
             )
             // TODO: erikoisalan valinta opinto-oikeuden mukaan
@@ -133,12 +130,12 @@ class UserService(
                 erikoistuvaLaakariRepository.save(
                     ErikoistuvaLaakari(
                         kayttaja = kayttaja,
-                        erikoisala = erikoisala
+                        erikoisala = erikoisala,
                     )
                 )
             } ?: erikoistuvaLaakariRepository.save(
                 ErikoistuvaLaakari(
-                    kayttaja = kayttaja
+                    kayttaja = kayttaja,
                 )
             )
         }

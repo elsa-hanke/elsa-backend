@@ -1,0 +1,74 @@
+variables:
+  vmImageName: 'Ubuntu 16.04'
+
+stages:
+  - stage: Build
+    displayName: Build and push stage
+    jobs:
+      - job: Build
+        pool:
+          vmImage: $(vmImageName)
+        variables:
+          NODE_VERSION: 12.16.1
+          SPRING_OUTPUT_ANSI_ENABLED: NEVER
+          SPRING_JPA_SHOW_SQL: false
+          JHI_DISABLE_WEBPACK_LOGS: true
+          GRADLE_USER_HOME: $(Pipeline.Workspace)/.gradle
+          TERM: dumb
+
+        steps:
+          - task: Cache@2
+            inputs:
+              key: 'gradle | "$(Agent.OS)"'
+              restoreKeys: gradle
+              path: $(GRADLE_USER_HOME)
+            displayName: Gradle build cache
+          - script: |
+              ./gradlew checkstyleNohttp
+              ./gradlew clean test integrationTest
+            displayName: 'Test'
+          - script: |
+              ./gradlew dependencyCheckAnalyze
+            continueOnError: true
+            displayName: 'Dependency check'
+          - publish: $(System.DefaultWorkingDirectory)/build/reports/dependency-check-report.html
+            artifact: DependencyCheck
+            displayName: 'Upload dependency check artifact'
+          - script: |
+              ./gradlew --build-cache build -x test integrationTest
+            displayName: 'Build'
+          - script: |
+              ./gradlew bootJar -Pprod -x test jibDockerBuild
+            displayName: 'Build image'
+          - script: |
+              ./gradlew --stop
+            displayName: 'Gradle daemon stop'
+          - task: ECRPushImage@1
+            inputs:
+              awsCredentials: 'sandbox-elsa-ci'
+              regionName: 'eu-west-1'
+              imageSource: 'imagename'
+              sourceImageName: 'elsabackend'
+              repositoryName: 'ecr-sandbox-backend'
+            displayName: 'Push image'
+
+  - stage: Deploy_backend_sandbox
+    displayName: Deploy backend sandbox
+    dependsOn: Build
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy backend sandbox
+        environment: "sandbox"
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
+                inputs:
+                  awsCredentials: 'sandbox-elsa-ci'
+                  regionName: 'eu-west-1'
+                  scriptType: inline
+                  inlineScript: 'aws ecs update-service --cluster elsa-sandbox-cluster --service elsa-sandbox-backend-service --task-definition elsa-sandbox-backend --force-new-deployment > /dev/null'
+                displayName: Force update ecs service

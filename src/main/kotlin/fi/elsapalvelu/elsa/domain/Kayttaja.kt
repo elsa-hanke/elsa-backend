@@ -1,10 +1,11 @@
 package fi.elsapalvelu.elsa.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import javax.persistence.*
-import javax.validation.constraints.*
+import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "kayttaja")
@@ -15,9 +16,8 @@ data class Kayttaja(
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
 
-    @get: NotNull
-    @Column(name = "nimi", nullable = false)
-    var nimi: String? = null,
+    @Column(name = "nimike", nullable = true)
+    var nimike: String? = null,
 
     @Lob
     @Column(name = "profiilikuva")
@@ -33,7 +33,11 @@ data class Kayttaja(
 
     @OneToMany(mappedBy = "valtuutettu")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var saadutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf()
+    var saadutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf(),
+
+    @ManyToOne(optional = true)
+    @JsonIgnoreProperties(value = ["kayttajat"], allowSetters = true)
+    var yliopisto: Yliopisto? = null
 
 ) : Serializable {
 
@@ -49,6 +53,10 @@ data class Kayttaja(
         return this
     }
 
+    fun getNimi(): String {
+        return this.user?.firstName + " " + this.user?.lastName
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Kayttaja) return false
@@ -60,7 +68,7 @@ data class Kayttaja(
 
     override fun toString() = "Kayttaja{" +
         "id=$id" +
-        ", nimi='$nimi'" +
+        ", nimike='$nimike'" +
         ", profiilikuva='?'" +
         ", profiilikuvaContentType='$profiilikuvaContentType'" +
         "}"

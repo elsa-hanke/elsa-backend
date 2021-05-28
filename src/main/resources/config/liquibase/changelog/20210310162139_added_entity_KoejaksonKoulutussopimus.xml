@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20210310162139-1" author="jhipster">
+
+        <createTable tableName="koejakson_koulutussopimus">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_opiskelijatunnus" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_syntymaaika" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_yliopisto" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opintooikeuden_myontamispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koejakson_alkamispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_puhelinnumero" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_sahkoposti" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahetetty" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="muokkauspaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vastuuhenkilo_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vastuuhenkilon_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vastuuhenkilon_nimike" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="vastuuhenkilo_hyvaksynyt" type="boolean">
+                <constraints nullable="true"/>
+            </column>
+            <column name="vastuuhenkilon_kuittausaika" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="korjausehdotus" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="koulutussopimuksen_kouluttaja">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="kouluttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nimike" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="toimipaikka" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="lahiosoite" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="postitoimipaikka" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="puhelin" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="sahkoposti" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="sopimus_hyvaksytty" type="boolean">
+                <constraints nullable="true"/>
+            </column>
+            <column name="kuittausaika" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="koulutussopimus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="koulutussopimuksen_koulutuspaikka">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yliopisto" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="koulutussopimus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addColumn tableName="tyoskentelyjakso">
+            <column name="liitetty_koejaksoon" type="boolean"/>
+        </addColumn>
+
+        <addColumn tableName="kayttaja">
+            <column name="yliopisto_id" type="bigint"/>
+            <column name="nimike" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

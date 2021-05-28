@@ -5,7 +5,9 @@ import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import javax.persistence.*
-import javax.validation.constraints.*
+import javax.validation.constraints.Max
+import javax.validation.constraints.Min
+import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "erikoistuva_laakari")
@@ -18,9 +20,6 @@ data class ErikoistuvaLaakari(
 
     @Column(name = "puhelinnumero", nullable = false)
     var puhelinnumero: String? = null,
-
-    @Column(name = "sahkoposti", nullable = false)
-    var sahkoposti: String? = null,
 
     @Column(name = "opiskelijatunnus")
     var opiskelijatunnus: String? = null,
@@ -47,7 +46,15 @@ data class ErikoistuvaLaakari(
     // @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["erikoistuvatLaakarit"], allowSetters = true)
-    var erikoisala: Erikoisala? = null
+    var erikoisala: Erikoisala? = null,
+
+    @NotNull
+    @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var koejaksonKoulutussopimus: KoejaksonKoulutussopimus? = null,
+
+    @NotNull
+    @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu? = null
 
 ) : Serializable {
 
@@ -87,7 +94,6 @@ data class ErikoistuvaLaakari(
     override fun toString() = "ErikoistuvaLaakari{" +
         "id=$id" +
         ", puhelinnumero='$puhelinnumero'" +
-        ", sahkoposti='$sahkoposti'" +
         ", opiskelijatunnus='$opiskelijatunnus'" +
         ", opintojenAloitusvuosi=$opintojenAloitusvuosi" +
         "}"

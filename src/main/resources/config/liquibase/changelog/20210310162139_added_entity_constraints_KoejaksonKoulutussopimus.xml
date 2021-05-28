@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20210310162139-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="erikoistuva_laakari_id"
+            baseTableName="koejakson_koulutussopimus"
+            constraintName="fk_koejakson_koulutussopimus_erikoistuva_laakari_id"
+            referencedColumnNames="id"
+            referencedTableName="erikoistuva_laakari"/>
+
+        <addForeignKeyConstraint baseColumnNames="vastuuhenkilo_id"
+            baseTableName="koejakson_koulutussopimus"
+            constraintName="fk_koejakson_koulutussopimus_vastuuhenkilo_id"
+            referencedColumnNames="id"
+            referencedTableName="kayttaja"/>
+
+        <addForeignKeyConstraint baseColumnNames="kouluttaja_id"
+            baseTableName="koulutussopimuksen_kouluttaja"
+            constraintName="fk_koulutussopimuksen_kouluttaja_kouluttaja_id"
+            referencedColumnNames="id"
+            referencedTableName="kayttaja"/>
+
+        <addForeignKeyConstraint baseColumnNames="koulutussopimus_id"
+            baseTableName="koulutussopimuksen_kouluttaja"
+            constraintName="fk_koulutussopimuksen_kouluttaja_koulutussopimus_id"
+            referencedColumnNames="id"
+            referencedTableName="koejakson_koulutussopimus"/>
+
+        <addForeignKeyConstraint baseColumnNames="koulutussopimus_id"
+            baseTableName="koulutussopimuksen_koulutuspaikka"
+            constraintName="fk_koulutussopimuksen_koulutuspaikka_koulutussopimus_id"
+            referencedColumnNames="id"
+            referencedTableName="koejakson_koulutussopimus"/>
+
+        <addForeignKeyConstraint baseColumnNames="yliopisto_id"
+            baseTableName="kayttaja"
+            constraintName="fk_kayttaja_yliopisto_id"
+            referencedColumnNames="id"
+            referencedTableName="yliopisto"/>
+
+    </changeSet>
+
+</databaseChangeLog>

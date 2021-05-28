@@ -19,7 +19,7 @@ management:
     web:
       base-path: /management
       exposure:
-        include: ['configprops', 'env', 'health', 'info', 'jhimetrics', 'logfile', 'loggers', 'prometheus', 'threaddump']
+        include: [ 'configprops', 'env', 'health', 'info', 'jhimetrics', 'logfile', 'loggers', 'prometheus', 'threaddump' ]
   endpoint:
     health:
       show-details: when_authorized
@@ -71,6 +71,10 @@ spring:
     jpa:
       repositories:
         bootstrap-mode: deferred
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 100MB
   jpa:
     open-in-view: false
     properties:
@@ -86,6 +90,7 @@ spring:
       hibernate.order_updates: true
       hibernate.query.fail_on_pagination_over_collection_fetch: true
       hibernate.query.in_clause_parameter_padding: true
+      hibernate.jdbc.use_streams_for_binary: true
     hibernate:
       ddl-auto: none
       naming:
@@ -151,7 +156,7 @@ jhipster:
   #     allow-credentials: true
   #     max-age: 1800
   mail:
-    from: elsaBackend@localhost
+    from: no-reply@mail.kehitys.elsapalvelu.fi
   swagger:
     default-include-pattern: /api/.*
     title: ELSA-palvelu API

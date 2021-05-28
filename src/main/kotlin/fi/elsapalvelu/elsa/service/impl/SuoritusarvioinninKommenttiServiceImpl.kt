@@ -3,13 +3,15 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.SuoritusarvioinninKommenttiRepository
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
+import fi.elsapalvelu.elsa.service.MailProperty
+import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.SuoritusarvioinninKommenttiService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarvioinninKommenttiMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
+import java.util.*
 
 @Service
 @Transactional
@@ -18,7 +20,8 @@ class SuoritusarvioinninKommenttiServiceImpl(
     private val kayttajaRepository: KayttajaRepository,
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
     private val suoritusarvioinninKommenttiMapper: SuoritusarvioinninKommenttiMapper,
-    private val kayttajaMapper: KayttajaMapper
+    private val kayttajaMapper: KayttajaMapper,
+    private val mailService: MailService
 ) : SuoritusarvioinninKommenttiService {
 
     override fun save(suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO): SuoritusarvioinninKommenttiDTO {
@@ -56,7 +59,18 @@ class SuoritusarvioinninKommenttiServiceImpl(
         ) {
             suoritusarvioinninKommentti =
                 suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
-            // TODO: lähetä sähköposti toiselle osapuolelle
+            val user =
+                if (kayttaja == suoritusarviointi.arvioinninAntaja) kayttajaRepository.findById(
+                    suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.id!!
+                ).get().user!!
+                else kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!)
+                    .get().user!!
+            mailService.sendEmailFromTemplate(
+                user,
+                "suoritusarvioinninKommenttiEmail.html",
+                "email.suoritusarvioinninkommentti.title",
+                properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
+            )
             return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
         } else {
             throw IllegalArgumentException(
