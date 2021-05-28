@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.config
 
-import fi.elsapalvelu.elsa.security.ADMIN
-import fi.elsapalvelu.elsa.security.extractAuthorityFromClaims
+import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.security.oauth2.AudienceValidator
 import fi.elsapalvelu.elsa.security.oauth2.JwtGrantedAuthorityConverter
 import io.github.jhipster.config.JHipsterProperties
@@ -86,6 +85,9 @@ class SecurityConfiguration(
             .authorizeRequests()
             .antMatchers("/authorize").authenticated()
             .antMatchers("/api/auth-info").permitAll()
+            .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
+            .antMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
+            .antMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
             .antMatchers("/api/**").authenticated()
             .antMatchers("/management/health").permitAll()
             .antMatchers("/management/info").permitAll()
