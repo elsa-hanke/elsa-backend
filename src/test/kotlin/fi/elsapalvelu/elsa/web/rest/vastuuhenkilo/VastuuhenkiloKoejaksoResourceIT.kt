@@ -134,7 +134,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
         restKoejaksoMockMvc.perform(
-            put("/api/kouluttaja/koejakso/koulutussopimus")
+            put("/api/vastuuhenkilo/koejakso/koulutussopimus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koulutussopimusDTO))
                 .with(csrf())
@@ -165,7 +165,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
         restKoejaksoMockMvc.perform(
-            put("/api/kouluttaja/koejakso/koulutussopimus")
+            put("/api/vastuuhenkilo/koejakso/koulutussopimus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koulutussopimusDTO))
                 .with(csrf())
