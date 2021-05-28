@@ -262,7 +262,7 @@ class KouluttajaKoejaksoResourceIT {
         val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
         em.detach(updatedKoulutussopimus)
 
-        updatedKoulutussopimus.kouluttajat.forEach {
+        updatedKoulutussopimus.kouluttajat?.forEach {
             it.nimike = UPDATED_NIMIKE
             it.sahkoposti = UPDATED_EMAIL
             it.puhelin = UPDATED_PHONE
@@ -297,7 +297,7 @@ class KouluttajaKoejaksoResourceIT {
         val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
         em.detach(updatedKoulutussopimus)
 
-        updatedKoulutussopimus.kouluttajat.forEach {
+        updatedKoulutussopimus.kouluttajat?.forEach {
             it.nimike = UPDATED_NIMIKE
             it.sahkoposti = UPDATED_EMAIL
             it.puhelin = UPDATED_PHONE
@@ -322,15 +322,15 @@ class KouluttajaKoejaksoResourceIT {
         assertThat(testKoulutussopimus.korjausehdotus).isNull()
 
         assertThat(testKoulutussopimus.kouluttajat).hasSize(1)
-        val testKouluttaja = testKoulutussopimus.kouluttajat.iterator().next()
-        assertThat(testKouluttaja.nimike).isEqualTo(UPDATED_NIMIKE)
-        assertThat(testKouluttaja.sahkoposti).isEqualTo(UPDATED_EMAIL)
-        assertThat(testKouluttaja.puhelin).isEqualTo(UPDATED_PHONE)
-        assertThat(testKouluttaja.lahiosoite).isEqualTo(UPDATED_LAHIOSOITE)
-        assertThat(testKouluttaja.toimipaikka).isEqualTo(UPDATED_TOIMIPAIKKA)
-        assertThat(testKouluttaja.postitoimipaikka).isEqualTo(UPDATED_POSTITOIMIPAIKKA)
-        assertThat(testKouluttaja.sopimusHyvaksytty).isEqualTo(true)
-        assertThat(testKouluttaja.kuittausaika).isNotNull
+        val testKouluttaja = testKoulutussopimus.kouluttajat?.iterator()?.next()
+        assertThat(testKouluttaja?.nimike).isEqualTo(UPDATED_NIMIKE)
+        assertThat(testKouluttaja?.sahkoposti).isEqualTo(UPDATED_EMAIL)
+        assertThat(testKouluttaja?.puhelin).isEqualTo(UPDATED_PHONE)
+        assertThat(testKouluttaja?.lahiosoite).isEqualTo(UPDATED_LAHIOSOITE)
+        assertThat(testKouluttaja?.toimipaikka).isEqualTo(UPDATED_TOIMIPAIKKA)
+        assertThat(testKouluttaja?.postitoimipaikka).isEqualTo(UPDATED_POSTITOIMIPAIKKA)
+        assertThat(testKouluttaja?.sopimusHyvaksytty).isEqualTo(true)
+        assertThat(testKouluttaja?.kuittausaika).isNotNull
     }
 
     @Test
@@ -345,7 +345,7 @@ class KouluttajaKoejaksoResourceIT {
         val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
         em.detach(updatedKoulutussopimus)
 
-        updatedKoulutussopimus.kouluttajat.forEach {
+        updatedKoulutussopimus.kouluttajat?.forEach {
             it.nimike = UPDATED_NIMIKE
             it.sahkoposti = UPDATED_EMAIL
             it.puhelin = UPDATED_PHONE
@@ -373,15 +373,15 @@ class KouluttajaKoejaksoResourceIT {
         assertThat(testKoulutussopimus.lahetetty).isEqualTo(false)
 
         assertThat(testKoulutussopimus.kouluttajat).hasSize(1)
-        val testKouluttaja = testKoulutussopimus.kouluttajat.iterator().next()
-        assertThat(testKouluttaja.nimike).isEqualTo(UPDATED_NIMIKE)
-        assertThat(testKouluttaja.sahkoposti).isEqualTo(UPDATED_EMAIL)
-        assertThat(testKouluttaja.puhelin).isEqualTo(UPDATED_PHONE)
-        assertThat(testKouluttaja.lahiosoite).isEqualTo(UPDATED_LAHIOSOITE)
-        assertThat(testKouluttaja.toimipaikka).isEqualTo(UPDATED_TOIMIPAIKKA)
-        assertThat(testKouluttaja.postitoimipaikka).isEqualTo(UPDATED_POSTITOIMIPAIKKA)
-        assertThat(testKouluttaja.sopimusHyvaksytty).isEqualTo(false)
-        assertThat(testKouluttaja.kuittausaika).isNull()
+        val testKouluttaja = testKoulutussopimus.kouluttajat?.iterator()?.next()
+        assertThat(testKouluttaja?.nimike).isEqualTo(UPDATED_NIMIKE)
+        assertThat(testKouluttaja?.sahkoposti).isEqualTo(UPDATED_EMAIL)
+        assertThat(testKouluttaja?.puhelin).isEqualTo(UPDATED_PHONE)
+        assertThat(testKouluttaja?.lahiosoite).isEqualTo(UPDATED_LAHIOSOITE)
+        assertThat(testKouluttaja?.toimipaikka).isEqualTo(UPDATED_TOIMIPAIKKA)
+        assertThat(testKouluttaja?.postitoimipaikka).isEqualTo(UPDATED_POSTITOIMIPAIKKA)
+        assertThat(testKouluttaja?.sopimusHyvaksytty).isEqualTo(false)
+        assertThat(testKouluttaja?.kuittausaika).isNull()
     }
 
     @Test
