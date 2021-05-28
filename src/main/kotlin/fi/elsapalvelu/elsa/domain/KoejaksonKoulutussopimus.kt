@@ -77,10 +77,10 @@ data class KoejaksonKoulutussopimus(
     var korjausehdotus: String? = null,
 
     @OneToMany(mappedBy = "koulutussopimus", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var kouluttajat: MutableSet<KoulutussopimuksenKouluttaja> = mutableSetOf(),
+    var kouluttajat: MutableSet<KoulutussopimuksenKouluttaja>? = mutableSetOf(),
 
     @OneToMany(mappedBy = "koulutussopimus", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikka> = mutableSetOf()
+    var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikka>? = mutableSetOf()
 
 ) : Serializable {
 

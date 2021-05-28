@@ -40,13 +40,13 @@ class KoejaksonKoulutussopimusServiceImpl(
         var koulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
         koulutussopimus.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         koulutussopimus.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
-        koulutussopimus.koulutuspaikat.forEach { it.koulutussopimus = koulutussopimus }
-        koulutussopimus.kouluttajat.forEach { it.koulutussopimus = koulutussopimus }
+        koulutussopimus.koulutuspaikat?.forEach { it.koulutussopimus = koulutussopimus }
+        koulutussopimus.kouluttajat?.forEach { it.koulutussopimus = koulutussopimus }
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
         // Sähköposti kouluttajille allekirjoitetusta sopimuksesta
         if (koulutussopimus.lahetetty) {
-            koulutussopimus.kouluttajat.forEach {
+            koulutussopimus.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
                     "koulutussopimusKouluttajalle.html",
@@ -75,11 +75,12 @@ class KoejaksonKoulutussopimusServiceImpl(
             koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
 
         if (kirjautunutErikoistuvaLaakari != null
-            && kirjautunutErikoistuvaLaakari == koulutussopimus.erikoistuvaLaakari) {
+            && kirjautunutErikoistuvaLaakari == koulutussopimus.erikoistuvaLaakari
+        ) {
             koulutussopimus = handleErikoistuva(koulutussopimus, updatedKoulutussopimus)
         }
 
-        koulutussopimus.kouluttajat.forEach {
+        koulutussopimus.kouluttajat?.forEach {
             if (it.kouluttaja?.user?.id == userId) {
                 koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
             }
@@ -111,12 +112,12 @@ class KoejaksonKoulutussopimusServiceImpl(
         koulutussopimus.vastuuhenkilo = updated.vastuuhenkilo
         koulutussopimus.vastuuhenkilonNimi = updated.vastuuhenkilonNimi
         koulutussopimus.vastuuhenkilonNimike = updated.vastuuhenkilonNimike
-        koulutussopimus.kouluttajat.clear()
-        koulutussopimus.kouluttajat.addAll(updated.kouluttajat)
-        koulutussopimus.kouluttajat.forEach { it.koulutussopimus = koulutussopimus }
-        koulutussopimus.koulutuspaikat.clear()
-        koulutussopimus.koulutuspaikat.addAll(updated.koulutuspaikat)
-        koulutussopimus.koulutuspaikat.forEach { it.koulutussopimus = koulutussopimus }
+        koulutussopimus.kouluttajat?.clear()
+        updated.kouluttajat?.let { koulutussopimus.kouluttajat?.addAll(it) }
+        koulutussopimus.kouluttajat?.forEach { it.koulutussopimus = koulutussopimus }
+        koulutussopimus.koulutuspaikat?.clear()
+        updated.koulutuspaikat?.let { koulutussopimus.koulutuspaikat?.addAll(it) }
+        koulutussopimus.koulutuspaikat?.forEach { it.koulutussopimus = koulutussopimus }
 
         if (updated.lahetetty) {
             koulutussopimus.korjausehdotus = null
@@ -126,7 +127,7 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         // Sähköposti kouluttajille allekirjoitetusta sopimuksesta
         if (updated.lahetetty) {
-            result.kouluttajat.forEach {
+            result.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
                     "koulutussopimusKouluttajalle.html",
@@ -144,14 +145,14 @@ class KoejaksonKoulutussopimusServiceImpl(
         kouluttaja: KoulutussopimuksenKouluttaja,
         updated: KoejaksonKoulutussopimus
     ): KoejaksonKoulutussopimus {
-        val updatedKouluttaja = updated.kouluttajat.first { k -> k.id == kouluttaja.id }
-        kouluttaja.nimi = updatedKouluttaja.nimi
-        kouluttaja.nimike = updatedKouluttaja.nimike
-        kouluttaja.toimipaikka = updatedKouluttaja.toimipaikka
-        kouluttaja.lahiosoite = updatedKouluttaja.lahiosoite
-        kouluttaja.postitoimipaikka = updatedKouluttaja.postitoimipaikka
-        kouluttaja.puhelin = updatedKouluttaja.puhelin
-        kouluttaja.sahkoposti = updatedKouluttaja.sahkoposti
+        val updatedKouluttaja = updated.kouluttajat?.first { k -> k.id == kouluttaja.id }
+        kouluttaja.nimi = updatedKouluttaja?.nimi
+        kouluttaja.nimike = updatedKouluttaja?.nimike
+        kouluttaja.toimipaikka = updatedKouluttaja?.toimipaikka
+        kouluttaja.lahiosoite = updatedKouluttaja?.lahiosoite
+        kouluttaja.postitoimipaikka = updatedKouluttaja?.postitoimipaikka
+        kouluttaja.puhelin = updatedKouluttaja?.puhelin
+        kouluttaja.sahkoposti = updatedKouluttaja?.sahkoposti
 
         // Hyväksytty
         if (updated.korjausehdotus.isNullOrBlank()) {
@@ -163,7 +164,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             koulutussopimus.korjausehdotus = updated.korjausehdotus
             koulutussopimus.lahetetty = false
 
-            koulutussopimus.kouluttajat.forEach {
+            koulutussopimus.kouluttajat?.forEach {
                 it.sopimusHyvaksytty = false
                 it.kuittausaika = null
             }
@@ -172,7 +173,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         val result = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
         // Sähköposti vastuuhenkilölle hyväksytystä sopimuksesta
-        if (result.kouluttajat.all { it.sopimusHyvaksytty }) {
+        if (result.kouluttajat?.all { it.sopimusHyvaksytty } == true) {
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.vastuuhenkilo?.id!!).get().user!!,
                 "koulutussopimusVastuuhenkilolle.html",
@@ -193,7 +194,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
 
-            result.kouluttajat.forEach {
+            result.kouluttajat?.forEach {
                 if (it.id != kouluttaja.id) {
                     mailService.sendEmailFromTemplate(
                         kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
@@ -228,7 +229,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             koulutussopimus.korjausehdotus = updated.korjausehdotus
             koulutussopimus.lahetetty = false
 
-            koulutussopimus.kouluttajat.forEach {
+            koulutussopimus.kouluttajat?.forEach {
                 it.sopimusHyvaksytty = false
                 it.kuittausaika = null
             }
@@ -248,7 +249,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
 
-            result.kouluttajat.forEach {
+            result.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
                     "koulutussopimusHyvaksyttyKouluttaja.html",
@@ -273,7 +274,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
 
-            result.kouluttajat.forEach {
+            result.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
                     "koulutussopimusPalautettuKouluttaja.html",
