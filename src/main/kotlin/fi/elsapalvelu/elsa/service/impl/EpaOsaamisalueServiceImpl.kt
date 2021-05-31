@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.EpaOsaamisalueRepository
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.service.EpaOsaamisalueService
 import fi.elsapalvelu.elsa.service.dto.EpaOsaamisalueDTO
 import fi.elsapalvelu.elsa.service.mapper.EpaOsaamisalueMapper
@@ -13,7 +14,8 @@ import java.util.Optional
 @Transactional
 class EpaOsaamisalueServiceImpl(
     private val epaOsaamisalueRepository: EpaOsaamisalueRepository,
-    private val epaOsaamisalueMapper: EpaOsaamisalueMapper
+    private val epaOsaamisalueMapper: EpaOsaamisalueMapper,
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 ) : EpaOsaamisalueService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -31,6 +33,14 @@ class EpaOsaamisalueServiceImpl(
         log.debug("Request to get all EpaOsaamisalueet")
 
         return epaOsaamisalueRepository.findAll()
+            .mapTo(mutableListOf(), epaOsaamisalueMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<EpaOsaamisalueDTO> {
+        val kirjautunutErikoistuvaLaakari =
+            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        return epaOsaamisalueRepository.findAllByErikoisalaId(kirjautunutErikoistuvaLaakari?.erikoisala?.id)
             .mapTo(mutableListOf(), epaOsaamisalueMapper::toDto)
     }
 

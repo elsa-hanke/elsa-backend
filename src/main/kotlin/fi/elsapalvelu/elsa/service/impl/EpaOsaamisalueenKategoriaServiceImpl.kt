@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.EpaOsaamisalueenKategoriaRepository
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.service.EpaOsaamisalueenKategoriaService
 import fi.elsapalvelu.elsa.service.dto.EpaOsaamisalueenKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.EpaOsaamisalueenKategoriaMapper
@@ -13,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class EpaOsaamisalueenKategoriaServiceImpl(
     private val epaOsaamisalueenKategoriaRepository: EpaOsaamisalueenKategoriaRepository,
-    private val epaOsaamisalueenKategoriaMapper: EpaOsaamisalueenKategoriaMapper
+    private val epaOsaamisalueenKategoriaMapper: EpaOsaamisalueenKategoriaMapper,
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 ) : EpaOsaamisalueenKategoriaService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -21,8 +23,10 @@ class EpaOsaamisalueenKategoriaServiceImpl(
     override fun save(epaOsaamisalueenKategoriaDTO: EpaOsaamisalueenKategoriaDTO): EpaOsaamisalueenKategoriaDTO {
         log.debug("Request to save EpaOsaamisalueenKategoria : $epaOsaamisalueenKategoriaDTO")
 
-        var epaOsaamisalueenKategoria = epaOsaamisalueenKategoriaMapper.toEntity(epaOsaamisalueenKategoriaDTO)
-        epaOsaamisalueenKategoria = epaOsaamisalueenKategoriaRepository.save(epaOsaamisalueenKategoria)
+        var epaOsaamisalueenKategoria =
+            epaOsaamisalueenKategoriaMapper.toEntity(epaOsaamisalueenKategoriaDTO)
+        epaOsaamisalueenKategoria =
+            epaOsaamisalueenKategoriaRepository.save(epaOsaamisalueenKategoria)
         return epaOsaamisalueenKategoriaMapper.toDto(epaOsaamisalueenKategoria)
     }
 
@@ -31,6 +35,16 @@ class EpaOsaamisalueenKategoriaServiceImpl(
         log.debug("Request to get all EpaOsaamisalueenKategoriat")
 
         return epaOsaamisalueenKategoriaRepository.findAll()
+            .mapTo(mutableListOf(), epaOsaamisalueenKategoriaMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<EpaOsaamisalueenKategoriaDTO> {
+        val kirjautunutErikoistuvaLaakari =
+            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        return epaOsaamisalueenKategoriaRepository.findAllByEpaOsaamisalueetErikoisalaId(
+            kirjautunutErikoistuvaLaakari?.erikoisala?.id
+        )
             .mapTo(mutableListOf(), epaOsaamisalueenKategoriaMapper::toDto)
     }
 
