@@ -30,7 +30,7 @@ interface KoejaksonKoulutussopimusMapper :
         Mapping(source = "vastuuhenkilo.nimike", target = "vastuuhenkilonNimike"),
         Mapping(source = "vastuuhenkilo.sopimusHyvaksytty", target = "vastuuhenkiloHyvaksynyt"),
         Mapping(source = "vastuuhenkilo.kuittausaika", target = "vastuuhenkilonKuittausaika"),
-        Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo.id")
+        Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo")
     )
     override fun toEntity(dto: KoejaksonKoulutussopimusDTO): KoejaksonKoulutussopimus
 
