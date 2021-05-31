@@ -29,11 +29,11 @@ interface KoejaksonAloituskeskusteluMapper :
     override fun toDto(entity: KoejaksonAloituskeskustelu): KoejaksonAloituskeskusteluDTO
 
     @Mappings(
-        Mapping(source = "lahikouluttaja.id", target = "lahikouluttaja.id"),
+        Mapping(source = "lahikouluttaja.id", target = "lahikouluttaja"),
         Mapping(source = "lahikouluttaja.nimi", target = "lahikouluttajanNimi"),
         Mapping(source = "lahikouluttaja.sopimusHyvaksytty", target = "lahikouluttajaHyvaksynyt"),
         Mapping(source = "lahikouluttaja.kuittausaika", target = "lahikouluttajanKuittausaika"),
-        Mapping(source = "lahiesimies.id", target = "lahiesimies.id"),
+        Mapping(source = "lahiesimies.id", target = "lahiesimies"),
         Mapping(source = "lahiesimies.nimi", target = "lahiesimiehenNimi"),
         Mapping(source = "lahiesimies.sopimusHyvaksytty", target = "lahiesimiesHyvaksynyt"),
         Mapping(source = "lahiesimies.kuittausaika", target = "lahiesimiehenKuittausaika")
