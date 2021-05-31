@@ -189,3 +189,7 @@ application:
       realm: elsa
       client-id: web-app-admin
       client-secret: web-app-admin
+  security:
+    encoded-key:
+    secret-key-algorithm:
+    cipher-algorithm:
