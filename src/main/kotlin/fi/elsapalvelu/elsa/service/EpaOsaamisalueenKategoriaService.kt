@@ -9,6 +9,8 @@ interface EpaOsaamisalueenKategoriaService {
 
     fun findAll(): MutableList<EpaOsaamisalueenKategoriaDTO>
 
+    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<EpaOsaamisalueenKategoriaDTO>
+
     fun findOne(id: Long): Optional<EpaOsaamisalueenKategoriaDTO>
 
     fun delete(id: Long)

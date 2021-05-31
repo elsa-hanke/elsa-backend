@@ -43,7 +43,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         val options = SuoritusarvioinnitOptionsDTO()
         options.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
-        options.epaOsaamisalueet = epaOsaamisalueService.findAll().toMutableSet()
+        options.epaOsaamisalueet =
+            epaOsaamisalueService.findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
         options.tapahtumat = suoritusarviointiService
             .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
         options.kouluttajat = kayttajaService.findKouluttajat().toMutableSet()
@@ -76,7 +77,9 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
             .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
         form.kunnat = kuntaService.findAll().toMutableSet()
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
-        form.epaOsaamisalueenKategoriat = epaOsaamisalueenKategoriaService.findAll().toMutableSet()
+        form.epaOsaamisalueenKategoriat =
+            epaOsaamisalueenKategoriaService.findAllByErikoistuvaLaakariKayttajaUserId(id)
+                .toMutableSet()
         form.kouluttajat = kayttajaService.findKouluttajat().toMutableSet()
 
         return ResponseEntity.ok(form)
