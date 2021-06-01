@@ -53,10 +53,10 @@ stages:
               awsCredentials: 'elsa-ci'
               regionName: 'eu-west-1'
               imageSource: 'imagename'
-              sourceImageTag: $(tag)
+              sourceImageTag: $(name)
               sourceImageName: 'elsabackend'
               repositoryName: 'ecr-dev-backend'
-              pushTag: $(tag)
+              pushTag: $(name)
             displayName: 'Push image'
 
   - stage: Deploy_backend_dev
