@@ -6,6 +6,8 @@ class TyoskentelyjaksoFormDTO(
 
     var kunnat: MutableSet<KuntaDTO> = mutableSetOf(),
 
-    var erikoisalat: MutableSet<ErikoisalaDTO> = mutableSetOf()
+    var erikoisalat: MutableSet<ErikoisalaDTO> = mutableSetOf(),
+
+    var kaikkiAsiakirjaNimet: MutableSet<String> = mutableSetOf()
 
 ) : Serializable

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.Suoritusarviointi
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
@@ -46,124 +47,96 @@ class SuoritusarviointiServiceImpl(
         suoritusarviointiDTO: SuoritusarviointiDTO,
         userId: String
     ): SuoritusarviointiDTO {
-        var suoritusarviointi = suoritusarviointiRepository
-            .findOneById(suoritusarviointiDTO.id!!).get()
-        val isNewArviointi = suoritusarviointi.arviointiAika == null
+        var suoritusarviointi =
+            suoritusarviointiRepository.findOneById(suoritusarviointiDTO.id!!).get()
 
-        // Erikoistuva lääkäri
-        suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari.let {
-            val kirjautunutErikoistuvaLaakari =
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-            if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == it) {
-                val isItsearviointiNotEmpty =
-                    !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiVaativuustaso) &&
-                        !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiLuottamuksenTaso) &&
-                        !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenItsearviointi)
-
-                // Itsearvioinnin tekeminen
-                if (isItsearviointiNotEmpty) {
-                    suoritusarviointi.itsearviointiVaativuustaso =
-                        suoritusarviointiDTO.itsearviointiVaativuustaso
-                    suoritusarviointi.itsearviointiLuottamuksenTaso =
-                        suoritusarviointiDTO.itsearviointiLuottamuksenTaso
-                    suoritusarviointi.sanallinenItsearviointi =
-                        suoritusarviointiDTO.sanallinenItsearviointi
-                    suoritusarviointi.itsearviointiAika = LocalDate.now(ZoneId.systemDefault())
-                } else {
-                    // Arviointipyynnön muokkaus
-                    suoritusarviointi.arvioitavaOsaalue = epaOsaamisalueRepository
-                        .findByIdOrNull(suoritusarviointiDTO.arvioitavaOsaalueId)
-                    suoritusarviointi.arvioitavaTapahtuma = suoritusarviointiDTO.arvioitavaTapahtuma
-                    suoritusarviointi.lisatiedot = suoritusarviointiDTO.lisatiedot
-                    suoritusarviointi.tapahtumanAjankohta = suoritusarviointiDTO.tapahtumanAjankohta
-                    suoritusarviointi.tyoskentelyjakso = tyoskentelyjaksoRepository
-                        .findByIdOrNull(suoritusarviointiDTO.tyoskentelyjaksoId)
-                }
-            }
+        val kirjautunutErikoistuvaLaakari =
+            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        if (kirjautunutErikoistuvaLaakari != null
+            && kirjautunutErikoistuvaLaakari == suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari
+        ) {
+            suoritusarviointi = handleErikoistuva(suoritusarviointiDTO, suoritusarviointi)
         }
 
-        // Arvioinnin antaja
-        suoritusarviointi.arvioinninAntaja.let {
-            val kirjautunutKayttaja = kayttajaRepository
-                .findOneByUserLogin(userId)
-
-            val isArviointiNotEmpty = !ObjectUtils.isEmpty(suoritusarviointiDTO.vaativuustaso) &&
-                !ObjectUtils.isEmpty(suoritusarviointiDTO.luottamuksenTaso) &&
-                !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenArviointi)
-
-            // Arvioinnin tekeminen
-            if (kirjautunutKayttaja.isPresent &&
-                kirjautunutKayttaja.get() == it &&
-                isArviointiNotEmpty
-            ) {
-                suoritusarviointi.vaativuustaso = suoritusarviointiDTO.vaativuustaso
-                suoritusarviointi.luottamuksenTaso = suoritusarviointiDTO.luottamuksenTaso
-                suoritusarviointi.sanallinenArviointi = suoritusarviointiDTO.sanallinenArviointi
-                suoritusarviointi.arviointiAika = LocalDate.now(ZoneId.systemDefault())
-                suoritusarviointi.arviointityokalut = arviointityokaluRepository.findAllByIdIn(
-                    suoritusarviointiDTO.arviointityokalut?.map(
-                        ArviointityokaluDTO::id
-                    ).orEmpty()
-                )
-                suoritusarviointi.arviointiPerustuu = suoritusarviointiDTO.arviointiPerustuu
-                suoritusarviointi.muuPeruste = suoritusarviointiDTO.muuPeruste
-            }
-        }
-
-        suoritusarviointi = suoritusarviointiRepository.save(suoritusarviointi)
-
-        if (suoritusarviointi.arviointiAika != null) {
-            val templateName = if (isNewArviointi) {
-                "arviointiAnnettuEmail"
-            } else {
-                "arviointiaMuokattuEmail"
-            }
-            val titleKey = if (isNewArviointi) {
-                "email.arviointiannettu.title"
-            } else {
-                "email.arviointiamuokattu.title"
-            }
-
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!,
-                templateName,
-                titleKey,
-                properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
-            )
+        val kirjautunutKayttaja = kayttajaRepository.findOneByUserLogin(userId)
+        if (kirjautunutKayttaja.isPresent && kirjautunutKayttaja.get() == suoritusarviointi.arvioinninAntaja) {
+            suoritusarviointi = handleKouluttaja(suoritusarviointiDTO, suoritusarviointi)
         }
 
         return suoritusarviointiMapper.toDto(suoritusarviointi)
     }
 
-    @Transactional(readOnly = true)
-    override fun findAll(pageable: Pageable): Page<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findAll(pageable)
-            .map(suoritusarviointiMapper::toDto)
+    private fun handleErikoistuva(
+        suoritusarviointiDTO: SuoritusarviointiDTO,
+        suoritusarviointi: Suoritusarviointi
+    ): Suoritusarviointi {
+        val isItsearviointiNotEmpty =
+            !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiVaativuustaso) &&
+                !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiLuottamuksenTaso) &&
+                !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenItsearviointi)
+
+        // Itsearvioinnin tekeminen
+        if (isItsearviointiNotEmpty) {
+            suoritusarviointi.itsearviointiVaativuustaso =
+                suoritusarviointiDTO.itsearviointiVaativuustaso
+            suoritusarviointi.itsearviointiLuottamuksenTaso =
+                suoritusarviointiDTO.itsearviointiLuottamuksenTaso
+            suoritusarviointi.sanallinenItsearviointi =
+                suoritusarviointiDTO.sanallinenItsearviointi
+            suoritusarviointi.itsearviointiAika = LocalDate.now(ZoneId.systemDefault())
+        } else {
+            // Arviointipyynnön muokkaus
+            suoritusarviointi.arvioitavaOsaalue = epaOsaamisalueRepository
+                .findByIdOrNull(suoritusarviointiDTO.arvioitavaOsaalueId)
+            suoritusarviointi.arvioitavaTapahtuma = suoritusarviointiDTO.arvioitavaTapahtuma
+            suoritusarviointi.lisatiedot = suoritusarviointiDTO.lisatiedot
+            suoritusarviointi.tapahtumanAjankohta = suoritusarviointiDTO.tapahtumanAjankohta
+            suoritusarviointi.tyoskentelyjakso = tyoskentelyjaksoRepository
+                .findByIdOrNull(suoritusarviointiDTO.tyoskentelyjaksoId)
+        }
+
+        return suoritusarviointiRepository.save(suoritusarviointi)
     }
 
-    @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariId(
-        erikoistuvaLaakariId: Long,
-        pageable: Pageable
-    ): Page<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariId(
-            erikoistuvaLaakariId,
-            pageable
+    private fun handleKouluttaja(
+        suoritusarviointiDTO: SuoritusarviointiDTO,
+        suoritusarviointi: Suoritusarviointi
+    ): Suoritusarviointi {
+        suoritusarviointi.vaativuustaso = suoritusarviointiDTO.vaativuustaso
+        suoritusarviointi.luottamuksenTaso = suoritusarviointiDTO.luottamuksenTaso
+        suoritusarviointi.sanallinenArviointi = suoritusarviointiDTO.sanallinenArviointi
+        suoritusarviointi.arviointiAika = LocalDate.now(ZoneId.systemDefault())
+        suoritusarviointi.arviointityokalut = arviointityokaluRepository.findAllByIdIn(
+            suoritusarviointiDTO.arviointityokalut?.map(
+                ArviointityokaluDTO::id
+            ).orEmpty()
         )
-            .map(suoritusarviointiMapper::toDto)
-    }
+        suoritusarviointi.arviointiPerustuu = suoritusarviointiDTO.arviointiPerustuu
+        suoritusarviointi.muuPeruste = suoritusarviointiDTO.muuPeruste
 
-    @Transactional(readOnly = true)
-    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String,
-        pageable: Pageable
-    ): Page<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-            userId,
-            pageable
+        val result = suoritusarviointiRepository.save(suoritusarviointi)
+
+        val isNewArviointi = suoritusarviointi.arviointiAika == null
+        val templateName = if (isNewArviointi) {
+            "arviointiAnnettuEmail"
+        } else {
+            "arviointiaMuokattuEmail"
+        }
+        val titleKey = if (isNewArviointi) {
+            "email.arviointiannettu.title"
+        } else {
+            "email.arviointiamuokattu.title"
+        }
+
+        mailService.sendEmailFromTemplate(
+            kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.id!!)
+                .get().user!!,
+            templateName,
+            titleKey,
+            properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
         )
-            .map(suoritusarviointiMapper::toDto)
+
+        return result
     }
 
     @Transactional(readOnly = true)
@@ -174,12 +147,6 @@ class SuoritusarviointiServiceImpl(
             userId
         )
             .mapTo(mutableListOf(), suoritusarviointiMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
-    override fun findOne(id: Long): Optional<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findById(id)
-            .map(suoritusarviointiMapper::toDto)
     }
 
     @Transactional(readOnly = true)
@@ -203,25 +170,16 @@ class SuoritusarviointiServiceImpl(
         ).map(suoritusarviointiMapper::toDto)
     }
 
-    override fun delete(id: Long) {
-        suoritusarviointiRepository.deleteById(id)
-    }
-
     override fun delete(id: Long, userId: String) {
-        val suoritusarviointiOpt = suoritusarviointiRepository.findOneById(id)
-        if (suoritusarviointiOpt.isPresent) {
-            val suoritusarviointi = suoritusarviointiOpt.get()
-            suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari.let {
-                val kirjautunutErikoistuvaLaakari =
-                    erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-                if (
-                    kirjautunutErikoistuvaLaakari != null &&
-                    kirjautunutErikoistuvaLaakari == it &&
-                    suoritusarviointi.arviointiAika == null &&
-                    !suoritusarviointi.lukittu
-                ) {
-                    suoritusarviointiRepository.deleteById(id)
-                }
+        suoritusarviointiRepository.findOneById(id).ifPresent {
+            val kirjautunutErikoistuvaLaakari =
+                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            val canDelete = it.arviointiAika == null && !it.lukittu
+            if (kirjautunutErikoistuvaLaakari != null
+                && kirjautunutErikoistuvaLaakari == it.tyoskentelyjakso?.erikoistuvaLaakari
+                && canDelete
+            ) {
+                suoritusarviointiRepository.deleteById(id)
             }
         }
     }

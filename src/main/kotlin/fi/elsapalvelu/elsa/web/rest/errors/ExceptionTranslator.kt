@@ -1,9 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.errors
 
 import io.github.jhipster.web.util.HeaderUtil
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.ConcurrencyFailureException
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -31,10 +33,15 @@ class ExceptionTranslator : ProblemHandling, SecurityAdviceTrait {
     @Value("\${jhipster.clientApp.name}")
     private val applicationName: String? = null
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
     /**
      * Post-process the Problem payload to add the message key for the front-end if needed.
      */
-    override fun process(entity: ResponseEntity<Problem>?, request: NativeWebRequest?): ResponseEntity<Problem>? {
+    override fun process(
+        entity: ResponseEntity<Problem>?,
+        request: NativeWebRequest?
+    ): ResponseEntity<Problem>? {
         if (entity == null) {
             return null
         }
@@ -92,15 +99,38 @@ class ExceptionTranslator : ProblemHandling, SecurityAdviceTrait {
         create(
             ex,
             request,
-            HeaderUtil.createFailureAlert(applicationName, true, ex.entityName, ex.errorKey, ex.message)
+            HeaderUtil.createFailureAlert(
+                applicationName,
+                true,
+                ex.entityName,
+                ex.errorKey,
+                ex.message
+            )
         )
 
     @ExceptionHandler
-    fun handleConcurrencyFailure(ex: ConcurrencyFailureException, request: NativeWebRequest): ResponseEntity<Problem>? {
+    fun handleConcurrencyFailure(
+        ex: ConcurrencyFailureException,
+        request: NativeWebRequest
+    ): ResponseEntity<Problem>? {
         val problem = Problem.builder()
             .withStatus(Status.CONFLICT)
             .with(MESSAGE_KEY, ERR_CONCURRENCY_FAILURE)
             .build()
         return create(ex, problem, request)
+    }
+
+    override fun handleAccessDenied(
+        e: AccessDeniedException?,
+        request: NativeWebRequest?
+    ): ResponseEntity<Problem> {
+        log.warn(
+            "Access denied for " +
+                "user: ${request.let { it?.userPrincipal?.name }}, " +
+                "method: ${request.let { (it?.nativeRequest as HttpServletRequest).method }}, " +
+                "path: ${request.let { (it?.nativeRequest as HttpServletRequest).requestURI }}, " +
+                "ip: ${request.let { (it?.nativeRequest as HttpServletRequest) }.remoteAddr}"
+        )
+        return super.handleAccessDenied(e, request)
     }
 }

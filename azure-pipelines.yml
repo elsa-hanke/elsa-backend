@@ -35,6 +35,7 @@ stages:
             displayName: 'Dependency check'
           - publish: $(System.DefaultWorkingDirectory)/build/reports/dependency-check-report.html
             artifact: DependencyCheck
+            continueOnError: true
             displayName: 'Upload dependency check artifact'
           - script: |
               ./gradlew --build-cache build -x test integrationTest
@@ -69,13 +70,13 @@ stages:
           runOnce:
             deploy:
               steps:
-              - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
-                inputs:
-                  awsCredentials: 'elsa-ci'
-                  regionName: 'eu-west-1'
-                  scriptType: inline
-                  inlineScript: 'aws ecs update-service --cluster elsa-dev-cluster --service elsa-dev-backend-service --task-definition elsa-dev-backend --force-new-deployment > /dev/null'
-                displayName: Force update ecs service
+                - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
+                  inputs:
+                    awsCredentials: 'elsa-ci'
+                    regionName: 'eu-west-1'
+                    scriptType: inline
+                    inlineScript: 'aws ecs update-service --cluster elsa-dev-cluster --service elsa-dev-backend-service --task-definition elsa-dev-backend --force-new-deployment > /dev/null'
+                  displayName: Force update ecs service
 
   - stage: Deploy_backend_testi
     displayName: Deploy testi

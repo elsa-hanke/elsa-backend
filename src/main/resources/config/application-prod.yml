@@ -50,6 +50,13 @@ spring:
     port: 25
     username:
     password:
+    protocol: smtps
+    properties.mail.smtp:
+      starttls.enable: true
+      starttls.required: true
+      ssl.enable: true
+    properties.mail.smtps:
+      auth: true
   thymeleaf:
     cache: true
 
@@ -88,7 +95,7 @@ jhipster:
       enabled: false
       report-frequency: 60 # in seconds
   logging:
-    use-json-format: false # By default, logs are not in Json format
+    use-json-format: true # By default, logs are not in Json format
     logstash: # Forward logs to logstash over a socket, used by LoggingConfiguration
       enabled: false
       host: localhost

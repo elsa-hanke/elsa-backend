@@ -18,7 +18,12 @@ interface KayttajaMapper :
     EntityMapper<KayttajaDTO, Kayttaja> {
 
     @Mappings(
-        Mapping(source = "user.id", target = "userId")
+        Mapping(source = "user.id", target = "userId"),
+        Mapping(
+            target = "nimi",
+            expression = "java(entity.getUser() == null ? \"\" : entity.getUser().getFirstName() + \" \" + entity.getUser().getLastName())"
+        )
+
     )
     override fun toDto(entity: Kayttaja): KayttajaDTO
 
