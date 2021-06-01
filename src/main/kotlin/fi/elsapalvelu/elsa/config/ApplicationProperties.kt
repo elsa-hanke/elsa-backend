@@ -12,6 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 class ApplicationProperties {
     private val csrf = Csrf()
     private val keycloak = Keycloak()
+    private val security = Security()
 
     fun getCsrf(): Csrf {
         return csrf
@@ -19,6 +20,10 @@ class ApplicationProperties {
 
     fun getKeycloak(): Keycloak {
         return keycloak
+    }
+
+    fun getSecurity(): Security {
+        return security
     }
 
     class Csrf {
@@ -38,5 +43,11 @@ class ApplicationProperties {
         var realm: String? = null
         var clientId: String? = null
         var clientSecret: String? = null
+    }
+
+    class Security {
+        var encodedKey: String? = null
+        var secretKeyAlgorithm: String? = null
+        var cipherAlgorithm: String? = null
     }
 }

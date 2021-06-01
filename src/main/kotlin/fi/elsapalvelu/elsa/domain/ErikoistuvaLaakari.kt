@@ -21,9 +21,6 @@ data class ErikoistuvaLaakari(
     @Column(name = "puhelinnumero", nullable = false)
     var puhelinnumero: String? = null,
 
-    @Column(name = "sahkoposti", nullable = false)
-    var sahkoposti: String? = null,
-
     @Column(name = "opiskelijatunnus")
     var opiskelijatunnus: String? = null,
 
@@ -97,7 +94,6 @@ data class ErikoistuvaLaakari(
     override fun toString() = "ErikoistuvaLaakari{" +
         "id=$id" +
         ", puhelinnumero='$puhelinnumero'" +
-        ", sahkoposti='$sahkoposti'" +
         ", opiskelijatunnus='$opiskelijatunnus'" +
         ", opintojenAloitusvuosi=$opintojenAloitusvuosi" +
         "}"

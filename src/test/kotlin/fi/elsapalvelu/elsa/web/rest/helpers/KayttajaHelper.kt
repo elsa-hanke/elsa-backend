@@ -9,6 +9,10 @@ class KayttajaHelper {
 
     companion object {
 
+        const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
+        const val DEFAULT_LOGIN = "johndoe"
+        const val DEFAULT_EMAIL = "john.doe@example.com"
+
         private const val DEFAULT_NIMI = "AAAAAAAAAA"
         private const val UPDATED_NIMI = "BBBBBBBBBB"
 
@@ -20,7 +24,6 @@ class KayttajaHelper {
         @JvmStatic
         fun createEntity(em: EntityManager, userId: String? = null): Kayttaja {
             val kayttaja = Kayttaja(
-                nimi = DEFAULT_NIMI,
                 profiilikuva = DEFAULT_PROFIILIKUVA,
                 profiilikuvaContentType = DEFAULT_PROFIILIKUVA_CONTENT_TYPE
             )
@@ -41,13 +44,12 @@ class KayttajaHelper {
             nimi: String? = UPDATED_NIMI
         ): Kayttaja {
             val kayttaja = Kayttaja(
-                nimi = nimi,
                 profiilikuva = UPDATED_PROFIILIKUVA,
                 profiilikuvaContentType = UPDATED_PROFIILIKUVA_CONTENT_TYPE
             )
 
             // Lisätään pakollinen tieto
-            val user = KayttajaResourceIT.createEntity(userId)
+            val user = KayttajaResourceIT.createEntity(userId, nimi)
             em.persist(user)
             em.flush()
             kayttaja.user = user

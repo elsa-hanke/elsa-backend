@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20210421112408-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="erikoistuva_laakari_id"
+            baseTableName="koejakson_vastuuhenkilon_arvio"
+            constraintName="fk_koejakson_vastuuhenkilon_arvio_erikoistuva_laakari_id"
+            referencedColumnNames="id"
+            referencedTableName="erikoistuva_laakari"/>
+
+        <addForeignKeyConstraint baseColumnNames="vastuuhenkilo_id"
+            baseTableName="koejakson_vastuuhenkilon_arvio"
+            constraintName="fk_koejakson_vastuuhenkilon_arvio_vastuuhenkilo_id"
+            referencedColumnNames="id"
+            referencedTableName="kayttaja"/>
+
+    </changeSet>
+
+</databaseChangeLog>

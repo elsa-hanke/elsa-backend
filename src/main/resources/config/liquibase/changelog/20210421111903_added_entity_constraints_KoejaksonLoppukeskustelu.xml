@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20210421111903-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="erikoistuva_laakari_id"
+            baseTableName="koejakson_loppukeskustelu"
+            constraintName="fk_koejakson_loppukeskustelu_erikoistuva_laakari_id"
+            referencedColumnNames="id"
+            referencedTableName="erikoistuva_laakari"/>
+
+        <addForeignKeyConstraint baseColumnNames="lahikouluttaja_id"
+            baseTableName="koejakson_loppukeskustelu"
+            constraintName="fk_koejakson_loppukeskustelu_lahikouluttaja_id"
+            referencedColumnNames="id"
+            referencedTableName="kayttaja"/>
+
+        <addForeignKeyConstraint baseColumnNames="lahiesimies_id"
+            baseTableName="koejakson_loppukeskustelu"
+            constraintName="fk_koejakson_loppukeskustelu_lahiesimies_id"
+            referencedColumnNames="id"
+            referencedTableName="kayttaja"/>
+    </changeSet>
+
+</databaseChangeLog>

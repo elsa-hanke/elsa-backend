@@ -20,24 +20,18 @@ data class KoejaksonKoulutussopimusDTO(
     @get: NotNull
     var erikoistuvanYliopisto: String? = null,
 
-    @get: NotNull
     var erikoistuvanPuhelinnumero: String? = null,
 
-    @get: NotNull
     var erikoistuvanSahkoposti: String? = null,
 
-    @get: NotNull
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
-    @get: NotNull
     var koejaksonAlkamispaiva: LocalDate? = null,
 
-    @get: NotNull
     var lahetetty: Boolean? = null,
 
     var muokkauspaiva: LocalDate? = null,
 
-    @get: NotNull
     var vastuuhenkilo: KoulutussopimuksenVastuuhenkiloDTO? = null,
 
     var korjausehdotus: String? = null,

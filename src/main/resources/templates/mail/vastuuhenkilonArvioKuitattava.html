@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>[ELSA-palvelu] Olet saanut koejakson arviointilomake E:n kuitattavaksi</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
+</head>
+<body>
+<p>
+    Hei,
+</p>
+<p>
+    Olet saanut ELSA-palveluun koejakson arviointilomakkeen E kuitattavaksi.
+
+    Pääset kuittaamaan koejakson arviointilomakkeen E alla olevan linkin kautta:
+</p>
+<p>
+    <a th:with="url=(@{|${baseUrl}/koejakso/vastuuhenkilonarvio/${id}|})" th:href="${url}"
+       th:text="${url}"></a>
+</p>
+<p>
+    HUOM! Tähän sähköpostiviestiin ei voi vastata.
+</p>
+<p>
+    <span>Terveisin, </span>
+    <br/>
+    <em>ELSA-palvelu</em>
+</p>
+</body>
+</html>

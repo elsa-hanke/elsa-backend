@@ -50,6 +50,12 @@ class User(
     @Column(nullable = false)
     var activated: Boolean = false,
 
+    @Column
+    var hetu: ByteArray? = null,
+
+    @Column(name = "init_vector")
+    var initVector: ByteArray? = null,
+
     @field:Size(min = 2, max = 10)
     @Column(name = "lang_key", length = 10)
     var langKey: String? = null,
