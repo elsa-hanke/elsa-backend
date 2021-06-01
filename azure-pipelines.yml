@@ -2,7 +2,7 @@ name: $(date:yyyy-MM-dd)$(rev:.r)
 variables:
   vmImageName: 'Ubuntu 16.04'
   isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
-  tag: '$(name)'
+  tag: '$(date:yyyy-MM-dd)$(rev:.r)'
 
 stages:
   - stage: Build
