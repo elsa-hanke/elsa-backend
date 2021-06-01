@@ -2,7 +2,7 @@ name: $(date:yyyy-MM-dd)$(rev:.r)
 variables:
   vmImageName: 'Ubuntu 16.04'
   isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
-  tag: $(date:yyyy-MM-dd)$(rev:.r)
+  tag: $(Build.BuildNumber)
 
 stages:
   - stage: Build
@@ -53,10 +53,10 @@ stages:
               awsCredentials: 'elsa-ci'
               regionName: 'eu-west-1'
               imageSource: 'imagename'
-              sourceImageTag: $(name)
+              sourceImageTag: $(tag)
               sourceImageName: 'elsabackend'
               repositoryName: 'ecr-dev-backend'
-              pushTag: $(name)
+              pushTag: $(tag)
             displayName: 'Push image'
 
   - stage: Deploy_backend_dev
