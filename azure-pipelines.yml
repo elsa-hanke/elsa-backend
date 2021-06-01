@@ -56,6 +56,7 @@ stages:
               sourceImageTag: '$(tag)'
               sourceImageName: 'elsabackend'
               repositoryName: 'ecr-dev-backend'
+              pushTag: '$(tag)'
             displayName: 'Push image'
 
   - stage: Deploy_backend_dev
