@@ -11,4 +11,6 @@ interface EpaOsaamisalueRepository : JpaRepository<EpaOsaamisalue, Long> {
 
     @Query("select oa from EpaOsaamisalue oa where oa.voimassaoloAlkaa <= ?1 and (oa.voimassaoloLoppuu is null or oa.voimassaoloLoppuu >= ?1)")
     fun findAllValid(now: LocalDate): List<EpaOsaamisalue>
+
+    fun findAllByErikoisalaId(id: Long?): List<EpaOsaamisalue>
 }
