@@ -39,9 +39,7 @@ data class TyoskentelyjaksoDTO(
 
     var liitettyKoejaksoon: Boolean? = null,
 
-    var asiakirjat: MutableSet<AsiakirjaDTO>? = mutableSetOf(),
-
-    var kaikkiAsiakirjaNimet: MutableSet<String>? = mutableSetOf()
+    var asiakirjat: MutableSet<AsiakirjaDTO>? = mutableSetOf()
 
 ) : Serializable {
 

@@ -129,7 +129,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                         fileSize = file.size
                     )
                 )
-            }?.toMutableSet()
+            }.toMutableSet()
         }
 
         return null
@@ -212,9 +212,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         val user = userService.getAuthenticatedUser(principal)
         tyoskentelyjaksoService.findOne(id, user.id!!)?.let {
-            it.kaikkiAsiakirjaNimet =
-                asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { asiakirja -> asiakirja.nimi!! }
-                    .toMutableSet()
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -254,7 +251,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
 
-        form.kaikkiAsiakirjaNimet =
+        form.reservedAsiakirjaNimet =
             asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { it.nimi!! }.toMutableSet()
 
         return ResponseEntity.ok(form)
