@@ -29,7 +29,10 @@ class ErikoistuvaLaakariKoejaksoResource(
     private val koejaksonValiarviointiService: KoejaksonValiarviointiService,
     private val koejaksonKehittamistoimenpiteetService: KoejaksonKehittamistoimenpiteetService,
     private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService,
-    private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService
+    private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService,
+    private val tyoskentelyjaksoService: TyoskentelyjaksoService,
+    private val kuntaService: KuntaService,
+    private val erikoisalaService: ErikoisalaService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -98,6 +101,11 @@ class ErikoistuvaLaakariKoejaksoResource(
                 result.loppukeskustelunTila == KoejaksoTila.HYVAKSYTTY,
                 result.vastuuhenkilonArvio
             )
+
+        result.kunnat = kuntaService.findAll()
+        result.erikoisalat = erikoisalaService.findAll()
+        result.allTyoskentelyjaksot = tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        result.relatedTyoskentelyjaksot = result.allTyoskentelyjaksot.filter { it.liitettyKoejaksoon == true }.toMutableList()
 
         return ResponseEntity.ok(result)
     }
