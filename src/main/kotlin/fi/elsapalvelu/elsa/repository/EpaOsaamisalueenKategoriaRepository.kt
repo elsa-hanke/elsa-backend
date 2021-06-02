@@ -11,6 +11,4 @@ interface EpaOsaamisalueenKategoriaRepository : JpaRepository<EpaOsaamisalueenKa
 
     @Query("select k from EpaOsaamisalueenKategoria k where k.voimassaoloAlkaa <= ?1 and (k.voimassaoloLoppuu is null or k.voimassaoloLoppuu >= ?1)")
     fun findAllValid(now: LocalDate): List<EpaOsaamisalueenKategoria>
-
-    fun findAllByEpaOsaamisalueetErikoisalaId(id: Long?): List<EpaOsaamisalueenKategoria>
 }
