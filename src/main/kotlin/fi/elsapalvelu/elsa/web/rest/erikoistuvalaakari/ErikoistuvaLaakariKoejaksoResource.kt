@@ -671,7 +671,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         if (koulutussopimusDTO.kouluttajat?.any { k ->
                 k.sopimusHyvaksytty == true
                     || k.kuittausaika != null
-            }!!) {
+            } == true) {
             throw BadRequestAlertException(
                 "Koulutussopimus ei saa sisältää kouluttajan kuittausta. Kouluttaja määrittelee sen.",
                 ENTITY_KOEJAKSON_SOPIMUS,

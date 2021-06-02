@@ -27,7 +27,7 @@ interface KoejaksonVastuuhenkilonArvioMapper :
     override fun toDto(entity: KoejaksonVastuuhenkilonArvio): KoejaksonVastuuhenkilonArvioDTO
 
     @Mappings(
-        Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo.id"),
+        Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo"),
         Mapping(source = "vastuuhenkilo.nimi", target = "vastuuhenkilonNimi"),
         Mapping(source = "vastuuhenkilo.sopimusHyvaksytty", target = "vastuuhenkiloHyvaksynyt"),
         Mapping(source = "vastuuhenkilo.kuittausaika", target = "vastuuhenkilonKuittausaika")
