@@ -17,7 +17,7 @@ data class KoulutussopimuksenKouluttaja(
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     var kouluttaja: Kayttaja? = null,
 
     @Column(name = "nimi", nullable = false)
