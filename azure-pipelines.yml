@@ -1,6 +1,8 @@
+name: $(date:yyyy-MM-dd)$(rev:.r)
 variables:
   vmImageName: 'Ubuntu 16.04'
   isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+  tag: $(Build.BuildNumber)
 
 stages:
   - stage: Build
@@ -40,7 +42,7 @@ stages:
               ./gradlew --build-cache build -x test integrationTest
             displayName: 'Build'
           - script: |
-              ./gradlew bootJar -Pprod -x test jibDockerBuild
+              ./gradlew bootJar -Ptag=$(tag) -Pprod -x test jibDockerBuild
             displayName: 'Build image'
           - script: |
               ./gradlew --stop
@@ -53,6 +55,7 @@ stages:
               imageSource: 'imagename'
               sourceImageName: 'elsabackend'
               repositoryName: 'ecr-dev-backend'
+              pushTag: $(tag)
             displayName: 'Push image'
 
   - stage: Deploy_backend_dev

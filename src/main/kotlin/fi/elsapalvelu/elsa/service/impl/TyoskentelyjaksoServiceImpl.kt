@@ -12,12 +12,15 @@ import fi.elsapalvelu.elsa.repository.KuntaRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
+import org.hibernate.engine.jdbc.BlobProxy
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlin.math.max
@@ -30,14 +33,17 @@ class TyoskentelyjaksoServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val kuntaRepository: KuntaRepository,
-    private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
+    private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper,
+    private val asiakirjaMapper: AsiakirjaMapper
 ) : TyoskentelyjaksoService {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun save(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
-        userId: String
+        userId: String,
+        newAsiakirjat: MutableSet<AsiakirjaDTO>,
+        deletedAsiakirjaIds: MutableSet<Int>?
     ): TyoskentelyjaksoDTO? {
         log.debug("Request to save Tyoskentelyjakso : $tyoskentelyjaksoDTO")
 
@@ -81,7 +87,32 @@ class TyoskentelyjaksoServiceImpl(
                     }
                 }
 
+                newAsiakirjat.let {
+                    val asiakirjaEntities = it.map { asiakirjaDTO ->
+                        asiakirjaDTO.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.id
+                        asiakirjaDTO.lisattypvm = LocalDateTime.now()
+
+                        asiakirjaMapper.toEntity(asiakirjaDTO).apply {
+                            this.tyoskentelyjakso = tyoskentelyjakso
+                            this.asiakirjaData?.data =
+                                BlobProxy.generateProxy(
+                                    asiakirjaDTO.asiakirjaData?.fileInputStream,
+                                    asiakirjaDTO.asiakirjaData?.fileSize!!
+                                )
+                        }
+                    }
+
+                    tyoskentelyjakso.asiakirjat.addAll(asiakirjaEntities)
+                }
+
+                deletedAsiakirjaIds?.map { x -> x.toLong() }?.let {
+                    tyoskentelyjakso.asiakirjat.removeIf { asiakirja ->
+                        asiakirja.id in it
+                    }
+                }
+
                 tyoskentelyjakso = tyoskentelyjaksoRepository.save(tyoskentelyjakso)
+
                 return tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
             }
         }
@@ -137,7 +168,8 @@ class TyoskentelyjaksoServiceImpl(
 
         val counter = TilastotCounter()
 
-        val kaytannonKoulutusSuoritettuMap = KaytannonKoulutusTyyppi.values().map { it to 0.0 }.toMap().toMutableMap()
+        val kaytannonKoulutusSuoritettuMap =
+            KaytannonKoulutusTyyppi.values().map { it to 0.0 }.toMap().toMutableMap()
         val tyoskentelyjaksotSuoritettu = mutableSetOf<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>()
         val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
 
@@ -156,14 +188,17 @@ class TyoskentelyjaksoServiceImpl(
         return TyoskentelyjaksotTilastotDTO(
             tyoskentelyaikaYhteensa = counter.tyoskentelyaikaYhteensa,
             arvioErikoistumiseenHyvaksyttavista = arvioErikoistumiseenHyvaksyttavista,
-            arvioPuuttuvastaKoulutuksesta = max(0.0, yhteensaVaadittuVahintaan - arvioErikoistumiseenHyvaksyttavista),
+            arvioPuuttuvastaKoulutuksesta = max(
+                0.0,
+                yhteensaVaadittuVahintaan - arvioErikoistumiseenHyvaksyttavista
+            ),
             koulutustyypit = TyoskentelyjaksotTilastotKoulutustyypitDTO(
                 terveyskeskusVaadittuVahintaan = erikoisala?.terveyskeskuskoulutusjaksonVahimmaispituus ?: 0.0,
                 terveyskeskusSuoritettu = counter.terveyskeskusSuoritettu,
                 yliopistosairaalaVaadittuVahintaan = erikoisala?.yliopistosairaalajaksonVahimmaispituus ?: 0.0,
                 yliopistosairaalaSuoritettu = counter.yliopistosairaalaSuoritettu,
                 yliopistosairaaloidenUlkopuolinenVaadittuVahintaan =
-                    erikoisala?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus ?: 0.0,
+                erikoisala?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus ?: 0.0,
                 yliopistosairaaloidenUlkopuolinenSuoritettu = counter.yliopistosairaaloidenUlkopuolinenSuoritettu,
                 yhteensaVaadittuVahintaan = yhteensaVaadittuVahintaan,
                 yhteensaSuoritettu = arvioErikoistumiseenHyvaksyttavista

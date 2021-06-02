@@ -11,18 +11,16 @@ import org.mapstruct.ReportingPolicy
     componentModel = "spring",
     uses = [
         TyoskentelyjaksoMapper::class,
-        ErikoistuvaLaakariMapper::class
+        ErikoistuvaLaakariMapper::class,
+        AsiakirjaDataMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
 interface AsiakirjaMapper : EntityMapper<AsiakirjaDTO, Asiakirja> {
 
     @Mappings(
-        /** Asiakirjan sisältöä ei haeta listausta varten. Yksittäisen asiakirjan
-         * sisältöä varten käytetään rajapintaa AsiakirjaItemProjection
-         */
         Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId"),
-        Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId")
+        Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId"),
     )
     override fun toDto(entity: Asiakirja): AsiakirjaDTO
 
