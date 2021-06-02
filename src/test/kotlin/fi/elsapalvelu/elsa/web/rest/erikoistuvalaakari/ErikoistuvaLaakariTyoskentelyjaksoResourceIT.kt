@@ -276,7 +276,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.asiakirjat[0].tyyppi").value(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI))
             .andExpect(jsonPath("$.asiakirjat[0].asiakirjaData.fileInputStream").doesNotExist())
             .andExpect(jsonPath("$.asiakirjat[0].asiakirjaData.fileSize").doesNotExist())
-            .andExpect(jsonPath("$.kaikkiAsiakirjaNimet[0]").value(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI))
     }
 
     @Test
