@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional
 class EpaOsaamisalueenKategoriaServiceImpl(
     private val epaOsaamisalueenKategoriaRepository: EpaOsaamisalueenKategoriaRepository,
     private val epaOsaamisalueenKategoriaMapper: EpaOsaamisalueenKategoriaMapper,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 ) : EpaOsaamisalueenKategoriaService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -35,16 +34,6 @@ class EpaOsaamisalueenKategoriaServiceImpl(
         log.debug("Request to get all EpaOsaamisalueenKategoriat")
 
         return epaOsaamisalueenKategoriaRepository.findAll()
-            .mapTo(mutableListOf(), epaOsaamisalueenKategoriaMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<EpaOsaamisalueenKategoriaDTO> {
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        return epaOsaamisalueenKategoriaRepository.findAllByEpaOsaamisalueetErikoisalaId(
-            kirjautunutErikoistuvaLaakari?.erikoisala?.id
-        )
             .mapTo(mutableListOf(), epaOsaamisalueenKategoriaMapper::toDto)
     }
 
