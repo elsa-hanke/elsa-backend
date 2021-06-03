@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -35,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.io.File
 import java.time.LocalDate
 import javax.persistence.EntityManager
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
@@ -851,6 +853,32 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[0].suoritettu").value(27.0))
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[1].suoritettu").value(30.0))
+    }
+
+    @Test
+    @Transactional
+    fun updateLiitettyKoejaksoon() {
+        initTest()
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        val id = tyoskentelyjakso.id
+        assertNotNull(id)
+
+        val liitettyKoejaksoon = tyoskentelyjakso.liitettyKoejaksoon
+        assertFalse(liitettyKoejaksoon)
+
+        val tyoskentelyjaksoDTO = TyoskentelyjaksoDTO(id = tyoskentelyjakso.id, liitettyKoejaksoon = true)
+
+        restTyoskentelyjaksoMockMvc.perform(
+            patch("/api/erikoistuva-laakari/tyoskentelyjaksot/koejakso", )
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(tyoskentelyjaksoDTO))
+                .with(csrf())
+            )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.liitettyKoejaksoon").value(true))
     }
 
     fun initTest(userId: String? = KayttajaHelper.DEFAULT_ID) {
