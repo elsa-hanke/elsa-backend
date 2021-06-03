@@ -214,6 +214,16 @@ class TyoskentelyjaksoServiceImpl(
         )
     }
 
+    override fun updateLiitettyKoejaksoon(id: Long, userId: String, liitettyKoejaksoon: Boolean): TyoskentelyjaksoDTO? {
+        tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)?.let {
+            it.liitettyKoejaksoon = liitettyKoejaksoon
+            tyoskentelyjaksoRepository.save(it)
+            return tyoskentelyjaksoMapper.toDto(it)
+        }
+
+        return null
+    }
+
     fun getTyoskentelyjaksoTilastot(
         tyoskentelyjakso: Tyoskentelyjakso,
         counter: TilastotCounter,

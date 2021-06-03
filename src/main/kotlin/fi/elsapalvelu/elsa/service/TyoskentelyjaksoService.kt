@@ -20,4 +20,6 @@ interface TyoskentelyjaksoService {
     fun delete(id: Long, userId: String)
 
     fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO
+
+    fun updateLiitettyKoejaksoon(id: Long, userId: String, liitettyKoejaksoon: Boolean): TyoskentelyjaksoDTO?
 }
