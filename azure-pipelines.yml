@@ -100,7 +100,7 @@ stages:
                       NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
                       aws ecs update-service --cluster elsa-dev-cluster \
                                              --service elsa-dev-backend-service \
-                                             --task-definition elsa-dev-backend:${NEW_REVISION}
+                                             --task-definition elsa-dev-backend:${NEW_REVISION} \
                                              --force-new-deployment
                   displayName: Force update ecs service
 
