@@ -33,9 +33,7 @@ data class KoejaksoDTO(
 
     var erikoisalat: MutableList<ErikoisalaDTO> = mutableListOf(),
 
-    var relatedTyoskentelyjaksot: MutableList<TyoskentelyjaksoDTO> = mutableListOf(),
-
-    var allTyoskentelyjaksot: MutableList<TyoskentelyjaksoDTO> = mutableListOf()
+    var tyoskentelyjaksot: MutableList<TyoskentelyjaksoDTO> = mutableListOf()
 
 ) : Serializable
 

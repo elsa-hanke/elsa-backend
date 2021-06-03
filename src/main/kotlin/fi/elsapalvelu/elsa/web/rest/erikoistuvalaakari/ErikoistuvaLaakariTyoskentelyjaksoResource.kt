@@ -380,4 +380,36 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             )
             .build()
     }
+
+    @PatchMapping("/tyoskentelyjaksot/koejakso")
+    fun updateLiitettyKoejaksoon(
+        @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
+        principal: Principal?
+    ): ResponseEntity<TyoskentelyjaksoDTO?> {
+        val user = userService.getAuthenticatedUser(principal)
+        if (tyoskentelyjaksoDTO.id == null) {
+            throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
+        }
+
+        if (tyoskentelyjaksoDTO.liitettyKoejaksoon == null) {
+            throw BadRequestAlertException("liitettyKoejaksoon on pakollinen tieto", ENTITY_NAME, "illegaldata")
+        }
+
+        tyoskentelyjaksoService.updateLiitettyKoejaksoon(tyoskentelyjaksoDTO.id!!, user.id!!, tyoskentelyjaksoDTO.liitettyKoejaksoon!!)?.let {
+            val response = ResponseEntity.ok()
+                .headers(
+                    HeaderUtil.createEntityUpdateAlert(
+                        applicationName,
+                        true,
+                        "tyoskentelyjakso",
+                        it.id.toString()
+                    )
+                )
+            return if (tyoskentelyjaksoDTO.liitettyKoejaksoon!!) response.body(it) else response.build()
+        } ?: throw BadRequestAlertException(
+            "Työskentelyjakson päivittäminen epäonnistui.",
+            ENTITY_NAME,
+            "dataillegal"
+        )
+    }
 }
