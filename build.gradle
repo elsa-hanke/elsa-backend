@@ -255,6 +255,8 @@ dependencies {
     implementation "org.keycloak:keycloak-admin-client:${keycloakVersion}"
 
     implementation "org.jboss.xnio:xnio-nio:3.4.6.Final"
+
+    implementation "co.elastic.logging:logback-ecs-encoder:1.0.1"
 }
 
 task cleanResources(type: Delete) {
