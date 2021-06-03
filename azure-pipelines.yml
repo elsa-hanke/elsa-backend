@@ -89,7 +89,7 @@ stages:
                     scriptType: 'inline'
                     inlineScript: |
                       set -e
-                      ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:10.0.0.0.1"
+                      ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:$env:tag"
                       
                       TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "elsa-dev-backend" --region "$AWS_DEFAULT_REGION")
                       
