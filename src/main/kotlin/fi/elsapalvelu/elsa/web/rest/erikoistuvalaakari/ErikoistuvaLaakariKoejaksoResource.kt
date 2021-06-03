@@ -104,8 +104,7 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         result.kunnat = kuntaService.findAll()
         result.erikoisalat = erikoisalaService.findAll()
-        result.allTyoskentelyjaksot = tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
-        result.relatedTyoskentelyjaksot = result.allTyoskentelyjaksot.filter { it.liitettyKoejaksoon == true }.toMutableList()
+        result.tyoskentelyjaksot = tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         return ResponseEntity.ok(result)
     }
