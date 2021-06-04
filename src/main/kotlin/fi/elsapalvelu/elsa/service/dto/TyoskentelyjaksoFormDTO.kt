@@ -8,6 +8,6 @@ class TyoskentelyjaksoFormDTO(
 
     var erikoisalat: MutableSet<ErikoisalaDTO> = mutableSetOf(),
 
-    var kaikkiAsiakirjaNimet: MutableSet<String> = mutableSetOf()
+    var reservedAsiakirjaNimet: MutableSet<String> = mutableSetOf()
 
 ) : Serializable

@@ -72,6 +72,18 @@ class ErikoistuvaLaakariAsiakirjaResource(
         return ResponseEntity.ok(asiakirjat)
     }
 
+    @GetMapping("/asiakirjat/nimet")
+    fun getReservedAsiakirjaNimet(
+        principal: Principal?
+    ): ResponseEntity<List<String>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map {
+            it.nimi!!
+        }
+
+        return ResponseEntity.ok(asiakirjat)
+    }
+
     @GetMapping("/asiakirjat/{id}")
     fun getAsiakirja(
         @PathVariable id: Long,
