@@ -512,7 +512,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         em.detach(updatedValiarviointi)
 
         updatedValiarviointi.erikoistuvaAllekirjoittanut = true
-        updatedValiarviointi.muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
 
         val valiarviointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
 
@@ -558,7 +557,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         initTest()
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
-        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         val databaseSizeBeforeCreate = koejaksonKehittamistoimenpiteetRepository.findAll().size
@@ -606,7 +604,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         em.detach(updatedKehittamistoimenpiteet)
 
         updatedKehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
-        updatedKehittamistoimenpiteet.muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
 
         val kehittamistoimenpiteetDTO =
             koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
@@ -654,7 +651,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         initTest()
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
-        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         koejaksonKehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
@@ -694,7 +690,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         initTest()
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
-        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
@@ -720,7 +715,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         initTest()
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
-        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointi.kehittamistoimenpiteet = null
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
@@ -757,7 +751,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         initTest()
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
-        koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         val databaseSizeBeforeCreate = koejaksonLoppukeskusteluRepository.findAll().size
@@ -792,7 +785,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         em.detach(updatedLoppukeskustelu)
 
         updatedLoppukeskustelu.erikoistuvaAllekirjoittanut = true
-        updatedLoppukeskustelu.muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
 
         val loppukeskusteluDTO = koejaksonLoppukeskusteluMapper.toDto(updatedLoppukeskustelu)
 
@@ -816,7 +808,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         initTest()
 
         koejaksonLoppukeskustelu.erikoistuvaAllekirjoittanut = true
-        koejaksonLoppukeskustelu.muokkauspaiva = LocalDate.now()
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
 
         val databaseSizeBeforeCreate = koejaksonVastuuhenkilonArvioRepository.findAll().size
@@ -861,7 +852,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         em.detach(updatedVastuuhenkilonArvio)
 
         updatedVastuuhenkilonArvio.erikoistuvaAllekirjoittanut = true
-        updatedVastuuhenkilonArvio.muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
 
         val vastuuhenkilonArvioDTO =
             koejaksonVastuuhenkilonArvioMapper.toDto(updatedVastuuhenkilonArvio)

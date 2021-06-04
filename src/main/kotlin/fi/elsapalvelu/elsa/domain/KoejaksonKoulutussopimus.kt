@@ -4,6 +4,7 @@ import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.LocalDate
+import java.time.ZoneId
 import javax.persistence.*
 import javax.validation.constraints.NotNull
 
@@ -83,6 +84,16 @@ data class KoejaksonKoulutussopimus(
     var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikka>? = mutableSetOf()
 
 ) : Serializable {
+
+    @PrePersist
+    protected fun onCreate() {
+        muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
+    }
+
+    @PreUpdate
+    protected fun onUpdate() {
+        muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
+    }
 
     override fun hashCode() = 31
 
