@@ -39,9 +39,8 @@ data class KoejaksonKehittamistoimenpiteet(
     @Column(name = "erikoistuvan_yliopisto", nullable = false)
     var erikoistuvanYliopisto: String? = null,
 
-    @NotNull
-    @Column(name = "kehittamistoimenpiteet_riittavat", nullable = false)
-    var kehittamistoimenpiteetRiittavat: Boolean = false,
+    @Column(name = "kehittamistoimenpiteet_riittavat")
+    var kehittamistoimenpiteetRiittavat: Boolean? = null,
 
     @NotNull
     @ManyToOne(optional = false)
