@@ -38,7 +38,6 @@ class KoejaksonKoulutussopimusServiceImpl(
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         var koulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
-        koulutussopimus.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         koulutussopimus.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         koulutussopimus.koulutuspaikat?.forEach { it.koulutussopimus = koulutussopimus }
         koulutussopimus.kouluttajat?.forEach { it.koulutussopimus = koulutussopimus }
@@ -108,7 +107,6 @@ class KoejaksonKoulutussopimusServiceImpl(
         koulutussopimus.erikoistuvanPuhelinnumero = updated.erikoistuvanPuhelinnumero
         koulutussopimus.erikoistuvanSahkoposti = updated.erikoistuvanSahkoposti
         koulutussopimus.lahetetty = updated.lahetetty
-        koulutussopimus.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         koulutussopimus.vastuuhenkilo = updated.vastuuhenkilo
         koulutussopimus.vastuuhenkilonNimi = updated.vastuuhenkilonNimi
         koulutussopimus.vastuuhenkilonNimike = updated.vastuuhenkilonNimike
@@ -314,15 +312,9 @@ class KoejaksonKoulutussopimusServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByKouluttajaKayttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO> {
-        val sopimukset = koejaksonKoulutussopimusRepository.findAllByKouluttajatKouluttajaUserId(
-            userId
-        )
-        return sopimukset.associate {
-            kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonKoulutussopimusMapper.toDto(
-                it
-            )
-        }
+    override fun findAllByKouluttajaKayttajaUserId(userId: String): List<KoejaksonKoulutussopimusDTO> {
+        return koejaksonKoulutussopimusRepository.findAllByKouluttajatKouluttajaUserId(userId)
+            .map(koejaksonKoulutussopimusMapper::toDto)
     }
 
     @Transactional(readOnly = true)

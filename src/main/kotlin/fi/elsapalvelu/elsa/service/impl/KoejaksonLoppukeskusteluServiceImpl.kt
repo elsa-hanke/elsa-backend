@@ -38,7 +38,6 @@ class KoejaksonLoppukeskusteluServiceImpl(
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         var loppukeskustelu =
             koejaksonLoppukeskusteluMapper.toEntity(koejaksonLoppukeskusteluDTO)
-        loppukeskustelu.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         loppukeskustelu.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         loppukeskustelu = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
 
@@ -82,7 +81,6 @@ class KoejaksonLoppukeskusteluServiceImpl(
 
     private fun handleErikoistuva(loppukeskustelu: KoejaksonLoppukeskustelu): KoejaksonLoppukeskustelu {
         loppukeskustelu.erikoistuvaAllekirjoittanut = true
-        loppukeskustelu.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
 
         val result = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
 

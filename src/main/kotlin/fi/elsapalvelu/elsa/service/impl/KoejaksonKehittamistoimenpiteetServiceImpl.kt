@@ -39,7 +39,6 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         var kehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetMapper.toEntity(koejaksonKehittamistoimenpiteetDTO)
-        kehittamistoimenpiteet.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         kehittamistoimenpiteet.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         kehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
@@ -86,7 +85,6 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
 
     private fun handleErikoistuva(kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet): KoejaksonKehittamistoimenpiteet {
         kehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
-        kehittamistoimenpiteet.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
 
         val result = koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
 
