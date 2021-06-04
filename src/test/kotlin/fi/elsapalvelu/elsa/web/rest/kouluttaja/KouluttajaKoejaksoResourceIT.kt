@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
+import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.*
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
@@ -110,13 +111,20 @@ class KouluttajaKoejaksoResourceIT {
         restKoejaksoMockMvc.perform(get("/api/kouluttaja/koejaksot"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$[0].koulutussopimus.id").value(koejaksonKoulutussopimus.id as Any))
-            .andExpect(jsonPath("$[0].koulutusSopimuksenTila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
-            .andExpect(jsonPath("$[0].aloituskeskustelu.id").value(koejaksonAloituskeskustelu.id as Any))
-            .andExpect(jsonPath("$[0].aloituskeskustelunTila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
-            .andExpect(jsonPath("$[0].valiarvioinninTila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
-            .andExpect(jsonPath("$[0].kehittamistoimenpiteidenTila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
-            .andExpect(jsonPath("$[0].loppukeskustelunTila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
+            .andExpect(jsonPath("$[0].id").value(koejaksonKoulutussopimus.id as Any))
+            .andExpect(jsonPath("$[0].tila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
+            .andExpect(jsonPath("$[1].id").value(koejaksonLoppukeskustelu.id as Any))
+            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
+            .andExpect(jsonPath("$[1].tyyppi").value(KoejaksoTyyppi.LOPPUKESKUSTELU.name as Any))
+            .andExpect(jsonPath("$[1].erikoistuvanNimi").value(koejaksonLoppukeskustelu.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$[1].erikoistuvanNimi").value(koejaksonLoppukeskustelu.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$[1].aiemmat.aloituskeskusteluId").value(koejaksonAloituskeskustelu.id as Any))
+            .andExpect(jsonPath("$[1].aiemmat.valiarviointiId").value(koejaksonValiarviointi.id as Any))
+            .andExpect(
+                jsonPath("$[1].aiemmat.kehittamistoimenpiteetId").value(
+                    koejaksonKehittamistoimenpiteet.id as Any
+                )
+            )
     }
 
     @Test

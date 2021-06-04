@@ -37,7 +37,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         var vastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
-        vastuuhenkilonArvio.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         vastuuhenkilonArvio.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
@@ -65,9 +64,9 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
 
         if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.user?.id == userId
-            && vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
+            && vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null
+        ) {
             vastuuhenkilonArvio.erikoistuvaAllekirjoittanut = true
-            vastuuhenkilonArvio.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         }
 
         if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
@@ -80,7 +79,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
         // Sähköposti vastuuhenkilölle allekirjoitetusta loppukeskustelusta
         if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.user?.id == userId
-            && vastuuhenkilonArvio.erikoistuvaAllekirjoittanut) {
+            && vastuuhenkilonArvio.erikoistuvaAllekirjoittanut
+        ) {
             val erikoistuvaLaakari =
                 kayttajaRepository.findById(vastuuhenkilonArvio?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!

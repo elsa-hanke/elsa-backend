@@ -38,7 +38,6 @@ class KoejaksonValiarviointiServiceImpl(
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         var valiarvointi =
             koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
-        valiarvointi.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         valiarvointi.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         valiarvointi = koejaksonValiarviointiRepository.save(valiarvointi)
 
@@ -81,7 +80,6 @@ class KoejaksonValiarviointiServiceImpl(
 
     private fun handleErikoistuva(valiarviointi: KoejaksonValiarviointi): KoejaksonValiarviointi {
         valiarviointi.erikoistuvaAllekirjoittanut = true
-        valiarviointi.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
 
         val result = koejaksonValiarviointiRepository.save(valiarviointi)
 

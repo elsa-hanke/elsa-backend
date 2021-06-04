@@ -29,7 +29,7 @@ interface KoejaksonKoulutussopimusService {
 
     fun findAllByKouluttajaKayttajaUserId(
         userId: String
-    ): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO>
+    ): List<KoejaksonKoulutussopimusDTO>
 
     fun findOneByIdAndVastuuhenkiloKayttajaUserId(
         id: Long,

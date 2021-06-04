@@ -28,6 +28,11 @@ interface KoejaksonAloituskeskusteluRepository : JpaRepository<KoejaksonAloitusk
     )
     fun findByValiarviointiId(id: Long): Optional<KoejaksonAloituskeskustelu>
 
+    @Query(
+        "select a " +
+            "from KoejaksonAloituskeskustelu a left join a.lahikouluttaja lk left join a.lahiesimies le " +
+            "where (lk.user.id = :kouluttajaId or le.user.id = :esimiesId) and (a.lahetetty = true or a.korjausehdotus != null)"
+    )
     fun findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
         kouluttajaId: String,
         esimiesId: String

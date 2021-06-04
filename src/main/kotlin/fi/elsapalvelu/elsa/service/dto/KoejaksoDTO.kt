@@ -36,37 +36,3 @@ data class KoejaksoDTO(
     var tyoskentelyjaksot: MutableList<TyoskentelyjaksoDTO> = mutableListOf()
 
 ) : Serializable
-
-fun KoejaksoDTO.addKoulutussopimus(sopimus: KoejaksonKoulutussopimusDTO) {
-    this.koulutussopimus = sopimus
-    this.koulutusSopimuksenTila = KoejaksoTila.fromSopimus(sopimus)
-}
-
-fun KoejaksoDTO.addAloitusKeskustelu(
-    aloituskeskustelu: KoejaksonAloituskeskusteluDTO
-) {
-    this.aloituskeskustelu = aloituskeskustelu
-    this.aloituskeskustelunTila = KoejaksoTila.fromAloituskeskustelu(aloituskeskustelu)
-}
-
-fun KoejaksoDTO.addValiarviointi(
-    valiarviointi: KoejaksonValiarviointiDTO
-) {
-    this.valiarviointi = valiarviointi
-    this.valiarvioinninTila = KoejaksoTila.fromValiarvointi(true, valiarviointi)
-}
-
-fun KoejaksoDTO.addKehittamistoimenpiteet(
-    kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteetDTO
-) {
-    this.kehittamistoimenpiteet = kehittamistoimenpiteet
-    this.kehittamistoimenpiteidenTila =
-        KoejaksoTila.fromKehittamistoimenpiteet(true, kehittamistoimenpiteet)
-}
-
-fun KoejaksoDTO.addLoppukeskustelu(
-    loppukeskustelu: KoejaksonLoppukeskusteluDTO
-) {
-    this.loppukeskustelu = loppukeskustelu
-    this.loppukeskustelunTila = KoejaksoTila.fromLoppukeskustelu(true, loppukeskustelu)
-}

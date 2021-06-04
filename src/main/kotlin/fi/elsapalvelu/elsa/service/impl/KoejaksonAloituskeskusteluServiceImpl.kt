@@ -38,7 +38,6 @@ class KoejaksonAloituskeskusteluServiceImpl(
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         var aloituskeskustelu =
             koejaksonAloituskeskusteluMapper.toEntity(koejaksonAloituskeskusteluDTO)
-        aloituskeskustelu.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
         aloituskeskustelu.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
 
@@ -71,7 +70,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
             koejaksonAloituskeskusteluMapper.toEntity(koejaksonAloituskeskusteluDTO)
 
         if (kirjautunutErikoistuvaLaakari != null
-            && kirjautunutErikoistuvaLaakari == aloituskeskustelu.erikoistuvaLaakari) {
+            && kirjautunutErikoistuvaLaakari == aloituskeskustelu.erikoistuvaLaakari
+        ) {
             aloituskeskustelu = handleErikoistuva(aloituskeskustelu, updatedAloituskeskustelu)
         }
 
@@ -107,7 +107,6 @@ class KoejaksonAloituskeskusteluServiceImpl(
         aloituskeskustelu.lahiesimiehenNimi = updated.lahiesimiehenNimi
         aloituskeskustelu.koejaksonOsaamistavoitteet = updated.koejaksonOsaamistavoitteet
         aloituskeskustelu.lahetetty = updated.lahetetty
-        aloituskeskustelu.muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
 
         if (aloituskeskustelu.lahetetty) {
             aloituskeskustelu.korjausehdotus = null
