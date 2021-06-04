@@ -1,12 +1,13 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi.*
 import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN
 import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA
-import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi.TERVEYSKESKUS
-import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi.YLIOPISTOLLINEN_SAIRAALA
+import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi.*
+import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KuntaRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
@@ -33,91 +34,162 @@ class TyoskentelyjaksoServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val kuntaRepository: KuntaRepository,
+    private val erikoisalaRepository: ErikoisalaRepository,
     private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper,
     private val asiakirjaMapper: AsiakirjaMapper
 ) : TyoskentelyjaksoService {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun save(
+    override fun create(
+        tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
+        userId: String,
+        newAsiakirjat: MutableSet<AsiakirjaDTO>
+    ): TyoskentelyjaksoDTO? {
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            ?.let { kirjautunutErikoistuvaLaakari ->
+                tyoskentelyjaksoDTO.apply {
+                    erikoistuvaLaakariId = erikoistuvaLaakariId ?: kirjautunutErikoistuvaLaakari.id
+                }
+                kirjautunutErikoistuvaLaakari.takeIf { it.id == tyoskentelyjaksoDTO.erikoistuvaLaakariId }?.let {
+                    tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO).apply {
+                        this.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
+                        tyoskentelypaikka?.kunta =
+                            kuntaRepository.findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
+                        omaaErikoisalaaTukeva =
+                            tyoskentelyjaksoDTO.omaaErikoisalaaTukeva.takeIf { kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS }
+                                ?.let {
+                                    erikoisalaRepository.findByIdOrNull(it.id)
+                                }
+                    }.takeIf { isValidTyoskentelyjakso(it) }?.let { tyoskentelyjakso ->
+                        mapAsiakirjat(tyoskentelyjakso, newAsiakirjat, null, kirjautunutErikoistuvaLaakari)
+                    }
+                }
+            }?.let {
+                tyoskentelyjaksoRepository.save(it)?.let { saved ->
+                    return tyoskentelyjaksoMapper.toDto(saved)
+                }
+            }
+
+        return null
+    }
+
+    override fun update(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         userId: String,
         newAsiakirjat: MutableSet<AsiakirjaDTO>,
         deletedAsiakirjaIds: MutableSet<Int>?
     ): TyoskentelyjaksoDTO? {
-        log.debug("Request to save Tyoskentelyjakso : $tyoskentelyjaksoDTO")
-
-        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
-            if (tyoskentelyjaksoDTO.erikoistuvaLaakariId == null) {
-                tyoskentelyjaksoDTO.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.id
-            }
-
-            if (tyoskentelyjaksoDTO.erikoistuvaLaakariId == kirjautunutErikoistuvaLaakari.id) {
-                // Jos päivitetään olemassa olevaa, tarkistetaan sallitaan vain päättymispäivä muokkaus.
-                var tyoskentelyjakso = if (tyoskentelyjaksoDTO.id != null) {
-                    tyoskentelyjaksoRepository.findByIdOrNull(tyoskentelyjaksoDTO.id)?.let {
-                        it.paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
-                        it
-                    } ?: return null
-                } else {
-                    val newTyoskentelyjakso = tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
-                    newTyoskentelyjakso.tyoskentelypaikka!!.kunta = kuntaRepository
-                        .findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
-                    newTyoskentelyjakso
-                }
-
-                // Tarkistetaan päättymispäivä suoritusarvioinneille
-                tyoskentelyjakso.suoritusarvioinnit.forEach {
-                    if (it.tapahtumanAjankohta!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
-                        return null
-                    }
-                }
-
-                // Tarkistetaan päättymispäivä suoritemerkinnöille
-                tyoskentelyjakso.suoritemerkinnat.forEach {
-                    if (it.suorituspaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
-                        return null
-                    }
-                }
-
-                // Tarkistetaan päättymispäivä keskeytyksille
-                tyoskentelyjakso.keskeytykset.forEach {
-                    if (it.paattymispaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
-                        return null
-                    }
-                }
-
-                newAsiakirjat.let {
-                    val asiakirjaEntities = it.map { asiakirjaDTO ->
-                        asiakirjaDTO.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.id
-                        asiakirjaDTO.lisattypvm = LocalDateTime.now()
-
-                        asiakirjaMapper.toEntity(asiakirjaDTO).apply {
-                            this.tyoskentelyjakso = tyoskentelyjakso
-                            this.asiakirjaData?.data =
-                                BlobProxy.generateProxy(
-                                    asiakirjaDTO.asiakirjaData?.fileInputStream,
-                                    asiakirjaDTO.asiakirjaData?.fileSize!!
-                                )
+        tyoskentelyjaksoDTO.id?.let { id ->
+            tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)
+                ?.takeIf { tyoskentelyjaksoDTO.erikoistuvaLaakariId == it.erikoistuvaLaakari?.id }
+                ?.let { tyoskentelyjakso ->
+                    // Jos työskentelyjaksolle on lisätty arviointeja tai arviointipyyntöjä, sallitaan vain
+                    // päättymispäivän muokkaus.
+                    tyoskentelyjakso.takeIf { it.isSuoritusarvioinnitNotEmpty() }
+                        ?.apply {
+                            paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
+                        } ?: tyoskentelyjakso.let {
+                        val updatedTyoskentelyjakso = tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
+                        tyoskentelyjakso.apply {
+                            tyoskentelypaikka?.apply {
+                                kunta =
+                                    tyoskentelyjaksoDTO.tyoskentelypaikka?.kuntaId?.let { id ->
+                                        kuntaRepository.findByIdOrNull(id)
+                                    }
+                                nimi = tyoskentelyjaksoDTO.tyoskentelypaikka?.nimi
+                                tyyppi = updatedTyoskentelyjakso.tyoskentelypaikka?.tyyppi
+                                muuTyyppi =
+                                    if (tyyppi == MUU) updatedTyoskentelyjakso.tyoskentelypaikka?.muuTyyppi else null
+                            }
+                            osaaikaprosentti = updatedTyoskentelyjakso.osaaikaprosentti
+                            alkamispaiva = updatedTyoskentelyjakso.alkamispaiva
+                            paattymispaiva = updatedTyoskentelyjakso.paattymispaiva
+                            osaaikaprosentti = updatedTyoskentelyjakso.osaaikaprosentti
+                            hyvaksyttyAiempaanErikoisalaan = updatedTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan
+                            kaytannonKoulutus = updatedTyoskentelyjakso.kaytannonKoulutus
+                            omaaErikoisalaaTukeva =
+                                updatedTyoskentelyjakso.omaaErikoisalaaTukeva.takeIf { kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS }
+                                    ?.let {
+                                        erikoisalaRepository.findByIdOrNull(it.id)
+                                    }
                         }
                     }
 
-                    tyoskentelyjakso.asiakirjat.addAll(asiakirjaEntities)
+                    mapAsiakirjat(
+                        tyoskentelyjakso,
+                        newAsiakirjat,
+                        deletedAsiakirjaIds,
+                        tyoskentelyjakso.erikoistuvaLaakari!!
+                    )
                 }
-
-                deletedAsiakirjaIds?.map { x -> x.toLong() }?.let {
-                    tyoskentelyjakso.asiakirjat.removeIf { asiakirja ->
-                        asiakirja.id in it
-                    }
-                }
-
-                tyoskentelyjakso = tyoskentelyjaksoRepository.save(tyoskentelyjakso)
-
-                return tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+        }?.let { updated ->
+            tyoskentelyjaksoRepository.save(updated)?.let { persisted ->
+                return tyoskentelyjaksoMapper.toDto(persisted)
             }
         }
 
         return null
+    }
+
+    private fun mapAsiakirjat(
+        tyoskentelyjakso: Tyoskentelyjakso,
+        newAsiakirjat: MutableSet<AsiakirjaDTO>,
+        deletedAsiakirjaIds: MutableSet<Int>?,
+        kirjautunutErikoistuvaLaakari: ErikoistuvaLaakari
+    ): Tyoskentelyjakso {
+
+        newAsiakirjat.let {
+            val asiakirjaEntities = it.map { asiakirjaDTO ->
+                asiakirjaDTO.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.id
+                asiakirjaDTO.lisattypvm = LocalDateTime.now()
+
+                asiakirjaMapper.toEntity(asiakirjaDTO).apply {
+                    this.tyoskentelyjakso = tyoskentelyjakso
+                    this.asiakirjaData?.data =
+                        BlobProxy.generateProxy(
+                            asiakirjaDTO.asiakirjaData?.fileInputStream,
+                            asiakirjaDTO.asiakirjaData?.fileSize!!
+                        )
+                }
+            }
+
+            tyoskentelyjakso.asiakirjat.addAll(asiakirjaEntities)
+        }
+
+        deletedAsiakirjaIds?.map { x -> x.toLong() }?.let {
+            tyoskentelyjakso.asiakirjat.removeIf { asiakirja ->
+                asiakirja.id in it
+            }
+        }
+
+        return tyoskentelyjakso
+    }
+
+    private fun isValidTyoskentelyjakso(tyoskentelyjakso: Tyoskentelyjakso): Boolean {
+
+        // Tarkistetaan päättymispäivä suoritusarvioinneille
+        tyoskentelyjakso.suoritusarvioinnit.forEach {
+            if (it.tapahtumanAjankohta!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+                return false
+            }
+        }
+
+        // Tarkistetaan päättymispäivä suoritemerkinnöille
+        tyoskentelyjakso.suoritemerkinnat.forEach {
+            if (it.suorituspaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+                return false
+            }
+        }
+
+        // Tarkistetaan päättymispäivä keskeytyksille
+        tyoskentelyjakso.keskeytykset.forEach {
+            if (it.paattymispaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+                return false
+            }
+        }
+
+        return true
     }
 
     @Transactional(readOnly = true)
