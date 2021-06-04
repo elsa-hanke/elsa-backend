@@ -10,12 +10,12 @@ class TyoskentelypaikkaHelper {
 
     companion object {
 
-        private const val DEFAULT_NIMI = "AAAAAAAAAA"
-        private const val UPDATED_NIMI = "BBBBBBBBBB"
+        const val DEFAULT_NIMI = "AAAAAAAAAA"
+        const val UPDATED_NIMI = "BBBBBBBBBB"
 
-        private val DEFAULT_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
-        private val UPDATED_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.MUU
-        private const val UPDATED_MUU_TYYPPI = "CCCCCCCCCC"
+        val DEFAULT_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
+        val UPDATED_TYYPPI: TyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.MUU
+        const val UPDATED_MUU_TYYPPI = "CCCCCCCCCC"
 
         @JvmStatic
         fun createEntity(em: EntityManager): Tyoskentelypaikka {

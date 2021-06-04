@@ -6,11 +6,17 @@ import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotDTO
 
 interface TyoskentelyjaksoService {
 
-    fun save(
+    fun create(
+        tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
+        userId: String,
+        newAsiakirjat: MutableSet<AsiakirjaDTO>
+    ): TyoskentelyjaksoDTO?
+
+    fun update(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         userId: String,
         newAsiakirjat: MutableSet<AsiakirjaDTO>,
-        deletedAsiakirjaIds: MutableSet<Int>? = null
+        deletedAsiakirjaIds: MutableSet<Int>?
     ): TyoskentelyjaksoDTO?
 
     fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<TyoskentelyjaksoDTO>
