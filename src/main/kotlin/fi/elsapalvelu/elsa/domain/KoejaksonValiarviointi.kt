@@ -39,9 +39,8 @@ data class KoejaksonValiarviointi(
     @Column(name = "erikoistuvan_yliopisto", nullable = false)
     var erikoistuvanYliopisto: String? = null,
 
-    @NotNull
-    @Column(name = "edistyminen_tavoitteiden_mukaista", nullable = false)
-    var edistyminenTavoitteidenMukaista: Boolean = false,
+    @Column(name = "edistyminen_tavoitteiden_mukaista")
+    var edistyminenTavoitteidenMukaista: Boolean? = null,
 
     @Column(name = "vahvuudet")
     var vahvuudet: String? = null,
