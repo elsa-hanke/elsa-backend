@@ -39,9 +39,8 @@ data class KoejaksonLoppukeskustelu(
     @Column(name = "erikoistuvan_yliopisto", nullable = false)
     var erikoistuvanYliopisto: String? = null,
 
-    @NotNull
-    @Column(name = "esitetaan_koejakson_hyvaksymista", nullable = false)
-    var esitetaanKoejaksonHyvaksymista: Boolean = false,
+    @Column(name = "esitetaan_koejakson_hyvaksymista")
+    var esitetaanKoejaksonHyvaksymista: Boolean? = null,
 
     @NotNull
     @ManyToOne(optional = false)

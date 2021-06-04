@@ -20,7 +20,6 @@ data class KoejaksonKehittamistoimenpiteetDTO(
     @get: NotNull
     var erikoistuvanYliopisto: String? = null,
 
-    @get: NotNull
     var kehittamistoimenpiteetRiittavat: Boolean? = null,
 
     @get: NotNull

@@ -20,7 +20,6 @@ data class KoejaksonValiarviointiDTO(
     @get: NotNull
     var erikoistuvanYliopisto: String? = null,
 
-    @get: NotNull
     var edistyminenTavoitteidenMukaista: Boolean? = null,
 
     var vahvuudet: String? = null,

@@ -20,7 +20,6 @@ data class KoejaksonLoppukeskusteluDTO(
     @get: NotNull
     var erikoistuvanYliopisto: String? = null,
 
-    @get: NotNull
     var esitetaanKoejaksonHyvaksymista: Boolean? = null,
 
     @get: NotNull

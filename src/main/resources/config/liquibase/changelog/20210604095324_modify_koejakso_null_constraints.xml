@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20210604095324-1" author="jhipster">
+
+        <dropNotNullConstraint tableName="koejakson_valiarviointi"
+            columnName="edistyminen_tavoitteiden_mukaista"
+            columnDataType="boolean"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_kehittamistoimenpiteet"
+            columnName="kehittamistoimenpiteet_riittavat"
+            columnDataType="boolean"
+        />
+
+        <dropNotNullConstraint tableName="koejakson_loppukeskustelu"
+            columnName="esitetaan_koejakson_hyvaksymista"
+            columnDataType="boolean"
+        />
+
+    </changeSet>
+</databaseChangeLog>
