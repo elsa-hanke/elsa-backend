@@ -150,7 +150,7 @@ stages:
               scriptType: inline
               inlineScript: |
                 set -e
-                ECR_IMAGE="599051528004.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME_STAGING}:$(Build.BuildNumber)"
+                ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ecr-dev-backend}:$(Build.BuildNumber)"
 
                 TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "elsa-staging-backend" --region "$AWS_DEFAULT_REGION")
 
