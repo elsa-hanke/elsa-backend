@@ -32,6 +32,8 @@ data class KoejaksonKehittamistoimenpiteetDTO(
 
     var korjausehdotus: String? = null,
 
-    var erikoistuvaAllekirjoittanut: Boolean? = null
+    var erikoistuvaAllekirjoittanut: Boolean? = null,
+
+    var erikoistuvanAllekirjoitusaika: LocalDate? = null
 
 ) : Serializable
