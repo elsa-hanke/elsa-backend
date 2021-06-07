@@ -46,4 +46,6 @@ data class KoejaksonAloituskeskusteluDTO(
 
     var korjausehdotus: String? = null,
 
-    ) : Serializable
+    var erikoistuvanAllekirjoitusaika: LocalDate? = null
+
+) : Serializable
