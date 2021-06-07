@@ -39,6 +39,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
         var aloituskeskustelu =
             koejaksonAloituskeskusteluMapper.toEntity(koejaksonAloituskeskusteluDTO)
         aloituskeskustelu.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
+        if (koejaksonAloituskeskusteluDTO.lahetetty == true) aloituskeskustelu.erikoistuvanAllekirjoitusaika =
+            LocalDate.now()
         aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
 
         if (aloituskeskustelu.lahetetty) {
@@ -110,6 +112,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
 
         if (aloituskeskustelu.lahetetty) {
             aloituskeskustelu.korjausehdotus = null
+            aloituskeskustelu.erikoistuvanAllekirjoitusaika = LocalDate.now()
         }
 
         val result = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
@@ -140,6 +143,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         else {
             aloituskeskustelu.korjausehdotus = updated.korjausehdotus
             aloituskeskustelu.lahetetty = false
+            aloituskeskustelu.erikoistuvanAllekirjoitusaika = null
         }
 
         val result = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
@@ -182,6 +186,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
             aloituskeskustelu.lahetetty = false
             aloituskeskustelu.lahikouluttajaHyvaksynyt = false
             aloituskeskustelu.lahikouluttajanKuittausaika = null
+            aloituskeskustelu.erikoistuvanAllekirjoitusaika = null
         }
 
         val result = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)

@@ -67,6 +67,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             && vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null
         ) {
             vastuuhenkilonArvio.erikoistuvaAllekirjoittanut = true
+            vastuuhenkilonArvio.erikoistuvanAllekirjoitusaika = LocalDate.now()
         }
 
         if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {

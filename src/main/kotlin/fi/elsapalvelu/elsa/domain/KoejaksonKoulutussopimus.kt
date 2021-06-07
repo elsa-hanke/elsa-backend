@@ -81,7 +81,10 @@ data class KoejaksonKoulutussopimus(
     var kouluttajat: MutableSet<KoulutussopimuksenKouluttaja>? = mutableSetOf(),
 
     @OneToMany(mappedBy = "koulutussopimus", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikka>? = mutableSetOf()
+    var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikka>? = mutableSetOf(),
+
+    @Column(name = "erikoistuvan_allekirjoitusaika", nullable = false)
+    var erikoistuvanAllekirjoitusaika: LocalDate? = null
 
 ) : Serializable {
 

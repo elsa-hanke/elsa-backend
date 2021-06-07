@@ -41,6 +41,8 @@ class KoejaksonKoulutussopimusServiceImpl(
         koulutussopimus.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         koulutussopimus.koulutuspaikat?.forEach { it.koulutussopimus = koulutussopimus }
         koulutussopimus.kouluttajat?.forEach { it.koulutussopimus = koulutussopimus }
+        if (koulutussopimus.lahetetty) koulutussopimus.erikoistuvanAllekirjoitusaika =
+            LocalDate.now()
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
         // Sähköposti kouluttajille allekirjoitetusta sopimuksesta
@@ -119,6 +121,7 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         if (updated.lahetetty) {
             koulutussopimus.korjausehdotus = null
+            koulutussopimus.erikoistuvanAllekirjoitusaika = LocalDate.now()
         }
 
         val result = koejaksonKoulutussopimusRepository.save(koulutussopimus)
@@ -161,6 +164,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         else {
             koulutussopimus.korjausehdotus = updated.korjausehdotus
             koulutussopimus.lahetetty = false
+            koulutussopimus.erikoistuvanAllekirjoitusaika = null
 
             koulutussopimus.kouluttajat?.forEach {
                 it.sopimusHyvaksytty = false
@@ -226,6 +230,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         else {
             koulutussopimus.korjausehdotus = updated.korjausehdotus
             koulutussopimus.lahetetty = false
+            koulutussopimus.erikoistuvanAllekirjoitusaika = null
 
             koulutussopimus.kouluttajat?.forEach {
                 it.sopimusHyvaksytty = false
