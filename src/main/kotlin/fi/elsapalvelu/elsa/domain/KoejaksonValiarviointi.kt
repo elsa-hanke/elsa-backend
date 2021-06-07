@@ -84,7 +84,10 @@ data class KoejaksonValiarviointi(
     var korjausehdotus: String? = null,
 
     @Column(name = "erikoistuva_allekirjoittanut")
-    var erikoistuvaAllekirjoittanut: Boolean = false
+    var erikoistuvaAllekirjoittanut: Boolean = false,
+
+    @Column(name = "erikoistuvan_allekirjoitusaika", nullable = false)
+    var erikoistuvanAllekirjoitusaika: LocalDate? = null
 
 ) : Serializable {
 

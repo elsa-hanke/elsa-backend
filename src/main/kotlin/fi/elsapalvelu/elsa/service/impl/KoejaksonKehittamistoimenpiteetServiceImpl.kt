@@ -85,6 +85,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
 
     private fun handleErikoistuva(kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet): KoejaksonKehittamistoimenpiteet {
         kehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
+        kehittamistoimenpiteet.erikoistuvanAllekirjoitusaika = LocalDate.now()
 
         val result = koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
 

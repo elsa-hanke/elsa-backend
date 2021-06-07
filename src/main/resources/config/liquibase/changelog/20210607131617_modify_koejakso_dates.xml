@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20210607131617-1" author="jhipster">
+
+        <addColumn tableName="koejakson_koulutussopimus">
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_aloituskeskustelu">
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_valiarviointi">
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_kehittamistoimenpiteet">
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_loppukeskustelu">
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+        </addColumn>
+
+    </changeSet>
+</databaseChangeLog>

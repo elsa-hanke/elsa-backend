@@ -81,6 +81,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
 
     private fun handleErikoistuva(loppukeskustelu: KoejaksonLoppukeskustelu): KoejaksonLoppukeskustelu {
         loppukeskustelu.erikoistuvaAllekirjoittanut = true
+        loppukeskustelu.erikoistuvanAllekirjoitusaika = LocalDate.now()
 
         val result = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
 
