@@ -80,6 +80,7 @@ class KoejaksonValiarviointiServiceImpl(
 
     private fun handleErikoistuva(valiarviointi: KoejaksonValiarviointi): KoejaksonValiarviointi {
         valiarviointi.erikoistuvaAllekirjoittanut = true
+        valiarviointi.erikoistuvanAllekirjoitusaika = LocalDate.now()
 
         val result = koejaksonValiarviointiRepository.save(valiarviointi)
 
