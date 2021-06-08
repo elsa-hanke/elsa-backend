@@ -28,7 +28,6 @@ import java.security.Principal
 import java.time.Instant
 import java.util.*
 import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -98,7 +97,7 @@ class UserService(
             }
         }
         // save account in to sync users between IdP and JHipster's local database
-        val existingUser = userRepository.findOneByLogin(user.login!!)
+        val existingUser = userRepository.findOneWithAuthoritiesByLogin(user.login!!)
         if (existingUser.isPresent) {
             handleExistingUser(user, existingUser.get(), details)
         } else {
