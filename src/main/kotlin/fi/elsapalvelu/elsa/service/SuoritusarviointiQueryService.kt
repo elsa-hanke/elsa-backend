@@ -80,7 +80,7 @@ class SuoritusarviointiQueryService(
     }
 
     @Transactional(readOnly = true)
-    fun findByKouluttajaUserLogin(userId: String): List<SuoritusarviointiDTO> {
+    fun findByKouluttajaOrVastuuhenkiloUserLogin(userId: String): List<SuoritusarviointiDTO> {
         val specification = createSpecification(null) { root, _, cb ->
             val user: Join<Kayttaja, User> = root.join(Suoritusarviointi_.arvioinninAntaja)
                 .join(Kayttaja_.user)
