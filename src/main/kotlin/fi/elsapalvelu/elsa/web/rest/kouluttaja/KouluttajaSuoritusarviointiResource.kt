@@ -1,6 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
-import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.ArviointityokaluService
+import fi.elsapalvelu.elsa.service.SuoritusarviointiQueryService
+import fi.elsapalvelu.elsa.service.SuoritusarviointiService
+import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -34,7 +37,7 @@ class KouluttajaSuoritusarviointiResource(
         val login = user.login!!
 
         return ResponseEntity.ok(
-            suoritusarviointiQueryService.findByKouluttajaUserLogin(login)
+            suoritusarviointiQueryService.findByKouluttajaOrVastuuhenkiloUserLogin(login)
         )
     }
 
