@@ -1,9 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
+import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
+import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -23,6 +25,7 @@ private const val ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO = "koejakson_vastuuhenki
 class VastuuhenkiloKoejaksoResource(
     private val userService: UserService,
     private val koejaksonKoulutussopimusService: KoejaksonKoulutussopimusService,
+    private val koejaksonVaiheetService: KoejaksonVaiheetService,
     private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService
 ) {
 
@@ -30,6 +33,13 @@ class VastuuhenkiloKoejaksoResource(
 
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
+
+    @GetMapping("/koejaksot")
+    fun getKoejaksot(principal: Principal?): ResponseEntity<List<KoejaksonVaiheDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val koejaksonVaiheet = koejaksonVaiheetService.findAllByVastuuhenkiloKayttajaUserId(user.id!!)
+        return ResponseEntity.ok(koejaksonVaiheet)
+    }
 
     @GetMapping("/koejakso/koulutussopimus/{id}")
     fun getKoulutussopimus(
