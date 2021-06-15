@@ -179,7 +179,7 @@ insert into koejakson_aloituskeskustelu (id, erikoistuva_laakari_id, erikoistuva
                                          koejakson_osaamistavoitteet, lahetetty, muokkauspaiva, korjausehdotus)
 values (1010, 4000, 'Erkki Erikoistuva', 'Työterveyshuolto', 1234567, 'Yliopisto 1', '', 'Meilahden sairaala', '', '2020-11-30 12:50:31.526020',
         '2021-05-30 12:50:31.526020', true, 40, 6001, 'Kalle Kouluttaja', true, '2021-06-01 12:50:31.526020', 6001, '', true, '2021-06-01 12:50:31.526020',
-        '', true, '2021-09-30 12:50:31.526020', '');
+        '', true, '2020-09-30 12:50:31.526020', '');
 
 insert into koejakson_aloituskeskustelu (id, erikoistuva_laakari_id, erikoistuvan_nimi, erikoistuvan_erikoisala,
                                          erikoistuvan_opiskelijatunnus, erikoistuvan_yliopisto, erikoistuvan_sahkoposti,
