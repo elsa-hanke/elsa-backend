@@ -29,4 +29,8 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
     fun findAllByKouluttajatKouluttajaUserId(
         userId: String
     ): List<KoejaksonKoulutussopimus>
+
+    fun findAllByVastuuhenkiloUserId(
+        userId: String
+    ): List<KoejaksonKoulutussopimus>
 }
