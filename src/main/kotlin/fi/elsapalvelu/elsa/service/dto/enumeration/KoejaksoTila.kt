@@ -8,6 +8,7 @@ enum class KoejaksoTila {
     TALLENNETTU_KESKENERAISENA,
     ODOTTAA_HYVAKSYNTAA,
     ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA,
+    ODOTTAA_ESIMIEHEN_HYVAKSYNTAA,
     PALAUTETTU_KORJATTAVAKSI,
     HYVAKSYTTY;
 
@@ -36,6 +37,7 @@ enum class KoejaksoTila {
             else if (valiarviointiDTO == null) UUSI
             else if (valiarviointiDTO.erikoistuvaAllekirjoittanut == true) HYVAKSYTTY
             else if (valiarviointiDTO.lahiesimies?.sopimusHyvaksytty == true) ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
+            else if (valiarviointiDTO.lahikouluttaja?.sopimusHyvaksytty == true) ODOTTAA_ESIMIEHEN_HYVAKSYNTAA
             else if (!valiarviointiDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else ODOTTAA_HYVAKSYNTAA
         }
@@ -48,6 +50,7 @@ enum class KoejaksoTila {
             else if (kehittamistoimenpiteetDTO == null) UUSI
             else if (kehittamistoimenpiteetDTO.erikoistuvaAllekirjoittanut == true) HYVAKSYTTY
             else if (kehittamistoimenpiteetDTO.lahiesimies?.sopimusHyvaksytty == true) ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
+            else if (kehittamistoimenpiteetDTO.lahikouluttaja?.sopimusHyvaksytty == true) ODOTTAA_ESIMIEHEN_HYVAKSYNTAA
             else if (!kehittamistoimenpiteetDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else ODOTTAA_HYVAKSYNTAA
         }
@@ -60,6 +63,7 @@ enum class KoejaksoTila {
             else if (loppukeskusteluDTO == null) UUSI
             else if (loppukeskusteluDTO.erikoistuvaAllekirjoittanut == true) HYVAKSYTTY
             else if (loppukeskusteluDTO.lahiesimies?.sopimusHyvaksytty == true) ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
+            else if (loppukeskusteluDTO.lahikouluttaja?.sopimusHyvaksytty == true) ODOTTAA_ESIMIEHEN_HYVAKSYNTAA
             else if (!loppukeskusteluDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else ODOTTAA_HYVAKSYNTAA
         }
