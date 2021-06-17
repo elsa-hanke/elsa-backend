@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KoejaksonKehittamistoimenpiteet
-import fi.elsapalvelu.elsa.domain.KoejaksonValiarviointi
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKehittamistoimenpiteetRepository
@@ -227,12 +226,6 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         return koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahiesimiesUserId(
             id,
             userId
-        ).map(koejaksonKehittamistoimenpiteetMapper::toDto)
-    }
-
-    override fun findByLoppukeskusteluId(id: Long): Optional<KoejaksonKehittamistoimenpiteetDTO> {
-        return koejaksonKehittamistoimenpiteetRepository.findByLoppukeskusteluId(
-            id
         ).map(koejaksonKehittamistoimenpiteetMapper::toDto)
     }
 
