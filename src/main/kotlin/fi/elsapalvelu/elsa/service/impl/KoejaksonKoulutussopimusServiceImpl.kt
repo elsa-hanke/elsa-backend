@@ -317,8 +317,18 @@ class KoejaksonKoulutussopimusServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByKouluttajaKayttajaUserId(userId: String): List<KoejaksonKoulutussopimusDTO> {
-        return koejaksonKoulutussopimusRepository.findAllByKouluttajatKouluttajaUserId(userId)
+    override fun findAllByKouluttajaKayttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO> {
+        val koulutussopimukset = koejaksonKoulutussopimusRepository.findAllByKouluttajatKouluttajaUserId(userId)
+        return koulutussopimukset.associate {
+            kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonKoulutussopimusMapper.toDto(
+                it
+            )
+        }
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAllByVastuuhenkiloKayttajaUserId(userId: String): List<KoejaksonKoulutussopimusDTO> {
+        return koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(userId)
             .map(koejaksonKoulutussopimusMapper::toDto)
     }
 
