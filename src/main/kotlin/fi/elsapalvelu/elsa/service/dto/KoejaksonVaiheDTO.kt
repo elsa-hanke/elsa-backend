@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import java.io.Serializable
 import java.time.LocalDate
 
-data class KouluttajanKoejaksoDTO(
+data class KoejaksonVaiheDTO(
 
     var id: Long? = null,
 
@@ -17,6 +17,6 @@ data class KouluttajanKoejaksoDTO(
 
     var pvm: LocalDate? = null,
 
-    var aiemmat: HyvaksytytKoejaksoVaiheetDTO = HyvaksytytKoejaksoVaiheetDTO()
+    var hyvaksytytVaiheet: MutableList<HyvaksyttyKoejaksonVaiheDTO> = mutableListOf()
 
 ) : Serializable

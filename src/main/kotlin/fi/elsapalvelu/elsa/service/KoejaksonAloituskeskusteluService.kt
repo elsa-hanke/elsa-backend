@@ -32,8 +32,6 @@ interface KoejaksonAloituskeskusteluService {
         userId: String
     ): Optional<KoejaksonAloituskeskusteluDTO>
 
-    fun findByValiarviointiId(id: Long): Optional<KoejaksonAloituskeskusteluDTO>
-
     fun findAllByKouluttajaUserId(
         userId: String
     ): Map<KayttajaDTO, KoejaksonAloituskeskusteluDTO>
