@@ -20,9 +20,11 @@ logging:
     fi.elsapalvelu.elsa: DEBUG
 
 spring:
+  config:
+    use-legacy-processing: true
   profiles:
     active: dev
-    include:
+    group:
       - swagger
   devtools:
     restart:
@@ -80,7 +82,7 @@ jhipster:
       max-entries: 100 # Number of objects in each cache entry
   # CORS is only enabled by default with the "dev" profile, so BrowserSync can access the API
   cors:
-    allowed-origins: '*'
+    allowed-origin-patterns: '*'
     allowed-methods: '*'
     allowed-headers: '*'
     exposed-headers: 'Authorization,Link,X-Total-Count'
