@@ -6,11 +6,14 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
+import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.KoejaksonVaiheetHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -29,8 +32,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
-import java.time.ZoneId
 import javax.persistence.EntityManager
 import kotlin.test.assertNotNull
 
@@ -48,6 +49,9 @@ class VastuuhenkiloKoejaksoResourceIT {
     private lateinit var koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
 
     @Autowired
+    private lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
+
+    @Autowired
     private lateinit var koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
 
     @Autowired
@@ -58,11 +62,50 @@ class VastuuhenkiloKoejaksoResourceIT {
 
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
 
+    private lateinit var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu
+
+    private lateinit var koejaksonValiarviointi: KoejaksonValiarviointi
+
+    private lateinit var koejaksonKehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet
+
+    private lateinit var koejaksonLoppukeskustelu: KoejaksonLoppukeskustelu
+
     private lateinit var koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
 
     @BeforeEach
     fun setup() {
         MockitoAnnotations.initMocks(this)
+    }
+
+    @Test
+    @Transactional
+    fun getKoejaksotByVastuuhenkilo() {
+        initTest()
+
+        koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt = true
+        koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
+
+        koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
+        vastuuhenkilonArvioRepository.saveAndFlush(koejaksonVastuuhenkilonArvio)
+
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejaksot"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$[0].id").value(koejaksonVastuuhenkilonArvio.id as Any))
+            .andExpect(jsonPath("$[0].tila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
+            .andExpect(jsonPath("$[0].tyyppi").value(KoejaksoTyyppi.VASTUUHENKILON_ARVIO.name as Any))
+            .andExpect(jsonPath("$[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].id").value(koejaksonLoppukeskustelu.id as Any))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].tyyppi").value("LOPPUKESKUSTELU"))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].id").value(koejaksonKehittamistoimenpiteet.id as Any))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].tyyppi").value("KEHITTAMISTOIMENPITEET"))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].id").value(koejaksonValiarviointi.id as Any))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].tyyppi").value("VALIARVIOINTI"))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[3].id").value(koejaksonAloituskeskustelu.id as Any))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[3].tyyppi").value("ALOITUSKESKUSTELU"))
+            .andExpect(jsonPath("$[1].id").value(koejaksonKoulutussopimus.id as Any))
+            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
+            .andExpect(jsonPath("$[1].tyyppi").value("KOULUTUSSOPIMUS"))
     }
 
     @Test
@@ -78,8 +121,7 @@ class VastuuhenkiloKoejaksoResourceIT {
                 "/api/vastuuhenkilo/koejakso/koulutussopimus/{id}", id
             )
         )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(koejaksonKoulutussopimus.id as Any))
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKoulutussopimus.erikoistuvanNimi as Any))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKoulutussopimus.erikoistuvanOpiskelijatunnus as Any))
@@ -129,7 +171,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = true
-        updatedKoulutussopimus.vastuuhenkilonKuittausaika = DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        updatedKoulutussopimus.vastuuhenkilonKuittausaika = KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
@@ -160,7 +202,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = true
-        updatedKoulutussopimus.vastuuhenkilonKuittausaika = DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        updatedKoulutussopimus.vastuuhenkilonKuittausaika = KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
@@ -188,7 +230,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = true
-        updatedKoulutussopimus.vastuuhenkilonKuittausaika = DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        updatedKoulutussopimus.vastuuhenkilonKuittausaika = KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
@@ -204,7 +246,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val testKoulutussopimus = koulutussopimusList[koulutussopimusList.size - 1]
         assertThat(testKoulutussopimus.korjausehdotus).isNull()
         assertThat(testKoulutussopimus.vastuuhenkilonKuittausaika).isEqualTo(
-            DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
         )
         assertThat(testKoulutussopimus.vastuuhenkiloHyvaksynyt).isEqualTo(true)
     }
@@ -222,7 +264,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = false
-        updatedKoulutussopimus.korjausehdotus = UPDATED_KORJAUSEHDOTUS
+        updatedKoulutussopimus.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
@@ -236,7 +278,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val koulutussopimusList = koejaksonKoulutussopimusRepository.findAll()
         assertThat(koulutussopimusList).hasSize(databaseSizeBeforeUpdate)
         val testKoulutussopimus = koulutussopimusList[koulutussopimusList.size - 1]
-        assertThat(testKoulutussopimus.korjausehdotus).isEqualTo(UPDATED_KORJAUSEHDOTUS)
+        assertThat(testKoulutussopimus.korjausehdotus).isEqualTo(KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS)
         assertThat(testKoulutussopimus.lahetetty).isEqualTo(false)
 
         assertThat(testKoulutussopimus.kouluttajat).hasSize(1)
@@ -258,7 +300,8 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.detach(updatedVastuuhenkilonArvio)
 
         updatedVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = true
-        updatedVastuuhenkilonArvio.vastuuhenkilonKuittausaika = DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        updatedVastuuhenkilonArvio.vastuuhenkilonKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         val vastuuhenkilonArvioDTO =
             koejaksonVastuuhenkilonArvioMapper.toDto(updatedVastuuhenkilonArvio)
@@ -275,7 +318,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val testVastuuhenkilonArvio = vastuuhenkilonArvioList[vastuuhenkilonArvioList.size - 1]
         assertThat(testVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt).isEqualTo(true)
         assertThat(testVastuuhenkilonArvio.vastuuhenkilonKuittausaika).isEqualTo(
-            DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
         )
     }
 
@@ -292,7 +335,8 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.detach(updatedVastuuhenkilonArvio)
 
         updatedVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
-        updatedVastuuhenkilonArvio.vastuuhenkilonKuittausaika = DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        updatedVastuuhenkilonArvio.vastuuhenkilonKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         val vastuuhenkilonArvioDTO =
             koejaksonVastuuhenkilonArvioMapper.toDto(updatedVastuuhenkilonArvio)
@@ -311,107 +355,63 @@ class VastuuhenkiloKoejaksoResourceIT {
         assertThat(testVastuuhenkilonArvio.vastuuhenkilonKuittausaika).isNotNull
     }
 
-    fun initTest(userId: String? = DEFAULT_VASTUUHENKILO_ID) {
+    fun initTest(userId: String? = KoejaksonVaiheetHelper.DEFAULT_VASTUUHENKILO_ID) {
         val userDetails = mapOf<String, Any>(
-            "uid" to DEFAULT_VASTUUHENKILO_ID,
-            "sub" to DEFAULT_LOGIN,
-            "email" to DEFAULT_EMAIL
+            "uid" to userId!!,
+            "sub" to KoejaksonVaiheetHelper.DEFAULT_LOGIN,
+            "email" to KoejaksonVaiheetHelper.DEFAULT_EMAIL
         )
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
         val user = DefaultOAuth2User(authorities, userDetails, "sub")
         val authentication = OAuth2AuthenticationToken(user, authorities, "oidc")
         TestSecurityContextHolder.getContext().authentication = authentication
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, DEFAULT_ID)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, KoejaksonVaiheetHelper.DEFAULT_ID)
         em.persist(erikoistuvaLaakari)
 
-        val vastuuhenkilo = KayttajaHelper.createEntity(em, DEFAULT_VASTUUHENKILO_ID)
+        val vastuuhenkilo = KayttajaHelper.createEntity(
+            em, KoejaksonVaiheetHelper.DEFAULT_VASTUUHENKILO_ID
+        )
         em.persist(vastuuhenkilo)
 
-        koejaksonKoulutussopimus = createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
+        val kouluttaja = KayttajaHelper.createEntity(
+            em, KoejaksonVaiheetHelper.DEFAULT_KOULUTTAJA_ID
+        )
+        em.persist(kouluttaja)
+
+        val esimies = KayttajaHelper.createEntity(
+            em, KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID
+        )
+        em.persist(esimies)
+
+        koejaksonKoulutussopimus = KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
         koejaksonKoulutussopimus.kouluttajat =
-            mutableSetOf(createKoulutussopimuksenKouluttaja(em, koejaksonKoulutussopimus))
+            mutableSetOf(
+                KoejaksonVaiheetHelper.createKoulutussopimuksenKouluttaja(
+                    koejaksonKoulutussopimus,
+                    kouluttaja
+                )
+            )
         koejaksonKoulutussopimus.koulutuspaikat =
-            mutableSetOf(createKoulutussopimuksenKoulutuspaikka(koejaksonKoulutussopimus))
+            mutableSetOf(KoejaksonVaiheetHelper.createKoulutussopimuksenKoulutuspaikka(koejaksonKoulutussopimus))
         em.persist(koejaksonKoulutussopimus)
 
+        koejaksonAloituskeskustelu =
+            KoejaksonVaiheetHelper.createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+        em.persist(koejaksonAloituskeskustelu)
+        koejaksonValiarviointi =
+            KoejaksonVaiheetHelper.createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
+        em.persist(koejaksonValiarviointi)
+        koejaksonKehittamistoimenpiteet =
+            KoejaksonVaiheetHelper.createKehittamistoimenpiteet(erikoistuvaLaakari, kouluttaja, esimies)
+        em.persist(koejaksonKehittamistoimenpiteet)
+        koejaksonLoppukeskustelu =
+            KoejaksonVaiheetHelper.createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+        em.persist(koejaksonLoppukeskustelu)
         koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
         em.persist(koejaksonVastuuhenkilonArvio)
     }
 
     companion object {
-
-        private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
-        private const val DEFAULT_LOGIN = "johndoe"
-        private const val DEFAULT_EMAIL = "john.doe@example.com"
-
-        private val DEFAULT_SYNTYMAAIKA: LocalDate = LocalDate.ofEpochDay(0L)
-        private val DEFAULT_MYONTAMISPAIVA: LocalDate = LocalDate.ofEpochDay(1L)
-        private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(2L)
-        private val DEFAULT_MUOKKAUSPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
-        private val DEFAULT_KUITTAUSAIKA_KOULUTTAJA: LocalDate = LocalDate.ofEpochDay(3L)
-        private val DEFAULT_KUITTAUSAIKA_VASTUUHENKILO: LocalDate =
-            LocalDate.now(ZoneId.systemDefault())
-
-        private const val DEFAULT_KOULUTTAJA_ID = "4b73bc2c-88c4-11eb-8dcd-0242ac130003"
-        private const val DEFAULT_VASTUUHENKILO_ID = "53d6e70e-88c4-11eb-8dcd-0242ac130003"
-
-        private const val DEFAULT_KOULUTUSPAIKKA = "TAYS Päivystyskeskus"
-        private const val DEFAULT_YLIOPISTO = "TAYS"
-
-        private const val UPDATED_KORJAUSEHDOTUS = "Lorem Ipsum"
-
-        private const val DEFAULT_ERIKOISALA = "Erikoisala"
-
-        @JvmStatic
-        fun createKoulutussopimus(
-            erikoistuvaLaakari: ErikoistuvaLaakari,
-            vastuuhenkilo: Kayttaja
-        ): KoejaksonKoulutussopimus {
-            return KoejaksonKoulutussopimus(
-                erikoistuvaLaakari = erikoistuvaLaakari,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
-                erikoistuvanSyntymaaika = DEFAULT_SYNTYMAAIKA,
-                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
-                opintooikeudenMyontamispaiva = DEFAULT_MYONTAMISPAIVA,
-                koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
-                erikoistuvanPuhelinnumero = erikoistuvaLaakari.puhelinnumero,
-                erikoistuvanSahkoposti = erikoistuvaLaakari.kayttaja?.user?.email,
-                lahetetty = true,
-                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
-                vastuuhenkilo = vastuuhenkilo,
-                vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
-                vastuuhenkilonNimike = vastuuhenkilo.nimike,
-            )
-        }
-
-        @JvmStatic
-        fun createKoulutussopimuksenKouluttaja(
-            em: EntityManager,
-            koejaksonKoulutussopimus: KoejaksonKoulutussopimus,
-            userId: String? = DEFAULT_KOULUTTAJA_ID
-        ): KoulutussopimuksenKouluttaja {
-            val kouluttaja = KayttajaHelper.createEntity(em, userId)
-            em.persist(kouluttaja)
-            return KoulutussopimuksenKouluttaja(
-                kouluttaja = kouluttaja,
-                nimi = kouluttaja.getNimi(),
-                koulutussopimus = koejaksonKoulutussopimus,
-                sopimusHyvaksytty = true,
-                kuittausaika = DEFAULT_KUITTAUSAIKA_KOULUTTAJA
-            )
-        }
-
-        @JvmStatic
-        fun createKoulutussopimuksenKoulutuspaikka(
-            koejaksonKoulutussopimus: KoejaksonKoulutussopimus,
-        ): KoulutussopimuksenKoulutuspaikka {
-            return KoulutussopimuksenKoulutuspaikka(
-                nimi = DEFAULT_KOULUTUSPAIKKA,
-                yliopisto = DEFAULT_YLIOPISTO,
-                koulutussopimus = koejaksonKoulutussopimus
-            )
-        }
 
         @JvmStatic
         fun createVastuuhenkilonArvio(
@@ -423,8 +423,8 @@ class VastuuhenkiloKoejaksoResourceIT {
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
-                erikoistuvanErikoisala = DEFAULT_ERIKOISALA,
-                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
+                erikoistuvanErikoisala = KoejaksonVaiheetHelper.DEFAULT_ERIKOISALA,
+                muokkauspaiva = KoejaksonVaiheetHelper.DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
                 vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
             )
