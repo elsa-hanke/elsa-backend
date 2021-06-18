@@ -1,10 +1,9 @@
-
 package fi.elsapalvelu.elsa.web.rest
 
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
-import org.springframework.security.oauth2.core.oidc.OidcIdToken
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
@@ -13,8 +12,7 @@ import javax.servlet.http.HttpServletRequest
  * REST controller for managing global OIDC logout.
  */
 @RestController
-class LogoutResource(registrations: ClientRegistrationRepository) {
-    private val registration = registrations.findByRegistrationId("oidc")
+class LogoutResource {
 
     /**
      * `POST  /api/logout` : logout the current user.
@@ -23,16 +21,16 @@ class LogoutResource(registrations: ClientRegistrationRepository) {
      * @param idToken the ID token.
      * @return the [ResponseEntity] with status `200 (OK)` and a body with a global logout URL and ID token.
      */
-    @PostMapping("/api/logout")
+    @PostMapping("/api/logout25")
     fun logout(
         request: HttpServletRequest,
-        @AuthenticationPrincipal(expression = "idToken") idToken: OidcIdToken?
+        @AuthenticationPrincipal(expression = "idToken") idToken: Saml2AuthenticationToken?
     ): ResponseEntity<*> {
-        val logoutUrl = registration?.providerDetails?.configurationMetadata?.get("end_session_endpoint").toString()
+        val logoutUrl = "asfd"
 
         val logoutDetails = mutableMapOf(
             "logoutUrl" to logoutUrl,
-            "idToken" to idToken?.tokenValue
+            "idToken" to idToken
         )
         request.session.invalidate()
         return ResponseEntity.ok().body(logoutDetails)
