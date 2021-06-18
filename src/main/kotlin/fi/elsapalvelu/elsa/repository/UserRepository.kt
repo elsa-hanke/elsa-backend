@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.util.Optional
 
@@ -22,6 +23,9 @@ interface UserRepository : JpaRepository<User, String> {
     fun findOneWithAuthoritiesByLogin(login: String): Optional<User>
 
     fun findAllByLoginNot(pageable: Pageable, login: String): Page<User>
+
+    @Query("select u from User u left join fetch u.authorities")
+    fun findAllWithAuthorities(): List<User>
 
     companion object {
 
