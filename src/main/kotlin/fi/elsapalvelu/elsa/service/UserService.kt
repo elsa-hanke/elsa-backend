@@ -21,6 +21,9 @@ import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.nio.charset.StandardCharsets
@@ -204,15 +207,20 @@ class UserService(
      * @return the user from the authentication.
      */
     @Transactional
-    fun getUserFromAuthentication(authToken: AbstractAuthenticationToken): UserDTO {
-        val attributes: Map<String, Any> =
-            when (authToken) {
-                is OAuth2AuthenticationToken -> authToken.principal.attributes
-                is JwtAuthenticationToken -> authToken.tokenAttributes
-                else -> throw IllegalArgumentException("AuthenticationToken is not OAuth2 or JWT!")
-            }
+    fun getUserFromAuthentication(authToken: Saml2Authentication): UserDTO {
+        val principal = authToken.principal as Saml2AuthenticatedPrincipal
 
-        var user = getUser(attributes)
+        val user = User()
+        user.id = principal.name
+        user.firstName = principal.getFirstAttribute("urn:oid:2.5.4.42") as String
+        user.lastName = principal.getFirstAttribute("urn:oid:2.5.4.4") as String
+        user.authorities = authToken.authorities.map(GrantedAuthority::getAuthority)
+            .map { Authority(name = it) }
+            .toMutableSet()
+        handleNewErikoistuvaLaakari(user) // TODO: move to erikoistuva lääkäri add function
+        return UserDTO(user)
+
+        /*var user = getUser(attributes)
         user.authorities = authToken.authorities.asSequence()
             .map(GrantedAuthority::getAuthority)
             .map { Authority(name = it) }
@@ -222,11 +230,11 @@ class UserService(
 
         handleNewErikoistuvaLaakari(user)
 
-        return UserDTO(user)
+        return UserDTO(user)*/
     }
 
     fun getAuthenticatedUser(principal: Principal?): UserDTO {
-        if (principal is AbstractAuthenticationToken) {
+        if (principal is Saml2Authentication) {
             return getUserFromAuthentication(principal)
         } else {
             throw RuntimeException("Käyttäjä ei ole kirjautunut")

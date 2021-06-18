@@ -117,16 +117,21 @@ spring:
     ansi:
       console-available: true
   security:
-    oauth2:
-      client:
-        provider:
-          oidc:
-            issuer-uri: http://localhost:9080/auth/realms/elsa
+    saml2:
+      relyingparty:
         registration:
-          oidc:
-            client-id: web-app
-            client-secret: web-app
-
+          suomifi:
+            identityprovider:
+              entity-id: https://testi.apro.tunnistus.fi/idp1
+              verification.credentials:
+                - certificate-location: "classpath:idp.crt"
+              singlesignon.url: https://testi.apro.tunnistus.fi/idp/profile/SAML2/Redirect/SSO
+            signing.credentials:
+              - private-key-location: "classpath:privateKey.key"
+                certificate-location: "classpath:certificate.crt"
+            decryption.credentials:
+              - private-key-location: "classpath:privateKey.key"
+                certificate-location: "classpath:certificate.crt"
 server:
   servlet:
     session:
@@ -190,6 +195,6 @@ application:
       client-id: web-app-admin
       client-secret: web-app-admin
   security:
-    encoded-key:
-    secret-key-algorithm:
-    cipher-algorithm:
+    encoded-key: ZKrQoDZ0mWYyovudz/M55g==
+    secret-key-algorithm: AES
+    cipher-algorithm: AES/CBC/PKCS5Padding
