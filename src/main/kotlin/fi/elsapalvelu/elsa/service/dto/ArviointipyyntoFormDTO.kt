@@ -12,6 +12,6 @@ data class ArviointipyyntoFormDTO(
 
     var epaOsaamisalueenKategoriat: MutableSet<EpaOsaamisalueenKategoriaDTO> = mutableSetOf(),
 
-    var kouluttajat: MutableSet<KayttajaDTO> = mutableSetOf()
+    var kouluttajatAndVastuuhenkilot: MutableSet<KayttajaDTO> = mutableSetOf()
 
 ) : Serializable
