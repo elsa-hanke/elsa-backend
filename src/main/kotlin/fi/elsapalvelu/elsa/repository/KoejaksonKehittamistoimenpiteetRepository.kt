@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.repository
 
 import fi.elsapalvelu.elsa.domain.KoejaksonKehittamistoimenpiteet
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.util.*
 
@@ -21,8 +22,11 @@ interface KoejaksonKehittamistoimenpiteetRepository :
 
     fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonKehittamistoimenpiteet>
 
+    @Query(
+        "select k from KoejaksonKehittamistoimenpiteet k left join k.lahikouluttaja lk left join k.lahiesimies le " +
+            "where lk.user.id = :userId or (le.user.id = :userId and k.lahikouluttajaHyvaksynyt = true)"
+    )
     fun findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
-        kouluttajaId: String,
-        esimiesId: String
+        userId: String
     ): List<KoejaksonKehittamistoimenpiteet>
 }
