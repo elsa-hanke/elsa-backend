@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @Service
 @Transactional
@@ -63,7 +64,9 @@ class KoejaksonVaiheetServiceImpl(
             applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
             mapVastuuhenkilonArvio(vastuuhenkilonArvio).apply {
                 hyvaksytytVaiheet.add(getLoppukeskusteluHyvaksytty(erikoistuvaUserId))
-                hyvaksytytVaiheet.add(getKehittamistoimenpiteetHyvaksytty(erikoistuvaUserId))
+                getKehittamistoimenpiteetHyvaksytty(erikoistuvaUserId).ifPresent {
+                    hyvaksytytVaiheet.add(it)
+                }
                 hyvaksytytVaiheet.add(getValiarviointiHyvaksytty(erikoistuvaUserId))
                 hyvaksytytVaiheet.add(getAloituskeskusteluHyvaksytty(erikoistuvaUserId))
             }.let {
@@ -100,7 +103,9 @@ class KoejaksonVaiheetServiceImpl(
             )
 
             mapLoppukeskustelu(loppukeskustelu, kayttajaId).apply {
-                hyvaksytytVaiheet.add(mappedKehittamistoimenpiteetHyvaksytty)
+                mappedKehittamistoimenpiteetHyvaksytty.ifPresent {
+                    hyvaksytytVaiheet.add(it)
+                }
                 hyvaksytytVaiheet.add(mappedValiarviointiHyvaksytty)
                 hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
             }.let {
@@ -273,23 +278,26 @@ class KoejaksonVaiheetServiceImpl(
         mappedValiarviointiHyvaksytty: HyvaksyttyKoejaksonVaiheDTO,
         resultList: HashMap<String, MutableList<KoejaksonVaiheDTO>>,
         kayttajaId: Long? = null
-    ): HyvaksyttyKoejaksonVaiheDTO {
-        val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(userId).get()
-        val mappedKehittamistoimenpiteet = mapKehittamistoimenpiteet(kehittamistoimenpiteet, kayttajaId)
-        val mappedKehittamistoimenpiteetHyvaksytty = mapKehittamistoimenpiteetHyvaksytty(kehittamistoimenpiteet)
-        mappedKehittamistoimenpiteet.apply {
-            hyvaksytytVaiheet.add(mappedValiarviointiHyvaksytty)
-            hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
+    ): Optional<HyvaksyttyKoejaksonVaiheDTO> {
+        var mappedKehittamistoimenpiteetHyvaksytty: HyvaksyttyKoejaksonVaiheDTO? = null
+        koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(userId).ifPresent {
+            val mappedKehittamistoimenpiteet = mapKehittamistoimenpiteet(it, kayttajaId)
+            mappedKehittamistoimenpiteetHyvaksytty = mapKehittamistoimenpiteetHyvaksytty(it)
+            mappedKehittamistoimenpiteet.apply {
+                hyvaksytytVaiheet.add(mappedValiarviointiHyvaksytty)
+                hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
+            }
+            resultList[userId]!!.add(mappedKehittamistoimenpiteet)
         }
-        resultList[userId]!!.add(mappedKehittamistoimenpiteet)
-        return mappedKehittamistoimenpiteetHyvaksytty
+        return Optional.ofNullable(mappedKehittamistoimenpiteetHyvaksytty)
     }
 
-    private fun getKehittamistoimenpiteetHyvaksytty(userId: String): HyvaksyttyKoejaksonVaiheDTO {
-        val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(userId).get()
-        return mapKehittamistoimenpiteetHyvaksytty(kehittamistoimenpiteet)
+    private fun getKehittamistoimenpiteetHyvaksytty(userId: String): Optional<HyvaksyttyKoejaksonVaiheDTO> {
+        var mappedKehittamistoimenpiteetHyvaksytty: HyvaksyttyKoejaksonVaiheDTO? = null
+        koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(userId).ifPresent {
+            mappedKehittamistoimenpiteetHyvaksytty = mapKehittamistoimenpiteetHyvaksytty(it)
+        }
+        return Optional.ofNullable(mappedKehittamistoimenpiteetHyvaksytty)
     }
 
     private fun getLoppukeskusteluHyvaksytty(userId: String): HyvaksyttyKoejaksonVaiheDTO {
@@ -297,7 +305,10 @@ class KoejaksonVaiheetServiceImpl(
         return mapLoppukeskusteluHyvaksytty(loppukeskustelu)
     }
 
-    private fun mapKoulutussopimus(koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO, kayttajaId: Long? = null): KoejaksonVaiheDTO {
+    private fun mapKoulutussopimus(
+        koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO,
+        kayttajaId: Long? = null
+    ): KoejaksonVaiheDTO {
         return KoejaksonVaiheDTO(
             koejaksonKoulutussopimusDTO.id,
             KoejaksoTyyppi.KOULUTUSSOPIMUS,
@@ -307,7 +318,10 @@ class KoejaksonVaiheetServiceImpl(
         )
     }
 
-    private fun mapAloituskeskustelu(koejaksonAloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO, kayttajaId: Long? = null): KoejaksonVaiheDTO {
+    private fun mapAloituskeskustelu(
+        koejaksonAloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO,
+        kayttajaId: Long? = null
+    ): KoejaksonVaiheDTO {
         return KoejaksonVaiheDTO(
             koejaksonAloituskeskusteluDTO.id,
             KoejaksoTyyppi.ALOITUSKESKUSTELU,
@@ -325,7 +339,10 @@ class KoejaksonVaiheetServiceImpl(
         )
     }
 
-    private fun mapValiarviointi(koejaksonValiarviointiDTO: KoejaksonValiarviointiDTO, kayttajaId: Long? = null): KoejaksonVaiheDTO {
+    private fun mapValiarviointi(
+        koejaksonValiarviointiDTO: KoejaksonValiarviointiDTO,
+        kayttajaId: Long? = null
+    ): KoejaksonVaiheDTO {
         return KoejaksonVaiheDTO(
             koejaksonValiarviointiDTO.id,
             KoejaksoTyyppi.VALIARVIOINTI,
@@ -343,7 +360,10 @@ class KoejaksonVaiheetServiceImpl(
         )
     }
 
-    private fun mapKehittamistoimenpiteet(koejaksonKehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO, kayttajaId: Long? = null): KoejaksonVaiheDTO {
+    private fun mapKehittamistoimenpiteet(
+        koejaksonKehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO,
+        kayttajaId: Long? = null
+    ): KoejaksonVaiheDTO {
         return KoejaksonVaiheDTO(
             koejaksonKehittamistoimenpiteetDTO.id,
             KoejaksoTyyppi.KEHITTAMISTOIMENPITEET,
@@ -361,7 +381,10 @@ class KoejaksonVaiheetServiceImpl(
         )
     }
 
-    private fun mapLoppukeskustelu(koejaksonLoppukeskusteluDTO: KoejaksonLoppukeskusteluDTO, kayttajaId: Long? = null): KoejaksonVaiheDTO {
+    private fun mapLoppukeskustelu(
+        koejaksonLoppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
+        kayttajaId: Long? = null
+    ): KoejaksonVaiheDTO {
         return KoejaksonVaiheDTO(
             koejaksonLoppukeskusteluDTO.id,
             KoejaksoTyyppi.LOPPUKESKUSTELU,
