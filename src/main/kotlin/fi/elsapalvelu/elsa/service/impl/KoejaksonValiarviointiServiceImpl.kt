@@ -217,9 +217,7 @@ class KoejaksonValiarviointiServiceImpl(
     @Transactional(readOnly = true)
     override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonValiarviointiDTO> {
         val valiarvioinnit =
-            koejaksonValiarviointiRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
-                userId, userId
-            )
+            koejaksonValiarviointiRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
         return valiarvioinnit.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonValiarviointiMapper.toDto(
                 it

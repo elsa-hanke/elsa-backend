@@ -492,8 +492,8 @@ insert into koejakson_loppukeskustelu (id, erikoistuva_laakari_id, erikoistuvan_
                                        lahikouluttaja_hyvaksynyt, lahikouluttajan_kuittausaika, lahiesimies_id,
                                        lahiesimiehen_nimi, lahiesimies_hyvaksynyt, lahiesimiehen_kuittausaika,
                                        muokkauspaiva, korjausehdotus, erikoistuva_allekirjoittanut)
-values (1041, 4001, 'Erik Erikoistuva', 'Työterveyshuolto', 1234567, 'Yliopisto 1', true, 6001, '', true, '2021-04-30 12:50:31.526020',
-        6002, '', true, null, '2021-05-30 12:50:31.526020', '', false);
+values (1041, 4001, 'Erik Erikoistuva', 'Työterveyshuolto', 1234567, 'Yliopisto 1', true, 6001, '', false, '2021-04-30 12:50:31.526020',
+        6002, '', false, null, '2021-05-30 12:50:31.526020', '', false);
 
 insert into koejakson_loppukeskustelu (id, erikoistuva_laakari_id, erikoistuvan_nimi, erikoistuvan_erikoisala,
                                        erikoistuvan_opiskelijatunnus, erikoistuvan_yliopisto,
@@ -501,7 +501,7 @@ insert into koejakson_loppukeskustelu (id, erikoistuva_laakari_id, erikoistuvan_
                                        lahikouluttaja_hyvaksynyt, lahikouluttajan_kuittausaika, lahiesimies_id,
                                        lahiesimiehen_nimi, lahiesimies_hyvaksynyt, lahiesimiehen_kuittausaika,
                                        muokkauspaiva, korjausehdotus, erikoistuva_allekirjoittanut)
-values (1042, 4004, 'Erik Erikoistuva', 'Työterveyshuolto', 1234567, 'Yliopisto 1', true, 6001, '', true, '2021-04-30 12:50:31.526020',
+values (1042, 4004, 'Eveliina Erikoistuva', 'Työterveyshuolto', 1234567, 'Yliopisto 1', true, 6001, '', true, '2021-04-30 12:50:31.526020',
         6002, '', true, null, '2021-05-30 12:50:31.526020', '', true);
 
 

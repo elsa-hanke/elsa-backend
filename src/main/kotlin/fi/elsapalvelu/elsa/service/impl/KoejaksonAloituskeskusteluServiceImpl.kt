@@ -276,9 +276,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
     @Transactional(readOnly = true)
     override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonAloituskeskusteluDTO> {
         val aloituskeskustelut =
-            koejaksonAloituskeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
-                userId, userId
-            )
+            koejaksonAloituskeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
         return aloituskeskustelut.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonAloituskeskusteluMapper.toDto(
                 it
