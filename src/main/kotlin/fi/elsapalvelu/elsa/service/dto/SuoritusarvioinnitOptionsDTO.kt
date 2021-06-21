@@ -10,7 +10,7 @@ data class SuoritusarvioinnitOptionsDTO(
 
     var tapahtumat: MutableSet<SuoritusarviointiDTO> = mutableSetOf(),
 
-    var kouluttajat: MutableSet<KayttajaDTO> = mutableSetOf()
+    var kouluttajatAndVastuuhenkilot: MutableSet<KayttajaDTO> = mutableSetOf()
 
 ) : Serializable {
     override fun hashCode() = 31

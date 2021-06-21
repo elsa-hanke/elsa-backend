@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.domain.Authority
 import java.io.Serializable
 import javax.persistence.Lob
 import javax.validation.constraints.NotNull
@@ -15,7 +16,9 @@ data class KayttajaDTO(
     var profiilikuva: ByteArray? = null,
     var profiilikuvaContentType: String? = null,
 
-    var userId: String? = null
+    var userId: String? = null,
+
+    var authorities: MutableSet<Authority>? = null
 
 ) : Serializable {
 

@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
@@ -10,7 +11,7 @@ import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.UserMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
+import java.util.*
 
 @Service
 @Transactional
@@ -63,7 +64,12 @@ class KayttajaServiceImpl(
     }
 
     override fun findKouluttajat(): MutableList<KayttajaDTO> {
-        return kayttajaRepository.findAllByUserAuthority(KOULUTTAJA)
+        return kayttajaRepository.findAllByUserAuthority(listOf(KOULUTTAJA))
+            .mapTo(mutableListOf(), kayttajaMapper::toDto)
+    }
+
+    override fun findKouluttajatAndVastuuhenkilot(): MutableList<KayttajaDTO> {
+        return kayttajaRepository.findAllByUserAuthority(listOf(KOULUTTAJA, VASTUUHENKILO))
             .mapTo(mutableListOf(), kayttajaMapper::toDto)
     }
 
