@@ -5,8 +5,6 @@ import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.repository.VerificationTokenRepository
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.security.logout.ElsaLogoutSuccessHandler
-import org.opensaml.saml.saml2.core.LogoutRequest
-import org.opensaml.saml.saml2.core.impl.LogoutRequestBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.convert.converter.Converter
@@ -26,13 +24,10 @@ import org.springframework.security.saml2.provider.service.authentication.Defaul
 import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
-import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
-import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
+import org.springframework.util.CollectionUtils
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.filter.CorsFilter
@@ -115,10 +110,6 @@ class SecurityConfiguration(
             .authenticationManager(ProviderManager(authenticationProvider))
             .defaultSuccessUrl("/", true) // TODO: ohjaa pyydettyyn front end näkymään
             .failureUrl("/") // TODO: Ohjaa kirjautumiseen tai front end näkymään
-            .and()
-            .logout()
-            .logoutUrl("/api/logout")
-            .logoutSuccessHandler(elsaLogoutSuccessHandler)
     }
 
     fun authenticationConverter(): Converter<OpenSamlAuthenticationProvider.ResponseToken, AbstractAuthenticationToken> {
@@ -135,6 +126,15 @@ class SecurityConfiguration(
         val hetu = principal.attributes["urn:oid:1.2.246.21"]?.get(0)
         val firstName = principal.attributes["urn:oid:2.5.4.42"]?.get(0) as String
         val lastName = principal.attributes["urn:oid:2.5.4.4"]?.get(0) as String
+
+        val response = responseToken.response
+        val assertion = CollectionUtils.firstElement(response.assertions)
+        val nameID = assertion.subject.nameID
+        principal.attributes["nameID"] = mutableListOf(nameID.value) as List<Any>?
+        principal.attributes["nameIDFormat"] = mutableListOf(nameID.format) as List<Any>?
+        principal.attributes["nameIDQualifier"] = mutableListOf(nameID.nameQualifier) as List<Any>?
+        principal.attributes["nameIDSPQualifier"] =
+            mutableListOf(nameID.spNameQualifier) as List<Any>?
 
         val decodedKey =
             Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
@@ -199,7 +199,7 @@ class SecurityConfiguration(
             lastName = lastName,
             hetu = ciphertext,
             initVector = iv,
-            login = "login",
+            login = UUID.randomUUID().toString(),
             activated = true
         )
         user = userRepository.save(user)
