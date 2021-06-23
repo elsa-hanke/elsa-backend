@@ -70,7 +70,6 @@ class ElsaLogoutSuccessHandler(
         addParameter("RelayState", logoutRequest, uriBuilder)
         addParameter("SigAlg", logoutRequest, uriBuilder)
         addParameter("Signature", logoutRequest, uriBuilder)
-        response.setHeader("Access-Control-Allow-Origin", "*")
         redirectStrategy.sendRedirect(request, response, uriBuilder.build(true).toUriString())
     }
 
