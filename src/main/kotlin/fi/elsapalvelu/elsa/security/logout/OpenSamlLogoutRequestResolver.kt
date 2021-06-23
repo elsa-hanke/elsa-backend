@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.security.logout
 
 import net.shibboleth.utilities.java.support.xml.SerializeSupport
+import org.joda.time.DateTime
 import org.opensaml.core.config.ConfigurationService
 import org.opensaml.core.xml.config.XMLObjectProviderRegistry
 import org.opensaml.core.xml.io.MarshallingException
@@ -14,11 +15,15 @@ import org.opensaml.saml.saml2.core.impl.NameIDBuilder
 import org.springframework.security.core.Authentication
 import org.springframework.security.saml2.Saml2Exception
 import org.springframework.security.saml2.core.OpenSamlInitializationService
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding
+import org.springframework.security.web.util.UrlUtils
 import org.springframework.stereotype.Component
 import org.springframework.util.Assert
+import org.springframework.web.util.UriComponentsBuilder
 import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.function.Consumer
@@ -51,6 +56,8 @@ class OpenSamlLogoutRequestResolver(private val relyingPartyRegistrationReposito
             "Failed to lookup logged-in user for formulating LogoutRequest"
         )
         val registration = relyingPartyRegistrationRepository.findByRegistrationId("suomifi")
+        val uriComponents = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+            .replacePath(request?.contextPath).replaceQuery(null).fragment(null).build()
         Assert.notNull(
             registration,
             "Failed to lookup RelyingPartyRegistration for formulating LogoutRequest"
@@ -64,6 +71,8 @@ class OpenSamlLogoutRequestResolver(private val relyingPartyRegistrationReposito
             registry.builderFactory.getBuilder(NameID.DEFAULT_ELEMENT_NAME) as NameIDBuilder
         val logoutRequestBuilder =
             registry.builderFactory.getBuilder(LogoutRequest.DEFAULT_ELEMENT_NAME) as LogoutRequestBuilder
+        val principal =
+            (authentication as Saml2Authentication).principal as Saml2AuthenticatedPrincipal
         return OpenSamlLogoutRequestBuilder(
             registration,
             marshaller,
@@ -72,8 +81,21 @@ class OpenSamlLogoutRequestResolver(private val relyingPartyRegistrationReposito
             logoutRequestBuilder.buildObject(),
             UUID.randomUUID().toString()
         )
-            .destination(registration.assertingPartyDetails.singleSignOnServiceLocation)
-            .issuer(registration.entityId).name(authentication?.name)
+            .destination(
+                registration.assertingPartyDetails.singleSignOnServiceLocation.replace(
+                    "SSO",
+                    "SLO"
+                )
+            )
+            .issuer(
+                registration.entityId.replace("{baseUrl}", uriComponents.toUriString())
+                    .replace("{registrationId}", registration.registrationId)
+            ).nameWithParameters(
+                principal.getFirstAttribute("nameID"),
+                principal.getFirstAttribute("nameIDFormat"),
+                principal.getFirstAttribute("nameIDQualifier"),
+                principal.getFirstAttribute("nameIDSPQualifier")
+            )
     }
 
     /**
@@ -110,6 +132,21 @@ class OpenSamlLogoutRequestResolver(private val relyingPartyRegistrationReposito
             return this
         }
 
+        fun nameWithParameters(
+            name: String?,
+            format: String?,
+            qualifier: String?,
+            spQualifier: String?
+        ): OpenSamlLogoutRequestBuilder {
+            val nameId = nameIDBuilder.buildObject()
+            nameId.value = name
+            nameId.format = format
+            nameId.nameQualifier = qualifier
+            nameId.spNameQualifier = spQualifier
+            this.logoutRequest.nameID = nameId
+            return this
+        }
+
         /**
          * {@inheritDoc}
          */
@@ -139,7 +176,10 @@ class OpenSamlLogoutRequestResolver(private val relyingPartyRegistrationReposito
                 this.relayState = UUID.randomUUID().toString()
             }
             val result = Saml2LogoutRequest(
-                registration.assertingPartyDetails.singleSignOnServiceLocation,
+                registration.assertingPartyDetails.singleSignOnServiceLocation.replace(
+                    "SSO",
+                    "SLO"
+                ),
                 registration.assertingPartyDetails.singleSignOnServiceBinding,
                 mutableMapOf(),
                 logoutRequest.id,
@@ -189,6 +229,7 @@ class OpenSamlLogoutRequestResolver(private val relyingPartyRegistrationReposito
             val iss = this.issuerBuilder.buildObject()
             iss.value = issuer
             this.logoutRequest.issuer = iss
+            this.logoutRequest.issueInstant = DateTime.now()
             return this
         }
     }
