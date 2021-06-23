@@ -22,19 +22,11 @@ interface KoejaksonAloituskeskusteluRepository : JpaRepository<KoejaksonAloitusk
     fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonAloituskeskustelu>
 
     @Query(
-        "select a from KoejaksonAloituskeskustelu a " +
-            "where a.erikoistuvaLaakari = (" +
-            "select v.erikoistuvaLaakari from KoejaksonValiarviointi v where v.id = :id)"
-    )
-    fun findByValiarviointiId(id: Long): Optional<KoejaksonAloituskeskustelu>
-
-    @Query(
-        "select a " +
-            "from KoejaksonAloituskeskustelu a left join a.lahikouluttaja lk left join a.lahiesimies le " +
-            "where (lk.user.id = :kouluttajaId or le.user.id = :esimiesId) and (a.lahetetty = true or a.korjausehdotus != null)"
+        "select a from KoejaksonAloituskeskustelu a left join a.lahikouluttaja lk left join a.lahiesimies le " +
+            "where (lk.user.id = :userId or (le.user.id = :userId and a.lahikouluttajaHyvaksynyt = true)) " +
+            "and (a.lahetetty = true or a.korjausehdotus != null)"
     )
     fun findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
-        kouluttajaId: String,
-        esimiesId: String
+        userId: String
     ): List<KoejaksonAloituskeskustelu>
 }

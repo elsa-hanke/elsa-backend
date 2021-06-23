@@ -32,10 +32,6 @@ interface KoejaksonValiarviointiService {
         userId: String
     ): Optional<KoejaksonValiarviointiDTO>
 
-    fun findByKehittamistoimenpiteetId(id: Long): Optional<KoejaksonValiarviointiDTO>
-
-    fun findByLoppukeskusteluId(id: Long): Optional<KoejaksonValiarviointiDTO>
-
     fun findAllByKouluttajaUserId(
         userId: String
     ): Map<KayttajaDTO, KoejaksonValiarviointiDTO>

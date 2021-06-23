@@ -23,14 +23,10 @@ interface KoejaksonKehittamistoimenpiteetRepository :
     fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonKehittamistoimenpiteet>
 
     @Query(
-        "select k from KoejaksonKehittamistoimenpiteet k " +
-            "where k.erikoistuvaLaakari = (" +
-            "select l.erikoistuvaLaakari from KoejaksonLoppukeskustelu l where l.id = :id)"
+        "select k from KoejaksonKehittamistoimenpiteet k left join k.lahikouluttaja lk left join k.lahiesimies le " +
+            "where lk.user.id = :userId or (le.user.id = :userId and k.lahikouluttajaHyvaksynyt = true)"
     )
-    fun findByLoppukeskusteluId(id: Long): Optional<KoejaksonKehittamistoimenpiteet>
-
     fun findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
-        kouluttajaId: String,
-        esimiesId: String
+        userId: String
     ): List<KoejaksonKehittamistoimenpiteet>
 }
