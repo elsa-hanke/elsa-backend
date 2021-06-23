@@ -64,12 +64,17 @@ class KayttajaServiceImpl(
     }
 
     override fun findKouluttajat(): MutableList<KayttajaDTO> {
-        return kayttajaRepository.findAllByUserAuthority(listOf(KOULUTTAJA))
+        return kayttajaRepository.findAllByUserAuthority(KOULUTTAJA)
             .mapTo(mutableListOf(), kayttajaMapper::toDto)
     }
 
-    override fun findKouluttajatAndVastuuhenkilot(): MutableList<KayttajaDTO> {
-        return kayttajaRepository.findAllByUserAuthority(listOf(KOULUTTAJA, VASTUUHENKILO))
+    override fun findKouluttajatAndVastuuhenkilot(userId: String): MutableList<KayttajaDTO> {
+        val existingUser = kayttajaRepository.findOneByUserId(userId).get()
+        return (kayttajaRepository.findAllByUserAuthority(KOULUTTAJA) +
+            kayttajaRepository.findAllByUserAuthorityAndYliopistoId(
+                VASTUUHENKILO,
+                existingUser.yliopisto?.id
+            ))
             .mapTo(mutableListOf(), kayttajaMapper::toDto)
     }
 

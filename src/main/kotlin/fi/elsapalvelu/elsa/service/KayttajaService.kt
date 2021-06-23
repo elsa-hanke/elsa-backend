@@ -18,7 +18,7 @@ interface KayttajaService {
 
     fun findKouluttajat(): MutableList<KayttajaDTO>
 
-    fun findKouluttajatAndVastuuhenkilot(): MutableList<KayttajaDTO>
+    fun findKouluttajatAndVastuuhenkilot(userId: String): MutableList<KayttajaDTO>
 
     fun delete(id: Long)
 }
