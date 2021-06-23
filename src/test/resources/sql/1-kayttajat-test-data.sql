@@ -95,37 +95,37 @@ values ('d7f727e4-85aa-4293-b65d-95c52b100ce6', 'ROLE_VASTUUHENKILO');
 
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5001, null, null, '5a0e2f03-ade4-45cf-9cd6-e074b1c6f426', null, null);
+values (5001, null, null, '5a0e2f03-ade4-45cf-9cd6-e074b1c6f426', 1, null);
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5002, null, null, '77fb2d0b-80c4-443a-8ed5-0144ae4e37d3', null, null);
+values (5002, null, null, '77fb2d0b-80c4-443a-8ed5-0144ae4e37d3', 1, null);
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5003, null, null, 'eb745779-3a4b-42ce-919b-18db6ed256af', null, null);
+values (5003, null, null, 'eb745779-3a4b-42ce-919b-18db6ed256af', 1, null);
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5004, null, null, '92ec93eb-7ec9-4ff2-9031-16592b7195d5', null, null);
+values (5004, null, null, '92ec93eb-7ec9-4ff2-9031-16592b7195d5', 1, null);
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5005, null, null, '666c93eb-7ec9-4ff2-9031-16592b719666', null, null);
+values (5005, null, null, '666c93eb-7ec9-4ff2-9031-16592b719666', 1, null);
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5006, null, null, '777c93eb-7ec9-4ff2-9031-16592b719777', null, null);
+values (5006, null, null, '777c93eb-7ec9-4ff2-9031-16592b719777', 1, null);
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5007, null, null, '888c93eb-7ec9-4ff2-9031-16592b719888', null, null);
+values (5007, null, null, '888c93eb-7ec9-4ff2-9031-16592b719888', 1, null);
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5008, null, null, '999c93eb-7ec9-4ff2-9031-16592b719999', null, null);
+values (5008, null, null, '999c93eb-7ec9-4ff2-9031-16592b719999', 1, null);
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (6001, null, null, 'f7f90358-0e7e-4bfb-82f7-75f1fce7887e', null, null);
+values (6001, null, null, 'f7f90358-0e7e-4bfb-82f7-75f1fce7887e', 1, null);
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (6002, null, null, '1d628e68-1365-41a0-a102-438ad139c9de', null, null);
+values (6002, null, null, '1d628e68-1365-41a0-a102-438ad139c9de', 1, null);
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (7001, null, null, 'd7f727e4-85aa-4293-b65d-95c52b100ce6', null, null);
+values (7001, null, null, 'd7f727e4-85aa-4293-b65d-95c52b100ce6', 1, null);
 
 
 insert into erikoistuva_laakari (id, puhelinnumero, opiskelijatunnus, opintojen_aloitusvuosi, kayttaja_id,
