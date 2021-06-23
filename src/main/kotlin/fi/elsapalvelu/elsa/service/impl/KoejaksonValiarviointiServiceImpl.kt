@@ -215,25 +215,9 @@ class KoejaksonValiarviointiServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findByKehittamistoimenpiteetId(id: Long): Optional<KoejaksonValiarviointiDTO> {
-        return koejaksonValiarviointiRepository.findByKehittamistoimenpiteetId(
-            id
-        ).map(koejaksonValiarviointiMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
-    override fun findByLoppukeskusteluId(id: Long): Optional<KoejaksonValiarviointiDTO> {
-        return koejaksonValiarviointiRepository.findByLoppukeskusteluId(
-            id
-        ).map(koejaksonValiarviointiMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
     override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonValiarviointiDTO> {
         val valiarvioinnit =
-            koejaksonValiarviointiRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
-                userId, userId
-            )
+            koejaksonValiarviointiRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
         return valiarvioinnit.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonValiarviointiMapper.toDto(
                 it

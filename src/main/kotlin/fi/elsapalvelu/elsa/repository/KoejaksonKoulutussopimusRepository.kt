@@ -29,4 +29,13 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
     fun findAllByKouluttajatKouluttajaUserId(
         userId: String
     ): List<KoejaksonKoulutussopimus>
+
+    @Query(
+        "select ks " +
+            "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt " +
+            "where ks.vastuuhenkilo.user.id = :userId and not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false)"
+    )
+    fun findAllByVastuuhenkiloUserId(
+        userId: String
+    ): List<KoejaksonKoulutussopimus>
 }

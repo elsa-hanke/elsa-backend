@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KoejaksonKehittamistoimenpiteet
-import fi.elsapalvelu.elsa.domain.KoejaksonValiarviointi
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKehittamistoimenpiteetRepository
@@ -230,18 +229,10 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         ).map(koejaksonKehittamistoimenpiteetMapper::toDto)
     }
 
-    override fun findByLoppukeskusteluId(id: Long): Optional<KoejaksonKehittamistoimenpiteetDTO> {
-        return koejaksonKehittamistoimenpiteetRepository.findByLoppukeskusteluId(
-            id
-        ).map(koejaksonKehittamistoimenpiteetMapper::toDto)
-    }
-
     @Transactional(readOnly = true)
     override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonKehittamistoimenpiteetDTO> {
         val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
-                userId, userId
-            )
+            koejaksonKehittamistoimenpiteetRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
         return kehittamistoimenpiteet.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonKehittamistoimenpiteetMapper.toDto(
                 it
