@@ -1,12 +1,12 @@
 package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaOsaalueDTO
-import java.util.Optional
+import java.util.*
 
 interface ArvioitavaOsaalueService {
 
     fun save(arvioitavaOsaalueDTO: ArvioitavaOsaalueDTO): ArvioitavaOsaalueDTO
 
-    fun findAll(): MutableList<ArvioitavaOsaalueDTO>
+    fun findAll(): List<ArvioitavaOsaalueDTO>
 
     fun findOne(id: Long): Optional<ArvioitavaOsaalueDTO>
 

@@ -49,7 +49,7 @@ class KayttajaServiceImpl(
     @Transactional(readOnly = true)
     override fun findAll(): List<KayttajaDTO> {
         return kayttajaRepository.findAll()
-            .mapTo(mutableListOf(), kayttajaMapper::toDto)
+            .map(kayttajaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
@@ -65,7 +65,7 @@ class KayttajaServiceImpl(
 
     override fun findKouluttajat(): List<KayttajaDTO> {
         return kayttajaRepository.findAllByUserAuthority(KOULUTTAJA)
-            .mapTo(mutableListOf(), kayttajaMapper::toDto)
+            .map(kayttajaMapper::toDto)
     }
 
     override fun findVastuuhenkilot(): List<KayttajaDTO> {

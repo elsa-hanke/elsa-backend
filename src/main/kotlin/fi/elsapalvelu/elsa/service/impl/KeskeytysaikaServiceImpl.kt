@@ -7,8 +7,6 @@ import fi.elsapalvelu.elsa.service.KeskeytysaikaService
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -59,9 +57,9 @@ class KeskeytysaikaServiceImpl(
     @Transactional(readOnly = true)
     override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         userId: String
-    ): MutableList<KeskeytysaikaDTO> {
+    ): List<KeskeytysaikaDTO> {
         return keskeytysaikaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId)
-            .mapTo(mutableListOf(), keskeytysaikaMapper::toDto)
+            .map(keskeytysaikaMapper::toDto)
     }
 
     @Transactional(readOnly = true)

@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.service.mapper.EpaOsaamisalueMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
+import java.util.*
 
 @Service
 @Transactional
@@ -29,19 +29,19 @@ class EpaOsaamisalueServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<EpaOsaamisalueDTO> {
+    override fun findAll(): List<EpaOsaamisalueDTO> {
         log.debug("Request to get all EpaOsaamisalueet")
 
         return epaOsaamisalueRepository.findAll()
-            .mapTo(mutableListOf(), epaOsaamisalueMapper::toDto)
+            .map(epaOsaamisalueMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<EpaOsaamisalueDTO> {
+    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<EpaOsaamisalueDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         return epaOsaamisalueRepository.findAllByErikoisalaId(kirjautunutErikoistuvaLaakari?.erikoisala?.id)
-            .mapTo(mutableListOf(), epaOsaamisalueMapper::toDto)
+            .map(epaOsaamisalueMapper::toDto)
     }
 
     @Transactional(readOnly = true)

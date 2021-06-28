@@ -80,9 +80,9 @@ class SuoritusarvioinninKommenttiServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<SuoritusarvioinninKommenttiDTO> {
+    override fun findAll(): List<SuoritusarvioinninKommenttiDTO> {
         return suoritusarvioinninKommenttiRepository.findAll()
-            .mapTo(mutableListOf(), suoritusarvioinninKommenttiMapper::toDto)
+            .map(suoritusarvioinninKommenttiMapper::toDto)
     }
 
     @Transactional(readOnly = true)

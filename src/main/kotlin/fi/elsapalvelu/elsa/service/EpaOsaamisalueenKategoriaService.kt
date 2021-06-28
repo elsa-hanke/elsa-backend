@@ -1,13 +1,13 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.dto.EpaOsaamisalueenKategoriaDTO
-import java.util.Optional
+import java.util.*
 
 interface EpaOsaamisalueenKategoriaService {
 
     fun save(epaOsaamisalueenKategoriaDTO: EpaOsaamisalueenKategoriaDTO): EpaOsaamisalueenKategoriaDTO
 
-    fun findAll(): MutableList<EpaOsaamisalueenKategoriaDTO>
+    fun findAll(): List<EpaOsaamisalueenKategoriaDTO>
 
     fun findOne(id: Long): Optional<EpaOsaamisalueenKategoriaDTO>
 

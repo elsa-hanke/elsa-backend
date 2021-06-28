@@ -37,11 +37,11 @@ class KuntaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<KuntaDTO> {
+    override fun findAll(): List<KuntaDTO> {
         log.debug("Request to get all Kunta")
 
         return kuntaRepository.findAll()
-            .mapTo(mutableListOf(), kuntaMapper::toDto)
+            .map(kuntaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
