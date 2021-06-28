@@ -51,21 +51,21 @@ class AsiakirjaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariUserId(userId: String): MutableList<AsiakirjaDTO> {
+    override fun findAllByErikoistuvaLaakariUserId(userId: String): List<AsiakirjaDTO> {
         return asiakirjaRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
-            .mapTo(mutableListOf(), asiakirjaMapper::toDto)
+            .map(asiakirjaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
     override fun findAllByErikoistuvaLaakariUserIdAndTyoskentelyjaksoId(
         userId: String,
         tyoskentelyJaksoId: Long?
-    ): MutableList<AsiakirjaDTO> {
+    ): List<AsiakirjaDTO> {
         return asiakirjaRepository.findAllByErikoistuvaLaakariKayttajaUserIdAndTyoskentelyjaksoId(
             userId,
             tyoskentelyJaksoId
         )
-            .mapTo(mutableListOf(), asiakirjaMapper::toDto)
+            .map(asiakirjaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
@@ -90,7 +90,7 @@ class AsiakirjaServiceImpl(
     }
 
     override fun delete(ids: List<Long>, userId: String) {
-        asiakirjaRepository.findAllById(ids.toMutableList()).let { asiakirjaRepository.deleteAll(it) }
+        asiakirjaRepository.findAllById(ids).let { asiakirjaRepository.deleteAll(it) }
     }
 
     override fun removeTyoskentelyjaksoReference(userId: String, tyoskentelyJaksoId: Long?) {
