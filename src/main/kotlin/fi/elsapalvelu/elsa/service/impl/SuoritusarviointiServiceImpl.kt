@@ -8,8 +8,6 @@ import fi.elsapalvelu.elsa.service.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -142,11 +140,11 @@ class SuoritusarviointiServiceImpl(
     @Transactional(readOnly = true)
     override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         userId: String
-    ): MutableList<SuoritusarviointiDTO> {
+    ): List<SuoritusarviointiDTO> {
         return suoritusarviointiRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
             userId
         )
-            .mapTo(mutableListOf(), suoritusarviointiMapper::toDto)
+            .map(suoritusarviointiMapper::toDto)
     }
 
     @Transactional(readOnly = true)

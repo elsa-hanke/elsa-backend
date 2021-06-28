@@ -5,7 +5,7 @@ interface KeskeytysaikaService {
 
     fun save(keskeytysaikaDTO: KeskeytysaikaDTO, userId: String): KeskeytysaikaDTO?
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<KeskeytysaikaDTO>
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId: String): List<KeskeytysaikaDTO>
 
     fun findOne(id: Long, userId: String): KeskeytysaikaDTO?
 

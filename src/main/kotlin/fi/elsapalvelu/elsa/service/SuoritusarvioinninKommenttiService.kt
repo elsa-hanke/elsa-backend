@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
-import java.util.Optional
+import java.util.*
 
 interface SuoritusarvioinninKommenttiService {
 
@@ -12,7 +12,7 @@ interface SuoritusarvioinninKommenttiService {
         userId: String
     ): SuoritusarvioinninKommenttiDTO
 
-    fun findAll(): MutableList<SuoritusarvioinninKommenttiDTO>
+    fun findAll(): List<SuoritusarvioinninKommenttiDTO>
 
     fun findOne(id: Long): Optional<SuoritusarvioinninKommenttiDTO>
 
