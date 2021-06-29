@@ -2,8 +2,10 @@ package fi.elsapalvelu.elsa.repository
 
 import fi.elsapalvelu.elsa.domain.KoejaksonKoulutussopimus
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 @Repository
@@ -38,4 +40,9 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
     fun findAllByVastuuhenkiloUserId(
         userId: String
     ): List<KoejaksonKoulutussopimus>
+
+    @Transactional
+    @Modifying
+    @Query("update KoulutussopimuksenKouluttaja k set k.kouluttaja.id = :newKayttaja where k.kouluttaja.id = :currentKayttaja")
+    fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
 }

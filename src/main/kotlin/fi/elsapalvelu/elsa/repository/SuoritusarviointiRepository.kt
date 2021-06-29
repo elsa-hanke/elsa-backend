@@ -5,7 +5,10 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 @Repository
@@ -34,8 +37,13 @@ interface SuoritusarviointiRepository :
         userId: String
     ): Optional<Suoritusarviointi>
 
-    fun findOneByIdAndArvioinninAntajaUserLogin(
+    fun findOneByIdAndArvioinninAntajaUserId(
         id: Long,
         userId: String
     ): Optional<Suoritusarviointi>
+
+    @Transactional
+    @Modifying
+    @Query("update Suoritusarviointi s set s.arvioinninAntaja.id = :newKayttaja where s.arvioinninAntaja.id = :currentKayttaja")
+    fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
 }

@@ -20,7 +20,7 @@ import javax.validation.Valid
 
 private const val ENTITY_NAME = "suoritusarviointi"
 
-open class SuoritusarviointiResource (
+open class SuoritusarviointiResource(
     private val suoritusarviointiService: SuoritusarviointiService,
     private val suoritusarviointiQueryService: SuoritusarviointiQueryService,
     private val userService: UserService,
@@ -34,11 +34,12 @@ open class SuoritusarviointiResource (
         principal: Principal?
     ): ResponseEntity<List<SuoritusarviointiDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val login = user.login!!
-        val suoritusarvioinnit = suoritusarviointiQueryService.findByKouluttajaOrVastuuhenkiloUserLogin(login)
+        val suoritusarvioinnit =
+            suoritusarviointiQueryService.findByKouluttajaOrVastuuhenkiloUserId(user.id!!)
         val avoimet = suoritusarvioinnit.filter { it.arviointiAika == null }
         val muut = suoritusarvioinnit.filter { it.arviointiAika != null }
-        var sortedSuoritusarvioinnit = avoimet.sortedBy { it.tapahtumanAjankohta } + muut.sortedByDescending { it.tapahtumanAjankohta }
+        val sortedSuoritusarvioinnit =
+            avoimet.sortedBy { it.tapahtumanAjankohta } + muut.sortedByDescending { it.tapahtumanAjankohta }
 
         return ResponseEntity.ok(sortedSuoritusarvioinnit)
     }
@@ -49,8 +50,8 @@ open class SuoritusarviointiResource (
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val suoritusarviointiDTO = suoritusarviointiService
-            .findOneByIdAndArvioinninAntajauserLogin(id, user.login!!)
+        val suoritusarviointiDTO =
+            suoritusarviointiService.findOneByIdAndArvioinninAntajauserId(id, user.id!!)
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
     }
 
@@ -73,7 +74,7 @@ open class SuoritusarviointiResource (
             )
         }
         val user = userService.getAuthenticatedUser(principal)
-        val result = suoritusarviointiService.save(suoritusarviointiDTO, user.login!!)
+        val result = suoritusarviointiService.save(suoritusarviointiDTO, user.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -91,8 +92,7 @@ open class SuoritusarviointiResource (
         principal: Principal?
     ): ResponseEntity<List<ArviointityokaluDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val arviointityokaluDTO = arviointityokaluService
-            .findAllByKayttajaUserLogin(user.login!!)
+        val arviointityokaluDTO = arviointityokaluService.findAllByKayttajaUserId(user.id!!)
         return ResponseEntity.ok(arviointityokaluDTO)
     }
 }
