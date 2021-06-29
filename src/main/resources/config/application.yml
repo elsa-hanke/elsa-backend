@@ -195,6 +195,6 @@ application:
       client-id: web-app-admin
       client-secret: web-app-admin
   security:
-    encoded-key: ZKrQoDZ0mWYyovudz/M55g==
+    encoded-key:
     secret-key-algorithm: AES
     cipher-algorithm: AES/CBC/PKCS5Padding

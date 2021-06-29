@@ -36,7 +36,7 @@ class SuoritusarvioinninKommenttiServiceImpl(
         suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO,
         userId: String
     ): SuoritusarvioinninKommenttiDTO {
-        val kayttaja = kayttajaRepository.findOneByUserLogin(userId).get()
+        val kayttaja = kayttajaRepository.findOneByUserId(userId).get()
         val kayttajaDTO = kayttajaMapper.toDto(kayttaja)
 
         // Tarkisteaan, että muokkaaja on sama kuin kommentin tekijä
