@@ -19,9 +19,9 @@ interface SuoritusarviointiService {
         userId: String
     ): Optional<SuoritusarviointiDTO>
 
-    fun findOneByIdAndArvioinninAntajauserLogin(
+    fun findOneByIdAndArvioinninAntajauserId(
         id: Long,
-        userLogin: String
+        userId: String
     ): Optional<SuoritusarviointiDTO>
 
     fun delete(id: Long, userId: String)

@@ -1,10 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
-import fi.elsapalvelu.elsa.service.ErikoistuvaLaakariService
-import fi.elsapalvelu.elsa.service.KayttajaService
-import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -28,7 +26,8 @@ class ErikoistuvaLaakariMuutToiminnotResource(
     private val userService: UserService,
     private val kayttajaService: KayttajaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
-    private val kouluttajavaltuutusService: KouluttajavaltuutusService
+    private val verificationTokenService: VerificationTokenService,
+    private val mailService: MailService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -69,6 +68,17 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                         email = uusiLahikouluttajaDTO.sahkoposti,
                         activated = false,
                         authorities = setOf(KOULUTTAJA)
+                    )
+                )
+
+                val token = verificationTokenService.save(result.userId!!)
+                mailService.sendEmailFromTemplate(
+                    User(email = uusiLahikouluttajaDTO.sahkoposti),
+                    "uusiKouluttaja.html",
+                    "email.uusikouluttaja.title",
+                    properties = mapOf(
+                        Pair(MailProperty.ID, token),
+                        Pair(MailProperty.NAME, user.firstName + " " + user.lastName)
                     )
                 )
 
