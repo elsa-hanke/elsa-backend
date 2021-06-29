@@ -24,6 +24,9 @@ interface UserRepository : JpaRepository<User, String> {
 
     fun findAllByLoginNot(pageable: Pageable, login: String): Page<User>
 
+    @Query("select u from User u left join fetch u.authorities where u.id = :id")
+    fun findByIdWithAuthorities(id: String): Optional<User>
+
     @Query("select u from User u left join fetch u.authorities")
     fun findAllWithAuthorities(): List<User>
 

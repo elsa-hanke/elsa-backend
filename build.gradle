@@ -127,6 +127,7 @@ liquibase {
             defaultSchemaName ""
             logLevel "debug"
             classpath "src/main/resources/"
+            referenceUrl "hibernate:spring:fi.elsapalvelu.elsa.domain?dialect=io.github.jhipster.domain.util.FixedPostgreSQL10Dialect&hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
         }
         diffLog {
             driver "org.postgresql.Driver"

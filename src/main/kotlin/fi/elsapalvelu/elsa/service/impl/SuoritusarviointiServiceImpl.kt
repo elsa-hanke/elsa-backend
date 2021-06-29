@@ -58,7 +58,7 @@ class SuoritusarviointiServiceImpl(
             suoritusarviointi = handleErikoistuva(suoritusarviointiDTO, suoritusarviointi)
         }
 
-        val kirjautunutKayttaja = kayttajaRepository.findOneByUserLogin(userId)
+        val kirjautunutKayttaja = kayttajaRepository.findOneByUserId(userId)
         if (kirjautunutKayttaja.isPresent && kirjautunutKayttaja.get() == suoritusarviointi.arvioinninAntaja) {
             suoritusarviointi = handleKouluttaja(suoritusarviointiDTO, suoritusarviointi)
         }
@@ -160,14 +160,12 @@ class SuoritusarviointiServiceImpl(
         ).map(suoritusarviointiMapper::toDto)
     }
 
-    override fun findOneByIdAndArvioinninAntajauserLogin(
+    override fun findOneByIdAndArvioinninAntajauserId(
         id: Long,
-        userLogin: String
+        userId: String
     ): Optional<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findOneByIdAndArvioinninAntajaUserLogin(
-            id,
-            userLogin
-        ).map(suoritusarviointiMapper::toDto)
+        return suoritusarviointiRepository.findOneByIdAndArvioinninAntajaUserId(id, userId)
+            .map(suoritusarviointiMapper::toDto)
     }
 
     override fun delete(id: Long, userId: String) {
