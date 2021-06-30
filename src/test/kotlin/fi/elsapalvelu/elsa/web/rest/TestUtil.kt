@@ -7,16 +7,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import fi.elsapalvelu.elsa.security.extractAuthorityFromClaims
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Description
 import org.hamcrest.TypeSafeDiagnosingMatcher
-import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar
-import org.springframework.format.support.DefaultFormattingConversionService
-import org.springframework.format.support.FormattingConversionService
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.security.oauth2.core.oidc.OidcIdToken
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
 import java.io.IOException
 import java.time.ZonedDateTime
 import java.time.format.DateTimeParseException
@@ -78,12 +71,6 @@ class ZonedDateTimeMatcher(private val date: ZonedDateTime) : TypeSafeDiagnosing
 }
 
 /**
- * Creates a matcher that matches when the examined string represents the same instant as the reference datetime.
- * @param date the reference datetime against which the examined string is checked.
- */
-fun sameInstant(date: ZonedDateTime) = ZonedDateTimeMatcher(date)
-
-/**
  * Verifies the equals/hashcode contract on the domain object.
  */
 fun <T : Any> equalsVerifier(clazz: KClass<T>) {
@@ -103,17 +90,6 @@ fun <T : Any> equalsVerifier(clazz: KClass<T>) {
 }
 
 /**
- * Create a [FormattingConversionService] which use ISO date format, instead of the localized one.
- * @return the created [FormattingConversionService].
- */
-fun createFormattingConversionService(): FormattingConversionService {
-    val dfcs = DefaultFormattingConversionService()
-    val registrar = DateTimeFormatterRegistrar()
-    registrar.setUseIsoFormat(true)
-    registrar.registerFormatters(dfcs)
-    return dfcs
-}
-/**
  * Finds stored objects of the specified type.
  * @param clazz the class type to be searched.
  * @return a list of all found objects.
@@ -125,19 +101,6 @@ fun <T : Any> EntityManager.findAll(clazz: KClass<T>): List<T> {
     val rootEntry = cq.from(clazz.java)
     val all = cq.select(rootEntry)
     return this.createQuery(all).resultList
-}
-
-@JvmField
-val ID_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9" +
-    ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsIm" +
-    "p0aSI6ImQzNWRmMTRkLTA5ZjYtNDhmZi04YTkzLTdjNmYwMzM5MzE1OSIsImlhdCI6MTU0M" +
-    "Tk3MTU4MywiZXhwIjoxNTQxOTc1MTgzfQ.QaQOarmV8xEUYV7yvWzX3cUE_4W1luMcWCwpr" +
-    "oqqUrg"
-
-fun authenticationToken(idToken: OidcIdToken): OAuth2AuthenticationToken {
-    val authorities = extractAuthorityFromClaims(idToken.claims)
-    val user = DefaultOidcUser(authorities, idToken)
-    return OAuth2AuthenticationToken(user, authorities, "oidc")
 }
 
 const val TEST_USER_LOGIN = "test"

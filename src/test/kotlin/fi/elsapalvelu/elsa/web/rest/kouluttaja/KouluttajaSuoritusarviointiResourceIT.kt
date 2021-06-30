@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
+import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.EpaOsaamisalueHelper
@@ -21,8 +22,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
@@ -53,9 +54,11 @@ class KouluttajaSuoritusarviointiResourceIT {
 
     private lateinit var suoritusarviointi: Suoritusarviointi
 
+    private lateinit var user: User
+
     @BeforeEach
     fun setup() {
-        MockitoAnnotations.initMocks(this)
+        MockitoAnnotations.openMocks(this)
     }
 
     @Test
@@ -147,18 +150,20 @@ class KouluttajaSuoritusarviointiResourceIT {
     }
 
     fun initTest(userId: String? = DEFAULT_ID) {
-        val userDetails = mapOf<String, Any>(
-            "uid" to DEFAULT_ID,
-            "login" to DEFAULT_EMAIL,
-            "sub" to DEFAULT_LOGIN,
-            "email" to DEFAULT_EMAIL
+        user = KayttajaResourceIT.createEntity()
+        em.persist(user)
+        em.flush()
+        val userDetails = mapOf<String, List<Any>>(
         )
         val authorities = listOf(SimpleGrantedAuthority(KOULUTTAJA))
-        val user = DefaultOAuth2User(authorities, userDetails, "sub")
-        val authentication = OAuth2AuthenticationToken(user, authorities, "oidc")
+        val authentication = Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            "test",
+            authorities
+        )
         TestSecurityContextHolder.getContext().authentication = authentication
 
-        suoritusarviointi = createEntity(em, userId)
+        suoritusarviointi = createEntity(em, user)
     }
 
     companion object {
@@ -180,7 +185,7 @@ class KouluttajaSuoritusarviointiResourceIT {
         private const val UPDATED_LISATIEDOT = "BBBBBBBBBB"
 
         @JvmStatic
-        fun createEntity(em: EntityManager, userId: String? = null): Suoritusarviointi {
+        fun createEntity(em: EntityManager, user: User? = null): Suoritusarviointi {
             val suoritusarviointi = Suoritusarviointi(
                 tapahtumanAjankohta = DEFAULT_TAPAHTUMAN_AJANKOHTA,
                 arvioitavaTapahtuma = DEFAULT_ARVIOITAVA_TAPAHTUMA,
@@ -191,7 +196,7 @@ class KouluttajaSuoritusarviointiResourceIT {
             // Lisätään pakollinen tieto
             val kayttaja: Kayttaja
             if (em.findAll(Kayttaja::class).isEmpty()) {
-                kayttaja = KayttajaHelper.createEntity(em, userId)
+                kayttaja = KayttajaHelper.createEntity(em, user)
                 em.persist(kayttaja)
                 em.flush()
             } else {

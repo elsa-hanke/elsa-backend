@@ -70,11 +70,21 @@ spring:
     mode: HTML
   # Allow SecurityConfiguration to initialize w/o specifying an empty issuer-uri is OK
   security:
-    oauth2:
-      client:
-        provider:
-          oidc:
-            issuer-uri: http://DO_NOT_CALL:9080/auth/realms/elsa
+    saml2:
+      relyingparty:
+        registration:
+          suomifi:
+            identityprovider:
+              entity-id: https://testi.apro.tunnistus.fi/idp1
+              verification.credentials:
+                - certificate-location: "classpath:idp.crt"
+              singlesignon.url: https://testi.apro.tunnistus.fi/idp/profile/SAML2/Redirect/SSO
+            signing.credentials:
+              - private-key-location: "classpath:privateKey.key"
+                certificate-location: "classpath:certificate.crt"
+            decryption.credentials:
+              - private-key-location: "classpath:privateKey.key"
+                certificate-location: "classpath:certificate.crt"
 
 server:
   port: 10344

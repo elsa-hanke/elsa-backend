@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.Tyoskentelypaikka
+import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
@@ -24,13 +25,14 @@ class TyoskentelyjaksoHelper {
 
         private val DEFAULT_KAYTANNON_KOULUTUS: KaytannonKoulutusTyyppi =
             KaytannonKoulutusTyyppi.OMAN_ERIKOISALAN_KOULUTUS
-        private val UPDATED_KAYTANNON_KOULUTUS: KaytannonKoulutusTyyppi = KaytannonKoulutusTyyppi.TUTKIMUSTYO
+        private val UPDATED_KAYTANNON_KOULUTUS: KaytannonKoulutusTyyppi =
+            KaytannonKoulutusTyyppi.TUTKIMUSTYO
 
         private const val DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN: Boolean = false
         private const val UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN: Boolean = true
 
         @JvmStatic
-        fun createEntity(em: EntityManager, userId: String? = null): Tyoskentelyjakso {
+        fun createEntity(em: EntityManager, user: User? = null): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
                 alkamispaiva = DEFAULT_ALKAMISPAIVA,
                 paattymispaiva = DEFAULT_PAATTYMISPAIVA,
@@ -53,7 +55,7 @@ class TyoskentelyjaksoHelper {
             // Lisätään pakollinen tieto
             val erikoistuvaLaakari: ErikoistuvaLaakari
             if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
-                erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, userId)
+                erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user)
                 em.persist(erikoistuvaLaakari)
                 em.flush()
             } else {
