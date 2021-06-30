@@ -2,8 +2,10 @@ package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.security.*
-import org.springframework.context.annotation.Bean
+import fi.elsapalvelu.elsa.security.ADMIN
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import org.springframework.context.annotation.Import
 import org.springframework.core.convert.converter.Converter
 import org.springframework.http.HttpMethod
@@ -14,10 +16,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper
-import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
@@ -254,25 +253,4 @@ class SecurityConfiguration(
         koejaksonLoppukeskusteluRepository.changeKouluttaja(oldId, newId)
         koejaksonLoppukeskusteluRepository.changeEsimies(oldId, newId)
     }
-
-    /**
-     * Map authorities from "groups" or "roles" claim in ID Token.
-     *
-     * @return a [GrantedAuthoritiesMapper] that maps groups from
-     * the IdP to Spring Security Authorities.
-     */
-    @Bean
-    fun userAuthoritiesMapper() =
-        GrantedAuthoritiesMapper { authorities ->
-            val mappedAuthorities = mutableSetOf<GrantedAuthority>()
-
-            authorities.forEach {
-                // Check for OidcUserAuthority because Spring Security 5.2 returns
-                // each scope as a GrantedAuthority, which we don't care about.
-                if (it is OidcUserAuthority) {
-                    extractAuthorityFromClaims(it.userInfo.claims)?.let(mappedAuthorities::addAll)
-                }
-            }
-            mappedAuthorities
-        }
 }

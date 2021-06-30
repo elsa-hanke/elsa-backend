@@ -232,8 +232,6 @@ dependencies {
     implementation "org.springframework.security:spring-security-config"
     implementation "org.springframework.security:spring-security-data"
     implementation "org.springframework.security:spring-security-web"
-    implementation "org.springframework.boot:spring-boot-starter-oauth2-client"
-    implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server"
     implementation("io.springfox:springfox-swagger2") {
         exclude module: "mapstruct"
     }
@@ -245,11 +243,11 @@ dependencies {
     annotationProcessor "org.hibernate:hibernate-jpamodelgen:${hibernateVersion}"
     annotationProcessor "org.glassfish.jaxb:jaxb-runtime:${jaxbRuntimeVersion}"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+    testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") {
         exclude group: "org.junit.vintage", module: "junit-vintage-engine"
     }
     testImplementation "org.springframework.security:spring-security-test"
-    testImplementation "org.springframework.boot:spring-boot-test"
+    testImplementation "org.springframework.boot:spring-boot-test:${springBootVersion}"
     testImplementation "com.tngtech.archunit:archunit-junit5-api:${archunitJunit5Version}"
     testRuntimeOnly "com.tngtech.archunit:archunit-junit5-engine:${archunitJunit5Version}"
     testImplementation "com.h2database:h2"
@@ -258,6 +256,7 @@ dependencies {
     implementation "co.elastic.logging:logback-ecs-encoder:1.0.1"
     implementation "org.springframework.security:spring-security-saml2-service-provider:5.5.0"
     implementation "commons-codec:commons-codec:1.15"
+    runtimeOnly "org.jetbrains.kotlin:kotlin-reflect:1.5.0"
 
 }
 
