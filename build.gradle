@@ -88,6 +88,7 @@ task integrationTest(type: Test) {
 
     testLogging {
         events 'FAILED', 'SKIPPED'
+        exceptionFormat = 'full'
     }
 
     if (project.hasProperty('testcontainers')) {
