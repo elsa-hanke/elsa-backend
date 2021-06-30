@@ -256,7 +256,7 @@ dependencies {
     implementation "co.elastic.logging:logback-ecs-encoder:1.0.1"
     implementation "org.springframework.security:spring-security-saml2-service-provider:5.5.0"
     implementation "commons-codec:commons-codec:1.15"
-    runtimeOnly "org.jetbrains.kotlin:kotlin-reflect:1.5.0"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:1.5.0"
 
 }
 
