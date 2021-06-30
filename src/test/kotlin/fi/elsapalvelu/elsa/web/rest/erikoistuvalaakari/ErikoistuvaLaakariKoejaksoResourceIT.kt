@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.*
+import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
@@ -18,8 +19,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
@@ -92,9 +93,11 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
     private lateinit var koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
 
+    private lateinit var user: User
+
     @BeforeEach
     fun setup() {
-        MockitoAnnotations.initMocks(this)
+        MockitoAnnotations.openMocks(this)
     }
 
     @Test
@@ -256,7 +259,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         val updatedKouluttaja = KayttajaHelper.createUpdatedEntity(
             em,
-            UPDATED_KOULUTTAJA_ID
+            UPDATED_KOULUTTAJA_NIMI
         )
         em.persist(updatedKouluttaja)
         updatedKoulutussopimus.kouluttajat?.add(
@@ -268,7 +271,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         val updatedVastuuhenkilo = KayttajaHelper.createUpdatedEntity(
             em,
-            UPDATED_VASTUUHENKILO_ID,
             UPDATED_VASTUUHENKILO_NIMI
         )
         em.persist(updatedVastuuhenkilo)
@@ -297,12 +299,12 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         assertThat(testKoulutussopimus.kouluttajat).hasSize(2)
         val testKouluttaja =
-            testKoulutussopimus.kouluttajat?.filter { it.kouluttaja?.user?.id != DEFAULT_KOULUTTAJA_ID }
+            testKoulutussopimus.kouluttajat?.filter { it.kouluttaja?.id == updatedKouluttaja.id }
                 ?.get(0)
-        assertThat(testKouluttaja?.kouluttaja?.user?.id).isEqualTo(UPDATED_KOULUTTAJA_ID)
+        assertThat(testKouluttaja?.kouluttaja?.user?.id).isEqualTo(updatedKouluttaja.user?.id)
 
         val testVastuuhenkilo = kayttajaRepository.findById(testKoulutussopimus.vastuuhenkilo?.id!!)
-        assertThat(testVastuuhenkilo.get().user?.id).isEqualTo(UPDATED_VASTUUHENKILO_ID)
+        assertThat(testVastuuhenkilo.get().user?.id).isEqualTo(updatedVastuuhenkilo.user?.id)
         assertThat(testKoulutussopimus.vastuuhenkilonNimi).isEqualTo(UPDATED_VASTUUHENKILO_NIMI)
     }
 
@@ -432,7 +434,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         val updatedKouluttaja = KayttajaHelper.createUpdatedEntity(
             em,
-            UPDATED_KOULUTTAJA_ID,
             UPDATED_VASTUUHENKILO_NIMI
         )
         em.persist(updatedKouluttaja)
@@ -457,7 +458,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         val testLahikouluttaja =
             kayttajaRepository.findById(testAloituskeskustelu.lahikouluttaja?.id!!)
-        assertThat(testLahikouluttaja.get().user?.id).isEqualTo(UPDATED_KOULUTTAJA_ID)
+        assertThat(testLahikouluttaja.get().user?.id).isEqualTo(updatedKouluttaja.user?.id)
         assertThat(testAloituskeskustelu.lahikouluttajanNimi).isEqualTo(UPDATED_VASTUUHENKILO_NIMI)
     }
 
@@ -893,25 +894,28 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     }
 
     fun initTest(userId: String? = DEFAULT_ID) {
-        val userDetails = mapOf<String, Any>(
-            "uid" to DEFAULT_ID,
-            "sub" to DEFAULT_LOGIN,
-            "email" to DEFAULT_EMAIL
+        user = KayttajaResourceIT.createEntity()
+        em.persist(user)
+        em.flush()
+        val userDetails = mapOf<String, List<Any>>(
         )
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
-        val user = DefaultOAuth2User(authorities, userDetails, "sub")
-        val authentication = OAuth2AuthenticationToken(user, authorities, "oidc")
+        val authentication = Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            "test",
+            authorities
+        )
         TestSecurityContextHolder.getContext().authentication = authentication
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, userId)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user)
         em.persist(erikoistuvaLaakari)
 
-        val vastuuhenkilo = KayttajaHelper.createEntity(em, DEFAULT_VASTUUHENKILO_ID)
+        val vastuuhenkilo = KayttajaHelper.createEntity(em)
         em.persist(vastuuhenkilo)
 
-        val kouluttaja = KayttajaHelper.createEntity(em, DEFAULT_KOULUTTAJA_ID)
+        val kouluttaja = KayttajaHelper.createEntity(em)
         em.persist(kouluttaja)
 
-        val esimies = KayttajaHelper.createEntity(em, DEFAULT_ESIMIES_ID)
+        val esimies = KayttajaHelper.createEntity(em)
         em.persist(esimies)
 
         koejaksonKoulutussopimus = createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
@@ -957,6 +961,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         private const val DEFAULT_VASTUUHENKILO_ID = "53d6e70e-88c4-11eb-8dcd-0242ac130003"
 
         private const val UPDATED_KOULUTTAJA_ID = "914cb8c5-c56d-4ab4-81a8-e51b5db0a85b"
+        private const val UPDATED_KOULUTTAJA_NIMI = "Kalle Kouluttaja"
         private const val UPDATED_VASTUUHENKILO_ID = "1df48f72-8bbe-11eb-8dcd-0242ac130003"
         private const val UPDATED_VASTUUHENKILO_NIMI = "Ville Vastuuhenkilö"
 

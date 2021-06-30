@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.ADMIN
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.USER
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import fi.elsapalvelu.elsa.service.mapper.UserMapper
@@ -159,18 +160,17 @@ class KayttajaResourceIT {
 
         @JvmStatic
         fun createEntity(
-            userId: String? = null,
             nimi: String? = "$DEFAULT_FIRSTNAME $DEFAULT_LASTNAME"
         ): User {
             val names = nimi?.split(" ")
             return User(
-                id = userId ?: UUID.randomUUID().toString(),
                 login = DEFAULT_LOGIN + RandomStringUtils.randomAlphabetic(5),
                 activated = true,
                 email = RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL,
                 firstName = names?.dropLast(1)?.joinToString(),
                 lastName = names?.last(),
-                langKey = DEFAULT_LANGKEY
+                langKey = DEFAULT_LANGKEY,
+                authorities = mutableSetOf()
             )
         }
     }
