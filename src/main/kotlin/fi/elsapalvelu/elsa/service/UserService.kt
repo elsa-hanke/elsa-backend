@@ -9,7 +9,6 @@ import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.security.getCurrentUserLogin
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import org.keycloak.admin.client.Keycloak
 import org.slf4j.LoggerFactory
@@ -17,24 +16,13 @@ import org.springframework.cache.CacheManager
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.nio.charset.StandardCharsets
 import java.security.Principal
-import java.time.Instant
 import java.util.*
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
 import javax.servlet.http.HttpServletRequest
 
 
@@ -47,32 +35,10 @@ class UserService(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val erikoisalaRepository: ErikoisalaRepository,
     private val cacheManager: CacheManager,
-    private val keycloak: Keycloak,
-    private val applicationProperties: ApplicationProperties
+    private val keycloak: Keycloak
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
-
-    /**
-     * Update basic information (first name, last name, email, language) for the current user.
-     *
-     * @param firstName first name of user.
-     * @param lastName last name of user.
-     * @param email email id of user.
-     * @param langKey language key.
-     */
-    fun updateUser(firstName: String?, lastName: String?, email: String?, langKey: String?) {
-        getCurrentUserLogin()
-            .flatMap(userRepository::findOneByLogin)
-            .ifPresent {
-                it.firstName = firstName
-                it.lastName = lastName
-                it.email = email?.toLowerCase()
-                it.langKey = langKey
-                clearUserCaches(it)
-                log.debug("Changed Information for User: $it")
-            }
-    }
 
     @Transactional(readOnly = true)
     fun getAllManagedUsers(pageable: Pageable): Page<UserDTO> =
@@ -88,86 +54,6 @@ class UserService(
     @Transactional(readOnly = true)
     fun getAuthorities() =
         authorityRepository.findAll().asSequence().map { it.name }.filterNotNullTo(mutableListOf())
-
-    private fun syncUserWithIdP(details: Map<String, Any>, user: User): User {
-        // save authorities in to sync user roles/groups between IdP and JHipster's local database
-        val dbAuthorities = getAuthorities()
-        val userAuthorities = user.authorities.asSequence().mapTo(mutableListOf(), Authority::name)
-        for (authority in userAuthorities) {
-            if (!dbAuthorities.contains(authority)) {
-                log.debug("Saving authority '$authority' in local database")
-                val authorityToSave = Authority(name = authority)
-                authorityRepository.save(authorityToSave)
-            }
-        }
-        // save account in to sync users between IdP and JHipster's local database
-        val existingUser = userRepository.findOneByLogin(user.login!!)
-        if (existingUser.isPresent) {
-            handleExistingUser(user, existingUser.get(), details)
-        } else {
-            log.debug("Saving user '${user.login}' in local database")
-
-            // TODO: replace with actual property when available
-            val hetu = details["hetu"]
-            if (hetu != null) {
-                handleHetu(user, hetu.toString())
-            }
-
-            userRepository.saveAndFlush(user)
-            clearUserCaches(user)
-        }
-        return user
-    }
-
-    private fun handleHetu(user: User, hetu: String) {
-        val decodedKey =
-            Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
-        val originalKey: SecretKey = SecretKeySpec(
-            decodedKey,
-            0,
-            decodedKey.size,
-            applicationProperties.getSecurity().secretKeyAlgorithm
-        )
-
-        val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
-
-        userRepository.findAll().filter { u -> u.hetu != null }.forEach { u ->
-            cipher.init(Cipher.DECRYPT_MODE, originalKey, IvParameterSpec(u.initVector))
-            val userHetu = String(cipher.doFinal(u.hetu), StandardCharsets.UTF_8)
-
-            // Same user from different idp
-            if (userHetu == hetu) {
-                handleExistingUser(user, u, HashMap())
-                return
-            }
-        }
-
-        cipher.init(Cipher.ENCRYPT_MODE, originalKey)
-        val params = cipher.parameters
-        val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
-        val ciphertext = cipher.doFinal(hetu.toByteArray(StandardCharsets.UTF_8))
-
-        user.hetu = ciphertext
-        user.initVector = iv
-    }
-
-    private fun handleExistingUser(user: User, existingUser: User, details: Map<String, Any>) {
-        user.id = existingUser.id
-        user.authorities = existingUser.authorities
-        // if IdP sends last updated information, use it to determine if an update should happen
-        if (details["updated_at"] != null) {
-            val dbModifiedDate = existingUser.lastModifiedDate
-            val idpModifiedDate = details["updated_at"] as Instant
-            if (idpModifiedDate.isAfter(dbModifiedDate)) {
-                log.debug("Updating user '${user.login}' in local database")
-                updateUser(user.firstName, user.lastName, user.email, user.langKey)
-            }
-            // no last updated info, blindly update
-        } else {
-            log.debug("Updating user '${user.login}' in local database")
-            updateUser(user.firstName, user.lastName, user.email, user.langKey)
-        }
-    }
 
     /**
      * Luodaan erikoistuva lääkäri ja käyttäjä entiteetit erikoistuvalle lääkärille jos niitä ei vielä ole.
@@ -212,8 +98,8 @@ class UserService(
 
         val user = User()
         user.id = principal.name
-        user.firstName = principal.getFirstAttribute("urn:oid:2.5.4.42") as String
-        user.lastName = principal.getFirstAttribute("urn:oid:2.5.4.4") as String
+        user.firstName = principal.getFirstAttribute("urn:oid:2.5.4.42")
+        user.lastName = principal.getFirstAttribute("urn:oid:2.5.4.4")
         user.authorities = authToken.authorities.map(GrantedAuthority::getAuthority)
             .map { Authority(name = it) }
             .toMutableSet()

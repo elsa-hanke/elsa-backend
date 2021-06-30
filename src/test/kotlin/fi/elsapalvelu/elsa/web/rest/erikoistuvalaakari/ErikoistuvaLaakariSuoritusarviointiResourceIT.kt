@@ -2,14 +2,12 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
-import fi.elsapalvelu.elsa.domain.EpaOsaamisalue
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.Suoritusarviointi
-import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
+import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.EpaOsaamisalueHelper
@@ -25,8 +23,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
@@ -64,9 +62,11 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
 
     private lateinit var suoritusarviointi: Suoritusarviointi
 
+    private lateinit var user: User
+
     @BeforeEach
     fun setup() {
-        MockitoAnnotations.initMocks(this)
+        MockitoAnnotations.openMocks(this)
     }
 
     @Test
@@ -148,7 +148,12 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         val id = suoritusarviointi.id
         assertNotNull(id)
 
-        restSuoritusarviointiMockMvc.perform(get("/api/erikoistuva-laakari/suoritusarvioinnit/{id}", id))
+        restSuoritusarviointiMockMvc.perform(
+            get(
+                "/api/erikoistuva-laakari/suoritusarvioinnit/{id}",
+                id
+            )
+        )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(suoritusarviointi.id!!))
@@ -207,17 +212,20 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
     }
 
     fun initTest(userId: String? = DEFAULT_ID) {
-        val userDetails = mapOf<String, Any>(
-            "uid" to DEFAULT_ID,
-            "sub" to DEFAULT_LOGIN,
-            "email" to DEFAULT_EMAIL
+        user = KayttajaResourceIT.createEntity()
+        em.persist(user)
+        em.flush()
+        val userDetails = mapOf<String, List<Any>>(
         )
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
-        val user = DefaultOAuth2User(authorities, userDetails, "sub")
-        val authentication = OAuth2AuthenticationToken(user, authorities, "oidc")
+        val authentication = Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            "test",
+            authorities
+        )
         TestSecurityContextHolder.getContext().authentication = authentication
 
-        suoritusarviointi = createEntity(em, userId)
+        suoritusarviointi = createEntity(em, user)
     }
 
     companion object {
@@ -239,7 +247,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         private const val UPDATED_LISATIEDOT = "BBBBBBBBBB"
 
         @JvmStatic
-        fun createEntity(em: EntityManager, userId: String? = null): Suoritusarviointi {
+        fun createEntity(em: EntityManager, user: User? = null): Suoritusarviointi {
             val suoritusarviointi = Suoritusarviointi(
                 tapahtumanAjankohta = DEFAULT_TAPAHTUMAN_AJANKOHTA,
                 arvioitavaTapahtuma = DEFAULT_ARVIOITAVA_TAPAHTUMA,
@@ -250,7 +258,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             // Lisätään pakollinen tieto
             val kayttaja: Kayttaja
             if (em.findAll(Kayttaja::class).isEmpty()) {
-                kayttaja = KayttajaHelper.createEntity(em, userId)
+                kayttaja = KayttajaHelper.createEntity(em)
                 em.persist(kayttaja)
                 em.flush()
             } else {
@@ -272,7 +280,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
             if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
+                tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user)
                 em.persist(tyoskentelyjakso)
                 em.flush()
             } else {
