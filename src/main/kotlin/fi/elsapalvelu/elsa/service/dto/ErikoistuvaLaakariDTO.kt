@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
+import java.time.LocalDate
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
 import javax.validation.constraints.NotNull
@@ -17,13 +18,23 @@ data class ErikoistuvaLaakariDTO(
 
     var opiskelijatunnus: String? = null,
 
+    var syntymaaika: LocalDate? = null,
+
+    var opintooikeudenMyontamispaiva: LocalDate? = null,
+
+    var opintooikeudenPaattymispaiva: LocalDate? = null,
+
     @get: Min(value = 1900)
     @get: Max(value = 2100)
     var opintojenAloitusvuosi: Int? = null,
 
     var kayttajaId: Long? = null,
 
-    var erikoisalaId: Long? = null
+    var erikoisalaId: Long? = null,
+
+    var erikoisalaNimi: String? = null,
+
+    var yliopisto: String? = null
 
 ) : Serializable {
 
