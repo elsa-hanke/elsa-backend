@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
+import java.time.LocalDate
 import javax.persistence.*
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
@@ -23,6 +24,15 @@ data class ErikoistuvaLaakari(
 
     @Column(name = "opiskelijatunnus")
     var opiskelijatunnus: String? = null,
+
+    @Column(name = "syntymaaika")
+    var syntymaaika: LocalDate? = null,
+
+    @Column(name = "opintooikeuden_myontamispaiva")
+    var opintooikeudenMyontamispaiva: LocalDate? = null,
+
+    @Column(name = "opintooikeuden_paattymispaiva")
+    var opintooikeudenPaattymispaiva: LocalDate? = null,
 
     @get: Min(value = 1900)
     @get: Max(value = 2100)
