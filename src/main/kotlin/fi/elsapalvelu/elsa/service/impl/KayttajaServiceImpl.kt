@@ -47,7 +47,7 @@ class KayttajaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<KayttajaDTO> {
+    override fun findAll(): List<KayttajaDTO> {
         return kayttajaRepository.findAll()
             .mapTo(mutableListOf(), kayttajaMapper::toDto)
     }
@@ -63,19 +63,24 @@ class KayttajaServiceImpl(
             .map(kayttajaMapper::toDto)
     }
 
-    override fun findKouluttajat(): MutableList<KayttajaDTO> {
+    override fun findKouluttajat(): List<KayttajaDTO> {
         return kayttajaRepository.findAllByUserAuthority(KOULUTTAJA)
             .mapTo(mutableListOf(), kayttajaMapper::toDto)
     }
 
-    override fun findKouluttajatAndVastuuhenkilot(userId: String): MutableList<KayttajaDTO> {
+    override fun findVastuuhenkilot(): List<KayttajaDTO> {
+        return kayttajaRepository.findAllByUserAuthority(VASTUUHENKILO)
+            .map(kayttajaMapper::toDto)
+    }
+
+    override fun findKouluttajatAndVastuuhenkilot(userId: String): List<KayttajaDTO> {
         val existingUser = kayttajaRepository.findOneByUserId(userId).get()
         return (kayttajaRepository.findAllByUserAuthority(KOULUTTAJA) +
             kayttajaRepository.findAllByUserAuthorityAndYliopistoId(
                 VASTUUHENKILO,
                 existingUser.yliopisto?.id
             ))
-            .mapTo(mutableListOf(), kayttajaMapper::toDto)
+            .map(kayttajaMapper::toDto)
     }
 
     override fun delete(id: Long) {
