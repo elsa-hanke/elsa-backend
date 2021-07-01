@@ -32,7 +32,9 @@ class ErikoistuvaLaakariKoejaksoResource(
     private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val kuntaService: KuntaService,
-    private val erikoisalaService: ErikoisalaService
+    private val erikoisalaService: ErikoisalaService,
+    private val kayttajaService: KayttajaService,
+    private val yliopistoService: YliopistoService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -107,6 +109,16 @@ class ErikoistuvaLaakariKoejaksoResource(
         result.tyoskentelyjaksot = tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         return ResponseEntity.ok(result)
+    }
+
+    @GetMapping("/koulutussopimus-lomake")
+    fun getKoulutussopimusForm(principal: Principal?): ResponseEntity<KoulutussopimusFormDTO> {
+        val form = KoulutussopimusFormDTO().apply {
+            vastuuhenkilot = kayttajaService.findVastuuhenkilot()
+            yliopistot = yliopistoService.findAll()
+        }
+
+        return ResponseEntity.ok(form)
     }
 
     @PostMapping("/koejakso/koulutussopimus")
