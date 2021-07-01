@@ -10,15 +10,17 @@ interface KayttajaService {
 
     fun save(kayttajaDTO: KayttajaDTO, userDTO: UserDTO): KayttajaDTO
 
-    fun findAll(): MutableList<KayttajaDTO>
+    fun findAll(): List<KayttajaDTO>
 
     fun findOne(id: Long): Optional<KayttajaDTO>
 
     fun findByUserId(id: String): Optional<KayttajaDTO>
 
-    fun findKouluttajat(): MutableList<KayttajaDTO>
+    fun findKouluttajat(): List<KayttajaDTO>
 
-    fun findKouluttajatAndVastuuhenkilot(userId: String): MutableList<KayttajaDTO>
+    fun findVastuuhenkilot(): List<KayttajaDTO>
+
+    fun findKouluttajatAndVastuuhenkilot(userId: String): List<KayttajaDTO>
 
     fun delete(id: Long)
 }
