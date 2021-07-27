@@ -116,27 +116,12 @@ spring:
   output:
     ansi:
       console-available: true
-  security:
-    saml2:
-      relyingparty:
-        registration:
-          suomifi:
-            identityprovider:
-              entity-id: https://testi.apro.tunnistus.fi/idp1
-              verification.credentials:
-                - certificate-location: "classpath:suomifi.crt"
-              singlesignon.url: https://testi.apro.tunnistus.fi/idp/profile/SAML2/Redirect/SSO
-            signing.credentials:
-              - private-key-location: "classpath:privateKey.key"
-                certificate-location: "classpath:certificate.crt"
-            decryption.credentials:
-              - private-key-location: "classpath:privateKey.key"
-                certificate-location: "classpath:certificate.crt"
 server:
   servlet:
     session:
       cookie:
         http-only: true
+
 
 # Properties to be exposed on the /info management endpoint
 info:
@@ -198,3 +183,14 @@ application:
     encoded-key:
     secret-key-algorithm: AES
     cipher-algorithm: AES/CBC/PKCS5Padding
+    saml-private-key-location: "classpath:privateKey.key"
+    saml-certificate-location: "classpath:certificate.crt"
+cloud:
+  aws:
+    credentials:
+      access-key: key
+      secret-key: secret
+    region:
+      static: eu-west-1
+    stack:
+      auto: false
