@@ -72,7 +72,7 @@ stages:
             displayName: 'Build'
             inputs:
               script: |
-                ./gradlew --build-cache build -x test integrationTest
+                ./gradlew --build-cache build -Pprod -x test integrationTest
           - task: CmdLine@2
             displayName: 'Build image'
             inputs:
