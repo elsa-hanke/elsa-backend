@@ -259,6 +259,8 @@ dependencies {
     implementation "org.springframework.security:spring-security-saml2-service-provider:5.5.0"
     implementation "commons-codec:commons-codec:1.15"
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.5.0"
+    implementation "org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE"
+
 
 }
 

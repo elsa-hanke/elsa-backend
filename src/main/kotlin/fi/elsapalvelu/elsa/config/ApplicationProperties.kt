@@ -49,5 +49,7 @@ class ApplicationProperties {
         var encodedKey: String? = null
         var secretKeyAlgorithm: String? = null
         var cipherAlgorithm: String? = null
+        var samlPrivateKeyLocation: String? = null
+        var samlCertificateLocation: String? = null
     }
 }
