@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.util.UriComponentsBuilder
 import org.springframework.web.util.UriUtils
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.security.Principal
 import javax.servlet.http.HttpServletRequest
@@ -51,6 +55,8 @@ class LogoutResource(private val logoutRequestResolver: OpenSamlLogoutRequestRes
             "logoutUrl" to logoutUrl
         )
         request.session.invalidate()
+        val httpRequest = HttpRequest.newBuilder().uri(URI(logoutUrl)).GET().build()
+        HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString())
         return ResponseEntity.ok().body(logoutDetails)
     }
 
