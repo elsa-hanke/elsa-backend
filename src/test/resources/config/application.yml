@@ -126,3 +126,13 @@ application:
       realm: elsa
       client-id: web-app-admin
       client-secret: web-app-admin
+
+cloud:
+  aws:
+    credentials:
+      access-key: key
+      secret-key: secret
+    region:
+      static: eu-west-1
+    stack:
+      auto: false
