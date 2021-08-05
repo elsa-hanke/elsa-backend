@@ -30,6 +30,8 @@ interface UserRepository : JpaRepository<User, String> {
     @Query("select u from User u left join fetch u.authorities")
     fun findAllWithAuthorities(): List<User>
 
+    fun findOneByEmail(email: String): Optional<User>
+
     companion object {
 
         const val USERS_BY_LOGIN_CACHE: String = "usersByLogin"
