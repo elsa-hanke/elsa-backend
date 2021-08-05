@@ -49,7 +49,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         principal: Principal?,
         request: HttpServletRequest
     ) {
-        userService.updateUserAuthorities(principal, request)
+        userService.updateUserAuthorities(principal, kayttooikeusHakemusDTO)
     }
 
     @PostMapping("/lahikouluttajat")
@@ -60,6 +60,14 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         val user = userService.getAuthenticatedUser(principal)
         erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
             ?.let { _ ->
+                if (userService.existsByEmail(uusiLahikouluttajaDTO.sahkoposti!!)) {
+                    throw BadRequestAlertException(
+                        "Samalla sähköpostilla löytyy jo käyttäjä",
+                        "kayttaja",
+                        "dataillegal"
+                    )
+                }
+
                 val result = kayttajaService.save(
                     KayttajaDTO(nimi = uusiLahikouluttajaDTO.nimi),
                     UserDTO(
