@@ -2,10 +2,7 @@ package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.security.ADMIN
-import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.security.KOULUTTAJA
-import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.security.*
 import org.springframework.context.annotation.Import
 import org.springframework.core.convert.converter.Converter
 import org.springframework.http.HttpMethod
@@ -21,6 +18,7 @@ import org.springframework.security.saml2.provider.service.authentication.Defaul
 import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
@@ -52,7 +50,8 @@ class SecurityConfiguration(
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
     private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
-    private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
+    private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
+    private val relyingPartyRegistrationResolver: ElsaRelyingPartyRegistrationResolver
 ) : WebSecurityConfigurerAdapter() {
 
     override fun configure(web: WebSecurity?) {
@@ -110,6 +109,11 @@ class SecurityConfiguration(
             .antMatchers("/management/**").hasAuthority(ADMIN)
             .and()
             .saml2Login()
+            .authenticationConverter(
+                Saml2AuthenticationTokenConverter(
+                    relyingPartyRegistrationResolver
+                )
+            )
             .authenticationManager(ProviderManager(authenticationProvider))
             .defaultSuccessUrl("/", true) // TODO: ohjaa pyydettyyn front end näkymään
             .failureUrl("/") // TODO: Ohjaa kirjautumiseen tai front end näkymään

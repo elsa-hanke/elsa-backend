@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.security.logout
 
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import net.shibboleth.utilities.java.support.xml.SerializeSupport
 import org.joda.time.DateTime
 import org.opensaml.core.config.ConfigurationService
@@ -30,7 +31,10 @@ import java.util.function.Consumer
 import javax.servlet.http.HttpServletRequest
 
 @Component
-class OpenSamlLogoutRequestResolver(private val relyingPartyRegistrationRepository: RelyingPartyRegistrationRepository) :
+class OpenSamlLogoutRequestResolver(
+    private val relyingPartyRegistrationRepository: RelyingPartyRegistrationRepository,
+    private val applicationProperties: ApplicationProperties
+) :
     Saml2LogoutRequestResolver {
 
     /**
@@ -88,7 +92,11 @@ class OpenSamlLogoutRequestResolver(private val relyingPartyRegistrationReposito
                 )
             )
             .issuer(
-                registration.entityId.replace("{baseUrl}", uriComponents.toUriString())
+                registration.entityId.replace(
+                    "{baseUrl}",
+                    uriComponents.toUriString()
+                        .replace("http", applicationProperties.getSecurity().samlScheme!!)
+                )
                     .replace("{registrationId}", registration.registrationId)
             ).nameWithParameters(
                 principal.getFirstAttribute("nameID"),
