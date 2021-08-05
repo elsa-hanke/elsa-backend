@@ -99,6 +99,7 @@ class SecurityConfiguration(
             .authorizeRequests()
             .antMatchers("/authorize").authenticated()
             .antMatchers("/api/auth-info").permitAll()
+            .antMatchers("/api/erikoistuva-laakari/kayttooikeushakemus").authenticated()
             .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
             .antMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
             .antMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
