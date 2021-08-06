@@ -71,28 +71,28 @@ values (1007, 4007, 'Eija Erikoistuva', 1234567, '1970-03-01', 'Yliopisto 1', '2
         true, '2020-10-01 12:50:31.526020', 7001, 'Ville Vastuuhenkilo', 'Dosentti', true, '2020-10-05 12:50:31.526020', null, '2020-03-01 12:50:31.526020');
 
 insert into koulutussopimuksen_koulutuspaikka (id, nimi, yliopisto, koulutussopimus_id)
-values (1000, 'Koulutuspaikka 1', 1, 1000);
+values (1000, 'Koulutuspaikka 1', null, 1000);
 
 insert into koulutussopimuksen_koulutuspaikka (id, nimi, yliopisto, koulutussopimus_id)
-values (1001, 'Koulutuspaikka 1', 1, 1001);
+values (1001, 'Koulutuspaikka 2', null, 1001);
 
 insert into koulutussopimuksen_koulutuspaikka (id, nimi, yliopisto, koulutussopimus_id)
-values (1002, 'Koulutuspaikka 1', 1, 1002);
+values (1002, 'Koulutuspaikka 3', null, 1002);
 
 insert into koulutussopimuksen_koulutuspaikka (id, nimi, yliopisto, koulutussopimus_id)
-values (1003, 'Koulutuspaikka 1', 1, 1003);
+values (1003, 'Koulutuspaikka 4', null, 1003);
 
 insert into koulutussopimuksen_koulutuspaikka (id, nimi, yliopisto, koulutussopimus_id)
-values (1004, 'Koulutuspaikka 1', 1, 1004);
+values (1004, 'Koulutuspaikka 5', null, 1004);
 
 insert into koulutussopimuksen_koulutuspaikka (id, nimi, yliopisto, koulutussopimus_id)
-values (1005, 'Koulutuspaikka 1', 1, 1005);
+values (1005, 'Koulutuspaikka 6', null, 1005);
 
 insert into koulutussopimuksen_koulutuspaikka (id, nimi, yliopisto, koulutussopimus_id)
-values (1006, 'Koulutuspaikka 1', 1, 1006);
+values (1006, 'Koulutuspaikka 7', 'Yliopisto 2', 1006);
 
 insert into koulutussopimuksen_koulutuspaikka (id, nimi, yliopisto, koulutussopimus_id)
-values (1007, 'Koulutuspaikka 1', 1, 1007);
+values (1007, 'Koulutuspaikka 8', 'Yliopisto 3', 1007);
 
 insert into koulutussopimuksen_kouluttaja (id, kouluttaja_id, nimi, nimike, toimipaikka, lahiosoite, postitoimipaikka,
                                            puhelin, sahkoposti, sopimus_hyvaksytty, kuittausaika, koulutussopimus_id)
