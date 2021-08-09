@@ -114,7 +114,12 @@ class ErikoistuvaLaakariKoejaksoResource(
     @GetMapping("/koulutussopimus-lomake")
     fun getKoulutussopimusForm(principal: Principal?): ResponseEntity<KoulutussopimusFormDTO> {
         val form = KoulutussopimusFormDTO().apply {
-            vastuuhenkilot = kayttajaService.findVastuuhenkilot()
+            val user = userService.getAuthenticatedUser(principal)
+            val kayttajaUser = kayttajaService.findByUserId(user.id!!)
+
+            vastuuhenkilot = kayttajaService.findVastuuhenkilot().filter {
+                it.yliopisto.equals(kayttajaUser.get().yliopisto)
+            }
             yliopistot = yliopistoService.findAll()
         }
 
