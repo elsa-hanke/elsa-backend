@@ -170,7 +170,7 @@ stages:
                                              --service elsa-staging-backend-service \
                                              --task-definition elsa-staging-backend:${NEW_REVISION} \
                                              --force-new-deployment
-            displayName: Force update ecs service
+                  displayName: Force update ecs service
 
   - stage: Deploy_backend_prod
     displayName: Deploy prod
