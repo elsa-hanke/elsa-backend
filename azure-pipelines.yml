@@ -165,11 +165,11 @@ stages:
 
                       NEW_TASK_INFO=$(aws ecs register-task-definition --region "$AWS_DEFAULT_REGION" --cli-input-json "$NEW_TASK_DEFINTIION")
 
-                NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
-                aws ecs update-service --cluster elsa-staging-cluster \
-                                       --service elsa-staging-backend-service \
-                                       --task-definition elsa-staging-backend:${NEW_REVISION} \
-                                       --force-new-deployment
+                      NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
+                      aws ecs update-service --cluster elsa-staging-cluster \
+                                             --service elsa-staging-backend-service \
+                                             --task-definition elsa-staging-backend:${NEW_REVISION} \
+                                             --force-new-deployment
             displayName: Force update ecs service
 
   - stage: Deploy_backend_prod
