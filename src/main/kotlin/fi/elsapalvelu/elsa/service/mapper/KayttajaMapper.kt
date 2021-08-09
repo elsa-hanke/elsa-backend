@@ -22,8 +22,8 @@ interface KayttajaMapper :
         Mapping(
             target = "nimi",
             expression = "java(entity.getUser() == null ? \"\" : entity.getUser().getFirstName() + \" \" + entity.getUser().getLastName())"
-        )
-
+        ),
+        Mapping(source = "user.authorities", target = "authorities")
     )
     override fun toDto(entity: Kayttaja): KayttajaDTO
 

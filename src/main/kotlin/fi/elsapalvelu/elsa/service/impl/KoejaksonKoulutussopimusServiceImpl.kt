@@ -81,7 +81,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             koulutussopimus = handleErikoistuva(koulutussopimus, updatedKoulutussopimus)
         }
 
-        koulutussopimus.kouluttajat?.forEach {
+        koulutussopimus.kouluttajat?.toTypedArray()?.forEach {
             if (it.kouluttaja?.user?.id == userId) {
                 koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
             }
