@@ -28,13 +28,8 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.ZoneId
@@ -193,7 +188,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.epaOsaamisalueet").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.tapahtumat").value(Matchers.hasSize<Any>(0)))
-            .andExpect(jsonPath("$.kouluttajat").value(Matchers.hasSize<Any>(0)))
+            .andExpect(jsonPath("$.kouluttajatAndVastuuhenkilot").value(Matchers.hasSize<Any>(0)))
     }
 
     @Test
@@ -208,7 +203,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
             .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(60)))
             .andExpect(jsonPath("$.epaOsaamisalueenKategoriat").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.kouluttajat").value(Matchers.hasSize<Any>(0)))
+            .andExpect(jsonPath("$.kouluttajatAndVastuuhenkilot").value(Matchers.hasSize<Any>(0)))
     }
 
     fun initTest(userId: String? = DEFAULT_ID) {

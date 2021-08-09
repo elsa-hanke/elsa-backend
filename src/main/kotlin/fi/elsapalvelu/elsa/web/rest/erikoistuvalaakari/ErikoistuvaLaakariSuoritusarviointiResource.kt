@@ -46,7 +46,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
             epaOsaamisalueService.findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
         options.tapahtumat = suoritusarviointiService
             .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
-        options.kouluttajat = kayttajaService.findKouluttajat().toMutableSet()
+        options.kouluttajatAndVastuuhenkilot = kayttajaService.findKouluttajatAndVastuuhenkilot(id).toMutableSet()
 
         return ResponseEntity.ok(options)
     }
@@ -88,8 +88,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                         it.value.toMutableSet()
                     )
                 }.toMutableSet()
-        form.kouluttajat = kayttajaService.findKouluttajat().toMutableSet()
 
+        form.kouluttajatAndVastuuhenkilot = kayttajaService.findKouluttajatAndVastuuhenkilot(id).toMutableSet()
         return ResponseEntity.ok(form)
     }
 
