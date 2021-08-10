@@ -181,8 +181,6 @@ class KoejaksonVaiheetServiceImpl(
                     return@forEach
                 }
                 resultList[erikoistuvaUserId] = mutableListOf()
-                applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
-
                 resultList[erikoistuvaUserId]!!.add(mapAloituskeskustelu(aloituskeskustelu, kayttajaId))
             }
     }
