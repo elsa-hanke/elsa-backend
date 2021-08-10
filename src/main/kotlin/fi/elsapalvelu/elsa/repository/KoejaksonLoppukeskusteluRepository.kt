@@ -25,7 +25,7 @@ interface KoejaksonLoppukeskusteluRepository : JpaRepository<KoejaksonLoppukesku
 
     @Query(
         "select l from KoejaksonLoppukeskustelu l left join l.lahikouluttaja lk left join l.lahiesimies le " +
-            "where lk.user.id = :userId or (le.user.id = :userId and l.lahikouluttajaHyvaksynyt = true)"
+            "where lk.user.id = :userId or (le.user.id = :userId and (l.lahikouluttajaHyvaksynyt = true or l.korjausehdotus != null))"
     )
     fun findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
         userId: String
