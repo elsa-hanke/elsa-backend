@@ -39,6 +39,10 @@ data class KoejaksonKoulutussopimus(
     @Column(name = "erikoistuvan_yliopisto", nullable = false)
     var erikoistuvanYliopisto: String? = null,
 
+    @NotNull
+    @Column(name = "erikoistuvan_erikoisala", nullable = false)
+    var erikoistuvanErikoisala: String? = null,
+
     @Column(name = "opintooikeuden_myontamispaiva")
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
