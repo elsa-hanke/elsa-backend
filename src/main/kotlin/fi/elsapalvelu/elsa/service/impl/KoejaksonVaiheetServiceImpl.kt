@@ -54,25 +54,26 @@ class KoejaksonVaiheetServiceImpl(
         resultList: HashMap<String, MutableList<KoejaksonVaiheDTO>>,
         kayttajaId: Long? = null
     ) {
-        vastuuhenkilonArvioService.findAllByVastuuhenkiloUserId(userId).forEach { (erikoistuva, vastuuhenkilonArvio) ->
-            val erikoistuvaUserId = erikoistuva.userId!!
-            if (resultList[erikoistuvaUserId] != null) {
-                return@forEach
-            }
-            resultList[erikoistuvaUserId] = mutableListOf()
-
-            applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
-            mapVastuuhenkilonArvio(vastuuhenkilonArvio).apply {
-                hyvaksytytVaiheet.add(getLoppukeskusteluHyvaksytty(erikoistuvaUserId))
-                getKehittamistoimenpiteetHyvaksytty(erikoistuvaUserId).ifPresent {
-                    hyvaksytytVaiheet.add(it)
+        vastuuhenkilonArvioService.findAllByVastuuhenkiloUserId(userId)
+            .forEach { (erikoistuva, vastuuhenkilonArvio) ->
+                val erikoistuvaUserId = erikoistuva.userId!!
+                if (resultList[erikoistuvaUserId] != null) {
+                    return@forEach
                 }
-                hyvaksytytVaiheet.add(getValiarviointiHyvaksytty(erikoistuvaUserId))
-                hyvaksytytVaiheet.add(getAloituskeskusteluHyvaksytty(erikoistuvaUserId))
-            }.let {
-                resultList[erikoistuvaUserId]!!.add(it)
+                resultList[erikoistuvaUserId] = mutableListOf()
+
+                applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
+                mapVastuuhenkilonArvio(vastuuhenkilonArvio).apply {
+                    hyvaksytytVaiheet.add(getLoppukeskusteluHyvaksytty(erikoistuvaUserId))
+                    getKehittamistoimenpiteetHyvaksytty(erikoistuvaUserId).ifPresent {
+                        hyvaksytytVaiheet.add(it)
+                    }
+                    hyvaksytytVaiheet.add(getValiarviointiHyvaksytty(erikoistuvaUserId))
+                    hyvaksytytVaiheet.add(getAloituskeskusteluHyvaksytty(erikoistuvaUserId))
+                }.let {
+                    resultList[erikoistuvaUserId]!!.add(it)
+                }
             }
-        }
     }
 
     private fun applyKoejaksonVaiheetStartingFromLoppukeskustelut(
@@ -80,38 +81,39 @@ class KoejaksonVaiheetServiceImpl(
         resultList: HashMap<String, MutableList<KoejaksonVaiheDTO>>,
         kayttajaId: Long? = null
     ) {
-        koejaksonLoppukeskusteluService.findAllByKouluttajaUserId(userId).forEach { (erikoistuva, loppukeskustelu) ->
-            val erikoistuvaUserId = erikoistuva.userId!!
-            if (resultList[erikoistuvaUserId] != null) {
-                return@forEach
-            }
-            resultList[erikoistuvaUserId] = mutableListOf()
-            applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
-
-            val mappedAloituskeskusteluHyvaksytty =
-                applyAloituskeskustelu(erikoistuvaUserId, resultList)
-            val mappedValiarviointiHyvaksytty = applyValiarviointi(
-                erikoistuvaUserId,
-                mappedAloituskeskusteluHyvaksytty,
-                resultList
-            )
-            val mappedKehittamistoimenpiteetHyvaksytty = applyKehittamistoimenpiteetSingle(
-                erikoistuvaUserId,
-                mappedAloituskeskusteluHyvaksytty,
-                mappedValiarviointiHyvaksytty,
-                resultList
-            )
-
-            mapLoppukeskustelu(loppukeskustelu, kayttajaId).apply {
-                mappedKehittamistoimenpiteetHyvaksytty.ifPresent {
-                    hyvaksytytVaiheet.add(it)
+        koejaksonLoppukeskusteluService.findAllByKouluttajaUserId(userId)
+            .forEach { (erikoistuva, loppukeskustelu) ->
+                val erikoistuvaUserId = erikoistuva.userId!!
+                if (resultList[erikoistuvaUserId] != null) {
+                    return@forEach
                 }
-                hyvaksytytVaiheet.add(mappedValiarviointiHyvaksytty)
-                hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
-            }.let {
-                resultList[erikoistuvaUserId]!!.add(it)
+                resultList[erikoistuvaUserId] = mutableListOf()
+                applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
+
+                val mappedAloituskeskusteluHyvaksytty =
+                    applyAloituskeskustelu(erikoistuvaUserId)
+                val mappedValiarviointiHyvaksytty = applyValiarviointi(
+                    erikoistuvaUserId,
+                    mappedAloituskeskusteluHyvaksytty,
+                    resultList
+                )
+                val mappedKehittamistoimenpiteetHyvaksytty = applyKehittamistoimenpiteetSingle(
+                    erikoistuvaUserId,
+                    mappedAloituskeskusteluHyvaksytty,
+                    mappedValiarviointiHyvaksytty,
+                    resultList
+                )
+
+                mapLoppukeskustelu(loppukeskustelu, kayttajaId).apply {
+                    mappedKehittamistoimenpiteetHyvaksytty.ifPresent {
+                        hyvaksytytVaiheet.add(it)
+                    }
+                    hyvaksytytVaiheet.add(mappedValiarviointiHyvaksytty)
+                    hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
+                }.let {
+                    resultList[erikoistuvaUserId]!!.add(it)
+                }
             }
-        }
     }
 
     private fun applyKoejaksonVaiheetStartingFromKehittamistoimenpiteet(
@@ -129,7 +131,7 @@ class KoejaksonVaiheetServiceImpl(
                 applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
 
                 val mappedAloituskeskusteluHyvaksytty =
-                    applyAloituskeskustelu(erikoistuvaUserId, resultList)
+                    applyAloituskeskustelu(erikoistuvaUserId)
                 val mappedValiarviointiHyvaksytty = applyValiarviointi(
                     erikoistuvaUserId,
                     mappedAloituskeskusteluHyvaksytty,
@@ -150,23 +152,24 @@ class KoejaksonVaiheetServiceImpl(
         resultList: HashMap<String, MutableList<KoejaksonVaiheDTO>>,
         kayttajaId: Long? = null
     ) {
-        koejaksonValiarviointiService.findAllByKouluttajaUserId(userId).forEach { (erikoistuva, valiarviointi) ->
-            val erikoistuvaUserId = erikoistuva.userId!!
-            if (resultList[erikoistuvaUserId] != null) {
-                return@forEach
-            }
-            resultList[erikoistuvaUserId] = mutableListOf()
-            applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
+        koejaksonValiarviointiService.findAllByKouluttajaUserId(userId)
+            .forEach { (erikoistuva, valiarviointi) ->
+                val erikoistuvaUserId = erikoistuva.userId!!
+                if (resultList[erikoistuvaUserId] != null) {
+                    return@forEach
+                }
+                resultList[erikoistuvaUserId] = mutableListOf()
+                applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
 
-            val mappedAloituskeskusteluHyvaksytty =
-                applyAloituskeskustelu(erikoistuvaUserId, resultList)
+                val mappedAloituskeskusteluHyvaksytty =
+                    applyAloituskeskustelu(erikoistuvaUserId)
 
-            mapValiarviointi(valiarviointi, kayttajaId).apply {
-                hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
-            }.let {
-                resultList[erikoistuvaUserId]!!.add(it)
+                mapValiarviointi(valiarviointi, kayttajaId).apply {
+                    hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
+                }.let {
+                    resultList[erikoistuvaUserId]!!.add(it)
+                }
             }
-        }
     }
 
     private fun applyKoejaksonVaiheetStartingFromAloituskeskustelut(
@@ -183,7 +186,12 @@ class KoejaksonVaiheetServiceImpl(
                 resultList[erikoistuvaUserId] = mutableListOf()
                 applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
 
-                resultList[erikoistuvaUserId]!!.add(mapAloituskeskustelu(aloituskeskustelu, kayttajaId))
+                resultList[erikoistuvaUserId]!!.add(
+                    mapAloituskeskustelu(
+                        aloituskeskustelu,
+                        kayttajaId
+                    )
+                )
             }
     }
 
@@ -224,23 +232,19 @@ class KoejaksonVaiheetServiceImpl(
         kayttajaId: Long? = null
     ) {
         val koulutussopimus =
-            koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaUserId(erikoistuvaUserId).get()
+            koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaUserId(erikoistuvaUserId)
+                .get()
         val mappedKoulutussopimus = mapKoulutussopimus(koulutussopimus, kayttajaId)
         resultList[erikoistuvaUserId]!!.add(mappedKoulutussopimus)
     }
 
 
     private fun applyAloituskeskustelu(
-        userId: String,
-        resultList: HashMap<String, MutableList<KoejaksonVaiheDTO>>,
-        kayttajaId: Long? = null
+        userId: String
     ): HyvaksyttyKoejaksonVaiheDTO {
         val aloituskeskustelu =
             koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaUserId(userId).get()
-        val mappedAloituskeskustelu = mapAloituskeskustelu(aloituskeskustelu, kayttajaId)
-        val mappedAloituskeskusteluHyvaksytty = mapAloituskeskusteluHyvaksytty(aloituskeskustelu)
-        resultList[userId]!!.add(mappedAloituskeskustelu)
-        return mappedAloituskeskusteluHyvaksytty
+        return mapAloituskeskusteluHyvaksytty(aloituskeskustelu)
     }
 
     private fun getAloituskeskusteluHyvaksytty(userId: String): HyvaksyttyKoejaksonVaiheDTO {
@@ -280,28 +284,31 @@ class KoejaksonVaiheetServiceImpl(
         kayttajaId: Long? = null
     ): Optional<HyvaksyttyKoejaksonVaiheDTO> {
         var mappedKehittamistoimenpiteetHyvaksytty: HyvaksyttyKoejaksonVaiheDTO? = null
-        koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(userId).ifPresent {
-            val mappedKehittamistoimenpiteet = mapKehittamistoimenpiteet(it, kayttajaId)
-            mappedKehittamistoimenpiteetHyvaksytty = mapKehittamistoimenpiteetHyvaksytty(it)
-            mappedKehittamistoimenpiteet.apply {
-                hyvaksytytVaiheet.add(mappedValiarviointiHyvaksytty)
-                hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
+        koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(userId)
+            .ifPresent {
+                val mappedKehittamistoimenpiteet = mapKehittamistoimenpiteet(it, kayttajaId)
+                mappedKehittamistoimenpiteetHyvaksytty = mapKehittamistoimenpiteetHyvaksytty(it)
+                mappedKehittamistoimenpiteet.apply {
+                    hyvaksytytVaiheet.add(mappedValiarviointiHyvaksytty)
+                    hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
+                }
+                resultList[userId]!!.add(mappedKehittamistoimenpiteet)
             }
-            resultList[userId]!!.add(mappedKehittamistoimenpiteet)
-        }
         return Optional.ofNullable(mappedKehittamistoimenpiteetHyvaksytty)
     }
 
     private fun getKehittamistoimenpiteetHyvaksytty(userId: String): Optional<HyvaksyttyKoejaksonVaiheDTO> {
         var mappedKehittamistoimenpiteetHyvaksytty: HyvaksyttyKoejaksonVaiheDTO? = null
-        koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(userId).ifPresent {
-            mappedKehittamistoimenpiteetHyvaksytty = mapKehittamistoimenpiteetHyvaksytty(it)
-        }
+        koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(userId)
+            .ifPresent {
+                mappedKehittamistoimenpiteetHyvaksytty = mapKehittamistoimenpiteetHyvaksytty(it)
+            }
         return Optional.ofNullable(mappedKehittamistoimenpiteetHyvaksytty)
     }
 
     private fun getLoppukeskusteluHyvaksytty(userId: String): HyvaksyttyKoejaksonVaiheDTO {
-        val loppukeskustelu = koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(userId).get()
+        val loppukeskustelu =
+            koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(userId).get()
         return mapLoppukeskusteluHyvaksytty(loppukeskustelu)
     }
 
@@ -367,7 +374,11 @@ class KoejaksonVaiheetServiceImpl(
         return KoejaksonVaiheDTO(
             koejaksonKehittamistoimenpiteetDTO.id,
             KoejaksoTyyppi.KEHITTAMISTOIMENPITEET,
-            KoejaksoTila.fromKehittamistoimenpiteet(true, koejaksonKehittamistoimenpiteetDTO, kayttajaId),
+            KoejaksoTila.fromKehittamistoimenpiteet(
+                true,
+                koejaksonKehittamistoimenpiteetDTO,
+                kayttajaId
+            ),
             koejaksonKehittamistoimenpiteetDTO.erikoistuvanNimi,
             koejaksonKehittamistoimenpiteetDTO.muokkauspaiva
         )
