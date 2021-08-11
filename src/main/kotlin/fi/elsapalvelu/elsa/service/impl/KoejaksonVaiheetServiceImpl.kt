@@ -51,8 +51,7 @@ class KoejaksonVaiheetServiceImpl(
 
     private fun applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(
         userId: String,
-        resultList: HashMap<String, MutableList<KoejaksonVaiheDTO>>,
-        kayttajaId: Long? = null
+        resultList: HashMap<String, MutableList<KoejaksonVaiheDTO>>
     ) {
         vastuuhenkilonArvioService.findAllByVastuuhenkiloUserId(userId)
             .forEach { (erikoistuva, vastuuhenkilonArvio) ->
@@ -62,7 +61,6 @@ class KoejaksonVaiheetServiceImpl(
                 }
                 resultList[erikoistuvaUserId] = mutableListOf()
 
-                applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
                 mapVastuuhenkilonArvio(vastuuhenkilonArvio).apply {
                     hyvaksytytVaiheet.add(getLoppukeskusteluHyvaksytty(erikoistuvaUserId))
                     getKehittamistoimenpiteetHyvaksytty(erikoistuvaUserId).ifPresent {
@@ -88,7 +86,6 @@ class KoejaksonVaiheetServiceImpl(
                     return@forEach
                 }
                 resultList[erikoistuvaUserId] = mutableListOf()
-                applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
 
                 val mappedAloituskeskusteluHyvaksytty =
                     applyAloituskeskustelu(erikoistuvaUserId)
@@ -128,7 +125,6 @@ class KoejaksonVaiheetServiceImpl(
                     return@forEach
                 }
                 resultList[erikoistuvaUserId] = mutableListOf()
-                applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
 
                 val mappedAloituskeskusteluHyvaksytty =
                     applyAloituskeskustelu(erikoistuvaUserId)
@@ -159,7 +155,6 @@ class KoejaksonVaiheetServiceImpl(
                     return@forEach
                 }
                 resultList[erikoistuvaUserId] = mutableListOf()
-                applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
 
                 val mappedAloituskeskusteluHyvaksytty =
                     applyAloituskeskustelu(erikoistuvaUserId)
@@ -184,7 +179,6 @@ class KoejaksonVaiheetServiceImpl(
                     return@forEach
                 }
                 resultList[erikoistuvaUserId] = mutableListOf()
-                applyKoulutussopimus(erikoistuvaUserId, resultList, kayttajaId)
 
                 resultList[erikoistuvaUserId]!!.add(
                     mapAloituskeskustelu(
@@ -225,19 +219,6 @@ class KoejaksonVaiheetServiceImpl(
                 resultList[erikoistuvaUserId]!!.add(mapKoulutussopimus(koulutussopimus))
             }
     }
-
-    private fun applyKoulutussopimus(
-        erikoistuvaUserId: String,
-        resultList: HashMap<String, MutableList<KoejaksonVaiheDTO>>,
-        kayttajaId: Long? = null
-    ) {
-        val koulutussopimus =
-            koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaUserId(erikoistuvaUserId)
-                .get()
-        val mappedKoulutussopimus = mapKoulutussopimus(koulutussopimus, kayttajaId)
-        resultList[erikoistuvaUserId]!!.add(mappedKoulutussopimus)
-    }
-
 
     private fun applyAloituskeskustelu(
         userId: String
