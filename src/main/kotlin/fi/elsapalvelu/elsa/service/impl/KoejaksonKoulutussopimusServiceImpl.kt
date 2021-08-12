@@ -310,10 +310,19 @@ class KoejaksonKoulutussopimusServiceImpl(
         id: Long,
         userId: String
     ): Optional<KoejaksonKoulutussopimusDTO> {
-        return koejaksonKoulutussopimusRepository.findOneByIdAndKouluttajatKouluttajaUserId(
+        val koulutussopimus = koejaksonKoulutussopimusRepository.findOneByIdAndKouluttajatKouluttajaUserId(
             id,
             userId
         ).map(koejaksonKoulutussopimusMapper::toDto)
+
+        val currentKayttaja = kayttajaRepository.findOneByUserId(userId).get()
+        val currentKoulutussopimuksenKouluttaja = if (koulutussopimus.isPresent) koulutussopimus.get().kouluttajat?.find {
+            it.kayttajaId == currentKayttaja.id
+        } else null
+        if (currentKoulutussopimuksenKouluttaja?.sahkoposti.isNullOrEmpty()) {
+            currentKoulutussopimuksenKouluttaja?.sahkoposti = currentKayttaja.user?.email
+        }
+        return koulutussopimus
     }
 
     @Transactional(readOnly = true)
