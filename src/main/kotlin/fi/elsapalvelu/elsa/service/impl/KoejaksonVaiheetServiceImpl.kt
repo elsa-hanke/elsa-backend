@@ -201,7 +201,6 @@ class KoejaksonVaiheetServiceImpl(
             .forEach { (erikoistuva, koulutussopimus) ->
                 val erikoistuvaUserId = erikoistuva.userId!!
                 resultList.putIfAbsent(erikoistuvaUserId, mutableListOf())
-                resultList[erikoistuvaUserId] = mutableListOf()
                 resultList[erikoistuvaUserId]!!.add(mapKoulutussopimus(koulutussopimus))
             }
     }
