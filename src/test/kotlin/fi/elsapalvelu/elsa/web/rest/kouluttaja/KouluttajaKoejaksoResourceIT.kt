@@ -102,7 +102,8 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
-        koejaksonValiarviointi.kehittamistoimenpiteet = KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
+        koejaksonValiarviointi.kehittamistoimenpiteet =
+            KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         koejaksonKehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
@@ -115,7 +116,11 @@ class KouluttajaKoejaksoResourceIT {
             .andExpect(jsonPath("$[0].tila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
             .andExpect(jsonPath("$[0].tyyppi").value(KoejaksoTyyppi.LOPPUKESKUSTELU.name as Any))
             .andExpect(jsonPath("$[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].id").value(koejaksonKehittamistoimenpiteet.id as Any))
+            .andExpect(
+                jsonPath("$[0].hyvaksytytVaiheet[0].id").value(
+                    koejaksonKehittamistoimenpiteet.id as Any
+                )
+            )
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].tyyppi").value("KEHITTAMISTOIMENPITEET"))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].id").value(koejaksonValiarviointi.id as Any))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].tyyppi").value("VALIARVIOINTI"))
@@ -125,26 +130,9 @@ class KouluttajaKoejaksoResourceIT {
             .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
             .andExpect(jsonPath("$[1].tyyppi").value("KOULUTUSSOPIMUS"))
             .andExpect(jsonPath("$[1].erikoistuvanNimi").value(koejaksonKoulutussopimus.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$[2].id").value(koejaksonAloituskeskustelu.id as Any))
-            .andExpect(jsonPath("$[2].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
-            .andExpect(jsonPath("$[2].tyyppi").value("ALOITUSKESKUSTELU"))
-            .andExpect(jsonPath("$[2].erikoistuvanNimi").value(koejaksonAloituskeskustelu.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$[3].id").value(koejaksonValiarviointi.id as Any))
-            .andExpect(jsonPath("$[3].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
-            .andExpect(jsonPath("$[3].tyyppi").value("VALIARVIOINTI"))
-            .andExpect(jsonPath("$[3].erikoistuvanNimi").value(koejaksonValiarviointi.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$[3].hyvaksytytVaiheet[0].id").value(koejaksonAloituskeskustelu.id as Any))
-            .andExpect(jsonPath("$[3].hyvaksytytVaiheet[0].tyyppi").value("ALOITUSKESKUSTELU"))
-            .andExpect(jsonPath("$[4].id").value(koejaksonKehittamistoimenpiteet.id as Any))
-            .andExpect(jsonPath("$[4].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
-            .andExpect(jsonPath("$[4].tyyppi").value("KEHITTAMISTOIMENPITEET"))
-            .andExpect(jsonPath("$[4].erikoistuvanNimi").value(koejaksonKehittamistoimenpiteet.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$[4].hyvaksytytVaiheet[0].id").value(koejaksonValiarviointi.id as Any))
-            .andExpect(jsonPath("$[4].hyvaksytytVaiheet[0].tyyppi").value("VALIARVIOINTI"))
-            .andExpect(jsonPath("$[4].hyvaksytytVaiheet[1].id").value(koejaksonAloituskeskustelu.id as Any))
-            .andExpect(jsonPath("$[4].hyvaksytytVaiheet[1].tyyppi").value("ALOITUSKESKUSTELU"))
     }
 
+    @Test
     @Transactional
     fun getKoulutussopimus() {
         initTest()
@@ -453,7 +441,8 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedAloituskeskustelu)
 
         updatedAloituskeskustelu.lahikouluttajaHyvaksynyt = true
-        updatedAloituskeskustelu.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        updatedAloituskeskustelu.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
 
         val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
 
@@ -516,7 +505,8 @@ class KouluttajaKoejaksoResourceIT {
         initTest(KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID)
 
         koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
-        koejaksonAloituskeskustelu.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        koejaksonAloituskeskustelu.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
         val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
@@ -527,7 +517,8 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedAloituskeskustelu)
 
         updatedAloituskeskustelu.lahiesimiesHyvaksynyt = true
-        updatedAloituskeskustelu.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        updatedAloituskeskustelu.lahiesimiehenKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
 
         val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
 
@@ -555,7 +546,8 @@ class KouluttajaKoejaksoResourceIT {
         initTest(KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID)
 
         koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
-        koejaksonAloituskeskustelu.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        koejaksonAloituskeskustelu.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
         val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
@@ -604,11 +596,13 @@ class KouluttajaKoejaksoResourceIT {
         val updatedValiarviointi = koejaksonValiarviointiRepository.findById(id).get()
         em.detach(updatedValiarviointi)
 
-        updatedValiarviointi.kehittamistoimenpiteet = KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
+        updatedValiarviointi.kehittamistoimenpiteet =
+            KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
         updatedValiarviointi.edistyminenTavoitteidenMukaista = false
         updatedValiarviointi.vahvuudet = KoejaksonVaiheetHelper.DEFAULT_VAHVUUDET
         updatedValiarviointi.lahikouluttajaHyvaksynyt = true
-        updatedValiarviointi.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        updatedValiarviointi.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
 
         val valiarvointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
 
@@ -644,7 +638,8 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
         koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
-        koejaksonValiarviointi.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        koejaksonValiarviointi.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         val databaseSizeBeforeUpdate = koejaksonValiarviointiRepository.findAll().size
@@ -655,7 +650,8 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedValiarviointi)
 
         updatedValiarviointi.lahiesimiesHyvaksynyt = true
-        updatedValiarviointi.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        updatedValiarviointi.lahiesimiehenKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
 
         val valiarviointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
 
@@ -686,7 +682,8 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
         koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
-        koejaksonValiarviointi.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        koejaksonValiarviointi.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         val databaseSizeBeforeUpdate = koejaksonValiarviointiRepository.findAll().size
@@ -729,7 +726,8 @@ class KouluttajaKoejaksoResourceIT {
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
         koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
-        koejaksonValiarviointi.kehittamistoimenpiteet = KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
+        koejaksonValiarviointi.kehittamistoimenpiteet =
+            KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
@@ -742,7 +740,8 @@ class KouluttajaKoejaksoResourceIT {
 
         updatedKehittamistoimenpiteet.kehittamistoimenpiteetRiittavat = true
         updatedKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
-        updatedKehittamistoimenpiteet.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        updatedKehittamistoimenpiteet.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
 
         val kehittamistoimenpiteetDTO =
             koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
@@ -777,11 +776,13 @@ class KouluttajaKoejaksoResourceIT {
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
         koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
-        koejaksonValiarviointi.kehittamistoimenpiteet = KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
+        koejaksonValiarviointi.kehittamistoimenpiteet =
+            KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
-        koejaksonKehittamistoimenpiteet.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        koejaksonKehittamistoimenpiteet.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
 
         val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
@@ -793,7 +794,8 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedKehittamistoimenpiteet)
 
         updatedKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
-        updatedKehittamistoimenpiteet.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        updatedKehittamistoimenpiteet.lahiesimiehenKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
 
         val kehittamistoimenpiteetDTO =
             koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
@@ -827,11 +829,13 @@ class KouluttajaKoejaksoResourceIT {
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
         koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
-        koejaksonValiarviointi.kehittamistoimenpiteet = KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
+        koejaksonValiarviointi.kehittamistoimenpiteet =
+            KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
-        koejaksonKehittamistoimenpiteet.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        koejaksonKehittamistoimenpiteet.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
 
         val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
@@ -888,7 +892,8 @@ class KouluttajaKoejaksoResourceIT {
 
         updatedLoppukeskustelu.esitetaanKoejaksonHyvaksymista = true
         updatedLoppukeskustelu.lahikouluttajaHyvaksynyt = true
-        updatedLoppukeskustelu.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        updatedLoppukeskustelu.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
 
         val loppukeskusteluDTO = koejaksonLoppukeskusteluMapper.toDto(updatedLoppukeskustelu)
 
@@ -924,7 +929,8 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
-        koejaksonLoppukeskustelu.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        koejaksonLoppukeskustelu.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
 
         val databaseSizeBeforeUpdate = koejaksonLoppukeskusteluRepository.findAll().size
@@ -935,7 +941,8 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedLoppukeskustelu)
 
         updatedLoppukeskustelu.lahiesimiesHyvaksynyt = true
-        updatedLoppukeskustelu.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        updatedLoppukeskustelu.lahiesimiehenKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
 
         val loppukeskusteluDTO = koejaksonLoppukeskusteluMapper.toDto(updatedLoppukeskustelu)
 
@@ -970,7 +977,8 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
-        koejaksonLoppukeskustelu.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
+        koejaksonLoppukeskustelu.lahikouluttajanKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
 
         val databaseSizeBeforeUpdate = koejaksonLoppukeskusteluRepository.findAll().size
@@ -1012,7 +1020,8 @@ class KouluttajaKoejaksoResourceIT {
         val user = DefaultOAuth2User(authorities, userDetails, "sub")
         val authentication = OAuth2AuthenticationToken(user, authorities, "oidc")
         TestSecurityContextHolder.getContext().authentication = authentication
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, KoejaksonVaiheetHelper.DEFAULT_ID)
+        val erikoistuvaLaakari =
+            ErikoistuvaLaakariHelper.createEntity(em, KoejaksonVaiheetHelper.DEFAULT_ID)
         em.persist(erikoistuvaLaakari)
 
         val vastuuhenkilo = KayttajaHelper.createEntity(
@@ -1030,7 +1039,8 @@ class KouluttajaKoejaksoResourceIT {
         )
         em.persist(esimies)
 
-        koejaksonKoulutussopimus = KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
+        koejaksonKoulutussopimus =
+            KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
         koejaksonKoulutussopimus.kouluttajat =
             mutableSetOf(
                 KoejaksonVaiheetHelper.createKoulutussopimuksenKouluttaja(
@@ -1039,7 +1049,11 @@ class KouluttajaKoejaksoResourceIT {
                 )
             )
         koejaksonKoulutussopimus.koulutuspaikat =
-            mutableSetOf(KoejaksonVaiheetHelper.createKoulutussopimuksenKoulutuspaikka(koejaksonKoulutussopimus))
+            mutableSetOf(
+                KoejaksonVaiheetHelper.createKoulutussopimuksenKoulutuspaikka(
+                    koejaksonKoulutussopimus
+                )
+            )
         em.persist(koejaksonKoulutussopimus)
 
         koejaksonAloituskeskustelu =
@@ -1049,7 +1063,11 @@ class KouluttajaKoejaksoResourceIT {
             KoejaksonVaiheetHelper.createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
         em.persist(koejaksonValiarviointi)
         koejaksonKehittamistoimenpiteet =
-            KoejaksonVaiheetHelper.createKehittamistoimenpiteet(erikoistuvaLaakari, kouluttaja, esimies)
+            KoejaksonVaiheetHelper.createKehittamistoimenpiteet(
+                erikoistuvaLaakari,
+                kouluttaja,
+                esimies
+            )
         em.persist(koejaksonKehittamistoimenpiteet)
         koejaksonLoppukeskustelu =
             KoejaksonVaiheetHelper.createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
