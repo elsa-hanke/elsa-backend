@@ -197,10 +197,7 @@ class KoejaksonVaiheetServiceImpl(
         koejaksonKoulutussopimusService.findAllByKouluttajaKayttajaUserId(userId)
             .forEach { (erikoistuva, koulutussopimus) ->
                 val erikoistuvaUserId = erikoistuva.userId!!
-                if (resultList[erikoistuvaUserId] != null) {
-                    return@forEach
-                }
-                resultList[erikoistuvaUserId] = mutableListOf()
+                resultList.putIfAbsent(erikoistuvaUserId, mutableListOf())
                 resultList[erikoistuvaUserId]!!.add(mapKoulutussopimus(koulutussopimus, kayttajaId))
             }
     }
