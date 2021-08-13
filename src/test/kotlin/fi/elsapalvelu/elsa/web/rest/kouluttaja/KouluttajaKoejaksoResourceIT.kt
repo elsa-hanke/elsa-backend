@@ -133,26 +133,9 @@ class KouluttajaKoejaksoResourceIT {
             .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
             .andExpect(jsonPath("$[1].tyyppi").value("KOULUTUSSOPIMUS"))
             .andExpect(jsonPath("$[1].erikoistuvanNimi").value(koejaksonKoulutussopimus.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$[2].id").value(koejaksonAloituskeskustelu.id as Any))
-            .andExpect(jsonPath("$[2].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
-            .andExpect(jsonPath("$[2].tyyppi").value("ALOITUSKESKUSTELU"))
-            .andExpect(jsonPath("$[2].erikoistuvanNimi").value(koejaksonAloituskeskustelu.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$[3].id").value(koejaksonValiarviointi.id as Any))
-            .andExpect(jsonPath("$[3].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
-            .andExpect(jsonPath("$[3].tyyppi").value("VALIARVIOINTI"))
-            .andExpect(jsonPath("$[3].erikoistuvanNimi").value(koejaksonValiarviointi.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$[3].hyvaksytytVaiheet[0].id").value(koejaksonAloituskeskustelu.id as Any))
-            .andExpect(jsonPath("$[3].hyvaksytytVaiheet[0].tyyppi").value("ALOITUSKESKUSTELU"))
-            .andExpect(jsonPath("$[4].id").value(koejaksonKehittamistoimenpiteet.id as Any))
-            .andExpect(jsonPath("$[4].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
-            .andExpect(jsonPath("$[4].tyyppi").value("KEHITTAMISTOIMENPITEET"))
-            .andExpect(jsonPath("$[4].erikoistuvanNimi").value(koejaksonKehittamistoimenpiteet.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$[4].hyvaksytytVaiheet[0].id").value(koejaksonValiarviointi.id as Any))
-            .andExpect(jsonPath("$[4].hyvaksytytVaiheet[0].tyyppi").value("VALIARVIOINTI"))
-            .andExpect(jsonPath("$[4].hyvaksytytVaiheet[1].id").value(koejaksonAloituskeskustelu.id as Any))
-            .andExpect(jsonPath("$[4].hyvaksytytVaiheet[1].tyyppi").value("ALOITUSKESKUSTELU"))
     }
 
+    @Test
     @Transactional
     fun getKoulutussopimus() {
         initTest()
