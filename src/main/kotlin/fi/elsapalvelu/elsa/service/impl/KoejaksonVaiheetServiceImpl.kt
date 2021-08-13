@@ -91,14 +91,12 @@ class KoejaksonVaiheetServiceImpl(
                     applyAloituskeskustelu(erikoistuvaUserId)
                 val mappedValiarviointiHyvaksytty = applyValiarviointi(
                     erikoistuvaUserId,
-                    mappedAloituskeskusteluHyvaksytty,
-                    resultList
+                    mappedAloituskeskusteluHyvaksytty
                 )
                 val mappedKehittamistoimenpiteetHyvaksytty = applyKehittamistoimenpiteetSingle(
                     erikoistuvaUserId,
                     mappedAloituskeskusteluHyvaksytty,
-                    mappedValiarviointiHyvaksytty,
-                    resultList
+                    mappedValiarviointiHyvaksytty
                 )
 
                 mapLoppukeskustelu(loppukeskustelu, kayttajaId).apply {
@@ -130,8 +128,7 @@ class KoejaksonVaiheetServiceImpl(
                     applyAloituskeskustelu(erikoistuvaUserId)
                 val mappedValiarviointiHyvaksytty = applyValiarviointi(
                     erikoistuvaUserId,
-                    mappedAloituskeskusteluHyvaksytty,
-                    resultList
+                    mappedAloituskeskusteluHyvaksytty
                 )
 
                 mapKehittamistoimenpiteet(kehittamistoimenpiteet, kayttajaId).apply {
@@ -203,9 +200,7 @@ class KoejaksonVaiheetServiceImpl(
         koejaksonKoulutussopimusService.findAllByVastuuhenkiloKayttajaUserId(userId)
             .forEach { (erikoistuva, koulutussopimus) ->
                 val erikoistuvaUserId = erikoistuva.userId!!
-                if (resultList[erikoistuvaUserId] != null) {
-                    return@forEach
-                }
+                resultList.putIfAbsent(erikoistuvaUserId, mutableListOf())
                 resultList[erikoistuvaUserId] = mutableListOf()
                 resultList[erikoistuvaUserId]!!.add(mapKoulutussopimus(koulutussopimus))
             }
@@ -228,7 +223,6 @@ class KoejaksonVaiheetServiceImpl(
     private fun applyValiarviointi(
         userId: String,
         mappedAloituskeskusteluHyvaksytty: HyvaksyttyKoejaksonVaiheDTO,
-        resultList: HashMap<String, MutableList<KoejaksonVaiheDTO>>,
         kayttajaId: Long? = null
     ): HyvaksyttyKoejaksonVaiheDTO {
         val valiarviointi =
@@ -238,7 +232,6 @@ class KoejaksonVaiheetServiceImpl(
         mappedValiarviointi.apply {
             hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
         }
-        resultList[userId]!!.add(mappedValiarviointi)
         return mappedValiarviointiHyvaksytty
     }
 
@@ -252,7 +245,6 @@ class KoejaksonVaiheetServiceImpl(
         userId: String,
         mappedAloituskeskusteluHyvaksytty: HyvaksyttyKoejaksonVaiheDTO,
         mappedValiarviointiHyvaksytty: HyvaksyttyKoejaksonVaiheDTO,
-        resultList: HashMap<String, MutableList<KoejaksonVaiheDTO>>,
         kayttajaId: Long? = null
     ): Optional<HyvaksyttyKoejaksonVaiheDTO> {
         var mappedKehittamistoimenpiteetHyvaksytty: HyvaksyttyKoejaksonVaiheDTO? = null
@@ -264,7 +256,6 @@ class KoejaksonVaiheetServiceImpl(
                     hyvaksytytVaiheet.add(mappedValiarviointiHyvaksytty)
                     hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
                 }
-                resultList[userId]!!.add(mappedKehittamistoimenpiteet)
             }
         return Optional.ofNullable(mappedKehittamistoimenpiteetHyvaksytty)
     }
