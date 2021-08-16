@@ -1021,7 +1021,7 @@ class KouluttajaKoejaksoResourceIT {
         val authentication = OAuth2AuthenticationToken(user, authorities, "oidc")
         TestSecurityContextHolder.getContext().authentication = authentication
         val erikoistuvaLaakari =
-            ErikoistuvaLaakariHelper.createEntity(em, KoejaksonVaiheetHelper.DEFAULT_ID)
+            ErikoistuvaLaakariHelper.createEntity(em)
         em.persist(erikoistuvaLaakari)
 
         val vastuuhenkilo = KayttajaHelper.createEntity(
