@@ -36,10 +36,10 @@ class PoissaolonSyyServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<PoissaolonSyyDTO> {
+    override fun findAll(): List<PoissaolonSyyDTO> {
         log.debug("Request to get all PoissaolonSyy")
         return poissaolonSyyRepository.findAll()
-            .mapTo(mutableListOf(), poissaolonSyyMapper::toDto)
+            .map(poissaolonSyyMapper::toDto)
     }
 
     @Transactional(readOnly = true)

@@ -18,7 +18,11 @@ data class KayttajaDTO(
 
     var userId: String? = null,
 
-    var authorities: MutableSet<Authority>? = null
+    var authorities: MutableSet<Authority>? = null,
+
+    var nimike: String? = null,
+
+    var yliopisto: String? = null
 
 ) : Serializable {
 

@@ -116,22 +116,12 @@ spring:
   output:
     ansi:
       console-available: true
-  security:
-    oauth2:
-      client:
-        provider:
-          oidc:
-            issuer-uri: http://localhost:9080/auth/realms/elsa
-        registration:
-          oidc:
-            client-id: web-app
-            client-secret: web-app
-
 server:
   servlet:
     session:
       cookie:
         http-only: true
+
 
 # Properties to be exposed on the /info management endpoint
 info:
@@ -191,5 +181,14 @@ application:
       client-secret: web-app-admin
   security:
     encoded-key:
-    secret-key-algorithm:
-    cipher-algorithm:
+    secret-key-algorithm: AES
+    cipher-algorithm: AES/CBC/PKCS5Padding
+    saml-private-key-location: "classpath:privateKey.key"
+    saml-certificate-location: "classpath:certificate.crt"
+    saml-scheme: http
+cloud:
+  aws:
+    region:
+      static: eu-west-1
+    stack:
+      auto: false

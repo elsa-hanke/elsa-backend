@@ -1,206 +1,211 @@
 name: $(date:yyyy-MM-dd)$(rev:.r)
 variables:
-- name: vmImageName
-  value: 'Ubuntu 16.04'
-- name: isMain
-  value: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
-- name: tag
-  value: $(Build.BuildNumber)
-- name: ACCOUNT_ID_DEV
-  value: '939452229770'
-- name: ACCOUNT_ID_STAGING
-  value: '599051528004'
-- name: ACCOUNT_ID_PROD
-  value: '356554929528'
-- name: AWS_DEFAULT_REGION
-  value: 'eu-west-1'
-- name: IMAGE_REPO_NAME_DEV
-  value: 'ecr-dev-backend'
-- name: IMAGE_REPO_NAME_STAGING
-  value: 'ecr-staging-backend'
+  - name: vmImageName
+    value: 'Ubuntu 16.04'
+  - name: isMain
+    value: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+  - name: tag
+    value: $(Build.BuildNumber)
+  - name: ACCOUNT_ID_DEV
+    value: '939452229770'
+  - name: ACCOUNT_ID_STAGING
+    value: '599051528004'
+  - name: ACCOUNT_ID_PROD
+    value: '356554929528'
+  - name: AWS_DEFAULT_REGION
+    value: 'eu-west-1'
+  - name: IMAGE_REPO_NAME_DEV
+    value: 'ecr-dev-backend'
+  - name: IMAGE_REPO_NAME_STAGING
+    value: 'ecr-staging-backend'
 
 stages:
-- stage: Build
-  displayName: Build and push stage
-  jobs:
-  - job: Build
-    pool:
-      vmImage: $(vmImageName)
-    variables:
-    - name: NODE_VERSION
-      value: 12.16.1
-    - name: SPRING_OUTPUT_ANSI_ENABLED
-      value: NEVER
-    - name: SPRING_JPA_SHOW_SQL
-      value: false
-    - name: JHI_DISABLE_WEBPACK_LOGS
-      value: true
-    - name: GRADLE_USER_HOME
-      value: $(Pipeline.Workspace)/.gradle
-    - name: TERM
-      value: dumb
+  - stage: Build
+    displayName: Build and push stage
+    jobs:
+      - job: Build
+        pool:
+          vmImage: $(vmImageName)
+        variables:
+          - name: NODE_VERSION
+            value: 12.16.1
+          - name: SPRING_OUTPUT_ANSI_ENABLED
+            value: NEVER
+          - name: SPRING_JPA_SHOW_SQL
+            value: false
+          - name: JHI_DISABLE_WEBPACK_LOGS
+            value: true
+          - name: GRADLE_USER_HOME
+            value: $(Pipeline.Workspace)/.gradle
+          - name: TERM
+            value: dumb
 
-    steps:
-    - task: Cache@2
-      inputs:
-        key: 'gradle | "$(Agent.OS)"'
-        restoreKeys: gradle
-        path: $(GRADLE_USER_HOME)
-      displayName: Gradle build cache
-    - task: CmdLine@2
-      displayName: 'Test'
-      inputs:
-        script: |
-          ./gradlew checkstyleNohttp
-          ./gradlew clean test integrationTest
-    - task: CmdLine@2
-      continueOnError: true
-      displayName: 'Dependency check'
-      inputs:
-        script: |
-          ./gradlew dependencyCheckAnalyze
-    - task: ecdc45f6-832d-4ad9-b52b-ee49e94659be@1
-      continueOnError: true
-      displayName: 'Upload dependency check artifact'
-      inputs:
-        path: $(System.DefaultWorkingDirectory)/build/reports/dependency-check-report.html
-        artifactName: DependencyCheck
-    - task: CmdLine@2
-      displayName: 'Build'
-      inputs:
-        script: |
-          ./gradlew --build-cache build -x test integrationTest
-    - task: CmdLine@2
-      displayName: 'Build image'
-      inputs:
-        script: |
-          ./gradlew bootJar -Ptag=$(tag) -Pprod -x test jibDockerBuild
-    - task: CmdLine@2
-      displayName: 'Gradle daemon stop'
-      inputs:
-        script: |
-          ./gradlew --stop
-    - task: ECRPushImage@1
-      condition: eq(variables.isMain, true)
-      inputs:
-        awsCredentials: 'elsa-ci'
-        regionName: 'eu-west-1'
-        imageSource: 'imagename'
-        sourceImageName: 'elsabackend'
-        repositoryName: 'ecr-dev-backend'
-        pushTag: $(tag)
-      displayName: 'Push image'
-
-- stage: Deploy_backend_dev
-  displayName: Deploy backend dev
-  dependsOn:
-  - Build
-  condition: and(succeeded(), eq(variables.isMain, true))
-  jobs:
-  - deployment: Deploy
-    displayName: Deploy backend dev
-    environment:
-      name: "development"
-    pool:
-      vmImage: $(vmImageName)
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: AWSShellScript@1
+        steps:
+          - task: JavaToolInstaller@0
+            inputs:
+              versionSpec: '11'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+          - task: Cache@2
+            inputs:
+              key: 'gradle | "$(Agent.OS)"'
+              restoreKeys: gradle
+              path: $(GRADLE_USER_HOME)
+            displayName: Gradle build cache
+          - task: CmdLine@2
+            displayName: 'Test'
+            inputs:
+              script: |
+                ./gradlew checkstyleNohttp
+                ./gradlew clean test integrationTest
+          - task: CmdLine@2
+            continueOnError: true
+            displayName: 'Dependency check'
+            inputs:
+              script: |
+                ./gradlew dependencyCheckAnalyze
+          - task: ecdc45f6-832d-4ad9-b52b-ee49e94659be@1
+            continueOnError: true
+            displayName: 'Upload dependency check artifact'
+            inputs:
+              path: $(System.DefaultWorkingDirectory)/build/reports/dependency-check-report.html
+              artifactName: DependencyCheck
+          - task: CmdLine@2
+            displayName: 'Build'
+            inputs:
+              script: |
+                ./gradlew --build-cache build -Pprod -x test integrationTest
+          - task: CmdLine@2
+            displayName: 'Build image'
+            inputs:
+              script: |
+                ./gradlew bootJar -Ptag=$(tag) -Pprod -x test jibDockerBuild
+          - task: CmdLine@2
+            displayName: 'Gradle daemon stop'
+            inputs:
+              script: |
+                ./gradlew --stop
+          - task: ECRPushImage@1
+            condition: eq(variables.isMain, true)
             inputs:
               awsCredentials: 'elsa-ci'
               regionName: 'eu-west-1'
-              scriptType: 'inline'
-              inlineScript: |
-                set -e
-                ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME_DEV}:$(Build.BuildNumber)"
+              imageSource: 'imagename'
+              sourceImageName: 'elsabackend'
+              repositoryName: 'ecr-dev-backend'
+              pushTag: $(tag)
+            displayName: 'Push image'
 
-                TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "elsa-dev-backend" --region "$AWS_DEFAULT_REGION")
+  - stage: Deploy_backend_dev
+    displayName: Deploy backend dev
+    dependsOn:
+      - Build
+    condition: and(succeeded(), eq(variables.isMain, true))
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy backend dev
+        environment:
+          name: "development"
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AWSShellScript@1
+                  inputs:
+                    awsCredentials: 'elsa-ci'
+                    regionName: 'eu-west-1'
+                    scriptType: 'inline'
+                    inlineScript: |
+                      set -e
+                      ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME_DEV}:$(Build.BuildNumber)"
 
-                NEW_TASK_DEFINTIION=$(echo $TASK_DEFINITION | jq --arg IMAGE "$ECR_IMAGE" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
+                      TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "elsa-dev-backend" --region "$AWS_DEFAULT_REGION")
 
-                NEW_TASK_INFO=$(aws ecs register-task-definition --region "$AWS_DEFAULT_REGION" --cli-input-json "$NEW_TASK_DEFINTIION")
+                      NEW_TASK_DEFINTIION=$(echo $TASK_DEFINITION | jq --arg IMAGE "$ECR_IMAGE" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
 
-                NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
-                aws ecs update-service --cluster elsa-dev-cluster \
-                                       --service elsa-dev-backend-service \
-                                       --task-definition elsa-dev-backend:${NEW_REVISION} \
-                                       --force-new-deployment
-            displayName: Force update ecs service
+                      NEW_TASK_INFO=$(aws ecs register-task-definition --region "$AWS_DEFAULT_REGION" --cli-input-json "$NEW_TASK_DEFINTIION")
 
-- stage: Deploy_backend_testi
-  displayName: Deploy testi
-  dependsOn:
-  - Build
-  condition: and(succeeded(), eq(variables.isMain, true))
-  jobs:
-  - deployment: Deploy
+                      NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
+                      aws ecs update-service --cluster elsa-dev-cluster \
+                                             --service elsa-dev-backend-service \
+                                             --task-definition elsa-dev-backend:${NEW_REVISION} \
+                                             --force-new-deployment
+                  displayName: Force update ecs service
+
+  - stage: Deploy_backend_testi
     displayName: Deploy testi
-    environment:
-      name: "testi"
-    pool:
-      vmImage: $(vmImageName)
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
-            inputs:
-              awsCredentials: 'staging-elsa-ci'
-              regionName: 'eu-west-1'
-              scriptType: inline
-              inlineScript: |
-                set -e
-                ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME_DEV}:$(Build.BuildNumber)"
+    dependsOn:
+      - Build
+    condition: and(succeeded(), eq(variables.isMain, true))
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy testi
+        environment:
+          name: "testi"
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
+                  inputs:
+                    awsCredentials: 'staging-elsa-ci'
+                    regionName: 'eu-west-1'
+                    scriptType: inline
+                    inlineScript: |
+                      set -e
+                      ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME_DEV}:$(Build.BuildNumber)"
 
-                TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "elsa-staging-backend" --region "$AWS_DEFAULT_REGION")
+                      TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "elsa-staging-backend" --region "$AWS_DEFAULT_REGION")
 
-                NEW_TASK_DEFINTIION=$(echo $TASK_DEFINITION | jq --arg IMAGE "$ECR_IMAGE" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
+                      NEW_TASK_DEFINTIION=$(echo $TASK_DEFINITION | jq --arg IMAGE "$ECR_IMAGE" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
 
-                NEW_TASK_INFO=$(aws ecs register-task-definition --region "$AWS_DEFAULT_REGION" --cli-input-json "$NEW_TASK_DEFINTIION")
+                      NEW_TASK_INFO=$(aws ecs register-task-definition --region "$AWS_DEFAULT_REGION" --cli-input-json "$NEW_TASK_DEFINTIION")
 
-                NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
-                aws ecs update-service --cluster elsa-staging-cluster \
-                                       --service elsa-staging-backend-service \
-                                       --task-definition elsa-staging-backend:${NEW_REVISION} \
-                                       --force-new-deployment
-            displayName: Force update ecs service
+                      NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
+                      aws ecs update-service --cluster elsa-staging-cluster \
+                                             --service elsa-staging-backend-service \
+                                             --task-definition elsa-staging-backend:${NEW_REVISION} \
+                                             --force-new-deployment
+                  displayName: Force update ecs service
 
-- stage: Deploy_backend_prod
-  displayName: Deploy prod
-  dependsOn:
-  - Build
-  condition: and(succeeded(), eq(variables.isMain, true))
-  jobs:
-  - deployment: Deploy
+  - stage: Deploy_backend_prod
     displayName: Deploy prod
-    environment:
-      name: "testi"
-    pool:
-      vmImage: $(vmImageName)
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
-            inputs:
-              awsCredentials: 'prod-elsa-ci'
-              regionName: 'eu-west-1'
-              scriptType: inline
-              inlineScript: |
-                set -e
-                ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME_DEV}:$(Build.BuildNumber)"
+    dependsOn:
+      - Build
+    condition: and(succeeded(), eq(variables.isMain, true))
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy prod
+        environment:
+          name: "testi"
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
+                  inputs:
+                    awsCredentials: 'prod-elsa-ci'
+                    regionName: 'eu-west-1'
+                    scriptType: inline
+                    inlineScript: |
+                      set -e
+                      ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME_DEV}:$(Build.BuildNumber)"
 
-                TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "elsa-prod-backend" --region "$AWS_DEFAULT_REGION")
+                      TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "elsa-prod-backend" --region "$AWS_DEFAULT_REGION")
 
-                NEW_TASK_DEFINTIION=$(echo $TASK_DEFINITION | jq --arg IMAGE "$ECR_IMAGE" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
+                      NEW_TASK_DEFINTIION=$(echo $TASK_DEFINITION | jq --arg IMAGE "$ECR_IMAGE" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
 
-                NEW_TASK_INFO=$(aws ecs register-task-definition --region "$AWS_DEFAULT_REGION" --cli-input-json "$NEW_TASK_DEFINTIION")
+                      NEW_TASK_INFO=$(aws ecs register-task-definition --region "$AWS_DEFAULT_REGION" --cli-input-json "$NEW_TASK_DEFINTIION")
 
-                NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
-                aws ecs update-service --cluster elsa-prod-cluster \
-                                       --service elsa-prod-backend-service \
-                                       --task-definition elsa-prod-backend:${NEW_REVISION} \
-                                       --force-new-deployment
-            displayName: Force update ecs service
+                      NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
+                      aws ecs update-service --cluster elsa-prod-cluster \
+                                             --service elsa-prod-backend-service \
+                                             --task-definition elsa-prod-backend:${NEW_REVISION} \
+                                             --force-new-deployment
+                  displayName: Force update ecs service

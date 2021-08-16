@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
+import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
@@ -23,8 +24,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
@@ -72,9 +73,11 @@ class VastuuhenkiloKoejaksoResourceIT {
 
     private lateinit var koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
 
+    private lateinit var user: User
+
     @BeforeEach
     fun setup() {
-        MockitoAnnotations.initMocks(this)
+        MockitoAnnotations.openMocks(this)
     }
 
     @Test
@@ -97,7 +100,11 @@ class VastuuhenkiloKoejaksoResourceIT {
             .andExpect(jsonPath("$[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.erikoistuvanNimi as Any))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].id").value(koejaksonLoppukeskustelu.id as Any))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].tyyppi").value("LOPPUKESKUSTELU"))
-            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].id").value(koejaksonKehittamistoimenpiteet.id as Any))
+            .andExpect(
+                jsonPath("$[0].hyvaksytytVaiheet[1].id").value(
+                    koejaksonKehittamistoimenpiteet.id as Any
+                )
+            )
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].tyyppi").value("KEHITTAMISTOIMENPITEET"))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].id").value(koejaksonValiarviointi.id as Any))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].tyyppi").value("VALIARVIOINTI"))
@@ -121,7 +128,8 @@ class VastuuhenkiloKoejaksoResourceIT {
                 "/api/vastuuhenkilo/koejakso/koulutussopimus/{id}", id
             )
         )
-            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(koejaksonKoulutussopimus.id as Any))
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKoulutussopimus.erikoistuvanNimi as Any))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKoulutussopimus.erikoistuvanOpiskelijatunnus as Any))
@@ -171,7 +179,8 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = true
-        updatedKoulutussopimus.vastuuhenkilonKuittausaika = KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        updatedKoulutussopimus.vastuuhenkilonKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
@@ -202,7 +211,8 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = true
-        updatedKoulutussopimus.vastuuhenkilonKuittausaika = KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        updatedKoulutussopimus.vastuuhenkilonKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
@@ -230,7 +240,8 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = true
-        updatedKoulutussopimus.vastuuhenkilonKuittausaika = KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        updatedKoulutussopimus.vastuuhenkilonKuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
@@ -356,34 +367,33 @@ class VastuuhenkiloKoejaksoResourceIT {
     }
 
     fun initTest(userId: String? = KoejaksonVaiheetHelper.DEFAULT_VASTUUHENKILO_ID) {
-        val userDetails = mapOf<String, Any>(
-            "uid" to userId!!,
-            "sub" to KoejaksonVaiheetHelper.DEFAULT_LOGIN,
-            "email" to KoejaksonVaiheetHelper.DEFAULT_EMAIL
+        user = KayttajaResourceIT.createEntity()
+        em.persist(user)
+        em.flush()
+        val userDetails = mapOf<String, List<Any>>(
         )
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
-        val user = DefaultOAuth2User(authorities, userDetails, "sub")
-        val authentication = OAuth2AuthenticationToken(user, authorities, "oidc")
+        val authentication = Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            "test",
+            authorities
+        )
         TestSecurityContextHolder.getContext().authentication = authentication
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, KoejaksonVaiheetHelper.DEFAULT_ID)
+        val erikoistuvaLaakari =
+            ErikoistuvaLaakariHelper.createEntity(em)
         em.persist(erikoistuvaLaakari)
 
-        val vastuuhenkilo = KayttajaHelper.createEntity(
-            em, KoejaksonVaiheetHelper.DEFAULT_VASTUUHENKILO_ID
-        )
+        val vastuuhenkilo = KayttajaHelper.createEntity(em, user)
         em.persist(vastuuhenkilo)
 
-        val kouluttaja = KayttajaHelper.createEntity(
-            em, KoejaksonVaiheetHelper.DEFAULT_KOULUTTAJA_ID
-        )
+        val kouluttaja = KayttajaHelper.createEntity(em)
         em.persist(kouluttaja)
 
-        val esimies = KayttajaHelper.createEntity(
-            em, KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID
-        )
+        val esimies = KayttajaHelper.createEntity(em)
         em.persist(esimies)
 
-        koejaksonKoulutussopimus = KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
+        koejaksonKoulutussopimus =
+            KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
         koejaksonKoulutussopimus.kouluttajat =
             mutableSetOf(
                 KoejaksonVaiheetHelper.createKoulutussopimuksenKouluttaja(
@@ -392,7 +402,11 @@ class VastuuhenkiloKoejaksoResourceIT {
                 )
             )
         koejaksonKoulutussopimus.koulutuspaikat =
-            mutableSetOf(KoejaksonVaiheetHelper.createKoulutussopimuksenKoulutuspaikka(koejaksonKoulutussopimus))
+            mutableSetOf(
+                KoejaksonVaiheetHelper.createKoulutussopimuksenKoulutuspaikka(
+                    koejaksonKoulutussopimus
+                )
+            )
         em.persist(koejaksonKoulutussopimus)
 
         koejaksonAloituskeskustelu =
@@ -402,7 +416,11 @@ class VastuuhenkiloKoejaksoResourceIT {
             KoejaksonVaiheetHelper.createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
         em.persist(koejaksonValiarviointi)
         koejaksonKehittamistoimenpiteet =
-            KoejaksonVaiheetHelper.createKehittamistoimenpiteet(erikoistuvaLaakari, kouluttaja, esimies)
+            KoejaksonVaiheetHelper.createKehittamistoimenpiteet(
+                erikoistuvaLaakari,
+                kouluttaja,
+                esimies
+            )
         em.persist(koejaksonKehittamistoimenpiteet)
         koejaksonLoppukeskustelu =
             KoejaksonVaiheetHelper.createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)

@@ -1,7 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.muu
 
 import fi.elsapalvelu.elsa.service.KayttajaService
+import fi.elsapalvelu.elsa.service.YliopistoService
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -12,7 +14,8 @@ import java.security.Principal
 @RestController
 @RequestMapping("/api/")
 class MuutToiminnotResource(
-    private val kayttajaService: KayttajaService
+    private val kayttajaService: KayttajaService,
+    private val yliopistoService: YliopistoService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -23,5 +26,12 @@ class MuutToiminnotResource(
     ): ResponseEntity<List<KayttajaDTO>> {
         log.debug("REST request to get Kouluttajat")
         return ResponseEntity.ok(kayttajaService.findKouluttajat())
+    }
+
+    @GetMapping("/yliopistot")
+    fun getYliopistot(
+        principal: Principal?
+    ): ResponseEntity<List<YliopistoDTO>> {
+        return ResponseEntity.ok(yliopistoService.findAll())
     }
 }

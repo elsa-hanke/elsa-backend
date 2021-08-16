@@ -22,13 +22,13 @@ class ArviointityokaluServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<ArviointityokaluDTO> {
+    override fun findAll(): List<ArviointityokaluDTO> {
         return arviointityokaluRepository.findAll()
-            .mapTo(mutableListOf(), arviointityokaluMapper::toDto)
+            .map(arviointityokaluMapper::toDto)
     }
 
-    override fun findAllByKayttajaUserLogin(userId: String): MutableList<ArviointityokaluDTO> {
-        return arviointityokaluRepository.findAllByKayttajaIsNullOrKayttajaUserLogin(userId)
+    override fun findAllByKayttajaUserId(userId: String): MutableList<ArviointityokaluDTO> {
+        return arviointityokaluRepository.findAllByKayttajaIsNullOrKayttajaUserId(userId)
             .mapTo(mutableListOf(), arviointityokaluMapper::toDto)
     }
 

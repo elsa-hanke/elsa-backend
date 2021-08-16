@@ -9,6 +9,8 @@ data class KoulutussopimuksenKouluttajaDTO(
 
     var kayttajaId: Long? = null,
 
+    var kayttajaUserId: String? = null,
+
     var nimi: String? = null,
 
     var nimike: String? = null,

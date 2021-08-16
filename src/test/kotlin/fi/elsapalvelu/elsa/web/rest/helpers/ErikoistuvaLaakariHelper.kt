@@ -23,7 +23,7 @@ class ErikoistuvaLaakariHelper {
         private const val DEFAULT_YLIOPISTO = "TAYS"
 
         @JvmStatic
-        fun createEntity(em: EntityManager, userId: String? = null): ErikoistuvaLaakari {
+        fun createEntity(em: EntityManager, user: User? = null): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari(
                 puhelinnumero = DEFAULT_PUHELINNUMERO,
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
@@ -31,13 +31,11 @@ class ErikoistuvaLaakariHelper {
             )
 
             // Lisätään pakollinen tieto
-            val kayttaja: Kayttaja
-            if (em.findAll(Kayttaja::class).isEmpty()) {
-                kayttaja = KayttajaHelper.createEntity(em, userId)
+            var kayttaja = em.findAll(Kayttaja::class).firstOrNull { it.user == user }
+            if (kayttaja == null) {
+                kayttaja = KayttajaHelper.createEntity(em, user)
                 em.persist(kayttaja)
                 em.flush()
-            } else {
-                kayttaja = em.findAll(Kayttaja::class).get(0)
             }
             val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
             em.persist(yliopisto)

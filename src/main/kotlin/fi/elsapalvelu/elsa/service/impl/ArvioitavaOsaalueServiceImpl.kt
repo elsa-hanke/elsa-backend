@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.service.dto.ArvioitavaOsaalueDTO
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaOsaalueMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
+import java.util.*
 
 @Service
 @Transactional
@@ -22,9 +22,9 @@ class ArvioitavaOsaalueServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<ArvioitavaOsaalueDTO> {
+    override fun findAll(): List<ArvioitavaOsaalueDTO> {
         return arvioitavaOsaalueRepository.findAll()
-            .mapTo(mutableListOf(), arvioitavaOsaalueMapper::toDto)
+            .map(arvioitavaOsaalueMapper::toDto)
     }
 
     @Transactional(readOnly = true)
