@@ -5,15 +5,10 @@ import fi.elsapalvelu.elsa.config.LOGIN_REGEX
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.annotations.GenericGenerator
 import java.io.Serializable
 import java.time.Instant
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.JoinTable
-import javax.persistence.ManyToMany
-import javax.persistence.Table
+import javax.persistence.*
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Pattern
@@ -25,6 +20,8 @@ import javax.validation.constraints.Size
 class User(
 
     @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     var id: String? = null,
 
     @field:NotNull

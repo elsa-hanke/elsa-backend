@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20210630161925" author="jhipster">
+
+        <addColumn tableName="erikoistuva_laakari">
+            <column name="syntymaaika" type="date"/>
+        </addColumn>
+
+        <addColumn tableName="erikoistuva_laakari">
+            <column name="opintooikeuden_myontamispaiva" type="date"/>
+        </addColumn>
+
+        <addColumn tableName="erikoistuva_laakari">
+            <column name="opintooikeuden_paattymispaiva" type="date"/>
+        </addColumn>
+
+    </changeSet>
+</databaseChangeLog>

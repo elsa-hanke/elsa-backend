@@ -10,7 +10,8 @@ import org.mapstruct.ReportingPolicy
 @Mapper(
     componentModel = "spring",
     uses = [
-        UserMapper::class
+        UserMapper::class,
+        YliopistoMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
@@ -23,7 +24,8 @@ interface KayttajaMapper :
             target = "nimi",
             expression = "java(entity.getUser() == null ? \"\" : entity.getUser().getFirstName() + \" \" + entity.getUser().getLastName())"
         ),
-        Mapping(source = "user.authorities", target = "authorities")
+        Mapping(source = "user.authorities", target = "authorities"),
+        Mapping(source = "yliopisto.nimi", target = "yliopisto")
     )
     override fun toDto(entity: Kayttaja): KayttajaDTO
 

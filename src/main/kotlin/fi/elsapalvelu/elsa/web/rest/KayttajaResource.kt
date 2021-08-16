@@ -15,4 +15,5 @@ class KayttajaResource(
 
     @GetMapping("/kayttaja")
     fun getKayttaja(principal: Principal?): UserDTO = userService.getAuthenticatedUser(principal)
+
 }

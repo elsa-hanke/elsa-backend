@@ -4,11 +4,9 @@ import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.YliopistoService
 import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
 import fi.elsapalvelu.elsa.service.mapper.YliopistoMapper
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
+import java.util.*
 
 @Service
 @Transactional
@@ -24,13 +22,10 @@ class YliopistoServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(pageable: Pageable): Page<YliopistoDTO> {
-        return yliopistoRepository.findAll(pageable)
+    override fun findAll(): List<YliopistoDTO> {
+        return yliopistoRepository.findAll()
             .map(yliopistoMapper::toDto)
     }
-
-    override fun findAllWithEagerRelationships(pageable: Pageable) =
-        yliopistoRepository.findAllWithEagerRelationships(pageable).map(yliopistoMapper::toDto)
 
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<YliopistoDTO> {

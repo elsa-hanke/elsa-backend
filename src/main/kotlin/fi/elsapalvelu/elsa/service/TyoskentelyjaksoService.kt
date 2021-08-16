@@ -19,7 +19,7 @@ interface TyoskentelyjaksoService {
         deletedAsiakirjaIds: MutableSet<Int>?
     ): TyoskentelyjaksoDTO?
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<TyoskentelyjaksoDTO>
+    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<TyoskentelyjaksoDTO>
 
     fun findOne(id: Long, userId: String): TyoskentelyjaksoDTO?
 

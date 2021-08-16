@@ -10,7 +10,7 @@ interface KuntaService {
 
     fun findAll(pageable: Pageable): Page<KuntaDTO>
 
-    fun findAll(): MutableList<KuntaDTO>
+    fun findAll(): List<KuntaDTO>
 
     fun findOne(id: String): KuntaDTO?
 

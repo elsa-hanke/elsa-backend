@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
+import java.util.*
 
 @Service
 @Transactional
@@ -30,9 +30,9 @@ class ErikoisalaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<ErikoisalaDTO> {
+    override fun findAll(): List<ErikoisalaDTO> {
         return erikoisalaRepository.findAll()
-            .mapTo(mutableListOf(), erikoisalaMapper::toDto)
+            .map(erikoisalaMapper::toDto)
     }
 
     @Transactional(readOnly = true)

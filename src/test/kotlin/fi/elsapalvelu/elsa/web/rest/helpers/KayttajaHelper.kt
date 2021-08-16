@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.Kayttaja
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
 import fi.elsapalvelu.elsa.web.rest.createByteArray
 import javax.persistence.EntityManager
@@ -22,17 +22,21 @@ class KayttajaHelper {
         private const val UPDATED_PROFIILIKUVA_CONTENT_TYPE: String = "image/png"
 
         @JvmStatic
-        fun createEntity(em: EntityManager, userId: String? = null): Kayttaja {
+        fun createEntity(em: EntityManager, user: User? = null): Kayttaja {
             val kayttaja = Kayttaja(
                 profiilikuva = DEFAULT_PROFIILIKUVA,
                 profiilikuvaContentType = DEFAULT_PROFIILIKUVA_CONTENT_TYPE
             )
 
             // Lisätään pakollinen tieto
-            val user = KayttajaResourceIT.createEntity(userId)
-            em.persist(user)
-            em.flush()
-            kayttaja.user = user
+            if (user == null) {
+                val newUser = KayttajaResourceIT.createEntity()
+                em.persist(newUser)
+                em.flush()
+                kayttaja.user = newUser
+            } else {
+                kayttaja.user = user
+            }
 
             return kayttaja
         }
@@ -40,7 +44,6 @@ class KayttajaHelper {
         @JvmStatic
         fun createUpdatedEntity(
             em: EntityManager,
-            userId: String? = null,
             nimi: String? = UPDATED_NIMI
         ): Kayttaja {
             val kayttaja = Kayttaja(
@@ -49,7 +52,7 @@ class KayttajaHelper {
             )
 
             // Lisätään pakollinen tieto
-            val user = KayttajaResourceIT.createEntity(userId, nimi)
+            val user = KayttajaResourceIT.createEntity(nimi)
             em.persist(user)
             em.flush()
             kayttaja.user = user
