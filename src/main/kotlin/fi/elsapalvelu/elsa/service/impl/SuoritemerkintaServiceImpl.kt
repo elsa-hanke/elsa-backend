@@ -59,13 +59,13 @@ class SuoritemerkintaServiceImpl(
     @Transactional(readOnly = true)
     override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         userId: String
-    ): MutableList<SuoritemerkintaDTO> {
+    ): List<SuoritemerkintaDTO> {
         log.debug("Request to get list of Suoritemerkinta by user id : $userId")
 
         return suoritemerkintaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
             userId
         )
-            .mapTo(mutableListOf(), suoritemerkintaMapper::toDto)
+            .map(suoritemerkintaMapper::toDto)
     }
 
     @Transactional(readOnly = true)

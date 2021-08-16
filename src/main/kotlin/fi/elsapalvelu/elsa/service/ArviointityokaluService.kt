@@ -7,9 +7,9 @@ interface ArviointityokaluService {
 
     fun save(arviointityokaluDTO: ArviointityokaluDTO): ArviointityokaluDTO
 
-    fun findAll(): MutableList<ArviointityokaluDTO>
+    fun findAll(): List<ArviointityokaluDTO>
 
-    fun findAllByKayttajaUserLogin(userId: String): MutableList<ArviointityokaluDTO>
+    fun findAllByKayttajaUserId(userId: String): MutableList<ArviointityokaluDTO>
 
     fun findOne(id: Long): Optional<ArviointityokaluDTO>
 

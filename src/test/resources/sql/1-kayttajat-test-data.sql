@@ -53,6 +53,11 @@ insert into jhi_user (id, login, first_name, last_name, email, activated, lang_k
 values ('d7f727e4-85aa-4293-b65d-95c52b100ce6', 'vastuuhenkilo@test.com', 'Ville', 'Vastuuhenkilo', 'vastuuhenkilo@test.com', true, 'fi', 'system', '2020-06-11 12:50:31.526020',
         null, null, null, null);
 
+insert into jhi_user (id, login, first_name, last_name, email, activated, lang_key, created_by, created_date,
+                      last_modified_by, last_modified_date, hetu, init_vector)
+values ('666727e4-85aa-4293-b65d-95c52b100666', 'vastuuhenkilo2@test.com', 'Veikko', 'Vastuuhenkilo', 'vastuuhenkilo2@test.com', true, 'fi', 'system', '2020-06-11 12:50:31.526020',
+        null, null, null, null);
+
 
 insert into jhi_user_authority (user_id, authority_name)
 values ('5a0e2f03-ade4-45cf-9cd6-e074b1c6f426', 'ROLE_ERIKOISTUVA_LAAKARI');
@@ -93,69 +98,74 @@ values ('1d628e68-1365-41a0-a102-438ad139c9de', 'ROLE_LAHIKOULUTTAJA');
 insert into jhi_user_authority (user_id, authority_name)
 values ('d7f727e4-85aa-4293-b65d-95c52b100ce6', 'ROLE_VASTUUHENKILO');
 
+insert into jhi_user_authority (user_id, authority_name)
+values ('666727e4-85aa-4293-b65d-95c52b100666', 'ROLE_VASTUUHENKILO');
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5001, null, null, '5a0e2f03-ade4-45cf-9cd6-e074b1c6f426', 1, null);
+values (5001, null, null, '5a0e2f03-ade4-45cf-9cd6-e074b1c6f426', 1, 'Erikoistuva lääkäri');
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5002, null, null, '77fb2d0b-80c4-443a-8ed5-0144ae4e37d3', 1, null);
+values (5002, null, null, '77fb2d0b-80c4-443a-8ed5-0144ae4e37d3', 1, 'Erikoistuva lääkäri');
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5003, null, null, 'eb745779-3a4b-42ce-919b-18db6ed256af', 1, null);
+values (5003, null, null, 'eb745779-3a4b-42ce-919b-18db6ed256af', 1, 'Erikoistuva lääkäri');
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5004, null, null, '92ec93eb-7ec9-4ff2-9031-16592b7195d5', 1, null);
+values (5004, null, null, '92ec93eb-7ec9-4ff2-9031-16592b7195d5', 1, 'Erikoistuva lääkäri');
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5005, null, null, '666c93eb-7ec9-4ff2-9031-16592b719666', 1, null);
+values (5005, null, null, '666c93eb-7ec9-4ff2-9031-16592b719666', 1, 'Erikoistuva lääkäri');
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5006, null, null, '777c93eb-7ec9-4ff2-9031-16592b719777', 1, null);
+values (5006, null, null, '777c93eb-7ec9-4ff2-9031-16592b719777', 1, 'Erikoistuva lääkäri');
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5007, null, null, '888c93eb-7ec9-4ff2-9031-16592b719888', 1, null);
+values (5007, null, null, '888c93eb-7ec9-4ff2-9031-16592b719888', 1, 'Erikoistuva lääkäri');
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (5008, null, null, '999c93eb-7ec9-4ff2-9031-16592b719999', 1, null);
+values (5008, null, null, '999c93eb-7ec9-4ff2-9031-16592b719999', 1, 'Erikoistuva lääkäri');
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (6001, null, null, 'f7f90358-0e7e-4bfb-82f7-75f1fce7887e', 1, null);
+values (6001, null, null, 'f7f90358-0e7e-4bfb-82f7-75f1fce7887e', 1, 'Erikoislääkäri');
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (6002, null, null, '1d628e68-1365-41a0-a102-438ad139c9de', 1, null);
+values (6002, null, null, '1d628e68-1365-41a0-a102-438ad139c9de', 1, 'Erikoislääkäri');
 
 insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
-values (7001, null, null, 'd7f727e4-85aa-4293-b65d-95c52b100ce6', 1, null);
+values (7001, null, null, 'd7f727e4-85aa-4293-b65d-95c52b100ce6', 1, 'Dosentti');
+
+insert into kayttaja (id, profiilikuva, profiilikuva_content_type, user_id, yliopisto_id, nimike)
+values (7002, null, null, '666727e4-85aa-4293-b65d-95c52b100666', 1, 'Dosentti');
 
 
 insert into erikoistuva_laakari (id, puhelinnumero, opiskelijatunnus, opintojen_aloitusvuosi, kayttaja_id,
-                                 erikoisala_id)
-values (4000, 01234567, 1234567, 2010, 5001, 46);
+                                 erikoisala_id, syntymaaika, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva)
+values (4000, 01234567, 1234567, 2010, 5001, 46, '1982-04-07', '2020-02-01', '2022-02-01');
 
 insert into erikoistuva_laakari (id, puhelinnumero, opiskelijatunnus, opintojen_aloitusvuosi, kayttaja_id,
-                                 erikoisala_id)
-values (4001, 01234567, 1234567, 2010, 5002, 46);
+                                 erikoisala_id, syntymaaika, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva)
+values (4001, 01234567, 1234567, 2010, 5002, 46, '1982-04-07', '2020-02-01', '2022-02-01');
 
 insert into erikoistuva_laakari (id, puhelinnumero, opiskelijatunnus, opintojen_aloitusvuosi, kayttaja_id,
-                                 erikoisala_id)
-values (4002, 01234567, 1234567, 2010, 5003, 46);
+                                 erikoisala_id, syntymaaika, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva)
+values (4002, 01234567, 1234567, 2010, 5003, 46, '1982-04-07', '2020-02-01', '2022-02-01');
 
 insert into erikoistuva_laakari (id, puhelinnumero, opiskelijatunnus, opintojen_aloitusvuosi, kayttaja_id,
-                                 erikoisala_id)
-values (4003, 01234567, 1234567, 2010, 5004, 46);
+                                 erikoisala_id, syntymaaika, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva)
+values (4003, 01234567, 1234567, 2010, 5004, 46, '1982-04-07', '2020-02-01', '2022-02-01');
 
 insert into erikoistuva_laakari (id, puhelinnumero, opiskelijatunnus, opintojen_aloitusvuosi, kayttaja_id,
-                                 erikoisala_id)
-values (4004, 01234567, 1234567, 2010, 5005, 46);
+                                 erikoisala_id, syntymaaika, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva)
+values (4004, 01234567, 1234567, 2010, 5005, 46, '1982-04-07', '2020-02-01', '2022-02-01');
 
 insert into erikoistuva_laakari (id, puhelinnumero, opiskelijatunnus, opintojen_aloitusvuosi, kayttaja_id,
-                                 erikoisala_id)
-values (4005, 01234567, 1234567, 2010, 5006, 46);
+                                 erikoisala_id, syntymaaika, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva)
+values (4005, 01234567, 1234567, 2010, 5006, 46, '1982-04-07', '2020-02-01', '2022-02-01');
 
 insert into erikoistuva_laakari (id, puhelinnumero, opiskelijatunnus, opintojen_aloitusvuosi, kayttaja_id,
-                                 erikoisala_id)
-values (4006, 01234567, 1234567, 2010, 5007, 46);
+                                 erikoisala_id, syntymaaika, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva)
+values (4006, 01234567, 1234567, 2010, 5007, 46, '1982-04-07', '2020-02-01', '2022-02-01');
 
 insert into erikoistuva_laakari (id, puhelinnumero, opiskelijatunnus, opintojen_aloitusvuosi, kayttaja_id,
-                                 erikoisala_id)
-values (4007, 01234567, 1234567, 2010, 5008, 46);
+                                 erikoisala_id, syntymaaika, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva)
+values (4007, 01234567, 1234567, 2010, 5008, 46, '1982-04-07', '2020-02-01', '2022-02-01');

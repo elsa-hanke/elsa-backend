@@ -1,48 +1,58 @@
 package fi.elsapalvelu.elsa.config
 
+import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
-import fi.elsapalvelu.elsa.security.oauth2.AudienceValidator
-import fi.elsapalvelu.elsa.security.oauth2.JwtGrantedAuthorityConverter
-import io.github.jhipster.config.JHipsterProperties
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.convert.converter.Converter
 import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AbstractAuthenticationToken
+import org.springframework.security.authentication.ProviderManager
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator
-import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority
-import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.oauth2.jwt.JwtDecoders
-import org.springframework.security.oauth2.jwt.JwtValidators
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
+import org.springframework.util.CollectionUtils
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.filter.CorsFilter
 import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport
+import java.nio.charset.StandardCharsets
+import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.SecretKey
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
+
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @Import(SecurityProblemSupport::class)
 class SecurityConfiguration(
     private val corsFilter: CorsFilter,
-    private val jHipsterProperties: JHipsterProperties,
     private val applicationProperties: ApplicationProperties,
-    private val problemSupport: SecurityProblemSupport
+    private val problemSupport: SecurityProblemSupport,
+    private val userRepository: UserRepository,
+    private val verificationTokenRepository: VerificationTokenRepository,
+    private val kayttajaRepository: KayttajaRepository,
+    private val suoritusarviointiRepository: SuoritusarviointiRepository,
+    private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
+    private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
+    private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
+    private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
+    private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
+    private val relyingPartyRegistrationResolver: ElsaRelyingPartyRegistrationResolver
 ) : WebSecurityConfigurerAdapter() {
-
-    @Value("\${spring.security.oauth2.client.provider.oidc.issuer-uri}")
-    private lateinit var issuerUri: String
 
     override fun configure(web: WebSecurity?) {
         web!!.ignoring()
@@ -55,6 +65,9 @@ class SecurityConfiguration(
     @Throws(Exception::class)
     public override fun configure(http: HttpSecurity) {
         val withHttpOnlyFalse = CookieCsrfTokenRepository.withHttpOnlyFalse()
+        val authenticationProvider =
+            OpenSamlAuthenticationProvider() // TODO: update to OpenSaml4AuthenticationProvider when opensaml-api updates to 4.1.1 in maven
+        authenticationProvider.setResponseAuthenticationConverter(authenticationConverter())
         withHttpOnlyFalse.setCookieDomain(applicationProperties.getCsrf().cookie.domain)
         http
             .csrf()
@@ -74,7 +87,7 @@ class SecurityConfiguration(
             .and()
             .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
             .and()
-            .featurePolicy(
+            .permissionsPolicy().policy(
                 "geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera" +
                     " 'none'; magnetometer 'none'; gyroscope 'none'; speaker 'none'; fullscreen 'self'; payment 'none'"
             )
@@ -85,6 +98,7 @@ class SecurityConfiguration(
             .authorizeRequests()
             .antMatchers("/authorize").authenticated()
             .antMatchers("/api/auth-info").permitAll()
+            .antMatchers("/api/erikoistuva-laakari/kayttooikeushakemus").authenticated()
             .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
             .antMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
             .antMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
@@ -94,55 +108,154 @@ class SecurityConfiguration(
             .antMatchers("/management/prometheus").permitAll()
             .antMatchers("/management/**").hasAuthority(ADMIN)
             .and()
-            .oauth2Login()
+            .saml2Login()
+            .authenticationConverter(
+                Saml2AuthenticationTokenConverter(
+                    relyingPartyRegistrationResolver
+                )
+            )
+            .authenticationManager(ProviderManager(authenticationProvider))
             .defaultSuccessUrl("/", true) // TODO: ohjaa pyydettyyn front end näkymään
             .failureUrl("/") // TODO: Ohjaa kirjautumiseen tai front end näkymään
-            .and()
-            .oauth2ResourceServer()
-            .jwt()
-            .jwtAuthenticationConverter(authenticationConverter())
-            .and()
-            .and()
-            .oauth2Client()
     }
 
-    fun authenticationConverter(): Converter<Jwt, AbstractAuthenticationToken> {
-        val jwtAuthenticationConverter = JwtAuthenticationConverter()
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(JwtGrantedAuthorityConverter())
-        return jwtAuthenticationConverter
+    fun authenticationConverter(): Converter<OpenSamlAuthenticationProvider.ResponseToken, AbstractAuthenticationToken> {
+        return Converter { responseToken ->
+            convertAuthentication(responseToken)
+        }
     }
 
-    /**
-     * Map authorities from "groups" or "roles" claim in ID Token.
-     *
-     * @return a [GrantedAuthoritiesMapper] that maps groups from
-     * the IdP to Spring Security Authorities.
-     */
-    @Bean
-    fun userAuthoritiesMapper() =
-        GrantedAuthoritiesMapper { authorities ->
-            val mappedAuthorities = mutableSetOf<GrantedAuthority>()
+    fun convertAuthentication(responseToken: OpenSamlAuthenticationProvider.ResponseToken): Saml2Authentication? {
+        val token: Saml2Authentication = OpenSamlAuthenticationProvider
+            .createDefaultResponseAuthenticationConverter()
+            .convert(responseToken) as Saml2Authentication
+        val principal = token.principal as Saml2AuthenticatedPrincipal
+        val hetu = principal.attributes["urn:oid:1.2.246.21"]?.get(0)
+        val firstName = principal.attributes["urn:oid:2.5.4.42"]?.get(0) as String
+        val lastName = principal.attributes["urn:oid:2.5.4.4"]?.get(0) as String
 
-            authorities.forEach {
-                // Check for OidcUserAuthority because Spring Security 5.2 returns
-                // each scope as a GrantedAuthority, which we don't care about.
-                if (it is OidcUserAuthority) {
-                    extractAuthorityFromClaims(it.userInfo.claims)?.let(mappedAuthorities::addAll)
+        val response = responseToken.response
+        val assertion = CollectionUtils.firstElement(response.assertions)
+        val nameID = assertion.subject.nameID
+        principal.attributes["nameID"] = mutableListOf(nameID.value) as List<Any>?
+        principal.attributes["nameIDFormat"] = mutableListOf(nameID.format) as List<Any>?
+        principal.attributes["nameIDQualifier"] = mutableListOf(nameID.nameQualifier) as List<Any>?
+        principal.attributes["nameIDSPQualifier"] =
+            mutableListOf(nameID.spNameQualifier) as List<Any>?
+
+        val decodedKey =
+            Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
+        val originalKey: SecretKey = SecretKeySpec(
+            decodedKey,
+            0,
+            decodedKey.size,
+            applicationProperties.getSecurity().secretKeyAlgorithm
+        )
+
+        val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
+
+        val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
+        val verificationToken = attr.request.getParameter("RelayState")
+
+        // Check invited user
+        if (verificationToken != null) {
+            verificationTokenRepository.findById(verificationToken)
+                .ifPresent {
+                    val tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
+
+                    val existingUser = findExistingUser(cipher, originalKey, hetu)
+
+                    // If user with same hetu exists, merge users
+                    if (existingUser != null) {
+                        val existingKayttaja = kayttajaRepository.findOneByUserId(existingUser.id!!)
+                        val tokenKayttaja = kayttajaRepository.findOneByUserId(tokenUser.id!!)
+
+                        updateKouluttajaReferences(
+                            tokenKayttaja.get().id!!,
+                            existingKayttaja.get().id!!
+                        )
+
+                        existingUser.email = tokenUser.email
+                        existingUser.authorities.clear()
+                        existingUser.authorities.addAll(tokenUser.authorities)
+
+                        kayttajaRepository.delete(tokenKayttaja.get())
+                        verificationTokenRepository.delete(it)
+                        userRepository.delete(tokenUser)
+                        userRepository.save(existingUser)
+                    } else {
+                        cipher.init(Cipher.ENCRYPT_MODE, originalKey)
+                        val params = cipher.parameters
+                        val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
+                        val ciphertext =
+                            cipher.doFinal(hetu.toString().toByteArray(StandardCharsets.UTF_8))
+
+                        tokenUser.hetu = ciphertext
+                        tokenUser.initVector = iv
+                        tokenUser.firstName = firstName
+                        tokenUser.lastName = lastName
+
+                        userRepository.save(tokenUser)
+                        verificationTokenRepository.delete(it)
+                    }
                 }
-            }
-            mappedAuthorities
         }
 
-    @Bean
-    fun jwtDecoder(): JwtDecoder {
-        val jwtDecoder = JwtDecoders.fromOidcIssuerLocation(issuerUri) as NimbusJwtDecoder
+        val existingUser = findExistingUser(cipher, originalKey, hetu)
+        if (existingUser != null) {
+            return Saml2Authentication(
+                DefaultSaml2AuthenticatedPrincipal(existingUser.id, principal.attributes),
+                token.saml2Response,
+                existingUser.authorities.map { SimpleGrantedAuthority(it.name) }
+            )
+        }
 
-        val audienceValidator = AudienceValidator(jHipsterProperties.security.oauth2.audience)
-        val withIssuer = JwtValidators.createDefaultWithIssuer(issuerUri)
-        val withAudience = DelegatingOAuth2TokenValidator(withIssuer, audienceValidator)
+        cipher.init(Cipher.ENCRYPT_MODE, originalKey)
+        val params = cipher.parameters
+        val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
+        val ciphertext =
+            cipher.doFinal(hetu.toString().toByteArray(StandardCharsets.UTF_8))
 
-        jwtDecoder.setJwtValidator(withAudience)
+        // New user
+        var user = User(
+            firstName = firstName,
+            lastName = lastName,
+            hetu = ciphertext,
+            initVector = iv,
+            login = UUID.randomUUID().toString(),
+            activated = true
+        )
+        user = userRepository.save(user)
 
-        return jwtDecoder
+        return Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(user.id, principal.attributes),
+            token.saml2Response,
+            mutableListOf()
+        )
+    }
+
+    private fun findExistingUser(cipher: Cipher, originalKey: SecretKey, hetu: Any?): User? {
+        userRepository.findAllWithAuthorities().filter { u -> u.hetu != null }.forEach { u ->
+            cipher.init(Cipher.DECRYPT_MODE, originalKey, IvParameterSpec(u.initVector))
+            val userHetu = String(cipher.doFinal(u.hetu), StandardCharsets.UTF_8)
+            if (userHetu == hetu) {
+                return u
+            }
+        }
+
+        return null
+    }
+
+    private fun updateKouluttajaReferences(oldId: Long, newId: Long) {
+        suoritusarviointiRepository.changeKouluttaja(oldId, newId)
+        koejaksonKoulutussopimusRepository.changeKouluttaja(oldId, newId)
+        koejaksonAloituskeskusteluRepository.changeKouluttaja(oldId, newId)
+        koejaksonAloituskeskusteluRepository.changeEsimies(oldId, newId)
+        koejaksonValiarviointiRepository.changeKouluttaja(oldId, newId)
+        koejaksonValiarviointiRepository.changeEsimies(oldId, newId)
+        koejaksonKehittamistoimenpiteetRepository.changeKouluttaja(oldId, newId)
+        koejaksonKehittamistoimenpiteetRepository.changeEsimies(oldId, newId)
+        koejaksonLoppukeskusteluRepository.changeKouluttaja(oldId, newId)
+        koejaksonLoppukeskusteluRepository.changeEsimies(oldId, newId)
     }
 }

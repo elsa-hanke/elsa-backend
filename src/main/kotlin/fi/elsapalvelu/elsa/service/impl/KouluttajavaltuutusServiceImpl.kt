@@ -9,7 +9,7 @@ import fi.elsapalvelu.elsa.service.mapper.KouluttajavaltuutusMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.util.Optional
+import java.util.*
 
 @Service
 @Transactional
@@ -27,18 +27,18 @@ class KouluttajavaltuutusServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<KouluttajavaltuutusDTO> {
+    override fun findAll(): List<KouluttajavaltuutusDTO> {
         return kouluttajavaltuutusRepository.findAll()
-            .mapTo(mutableListOf(), kouluttajavaltuutusMapper::toDto)
+            .map(kouluttajavaltuutusMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findAllValtuutettuByValtuuttajaKayttajaUserId(id: String): MutableList<KayttajaDTO> {
+    override fun findAllValtuutettuByValtuuttajaKayttajaUserId(id: String): List<KayttajaDTO> {
         return kouluttajavaltuutusRepository.findAllByValtuuttajaKayttajaUserIdAndPaattymispaivaAfter(
             id,
             LocalDate.now()
         ).map { it.valtuutettu!! }
-            .mapTo(mutableListOf(), kayttajaMapper::toDto)
+            .map(kayttajaMapper::toDto)
     }
 
     @Transactional(readOnly = true)

@@ -5,12 +5,15 @@ import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.Oppimistavoite
 import fi.elsapalvelu.elsa.domain.Suoritemerkinta
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.SuoritemerkintaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.SuoritemerkintaMapper
+import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
+import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OppimistavoiteHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import org.assertj.core.api.Assertions.assertThat
@@ -23,8 +26,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
@@ -56,6 +59,8 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
     private lateinit var restSuoritemerkintaMockMvc: MockMvc
 
     private lateinit var suoritemerkinta: Suoritemerkinta
+
+    private lateinit var user: User
 
     @BeforeEach
     fun setup() {
@@ -110,7 +115,10 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
     @Test
     @Transactional
     fun createSuoritemerkintaForAnotherUser() {
-        initTest(null)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
+        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
+
+        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
 
         val databaseSizeBeforeCreate = suoritemerkintaRepository.findAll().size
 
@@ -136,7 +144,12 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val id = suoritemerkinta.id
         assertNotNull(id)
 
-        restSuoritemerkintaMockMvc.perform(get("/api/erikoistuva-laakari/suoritemerkinnat/{id}", id))
+        restSuoritemerkintaMockMvc.perform(
+            get(
+                "/api/erikoistuva-laakari/suoritemerkinnat/{id}",
+                id
+            )
+        )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(suoritemerkinta.id as Any))
@@ -150,14 +163,22 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
     @Test
     @Transactional
     fun getAnotherUserSuoritemerkinta() {
-        initTest(null)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
+        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
+
+        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
 
         val id = suoritemerkinta.id
         assertNotNull(id)
 
-        restSuoritemerkintaMockMvc.perform(get("/api/erikoistuva-laakari/suoritemerkinnat/{id}", id))
+        restSuoritemerkintaMockMvc.perform(
+            get(
+                "/api/erikoistuva-laakari/suoritemerkinnat/{id}",
+                id
+            )
+        )
             .andExpect(status().isNotFound)
     }
 
@@ -222,7 +243,10 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
     @Test
     @Transactional
     fun updateAnotherUserSuoritemerkinta() {
-        initTest(null)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
+        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
+
+        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
 
         val databaseSizeBeforeCreate = suoritemerkintaRepository.findAll().size
 
@@ -300,7 +324,10 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
     @Test
     @Transactional
     fun deleteAnotherUserSuoritemerkinta() {
-        initTest(null)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
+        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
+
+        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
 
@@ -346,7 +373,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val id = suoritemerkinta.id
         assertNotNull(id)
 
-        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(DEFAULT_ID)!!
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
         erikoistuvaLaakari.erikoisala = suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
@@ -372,7 +399,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val id = suoritemerkinta.id
         assertNotNull(id)
 
-        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(DEFAULT_ID)!!
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
         erikoistuvaLaakari.erikoisala = suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
@@ -388,17 +415,20 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
     }
 
     fun initTest(userId: String? = DEFAULT_ID) {
-        val userDetails = mapOf<String, Any>(
-            "uid" to DEFAULT_ID,
-            "sub" to DEFAULT_LOGIN,
-            "email" to DEFAULT_EMAIL
+        user = KayttajaResourceIT.createEntity()
+        em.persist(user)
+        em.flush()
+        val userDetails = mapOf<String, List<Any>>(
         )
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
-        val user = DefaultOAuth2User(authorities, userDetails, "sub")
-        val authentication = OAuth2AuthenticationToken(user, authorities, "oidc")
+        val authentication = Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            "test",
+            authorities
+        )
         TestSecurityContextHolder.getContext().authentication = authentication
 
-        suoritemerkinta = createEntity(em, userId)
+        suoritemerkinta = createEntity(em, user)
     }
 
     companion object {
@@ -423,7 +453,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         private const val UPDATED_LUKITTU: Boolean = true
 
         @JvmStatic
-        fun createEntity(em: EntityManager, userId: String? = null): Suoritemerkinta {
+        fun createEntity(em: EntityManager, user: User? = null): Suoritemerkinta {
             val suoritemerkinta = Suoritemerkinta(
                 suorituspaiva = DEFAULT_SUORITUSPAIVA,
                 luottamuksenTaso = DEFAULT_LUOTTAMUKSEN_TASO,
@@ -446,7 +476,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
             if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, userId)
+                tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user)
                 em.persist(tyoskentelyjakso)
                 em.flush()
             } else {

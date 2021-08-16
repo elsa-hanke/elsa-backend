@@ -29,10 +29,10 @@ data class KoejaksoDTO(
 
     var vastuuhenkilonArvionTila: KoejaksoTila? = null,
 
-    var kunnat: MutableList<KuntaDTO> = mutableListOf(),
+    var kunnat: List<KuntaDTO> = listOf(),
 
-    var erikoisalat: MutableList<ErikoisalaDTO> = mutableListOf(),
+    var erikoisalat: List<ErikoisalaDTO> = listOf(),
 
-    var tyoskentelyjaksot: MutableList<TyoskentelyjaksoDTO> = mutableListOf()
+    var tyoskentelyjaksot: List<TyoskentelyjaksoDTO> = listOf()
 
 ) : Serializable

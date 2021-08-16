@@ -6,9 +6,9 @@ interface AsiakirjaService {
 
     fun create(asiakirjat: List<AsiakirjaDTO>, userId: String, tyoskentelyJaksoId: Long? = null): List<AsiakirjaDTO>?
 
-    fun findAllByErikoistuvaLaakariUserId(userId: String): MutableList<AsiakirjaDTO>
+    fun findAllByErikoistuvaLaakariUserId(userId: String): List<AsiakirjaDTO>
 
-    fun findAllByErikoistuvaLaakariUserIdAndTyoskentelyjaksoId(userId: String, tyoskentelyJaksoId: Long?): MutableList<AsiakirjaDTO>
+    fun findAllByErikoistuvaLaakariUserIdAndTyoskentelyjaksoId(userId: String, tyoskentelyJaksoId: Long?): List<AsiakirjaDTO>
 
     fun findOne(id: Long, userId: String): AsiakirjaDTO?
 

@@ -20,6 +20,8 @@ data class KoejaksonKoulutussopimusDTO(
     @get: NotNull
     var erikoistuvanYliopisto: String? = null,
 
+    var erikoistuvanErikoisala: String? = null,
+
     var erikoistuvanPuhelinnumero: String? = null,
 
     var erikoistuvanSahkoposti: String? = null,

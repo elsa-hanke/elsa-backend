@@ -80,11 +80,11 @@ class SuoritusarviointiQueryService(
     }
 
     @Transactional(readOnly = true)
-    fun findByKouluttajaOrVastuuhenkiloUserLogin(userId: String): List<SuoritusarviointiDTO> {
+    fun findByKouluttajaOrVastuuhenkiloUserId(userId: String): List<SuoritusarviointiDTO> {
         val specification = createSpecification(null) { root, _, cb ->
             val user: Join<Kayttaja, User> = root.join(Suoritusarviointi_.arvioinninAntaja)
                 .join(Kayttaja_.user)
-            cb.equal(user.get(User_.login), userId)
+            cb.equal(user.get(User_.id), userId)
         }
 
         return suoritusarviointiRepository.findAll(specification)

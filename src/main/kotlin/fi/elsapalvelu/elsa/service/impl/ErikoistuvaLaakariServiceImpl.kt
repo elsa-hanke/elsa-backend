@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoistuvaLaakariMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
+import java.util.*
 
 @Service
 @Transactional
@@ -22,9 +22,9 @@ class ErikoistuvaLaakariServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<ErikoistuvaLaakariDTO> {
+    override fun findAll(): List<ErikoistuvaLaakariDTO> {
         return erikoistuvaLaakariRepository.findAll()
-            .mapTo(mutableListOf(), erikoistuvaLaakariMapper::toDto)
+            .map(erikoistuvaLaakariMapper::toDto)
     }
 
     @Transactional(readOnly = true)

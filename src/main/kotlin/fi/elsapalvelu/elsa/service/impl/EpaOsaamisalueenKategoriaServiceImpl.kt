@@ -1,14 +1,13 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.EpaOsaamisalueenKategoriaRepository
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.service.EpaOsaamisalueenKategoriaService
 import fi.elsapalvelu.elsa.service.dto.EpaOsaamisalueenKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.EpaOsaamisalueenKategoriaMapper
-import java.util.Optional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @Service
 @Transactional
@@ -30,11 +29,11 @@ class EpaOsaamisalueenKategoriaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<EpaOsaamisalueenKategoriaDTO> {
+    override fun findAll(): List<EpaOsaamisalueenKategoriaDTO> {
         log.debug("Request to get all EpaOsaamisalueenKategoriat")
 
         return epaOsaamisalueenKategoriaRepository.findAll()
-            .mapTo(mutableListOf(), epaOsaamisalueenKategoriaMapper::toDto)
+            .map(epaOsaamisalueenKategoriaMapper::toDto)
     }
 
     @Transactional(readOnly = true)

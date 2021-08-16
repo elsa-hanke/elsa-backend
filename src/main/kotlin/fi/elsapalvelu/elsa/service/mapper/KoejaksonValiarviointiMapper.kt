@@ -18,10 +18,12 @@ interface KoejaksonValiarviointiMapper :
 
     @Mappings(
         Mapping(source = "lahikouluttaja.id", target = "lahikouluttaja.id"),
+        Mapping(source = "lahikouluttaja.user.id", target = "lahikouluttaja.kayttajaUserId"),
         Mapping(source = "lahikouluttajanNimi", target = "lahikouluttaja.nimi"),
         Mapping(source = "lahikouluttajaHyvaksynyt", target = "lahikouluttaja.sopimusHyvaksytty"),
         Mapping(source = "lahikouluttajanKuittausaika", target = "lahikouluttaja.kuittausaika"),
         Mapping(source = "lahiesimies.id", target = "lahiesimies.id"),
+        Mapping(source = "lahiesimies.user.id", target = "lahiesimies.kayttajaUserId"),
         Mapping(source = "lahiesimiehenNimi", target = "lahiesimies.nimi"),
         Mapping(source = "lahiesimiesHyvaksynyt", target = "lahiesimies.sopimusHyvaksytty"),
         Mapping(source = "lahiesimiehenKuittausaika", target = "lahiesimies.kuittausaika")

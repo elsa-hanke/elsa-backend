@@ -7,6 +7,8 @@ data class KoejaksonKouluttajaDTO(
 
     var id: Long? = null,
 
+    var kayttajaUserId: String? = null,
+
     var nimi: String? = null,
 
     var sopimusHyvaksytty: Boolean? = null,

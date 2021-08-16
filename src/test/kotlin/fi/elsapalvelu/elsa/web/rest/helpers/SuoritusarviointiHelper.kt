@@ -1,9 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.EpaOsaamisalue
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.Suoritusarviointi
-import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
@@ -50,7 +47,7 @@ class SuoritusarviointiHelper {
         private const val UPDATED_LUKITTU: Boolean = true
 
         @JvmStatic
-        fun createEntity(em: EntityManager, userId: String? = null): Suoritusarviointi {
+        fun createEntity(em: EntityManager, user: User? = null): Suoritusarviointi {
             val suoritusarviointi = Suoritusarviointi(
                 tapahtumanAjankohta = DEFAULT_TAPAHTUMAN_AJANKOHTA,
                 arvioitavaTapahtuma = DEFAULT_ARVIOITAVA_TAPAHTUMA,
@@ -69,7 +66,7 @@ class SuoritusarviointiHelper {
             // Lisätään pakollinen tieto
             val kayttaja: Kayttaja
             if (em.findAll(Kayttaja::class).isEmpty()) {
-                kayttaja = KayttajaHelper.createEntity(em, userId)
+                kayttaja = KayttajaHelper.createEntity(em, user)
                 em.persist(kayttaja)
                 em.flush()
             } else {

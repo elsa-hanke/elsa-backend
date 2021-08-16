@@ -68,7 +68,7 @@ class WebConfigurerTest {
     @Test
     @Throws(Exception::class)
     fun testCorsFilterOnApiPath() {
-        props.cors.allowedOrigins = listOf("*")
+        props.cors.allowedOriginPatterns = listOf("*")
         props.cors.allowedMethods = listOf("GET", "POST", "PUT", "DELETE")
         props.cors.allowedHeaders = listOf("*")
         props.cors.maxAge = 1800L
@@ -86,7 +86,12 @@ class WebConfigurerTest {
             .andExpect(status().isOk)
             .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "other.domain.com"))
             .andExpect(header().string(HttpHeaders.VARY, "Origin"))
-            .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET,POST,PUT,DELETE"))
+            .andExpect(
+                header().string(
+                    HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+                    "GET,POST,PUT,DELETE"
+                )
+            )
             .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true"))
             .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_MAX_AGE, "1800"))
 
