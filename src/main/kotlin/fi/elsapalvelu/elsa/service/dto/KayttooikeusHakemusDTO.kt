@@ -5,6 +5,6 @@ import javax.validation.constraints.NotNull
 data class KayttooikeusHakemusDTO(
 
     @get: NotNull
-    var yliopisto: String? = null
+    var yliopisto: Long? = null
 
 )

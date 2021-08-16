@@ -176,7 +176,6 @@ class KoejaksonVaiheetServiceImpl(
                     return@forEach
                 }
                 resultList[erikoistuvaUserId] = mutableListOf()
-
                 resultList[erikoistuvaUserId]!!.add(
                     mapAloituskeskustelu(
                         aloituskeskustelu,
@@ -392,13 +391,14 @@ class KoejaksonVaiheetServiceImpl(
     }
 
     private fun sortKoejaksonVaiheet(resultMap: HashMap<String, MutableList<KoejaksonVaiheDTO>>): List<KoejaksonVaiheDTO> {
-        val flattenList = resultMap.values.flatten()
+        val flattenList = resultMap.values.flatten().asSequence()
         val avoimetVaiheet = flattenList.filter {
             it.tila == KoejaksoTila.ODOTTAA_HYVAKSYNTAA
-        }
+        }.sortedBy { it.pvm }.toList()
         val muutVaiheet = flattenList.filter {
             it.tila != KoejaksoTila.ODOTTAA_HYVAKSYNTAA
-        }
-        return avoimetVaiheet.sortedBy { it.pvm } + muutVaiheet.sortedByDescending { it.pvm }
+        }.sortedByDescending { it.pvm }.toList()
+
+        return avoimetVaiheet + muutVaiheet
     }
 }

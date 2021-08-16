@@ -9,7 +9,7 @@ interface PoissaolonSyyService {
 
     fun findAll(pageable: Pageable): Page<PoissaolonSyyDTO>
 
-    fun findAll(): MutableList<PoissaolonSyyDTO>
+    fun findAll(): List<PoissaolonSyyDTO>
 
     fun findOne(id: Long): PoissaolonSyyDTO?
 

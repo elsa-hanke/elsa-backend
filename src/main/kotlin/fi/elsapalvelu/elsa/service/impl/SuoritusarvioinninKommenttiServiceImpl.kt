@@ -36,7 +36,7 @@ class SuoritusarvioinninKommenttiServiceImpl(
         suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO,
         userId: String
     ): SuoritusarvioinninKommenttiDTO {
-        val kayttaja = kayttajaRepository.findOneByUserLogin(userId).get()
+        val kayttaja = kayttajaRepository.findOneByUserId(userId).get()
         val kayttajaDTO = kayttajaMapper.toDto(kayttaja)
 
         // Tarkisteaan, että muokkaaja on sama kuin kommentin tekijä
@@ -80,9 +80,9 @@ class SuoritusarvioinninKommenttiServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): MutableList<SuoritusarvioinninKommenttiDTO> {
+    override fun findAll(): List<SuoritusarvioinninKommenttiDTO> {
         return suoritusarvioinninKommenttiRepository.findAll()
-            .mapTo(mutableListOf(), suoritusarvioinninKommenttiMapper::toDto)
+            .map(suoritusarvioinninKommenttiMapper::toDto)
     }
 
     @Transactional(readOnly = true)

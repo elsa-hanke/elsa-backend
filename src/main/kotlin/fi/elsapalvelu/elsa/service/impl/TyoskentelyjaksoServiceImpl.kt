@@ -193,11 +193,11 @@ class TyoskentelyjaksoServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<TyoskentelyjaksoDTO> {
+    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<TyoskentelyjaksoDTO> {
         log.debug("Request to get list of Tyoskentelyjakso by user id : $userId")
 
         return tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
-            .mapTo(mutableListOf(), tyoskentelyjaksoMapper::toDto)
+            .map(tyoskentelyjaksoMapper::toDto)
     }
 
     @Transactional(readOnly = true)

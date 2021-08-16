@@ -6,7 +6,7 @@ interface SuoritemerkintaService {
 
     fun save(suoritemerkintaDTO: SuoritemerkintaDTO, userId: String): SuoritemerkintaDTO?
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<SuoritemerkintaDTO>
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId: String): List<SuoritemerkintaDTO>
 
     fun findOne(id: Long, userId: String): SuoritemerkintaDTO?
 

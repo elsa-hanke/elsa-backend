@@ -1,9 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.Asiakirja
-import fi.elsapalvelu.elsa.domain.AsiakirjaData
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.web.rest.findAll
 import org.hibernate.engine.jdbc.BlobProxy
 import java.time.LocalDateTime
@@ -23,7 +20,7 @@ class AsiakirjaHelper {
         @JvmStatic
         fun createEntity(
             em: EntityManager,
-            userId: String? = null,
+            user: User? = null,
             tyoskentelyjakso: Tyoskentelyjakso? = null
         ): Asiakirja {
             val asiakirja = Asiakirja(
@@ -36,13 +33,12 @@ class AsiakirjaHelper {
                 )
             )
 
-            val erikoistuvaLaakari: ErikoistuvaLaakari
-            if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
-                erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, userId)
+            var erikoistuvaLaakari =
+                em.findAll(ErikoistuvaLaakari::class).firstOrNull { it.kayttaja?.user == user }
+            if (erikoistuvaLaakari == null) {
+                erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user)
                 em.persist(erikoistuvaLaakari)
                 em.flush()
-            } else {
-                erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
             asiakirja.erikoistuvaLaakari = erikoistuvaLaakari
 

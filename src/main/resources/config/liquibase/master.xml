@@ -48,6 +48,9 @@
     <include file="config/liquibase/changelog/20210528103748_modify_entity_Asiakirja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210602133241_modify_epa_osaamisalue.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210607131617_modify_koejakso_dates.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210623152123_added_entity_verification_token.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210630161925_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210811145903_modify_entity_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
@@ -76,4 +79,5 @@
     <include file="config/liquibase/changelog/20210528103748_modify_entity_constaints_Asiakirja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210602150426_modify_koulutussopimuksen_kouluttaja_null_constraints.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210604095324_modify_koejakso_null_constraints.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210623152123_added_entity_constraints_verification_token.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

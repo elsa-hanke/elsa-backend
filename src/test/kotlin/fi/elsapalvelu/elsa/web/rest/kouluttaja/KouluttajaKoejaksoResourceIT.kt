@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.*
+import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
@@ -21,8 +22,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
@@ -84,9 +85,11 @@ class KouluttajaKoejaksoResourceIT {
 
     private lateinit var koejaksonLoppukeskustelu: KoejaksonLoppukeskustelu
 
+    private lateinit var user: User
+
     @BeforeEach
     fun setup() {
-        MockitoAnnotations.initMocks(this)
+        MockitoAnnotations.openMocks(this)
     }
 
     @Test
@@ -502,7 +505,7 @@ class KouluttajaKoejaksoResourceIT {
     @Test
     @Transactional
     fun ackAloituskeskusteluEsimies() {
-        initTest(KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID)
+        initTest(true)
 
         koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
         koejaksonAloituskeskustelu.lahikouluttajanKuittausaika =
@@ -543,7 +546,7 @@ class KouluttajaKoejaksoResourceIT {
     @Test
     @Transactional
     fun declineAloituskeskusteluEsimies() {
-        initTest(KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID)
+        initTest(true)
 
         koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
         koejaksonAloituskeskustelu.lahikouluttajanKuittausaika =
@@ -631,7 +634,7 @@ class KouluttajaKoejaksoResourceIT {
     @Test
     @Transactional
     fun ackValiarviointiEsimies() {
-        initTest(KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID)
+        initTest(true)
 
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
@@ -675,7 +678,7 @@ class KouluttajaKoejaksoResourceIT {
     @Test
     @Transactional
     fun declineValiarviointiEsimies() {
-        initTest(KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID)
+        initTest(true)
 
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
@@ -768,7 +771,7 @@ class KouluttajaKoejaksoResourceIT {
     @Test
     @Transactional
     fun ackKehittamistoimenpiteetEsimies() {
-        initTest(KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID)
+        initTest(true)
 
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
@@ -821,7 +824,7 @@ class KouluttajaKoejaksoResourceIT {
     @Test
     @Transactional
     fun declineKehittamistoimenpiteetEsimies() {
-        initTest(KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID)
+        initTest(true)
 
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
@@ -918,7 +921,7 @@ class KouluttajaKoejaksoResourceIT {
     @Test
     @Transactional
     fun ackLoppukeskusteluEsimies() {
-        initTest(KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID)
+        initTest(true)
 
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
@@ -966,7 +969,7 @@ class KouluttajaKoejaksoResourceIT {
     @Test
     @Transactional
     fun declineLoppukeskusteluEsimies() {
-        initTest(KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID)
+        initTest(true)
 
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
@@ -1010,33 +1013,30 @@ class KouluttajaKoejaksoResourceIT {
         assertThat(testLoppukeskustelu.lahikouluttajanKuittausaika).isNull()
     }
 
-    fun initTest(userId: String? = KoejaksonVaiheetHelper.DEFAULT_KOULUTTAJA_ID) {
-        val userDetails = mapOf<String, Any>(
-            "uid" to userId!!,
-            "sub" to KoejaksonVaiheetHelper.DEFAULT_LOGIN,
-            "email" to KoejaksonVaiheetHelper.DEFAULT_EMAIL
+    fun initTest(isEsimies: Boolean = false) {
+        user = KayttajaResourceIT.createEntity()
+        em.persist(user)
+        em.flush()
+        val userDetails = mapOf<String, List<Any>>(
         )
         val authorities = listOf(SimpleGrantedAuthority(KOULUTTAJA))
-        val user = DefaultOAuth2User(authorities, userDetails, "sub")
-        val authentication = OAuth2AuthenticationToken(user, authorities, "oidc")
+        val authentication = Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            "test",
+            authorities
+        )
         TestSecurityContextHolder.getContext().authentication = authentication
         val erikoistuvaLaakari =
             ErikoistuvaLaakariHelper.createEntity(em)
         em.persist(erikoistuvaLaakari)
 
-        val vastuuhenkilo = KayttajaHelper.createEntity(
-            em, KoejaksonVaiheetHelper.DEFAULT_VASTUUHENKILO_ID
-        )
+        val vastuuhenkilo = KayttajaHelper.createEntity(em)
         em.persist(vastuuhenkilo)
 
-        val kouluttaja = KayttajaHelper.createEntity(
-            em, KoejaksonVaiheetHelper.DEFAULT_KOULUTTAJA_ID
-        )
+        val kouluttaja = KayttajaHelper.createEntity(em, if (isEsimies) null else user)
         em.persist(kouluttaja)
 
-        val esimies = KayttajaHelper.createEntity(
-            em, KoejaksonVaiheetHelper.DEFAULT_ESIMIES_ID
-        )
+        val esimies = KayttajaHelper.createEntity(em, if (isEsimies) user else null)
         em.persist(esimies)
 
         koejaksonKoulutussopimus =
