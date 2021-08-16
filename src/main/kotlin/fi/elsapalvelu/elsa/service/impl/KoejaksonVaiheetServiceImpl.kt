@@ -176,7 +176,12 @@ class KoejaksonVaiheetServiceImpl(
                     return@forEach
                 }
                 resultList[erikoistuvaUserId] = mutableListOf()
-                resultList[erikoistuvaUserId]!!.add(mapAloituskeskustelu(aloituskeskustelu, kayttajaId))
+                resultList[erikoistuvaUserId]!!.add(
+                    mapAloituskeskustelu(
+                        aloituskeskustelu,
+                        kayttajaId
+                    )
+                )
             }
     }
 
