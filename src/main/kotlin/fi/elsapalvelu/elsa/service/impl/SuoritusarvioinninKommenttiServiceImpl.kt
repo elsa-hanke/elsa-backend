@@ -24,14 +24,6 @@ class SuoritusarvioinninKommenttiServiceImpl(
     private val mailService: MailService
 ) : SuoritusarvioinninKommenttiService {
 
-    override fun save(suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO): SuoritusarvioinninKommenttiDTO {
-        var suoritusarvioinninKommentti =
-            suoritusarvioinninKommenttiMapper.toEntity(suoritusarvioinninKommenttiDTO)
-        suoritusarvioinninKommentti =
-            suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
-        return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
-    }
-
     override fun save(
         suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO,
         userId: String
