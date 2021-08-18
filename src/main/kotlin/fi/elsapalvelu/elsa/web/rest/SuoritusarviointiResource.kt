@@ -1,10 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
-import fi.elsapalvelu.elsa.service.ArviointityokaluService
 import fi.elsapalvelu.elsa.service.SuoritusarviointiQueryService
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -23,8 +21,7 @@ private const val ENTITY_NAME = "suoritusarviointi"
 open class SuoritusarviointiResource(
     private val suoritusarviointiService: SuoritusarviointiService,
     private val suoritusarviointiQueryService: SuoritusarviointiQueryService,
-    private val userService: UserService,
-    private val arviointityokaluService: ArviointityokaluService
+    private val userService: UserService
 ) {
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
@@ -85,14 +82,5 @@ open class SuoritusarviointiResource(
                 )
             )
             .body(result)
-    }
-
-    @GetMapping("/suoritusarvioinnit/arviointityokalut")
-    fun getArviointityokalut(
-        principal: Principal?
-    ): ResponseEntity<List<ArviointityokaluDTO>> {
-        val user = userService.getAuthenticatedUser(principal)
-        val arviointityokaluDTO = arviointityokaluService.findAllByKayttajaUserId(user.id!!)
-        return ResponseEntity.ok(arviointityokaluDTO)
     }
 }
