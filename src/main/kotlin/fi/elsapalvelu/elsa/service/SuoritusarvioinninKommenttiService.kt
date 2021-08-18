@@ -5,8 +5,6 @@ import java.util.*
 
 interface SuoritusarvioinninKommenttiService {
 
-    fun save(suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO): SuoritusarvioinninKommenttiDTO
-
     fun save(
         suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO,
         userId: String
