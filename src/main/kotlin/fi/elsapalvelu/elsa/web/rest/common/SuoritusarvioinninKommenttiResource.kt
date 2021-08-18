@@ -1,6 +1,7 @@
-package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
+package fi.elsapalvelu.elsa.web.rest.common
 
-import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.SuoritusarvioinninKommenttiService
+import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -15,12 +16,11 @@ import javax.validation.Valid
 private const val ENTITY_NAME = "suoritusarvioinnin_kommentti"
 
 @RestController
-@RequestMapping("/api/erikoistuva-laakari")
+@RequestMapping("/api/")
 class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
     private val suoritusarvioinninKommenttiService: SuoritusarvioinninKommenttiService,
     private val userService: UserService
 ) {
-
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 

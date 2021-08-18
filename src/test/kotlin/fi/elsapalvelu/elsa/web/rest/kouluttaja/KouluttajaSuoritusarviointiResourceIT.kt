@@ -139,16 +139,6 @@ class KouluttajaSuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.lisatiedot").value(DEFAULT_LISATIEDOT))
     }
 
-    @Test
-    @Transactional
-    fun getArviointityokalut() {
-        initTest()
-
-        restSuoritusarviointiMockMvc.perform(get("/api/kouluttaja/suoritusarvioinnit/arviointityokalut"))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-    }
-
     fun initTest(userId: String? = DEFAULT_ID) {
         user = KayttajaResourceIT.createEntity()
         em.persist(user)
