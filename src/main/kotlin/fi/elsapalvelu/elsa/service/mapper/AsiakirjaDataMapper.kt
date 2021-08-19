@@ -11,7 +11,6 @@ import org.mapstruct.ReportingPolicy
 )
 interface AsiakirjaDataMapper : EntityMapper<AsiakirjaDataDTO, AsiakirjaData> {
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val asiakirjaData = AsiakirjaData()
         asiakirjaData.id = id

@@ -42,7 +42,6 @@ interface KoejaksonAloituskeskusteluMapper :
     )
     override fun toEntity(dto: KoejaksonAloituskeskusteluDTO): KoejaksonAloituskeskustelu
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val aloituskeskustelu = KoejaksonAloituskeskustelu()
         aloituskeskustelu.id = id

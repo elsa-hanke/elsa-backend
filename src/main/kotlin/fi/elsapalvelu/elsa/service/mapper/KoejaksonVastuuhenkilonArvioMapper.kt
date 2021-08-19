@@ -34,7 +34,6 @@ interface KoejaksonVastuuhenkilonArvioMapper :
     )
     override fun toEntity(dto: KoejaksonVastuuhenkilonArvioDTO): KoejaksonVastuuhenkilonArvio
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val loppukeskustelu = KoejaksonLoppukeskustelu()
         loppukeskustelu.id = id

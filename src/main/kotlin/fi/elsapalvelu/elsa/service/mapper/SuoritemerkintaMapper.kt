@@ -30,7 +30,6 @@ interface SuoritemerkintaMapper :
     )
     override fun toEntity(dto: SuoritemerkintaDTO): Suoritemerkinta
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val suoritemerkinta = Suoritemerkinta()
         suoritemerkinta.id = id

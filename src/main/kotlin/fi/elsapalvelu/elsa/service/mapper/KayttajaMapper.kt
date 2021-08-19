@@ -35,7 +35,6 @@ interface KayttajaMapper :
     )
     override fun toEntity(dto: KayttajaDTO): Kayttaja
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val kayttaja = Kayttaja()
         kayttaja.id = id

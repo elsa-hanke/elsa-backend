@@ -35,7 +35,6 @@ interface ErikoistuvaLaakariMapper :
     )
     override fun toEntity(dto: ErikoistuvaLaakariDTO): ErikoistuvaLaakari
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val erikoistuvaLaakari = ErikoistuvaLaakari()
         erikoistuvaLaakari.id = id

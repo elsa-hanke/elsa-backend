@@ -42,7 +42,6 @@ interface KoejaksonValiarviointiMapper :
     )
     override fun toEntity(dto: KoejaksonValiarviointiDTO): KoejaksonValiarviointi
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val valiarviointi = KoejaksonValiarviointi()
         valiarviointi.id = id

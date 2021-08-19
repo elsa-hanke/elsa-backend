@@ -21,7 +21,6 @@ interface ArvioitavaOsaalueMapper :
     )
     override fun toEntity(dto: ArvioitavaOsaalueDTO): ArvioitavaOsaalue
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val arvioitavaOsaalue = ArvioitavaOsaalue()
         arvioitavaOsaalue.id = id

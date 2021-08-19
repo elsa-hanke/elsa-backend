@@ -27,7 +27,6 @@ interface OsaalueenArviointiMapper :
     )
     override fun toEntity(dto: OsaalueenArviointiDTO): OsaalueenArviointi
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val osaalueenArviointi = OsaalueenArviointi()
         osaalueenArviointi.id = id

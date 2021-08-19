@@ -23,7 +23,6 @@ interface EpaOsaamisalueenKategoriaMapper :
     )
     override fun toEntity(dto: EpaOsaamisalueenKategoriaDTO): EpaOsaamisalueenKategoria
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val epaOsaamisalueenKategoria = EpaOsaamisalueenKategoria()
         epaOsaamisalueenKategoria.id = id

@@ -30,7 +30,6 @@ interface KouluttajavaltuutusMapper :
     )
     override fun toEntity(dto: KouluttajavaltuutusDTO): Kouluttajavaltuutus
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val kouluttajavaltuutus = Kouluttajavaltuutus()
         kouluttajavaltuutus.id = id

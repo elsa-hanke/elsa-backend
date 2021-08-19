@@ -28,7 +28,6 @@ interface SuoritusarvioinninKommenttiMapper :
     )
     override fun toEntity(dto: SuoritusarvioinninKommenttiDTO): SuoritusarvioinninKommentti
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val suoritusarvioinninKommentti = SuoritusarvioinninKommentti()
         suoritusarvioinninKommentti.id = id

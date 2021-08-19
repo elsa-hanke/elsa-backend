@@ -42,7 +42,6 @@ interface KoejaksonKehittamistoimenpiteetMapper :
     )
     override fun toEntity(dto: KoejaksonKehittamistoimenpiteetDTO): KoejaksonKehittamistoimenpiteet
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val kehittamistoimenpiteet = KoejaksonKehittamistoimenpiteet()
         kehittamistoimenpiteet.id = id
