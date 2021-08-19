@@ -30,7 +30,6 @@ interface AsiakirjaMapper : EntityMapper<AsiakirjaDTO, Asiakirja> {
     )
     override fun toEntity(dto: AsiakirjaDTO): Asiakirja
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val asiakirja = Asiakirja()
         asiakirja.id = id

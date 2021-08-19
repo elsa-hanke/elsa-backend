@@ -13,7 +13,6 @@ interface ArviointityokaluMapper :
 
     override fun toEntity(dto: ArviointityokaluDTO): Arviointityokalu
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val arviointityokalu = Arviointityokalu()
         arviointityokalu.id = id

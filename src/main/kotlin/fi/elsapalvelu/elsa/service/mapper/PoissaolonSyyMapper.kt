@@ -15,7 +15,6 @@ interface PoissaolonSyyMapper :
 
     override fun toEntity(dto: PoissaolonSyyDTO): PoissaolonSyy
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val poissaolonSyy = PoissaolonSyy()
         poissaolonSyy.id = id

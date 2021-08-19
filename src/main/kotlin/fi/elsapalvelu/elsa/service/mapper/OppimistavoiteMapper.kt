@@ -27,7 +27,6 @@ interface OppimistavoiteMapper :
     )
     override fun toEntity(dto: OppimistavoiteDTO): Oppimistavoite
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val oppimistavoite = Oppimistavoite()
         oppimistavoite.id = id

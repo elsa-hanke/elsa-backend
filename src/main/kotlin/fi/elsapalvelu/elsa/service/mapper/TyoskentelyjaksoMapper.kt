@@ -41,7 +41,6 @@ interface TyoskentelyjaksoMapper :
     )
     override fun toEntity(dto: TyoskentelyjaksoDTO): Tyoskentelyjakso
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val tyoskentelyjakso = Tyoskentelyjakso()
         tyoskentelyjakso.id = id

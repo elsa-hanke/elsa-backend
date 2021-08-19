@@ -15,7 +15,6 @@ interface ErikoisalaMapper :
 
     override fun toEntity(dto: ErikoisalaDTO): Erikoisala
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val erikoisala = Erikoisala()
         erikoisala.id = id

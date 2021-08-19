@@ -41,7 +41,6 @@ interface SuoritusarviointiMapper :
     )
     override fun toEntity(dto: SuoritusarviointiDTO): Suoritusarviointi
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val suoritusarviointi = Suoritusarviointi()
         suoritusarviointi.id = id

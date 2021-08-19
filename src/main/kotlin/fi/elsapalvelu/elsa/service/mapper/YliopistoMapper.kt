@@ -17,7 +17,6 @@ interface YliopistoMapper :
 
     override fun toEntity(dto: YliopistoDTO): Yliopisto
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val yliopisto = Yliopisto()
         yliopisto.id = id

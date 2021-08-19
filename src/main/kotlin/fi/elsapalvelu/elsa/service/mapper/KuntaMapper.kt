@@ -15,7 +15,6 @@ interface KuntaMapper :
 
     override fun toEntity(dto: KuntaDTO): Kunta
 
-    @JvmDefault
     fun fromId(id: String?) = id?.let {
         val kunta = Kunta()
         kunta.id = id
