@@ -26,7 +26,6 @@ interface KoulutussopimuksenKouluttajaMapper :
     )
     override fun toEntity(dto: KoulutussopimuksenKouluttajaDTO): KoulutussopimuksenKouluttaja
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val koulutussopimuksenKouluttaja = KoulutussopimuksenKouluttaja()
         koulutussopimuksenKouluttaja.id = id

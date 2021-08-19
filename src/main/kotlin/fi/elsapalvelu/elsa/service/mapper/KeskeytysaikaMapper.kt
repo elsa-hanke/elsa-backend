@@ -30,7 +30,6 @@ interface KeskeytysaikaMapper :
     )
     override fun toEntity(dto: KeskeytysaikaDTO): Keskeytysaika
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val keskeytysaika = Keskeytysaika()
         keskeytysaika.id = id

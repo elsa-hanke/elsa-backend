@@ -30,7 +30,6 @@ interface OppimistavoitteenKategoriaMapper :
     )
     override fun toEntity(dto: OppimistavoitteenKategoriaDTO): OppimistavoitteenKategoria
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val oppimistavoitteenKategoria = OppimistavoitteenKategoria()
         oppimistavoitteenKategoria.id = id

@@ -30,7 +30,6 @@ interface EpaOsaamisalueMapper :
     )
     override fun toEntity(dto: EpaOsaamisalueDTO): EpaOsaamisalue
 
-    @JvmDefault
     fun fromId(id: Long?) = id?.let {
         val epaOsaamisalue = EpaOsaamisalue()
         epaOsaamisalue.id = id

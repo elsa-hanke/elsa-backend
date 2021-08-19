@@ -33,7 +33,7 @@ allOpen {
     kotlinOptions {
     	jvmTarget = "1.8"
         javaParameters = true
-    	freeCompilerArgs = ["-Xjvm-default=enable"]
+    	freeCompilerArgs = ["-Xjvm-default=all"]
     }
 }
 
