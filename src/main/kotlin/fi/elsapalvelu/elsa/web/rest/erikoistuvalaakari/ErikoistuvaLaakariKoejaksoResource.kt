@@ -118,7 +118,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             val kayttajaUser = kayttajaService.findByUserId(user.id!!)
 
             vastuuhenkilot = kayttajaService.findVastuuhenkilot().filter {
-                it.yliopisto.equals(kayttajaUser.get().yliopisto)
+                it.yliopisto?.id == kayttajaUser.get().yliopisto?.id
             }
             yliopistot = yliopistoService.findAll()
         }

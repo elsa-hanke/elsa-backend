@@ -22,7 +22,7 @@ data class KayttajaDTO(
 
     var nimike: String? = null,
 
-    var yliopisto: String? = null
+    var yliopisto: YliopistoDTO? = null
 
 ) : Serializable {
 
