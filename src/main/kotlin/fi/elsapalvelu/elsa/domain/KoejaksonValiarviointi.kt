@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.domain
 
+import fi.elsapalvelu.elsa.domain.enumeration.KehittamistoimenpideKategoria
+import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -41,6 +43,18 @@ data class KoejaksonValiarviointi(
 
     @Column(name = "edistyminen_tavoitteiden_mukaista")
     var edistyminenTavoitteidenMukaista: Boolean? = null,
+
+    @ElementCollection(targetClass = KehittamistoimenpideKategoria::class)
+    @CollectionTable(
+        name = "koejakson_valiarviointi_kehittamistoimenpidekategoriat",
+        joinColumns = [JoinColumn(name = "valiarviointi_id", referencedColumnName = "id")]
+    )
+    @Column(name = "kategoria")
+    @Enumerated(EnumType.STRING)
+    var kehittamistoimenpideKategoriat: MutableSet<KehittamistoimenpideKategoria>? = mutableSetOf(),
+
+    @Column(name = "muu_kategoria")
+    var muuKategoria: String? = null,
 
     @Column(name = "vahvuudet")
     var vahvuudet: String? = null,
