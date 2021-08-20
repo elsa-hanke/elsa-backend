@@ -117,10 +117,13 @@ class KoejaksonValiarviointiServiceImpl(
         updated: KoejaksonValiarviointi
     ): KoejaksonValiarviointi {
         valiarviointi.edistyminenTavoitteidenMukaista = updated.edistyminenTavoitteidenMukaista
+        valiarviointi.kehittamistoimenpideKategoriat = updated.kehittamistoimenpideKategoriat
+        valiarviointi.muuKategoria = updated.muuKategoria
         valiarviointi.vahvuudet = updated.vahvuudet
         valiarviointi.kehittamistoimenpiteet = updated.kehittamistoimenpiteet
         valiarviointi.lahikouluttajaHyvaksynyt = true
         valiarviointi.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+        valiarviointi.korjausehdotus = null
 
         val result = koejaksonValiarviointiRepository.save(valiarviointi)
 

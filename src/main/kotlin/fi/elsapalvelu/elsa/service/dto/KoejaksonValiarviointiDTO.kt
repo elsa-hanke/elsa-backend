@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.domain.enumeration.KehittamistoimenpideKategoria
 import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
@@ -21,6 +22,10 @@ data class KoejaksonValiarviointiDTO(
     var erikoistuvanYliopisto: String? = null,
 
     var edistyminenTavoitteidenMukaista: Boolean? = null,
+
+    var kehittamistoimenpideKategoriat: List<KehittamistoimenpideKategoria>? = null,
+
+    var muuKategoria: String? = null,
 
     var vahvuudet: String? = null,
 

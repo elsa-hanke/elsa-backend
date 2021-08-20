@@ -106,7 +106,8 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         result.kunnat = kuntaService.findAll()
         result.erikoisalat = erikoisalaService.findAll()
-        result.tyoskentelyjaksot = tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        result.tyoskentelyjaksot =
+            tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         return ResponseEntity.ok(result)
     }
@@ -234,6 +235,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             aloituskeskusteluDTO.id,
             aloituskeskusteluDTO.lahikouluttaja,
             aloituskeskusteluDTO.lahiesimies,
+            null,
             ENTITY_KOEJAKSON_ALOITUSKESKUSTELU
         )
 
@@ -334,6 +336,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             valiarviointiDTO.id,
             valiarviointiDTO.lahikouluttaja,
             valiarviointiDTO.lahiesimies,
+            valiarviointiDTO.erikoistuvaAllekirjoittanut,
             ENTITY_KOEJAKSON_VALIARVIOINTI
         )
 
@@ -418,6 +421,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             kehittamistoimenpiteetDTO.id,
             kehittamistoimenpiteetDTO.lahikouluttaja,
             kehittamistoimenpiteetDTO.lahiesimies,
+            kehittamistoimenpiteetDTO.erikoistuvaAllekirjoittanut,
             ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
         )
 
@@ -506,6 +510,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             loppukeskusteluDTO.id,
             loppukeskusteluDTO.lahikouluttaja,
             loppukeskusteluDTO.lahiesimies,
+            loppukeskusteluDTO.erikoistuvaAllekirjoittanut,
             ENTITY_KOEJAKSON_LOPPUKESKUSTELU
         )
 
@@ -708,6 +713,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         id: Long?,
         kouluttaja: KoejaksonKouluttajaDTO?,
         esimies: KoejaksonKouluttajaDTO?,
+        erikoistuvaAllekirjoittanut: Boolean?,
         entity: String
     ) {
         if (id != null) {
@@ -727,6 +733,13 @@ class ErikoistuvaLaakariKoejaksoResource(
         if (esimies?.sopimusHyvaksytty == true || esimies?.kuittausaika != null) {
             throw BadRequestAlertException(
                 "Erikoistuvan koejakson arviointi ei saa sisältää lähiesimiehen kuittausta. Lähiesimies määrittelee sen.",
+                entity,
+                "dataillegal"
+            )
+        }
+        if (erikoistuvaAllekirjoittanut == true) {
+            throw BadRequestAlertException(
+                "Erikoistuvan koejakson arviointi ei saa sisältää erikoistuvan kuittausta ennen kuin lähiesimies on hyväksynyt vaiheen.",
                 entity,
                 "dataillegal"
             )
