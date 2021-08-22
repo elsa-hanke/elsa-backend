@@ -10,8 +10,12 @@
         </addColumn>
 
         <createTable tableName="koejakson_valiarviointi_kehittamistoimenpidekategoriat">
-            <column name="valiarviointi_id" type="bigint"/>
-            <column name="kategoria" type="varchar(255)"/>
+            <column name="valiarviointi_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kategoria" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
         <addPrimaryKey
