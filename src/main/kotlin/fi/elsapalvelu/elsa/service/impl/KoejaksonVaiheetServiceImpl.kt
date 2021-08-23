@@ -305,7 +305,9 @@ class KoejaksonVaiheetServiceImpl(
         )
     }
 
-    private fun mapAloituskeskusteluHyvaksytty(koejaksonAloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO): HyvaksyttyKoejaksonVaiheDTO {
+    private fun mapAloituskeskusteluHyvaksytty(
+        koejaksonAloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO
+    ): HyvaksyttyKoejaksonVaiheDTO {
         return HyvaksyttyKoejaksonVaiheDTO(
             koejaksonAloituskeskusteluDTO.id,
             KoejaksoTyyppi.ALOITUSKESKUSTELU,
@@ -326,7 +328,9 @@ class KoejaksonVaiheetServiceImpl(
         )
     }
 
-    private fun mapValiarviointiHyvaksytty(koejaksonValiarviointiDTO: KoejaksonValiarviointiDTO): HyvaksyttyKoejaksonVaiheDTO {
+    private fun mapValiarviointiHyvaksytty(
+        koejaksonValiarviointiDTO: KoejaksonValiarviointiDTO
+    ): HyvaksyttyKoejaksonVaiheDTO {
         return HyvaksyttyKoejaksonVaiheDTO(
             koejaksonValiarviointiDTO.id,
             KoejaksoTyyppi.VALIARVIOINTI,
@@ -351,7 +355,9 @@ class KoejaksonVaiheetServiceImpl(
         )
     }
 
-    private fun mapKehittamistoimenpiteetHyvaksytty(koejaksonKehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO): HyvaksyttyKoejaksonVaiheDTO {
+    private fun mapKehittamistoimenpiteetHyvaksytty(
+        koejaksonKehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO
+    ): HyvaksyttyKoejaksonVaiheDTO {
         return HyvaksyttyKoejaksonVaiheDTO(
             koejaksonKehittamistoimenpiteetDTO.id,
             KoejaksoTyyppi.KEHITTAMISTOIMENPITEET,
@@ -372,7 +378,9 @@ class KoejaksonVaiheetServiceImpl(
         )
     }
 
-    private fun mapLoppukeskusteluHyvaksytty(koejaksonLoppukeskusteluDTO: KoejaksonLoppukeskusteluDTO): HyvaksyttyKoejaksonVaiheDTO {
+    private fun mapLoppukeskusteluHyvaksytty(
+        koejaksonLoppukeskusteluDTO: KoejaksonLoppukeskusteluDTO
+    ): HyvaksyttyKoejaksonVaiheDTO {
         return HyvaksyttyKoejaksonVaiheDTO(
             koejaksonLoppukeskusteluDTO.id,
             KoejaksoTyyppi.LOPPUKESKUSTELU,
@@ -390,7 +398,9 @@ class KoejaksonVaiheetServiceImpl(
         )
     }
 
-    private fun sortKoejaksonVaiheet(resultMap: HashMap<String, MutableList<KoejaksonVaiheDTO>>): List<KoejaksonVaiheDTO> {
+    private fun sortKoejaksonVaiheet(
+        resultMap: HashMap<String, MutableList<KoejaksonVaiheDTO>>
+    ): List<KoejaksonVaiheDTO> {
         val flattenList = resultMap.values.flatten().asSequence()
         val avoimetVaiheet = flattenList.filter {
             it.tila == KoejaksoTila.ODOTTAA_HYVAKSYNTAA

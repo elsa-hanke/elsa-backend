@@ -65,16 +65,22 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         val updatedKehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetMapper.toEntity(koejaksonKehittamistoimenpiteetDTO)
 
-        if (kehittamistoimenpiteet.erikoistuvaLaakari?.kayttaja?.user?.id == userId && kehittamistoimenpiteet.lahiesimiesHyvaksynyt) {
+        if (kehittamistoimenpiteet.erikoistuvaLaakari?.kayttaja?.user?.id == userId
+            && kehittamistoimenpiteet.lahiesimiesHyvaksynyt
+        ) {
             kehittamistoimenpiteet = handleErikoistuva(kehittamistoimenpiteet)
         }
 
-        if (kehittamistoimenpiteet.lahikouluttaja?.user?.id == userId && !kehittamistoimenpiteet.lahiesimiesHyvaksynyt) {
+        if (kehittamistoimenpiteet.lahikouluttaja?.user?.id == userId
+            && !kehittamistoimenpiteet.lahiesimiesHyvaksynyt
+        ) {
             kehittamistoimenpiteet =
                 handleKouluttaja(kehittamistoimenpiteet, updatedKehittamistoimenpiteet)
         }
 
-        if (kehittamistoimenpiteet.lahiesimies?.user?.id == userId && kehittamistoimenpiteet.lahikouluttajaHyvaksynyt) {
+        if (kehittamistoimenpiteet.lahiesimies?.user?.id == userId
+            && kehittamistoimenpiteet.lahikouluttajaHyvaksynyt
+        ) {
             kehittamistoimenpiteet =
                 handleEsimies(kehittamistoimenpiteet, updatedKehittamistoimenpiteet)
         }
@@ -232,7 +238,9 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
     @Transactional(readOnly = true)
     override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonKehittamistoimenpiteetDTO> {
         val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
+            koejaksonKehittamistoimenpiteetRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
+                userId
+            )
         return kehittamistoimenpiteet.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonKehittamistoimenpiteetMapper.toDto(
                 it
