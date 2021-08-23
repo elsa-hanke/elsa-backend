@@ -263,7 +263,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                     )
                 )
             }
-            // TODO: Opintohallinto
+            // Sähköposti opintohallinnolle
         }
         // Sähköposti erikoistujalle ja kouluttajille palautetusta sopimuksesta
         else {
@@ -310,15 +310,17 @@ class KoejaksonKoulutussopimusServiceImpl(
         id: Long,
         userId: String
     ): Optional<KoejaksonKoulutussopimusDTO> {
-        val koulutussopimus = koejaksonKoulutussopimusRepository.findOneByIdAndKouluttajatKouluttajaUserId(
-            id,
-            userId
-        ).map(koejaksonKoulutussopimusMapper::toDto)
+        val koulutussopimus =
+            koejaksonKoulutussopimusRepository.findOneByIdAndKouluttajatKouluttajaUserId(
+                id,
+                userId
+            ).map(koejaksonKoulutussopimusMapper::toDto)
 
         val currentKayttaja = kayttajaRepository.findOneByUserId(userId).get()
-        val currentKoulutussopimuksenKouluttaja = if (koulutussopimus.isPresent) koulutussopimus.get().kouluttajat?.find {
-            it.kayttajaId == currentKayttaja.id
-        } else null
+        val currentKoulutussopimuksenKouluttaja = if (koulutussopimus.isPresent)
+            koulutussopimus.get().kouluttajat?.find {
+                it.kayttajaId == currentKayttaja.id
+            } else null
         if (currentKoulutussopimuksenKouluttaja?.sahkoposti.isNullOrEmpty()) {
             currentKoulutussopimuksenKouluttaja?.sahkoposti = currentKayttaja.user?.email
         }
@@ -327,7 +329,8 @@ class KoejaksonKoulutussopimusServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findAllByKouluttajaKayttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO> {
-        val koulutussopimukset = koejaksonKoulutussopimusRepository.findAllByKouluttajatKouluttajaUserId(userId)
+        val koulutussopimukset =
+            koejaksonKoulutussopimusRepository.findAllByKouluttajatKouluttajaUserId(userId)
         return koulutussopimukset.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonKoulutussopimusMapper.toDto(
                 it
@@ -337,7 +340,8 @@ class KoejaksonKoulutussopimusServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findAllByVastuuhenkiloKayttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO> {
-        val koulutussopimukset = koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(userId)
+        val koulutussopimukset =
+            koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(userId)
         return koulutussopimukset.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonKoulutussopimusMapper.toDto(
                 it
