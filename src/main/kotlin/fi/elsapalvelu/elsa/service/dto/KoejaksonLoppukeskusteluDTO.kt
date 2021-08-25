@@ -22,6 +22,8 @@ data class KoejaksonLoppukeskusteluDTO(
 
     var esitetaanKoejaksonHyvaksymista: Boolean? = null,
 
+    var jatkotoimenpiteet: String? = null,
+
     @get: NotNull
     var lahikouluttaja: KoejaksonKouluttajaDTO? = null,
 
