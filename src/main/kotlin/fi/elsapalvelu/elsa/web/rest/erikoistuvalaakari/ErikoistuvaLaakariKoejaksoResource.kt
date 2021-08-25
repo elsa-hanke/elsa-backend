@@ -79,7 +79,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             }
         result.kehittamistoimenpiteidenTila =
             KoejaksoTila.fromKehittamistoimenpiteet(
-                valiarviointiHyvaksytty && !result.valiarviointi?.kehittamistoimenpiteet.isNullOrBlank(),
+                valiarviointiHyvaksytty && result.valiarviointi?.edistyminenTavoitteidenMukaista != true,
                 result.kehittamistoimenpiteet
             )
 
@@ -90,7 +90,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         result.loppukeskustelunTila =
             KoejaksoTila.fromLoppukeskustelu(
                 result.kehittamistoimenpiteidenTila == KoejaksoTila.HYVAKSYTTY
-                    || (valiarviointiHyvaksytty && result.valiarviointi?.kehittamistoimenpiteet.isNullOrBlank()),
+                    || (valiarviointiHyvaksytty && result.valiarviointi?.edistyminenTavoitteidenMukaista == true),
                 result.loppukeskustelu
             )
 
@@ -428,7 +428,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         val valiarviointi =
             koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
         if (!valiarviointi.isPresent || valiarviointi.get().erikoistuvaAllekirjoittanut != true
-            || valiarviointi.get().kehittamistoimenpiteet == null
+            || valiarviointi.get().edistyminenTavoitteidenMukaista == true
         ) {
             throw BadRequestAlertException(
                 "Väliarviointi täytyy hyväksyä kehitettävillä asioilla ennen kehittämistoimenpiteitä.",
@@ -520,7 +520,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
         val validValiarviointi =
             valiarviointi.isPresent && valiarviointi.get().erikoistuvaAllekirjoittanut == true
-                && valiarviointi.get().kehittamistoimenpiteet == null
+                && valiarviointi.get().edistyminenTavoitteidenMukaista == true
         val validKehittamistoimenpiteet =
             kehittamistoimenpiteet.isPresent && kehittamistoimenpiteet.get().erikoistuvaAllekirjoittanut == true
         if (!validValiarviointi && !validKehittamistoimenpiteet) {
