@@ -716,7 +716,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         initTest()
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
-        koejaksonValiarviointi.kehittamistoimenpiteet = null
+        koejaksonValiarviointi.edistyminenTavoitteidenMukaista = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         val databaseSizeBeforeCreate = koejaksonLoppukeskusteluRepository.findAll().size
@@ -1060,7 +1060,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 erikoistuvanErikoisala = erikoistuvaLaakari.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
-                edistyminenTavoitteidenMukaista = true,
+                edistyminenTavoitteidenMukaista = false,
                 vahvuudet = DEFAULT_VAHVUUDET,
                 kehittamistoimenpiteet = DEFAULT_KEHITTAMISTOIMENPITEET,
                 lahikouluttaja = lahikouluttaja,
