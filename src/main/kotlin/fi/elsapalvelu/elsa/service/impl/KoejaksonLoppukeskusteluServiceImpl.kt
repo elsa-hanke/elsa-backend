@@ -116,8 +116,10 @@ class KoejaksonLoppukeskusteluServiceImpl(
         updated: KoejaksonLoppukeskustelu
     ): KoejaksonLoppukeskustelu {
         loppukeskustelu.esitetaanKoejaksonHyvaksymista = updated.esitetaanKoejaksonHyvaksymista
+        loppukeskustelu.jatkotoimenpiteet = updated.jatkotoimenpiteet
         loppukeskustelu.lahikouluttajaHyvaksynyt = true
         loppukeskustelu.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+        loppukeskustelu.korjausehdotus = null
 
         val result = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
 
@@ -215,7 +217,9 @@ class KoejaksonLoppukeskusteluServiceImpl(
     @Transactional(readOnly = true)
     override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonLoppukeskusteluDTO> {
         val loppukeskustelut =
-            koejaksonLoppukeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
+            koejaksonLoppukeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
+                userId
+            )
         return loppukeskustelut.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonLoppukeskusteluMapper.toDto(
                 it

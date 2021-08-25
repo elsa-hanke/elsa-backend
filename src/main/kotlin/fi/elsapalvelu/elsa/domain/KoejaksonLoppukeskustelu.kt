@@ -42,6 +42,9 @@ data class KoejaksonLoppukeskustelu(
     @Column(name = "esitetaan_koejakson_hyvaksymista")
     var esitetaanKoejaksonHyvaksymista: Boolean? = null,
 
+    @Column(name = "jatkotoimenpiteet")
+    var jatkotoimenpiteet: String? = null,
+
     @NotNull
     @ManyToOne(optional = false)
     var lahikouluttaja: Kayttaja? = null,
