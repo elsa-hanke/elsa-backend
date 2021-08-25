@@ -371,4 +371,85 @@
         <cve>CVE-2020-25695</cve>
     </suppress>
     <!-- /FALSE POSITIVES 2021-03-03 -->
+    <!-- FALSE POSITIVES 2021-08-23 -->
+    <suppress>
+        <notes>
+            <![CDATA[
+      file name: kotlin-compiler-embeddable-1.4.0.jar, kotlin-daemon-embeddable-1.4.0.jar, kotlin-reflect-1.4.0.jar, kotlin-reflect-1.4.10.jar, kotlin-script-runtime-1.4.0.jar, kotlin-script-runtime-1.4.10.jar, kotlin-stdlib-1.4.0.jar, kotlin-stdlib-1.4.10.jar, kotlin-stdlib-common-1.4.0.jar, kotlin-stdlib-common-1.4.10.jar, kotlin-stdlib-jdk7-1.4.10.jar, kotlin-stdlib-jdk8-1.4.10.jar, kotlin-test-1.4.10.jar, kotlin-test-annotations-common-1.4.10.jar, kotlin-test-common-1.4.10.jar, kotlin-test-junit-1.4.10.jar
+      ]]>
+        </notes>
+        <cve>CVE-2020-15824</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            <![CDATA[
+        file name: spring-security-config-5.5.0.jar, spring-security-core-5.5.0.jar, spring-security-crypto-5.5.0.jar, spring-security-data-5.2.4.RELEASE.jar, spring-security-saml2-service-provider-5.5.0.jar, spring-security-test-5.2.4.RELEASE.jar, spring-security-web-5.5.0.jar
+        ]]>
+        </notes>
+        <cve>CVE-2018-1258</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            <![CDATA[
+   file name: postgresql-1.14.3.jar
+   ]]>
+        </notes>
+        <sha1>08844cf0cb612047a1b632e1b64b25fe58dc4083</sha1>
+        <cve>CVE-2019-10127</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            <![CDATA[
+        file name: postgresql-1.14.3.jar
+        ]]>
+        </notes>
+        <sha1>08844cf0cb612047a1b632e1b64b25fe58dc4083</sha1>
+        <cve>CVE-2019-10128</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            <![CDATA[
+        file name: postgresql-1.14.3.jar
+        ]]>
+        </notes>
+        <sha1>08844cf0cb612047a1b632e1b64b25fe58dc4083</sha1>
+        <cve>CVE-2021-3393</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            <![CDATA[
+        file name: nohttp-checkstyle-0.0.4.RELEASE.jar
+        ]]>
+        </notes>
+        <packageUrl regex="true">^pkg:maven/io\.spring\.nohttp/nohttp\-checkstyle@.*$</packageUrl>
+        <cve>CVE-2019-9658</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            <![CDATA[
+        file name: commons-collections-3.2.1.jar
+        ]]>
+        </notes>
+        <packageUrl regex="true">^pkg:maven/commons\-collections/commons\-collections@.*$</packageUrl>
+        <cve>CVE-2015-6420</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            <![CDATA[
+        file name: commons-collections-3.2.1.jar
+        ]]>
+        </notes>
+        <packageUrl regex="true">^pkg:maven/commons\-collections/commons\-collections@.*$</packageUrl>
+        <cve>CVE-2017-15708</cve>
+    </suppress>
+    <suppress>
+        <notes>
+            <![CDATA[
+        file name: undertow-websockets-jsr-2.2.8.Final.jar
+        ]]>
+        </notes>
+        <packageUrl regex="true">^pkg:maven/io\.undertow/undertow\-websockets\-jsr@.*$</packageUrl>
+        <cve>CVE-2021-33880</cve>
+    </suppress>
+    <!-- /FALSE POSITIVES 2021-08-23 -->
 </suppressions>
