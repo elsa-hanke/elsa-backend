@@ -131,6 +131,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             updated.kehittamistoimenpiteetRiittavat
         kehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
         kehittamistoimenpiteet.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+        kehittamistoimenpiteet.korjausehdotus = null
 
         val result = koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
 
