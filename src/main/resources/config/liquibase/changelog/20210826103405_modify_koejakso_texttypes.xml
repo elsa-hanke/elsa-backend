@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20210826103405" author="jhipster">
+
+        <modifyDataType tableName="koejakson_aloituskeskustelu"
+            columnName="koejakson_osaamistavoitteet" newDataType="text"/>
+
+        <modifyDataType tableName="koejakson_valiarviointi" columnName="vahvuudet"
+            newDataType="text"/>
+
+        <modifyDataType tableName="koejakson_valiarviointi" columnName="kehittamistoimenpiteet"
+            newDataType="text"/>
+
+    </changeSet>
+</databaseChangeLog>
