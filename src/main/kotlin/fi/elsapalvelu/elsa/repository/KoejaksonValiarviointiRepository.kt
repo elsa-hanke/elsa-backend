@@ -25,7 +25,7 @@ interface KoejaksonValiarviointiRepository : JpaRepository<KoejaksonValiarvioint
 
     @Query(
         "select v from KoejaksonValiarviointi v left join v.lahikouluttaja lk left join v.lahiesimies le " +
-            "where lk.user.id = :userId or (le.user.id = :userId and (v.lahikouluttajaHyvaksynyt = true or v.korjausehdotus != null))"
+            "where lk.user.id = :userId or (le.user.id = :userId and (v.lahikouluttajaHyvaksynyt = true or (v.korjausehdotus != null and v.korjausehdotus != '')))"
     )
     fun findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
         userId: String
