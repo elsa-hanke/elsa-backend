@@ -26,7 +26,7 @@ interface KoejaksonKehittamistoimenpiteetRepository :
 
     @Query(
         "select k from KoejaksonKehittamistoimenpiteet k left join k.lahikouluttaja lk left join k.lahiesimies le " +
-            "where lk.user.id = :userId or (le.user.id = :userId and (k.lahikouluttajaHyvaksynyt = true or k.korjausehdotus != null))"
+            "where lk.user.id = :userId or (le.user.id = :userId and (k.lahikouluttajaHyvaksynyt = true or (k.korjausehdotus != null and k.korjausehdotus != '')))"
     )
     fun findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
         userId: String
