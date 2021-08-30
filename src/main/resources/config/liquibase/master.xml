@@ -73,6 +73,7 @@
     <include file="config/liquibase/changelog/20210819100902_modify_entity_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210825143711_modify_entity_KoejaksonLoppukeskustelu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210826103405_modify_koejakso_texttypes.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210830130114_modify_loppukeskustelu_texttypes.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
