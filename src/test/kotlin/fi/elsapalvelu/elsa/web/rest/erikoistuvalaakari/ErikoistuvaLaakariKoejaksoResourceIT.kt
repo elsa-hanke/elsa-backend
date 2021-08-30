@@ -840,7 +840,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun ackVastuuhenkilonArvio() {
         initTest()
 
-        koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
+        koejaksonVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut = false
         koejaksonVastuuhenkilonArvio.vastuuhenkilonKuittausaika = DEFAULT_MYONTAMISPAIVA
         koejaksonVastuuhenkilonArvioRepository.saveAndFlush(koejaksonVastuuhenkilonArvio)
 

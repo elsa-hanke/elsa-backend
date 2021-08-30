@@ -47,8 +47,21 @@ data class KoejaksonVastuuhenkilonArvio(
     @Column(name = "vastuuhenkilon_nimi", nullable = false)
     var vastuuhenkilonNimi: String? = null,
 
-    @Column(name = "vastuuhenkilo_hyvaksynyt")
-    var vastuuhenkiloHyvaksynyt: Boolean = false,
+    @NotNull
+    @Column(name = "vastuuhenkilon_nimike", nullable = false)
+    var vastuuhenkilonNimike: String? = null,
+
+    @Column(name = "koejakso_hyvaksytty")
+    var koejaksoHyvaksytty: Boolean? = null,
+
+    @Column(name = "vastuuhenkilo_allekirjoittanut")
+    var vastuuhenkiloAllekirjoittanut: Boolean = false,
+
+    @Column(name = "perustelu_hylkaamiselle")
+    var perusteluHylkaamiselle: String? = null,
+
+    @Column(name = "hylatty_arviointi_kayty_lapi_keskustellen")
+    var hylattyArviointiKaytyLapiKeskustellen: Boolean? = null,
 
     @Column(name = "vastuuhenkilon_kuittausaika")
     var vastuuhenkilonKuittausaika: LocalDate? = null,
@@ -94,7 +107,7 @@ data class KoejaksonVastuuhenkilonArvio(
             "erikoistuvanYliopisto=$erikoistuvanYliopisto, " +
             "vastuuhenkilo=$vastuuhenkilo, " +
             "vastuuhenkilonNimi=$vastuuhenkilonNimi, " +
-            "vastuuhenkiloHyvaksynyt=$vastuuhenkiloHyvaksynyt, " +
+            "vastuuhenkiloHyvaksynyt=$vastuuhenkiloAllekirjoittanut, " +
             "vastuuhenkilonKuittausaika=$vastuuhenkilonKuittausaika, " +
             "muokkauspaiva=$muokkauspaiva, " +
             "erikoistuvaAllekirjoittanut=$erikoistuvaAllekirjoittanut)"

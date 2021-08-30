@@ -361,12 +361,16 @@ values (1042, 4004, 'Eveliina Erikoistuva', 'Työterveyshuolto', 1234567, 'Yliop
 
 insert into koejakson_vastuuhenkilon_arvio (id, erikoistuva_laakari_id, erikoistuvan_nimi, erikoistuvan_erikoisala,
                                             erikoistuvan_opiskelijatunnus, erikoistuvan_yliopisto, vastuuhenkilo_id,
-                                            vastuuhenkilon_nimi, vastuuhenkilo_hyvaksynyt, vastuuhenkilon_kuittausaika,
-                                            muokkauspaiva, erikoistuva_allekirjoittanut)
-values (1050, 4000, 'Erkki Erikoistuva', 'Työterveyshuolto', 1234567, 'Yliopisto 1', 7001, 'Ville Vastuuhenkilö', false, null,  '2021-06-05 12:50:31.526020', false);
+                                            vastuuhenkilon_nimi, vastuuhenkilo_allekirjoittanut, vastuuhenkilon_kuittausaika,
+                                            muokkauspaiva, erikoistuva_allekirjoittanut, perustelu_hylkaamiselle,
+                                            hylatty_arviointi_kayty_lapi_keskustellen, vastuuhenkilon_nimike, koejakso_hyvaksytty)
+values (1050, 4000, 'Erkki Erikoistuva', 'Työterveyshuolto', 1234567, 'Yliopisto 1', 7001, 'Ville Vastuuhenkilö', false, null,  '2021-06-05 12:50:31.526020', false,
+        null, null, 'Dosentti', true);
 
 insert into koejakson_vastuuhenkilon_arvio (id, erikoistuva_laakari_id, erikoistuvan_nimi, erikoistuvan_erikoisala,
                                             erikoistuvan_opiskelijatunnus, erikoistuvan_yliopisto, vastuuhenkilo_id,
                                             vastuuhenkilon_nimi, vastuuhenkilo_hyvaksynyt, vastuuhenkilon_kuittausaika,
-                                            muokkauspaiva, erikoistuva_allekirjoittanut)
-values (1051, 4004, 'Eveliina Erikoistuva', 'Työterveyshuolto', 1234567, 'Yliopisto 1', 7001, 'Ville Vastuuhenkilö', true, null,  '2021-06-17 12:50:31.526020', false);
+                                            muokkauspaiva, erikoistuva_allekirjoittanut, perustelu_hylkaamiselle,
+                                            hylatty_arviointi_kayty_lapi_keskustellen, vastuuhenkilon_nimike, koejakso_hyvaksytty)
+values (1051, 4004, 'Eveliina Erikoistuva', 'Työterveyshuolto', 1234567, 'Yliopisto 1', 7001, 'Ville Vastuuhenkilö', true, null,  '2021-06-17 12:50:31.526020', false,
+        null, null, 'Dosentti', false);

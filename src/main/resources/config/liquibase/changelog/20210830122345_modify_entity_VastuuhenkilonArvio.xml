@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20210830122345" author="jhipster">
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="koejakso_hyvaksytty" type="boolean">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="perustelu_hylkaamiselle" type="text">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="hylatty_arviointi_kayty_lapi_keskustellen" type="boolean">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="vastuuhenkilon_nimike" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+
+        <renameColumn tableName="koejakson_vastuuhenkilon_arvio" oldColumnName="vastuuhenkilo_hyvaksynyt" newColumnName="vastuuhenkilo_allekirjoittanut" />
+
+    </changeSet>
+</databaseChangeLog>
