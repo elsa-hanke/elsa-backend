@@ -11,6 +11,8 @@ data class KoejaksonKouluttajaDTO(
 
     var nimi: String? = null,
 
+    var nimike: String? = null,
+
     var sopimusHyvaksytty: Boolean? = null,
 
     var kuittausaika: LocalDate? = null

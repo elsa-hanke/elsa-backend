@@ -23,6 +23,16 @@ data class KoejaksonVastuuhenkilonArvioDTO(
     @get: NotNull
     var vastuuhenkilo: KoejaksonKouluttajaDTO? = null,
 
+    var koejaksoHyvaksytty: Boolean? = null,
+
+    var vastuuhenkiloHyvaksynyt: Boolean? = null,
+
+    var vastuuhenkilonKuittausaika: LocalDate? = null,
+
+    var perusteluHylkaamiselle: String? = null,
+
+    var hylattyArviointiKaytyLapiKeskustellen: Boolean? = null,
+
     var muokkauspaiva: LocalDate? = null,
 
     var erikoistuvaAllekirjoittanut: Boolean? = null,
