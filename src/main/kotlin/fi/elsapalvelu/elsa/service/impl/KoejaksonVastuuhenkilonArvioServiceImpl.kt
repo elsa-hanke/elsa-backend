@@ -71,9 +71,14 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         }
 
         if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
-            vastuuhenkilonArvio.vastuuhenkiloHyvaksynyt =
-                updatedVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt
-            vastuuhenkilonArvio.vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            vastuuhenkilonArvio.apply {
+                vastuuhenkiloAllekirjoittanut = true
+                vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
+                koejaksoHyvaksytty = updatedVastuuhenkilonArvio.koejaksoHyvaksytty
+            }.takeIf { it.koejaksoHyvaksytty == false }?.apply {
+                perusteluHylkaamiselle = updatedVastuuhenkilonArvio.perusteluHylkaamiselle
+                hylattyArviointiKaytyLapiKeskustellen = updatedVastuuhenkilonArvio.hylattyArviointiKaytyLapiKeskustellen
+            }
         }
 
         vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)

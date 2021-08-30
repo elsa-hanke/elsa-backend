@@ -51,6 +51,7 @@
     <include file="config/liquibase/changelog/20210623152123_added_entity_verification_token.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210630161925_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210811145903_modify_entity_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210830122345_modify_entity_VastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>

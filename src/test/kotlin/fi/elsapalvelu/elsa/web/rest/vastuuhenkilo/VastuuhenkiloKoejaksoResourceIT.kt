@@ -87,7 +87,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt = true
         koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
 
-        koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
+        koejaksonVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut = false
         vastuuhenkilonArvioRepository.saveAndFlush(koejaksonVastuuhenkilonArvio)
 
         restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejaksot"))
@@ -309,7 +309,8 @@ class VastuuhenkiloKoejaksoResourceIT {
         val updatedVastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.findById(id).get()
         em.detach(updatedVastuuhenkilonArvio)
 
-        updatedVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = true
+        updatedVastuuhenkilonArvio.koejaksoHyvaksytty = true
+        updatedVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut = true
         updatedVastuuhenkilonArvio.vastuuhenkilonKuittausaika =
             KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
@@ -326,7 +327,8 @@ class VastuuhenkiloKoejaksoResourceIT {
         val vastuuhenkilonArvioList = koejaksonVastuuhenkilonArvioRepository.findAll()
         assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeUpdate)
         val testVastuuhenkilonArvio = vastuuhenkilonArvioList[vastuuhenkilonArvioList.size - 1]
-        assertThat(testVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt).isEqualTo(true)
+        assertThat(testVastuuhenkilonArvio.koejaksoHyvaksytty).isEqualTo(true)
+        assertThat(testVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut).isEqualTo(true)
         assertThat(testVastuuhenkilonArvio.vastuuhenkilonKuittausaika).isEqualTo(
             KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
         )
@@ -344,7 +346,8 @@ class VastuuhenkiloKoejaksoResourceIT {
         val updatedVastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.findById(id).get()
         em.detach(updatedVastuuhenkilonArvio)
 
-        updatedVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
+        updatedVastuuhenkilonArvio.koejaksoHyvaksytty = false
+        updatedVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut = true
         updatedVastuuhenkilonArvio.vastuuhenkilonKuittausaika =
             KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
@@ -361,7 +364,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val vastuuhenkilonArvioList = koejaksonVastuuhenkilonArvioRepository.findAll()
         assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeUpdate)
         val testVastuuhenkilonArvio = vastuuhenkilonArvioList[vastuuhenkilonArvioList.size - 1]
-        assertThat(testVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt).isEqualTo(false)
+        assertThat(testVastuuhenkilonArvio.koejaksoHyvaksytty).isEqualTo(false)
         assertThat(testVastuuhenkilonArvio.vastuuhenkilonKuittausaika).isNotNull
     }
 
@@ -444,6 +447,7 @@ class VastuuhenkiloKoejaksoResourceIT {
                 muokkauspaiva = KoejaksonVaiheetHelper.DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
                 vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
+                vastuuhenkilonNimike = vastuuhenkilo.nimike
             )
         }
     }
