@@ -58,7 +58,7 @@ class ZonedDateTimeMatcher(private val date: ZonedDateTime) : TypeSafeDiagnosing
                 return false
             }
             return true
-        } catch (e: DateTimeParseException) {
+        } catch (ex: DateTimeParseException) {
             mismatchDescription.appendText("was ").appendValue(item)
                 .appendText(", which could not be parsed as a ZonedDateTime")
             return false

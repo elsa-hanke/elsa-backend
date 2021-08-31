@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
 import org.thymeleaf.spring5.SpringTemplateEngine
 import java.nio.charset.StandardCharsets
-import java.util.Locale
+import java.util.*
 import javax.mail.MessagingException
 
 enum class MailProperty(val property: String) {
@@ -56,10 +56,10 @@ class MailService(
             }
             javaMailSender.send(mimeMessage)
             log.debug("Sent email to User '$to'")
-        } catch (e: MailException) {
-            log.warn("Email could not be sent to user '$to'", e)
-        } catch (e: MessagingException) {
-            log.warn("Email could not be sent to user '$to'", e)
+        } catch (ex: MailException) {
+            log.warn("Email could not be sent to user '$to'", ex)
+        } catch (ex: MessagingException) {
+            log.warn("Email could not be sent to user '$to'", ex)
         }
     }
 

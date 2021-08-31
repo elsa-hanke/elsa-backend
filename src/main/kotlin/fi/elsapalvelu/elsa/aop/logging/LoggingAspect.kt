@@ -98,12 +98,12 @@ open class LoggingAspect(private val env: Environment) {
                 )
             }
             return result
-        } catch (e: IllegalArgumentException) {
+        } catch (ex: IllegalArgumentException) {
             log.error(
                 "Illegal argument: ${joinPoint.args.joinToString()} in ${joinPoint.signature.name}()"
             )
 
-            throw e
+            throw ex
         }
     }
 }
