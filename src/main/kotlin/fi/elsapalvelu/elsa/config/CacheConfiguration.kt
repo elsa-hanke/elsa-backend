@@ -54,7 +54,9 @@ class CacheConfiguration(
     @Bean
     fun cacheManagerCustomizer(): JCacheManagerCustomizer {
         return JCacheManagerCustomizer { cm ->
+            createCache(cm, fi.elsapalvelu.elsa.domain.Arviointityokalu::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.ArvioitavaOsaalue::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Asiakirja::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Authority::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.EpaOsaamisalue::class.java.name + ".arvioitavatOsaalueet")
             createCache(cm, fi.elsapalvelu.elsa.domain.EpaOsaamisalue::class.java.name)
@@ -70,7 +72,15 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".saadutValtuutukset")
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Keskeytysaika::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.KoejaksonAloituskeskustelu::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.KoejaksonKehittamistoimenpiteet::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.KoejaksonKoulutussopimus::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.KoejaksonLoppukeskustelu::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.KoejaksonValiarviointi::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.KoejaksonVastuuhenkilonArvio::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.KoulutussopimuksenKouluttaja::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.KoulutussopimuksenKoulutuspaikka::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Kunta::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Oppimistavoite::class.java.name)
             createCache(
@@ -88,7 +98,9 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelypaikka::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.User::class.java.name + ".authorities")
             createCache(cm, fi.elsapalvelu.elsa.domain.User::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.VerificationToken::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Yliopisto::class.java.name + ".erikoisalat")
+            createCache(cm, fi.elsapalvelu.elsa.domain.Yliopisto::class.java.name + ".kayttajat")
             createCache(cm, fi.elsapalvelu.elsa.domain.Yliopisto::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.repository.UserRepository.USERS_BY_EMAIL_CACHE)
             createCache(cm, fi.elsapalvelu.elsa.repository.UserRepository.USERS_BY_LOGIN_CACHE)
