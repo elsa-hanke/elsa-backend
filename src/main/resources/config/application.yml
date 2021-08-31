@@ -122,6 +122,13 @@ server:
       cookie:
         http-only: true
 
+cloud:
+  aws:
+    region:
+      static: eu-west-1
+    stack:
+      auto: false
+
 
 # Properties to be exposed on the /info management endpoint
 info:
@@ -186,9 +193,3 @@ application:
     saml-private-key-location: "classpath:privateKey.key"
     saml-certificate-location: "classpath:certificate.crt"
     saml-scheme: http
-cloud:
-  aws:
-    region:
-      static: eu-west-1
-    stack:
-      auto: false
