@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.domain.KoejaksonKehittamistoimenpiteet
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKehittamistoimenpiteetRepository
+import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository
 import fi.elsapalvelu.elsa.service.KoejaksonKehittamistoimenpiteetService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
@@ -23,6 +24,7 @@ import javax.persistence.EntityNotFoundException
 @Transactional
 class KoejaksonKehittamistoimenpiteetServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonKehittamistoimenpiteetMapper: KoejaksonKehittamistoimenpiteetMapper,
     private val mailService: MailService,
@@ -129,6 +131,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             updated.kehittamistoimenpiteetRiittavat
         kehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
         kehittamistoimenpiteet.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+        kehittamistoimenpiteet.korjausehdotus = null
 
         val result = koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
 
@@ -218,10 +221,11 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         id: Long,
         userId: String
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
-        return koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahikouluttajaUserId(
+        val kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahikouluttajaUserId(
             id,
             userId
-        ).map(koejaksonKehittamistoimenpiteetMapper::toDto)
+        )
+        return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
     }
 
     @Transactional(readOnly = true)
@@ -229,10 +233,25 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         id: Long,
         userId: String
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
-        return koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahiesimiesUserId(
+        val kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahiesimiesUserId(
             id,
             userId
-        ).map(koejaksonKehittamistoimenpiteetMapper::toDto)
+        )
+        return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
+    }
+
+    private fun applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet: Optional<KoejaksonKehittamistoimenpiteet>): Optional<KoejaksonKehittamistoimenpiteetDTO> {
+        val kehittamistoimenpiteetDto = kehittamistoimenpiteet.map(koejaksonKehittamistoimenpiteetMapper::toDto)
+        if (kehittamistoimenpiteet.isPresent) {
+            kehittamistoimenpiteet.get().erikoistuvaLaakari?.kayttaja?.user?.id?.let { kayttajaUserId ->
+                koejaksonValiarviointiRepository.findByErikoistuvaLaakariKayttajaUserId(kayttajaUserId).let {
+                    kehittamistoimenpiteetDto.get().apply {
+                        this.kehittamistoimenpiteetKuvaus = if (it.isPresent) it.get().kehittamistoimenpiteet else null
+                    }
+                }
+            }
+        }
+        return kehittamistoimenpiteetDto
     }
 
     @Transactional(readOnly = true)
