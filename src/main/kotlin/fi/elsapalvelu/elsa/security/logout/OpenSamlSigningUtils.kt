@@ -28,8 +28,6 @@ import org.w3c.dom.Element
 import java.nio.charset.StandardCharsets
 import java.security.cert.X509Certificate
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.LinkedHashMap
 
 
 class OpenSamlSigningUtils {
