@@ -145,3 +145,9 @@ Desktop.ini
 # ESLint
 ######################
 .eslintcache
+
+######################
+# Certificates
+######################
+*.crt
+*.key
