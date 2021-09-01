@@ -29,7 +29,6 @@ plugins {
     id "org.sonarqube"
     id "io.spring.nohttp"
     id "org.owasp.dependencycheck"
-    id "nebula.lint" version "17.1.1"
 }
 
 group = "fi.elsapalvelu.elsa"
@@ -275,5 +274,3 @@ wrapper {
 
 compileJava.dependsOn processResources
 processResources.dependsOn bootBuildInfo
-
-gradleLint.rules = ['all-dependency']
