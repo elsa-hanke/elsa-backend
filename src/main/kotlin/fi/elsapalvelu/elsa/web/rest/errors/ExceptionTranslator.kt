@@ -125,7 +125,7 @@ class ExceptionTranslator : ProblemHandling, SecurityAdviceTrait {
         request: NativeWebRequest?
     ): ResponseEntity<Problem> {
         log.warn(
-            "Access denied for " +
+            "SECURITY: Access denied for " +
                 "user: ${request.let { it?.userPrincipal?.name }}, " +
                 "method: ${request.let { (it?.nativeRequest as HttpServletRequest).method }}, " +
                 "path: ${request.let { (it?.nativeRequest as HttpServletRequest).requestURI }}, " +
