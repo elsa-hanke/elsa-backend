@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest
 import fi.elsapalvelu.elsa.security.logout.OpenSamlLogoutRequestResolver
 import fi.elsapalvelu.elsa.security.logout.Saml2LogoutRequest
 import fi.elsapalvelu.elsa.security.logout.Saml2LogoutRequestResolver
+import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.util.Assert
@@ -23,6 +24,7 @@ import javax.servlet.http.HttpServletRequest
  * REST controller for managing global OIDC logout.
  */
 @RestController
+@Profile("dev", "prod")
 class LogoutResource(private val logoutRequestResolver: OpenSamlLogoutRequestResolver) {
 
     /**
