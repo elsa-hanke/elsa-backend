@@ -29,6 +29,7 @@ plugins {
     id "org.sonarqube"
     id "io.spring.nohttp"
     id "org.owasp.dependencycheck"
+    id "nebula.lint" version "17.1.1"
 }
 
 group = "fi.elsapalvelu.elsa"
@@ -212,6 +213,7 @@ dependencies {
     implementation "org.hibernate:hibernate-jcache:${hibernateVersion}"
     implementation "org.hibernate:hibernate-entitymanager:${hibernateVersion}"
     implementation "org.hibernate.validator:hibernate-validator:${hibernateVersion}"
+    implementation "org.hibernate:hibernate-envers:${hibernateVersion}"
     implementation "org.liquibase:liquibase-core"
     liquibaseRuntime "org.liquibase:liquibase-core"
     liquibaseRuntime "org.liquibase.ext:liquibase-hibernate5:${liquibaseHibernate5Version}"
@@ -230,10 +232,10 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-undertow:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
     implementation "org.zalando:problem-spring-web"
-    implementation "org.springframework.boot:spring-boot-starter-cloud-connectors"
-    implementation "org.springframework.security:spring-security-config"
-    implementation "org.springframework.security:spring-security-data"
-    implementation "org.springframework.security:spring-security-web"
+    implementation "org.springframework.security:spring-security-config:${springSecurityVersion}"
+    implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
+    implementation "org.springframework.security:spring-security-web:${springSecurityVersion}"
+    implementation "org.springframework.security:spring-security-saml2-service-provider:${springSecurityVersion}"
     implementation("io.springfox:springfox-swagger2") {
         exclude module: "mapstruct"
     }
@@ -255,7 +257,6 @@ dependencies {
     testImplementation "com.h2database:h2"
 
     implementation "co.elastic.logging:logback-ecs-encoder:1.0.1"
-    implementation "org.springframework.security:spring-security-saml2-service-provider:5.5.1"
     implementation "commons-codec:commons-codec:1.15"
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.5.0"
     implementation "org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE"
@@ -274,3 +275,5 @@ wrapper {
 
 compileJava.dependsOn processResources
 processResources.dependsOn bootBuildInfo
+
+gradleLint.rules = ['all-dependency']
