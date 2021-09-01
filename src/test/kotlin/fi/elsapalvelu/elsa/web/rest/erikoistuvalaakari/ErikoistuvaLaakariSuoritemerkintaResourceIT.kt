@@ -63,7 +63,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
     @BeforeEach
     fun setup() {
-        MockitoAnnotations.initMocks(this)
+        MockitoAnnotations.openMocks(this)
     }
 
     @Test
