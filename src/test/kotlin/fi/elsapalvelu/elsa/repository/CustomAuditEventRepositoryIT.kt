@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.repository
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
-import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.config.audit.AuditEventConverter
 import fi.elsapalvelu.elsa.domain.PersistentAuditEvent
 import org.assertj.core.api.Assertions.assertThat
@@ -21,7 +20,7 @@ import java.time.temporal.ChronoUnit
 /**
  * Integration tests for [CustomAuditEventRepository].
  */
-@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class CustomAuditEventRepositoryIT {
 

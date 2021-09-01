@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
@@ -37,7 +36,7 @@ import javax.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
-@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class])
 class VastuuhenkiloKoejaksoResourceIT {
 
     @Autowired
