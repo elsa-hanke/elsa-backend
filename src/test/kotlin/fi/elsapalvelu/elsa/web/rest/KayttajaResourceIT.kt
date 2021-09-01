@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.security.USER
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import fi.elsapalvelu.elsa.service.mapper.UserMapper
-import org.apache.commons.lang3.RandomStringUtils
+import org.apache.commons.lang.RandomStringUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
