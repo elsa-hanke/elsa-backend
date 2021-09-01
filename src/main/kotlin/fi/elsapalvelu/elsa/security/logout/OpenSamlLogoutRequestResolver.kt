@@ -13,6 +13,7 @@ import org.opensaml.saml.saml2.core.impl.IssuerBuilder
 import org.opensaml.saml.saml2.core.impl.LogoutRequestBuilder
 import org.opensaml.saml.saml2.core.impl.LogoutRequestMarshaller
 import org.opensaml.saml.saml2.core.impl.NameIDBuilder
+import org.springframework.context.annotation.Profile
 import org.springframework.security.core.Authentication
 import org.springframework.security.saml2.Saml2Exception
 import org.springframework.security.saml2.core.OpenSamlInitializationService
@@ -31,6 +32,7 @@ import java.util.function.Consumer
 import javax.servlet.http.HttpServletRequest
 
 @Component
+@Profile("dev", "prod")
 class OpenSamlLogoutRequestResolver(
     private val relyingPartyRegistrationRepository: RelyingPartyRegistrationRepository,
     private val applicationProperties: ApplicationProperties
