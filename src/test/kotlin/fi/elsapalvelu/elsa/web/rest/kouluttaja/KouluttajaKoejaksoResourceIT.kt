@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
@@ -36,7 +35,7 @@ import javax.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
-@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class])
 class KouluttajaKoejaksoResourceIT {
 
     @Autowired
