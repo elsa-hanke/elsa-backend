@@ -190,6 +190,7 @@ application:
     encoded-key:
     secret-key-algorithm: AES
     cipher-algorithm: AES/CBC/PKCS5Padding
-    saml-private-key-location: "classpath:privateKey.key"
-    saml-certificate-location: "classpath:certificate.crt"
+    saml-private-key-location: "classpath:private.key"
+    saml-certificate-location: "classpath:public.crt"
+    saml-suomifi-certificate-location: "classpath:suomifi.crt"
     saml-scheme: http

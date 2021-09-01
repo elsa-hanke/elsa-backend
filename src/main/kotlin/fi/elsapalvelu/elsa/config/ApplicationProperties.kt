@@ -51,6 +51,7 @@ class ApplicationProperties {
         var cipherAlgorithm: String? = null
         var samlPrivateKeyLocation: String? = null
         var samlCertificateLocation: String? = null
+        var samlSuomifiCertificateLocation: String? = null
         var samlScheme: String? = null
     }
 }
