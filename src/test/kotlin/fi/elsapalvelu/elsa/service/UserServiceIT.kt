@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
-import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.ANONYMOUS
@@ -25,7 +24,7 @@ private const val DEFAULT_FIRSTNAME = "john"
 private const val DEFAULT_LASTNAME = "doe"
 private const val DEFAULT_LANGKEY = "dummy"
 
-@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class UserServiceIT {
 
@@ -70,7 +69,7 @@ class UserServiceIT {
             allManagedUsers.content.stream()
                 .noneMatch { user -> ANONYMOUS_USER == user.login }
         )
-            .isTrue()
+            .isTrue
     }
 
     @Test

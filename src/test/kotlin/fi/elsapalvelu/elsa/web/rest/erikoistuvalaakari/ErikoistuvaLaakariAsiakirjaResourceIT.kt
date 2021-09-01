@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.Asiakirja
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.AsiakirjaRepository
@@ -37,7 +36,7 @@ import java.time.LocalDateTime
 import javax.persistence.EntityManager
 
 @AutoConfigureMockMvc
-@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class])
 class ErikoistuvaLaakariAsiakirjaResourceIT {
 
     @Autowired

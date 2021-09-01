@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.domain.PersistentAuditEvent
 import fi.elsapalvelu.elsa.repository.PersistenceAuditEventRepository
 import fi.elsapalvelu.elsa.security.ADMIN
@@ -16,10 +15,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
@@ -30,7 +26,7 @@ private const val SECONDS_PER_DAY = (60 * 60 * 24).toLong()
 
 @AutoConfigureMockMvc
 @WithMockUser(authorities = [ADMIN])
-@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class AuditResourceIT {
 

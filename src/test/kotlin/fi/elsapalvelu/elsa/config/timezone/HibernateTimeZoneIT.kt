@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.config.timezone
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.TestSecurityConfiguration
 import fi.elsapalvelu.elsa.repository.timezone.DateTimeWrapper
 import fi.elsapalvelu.elsa.repository.timezone.DateTimeWrapperRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -14,25 +13,18 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.support.rowset.SqlRowSet
 import org.springframework.transaction.annotation.Transactional
 import java.lang.String.format
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.Month
-import java.time.OffsetDateTime
-import java.time.OffsetTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.time.*
 import java.time.format.DateTimeFormatter
 
 /**
  * Integration tests for the ZoneId Hibernate configuration.
  */
-@SpringBootTest(classes = [ElsaBackendApp::class, TestSecurityConfiguration::class])
+@SpringBootTest(classes = [ElsaBackendApp::class])
 class HibernateTimeZoneIT {
 
     @Autowired
     private lateinit var dateTimeWrapperRepository: DateTimeWrapperRepository
+
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
 
@@ -180,7 +172,7 @@ class HibernateTimeZoneIT {
         while (sqlRowSet.next()) {
             val dbValue = sqlRowSet.getString(1)
 
-            assertThat(dbValue).isNotNull()
+            assertThat(dbValue).isNotNull
             assertThat(dbValue).isEqualTo(expectedValue)
         }
     }
