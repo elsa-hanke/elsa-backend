@@ -20,6 +20,8 @@ data class ErikoistuvaLaakariDTO(
 
     var syntymaaika: LocalDate? = null,
 
+    var erikoistumisenAloituspaiva: LocalDate? = null,
+
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
     var opintooikeudenPaattymispaiva: LocalDate? = null,
