@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.Kayttaja
+import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
 import fi.elsapalvelu.elsa.web.rest.createByteArray
 import javax.persistence.EntityManager
@@ -16,6 +17,8 @@ class KayttajaHelper {
         private const val DEFAULT_NIMI = "AAAAAAAAAA"
         private const val UPDATED_NIMI = "BBBBBBBBBB"
 
+        private const val DEFAULT_NIMIKE = "DEFAULT_NIMIKE"
+
         private val DEFAULT_PROFIILIKUVA: ByteArray = createByteArray(1, "0")
         private val UPDATED_PROFIILIKUVA: ByteArray = createByteArray(1, "1")
         private const val DEFAULT_PROFIILIKUVA_CONTENT_TYPE: String = "image/jpg"
@@ -25,7 +28,8 @@ class KayttajaHelper {
         fun createEntity(em: EntityManager, user: User? = null): Kayttaja {
             val kayttaja = Kayttaja(
                 profiilikuva = DEFAULT_PROFIILIKUVA,
-                profiilikuvaContentType = DEFAULT_PROFIILIKUVA_CONTENT_TYPE
+                profiilikuvaContentType = DEFAULT_PROFIILIKUVA_CONTENT_TYPE,
+                nimike = DEFAULT_NIMIKE
             )
 
             // Lisätään pakollinen tieto
