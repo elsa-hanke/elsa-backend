@@ -231,28 +231,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
     @Test
     @Transactional
-    fun createTyoskentelyjaksoWithShortPeriod() {
-        initTest()
-
-        val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
-
-        tyoskentelyjakso.alkamispaiva = LocalDate.of(2020, 1, 25)
-        tyoskentelyjakso.paattymispaiva = LocalDate.of(2020, 2, 5)
-        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
-        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
-
-        restTyoskentelyjaksoMockMvc.perform(
-            multipart("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
-                .with(csrf())
-        ).andExpect(status().isBadRequest)
-
-        val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
-    }
-
-    @Test
-    @Transactional
     fun createTyoskentelyjaksoWithInvalidDates() {
         initTest()
 

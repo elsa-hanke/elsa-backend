@@ -110,18 +110,15 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                         "tyoskentelypaikka",
                         "dataillegal"
                     )
-                } else if (daysBetween < minDays) {
-                    throw BadRequestAlertException(
-                        "Työskentelyjakson minimikesto on 30 täyttä työpäivää",
-                        "tyoskentelypaikka",
-                        "dataillegal"
-                    )
                 }
             }
         }
     }
 
-    private fun getMappedFiles(files: List<MultipartFile>?, userId: String): MutableSet<AsiakirjaDTO>? {
+    private fun getMappedFiles(
+        files: List<MultipartFile>?,
+        userId: String
+    ): MutableSet<AsiakirjaDTO>? {
         files?.let {
             fileValidator.validate(it, userId)
             return it.map { file ->
@@ -152,25 +149,30 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         }?.also {
             log.debug("REST request to update Tyoskentelyjakso : $this")
             if (it.id == null) {
-                throw BadRequestAlertException("Työskentelyjakson ID puuttuu.", ENTITY_NAME, "idnull")
+                throw BadRequestAlertException(
+                    "Työskentelyjakson ID puuttuu.",
+                    ENTITY_NAME,
+                    "idnull"
+                )
             }
         }?.also { validatePaattymispaiva(it) }?.let {
             val newAsiakirjat = getMappedFiles(files, user.id!!) ?: mutableSetOf()
             val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let { id ->
                 objectMapper.readValue(id, mutableSetOf<Int>()::class.java)
             }
-            tyoskentelyjaksoService.update(it, user.id!!, newAsiakirjat, deletedAsiakirjaIds)?.let { result ->
-                return ResponseEntity.ok()
-                    .headers(
-                        HeaderUtil.createEntityUpdateAlert(
-                            applicationName,
-                            true,
-                            ENTITY_NAME,
-                            result.id.toString()
+            tyoskentelyjaksoService.update(it, user.id!!, newAsiakirjat, deletedAsiakirjaIds)
+                ?.let { result ->
+                    return ResponseEntity.ok()
+                        .headers(
+                            HeaderUtil.createEntityUpdateAlert(
+                                applicationName,
+                                true,
+                                ENTITY_NAME,
+                                result.id.toString()
+                            )
                         )
-                    )
-                    .body(result)
-            }
+                        .body(result)
+                }
         } ?: throw BadRequestAlertException(
             "Työskentelyjakson päivittäminen epäonnistui.",
             ENTITY_NAME,
@@ -256,7 +258,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
 
         form.reservedAsiakirjaNimet =
-            asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { it.nimi!! }.toMutableSet()
+            asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { it.nimi!! }
+                .toMutableSet()
 
         return ResponseEntity.ok(form)
     }
@@ -396,7 +399,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         }
 
         if (tyoskentelyjaksoDTO.liitettyKoejaksoon == null) {
-            throw BadRequestAlertException("liitettyKoejaksoon on pakollinen tieto", ENTITY_NAME, "illegaldata")
+            throw BadRequestAlertException(
+                "liitettyKoejaksoon on pakollinen tieto",
+                ENTITY_NAME,
+                "illegaldata"
+            )
         }
 
         tyoskentelyjaksoService.updateLiitettyKoejaksoon(
