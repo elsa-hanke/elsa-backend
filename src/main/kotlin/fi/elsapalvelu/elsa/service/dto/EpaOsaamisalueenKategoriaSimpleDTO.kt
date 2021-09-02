@@ -23,7 +23,7 @@ class EpaOsaamisalueenKategoriaSimpleDTO(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is EpaOsaamisalueenKategoriaDTO) return false
+        if (other !is EpaOsaamisalueenKategoriaSimpleDTO) return false
         return id != null && id == other.id
     }
 
