@@ -21,6 +21,8 @@ interface TyoskentelyjaksoService {
 
     fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<TyoskentelyjaksoDTO>
 
+    fun validateByLiitettyKoejaksoon(userId: String): Triple<Boolean, Boolean, Boolean>
+
     fun findOne(id: Long, userId: String): TyoskentelyjaksoDTO?
 
     fun delete(id: Long, userId: String)

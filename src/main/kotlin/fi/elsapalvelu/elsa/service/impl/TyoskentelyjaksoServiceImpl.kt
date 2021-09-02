@@ -4,14 +4,13 @@ import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi.*
-import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN
-import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi.*
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KuntaRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
+import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
@@ -20,10 +19,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
 import kotlin.math.max
 import kotlin.math.min
 
@@ -36,7 +32,8 @@ class TyoskentelyjaksoServiceImpl(
     private val kuntaRepository: KuntaRepository,
     private val erikoisalaRepository: ErikoisalaRepository,
     private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper,
-    private val asiakirjaMapper: AsiakirjaMapper
+    private val asiakirjaMapper: AsiakirjaMapper,
+    private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService
 ) : TyoskentelyjaksoService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -228,6 +225,29 @@ class TyoskentelyjaksoServiceImpl(
         return null
     }
 
+    @Transactional(readOnly = true)
+    override fun validateByLiitettyKoejaksoon(userId: String): Triple<Boolean, Boolean, Boolean> {
+        var tyoskentelyJaksoLiitetty = false
+        var tyoskentelyjaksonPituusRiittava = false
+        var tyotodistusLiitetty = false
+
+        tyoskentelyjaksoRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId)?.let {
+            tyoskentelyJaksoLiitetty = true
+            tyoskentelyjaksonPituusRiittava = validateTyoskentelyjaksonPituusKoejaksolleRiittava(it)
+            tyotodistusLiitetty = it.asiakirjat.isNotEmpty()
+        }
+
+        return Triple(tyoskentelyJaksoLiitetty, tyoskentelyjaksonPituusRiittava, tyotodistusLiitetty)
+    }
+
+    private fun validateTyoskentelyjaksonPituusKoejaksolleRiittava(tyoskentelyjakso: Tyoskentelyjakso): Boolean {
+        val tyoskentelyJaksonPituusDays = tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso)
+        val years = tyoskentelyJaksonPituusDays / 365
+        val months = years * 12
+        // Koejaksoon liitetyn työskentelyjakson vähimmäispituus on 6kk.
+        return months >= 6
+    }
+
     override fun delete(id: Long, userId: String) {
         log.debug("Request to delete Tyoskentelyjakso : $id")
 
@@ -327,80 +347,46 @@ class TyoskentelyjaksoServiceImpl(
         kaytannonKoulutusSuoritettuMap: MutableMap<KaytannonKoulutusTyyppi, Double>,
         tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>
     ) {
-        // Lasketaan työskentelyjakson päivät
-        val daysBetween = ChronoUnit.DAYS.between(
-            tyoskentelyjakso.alkamispaiva,
-            tyoskentelyjakso.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
-        ) + 1
-
-        // Ei huomioida tulevaisuuden jaksoja
-        if (daysBetween > 0) {
-            val factor = tyoskentelyjakso.osaaikaprosentti!!.toDouble() / 100.0
-            var result = factor * daysBetween
-
-            // Vähennetään keskeytykset
-            tyoskentelyjakso.keskeytykset.map { keskeytysaika ->
-                val keskeytysaikaDaysBetween = ChronoUnit.DAYS.between(
-                    keskeytysaika.alkamispaiva,
-                    keskeytysaika.paattymispaiva
-                ) + 1
-
-                // Keskeytysajan prosentti 0 % tarkoittaa kokopäiväpoissaoloa
-                val keskeytysaikaFactor = keskeytysaika.osaaikaprosentti!!.toDouble() / 100.0
-                val keskeytysaikaResult = keskeytysaikaFactor * keskeytysaikaDaysBetween
-
-                when (keskeytysaika.poissaolonSyy!!.vahennystyyppi!!) {
-                    VAHENNETAAN_YLIMENEVA_AIKA -> {
-                        // 30 kalenterivuoden päivän sääntöä ei oteta huomioon vielä. Tarvitaan jokin ratkaisu.
-                        result -= keskeytysaikaResult
-                    }
-                    VAHENNETAAN_SUORAAN -> {
-                        result -= keskeytysaikaResult
-                    }
-                }
-            }
-
-            // Koskaan ei summata negatiivisa arvoja laskuriin! (Esim. jos on kirjattu poissaolo useampaan kertaan)
-            result = max(0.0, result)
-
+        val tyoskentelyjaksonPituus = tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso)
+        if (tyoskentelyjaksonPituus > 0) {
             // Summataan suoritettu aika koulutustyypettäin
             when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
-                TERVEYSKESKUS -> counter.terveyskeskusSuoritettu += result
-                YLIOPISTOLLINEN_SAIRAALA -> counter.yliopistosairaalaSuoritettu += result
-                else -> counter.yliopistosairaaloidenUlkopuolinenSuoritettu += result
+                TERVEYSKESKUS -> counter.terveyskeskusSuoritettu += tyoskentelyjaksonPituus
+                YLIOPISTOLLINEN_SAIRAALA -> counter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
+                else -> counter.yliopistosairaaloidenUlkopuolinenSuoritettu += tyoskentelyjaksonPituus
             }
 
             // Summataan suoritettu aika käytännön koulutuksettain
             when (tyoskentelyjakso.kaytannonKoulutus!!) {
                 OMAN_ERIKOISALAN_KOULUTUS ->
                     kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS] =
-                        kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS]!! + result
+                        kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS]!! + tyoskentelyjaksonPituus
                 OMAA_ERIKOISALAA_TUKEVA_KOULUTUS ->
                     kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS] =
-                        kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS]!! + result
+                        kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS]!! + tyoskentelyjaksonPituus
                 TUTKIMUSTYO ->
                     kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO] =
-                        kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO]!! + result
+                        kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO]!! + tyoskentelyjaksonPituus
                 TERVEYSKESKUSTYO ->
                     kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO] =
-                        kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO]!! + result
+                        kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO]!! + tyoskentelyjaksonPituus
             }
 
             // Summataan nykyiselle tai hyväksytylle erikoisalalle
             if (tyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan) {
-                counter.hyvaksyttyToiselleErikoisalalleSuoritettu += result
+                counter.hyvaksyttyToiselleErikoisalalleSuoritettu += tyoskentelyjaksonPituus
             } else {
-                counter.nykyiselleErikoisalalleSuoritettu += result
+                counter.nykyiselleErikoisalalleSuoritettu += tyoskentelyjaksonPituus
             }
 
             // Summataan työskentelyaika yhteensä
-            counter.tyoskentelyaikaYhteensa += result
+            counter.tyoskentelyaikaYhteensa += tyoskentelyjaksonPituus
 
             // Kootaan työskentelyjaksojen suoritetut työskentelyajat
             tyoskentelyjaksotSuoritettu.add(
                 TyoskentelyjaksotTilastotTyoskentelyjaksotDTO(
                     id = tyoskentelyjakso.id!!,
-                    suoritettu = result
+                    suoritettu = tyoskentelyjaksonPituus
                 )
             )
         }
