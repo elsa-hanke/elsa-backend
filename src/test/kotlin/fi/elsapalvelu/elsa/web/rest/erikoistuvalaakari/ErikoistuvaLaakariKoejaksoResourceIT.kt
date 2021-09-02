@@ -840,7 +840,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun ackVastuuhenkilonArvio() {
         initTest()
 
-        koejaksonVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut = false
+        koejaksonVastuuhenkilonArvio.koejaksoHyvaksytty = true
+        koejaksonVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut = true
         koejaksonVastuuhenkilonArvio.vastuuhenkilonKuittausaika = DEFAULT_MYONTAMISPAIVA
         koejaksonVastuuhenkilonArvioRepository.saveAndFlush(koejaksonVastuuhenkilonArvio)
 
@@ -1125,6 +1126,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 vastuuhenkilo = vastuuhenkilo,
                 vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
+                vastuuhenkilonNimike = vastuuhenkilo.nimike,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }
