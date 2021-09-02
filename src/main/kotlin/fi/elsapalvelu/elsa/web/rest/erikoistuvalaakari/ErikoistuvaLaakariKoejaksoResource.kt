@@ -582,6 +582,26 @@ class ErikoistuvaLaakariKoejaksoResource(
             .body(result)
     }
 
+    @GetMapping("/vastuuhenkilonarvio-lomake")
+    fun getVastuuhenkilonArvioForm(principal: Principal?): ResponseEntity<VastuuhenkilonArvioFormDTO> {
+        val form = VastuuhenkilonArvioFormDTO().apply {
+            val user = userService.getAuthenticatedUser(principal)
+            val kayttaja = kayttajaService.findByUserId(user.id!!)
+
+            vastuuhenkilot = kayttajaService.findVastuuhenkilot().filter {
+                it.yliopisto?.id == kayttaja.get().yliopisto?.id
+            }
+
+            val (tyoskentelyJaksoLiitetty, tyoskentelyjaksonPituusRiittava, tyotodistusLiitetty) =
+                tyoskentelyjaksoService.validateByLiitettyKoejaksoon(user.id!!)
+            this.tyoskentelyjaksoLiitetty = tyoskentelyJaksoLiitetty
+            this.tyoskentelyjaksonPituusRiittava = tyoskentelyjaksonPituusRiittava
+            this.tyotodistusLiitetty = tyotodistusLiitetty
+        }
+
+        return ResponseEntity.ok(form)
+    }
+
     @PostMapping("/koejakso/vastuuhenkilonarvio")
     fun createVastuuhenkilonArvio(
         @Valid @RequestBody vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
