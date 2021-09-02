@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.service.mapper.EpaOsaamisalueMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.util.*
 
 @Service
@@ -40,7 +41,10 @@ class EpaOsaamisalueServiceImpl(
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<EpaOsaamisalueDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        return epaOsaamisalueRepository.findAllByErikoisalaId(kirjautunutErikoistuvaLaakari?.erikoisala?.id)
+        return epaOsaamisalueRepository.findAllByErikoisalaIdAndValid(
+            kirjautunutErikoistuvaLaakari?.erikoisala?.id,
+            kirjautunutErikoistuvaLaakari?.erikoistumisenAloituspaiva ?: LocalDate.now()
+        )
             .map(epaOsaamisalueMapper::toDto)
     }
 

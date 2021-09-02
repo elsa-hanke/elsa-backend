@@ -9,8 +9,11 @@ import java.time.LocalDate
 @Repository
 interface EpaOsaamisalueRepository : JpaRepository<EpaOsaamisalue, Long> {
 
-    @Query("select oa from EpaOsaamisalue oa where oa.voimassaoloAlkaa <= ?1 and (oa.voimassaoloLoppuu is null or oa.voimassaoloLoppuu >= ?1)")
-    fun findAllValid(now: LocalDate): List<EpaOsaamisalue>
-
-    fun findAllByErikoisalaId(id: Long?): List<EpaOsaamisalue>
+    @Query(
+        "select oa from EpaOsaamisalue oa left join oa.erikoisala e " +
+            "where e.id = ?1 " +
+            "and oa.voimassaoloAlkaa <= ?2 " +
+            "and (oa.voimassaoloLoppuu is null or oa.voimassaoloLoppuu >= ?2)"
+    )
+    fun findAllByErikoisalaIdAndValid(id: Long?, valid: LocalDate): List<EpaOsaamisalue>
 }
