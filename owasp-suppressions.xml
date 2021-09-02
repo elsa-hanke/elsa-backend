@@ -6,7 +6,8 @@
    file name: jhipster-framework-3.9.0.jar
    ]]>
         </notes>
-        <packageUrl regex="true">^pkg:maven/io\.github\.jhipster/jhipster\-framework@.*$</packageUrl>
+        <packageUrl regex="true">^pkg:maven/io\.github\.jhipster/jhipster\-framework@.*$
+        </packageUrl>
         <cve>CVE-2019-16303</cve>
     </suppress>
     <!-- FALSE POSITIVES 2021-03-03 -->
@@ -16,7 +17,9 @@
    file name: jboss-websocket-api_1.1_spec-1.1.4.Final.jar
    ]]>
         </notes>
-        <packageUrl regex="true">^pkg:maven/org\.jboss\.spec\.javax\.websocket/jboss\-websocket\-api_1\.1_spec@.*$</packageUrl>
+        <packageUrl regex="true">
+            ^pkg:maven/org\.jboss\.spec\.javax\.websocket/jboss\-websocket\-api_1\.1_spec@.*$
+        </packageUrl>
         <cve>CVE-2020-11050</cve>
     </suppress>
     <suppress>
@@ -430,7 +433,8 @@
         file name: commons-collections-3.2.1.jar
         ]]>
         </notes>
-        <packageUrl regex="true">^pkg:maven/commons\-collections/commons\-collections@.*$</packageUrl>
+        <packageUrl regex="true">^pkg:maven/commons\-collections/commons\-collections@.*$
+        </packageUrl>
         <cve>CVE-2015-6420</cve>
     </suppress>
     <suppress>
@@ -439,7 +443,8 @@
         file name: commons-collections-3.2.1.jar
         ]]>
         </notes>
-        <packageUrl regex="true">^pkg:maven/commons\-collections/commons\-collections@.*$</packageUrl>
+        <packageUrl regex="true">^pkg:maven/commons\-collections/commons\-collections@.*$
+        </packageUrl>
         <cve>CVE-2017-15708</cve>
     </suppress>
     <suppress>
@@ -452,4 +457,100 @@
         <cve>CVE-2021-33880</cve>
     </suppress>
     <!-- /FALSE POSITIVES 2021-08-23 -->
+
+
+    <!-- UNLIKELY VULNERABILITIES 2021-08-23 -->
+    <suppress>
+        <notes><![CDATA[
+   file name: bcprov-jdk15on-1.59.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.bouncycastle/bcprov\-jdk15on@.*$</packageUrl>
+        <cve>CVE-2018-1000180</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: bcprov-jdk15on-1.59.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.bouncycastle/bcprov\-jdk15on@.*$</packageUrl>
+        <cve>CVE-2018-1000613</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: bcprov-jdk15on-1.59.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.bouncycastle/bcprov\-jdk15on@.*$</packageUrl>
+        <cve>CVE-2020-26939</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: commons-compress-1.20.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.commons/commons\-compress@.*$</packageUrl>
+        <cve>CVE-2021-35515</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: commons-compress-1.20.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.commons/commons\-compress@.*$</packageUrl>
+        <cve>CVE-2021-35516</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: commons-compress-1.20.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.commons/commons\-compress@.*$</packageUrl>
+        <cve>CVE-2021-35517</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: commons-compress-1.20.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.commons/commons\-compress@.*$</packageUrl>
+        <cve>CVE-2021-36090</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: guava-29.0-jre.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+        <cve>CVE-2020-8908</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: hibernate-validator-6.0.19.Final.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.hibernate\.validator/hibernate\-validator@.*$
+        </packageUrl>
+        <vulnerabilityName>CVE-2020-10693</vulnerabilityName>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: junit-4.12.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/junit/junit@.*$</packageUrl>
+        <vulnerabilityName>CVE-2020-15250</vulnerabilityName>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: spring-security-test-5.2.4.RELEASE.jar
+   ]]></notes>
+        <sha1>33cda680acf4ab06aa6a84632ce7f7f859565f29</sha1>
+        <cve>CVE-2021-22112</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: velocity-1.7.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.velocity/velocity@.*$</packageUrl>
+        <cve>CVE-2020-13936</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: xmlsec-2.0.10.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.santuario/xmlsec@.*$</packageUrl>
+        <cve>CVE-2019-12400</cve>
+    </suppress>
+    <!-- /UNLIKELY VULNERABILITIES 2021-08-23 -->
 </suppressions>

@@ -31,9 +31,9 @@ allOpen {
 
 [compileKotlin, compileTestKotlin]*.with {
     kotlinOptions {
-    	jvmTarget = "1.8"
+        jvmTarget = "1.8"
         javaParameters = true
-    	freeCompilerArgs = ["-Xjvm-default=all"]
+        freeCompilerArgs = ["-Xjvm-default=all"]
     }
 }
 
@@ -46,7 +46,7 @@ check.dependsOn ktlintCheck
 
 detekt {
     toolVersion = detektVersion
-    input = files("src/main/kotlin")
+    source = files("src/main/kotlin")
     config = files("detekt-config.yml")
     reports {
         xml {
