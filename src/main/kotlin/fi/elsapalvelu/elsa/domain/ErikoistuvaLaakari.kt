@@ -28,6 +28,9 @@ data class ErikoistuvaLaakari(
     @Column(name = "syntymaaika")
     var syntymaaika: LocalDate? = null,
 
+    @Column(name = "erikoistumisen_aloituspaiva")
+    var erikoistumisenAloituspaiva: LocalDate? = null,
+
     @Column(name = "opintooikeuden_myontamispaiva")
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
