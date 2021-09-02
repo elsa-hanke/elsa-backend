@@ -30,7 +30,7 @@ class RelyingPartyConfiguration(
         // Load public certificate
         val publicKeyResource: Resource =
             resourceLoader.getResource(applicationProperties.getSecurity().samlCertificateLocation!!)
-        val certificate: X509Certificate = X509Support.decodeCertificate(publicKeyResource.file)!!
+        val certificate: X509Certificate = X509Support.decodeCertificate(publicKeyResource.inputStream.readBytes())!!
 
         // Load private key
         val privateKeyResource: Resource =
