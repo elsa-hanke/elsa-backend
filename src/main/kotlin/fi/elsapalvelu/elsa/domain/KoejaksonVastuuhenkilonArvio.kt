@@ -107,7 +107,7 @@ data class KoejaksonVastuuhenkilonArvio(
             "erikoistuvanYliopisto=$erikoistuvanYliopisto, " +
             "vastuuhenkilo=$vastuuhenkilo, " +
             "vastuuhenkilonNimi=$vastuuhenkilonNimi, " +
-            "vastuuhenkiloHyvaksynyt=$vastuuhenkiloAllekirjoittanut, " +
+            "vastuuhenkiloAllekirjoittanut=$vastuuhenkiloAllekirjoittanut, " +
             "vastuuhenkilonKuittausaika=$vastuuhenkilonKuittausaika, " +
             "muokkauspaiva=$muokkauspaiva, " +
             "erikoistuvaAllekirjoittanut=$erikoistuvaAllekirjoittanut)"
