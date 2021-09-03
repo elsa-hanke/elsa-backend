@@ -25,12 +25,14 @@ class EpaOsaamisalueHelper {
         private val UPDATED_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(em: EntityManager): EpaOsaamisalue {
+        fun createEntity(em: EntityManager,
+                         voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
+                         voimassaoloLoppuu: LocalDate? = DEFAULT_VOIMASSAOLO_LOPPUU): EpaOsaamisalue {
             val epaOsaamisalue = EpaOsaamisalue(
                 nimi = DEFAULT_NIMI,
                 kuvaus = DEFAULT_KUVAUS,
-                voimassaoloAlkaa = DEFAULT_VOIMASSAOLO_ALKAA,
-                voimassaoloLoppuu = DEFAULT_VOIMASSAOLO_LOPPUU
+                voimassaoloAlkaa = voimassaoloAlkaa,
+                voimassaoloLoppuu = voimassaoloLoppuu
             )
 
             // Lisätään pakollinen tieto

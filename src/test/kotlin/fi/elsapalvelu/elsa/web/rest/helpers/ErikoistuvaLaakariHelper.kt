@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.web.rest.findAll
+import java.time.LocalDate
 import javax.persistence.EntityManager
 
 class ErikoistuvaLaakariHelper {
@@ -22,12 +23,15 @@ class ErikoistuvaLaakariHelper {
 
         private const val DEFAULT_YLIOPISTO = "TAYS"
 
+        private val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
+
         @JvmStatic
         fun createEntity(em: EntityManager, user: User? = null): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari(
                 puhelinnumero = DEFAULT_PUHELINNUMERO,
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
-                opintojenAloitusvuosi = DEFAULT_OPINTOJEN_ALOITUSVUOSI
+                opintojenAloitusvuosi = DEFAULT_OPINTOJEN_ALOITUSVUOSI,
+                erikoistumisenAloituspaiva = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA
             )
 
             // Lisätään pakollinen tieto

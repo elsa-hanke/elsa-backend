@@ -61,6 +61,16 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
     @BeforeEach
     fun setup() {
         MockitoAnnotations.openMocks(this)
+
+        // Lisätään voimassaoleva EPA-osaamisalue ja päättymistä ei määritetty
+        em.persist(EpaOsaamisalueHelper.createEntity(em, LocalDate.ofEpochDay(0L), null))
+        // Lisätään voimassaoleva EPA-osaamisalue ja päättyminen määritetty
+        em.persist(EpaOsaamisalueHelper.createEntity(em, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(20L)))
+        // Lisätään EPA-osaamisalue jonka voimassaolo ei ole alkanut vielä
+        em.persist(EpaOsaamisalueHelper.createEntity(em, LocalDate.ofEpochDay(15L), LocalDate.ofEpochDay(20L)))
+        // Lisätään EPA-osaamisalue, jonka voimassaolo on jo päättynyt
+        em.persist(EpaOsaamisalueHelper.createEntity(em, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
+        em.flush()
     }
 
     @Test
@@ -185,7 +195,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.epaOsaamisalueet").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.epaOsaamisalueet").value(Matchers.hasSize<Any>(2))) // 2 voimassaolevaa
             .andExpect(jsonPath("$.tapahtumat").value(Matchers.hasSize<Any>(0)))
             .andExpect(jsonPath("$.kouluttajatAndVastuuhenkilot").value(Matchers.hasSize<Any>(0)))
     }
@@ -202,6 +212,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
             .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(60)))
             .andExpect(jsonPath("$.epaOsaamisalueenKategoriat").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.epaOsaamisalueenKategoriat.[0].epaOsaamisalueet").value(Matchers.hasSize<Any>(2))) // 2 voimassaolevaa
             .andExpect(jsonPath("$.kouluttajatAndVastuuhenkilot").value(Matchers.hasSize<Any>(0)))
     }
 
