@@ -28,7 +28,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     }
 
     @Test
-    fun `assert that tyoskentelyjakso length with osaaikaprosentti 50 is 29 days`() {
+    fun `assert that tyoskentelyjakso length with osaaikaprosentti 50 is 29,5 days`() {
         val tyoskentelyjakso = createTyoskentelyjakso(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 2, 28), 50, mutableSetOf())
         val tyoskentelyJaksonPituusDays = tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso)
 
@@ -48,7 +48,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     }
 
     @Test
-    fun `assert that tyoskentelyjakso length with osaaikaprosentti 50 and keskeytysaika of one week is 29,5 days`() {
+    fun `assert that tyoskentelyjakso length with osaaikaprosentti 50 and keskeytysaika of one week is 21,5 days`() {
         val keskeytysaikaMock = createKeskeytysaikaMock(
             LocalDate.of(2021, 1, 15),
             LocalDate.of(2021, 1, 22), 0)
