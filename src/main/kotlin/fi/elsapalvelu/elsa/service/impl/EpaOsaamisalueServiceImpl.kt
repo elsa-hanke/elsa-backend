@@ -41,6 +41,7 @@ class EpaOsaamisalueServiceImpl(
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<EpaOsaamisalueDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        // Jos erikoistumisen aloituspäivää ei ole määritetty, käytetään nykyistä päivää voimassaolon rajaamisessa
         return epaOsaamisalueRepository.findAllByErikoisalaIdAndValid(
             kirjautunutErikoistuvaLaakari?.erikoisala?.id,
             kirjautunutErikoistuvaLaakari?.erikoistumisenAloituspaiva ?: LocalDate.now()
