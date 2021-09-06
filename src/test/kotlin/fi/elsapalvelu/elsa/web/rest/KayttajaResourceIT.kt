@@ -45,6 +45,7 @@ class KayttajaResourceIT {
         user.apply {
             login = DEFAULT_LOGIN
             email = DEFAULT_EMAIL
+            phoneNumber = DEFAULT_PHONE_NUMBER
         }
     }
 
@@ -69,6 +70,7 @@ class KayttajaResourceIT {
             firstName = DEFAULT_FIRSTNAME,
             lastName = DEFAULT_LASTNAME,
             email = DEFAULT_EMAIL,
+            phoneNumber = DEFAULT_PHONE_NUMBER,
             activated = true,
             langKey = DEFAULT_LANGKEY,
             createdBy = DEFAULT_LOGIN,
@@ -83,6 +85,7 @@ class KayttajaResourceIT {
         assertThat(user.firstName).isEqualTo(DEFAULT_FIRSTNAME)
         assertThat(user.lastName).isEqualTo(DEFAULT_LASTNAME)
         assertThat(user.email).isEqualTo(DEFAULT_EMAIL)
+        assertThat(user.phoneNumber).isEqualTo(DEFAULT_PHONE_NUMBER)
         assertThat(user.activated).isEqualTo(true)
         assertThat(user.langKey).isEqualTo(DEFAULT_LANGKEY)
         assertThat(user.createdBy).isNull()
@@ -149,6 +152,8 @@ class KayttajaResourceIT {
 
         private const val DEFAULT_EMAIL = "johndoe@localhost"
 
+        private const val DEFAULT_PHONE_NUMBER = "1234567890"
+
         private const val DEFAULT_FIRSTNAME = "john"
 
         private const val DEFAULT_LASTNAME = "doe"
@@ -164,6 +169,7 @@ class KayttajaResourceIT {
                 login = DEFAULT_LOGIN + RandomStringUtils.randomAlphabetic(5),
                 activated = true,
                 email = RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL,
+                phoneNumber = RandomStringUtils.randomAlphabetic(5) +  DEFAULT_PHONE_NUMBER,
                 firstName = names?.dropLast(1)?.joinToString(),
                 lastName = names?.last(),
                 langKey = DEFAULT_LANGKEY,
