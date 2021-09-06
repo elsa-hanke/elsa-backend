@@ -43,6 +43,10 @@ class User(
     @Column(length = 254, unique = true)
     var email: String? = null,
 
+    @field:Size(max = 254)
+    @Column(name = "phone_number", length = 254)
+    var phoneNumber: String? = null,
+
     @field:NotNull
     @Column(nullable = false)
     var activated: Boolean = false,
@@ -90,6 +94,7 @@ class User(
             ", firstName='" + firstName + '\'' +
             ", lastName='" + lastName + '\'' +
             ", email='" + email + '\'' +
+            ", phoneNumber='" + phoneNumber + '\'' +
             ", activated='" + activated + '\'' +
             ", langKey='" + langKey + '\'' +
             "}"

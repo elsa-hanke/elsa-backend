@@ -28,6 +28,7 @@ class UserMapperTest {
             login = DEFAULT_LOGIN,
             activated = true,
             email = "johndoe@localhost",
+            phoneNumber = "1234567890",
             firstName = "john",
             lastName = "doe",
             langKey = "en"
