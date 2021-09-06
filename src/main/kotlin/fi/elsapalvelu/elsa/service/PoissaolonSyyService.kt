@@ -1,15 +1,11 @@
 package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.service.dto.PoissaolonSyyDTO
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 
 interface PoissaolonSyyService {
 
     fun save(poissaolonSyyDTO: PoissaolonSyyDTO): PoissaolonSyyDTO
 
-    fun findAll(pageable: Pageable): Page<PoissaolonSyyDTO>
-
-    fun findAll(): List<PoissaolonSyyDTO>
+    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<PoissaolonSyyDTO>
 
     fun findOne(id: Long): PoissaolonSyyDTO?
 

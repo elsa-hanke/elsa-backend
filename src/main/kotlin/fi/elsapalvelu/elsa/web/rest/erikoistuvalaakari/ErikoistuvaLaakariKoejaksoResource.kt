@@ -105,7 +105,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
 
         result.kunnat = kuntaService.findAll()
-        result.erikoisalat = erikoisalaService.findAll()
+        result.erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
         result.tyoskentelyjaksot =
             tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
 

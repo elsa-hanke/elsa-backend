@@ -188,7 +188,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         val user = userService.getAuthenticatedUser(principal)
         val table = TyoskentelyjaksotTableDTO()
-        table.poissaolonSyyt = poissaolonSyyService.findAll().toMutableSet()
+        table.poissaolonSyyt = poissaolonSyyService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
         table.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
         table.keskeytykset = keskeytysaikaService
@@ -255,7 +255,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         form.kunnat = kuntaService.findAll().toMutableSet()
 
-        form.erikoisalat = erikoisalaService.findAll().toMutableSet()
+        form.erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
 
         form.reservedAsiakirjaNimet =
             asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { it.nimi!! }
@@ -274,7 +274,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         val form = KeskeytysaikaFormDTO()
 
-        form.poissaolonSyyt = poissaolonSyyService.findAll().toMutableSet()
+        form.poissaolonSyyt = poissaolonSyyService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
