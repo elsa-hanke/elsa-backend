@@ -1,20 +1,21 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.OppimistavoitteenKategoriaRepository
 import fi.elsapalvelu.elsa.service.OppimistavoitteenKategoriaService
 import fi.elsapalvelu.elsa.service.dto.OppimistavoitteenKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.OppimistavoitteenKategoriaMapper
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
+import java.time.LocalDate
+import java.util.*
 
 @Service
 @Transactional
 class OppimistavoitteenKategoriaServiceImpl(
     private val oppimistavoitteenKategoriaRepository: OppimistavoitteenKategoriaRepository,
-    private val oppimistavoitteenKategoriaMapper: OppimistavoitteenKategoriaMapper
+    private val oppimistavoitteenKategoriaMapper: OppimistavoitteenKategoriaMapper,
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 ) : OppimistavoitteenKategoriaService {
 
     override fun save(
@@ -26,22 +27,12 @@ class OppimistavoitteenKategoriaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): List<OppimistavoitteenKategoriaDTO> {
-        return oppimistavoitteenKategoriaRepository.findAll()
-            .map(oppimistavoitteenKategoriaMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
-    override fun findAll(
-        pageable: Pageable
-    ): Page<OppimistavoitteenKategoriaDTO> {
-        return oppimistavoitteenKategoriaRepository.findAll(pageable)
-            .map(oppimistavoitteenKategoriaMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
-    override fun findAllByErikoisalaId(id: Long): List<OppimistavoitteenKategoriaDTO> {
-        return oppimistavoitteenKategoriaRepository.findAllByErikoisalaId(id)
+    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<OppimistavoitteenKategoriaDTO> {
+        val kirjautunutErikoistuvaLaakari =
+            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        return oppimistavoitteenKategoriaRepository.findAllByErikoisalaIdAndValid(
+            kirjautunutErikoistuvaLaakari?.erikoisala?.id,
+            kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now())
             .map(oppimistavoitteenKategoriaMapper::toDto)
     }
 

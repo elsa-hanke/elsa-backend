@@ -1,20 +1,21 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.OppimistavoiteRepository
 import fi.elsapalvelu.elsa.service.OppimistavoiteService
 import fi.elsapalvelu.elsa.service.dto.OppimistavoiteDTO
 import fi.elsapalvelu.elsa.service.mapper.OppimistavoiteMapper
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
+import java.time.LocalDate
+import java.util.*
 
 @Service
 @Transactional
 class OppimistavoiteServiceImpl(
     private val oppimistavoiteRepository: OppimistavoiteRepository,
-    private val oppimistavoiteMapper: OppimistavoiteMapper
+    private val oppimistavoiteMapper: OppimistavoiteMapper,
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 ) : OppimistavoiteService {
 
     override fun save(
@@ -26,10 +27,12 @@ class OppimistavoiteServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(
-        pageable: Pageable
-    ): Page<OppimistavoiteDTO> {
-        return oppimistavoiteRepository.findAll(pageable)
+    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<OppimistavoiteDTO> {
+        val kirjautunutErikoistuvaLaakari =
+            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+
+        // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää voimassaolon rajaamisessa
+        return oppimistavoiteRepository.findAllByValid(kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now())
             .map(oppimistavoiteMapper::toDto)
     }
 
