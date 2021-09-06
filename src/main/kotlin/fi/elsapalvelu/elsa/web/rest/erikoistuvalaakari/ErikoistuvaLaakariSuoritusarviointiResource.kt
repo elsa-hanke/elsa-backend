@@ -75,7 +75,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         form.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
         form.kunnat = kuntaService.findAll().toMutableSet()
-        form.erikoisalat = erikoisalaService.findAll().toMutableSet()
+        form.erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
         form.epaOsaamisalueenKategoriat =
             epaOsaamisalueService.findAllByErikoistuvaLaakariKayttajaUserId(id)
                 .groupBy { it.kategoria }.map {

@@ -26,8 +26,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
     private val oppimistavoitteenKategoriaService: OppimistavoitteenKategoriaService,
-    private val suoritemerkintaService: SuoritemerkintaService,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService
+    private val suoritemerkintaService: SuoritemerkintaService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -137,15 +136,10 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         log.debug("REST request to get OppimistavoitteetTable")
 
         val user = userService.getAuthenticatedUser(principal)
-
         val table = OppimistavoitteetTableDTO()
 
-        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let { kirjautunutErikoistuvaLaakari ->
-            kirjautunutErikoistuvaLaakari.erikoisalaId?.let {
-                table.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
-                    .findAllByErikoisalaId(it).toMutableSet()
-            }
-        }
+        table.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
+            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
 
         table.suoritemerkinnat = suoritemerkintaService
             .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
@@ -160,22 +154,14 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         log.debug("REST request to get SuoritemerkintaForm")
 
         val user = userService.getAuthenticatedUser(principal)
-
         val form = SuoritemerkintaFormDTO()
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
-
         form.kunnat = kuntaService.findAll().toMutableSet()
-
-        form.erikoisalat = erikoisalaService.findAll().toMutableSet()
-
-        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let { kirjautunutErikoistuvaLaakari ->
-            kirjautunutErikoistuvaLaakari.erikoisalaId?.let {
-                form.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
-                    .findAllByErikoisalaId(it).toMutableSet()
-            }
-        }
+        form.erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+        form.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
+            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
 
         return ResponseEntity.ok(form)
     }
