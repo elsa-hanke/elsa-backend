@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
+import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.domain.Oppimistavoite
 import fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -17,21 +18,22 @@ class OppimistavoiteHelper {
         private val DEFAULT_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
-        private val DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
+        private val DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(30L)
         private val UPDATED_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(em: EntityManager): Oppimistavoite {
+        fun createEntity(em: EntityManager, erikoisala: Erikoisala? = null, voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
+                         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA): Oppimistavoite {
             val oppimistavoite = Oppimistavoite(
                 nimi = DEFAULT_NIMI,
-                voimassaolonAlkamispaiva = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
-                voimassaolonPaattymispaiva = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA
+                voimassaolonAlkamispaiva = voimassaoloAlkaa,
+                voimassaolonPaattymispaiva = voimassaoloPaattyy
             )
 
             // Lisätään pakollinen tieto
             val oppimistavoitteenKategoria: OppimistavoitteenKategoria
             if (em.findAll(OppimistavoitteenKategoria::class).isEmpty()) {
-                oppimistavoitteenKategoria = OppimistavoitteenKategoriaHelper.createEntity(em)
+                oppimistavoitteenKategoria = OppimistavoitteenKategoriaHelper.createEntity(em, erikoisala)
                 em.persist(oppimistavoitteenKategoria)
                 em.flush()
             } else {

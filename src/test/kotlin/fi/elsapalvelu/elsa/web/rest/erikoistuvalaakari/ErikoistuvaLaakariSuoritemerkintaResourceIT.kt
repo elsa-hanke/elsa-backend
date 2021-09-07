@@ -1,20 +1,16 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.Oppimistavoite
-import fi.elsapalvelu.elsa.domain.Suoritemerkinta
-import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.OppimistavoitteenKategoriaRepository
 import fi.elsapalvelu.elsa.repository.SuoritemerkintaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.SuoritemerkintaMapper
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
-import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.OppimistavoiteHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
@@ -49,6 +45,9 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
     private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 
     @Autowired
+    private lateinit var oppimistavoitteenKategoriaRepository: OppimistavoitteenKategoriaRepository
+
+    @Autowired
     private lateinit var suoritemerkintaMapper: SuoritemerkintaMapper
 
     @Autowired
@@ -59,11 +58,27 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
     private lateinit var suoritemerkinta: Suoritemerkinta
 
+    private lateinit var erikoisala: Erikoisala
+
     private lateinit var user: User
 
     @BeforeEach
     fun setup() {
         MockitoAnnotations.openMocks(this)
+
+        erikoisala = ErikoisalaHelper.createEntity()
+        em.persist(erikoisala)
+
+        // Lisätään voimassaoleva oppimistavoitteen kategoria ja päättymistä ei määritetty
+        em.persist(OppimistavoitteenKategoriaHelper.createEntity(em, erikoisala, LocalDate.ofEpochDay(0L), null))
+        // Lisätään voimassaoleva oppimistavoitteen kategoria ja päättyminen määritetty
+        em.persist(OppimistavoitteenKategoriaHelper.createEntity(em, erikoisala, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(20L)))
+        // Lisätään oppimistavoitteen kategoria, jonka voimassaolo ei ole alkanut vielä
+        em.persist(OppimistavoitteenKategoriaHelper.createEntity(em, erikoisala, LocalDate.ofEpochDay(15L), LocalDate.ofEpochDay(20L)))
+        // Lisätään oppimistavoitteen kategoria, jonka voimassaolo on jo päättynyt
+        em.persist(OppimistavoitteenKategoriaHelper.createEntity(em, erikoisala, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
+
+        em.flush()
     }
 
     @Test
@@ -381,6 +396,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.suoritemerkinnat").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.suoritemerkinnat[0].id").value(suoritemerkinta.id as Any))
+            // Vain yksi oppimistavoitteen kategoria, koska toiseen voimassaolevaan ei ole liitetty yhtään oppimistavoitetta.
             .andExpect(jsonPath("$.oppimistavoitteenKategoriat").value(Matchers.hasSize<Any>(1)))
             .andExpect(
                 jsonPath("$.oppimistavoitteenKategoriat[0].id")
@@ -407,6 +423,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.tyoskentelyjaksot[0].id").value(suoritemerkinta.tyoskentelyjakso?.id as Any))
+            .andExpect(jsonPath("$.oppimistavoitteenKategoriat").value(Matchers.hasSize<Any>(1)))
             .andExpect(
                 jsonPath("$.oppimistavoitteenKategoriat[0].id")
                     .value(suoritemerkinta.oppimistavoite?.kategoria?.id as Any)
@@ -427,7 +444,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         )
         TestSecurityContextHolder.getContext().authentication = authentication
 
-        suoritemerkinta = createEntity(em, user)
+        suoritemerkinta = createEntity(em, erikoisala, user)
     }
 
     companion object {
@@ -452,7 +469,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         private const val UPDATED_LUKITTU: Boolean = true
 
         @JvmStatic
-        fun createEntity(em: EntityManager, user: User? = null): Suoritemerkinta {
+        fun createEntity(em: EntityManager, erikoisala: Erikoisala? = null, user: User? = null): Suoritemerkinta {
             val suoritemerkinta = Suoritemerkinta(
                 suorituspaiva = DEFAULT_SUORITUSPAIVA,
                 luottamuksenTaso = DEFAULT_LUOTTAMUKSEN_TASO,
@@ -464,7 +481,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             // Lisätään pakollinen tieto
             val oppimistavoite: Oppimistavoite
             if (em.findAll(Oppimistavoite::class).isEmpty()) {
-                oppimistavoite = OppimistavoiteHelper.createEntity(em)
+                oppimistavoite = OppimistavoiteHelper.createEntity(em, erikoisala)
                 em.persist(oppimistavoite)
                 em.flush()
             } else {

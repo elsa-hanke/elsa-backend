@@ -17,27 +17,28 @@ class OppimistavoitteenKategoriaHelper {
         private val DEFAULT_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
-        private val DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
+        private val DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(30L)
         private val UPDATED_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(em: EntityManager): OppimistavoitteenKategoria {
+        fun createEntity(em: EntityManager, erikoisala: Erikoisala? = null, voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
+                         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA): OppimistavoitteenKategoria {
             val oppimistavoitteenKategoria = OppimistavoitteenKategoria(
                 nimi = DEFAULT_NIMI,
-                voimassaolonAlkamispaiva = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
-                voimassaolonPaattymispaiva = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA
+                voimassaolonAlkamispaiva = voimassaoloAlkaa,
+                voimassaolonPaattymispaiva = voimassaoloPaattyy
             )
 
-            // Lisätään pakollinen tieto
-            val erikoisala: Erikoisala
-            if (em.findAll(Erikoisala::class).isEmpty()) {
-                erikoisala = ErikoisalaHelper.createEntity()
-                em.persist(erikoisala)
-                em.flush()
-            } else {
-                erikoisala = em.findAll(Erikoisala::class).get(0)
+            erikoisala?.let {
+                oppimistavoitteenKategoria.erikoisala = erikoisala
+                return oppimistavoitteenKategoria
             }
-            oppimistavoitteenKategoria.erikoisala = erikoisala
+
+            val newErikoisala = ErikoisalaHelper.createEntity()
+            em.persist(newErikoisala)
+            em.flush()
+
+            oppimistavoitteenKategoria.erikoisala = newErikoisala
             return oppimistavoitteenKategoria
         }
 

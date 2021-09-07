@@ -18,16 +18,17 @@ class PoissaolonSyyHelper {
         private val DEFAULT_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
-        private val DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
+        private val DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(30L)
         private val UPDATED_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(): PoissaolonSyy {
+        fun createEntity(voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
+                         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA): PoissaolonSyy {
             val poissaolonSyy = PoissaolonSyy(
                 nimi = DEFAULT_NIMI,
                 vahennystyyppi = DEFAULT_VAHENNYSTYYPPI,
-                voimassaolonAlkamispaiva = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
-                voimassaolonPaattymispaiva = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA
+                voimassaolonAlkamispaiva = voimassaoloAlkaa,
+                voimassaolonPaattymispaiva = voimassaoloPaattyy
             )
 
             return poissaolonSyy

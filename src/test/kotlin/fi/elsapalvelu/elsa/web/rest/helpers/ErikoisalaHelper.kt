@@ -15,7 +15,7 @@ class ErikoisalaHelper {
         private val DEFAULT_VOIMASSAOLO_ALKAA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_VOIMASSAOLO_ALKAA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
-        private val DEFAULT_VOIMASSAOLO_PAATTYY: LocalDate = LocalDate.ofEpochDay(0L)
+        private val DEFAULT_VOIMASSAOLO_PAATTYY: LocalDate = LocalDate.ofEpochDay(30L)
         private val UPDATED_VOIMASSAOLO_PAATTYY: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         private val DEFAULT_TYYPPI: ErikoisalaTyyppi = ErikoisalaTyyppi.LAAKETIEDE
@@ -34,11 +34,12 @@ class ErikoisalaHelper {
         private const val UPDATED_YLIOPISTOSAIRAALAN_ULKOPUOLISEN_TYOSKENTELYN_VAHIMMAISPITUUS: Double = 2.0
 
         @JvmStatic
-        fun createEntity(): Erikoisala {
+        fun createEntity(voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
+                         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLO_PAATTYY): Erikoisala {
             val erikoisala = Erikoisala(
                 nimi = DEFAULT_NIMI,
-                voimassaoloAlkaa = DEFAULT_VOIMASSAOLO_ALKAA,
-                voimassaoloPaattyy = DEFAULT_VOIMASSAOLO_PAATTYY,
+                voimassaoloAlkaa = voimassaoloAlkaa,
+                voimassaoloPaattyy = voimassaoloPaattyy,
                 tyyppi = DEFAULT_TYYPPI,
                 kaytannonKoulutuksenVahimmaispituus = DEFAULT_KAYTANNON_KOULUTUKSEN_VAHIMMAISPITUUS,
                 terveyskeskuskoulutusjaksonVahimmaispituus = DEFAULT_TERVEYSKESKUSKOULUTUSJAKSON_VAHIMMAISPITUUS,

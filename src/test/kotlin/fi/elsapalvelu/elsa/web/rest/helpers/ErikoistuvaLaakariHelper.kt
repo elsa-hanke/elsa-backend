@@ -12,9 +12,6 @@ class ErikoistuvaLaakariHelper {
         private const val DEFAULT_PUHELINNUMERO = "AAAAAAAAAA"
         private const val UPDATED_PUHELINNUMERO = "BBBBBBBBBB"
 
-        private const val DEFAULT_SAHKOPOSTI = "AAAAAAAAAA"
-        private const val UPDATED_SAHKOPOSTI = "BBBBBBBBBB"
-
         private const val DEFAULT_OPISKELIJATUNNUS = "AAAAAAAAAA"
         private const val UPDATED_OPISKELIJATUNNUS = "BBBBBBBBBB"
 
