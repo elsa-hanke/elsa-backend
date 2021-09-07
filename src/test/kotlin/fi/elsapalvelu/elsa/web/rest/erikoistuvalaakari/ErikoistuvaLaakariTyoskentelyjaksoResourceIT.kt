@@ -98,9 +98,26 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
     private lateinit var user: User
 
+    private lateinit var erikoisala: Erikoisala
+
     @BeforeEach
     fun setup() {
         MockitoAnnotations.openMocks(this)
+
+        // Lisätään voimassaoleva poissaolon syy ja päättymistä ei määritetty
+        em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), null))
+        // Lisätään voimassaoleva poissaolon syy ja päättyminen määritetty
+        em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(20L)))
+        // Lisätään poissaolon syy, jonka voimassaolo ei ole alkanut vielä
+        em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(15L), LocalDate.ofEpochDay(20L)))
+        // Lisätään poissaolon syy, jonka voimassaolo on jo päättynyt
+        em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
+
+        // Lisätään yksi voimassaoleva erikoisala, päättymistä ei määritelty.
+        erikoisala = ErikoisalaHelper.createEntity(LocalDate.ofEpochDay(0L), null)
+        em.persist(erikoisala)
+
+        em.flush()
     }
 
     @Test
@@ -920,16 +937,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
-        val poissaolonSyy = PoissaolonSyyHelper.createEntity()
-        poissaolonSyyRepository.saveAndFlush(poissaolonSyy)
-
         val id = tyoskentelyjakso.id
         assertNotNull(id)
 
         restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/poissaolo-lomake"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(16)))
+            .andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.tyoskentelyjaksot[0].id").value(id as Any))
     }
@@ -948,8 +962,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
-            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(60)))
-            .andExpect(jsonPath("$.erikoisalat[0].id").value(1))
+            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.erikoisalat[0].id").value(erikoisala.id))
     }
 
     @Test
@@ -978,7 +992,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot-taulukko"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(15)))
+            .andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.keskeytykset").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.tilastot.tyoskentelyaikaYhteensa").value(57.0))

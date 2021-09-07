@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.EpaOsaamisalueHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import org.assertj.core.api.Assertions.assertThat
@@ -70,6 +71,16 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         em.persist(EpaOsaamisalueHelper.createEntity(em, LocalDate.ofEpochDay(15L), LocalDate.ofEpochDay(20L)))
         // Lisätään EPA-osaamisalue, jonka voimassaolo on jo päättynyt
         em.persist(EpaOsaamisalueHelper.createEntity(em, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
+
+        // Lisätään voimassaoleva erikoisala ja päättymistä ei määritetty
+        em.persist(ErikoisalaHelper.createEntity(LocalDate.ofEpochDay(0L), null))
+        // Lisätään voimassaoleva erikoisala ja päättyminen määritetty
+        em.persist(ErikoisalaHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(20L)))
+        // Lisätään erikoisala jonka voimassaolo ei ole alkanut vielä
+        em.persist(ErikoisalaHelper.createEntity(LocalDate.ofEpochDay(15L), LocalDate.ofEpochDay(20L)))
+        // Lisätään erikoisala, jonka voimassaolo on jo päättynyt
+        em.persist(ErikoisalaHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
+
         em.flush()
     }
 
@@ -164,7 +175,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.tapahtumanAjankohta").value(DEFAULT_TAPAHTUMAN_AJANKOHTA.toString()))
             .andExpect(jsonPath("$.arvioitavaTapahtuma").value(DEFAULT_ARVIOITAVA_TAPAHTUMA))
             .andExpect(jsonPath("$.pyynnonAika").value(DEFAULT_PYYNNON_AIKA.toString()))
-            .andExpect(jsonPath("$.lisatiedot").value(DEFAULT_LISATIEDOT.toString()))
+            .andExpect(jsonPath("$.lisatiedot").value(DEFAULT_LISATIEDOT))
     }
 
     @Test
@@ -210,7 +221,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
-            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(60)))
+            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(2))) // 2 voimassaolevaa
             .andExpect(jsonPath("$.epaOsaamisalueenKategoriat").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.epaOsaamisalueenKategoriat.[0].epaOsaamisalueet").value(Matchers.hasSize<Any>(2))) // 2 voimassaolevaa
             .andExpect(jsonPath("$.kouluttajatAndVastuuhenkilot").value(Matchers.hasSize<Any>(0)))
