@@ -9,6 +9,8 @@ import java.time.LocalDate
 @Repository
 interface OppimistavoitteenKategoriaRepository : JpaRepository<OppimistavoitteenKategoria, Long> {
 
+    // Haetaan kategoriat, jotka ovat voimassa mikäli kategorian alta löytyy yksi tai useampi
+    // oppimistavoite, joka on voimassa.
     @Query(
         "select ok from OppimistavoitteenKategoria ok " +
             "left join ok.erikoisala e " +
