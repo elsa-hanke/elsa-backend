@@ -7,8 +7,6 @@ interface EpaOsaamisalueService {
 
     fun save(epaOsaamisalueDTO: EpaOsaamisalueDTO): EpaOsaamisalueDTO
 
-    fun findAll(): List<EpaOsaamisalueDTO>
-
     fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<EpaOsaamisalueDTO>
 
     fun findOne(id: Long): Optional<EpaOsaamisalueDTO>

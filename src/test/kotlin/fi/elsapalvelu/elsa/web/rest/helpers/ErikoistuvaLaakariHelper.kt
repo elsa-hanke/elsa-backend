@@ -18,9 +18,6 @@ class ErikoistuvaLaakariHelper {
         private const val DEFAULT_OPISKELIJATUNNUS = "AAAAAAAAAA"
         private const val UPDATED_OPISKELIJATUNNUS = "BBBBBBBBBB"
 
-        private const val DEFAULT_OPINTOJEN_ALOITUSVUOSI: Int = 1900
-        private const val UPDATED_OPINTOJEN_ALOITUSVUOSI: Int = 1901
-
         private const val DEFAULT_YLIOPISTO = "TAYS"
 
         private val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
@@ -30,8 +27,7 @@ class ErikoistuvaLaakariHelper {
             val erikoistuvaLaakari = ErikoistuvaLaakari(
                 puhelinnumero = DEFAULT_PUHELINNUMERO,
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
-                opintojenAloitusvuosi = DEFAULT_OPINTOJEN_ALOITUSVUOSI,
-                erikoistumisenAloituspaiva = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA
+                opintosuunnitelmaKaytossaPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA
             )
 
             // Lisätään pakollinen tieto
@@ -64,8 +60,7 @@ class ErikoistuvaLaakariHelper {
         fun createUpdatedEntity(em: EntityManager): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari(
                 puhelinnumero = UPDATED_PUHELINNUMERO,
-                opiskelijatunnus = UPDATED_OPISKELIJATUNNUS,
-                opintojenAloitusvuosi = UPDATED_OPINTOJEN_ALOITUSVUOSI
+                opiskelijatunnus = UPDATED_OPISKELIJATUNNUS
             )
 
             // Lisätään pakollinen tieto
