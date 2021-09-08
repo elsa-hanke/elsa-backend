@@ -30,21 +30,13 @@ class EpaOsaamisalueServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): List<EpaOsaamisalueDTO> {
-        log.debug("Request to get all EpaOsaamisalueet")
-
-        return epaOsaamisalueRepository.findAll()
-            .map(epaOsaamisalueMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<EpaOsaamisalueDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        // Jos erikoistumisen aloituspäivää ei ole määritetty, käytetään nykyistä päivää voimassaolon rajaamisessa
+        // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä, ei ole määritetty, käytetään nykyistä päivää voimassaolon rajaamisessa
         return epaOsaamisalueRepository.findAllByErikoisalaIdAndValid(
             kirjautunutErikoistuvaLaakari?.erikoisala?.id,
-            kirjautunutErikoistuvaLaakari?.erikoistumisenAloituspaiva ?: LocalDate.now()
+            kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
         )
             .map(epaOsaamisalueMapper::toDto)
     }

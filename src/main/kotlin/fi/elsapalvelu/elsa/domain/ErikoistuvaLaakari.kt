@@ -6,8 +6,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
-import javax.validation.constraints.Max
-import javax.validation.constraints.Min
 import javax.validation.constraints.NotNull
 
 @Entity
@@ -28,19 +26,14 @@ data class ErikoistuvaLaakari(
     @Column(name = "syntymaaika")
     var syntymaaika: LocalDate? = null,
 
-    @Column(name = "erikoistumisen_aloituspaiva")
-    var erikoistumisenAloituspaiva: LocalDate? = null,
+    @Column(name = "opintosuunnitelma_kaytossa_pvm")
+    var opintosuunnitelmaKaytossaPvm: LocalDate? = null,
 
     @Column(name = "opintooikeuden_myontamispaiva")
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
     @Column(name = "opintooikeuden_paattymispaiva")
     var opintooikeudenPaattymispaiva: LocalDate? = null,
-
-    @get: Min(value = 1900)
-    @get: Max(value = 2100)
-    @Column(name = "opintojen_aloitusvuosi")
-    var opintojenAloitusvuosi: Int? = null,
 
     @NotNull
     @OneToOne(optional = false)
@@ -108,7 +101,6 @@ data class ErikoistuvaLaakari(
         "id=$id" +
         ", puhelinnumero='$puhelinnumero'" +
         ", opiskelijatunnus='$opiskelijatunnus'" +
-        ", opintojenAloitusvuosi=$opintojenAloitusvuosi" +
         "}"
 
     companion object {
