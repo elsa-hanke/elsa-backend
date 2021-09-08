@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.KayttooikeusHakemusDTO
+import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -36,18 +37,11 @@ class UserService(
     fun getAllManagedUsers(pageable: Pageable): Page<UserDTO> =
         userRepository.findAllByLoginNot(pageable, ANONYMOUS_USER).map { UserDTO(it) }
 
-    /**
-     * Returns the user from an OAuth 2.0 login or resource server with JWT.
-     * Synchronizes the user in the local repository.
-     *
-     * @param authToken the authentication token.
-     * @return the user from the authentication.
-     */
     @Transactional
     fun getUserFromAuthentication(authToken: Saml2Authentication): UserDTO {
         val principal = authToken.principal as Saml2AuthenticatedPrincipal
 
-        val user = User()
+        val user = userRepository.findById(principal.name).get()
         user.id = principal.name
         user.firstName = principal.getFirstAttribute("urn:oid:2.5.4.42")
         user.lastName = principal.getFirstAttribute("urn:oid:2.5.4.4")
@@ -109,6 +103,18 @@ class UserService(
                 )
             )
         )
+    }
+
+    fun updateUserDetails(omatTiedotDTO: OmatTiedotDTO, userId: String): UserDTO {
+        var user = userRepository.findById(userId).get()
+        user.email = omatTiedotDTO.email
+        user.phoneNumber = omatTiedotDTO.phoneNumber
+        user.avatar = omatTiedotDTO.avatar
+        user.avatarContentType = omatTiedotDTO.avatarContentType
+
+        user = userRepository.save(user)
+
+        return UserDTO(user)
     }
 
     @Transactional

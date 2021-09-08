@@ -47,6 +47,13 @@ class User(
     @Column(name = "phone_number", length = 254)
     var phoneNumber: String? = null,
 
+    @Lob
+    @Column(name = "avatar")
+    var avatar: ByteArray? = null,
+
+    @Column(name = "avatar_content_type")
+    var avatarContentType: String? = null,
+
     @field:NotNull
     @Column(nullable = false)
     var activated: Boolean = false,
