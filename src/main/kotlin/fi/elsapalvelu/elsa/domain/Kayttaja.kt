@@ -19,13 +19,6 @@ data class Kayttaja(
     @Column(name = "nimike", nullable = true)
     var nimike: String? = null,
 
-    @Lob
-    @Column(name = "profiilikuva")
-    var profiilikuva: ByteArray? = null,
-
-    @Column(name = "profiilikuva_content_type")
-    var profiilikuvaContentType: String? = null,
-
     @NotNull
     @OneToOne(optional = false)
     @JoinColumn(unique = true)
@@ -69,8 +62,6 @@ data class Kayttaja(
     override fun toString() = "Kayttaja{" +
         "id=$id" +
         ", nimike='$nimike'" +
-        ", profiilikuva='?'" +
-        ", profiilikuvaContentType='$profiilikuvaContentType'" +
         "}"
 
     companion object {

@@ -3,12 +3,11 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
-    <changeSet id="20210906140915" author="jhipster">
+    <changeSet id="20210908130930" author="jhipster">
 
-        <addColumn tableName="jhi_user">
-            <column name="phone_number" type="varchar(255)">
-                <constraints nullable="true" />
-            </column>
-        </addColumn>
+        <dropColumn tableName="kayttaja">
+            <column  name="profiilikuva"/>
+            <column  name="profiilikuva_content_type"/>
+        </dropColumn>
     </changeSet>
 </databaseChangeLog>

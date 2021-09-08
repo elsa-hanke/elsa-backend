@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.dto
 import fi.elsapalvelu.elsa.config.LOGIN_REGEX
 import fi.elsapalvelu.elsa.domain.User
 import java.time.Instant
+import javax.persistence.Lob
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Pattern
@@ -29,6 +30,11 @@ open class UserDTO(
     @field:Size(max = 254)
     var phoneNumber: String? = null,
 
+    @Lob
+    var avatar: ByteArray? = null,
+
+    var avatarContentType: String? = null,
+
     var activated: Boolean = false,
 
     @field:Size(min = 2, max = 10)
@@ -47,6 +53,7 @@ open class UserDTO(
     constructor(user: User) :
         this(
             user.id, user.login, user.firstName, user.lastName, user.email, user.phoneNumber,
+            user.avatar, user.avatarContentType,
             user.activated, user.langKey,
             user.createdBy, user.createdDate, user.lastModifiedBy, user.lastModifiedDate,
             user.authorities.map { it.name }.filterNotNullTo(mutableSetOf())
@@ -60,6 +67,8 @@ open class UserDTO(
         ", lastName='" + lastName + '\'' +
         ", email='" + email + '\'' +
         ", phoneNumber='" + phoneNumber + '\'' +
+        ", avatar=?" +
+        ", avatarContentType='$avatarContentType'" +
         ", activated=" + activated +
         ", langKey='" + langKey + '\'' +
         ", createdBy=" + createdBy +
