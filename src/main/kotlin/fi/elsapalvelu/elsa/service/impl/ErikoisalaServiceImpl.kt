@@ -28,8 +28,10 @@ class ErikoisalaServiceImpl(
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<ErikoisalaDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää voimassaolon rajaamisessa
-        return erikoisalaRepository.findAllByValid(kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now())
+        // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää
+        // voimassaolon rajaamisessa
+        return erikoisalaRepository.findAllByValid(
+            kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now())
             .map(erikoisalaMapper::toDto)
     }
 

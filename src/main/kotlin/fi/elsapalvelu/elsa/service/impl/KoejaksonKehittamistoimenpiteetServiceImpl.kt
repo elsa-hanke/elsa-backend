@@ -240,7 +240,9 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
     }
 
-    private fun applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet: Optional<KoejaksonKehittamistoimenpiteet>): Optional<KoejaksonKehittamistoimenpiteetDTO> {
+    private fun applyWithKehittamistoimenpiteetDescription(
+        kehittamistoimenpiteet: Optional<KoejaksonKehittamistoimenpiteet>
+    ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
         val kehittamistoimenpiteetDto = kehittamistoimenpiteet.map(koejaksonKehittamistoimenpiteetMapper::toDto)
         if (kehittamistoimenpiteet.isPresent) {
             kehittamistoimenpiteet.get().erikoistuvaLaakari?.kayttaja?.user?.id?.let { kayttajaUserId ->
