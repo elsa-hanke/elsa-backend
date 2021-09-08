@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20210908122024" author="jhipster">
+
+        <renameColumn
+            tableName="erikoistuva_laakari"
+            oldColumnName="pvm_jonka_mukainen_opintosuunnitelma_kaytossa"
+            newColumnName="opintosuunnitelma_kaytossa_pvm" />
+
+    </changeSet>
+</databaseChangeLog>
