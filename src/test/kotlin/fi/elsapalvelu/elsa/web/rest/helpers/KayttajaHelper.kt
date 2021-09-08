@@ -19,16 +19,9 @@ class KayttajaHelper {
 
         private const val DEFAULT_NIMIKE = "DEFAULT_NIMIKE"
 
-        private val DEFAULT_PROFIILIKUVA: ByteArray = createByteArray(1, "0")
-        private val UPDATED_PROFIILIKUVA: ByteArray = createByteArray(1, "1")
-        private const val DEFAULT_PROFIILIKUVA_CONTENT_TYPE: String = "image/jpg"
-        private const val UPDATED_PROFIILIKUVA_CONTENT_TYPE: String = "image/png"
-
         @JvmStatic
         fun createEntity(em: EntityManager, user: User? = null): Kayttaja {
             val kayttaja = Kayttaja(
-                profiilikuva = DEFAULT_PROFIILIKUVA,
-                profiilikuvaContentType = DEFAULT_PROFIILIKUVA_CONTENT_TYPE,
                 nimike = DEFAULT_NIMIKE
             )
 
@@ -50,10 +43,7 @@ class KayttajaHelper {
             em: EntityManager,
             nimi: String? = UPDATED_NIMI
         ): Kayttaja {
-            val kayttaja = Kayttaja(
-                profiilikuva = UPDATED_PROFIILIKUVA,
-                profiilikuvaContentType = UPDATED_PROFIILIKUVA_CONTENT_TYPE
-            )
+            val kayttaja = Kayttaja()
 
             // Lisätään pakollinen tieto
             val user = KayttajaResourceIT.createEntity(nimi)

@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.dto
 
 import fi.elsapalvelu.elsa.domain.Authority
 import java.io.Serializable
-import javax.persistence.Lob
 import javax.validation.constraints.NotNull
 
 data class KayttajaDTO(
@@ -17,10 +16,6 @@ data class KayttajaDTO(
     var sukunimi: String? = null,
 
     var sahkoposti: String? = null,
-
-    @Lob
-    var profiilikuva: ByteArray? = null,
-    var profiilikuvaContentType: String? = null,
 
     var userId: String? = null,
 
@@ -43,7 +38,5 @@ data class KayttajaDTO(
     override fun toString() = "KayttajaDTO{" +
         "id=$id" +
         ", nimi='$nimi'" +
-        ", profiilikuva='?'" +
-        ", profiilikuvaContentType='$profiilikuvaContentType'" +
         "}"
 }
