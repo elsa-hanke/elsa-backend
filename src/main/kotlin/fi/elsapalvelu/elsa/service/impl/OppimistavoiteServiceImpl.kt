@@ -31,8 +31,10 @@ class OppimistavoiteServiceImpl(
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
 
-        // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää voimassaolon rajaamisessa
-        return oppimistavoiteRepository.findAllByValid(kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now())
+        // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää
+        // voimassaolon rajaamisessa
+        return oppimistavoiteRepository.findAllByValid(
+            kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now())
             .map(oppimistavoiteMapper::toDto)
     }
 
