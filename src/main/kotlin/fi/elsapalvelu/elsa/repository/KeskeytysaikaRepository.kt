@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface KeskeytysaikaRepository : JpaRepository<Keskeytysaika, Long> {
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id: String): List<Keskeytysaika>
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(kayttajaId: String): List<Keskeytysaika>
 }

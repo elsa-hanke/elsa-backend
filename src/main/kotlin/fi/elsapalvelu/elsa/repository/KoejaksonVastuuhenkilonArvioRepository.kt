@@ -9,14 +9,14 @@ import java.util.*
 interface KoejaksonVastuuhenkilonArvioRepository :
     JpaRepository<KoejaksonVastuuhenkilonArvio, Long> {
 
-    fun findOneByIdAndVastuuhenkiloUserId(
+    fun findOneByIdAndVastuuhenkiloId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonVastuuhenkilonArvio>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonVastuuhenkilonArvio>
+    fun findByErikoistuvaLaakariKayttajaId(kayttajaId: String): Optional<KoejaksonVastuuhenkilonArvio>
 
-    fun findAllByVastuuhenkiloUserId(
-        userId: String
+    fun findAllByVastuuhenkiloId(
+        kayttajaId: String
     ): List<KoejaksonVastuuhenkilonArvio>
 }

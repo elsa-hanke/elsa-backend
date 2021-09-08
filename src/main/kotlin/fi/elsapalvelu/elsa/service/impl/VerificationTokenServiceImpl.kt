@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.VerificationToken
 import fi.elsapalvelu.elsa.repository.VerificationTokenRepository
 import fi.elsapalvelu.elsa.service.VerificationTokenService
@@ -13,8 +13,8 @@ class VerificationTokenServiceImpl(
     private val verificationTokenRepository: VerificationTokenRepository
 ) : VerificationTokenService {
 
-    override fun save(userId: String): String {
-        val verificationToken = VerificationToken(user = User(id = userId))
+    override fun save(kayttajaId: String): String {
+        val verificationToken = VerificationToken(kayttaja = Kayttaja(id = kayttajaId))
         return verificationTokenRepository.save(verificationToken).id!!
     }
 }

@@ -1,33 +1,34 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import java.util.*
 
 interface KoejaksonVastuuhenkilonArvioService {
 
     fun create(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonVastuuhenkilonArvioDTO
 
     fun update(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonVastuuhenkilonArvioDTO
 
     fun findOne(id: Long): Optional<KoejaksonVastuuhenkilonArvioDTO>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    fun findByErikoistuvaLaakariKayttajaId(
+        kayttajaId: String
     ): Optional<KoejaksonVastuuhenkilonArvioDTO>
 
-    fun findOneByIdAndVastuuhenkiloUserId(
+    fun findOneByIdAndVastuuhenkiloId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonVastuuhenkilonArvioDTO>
 
-    fun findAllByVastuuhenkiloUserId(
-        userId: String
+    fun findAllByVastuuhenkiloId(
+        kayttajaId: String
     ): Map<KayttajaDTO, KoejaksonVastuuhenkilonArvioDTO>
 
     fun delete(id: Long)

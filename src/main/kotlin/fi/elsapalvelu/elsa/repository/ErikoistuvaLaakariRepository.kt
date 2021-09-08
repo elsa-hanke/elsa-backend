@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ErikoistuvaLaakariRepository : JpaRepository<ErikoistuvaLaakari, Long> {
 
-    fun findOneByKayttajaUserId(id: String): ErikoistuvaLaakari?
+    fun findOneByKayttajaId(id: String): ErikoistuvaLaakari?
 }

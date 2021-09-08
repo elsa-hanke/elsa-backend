@@ -18,7 +18,6 @@ import java.time.ZoneId
 import java.util.*
 import javax.persistence.EntityNotFoundException
 
-
 @Service
 @Transactional
 class KoejaksonAloituskeskusteluServiceImpl(
@@ -32,10 +31,10 @@ class KoejaksonAloituskeskusteluServiceImpl(
 
     override fun create(
         koejaksonAloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonAloituskeskusteluDTO {
         val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
         var aloituskeskustelu =
             koejaksonAloituskeskusteluMapper.toEntity(koejaksonAloituskeskusteluDTO)
         aloituskeskustelu.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
@@ -46,7 +45,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         if (aloituskeskustelu.lahetetty) {
             // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!).get().user!!,
+                kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!).get(),
                 "aloituskeskusteluKouluttajalle.html",
                 "email.aloituskeskustelukouluttajalle.title",
                 properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
@@ -58,7 +57,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
 
     override fun update(
         koejaksonAloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonAloituskeskusteluDTO {
 
         var aloituskeskustelu =
@@ -66,7 +65,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
                 .orElseThrow { EntityNotFoundException("Aloituskeskustelua ei löydy") }
 
         val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
 
         val updatedAloituskeskustelu =
             koejaksonAloituskeskusteluMapper.toEntity(koejaksonAloituskeskusteluDTO)
@@ -77,11 +76,11 @@ class KoejaksonAloituskeskusteluServiceImpl(
             aloituskeskustelu = handleErikoistuva(aloituskeskustelu, updatedAloituskeskustelu)
         }
 
-        if (aloituskeskustelu.lahikouluttaja?.user?.id == userId && !aloituskeskustelu.lahiesimiesHyvaksynyt) {
+        if (aloituskeskustelu.lahikouluttaja?.id == kayttajaId && !aloituskeskustelu.lahiesimiesHyvaksynyt) {
             aloituskeskustelu = handleKouluttaja(aloituskeskustelu, updatedAloituskeskustelu)
         }
 
-        if (aloituskeskustelu.lahiesimies?.user?.id == userId && aloituskeskustelu.lahikouluttajaHyvaksynyt) {
+        if (aloituskeskustelu.lahiesimies?.id == kayttajaId && aloituskeskustelu.lahikouluttajaHyvaksynyt) {
             aloituskeskustelu = handleEsimies(aloituskeskustelu, updatedAloituskeskustelu)
         }
 
@@ -120,7 +119,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
         if (result.lahetetty) {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahikouluttaja?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahikouluttaja?.id!!).get(),
                 "aloituskeskusteluKouluttajalle.html",
                 "email.aloituskeskustelukouluttajalle.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -151,7 +150,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         // Sähköposti esimiehelle kouluttajan hyväksymästä aloituskeskustelusta
         if (result.lahikouluttajaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahiesimies?.id!!).get(),
                 "aloituskeskusteluKouluttajalle.html",
                 "email.aloituskeskustelukouluttajalle.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -161,7 +160,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         else {
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!,
+                    .get(),
                 "aloituskeskusteluPalautettu.html",
                 "email.aloituskeskustelupalautettu.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -193,44 +192,50 @@ class KoejaksonAloituskeskusteluServiceImpl(
 
         // Sähköposti erikoistuvalle ja kouluttajalle esimiehen hyväksymästä aloituskeskustelusta
         if (result.lahikouluttajaHyvaksynyt) {
-            val erikoistuvaLaakari =
+            val erikoistuvaLaakariKayttaja =
                 kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+                    .get()
             mailService.sendEmailFromTemplate(
-                erikoistuvaLaakari,
+                erikoistuvaLaakariKayttaja,
                 "aloituskeskusteluHyvaksytty.html",
                 "email.aloituskeskusteluhyvaksytty.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.lahikouluttaja?.id!!)
-                    .get().user!!,
+                    .get(),
                 "aloituskeskusteluHyvaksyttyKouluttaja.html",
                 "email.aloituskeskusteluhyvaksytty.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, result.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                    Pair(
+                        MailProperty.NAME,
+                        "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}"
+                    )
                 )
             )
         }
         // Sähköposti erikoistuvalle ja kouluttajalle korjattavasta aloituskeskustelusta
         else {
-            val erikoistuvaLaakari =
+            val erikoistuvaLaakariKayttaja =
                 kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+                    .get()
             mailService.sendEmailFromTemplate(
-                erikoistuvaLaakari,
+                erikoistuvaLaakariKayttaja,
                 "aloituskeskusteluPalautettu.html",
                 "email.aloituskeskustelupalautettu.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.lahikouluttaja?.id!!)
-                    .get().user!!,
+                    .get(),
                 "aloituskeskusteluPalautettuKouluttaja.html",
                 "email.aloituskeskustelupalautettu.title",
                 properties = mapOf(
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName()),
+                    Pair(
+                        MailProperty.NAME,
+                        "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}"
+                    ),
                     Pair(MailProperty.TEXT, result.korjausehdotus!!)
                 )
             )
@@ -246,37 +251,37 @@ class KoejaksonAloituskeskusteluServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonAloituskeskusteluDTO> {
-        return koejaksonAloituskeskusteluRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
+    override fun findByErikoistuvaLaakariKayttajaId(kayttajaId: String): Optional<KoejaksonAloituskeskusteluDTO> {
+        return koejaksonAloituskeskusteluRepository.findByErikoistuvaLaakariKayttajaId(kayttajaId)
             .map(koejaksonAloituskeskusteluMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndLahikouluttajaUserId(
+    override fun findOneByIdAndLahikouluttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonAloituskeskusteluDTO> {
-        return koejaksonAloituskeskusteluRepository.findOneByIdAndLahikouluttajaUserId(
+        return koejaksonAloituskeskusteluRepository.findOneByIdAndLahikouluttajaId(
             id,
-            userId
+            kayttajaId
         ).map(koejaksonAloituskeskusteluMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndLahiesimiesUserId(
+    override fun findOneByIdAndLahiesimiesId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonAloituskeskusteluDTO> {
-        return koejaksonAloituskeskusteluRepository.findOneByIdAndLahiesimiesUserId(
+        return koejaksonAloituskeskusteluRepository.findOneByIdAndLahiesimiesId(
             id,
-            userId
+            kayttajaId
         ).map(koejaksonAloituskeskusteluMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonAloituskeskusteluDTO> {
+    override fun findAllByKouluttajaId(kayttajaId: String): Map<KayttajaDTO, KoejaksonAloituskeskusteluDTO> {
         val aloituskeskustelut =
-            koejaksonAloituskeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
+            koejaksonAloituskeskusteluRepository.findAllByLahikouluttajaIdOrLahiesimiesId(kayttajaId)
         return aloituskeskustelut.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonAloituskeskusteluMapper.toDto(
                 it

@@ -22,12 +22,12 @@ class KeskeytysaikaServiceImpl(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun save(keskeytysaikaDTO: KeskeytysaikaDTO, userId: String): KeskeytysaikaDTO? {
+    override fun save(keskeytysaikaDTO: KeskeytysaikaDTO, kayttajaId: String): KeskeytysaikaDTO? {
         log.debug("Request to save Keskeytysaika : $keskeytysaikaDTO")
 
         tyoskentelyjaksoRepository.findByIdOrNull(keskeytysaikaDTO.tyoskentelyjaksoId)?.let { tyoskentelyjakso ->
             if (
-                userId == tyoskentelyjakso.erikoistuvaLaakari?.kayttaja?.user?.id && (
+                kayttajaId == tyoskentelyjakso.erikoistuvaLaakari?.kayttaja?.id && (
                     tyoskentelyjakso.alkamispaiva!!.isBefore(keskeytysaikaDTO.alkamispaiva) ||
                         tyoskentelyjakso.alkamispaiva!!.isEqual(keskeytysaikaDTO.alkamispaiva)
                     )
@@ -55,31 +55,31 @@ class KeskeytysaikaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
+        kayttajaId: String
     ): List<KeskeytysaikaDTO> {
-        return keskeytysaikaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId)
+        return keskeytysaikaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(kayttajaId)
             .map(keskeytysaikaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOne(id: Long, userId: String): KeskeytysaikaDTO? {
+    override fun findOne(id: Long, kayttajaId: String): KeskeytysaikaDTO? {
         log.debug("Request to get Keskeytysaika : $id")
 
         keskeytysaikaRepository.findByIdOrNull(id)?.let { keskeytysaika ->
-            if (keskeytysaika.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.user?.id == userId) {
+            if (keskeytysaika.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.id == kayttajaId) {
                 return keskeytysaikaMapper.toDto(keskeytysaika)
             }
         }
         return null
     }
 
-    override fun delete(id: Long, userId: String) {
+    override fun delete(id: Long, kayttajaId: String) {
         log.debug("Request to delete Keskeytysaika : $id")
 
         keskeytysaikaRepository.findByIdOrNull(id)?.let { keskeytysaika ->
             keskeytysaika.tyoskentelyjakso?.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
+                erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)?.let { kirjautunutErikoistuvaLaakari ->
                     if (kirjautunutErikoistuvaLaakari == it) {
                         keskeytysaikaRepository.deleteById(id)
                     }

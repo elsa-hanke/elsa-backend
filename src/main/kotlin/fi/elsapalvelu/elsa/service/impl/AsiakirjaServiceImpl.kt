@@ -24,10 +24,10 @@ class AsiakirjaServiceImpl(
 
     override fun create(
         asiakirjat: List<AsiakirjaDTO>,
-        userId: String,
+        kayttajaId: String,
         tyoskentelyJaksoId: Long?
     ): List<AsiakirjaDTO>? {
-        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
+        erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)?.let { kirjautunutErikoistuvaLaakari ->
             asiakirjat.forEach {
                 it.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.id
                 it.lisattypvm = LocalDateTime.now()
@@ -45,42 +45,42 @@ class AsiakirjaServiceImpl(
             return asiakirjaEntities.map { asiakirjaMapper.toDto(it) }
         }
 
-        log.error("Creating Asiakirjat failed. User id with id $userId was not found.")
+        log.error("Creating Asiakirjat failed. User id with id $kayttajaId was not found.")
 
         return null
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariUserId(userId: String): List<AsiakirjaDTO> {
-        return asiakirjaRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+    override fun findAllByErikoistuvaLaakariId(kayttajaId: String): List<AsiakirjaDTO> {
+        return asiakirjaRepository.findAllByErikoistuvaLaakariKayttajaId(kayttajaId)
             .map(asiakirjaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariUserIdAndTyoskentelyjaksoId(
-        userId: String,
+    override fun findAllByErikoistuvaLaakariIdAndTyoskentelyjaksoId(
+        kayttajaId: String,
         tyoskentelyJaksoId: Long?
     ): List<AsiakirjaDTO> {
-        return asiakirjaRepository.findAllByErikoistuvaLaakariKayttajaUserIdAndTyoskentelyjaksoId(
-            userId,
+        return asiakirjaRepository.findAllByErikoistuvaLaakariKayttajaIdAndTyoskentelyjaksoId(
+            kayttajaId,
             tyoskentelyJaksoId
         )
             .map(asiakirjaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOne(id: Long, userId: String): AsiakirjaDTO? {
-        asiakirjaRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(id, userId).let {
+    override fun findOne(id: Long, kayttajaId: String): AsiakirjaDTO? {
+        asiakirjaRepository.findOneByIdAndErikoistuvaLaakariKayttajaId(id, kayttajaId).let {
             return asiakirjaMapper.toDto(it).apply {
                 asiakirjaData?.fileInputStream = it.asiakirjaData?.data?.binaryStream
             }
         }
     }
 
-    override fun delete(id: Long, userId: String) {
+    override fun delete(id: Long, kayttajaId: String) {
         asiakirjaRepository.findByIdOrNull(id)?.let { asiakirja ->
             asiakirja.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
+                erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)?.let { kirjautunutErikoistuvaLaakari ->
                     if (kirjautunutErikoistuvaLaakari == it) {
                         asiakirjaRepository.deleteById(id)
                     }
@@ -89,14 +89,14 @@ class AsiakirjaServiceImpl(
         }
     }
 
-    override fun delete(ids: List<Long>, userId: String) {
+    override fun delete(ids: List<Long>, kayttajaId: String) {
         asiakirjaRepository.findAllById(ids).let { asiakirjaRepository.deleteAll(it) }
     }
 
-    override fun removeTyoskentelyjaksoReference(userId: String, tyoskentelyJaksoId: Long?) {
+    override fun removeTyoskentelyjaksoReference(kayttajaId: String, tyoskentelyJaksoId: Long?) {
         val asiakirjaIdsByTyoskentelyjakso =
-            asiakirjaRepository.findAllByErikoistuvaLaakariKayttajaUserIdAndTyoskentelyjaksoId(
-                userId,
+            asiakirjaRepository.findAllByErikoistuvaLaakariKayttajaIdAndTyoskentelyjaksoId(
+                kayttajaId,
                 tyoskentelyJaksoId
             ).map { it.id }
         val asiakirjaEntitiesByTyoskentelyjakso = asiakirjaRepository.findAllById(asiakirjaIdsByTyoskentelyjakso)

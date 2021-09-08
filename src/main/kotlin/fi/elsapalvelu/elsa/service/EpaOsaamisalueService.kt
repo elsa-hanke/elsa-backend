@@ -9,7 +9,7 @@ interface EpaOsaamisalueService {
 
     fun findAll(): List<EpaOsaamisalueDTO>
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<EpaOsaamisalueDTO>
+    fun findAllByErikoistuvaLaakariKayttajaId(kayttajaId: String): List<EpaOsaamisalueDTO>
 
     fun findOne(id: Long): Optional<EpaOsaamisalueDTO>
 

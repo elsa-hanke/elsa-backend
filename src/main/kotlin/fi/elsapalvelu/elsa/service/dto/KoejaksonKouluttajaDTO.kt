@@ -5,9 +5,7 @@ import java.time.LocalDate
 
 data class KoejaksonKouluttajaDTO(
 
-    var id: Long? = null,
-
-    var kayttajaUserId: String? = null,
+    var id: String? = null,
 
     var nimi: String? = null,
 

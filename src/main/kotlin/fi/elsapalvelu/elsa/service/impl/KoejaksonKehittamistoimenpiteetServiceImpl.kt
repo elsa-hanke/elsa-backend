@@ -19,7 +19,6 @@ import java.time.ZoneId
 import java.util.*
 import javax.persistence.EntityNotFoundException
 
-
 @Service
 @Transactional
 class KoejaksonKehittamistoimenpiteetServiceImpl(
@@ -34,10 +33,10 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
 
     override fun create(
         koejaksonKehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonKehittamistoimenpiteetDTO {
         val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
         var kehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetMapper.toEntity(koejaksonKehittamistoimenpiteetDTO)
         kehittamistoimenpiteet.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
@@ -46,7 +45,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
 
         // Sähköposti kouluttajalle
         mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(kehittamistoimenpiteet.lahikouluttaja?.id!!).get().user!!,
+            kayttajaRepository.findById(kehittamistoimenpiteet.lahikouluttaja?.id!!).get(),
             "kehittamistoimenpiteetKouluttajalle.html",
             "email.kehittamistoimenpiteetkouluttajalle.title",
             properties = mapOf(Pair(MailProperty.ID, kehittamistoimenpiteet.id!!.toString()))
@@ -57,7 +56,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
 
     override fun update(
         koejaksonKehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonKehittamistoimenpiteetDTO {
 
         var kehittamistoimenpiteet =
@@ -67,20 +66,20 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         val updatedKehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetMapper.toEntity(koejaksonKehittamistoimenpiteetDTO)
 
-        if (kehittamistoimenpiteet.erikoistuvaLaakari?.kayttaja?.user?.id == userId
+        if (kehittamistoimenpiteet.erikoistuvaLaakari?.kayttaja?.id == kayttajaId
             && kehittamistoimenpiteet.lahiesimiesHyvaksynyt
         ) {
             kehittamistoimenpiteet = handleErikoistuva(kehittamistoimenpiteet)
         }
 
-        if (kehittamistoimenpiteet.lahikouluttaja?.user?.id == userId
+        if (kehittamistoimenpiteet.lahikouluttaja?.id == kayttajaId
             && !kehittamistoimenpiteet.lahiesimiesHyvaksynyt
         ) {
             kehittamistoimenpiteet =
                 handleKouluttaja(kehittamistoimenpiteet, updatedKehittamistoimenpiteet)
         }
 
-        if (kehittamistoimenpiteet.lahiesimies?.user?.id == userId
+        if (kehittamistoimenpiteet.lahiesimies?.id == kayttajaId
             && kehittamistoimenpiteet.lahikouluttajaHyvaksynyt
         ) {
             kehittamistoimenpiteet =
@@ -98,24 +97,30 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
 
         // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
         if (result.erikoistuvaAllekirjoittanut) {
-            val erikoistuvaLaakari =
-                kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!).get().user!!
+            val erikoistuvaLaakariKayttaja =
+                kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!).get()
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahikouluttaja?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahikouluttaja?.id!!).get(),
                 "kehittamistoimenpiteetHyvaksytty.html",
                 "email.kehittamistoimenpiteethyvaksytty.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, result.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                    Pair(
+                        MailProperty.NAME,
+                        "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}"
+                    )
                 )
             )
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahiesimies?.id!!).get(),
                 "kehittamistoimenpiteetHyvaksytty.html",
                 "email.kehittamistoimenpiteethyvaksytty.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, result.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                    Pair(
+                        MailProperty.NAME,
+                        "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}"
+                    )
                 )
             )
         }
@@ -139,7 +144,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         if (result.lahikouluttajaHyvaksynyt) {
             // Sähköposti esimiehelle kouluttajan hyväksymästä kehittämistoimenpiteestä
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahiesimies?.id!!).get(),
                 "kehittamistoimenpiteetKuitattava.html",
                 "email.kehittamistoimenpiteetkuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -172,7 +177,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         if (result.lahikouluttajaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!,
+                    .get(),
                 "kehittamistoimenpiteetKuitattava.html",
                 "email.kehittamistoimenpiteetkuitattava.title",
                 properties = mapOf(
@@ -187,7 +192,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         else {
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.lahikouluttaja?.id!!)
-                    .get().user!!,
+                    .get(),
                 "kehittamistoimenpiteetPalautettu.html",
                 "email.kehittamistoimenpiteetpalautettu.title",
                 properties = mapOf(
@@ -209,33 +214,33 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonKehittamistoimenpiteetDTO> {
-        return koejaksonKehittamistoimenpiteetRepository.findByErikoistuvaLaakariKayttajaUserId(
-            userId
+    override fun findByErikoistuvaLaakariKayttajaId(kayttajaId: String): Optional<KoejaksonKehittamistoimenpiteetDTO> {
+        return koejaksonKehittamistoimenpiteetRepository.findByErikoistuvaLaakariKayttajaId(
+            kayttajaId
         )
             .map(koejaksonKehittamistoimenpiteetMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndLahikouluttajaUserId(
+    override fun findOneByIdAndLahikouluttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
-        val kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahikouluttajaUserId(
+        val kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahikouluttajaId(
             id,
-            userId
+            kayttajaId
         )
         return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndLahiesimiesUserId(
+    override fun findOneByIdAndLahiesimiesId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
-        val kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahiesimiesUserId(
+        val kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahiesimiesId(
             id,
-            userId
+            kayttajaId
         )
         return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
     }
@@ -243,8 +248,8 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
     private fun applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet: Optional<KoejaksonKehittamistoimenpiteet>): Optional<KoejaksonKehittamistoimenpiteetDTO> {
         val kehittamistoimenpiteetDto = kehittamistoimenpiteet.map(koejaksonKehittamistoimenpiteetMapper::toDto)
         if (kehittamistoimenpiteet.isPresent) {
-            kehittamistoimenpiteet.get().erikoistuvaLaakari?.kayttaja?.user?.id?.let { kayttajaUserId ->
-                koejaksonValiarviointiRepository.findByErikoistuvaLaakariKayttajaUserId(kayttajaUserId).let {
+            kehittamistoimenpiteet.get().erikoistuvaLaakari?.kayttaja?.id?.let { kayttajaId ->
+                koejaksonValiarviointiRepository.findByErikoistuvaLaakariKayttajaId(kayttajaId).let {
                     kehittamistoimenpiteetDto.get().apply {
                         this.kehittamistoimenpiteetKuvaus = if (it.isPresent) it.get().kehittamistoimenpiteet else null
                     }
@@ -255,10 +260,10 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonKehittamistoimenpiteetDTO> {
+    override fun findAllByKouluttajaId(kayttajaId: String): Map<KayttajaDTO, KoejaksonKehittamistoimenpiteetDTO> {
         val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
-                userId
+            koejaksonKehittamistoimenpiteetRepository.findAllByLahikouluttajaIdOrLahiesimiesId(
+                kayttajaId
             )
         return kehittamistoimenpiteet.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonKehittamistoimenpiteetMapper.toDto(

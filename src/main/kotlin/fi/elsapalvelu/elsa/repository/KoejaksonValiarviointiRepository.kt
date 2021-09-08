@@ -11,33 +11,33 @@ import java.util.*
 @Repository
 interface KoejaksonValiarviointiRepository : JpaRepository<KoejaksonValiarviointi, Long> {
 
-    fun findOneByIdAndLahikouluttajaUserId(
+    fun findOneByIdAndLahikouluttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonValiarviointi>
 
-    fun findOneByIdAndLahiesimiesUserId(
+    fun findOneByIdAndLahiesimiesId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonValiarviointi>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonValiarviointi>
+    fun findByErikoistuvaLaakariKayttajaId(kayttajaId: String): Optional<KoejaksonValiarviointi>
 
     @Query(
         "select v from KoejaksonValiarviointi v left join v.lahikouluttaja lk left join v.lahiesimies le " +
-            "where lk.user.id = :userId or (le.user.id = :userId and (v.lahikouluttajaHyvaksynyt = true or (v.korjausehdotus != null and v.korjausehdotus != '')))"
+            "where lk.id = :kayttajaId or (le.id = :kayttajaId and (v.lahikouluttajaHyvaksynyt = true or (v.korjausehdotus != null and v.korjausehdotus != '')))"
     )
-    fun findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
-        userId: String
+    fun findAllByLahikouluttajaIdOrLahiesimiesId(
+        kayttajaId: String
     ): List<KoejaksonValiarviointi>
 
     @Transactional
     @Modifying
     @Query("update KoejaksonValiarviointi v set v.lahikouluttaja.id = :newKayttaja where v.lahikouluttaja.id = :currentKayttaja")
-    fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+    fun changeKouluttaja(currentKayttaja: String, newKayttaja: String)
 
     @Transactional
     @Modifying
     @Query("update KoejaksonValiarviointi v set v.lahiesimies.id = :newKayttaja where v.lahiesimies.id = :currentKayttaja")
-    fun changeEsimies(currentKayttaja: Long, newKayttaja: Long)
+    fun changeEsimies(currentKayttaja: String, newKayttaja: String)
 }

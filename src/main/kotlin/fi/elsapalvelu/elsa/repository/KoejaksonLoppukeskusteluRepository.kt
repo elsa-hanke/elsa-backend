@@ -11,33 +11,33 @@ import java.util.*
 @Repository
 interface KoejaksonLoppukeskusteluRepository : JpaRepository<KoejaksonLoppukeskustelu, Long> {
 
-    fun findOneByIdAndLahikouluttajaUserId(
+    fun findOneByIdAndLahikouluttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonLoppukeskustelu>
 
-    fun findOneByIdAndLahiesimiesUserId(
+    fun findOneByIdAndLahiesimiesId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonLoppukeskustelu>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonLoppukeskustelu>
+    fun findByErikoistuvaLaakariKayttajaId(kayttajaId: String): Optional<KoejaksonLoppukeskustelu>
 
     @Query(
         "select l from KoejaksonLoppukeskustelu l left join l.lahikouluttaja lk left join l.lahiesimies le " +
-            "where lk.user.id = :userId or (le.user.id = :userId and (l.lahikouluttajaHyvaksynyt = true or (l.korjausehdotus != null and l.korjausehdotus != '')))"
+            "where lk.id = :kayttajaId or (le.id = :kayttajaId and (l.lahikouluttajaHyvaksynyt = true or (l.korjausehdotus != null and l.korjausehdotus != '')))"
     )
-    fun findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
-        userId: String
+    fun findAllByLahikouluttajaIdOrLahiesimiesId(
+        kayttajaId: String
     ): List<KoejaksonLoppukeskustelu>
 
     @Transactional
     @Modifying
     @Query("update KoejaksonLoppukeskustelu l set l.lahikouluttaja.id = :newKayttaja where l.lahikouluttaja.id = :currentKayttaja")
-    fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+    fun changeKouluttaja(currentKayttaja: String, newKayttaja: String)
 
     @Transactional
     @Modifying
     @Query("update KoejaksonLoppukeskustelu l set l.lahiesimies.id = :newKayttaja where l.lahiesimies.id = :currentKayttaja")
-    fun changeEsimies(currentKayttaja: Long, newKayttaja: Long)
+    fun changeEsimies(currentKayttaja: String, newKayttaja: String)
 }

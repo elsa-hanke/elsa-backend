@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.Kayttaja
 import io.github.jhipster.config.JHipsterProperties
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
@@ -16,7 +16,6 @@ import java.util.*
 import javax.mail.MessagingException
 
 enum class MailProperty(val property: String) {
-    USER("user"),
     BASE_URL("baseUrl"),
     ID("id"),
     NAME("name"),
@@ -55,7 +54,7 @@ class MailService(
                 setText(content, isHtml)
             }
             javaMailSender.send(mimeMessage)
-            log.debug("Sent email to User '$to'")
+            log.debug("Sent email to user '$to'")
         } catch (ex: MailException) {
             log.warn("Email could not be sent to user '$to'", ex)
         } catch (ex: MessagingException) {
@@ -65,27 +64,26 @@ class MailService(
 
     @Async
     fun sendEmailFromTemplate(
-        user: User,
+        kayttaja: Kayttaja,
         templateName: String,
         titleKey: String,
         properties: Map<MailProperty, String>
     ) {
-        if (user.email == null) {
-            log.debug("Email doesn't exist for user '${user.login}'")
+        val sahkopostiosoite = kayttaja.sahkopostiosoite
+        if (sahkopostiosoite == null) {
+            log.debug("Email doesn't exist for user '${kayttaja.id}'")
             return
         }
-        var locale = Locale.forLanguageTag("fi")
-        if (user.langKey != null) locale = Locale.forLanguageTag(user.langKey)
+        val locale = Locale.forLanguageTag("fi")
 
         val context = Context(locale).apply {
-            setVariable(MailProperty.USER.property, user)
             setVariable(MailProperty.BASE_URL.property, jHipsterProperties.mail.baseUrl)
             properties.forEach {
                 setVariable(it.key.property, it.value)
             }
         }
-        val content = templateEngine.process(templateName, context)
+        val content = templateEngine.process("mail/${templateName}", context)
         val subject = messageSource.getMessage(titleKey, null, locale)
-        sendEmail(user.email!!, subject, content, isMultipart = false, isHtml = true)
+        sendEmail(sahkopostiosoite, subject, content, isMultipart = false, isHtml = true)
     }
 }

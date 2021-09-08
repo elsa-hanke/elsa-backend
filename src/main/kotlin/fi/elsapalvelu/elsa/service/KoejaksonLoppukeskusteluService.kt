@@ -8,32 +8,32 @@ interface KoejaksonLoppukeskusteluService {
 
     fun create(
         koejaksonLoppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonLoppukeskusteluDTO
 
     fun update(
         koejaksonLoppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonLoppukeskusteluDTO
 
     fun findOne(id: Long): Optional<KoejaksonLoppukeskusteluDTO>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    fun findByErikoistuvaLaakariKayttajaId(
+        kayttajaId: String
     ): Optional<KoejaksonLoppukeskusteluDTO>
 
-    fun findOneByIdAndLahikouluttajaUserId(
+    fun findOneByIdAndLahikouluttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonLoppukeskusteluDTO>
 
-    fun findOneByIdAndLahiesimiesUserId(
+    fun findOneByIdAndLahiesimiesId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonLoppukeskusteluDTO>
 
-    fun findAllByKouluttajaUserId(
-        userId: String
+    fun findAllByKouluttajaId(
+        kayttajaId: String
     ): Map<KayttajaDTO, KoejaksonLoppukeskusteluDTO>
 
     fun delete(id: Long)

@@ -27,8 +27,8 @@ class ArviointityokaluServiceImpl(
             .map(arviointityokaluMapper::toDto)
     }
 
-    override fun findAllByKayttajaUserId(userId: String): MutableList<ArviointityokaluDTO> {
-        return arviointityokaluRepository.findAllByKayttajaIsNullOrKayttajaUserId(userId)
+    override fun findAllByKayttajaId(kayttajaId: String): MutableList<ArviointityokaluDTO> {
+        return arviointityokaluRepository.findAllByKayttajaIsNullOrKayttajaId(kayttajaId)
             .mapTo(mutableListOf(), arviointityokaluMapper::toDto)
     }
 

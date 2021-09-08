@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
+import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.SuoritusarvioinninKommenttiService
-import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -19,7 +19,7 @@ private const val ENTITY_NAME = "suoritusarvioinnin_kommentti"
 @RequestMapping("/api/")
 class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
     private val suoritusarvioinninKommenttiService: SuoritusarvioinninKommenttiService,
-    private val userService: UserService
+    private val kayttajaService: KayttajaService
 ) {
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
@@ -37,13 +37,13 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
                 "idexists"
             )
         }
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         val now = Instant.now()
         suoritusarvioinninKommenttiDTO.luontiaika = now
         suoritusarvioinninKommenttiDTO.muokkausaika = now
         suoritusarvioinninKommenttiDTO.suoritusarviointiId = id
         val result = suoritusarvioinninKommenttiService
-            .save(suoritusarvioinninKommenttiDTO, user.id!!)
+            .save(suoritusarvioinninKommenttiDTO, kayttaja.id!!)
 
         return ResponseEntity.created(URI("/api/suoritusarvioinnit/$id/kommentti/${result.id}"))
             .headers(
@@ -65,10 +65,10 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
         if (suoritusarvioinninKommenttiDTO.id == null) {
             throw BadRequestAlertException("Invalid id", "suoritusarvioinnin_kommentti", "idnull")
         }
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         suoritusarvioinninKommenttiDTO.muokkausaika = Instant.now()
         val result =
-            suoritusarvioinninKommenttiService.save(suoritusarvioinninKommenttiDTO, user.id!!)
+            suoritusarvioinninKommenttiService.save(suoritusarvioinninKommenttiDTO, kayttaja.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(

@@ -6,21 +6,21 @@ import java.util.*
 interface SuoritusarviointiService {
     fun save(suoritusarviointiDTO: SuoritusarviointiDTO): SuoritusarviointiDTO
 
-    fun save(suoritusarviointiDTO: SuoritusarviointiDTO, userId: String): SuoritusarviointiDTO
+    fun save(suoritusarviointiDTO: SuoritusarviointiDTO, kayttajaId: String): SuoritusarviointiDTO
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
+        kayttajaId: String
     ): List<SuoritusarviointiDTO>
 
-    fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+    fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<SuoritusarviointiDTO>
 
-    fun findOneByIdAndArvioinninAntajauserId(
+    fun findOneByIdAndArvioinninAntajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<SuoritusarviointiDTO>
 
-    fun delete(id: Long, userId: String)
+    fun delete(id: Long, kayttajaId: String)
 }

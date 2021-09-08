@@ -27,7 +27,7 @@ data class SuoritusarviointiCriteria(
 
     var arvioitavaOsaalueId: LongFilter? = null,
 
-    var arvioinninAntajaId: LongFilter? = null
+    var arvioinninAntajaId: StringFilter? = null
 
 ) : Serializable, Criteria {
 

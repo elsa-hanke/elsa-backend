@@ -2,5 +2,5 @@ package fi.elsapalvelu.elsa.service
 
 interface VerificationTokenService {
 
-    fun save(userId: String): String
+    fun save(kayttajaId: String): String
 }

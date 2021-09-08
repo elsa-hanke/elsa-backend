@@ -21,7 +21,7 @@ private const val ENTITY_NAME = "suoritemerkinta"
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariSuoritemerkintaResource(
-    private val userService: UserService,
+    private val kayttajaService: KayttajaService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
@@ -40,8 +40,6 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         @Valid @RequestBody suoritemerkintaDTO: SuoritemerkintaDTO,
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaDTO> {
-        log.debug("REST request to create Suoritemerkinta : $suoritemerkintaDTO")
-
         if (suoritemerkintaDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi suoritemerkinta ei saa sisältää ID:tä.",
@@ -53,9 +51,9 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         // Uutta suoritemerkintää ei voi luoda lukittuna
         suoritemerkintaDTO.lukittu = false
 
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
-        suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
+        suoritemerkintaService.save(suoritemerkintaDTO, kayttaja.id!!)?.let {
             return ResponseEntity.created(URI("/api/suoritemerkinnat/${it.id}"))
                 .headers(
                     HeaderUtil.createEntityCreationAlert(
@@ -78,15 +76,13 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         @Valid @RequestBody suoritemerkintaDTO: SuoritemerkintaDTO,
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaDTO> {
-        log.debug("REST request to update Suoritemerkinta : $suoritemerkintaDTO")
-
         if (suoritemerkintaDTO.id == null) {
             throw BadRequestAlertException("Epäkelvollinen id", ENTITY_NAME, "idnull")
         }
         suoritemerkintaDTO.lukittu = false
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
-        suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
+        suoritemerkintaService.save(suoritemerkintaDTO, kayttaja.id!!)?.let {
             return ResponseEntity.ok()
                 .headers(
                     HeaderUtil.createEntityUpdateAlert(
@@ -109,10 +105,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaDTO> {
-        log.debug("REST request to get Suoritemerkinta : $id")
-
-        val user = userService.getAuthenticatedUser(principal)
-        suoritemerkintaService.findOne(id, user.id!!)?.let {
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        suoritemerkintaService.findOne(id, kayttaja.id!!)?.let {
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -122,10 +116,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<Void> {
-        log.debug("REST request to delete Suoritemerkinta : $id")
-
-        val user = userService.getAuthenticatedUser(principal)
-        suoritemerkintaService.delete(id, user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        suoritemerkintaService.delete(id, kayttaja.id!!)
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build()
     }
@@ -134,13 +126,11 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     fun getOppimistavoitteetTable(
         principal: Principal?
     ): ResponseEntity<OppimistavoitteetTableDTO> {
-        log.debug("REST request to get OppimistavoitteetTable")
-
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val table = OppimistavoitteetTableDTO()
 
-        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let { kirjautunutErikoistuvaLaakari ->
+        erikoistuvaLaakariService.findOneByKayttajaId(kayttaja.id!!)?.let { kirjautunutErikoistuvaLaakari ->
             kirjautunutErikoistuvaLaakari.erikoisalaId?.let {
                 table.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
                     .findAllByErikoisalaId(it).toMutableSet()
@@ -148,7 +138,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         }
 
         table.suoritemerkinnat = suoritemerkintaService
-            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(kayttaja.id!!).toMutableSet()
 
         return ResponseEntity.ok(table)
     }
@@ -157,20 +147,18 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     fun getSuoritemerkintaForm(
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaFormDTO> {
-        log.debug("REST request to get SuoritemerkintaForm")
-
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val form = SuoritemerkintaFormDTO()
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            .findAllByErikoistuvaLaakariKayttajaId(kayttaja.id!!).toMutableSet()
 
         form.kunnat = kuntaService.findAll().toMutableSet()
 
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
 
-        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let { kirjautunutErikoistuvaLaakari ->
+        erikoistuvaLaakariService.findOneByKayttajaId(kayttaja.id!!)?.let { kirjautunutErikoistuvaLaakari ->
             kirjautunutErikoistuvaLaakari.erikoisalaId?.let {
                 form.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
                     .findAllByErikoisalaId(it).toMutableSet()

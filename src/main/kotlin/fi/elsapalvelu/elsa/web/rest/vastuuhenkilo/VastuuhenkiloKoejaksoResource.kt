@@ -1,16 +1,15 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
-import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -23,21 +22,19 @@ private const val ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO = "koejakson_vastuuhenki
 @RestController
 @RequestMapping("/api/vastuuhenkilo")
 class VastuuhenkiloKoejaksoResource(
-    private val userService: UserService,
+    private val kayttajaService: KayttajaService,
     private val koejaksonKoulutussopimusService: KoejaksonKoulutussopimusService,
     private val koejaksonVaiheetService: KoejaksonVaiheetService,
     private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService
 ) {
-
-    private val log = LoggerFactory.getLogger(javaClass)
 
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 
     @GetMapping("/koejaksot")
     fun getKoejaksot(principal: Principal?): ResponseEntity<List<KoejaksonVaiheDTO>> {
-        val user = userService.getAuthenticatedUser(principal)
-        val koejaksonVaiheet = koejaksonVaiheetService.findAllByVastuuhenkiloKayttajaUserId(user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        val koejaksonVaiheet = koejaksonVaiheetService.findAllByVastuuhenkiloKayttajaId(kayttaja.id!!)
         return ResponseEntity.ok(koejaksonVaiheet)
     }
 
@@ -46,11 +43,11 @@ class VastuuhenkiloKoejaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<KoejaksonKoulutussopimusDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
-        log.debug("REST request to get Koulutussopimus $id for user: $user.id")
         val koulutussopimusDTO =
-            koejaksonKoulutussopimusService.findOneByIdAndVastuuhenkiloKayttajaUserId(id, user.id!!)
+            koejaksonKoulutussopimusService.findOneByIdAndVastuuhenkiloKayttajaId(id, kayttaja.id!!)
+
         return ResponseUtil.wrapOrNotFound(koulutussopimusDTO)
     }
 
@@ -63,7 +60,7 @@ class VastuuhenkiloKoejaksoResource(
             throw BadRequestAlertException("Virheellinen id", ENTITY_KOEJAKSON_SOPIMUS, "idnull")
         }
 
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val existingKoulutussopimusDTO =
             koejaksonKoulutussopimusService.findOne(koulutussopimusDTO.id!!)
@@ -85,7 +82,8 @@ class VastuuhenkiloKoejaksoResource(
         }
 
         val result =
-            koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id!!)
+            koejaksonKoulutussopimusService.update(koulutussopimusDTO, kayttaja.id!!)
+
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -103,11 +101,11 @@ class VastuuhenkiloKoejaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
-        log.debug("REST request to get vastuuhenkilon arvio $id for user: $user.id")
         val vastuuhenkilonArvioDTO =
-            koejaksonVastuuhenkilonArvioService.findOneByIdAndVastuuhenkiloUserId(id, user.id!!)
+            koejaksonVastuuhenkilonArvioService.findOneByIdAndVastuuhenkiloId(id, kayttaja.id!!)
+
         return ResponseUtil.wrapOrNotFound(vastuuhenkilonArvioDTO)
     }
 
@@ -124,12 +122,12 @@ class VastuuhenkiloKoejaksoResource(
             )
         }
 
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val vastuuhenkilonArvio =
-            koejaksonVastuuhenkilonArvioService.findOneByIdAndVastuuhenkiloUserId(
+            koejaksonVastuuhenkilonArvioService.findOneByIdAndVastuuhenkiloId(
                 vastuuhenkilonArvioDTO.id!!,
-                user.id!!
+                kayttaja.id!!
             )
 
         if (!vastuuhenkilonArvio.isPresent) {
@@ -149,7 +147,8 @@ class VastuuhenkiloKoejaksoResource(
         }
 
         val result =
-            koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id!!)
+            koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, kayttaja.id!!)
+
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(

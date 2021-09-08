@@ -11,38 +11,38 @@ import java.util.*
 @Repository
 interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutussopimus, Long> {
 
-    fun findOneByIdAndKouluttajatKouluttajaUserId(
+    fun findOneByIdAndKouluttajatKouluttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonKoulutussopimus>
 
-    fun findOneByIdAndVastuuhenkiloUserId(
+    fun findOneByIdAndVastuuhenkiloId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonKoulutussopimus>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonKoulutussopimus>
+    fun findByErikoistuvaLaakariKayttajaId(kayttajaId: String): Optional<KoejaksonKoulutussopimus>
 
     @Query(
         "select ks " +
             "from KoejaksonKoulutussopimus ks join ks.kouluttajat ko join ko.kouluttaja k " +
-            "where k.user.id = :userId and (ks.lahetetty = true or ks.korjausehdotus != null)"
+            "where k.id = :kayttajaId and (ks.lahetetty = true or ks.korjausehdotus != null)"
     )
-    fun findAllByKouluttajatKouluttajaUserId(
-        userId: String
+    fun findAllByKouluttajatKouluttajaId(
+        kayttajaId: String
     ): List<KoejaksonKoulutussopimus>
 
     @Query(
         "select ks " +
             "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt " +
-            "where ks.vastuuhenkilo.user.id = :userId and (ks.korjausehdotus != null or not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false))"
+            "where ks.vastuuhenkilo.id = :kayttajaId and (ks.korjausehdotus != null or not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false))"
     )
-    fun findAllByVastuuhenkiloUserId(
-        userId: String
+    fun findAllByVastuuhenkiloId(
+        kayttajaId: String
     ): List<KoejaksonKoulutussopimus>
 
     @Transactional
     @Modifying
     @Query("update KoulutussopimuksenKouluttaja k set k.kouluttaja.id = :newKayttaja where k.kouluttaja.id = :currentKayttaja")
-    fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+    fun changeKouluttaja(currentKayttaja: String, newKayttaja: String)
 }

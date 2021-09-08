@@ -32,10 +32,10 @@ class KoejaksonLoppukeskusteluServiceImpl(
 
     override fun create(
         koejaksonLoppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonLoppukeskusteluDTO {
         val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
         var loppukeskustelu =
             koejaksonLoppukeskusteluMapper.toEntity(koejaksonLoppukeskusteluDTO)
         loppukeskustelu.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
@@ -43,7 +43,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
 
         // Sähköposti kouluttajalle
         mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!).get().user!!,
+            kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!).get(),
             "loppukeskusteluKouluttajalle.html",
             "email.loppukeskustelukouluttajalle.title",
             properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
@@ -54,7 +54,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
 
     override fun update(
         koejaksonLoppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonLoppukeskusteluDTO {
 
         var loppukeskustelu =
@@ -64,15 +64,15 @@ class KoejaksonLoppukeskusteluServiceImpl(
         val updatedLoppukeskustelu =
             koejaksonLoppukeskusteluMapper.toEntity(koejaksonLoppukeskusteluDTO)
 
-        if (loppukeskustelu.erikoistuvaLaakari?.kayttaja?.user?.id == userId && loppukeskustelu.lahiesimiesHyvaksynyt) {
+        if (loppukeskustelu.erikoistuvaLaakari?.kayttaja?.id == kayttajaId && loppukeskustelu.lahiesimiesHyvaksynyt) {
             loppukeskustelu = handleErikoistuva(loppukeskustelu)
         }
 
-        if (loppukeskustelu.lahikouluttaja?.user?.id == userId && !loppukeskustelu.lahiesimiesHyvaksynyt) {
+        if (loppukeskustelu.lahikouluttaja?.id == kayttajaId && !loppukeskustelu.lahiesimiesHyvaksynyt) {
             loppukeskustelu = handleKouluttaja(loppukeskustelu, updatedLoppukeskustelu)
         }
 
-        if (loppukeskustelu.lahiesimies?.user?.id == userId && loppukeskustelu.lahikouluttajaHyvaksynyt) {
+        if (loppukeskustelu.lahiesimies?.id == kayttajaId && loppukeskustelu.lahikouluttajaHyvaksynyt) {
             loppukeskustelu = handleEsimies(loppukeskustelu, updatedLoppukeskustelu)
         }
 
@@ -86,25 +86,25 @@ class KoejaksonLoppukeskusteluServiceImpl(
         val result = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
 
         // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta loppukeskustelusta
-        val erikoistuvaLaakari =
+        val erikoistuvaLaakariKayttaja =
             kayttajaRepository.findById(loppukeskustelu.erikoistuvaLaakari?.kayttaja?.id!!)
-                .get().user!!
+                .get()
         mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!).get().user!!,
+            kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!).get(),
             "loppukeskusteluHyvaksytty.html",
             "email.loppukeskusteluhyvaksytty.title",
             properties = mapOf(
                 Pair(MailProperty.ID, loppukeskustelu.id!!.toString()),
-                Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                Pair(MailProperty.NAME, "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}")
             )
         )
         mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id!!).get().user!!,
+            kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id!!).get(),
             "loppukeskusteluHyvaksytty.html",
             "email.loppukeskusteluhyvaksytty.title",
             properties = mapOf(
                 Pair(MailProperty.ID, loppukeskustelu.id!!.toString()),
-                Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                Pair(MailProperty.NAME, "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}")
             )
         )
 
@@ -125,7 +125,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
 
         // Sähköposti esimiehelle kouluttajan hyväksymästä loppukeskustelusta
         mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id!!).get().user!!,
+            kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id!!).get(),
             "loppukeskusteluKuitattava.html",
             "email.loppukeskustelukuitattava.title",
             properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
@@ -157,7 +157,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
         if (loppukeskustelu.lahikouluttajaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(loppukeskustelu.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!,
+                    .get(),
                 "loppukeskusteluKuitattava.html",
                 "email.loppukeskustelukuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
@@ -167,7 +167,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
         else {
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!)
-                    .get().user!!,
+                    .get(),
                 "loppukeskusteluPalautettu.html",
                 "email.loppukeskustelupalautettu.title",
                 properties = mapOf(
@@ -189,36 +189,36 @@ class KoejaksonLoppukeskusteluServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonLoppukeskusteluDTO> {
-        return koejaksonLoppukeskusteluRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
+    override fun findByErikoistuvaLaakariKayttajaId(kayttajaId: String): Optional<KoejaksonLoppukeskusteluDTO> {
+        return koejaksonLoppukeskusteluRepository.findByErikoistuvaLaakariKayttajaId(kayttajaId)
             .map(koejaksonLoppukeskusteluMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndLahikouluttajaUserId(
+    override fun findOneByIdAndLahikouluttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonLoppukeskusteluDTO> {
-        return koejaksonLoppukeskusteluRepository.findOneByIdAndLahikouluttajaUserId(id, userId)
+        return koejaksonLoppukeskusteluRepository.findOneByIdAndLahikouluttajaId(id, kayttajaId)
             .map(koejaksonLoppukeskusteluMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndLahiesimiesUserId(
+    override fun findOneByIdAndLahiesimiesId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonLoppukeskusteluDTO> {
-        return koejaksonLoppukeskusteluRepository.findOneByIdAndLahiesimiesUserId(
+        return koejaksonLoppukeskusteluRepository.findOneByIdAndLahiesimiesId(
             id,
-            userId
+            kayttajaId
         ).map(koejaksonLoppukeskusteluMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonLoppukeskusteluDTO> {
+    override fun findAllByKouluttajaId(kayttajaId: String): Map<KayttajaDTO, KoejaksonLoppukeskusteluDTO> {
         val loppukeskustelut =
-            koejaksonLoppukeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
-                userId
+            koejaksonLoppukeskusteluRepository.findAllByLahikouluttajaIdOrLahiesimiesId(
+                kayttajaId
             )
         return loppukeskustelut.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonLoppukeskusteluMapper.toDto(

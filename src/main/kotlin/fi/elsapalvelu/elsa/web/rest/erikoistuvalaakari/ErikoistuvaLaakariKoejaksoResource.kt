@@ -23,7 +23,7 @@ private const val ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO = "koejakson_vastuuhenki
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariKoejaksoResource(
-    private val userService: UserService,
+    private val kayttajaService: KayttajaService,
     private val koejaksonKoulutussopimusService: KoejaksonKoulutussopimusService,
     private val koejaksonAloituskeskusteluService: KoejaksonAloituskeskusteluService,
     private val koejaksonValiarviointiService: KoejaksonValiarviointiService,
@@ -33,7 +33,6 @@ class ErikoistuvaLaakariKoejaksoResource(
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
-    private val kayttajaService: KayttajaService,
     private val yliopistoService: YliopistoService
 ) {
 
@@ -44,24 +43,23 @@ class ErikoistuvaLaakariKoejaksoResource(
 
     @GetMapping("/koejakso")
     fun getKoejakso(principal: Principal?): ResponseEntity<KoejaksoDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        log.debug("REST request to get Koejakso for user: $user.id")
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         val result = KoejaksoDTO()
 
-        koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
             .ifPresent {
                 result.koulutussopimus = it
             }
         result.koulutusSopimuksenTila = KoejaksoTila.fromSopimus(result.koulutussopimus)
 
-        koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
             .ifPresent {
                 result.aloituskeskustelu = it
             }
         result.aloituskeskustelunTila =
             KoejaksoTila.fromAloituskeskustelu(result.aloituskeskustelu)
 
-        koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
             .ifPresent {
                 result.valiarviointi = it
             }
@@ -73,7 +71,7 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         val valiarviointiHyvaksytty = result.valiarvioinninTila == KoejaksoTila.HYVAKSYTTY
 
-        koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
             .ifPresent {
                 result.kehittamistoimenpiteet = it
             }
@@ -83,7 +81,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 result.kehittamistoimenpiteet
             )
 
-        koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
             .ifPresent {
                 result.loppukeskustelu = it
             }
@@ -94,7 +92,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 result.loppukeskustelu
             )
 
-        koejaksonVastuuhenkilonArvioService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonVastuuhenkilonArvioService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
             .ifPresent {
                 result.vastuuhenkilonArvio = it
             }
@@ -107,7 +105,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         result.kunnat = kuntaService.findAll()
         result.erikoisalat = erikoisalaService.findAll()
         result.tyoskentelyjaksot =
-            tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         return ResponseEntity.ok(result)
     }
@@ -115,11 +113,9 @@ class ErikoistuvaLaakariKoejaksoResource(
     @GetMapping("/koulutussopimus-lomake")
     fun getKoulutussopimusForm(principal: Principal?): ResponseEntity<KoulutussopimusFormDTO> {
         val form = KoulutussopimusFormDTO().apply {
-            val user = userService.getAuthenticatedUser(principal)
-            val kayttajaUser = kayttajaService.findByUserId(user.id!!)
-
+            val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
             vastuuhenkilot = kayttajaService.findVastuuhenkilot().filter {
-                it.yliopisto?.id == kayttajaUser.get().yliopisto?.id
+                it.yliopisto?.id == kayttaja.yliopisto?.id
             }
             yliopistot = yliopistoService.findAll()
         }
@@ -132,7 +128,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         @Valid @RequestBody koulutussopimusDTO: KoejaksonKoulutussopimusDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonKoulutussopimusDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         if (koulutussopimusDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi koulutussopimus ei saa sisältää ID:tä.",
@@ -143,7 +139,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         validateKoulutussopimus(koulutussopimusDTO)
 
         val koulutussopimus =
-            koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (koulutussopimus.isPresent) {
             throw BadRequestAlertException(
@@ -154,7 +150,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
 
         val result =
-            koejaksonKoulutussopimusService.create(koulutussopimusDTO, user.id!!)
+            koejaksonKoulutussopimusService.create(koulutussopimusDTO, kayttaja.id!!)
         return ResponseEntity.created(URI("/api/koejakso/koulutussopimus/${result.id}"))
             .headers(
                 HeaderUtil.createEntityCreationAlert(
@@ -178,10 +174,10 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         validateKoulutussopimus(koulutussopimusDTO)
 
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val koulutussopimus =
-            koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (!koulutussopimus.isPresent) {
             throw BadRequestAlertException(
@@ -200,7 +196,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
 
         val result =
-            koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id!!)
+            koejaksonKoulutussopimusService.update(koulutussopimusDTO, kayttaja.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -218,10 +214,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         @Valid @RequestBody aloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val aloituskeskustelu =
-            koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (aloituskeskustelu.isPresent) {
             throw BadRequestAlertException(
@@ -240,7 +236,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         )
 
         val result =
-            koejaksonAloituskeskusteluService.create(aloituskeskusteluDTO, user.id!!)
+            koejaksonAloituskeskusteluService.create(aloituskeskusteluDTO, kayttaja.id!!)
         return ResponseEntity.created(URI("/api/koejakso/aloituskeskustelu/${result.id}"))
             .headers(
                 HeaderUtil.createEntityCreationAlert(
@@ -258,10 +254,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         @Valid @RequestBody aloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val aloituskeskustelu =
-            koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (!aloituskeskustelu.isPresent) {
             throw BadRequestAlertException(
@@ -301,7 +297,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
 
         val result =
-            koejaksonAloituskeskusteluService.update(aloituskeskusteluDTO, user.id!!)
+            koejaksonAloituskeskusteluService.update(aloituskeskusteluDTO, kayttaja.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -319,10 +315,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         @Valid @RequestBody valiarviointiDTO: KoejaksonValiarviointiDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val valiarviointi =
-            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (valiarviointi.isPresent) {
             throw BadRequestAlertException(
@@ -341,7 +337,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         )
 
         val aloituskeskustelu =
-            koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
         if (!aloituskeskustelu.isPresent || aloituskeskustelu.get().lahiesimies?.sopimusHyvaksytty != true) {
             throw BadRequestAlertException(
                 "Aloituskeskustelu täytyy hyväksyä ennen väliarviointia.",
@@ -350,7 +346,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        val result = koejaksonValiarviointiService.create(valiarviointiDTO, user.id!!)
+        val result = koejaksonValiarviointiService.create(valiarviointiDTO, kayttaja.id!!)
         return ResponseEntity.created(URI("/api/koejakso/valiarviointi/${result.id}"))
             .headers(
                 HeaderUtil.createEntityCreationAlert(
@@ -368,10 +364,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         @Valid @RequestBody valiarviointiDTO: KoejaksonValiarviointiDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val valiarviointi =
-            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (!valiarviointi.isPresent) {
             throw BadRequestAlertException(
@@ -386,7 +382,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             ENTITY_KOEJAKSON_VALIARVIOINTI
         )
 
-        val result = koejaksonValiarviointiService.update(valiarviointiDTO, user.id!!)
+        val result = koejaksonValiarviointiService.update(valiarviointiDTO, kayttaja.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -404,10 +400,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         @Valid @RequestBody kehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (kehittamistoimenpiteet.isPresent) {
             throw BadRequestAlertException(
@@ -426,7 +422,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         )
 
         val valiarviointi =
-            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
         if (!valiarviointi.isPresent || valiarviointi.get().erikoistuvaAllekirjoittanut != true
             || valiarviointi.get().edistyminenTavoitteidenMukaista == true
         ) {
@@ -438,7 +434,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
 
         val result =
-            koejaksonKehittamistoimenpiteetService.create(kehittamistoimenpiteetDTO, user.id!!)
+            koejaksonKehittamistoimenpiteetService.create(kehittamistoimenpiteetDTO, kayttaja.id!!)
         return ResponseEntity.created(URI("/api/koejakso/kehittamistoimenpiteet/${result.id}"))
             .headers(
                 HeaderUtil.createEntityCreationAlert(
@@ -456,10 +452,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         @Valid @RequestBody kehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (!kehittamistoimenpiteet.isPresent) {
             throw BadRequestAlertException(
@@ -475,7 +471,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         )
 
         val result =
-            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
+            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, kayttaja.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -493,10 +489,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         @Valid @RequestBody loppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val loppukeskustelu =
-            koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (loppukeskustelu.isPresent) {
             throw BadRequestAlertException(
@@ -515,9 +511,9 @@ class ErikoistuvaLaakariKoejaksoResource(
         )
 
         val valiarviointi =
-            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
         val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
         val validValiarviointi =
             valiarviointi.isPresent && valiarviointi.get().erikoistuvaAllekirjoittanut == true
                 && valiarviointi.get().edistyminenTavoitteidenMukaista == true
@@ -533,7 +529,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
 
         val result =
-            koejaksonLoppukeskusteluService.create(loppukeskusteluDTO, user.id!!)
+            koejaksonLoppukeskusteluService.create(loppukeskusteluDTO, kayttaja.id!!)
         return ResponseEntity.created(URI("/api/koejakso/loppukeskustelu/${result.id}"))
             .headers(
                 HeaderUtil.createEntityCreationAlert(
@@ -551,10 +547,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         @Valid @RequestBody loppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val loppukeskustelu =
-            koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (!loppukeskustelu.isPresent) {
             throw BadRequestAlertException(
@@ -569,7 +565,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             ENTITY_KOEJAKSON_LOPPUKESKUSTELU
         )
 
-        val result = koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, user.id!!)
+        val result = koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, kayttaja.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -585,15 +581,14 @@ class ErikoistuvaLaakariKoejaksoResource(
     @GetMapping("/vastuuhenkilonarvio-lomake")
     fun getVastuuhenkilonArvioForm(principal: Principal?): ResponseEntity<VastuuhenkilonArvioFormDTO> {
         val form = VastuuhenkilonArvioFormDTO().apply {
-            val user = userService.getAuthenticatedUser(principal)
-            val kayttaja = kayttajaService.findByUserId(user.id!!)
+            val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
             vastuuhenkilot = kayttajaService.findVastuuhenkilot().filter {
-                it.yliopisto?.id == kayttaja.get().yliopisto?.id
+                it.yliopisto?.id == kayttaja.yliopisto?.id
             }
 
             val (tyoskentelyJaksoLiitetty, tyoskentelyjaksonPituusRiittava, tyotodistusLiitetty) =
-                tyoskentelyjaksoService.validateByLiitettyKoejaksoon(user.id!!)
+                tyoskentelyjaksoService.validateByLiitettyKoejaksoon(kayttaja.id!!)
             this.tyoskentelyjaksoLiitetty = tyoskentelyJaksoLiitetty
             this.tyoskentelyjaksonPituusRiittava = tyoskentelyjaksonPituusRiittava
             this.tyotodistusLiitetty = tyotodistusLiitetty
@@ -607,10 +602,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         @Valid @RequestBody vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val vastuuhenkilonArvio =
-            koejaksonVastuuhenkilonArvioService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonVastuuhenkilonArvioService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (vastuuhenkilonArvio.isPresent) {
             throw BadRequestAlertException(
@@ -640,7 +635,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
 
         val loppukeskustelu =
-            koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
         if (!loppukeskustelu.isPresent || loppukeskustelu.get().erikoistuvaAllekirjoittanut != true) {
             throw BadRequestAlertException(
                 "Loppukeskustelu täytyy hyväksyä ennen vastuuhenkilön arviota.",
@@ -650,7 +645,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
 
         val result =
-            koejaksonVastuuhenkilonArvioService.create(vastuuhenkilonArvioDTO, user.id!!)
+            koejaksonVastuuhenkilonArvioService.create(vastuuhenkilonArvioDTO, kayttaja.id!!)
         return ResponseEntity.created(URI("/api/koejakso/vastuuhenkilonarvio/${result.id}"))
             .headers(
                 HeaderUtil.createEntityCreationAlert(
@@ -668,10 +663,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         @Valid @RequestBody vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val vastuuhenkilonArvio =
-            koejaksonVastuuhenkilonArvioService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonVastuuhenkilonArvioService.findByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         if (!vastuuhenkilonArvio.isPresent) {
             throw BadRequestAlertException(
@@ -694,7 +689,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO
         )
 
-        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id!!)
+        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, kayttaja.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(

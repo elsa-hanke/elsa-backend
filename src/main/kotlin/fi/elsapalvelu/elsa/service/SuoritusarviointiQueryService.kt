@@ -11,7 +11,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import javax.persistence.criteria.Join
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 @Service
@@ -38,18 +37,17 @@ class SuoritusarviointiQueryService(
     }
 
     @Transactional(readOnly = true)
-    fun findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+    fun findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
         criteria: SuoritusarviointiCriteria?,
-        userId: String,
+        kayttajaId: String,
         page: Pageable
 
     ): Page<SuoritusarviointiDTO> {
         val specification = createSpecification(criteria) { root, _, cb ->
-            val user: Join<Kayttaja, User> = root.join(Suoritusarviointi_.tyoskentelyjakso)
+            val kayttaja = root.join(Suoritusarviointi_.tyoskentelyjakso)
                 .join(Tyoskentelyjakso_.erikoistuvaLaakari)
                 .join(ErikoistuvaLaakari_.kayttaja)
-                .join(Kayttaja_.user)
-            cb.equal(user.get(User_.id), userId)
+            cb.equal(kayttaja.get(Kayttaja_.id), kayttajaId)
         }
 
         return suoritusarviointiRepository.findAll(specification, page)
@@ -57,16 +55,15 @@ class SuoritusarviointiQueryService(
     }
 
     @Transactional(readOnly = true)
-    fun findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+    fun findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
         criteria: SuoritusarviointiCriteria?,
-        userId: String,
+        kayttajaId: String,
     ): List<SuoritusarviointiDTO> {
         val specification = createSpecification(criteria) { root, _, cb ->
-            val user: Join<Kayttaja, User> = root.join(Suoritusarviointi_.tyoskentelyjakso)
+            val kayttaja = root.join(Suoritusarviointi_.tyoskentelyjakso)
                 .join(Tyoskentelyjakso_.erikoistuvaLaakari)
                 .join(ErikoistuvaLaakari_.kayttaja)
-                .join(Kayttaja_.user)
-            cb.equal(user.get(User_.id), userId)
+            cb.equal(kayttaja.get(Kayttaja_.id), kayttajaId)
         }
 
         return suoritusarviointiRepository.findAll(specification)
@@ -80,11 +77,10 @@ class SuoritusarviointiQueryService(
     }
 
     @Transactional(readOnly = true)
-    fun findByKouluttajaOrVastuuhenkiloUserId(userId: String): List<SuoritusarviointiDTO> {
+    fun findByKouluttajaOrVastuuhenkiloId(kayttajaId: String): List<SuoritusarviointiDTO> {
         val specification = createSpecification(null) { root, _, cb ->
-            val user: Join<Kayttaja, User> = root.join(Suoritusarviointi_.arvioinninAntaja)
-                .join(Kayttaja_.user)
-            cb.equal(user.get(User_.id), userId)
+            val kayttaja = root.join(Suoritusarviointi_.arvioinninAntaja)
+            cb.equal(kayttaja.get(Kayttaja_.id), kayttajaId)
         }
 
         return suoritusarviointiRepository.findAll(specification)

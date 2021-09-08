@@ -1,11 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.AsiakirjaService
-import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.FileValidatorService
+import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
-import fi.elsapalvelu.elsa.validation.FileValidator
 import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -21,10 +20,9 @@ private const val ENTITY_NAME = "asiakirja"
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariAsiakirjaResource(
-    private val userService: UserService,
-    private val tyoskentelyjaksoService: TyoskentelyjaksoService,
+    private val kayttajaService: KayttajaService,
     private val asiakirjaService: AsiakirjaService,
-    private val fileValidator: FileValidator
+    private val fileValidator: FileValidatorService
 ) {
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
@@ -34,8 +32,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         @Valid @RequestParam files: List<MultipartFile>,
         principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
-        val user = userService.getAuthenticatedUser(principal)
-        fileValidator.validate(files, user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        fileValidator.validate(files, kayttaja.id!!)
 
         val asiakirjat =
             files.map {
@@ -49,7 +47,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
                 )
             }
 
-        val result = asiakirjaService.create(asiakirjat, user.id!!)
+        val result = asiakirjaService.create(asiakirjat, kayttaja.id!!)
         return ResponseEntity.created(URI("/api/asiakirjat"))
             .headers(
                 HeaderUtil.createEntityCreationAlert(
@@ -66,8 +64,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
     fun getAllAsiakirjat(
         principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
-        val user = userService.getAuthenticatedUser(principal)
-        val asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        val asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariId(kayttaja.id!!)
 
         return ResponseEntity.ok(asiakirjat)
     }
@@ -76,8 +74,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
     fun getReservedAsiakirjaNimet(
         principal: Principal?
     ): ResponseEntity<List<String>> {
-        val user = userService.getAuthenticatedUser(principal)
-        val asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map {
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        val asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariId(kayttaja.id!!).map {
             it.nimi!!
         }
 
@@ -89,8 +87,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<ByteArray> {
-        val user = userService.getAuthenticatedUser(principal)
-        val asiakirja = asiakirjaService.findOne(id, user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        val asiakirja = asiakirjaService.findOne(id, kayttaja.id!!)
 
         if (asiakirja != null) {
             return ResponseEntity.ok()
@@ -106,8 +104,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<Void> {
-        val user = userService.getAuthenticatedUser(principal)
-        asiakirjaService.delete(id, user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        asiakirjaService.delete(id, kayttaja.id!!)
         return ResponseEntity.noContent()
             .headers(
                 HeaderUtil.createEntityDeletionAlert(

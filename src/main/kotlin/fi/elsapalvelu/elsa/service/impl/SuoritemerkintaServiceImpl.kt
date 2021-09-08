@@ -22,13 +22,13 @@ class SuoritemerkintaServiceImpl(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun save(suoritemerkintaDTO: SuoritemerkintaDTO, userId: String): SuoritemerkintaDTO? {
+    override fun save(suoritemerkintaDTO: SuoritemerkintaDTO, kayttajaId: String): SuoritemerkintaDTO? {
         log.debug("Request to save Suoritemerkinta : $suoritemerkintaDTO")
 
         tyoskentelyjaksoRepository.findByIdOrNull(suoritemerkintaDTO.tyoskentelyjaksoId!!)
             ?.let { tyoskentelyjakso ->
                 val kirjautunutErikoistuvaLaakari =
-                    erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                    erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
                 if (kirjautunutErikoistuvaLaakari != null
                     && kirjautunutErikoistuvaLaakari == tyoskentelyjakso.erikoistuvaLaakari
                 ) {
@@ -57,24 +57,24 @@ class SuoritemerkintaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
+        kayttajaId: String
     ): List<SuoritemerkintaDTO> {
-        log.debug("Request to get list of Suoritemerkinta by user id : $userId")
+        log.debug("Request to get list of Suoritemerkinta by user id : $kayttajaId")
 
-        return suoritemerkintaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-            userId
+        return suoritemerkintaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
+            kayttajaId
         )
             .map(suoritemerkintaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOne(id: Long, userId: String): SuoritemerkintaDTO? {
+    override fun findOne(id: Long, kayttajaId: String): SuoritemerkintaDTO? {
         log.debug("Request to get Suoritemerkinta : $id")
 
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
             suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
                     ?.let { kirjautunutErikoistuvaLaakari ->
                         if (kirjautunutErikoistuvaLaakari == it) {
                             return suoritemerkintaMapper.toDto(suoritemerkinta)
@@ -86,12 +86,12 @@ class SuoritemerkintaServiceImpl(
         return null
     }
 
-    override fun delete(id: Long, userId: String) {
+    override fun delete(id: Long, kayttajaId: String) {
         log.debug("Request to delete Suoritemerkinta : $id")
 
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
             suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
                     ?.let { kirjautunutErikoistuvaLaakari ->
                         if (kirjautunutErikoistuvaLaakari == it &&
                             !suoritemerkinta.lukittu

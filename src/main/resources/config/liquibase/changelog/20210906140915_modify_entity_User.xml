@@ -6,8 +6,14 @@
     <changeSet id="20210906140915" author="jhipster">
 
         <addColumn tableName="jhi_user">
-            <column name="phone_number" type="varchar(255)">
-                <constraints nullable="true" />
+            <column name="puhelinnumero" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="profiilikuva" type="longblob">
+                <constraints nullable="true"/>
+            </column>
+            <column name="profiilikuva_content_type" type="varchar(255)">
+                <constraints nullable="true"/>
             </column>
         </addColumn>
     </changeSet>

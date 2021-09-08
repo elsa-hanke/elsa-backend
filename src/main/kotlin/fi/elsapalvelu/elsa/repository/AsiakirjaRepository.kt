@@ -7,12 +7,12 @@ import org.springframework.stereotype.Repository
 @Repository
 interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<Asiakirja>
+    fun findAllByErikoistuvaLaakariKayttajaId(kayttajaId: String): List<Asiakirja>
 
-    fun findAllByErikoistuvaLaakariKayttajaUserIdAndTyoskentelyjaksoId(
-        userId: String,
+    fun findAllByErikoistuvaLaakariKayttajaIdAndTyoskentelyjaksoId(
+        kayttajaId: String,
         tyoskentelyJaksoId: Long?
     ): List<Asiakirja>
 
-    fun findOneByIdAndErikoistuvaLaakariKayttajaUserId(id: Long, userId: String): Asiakirja
+    fun findOneByIdAndErikoistuvaLaakariKayttajaId(id: Long, kayttajaId: String): Asiakirja
 }

@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -21,7 +20,7 @@ private const val ENTITY_KOEJAKSON_LOPPUKESKUSTELU = "koejakson_loppukeskustelu"
 @RestController
 @RequestMapping("/api/kouluttaja")
 class KouluttajaKoejaksoResource(
-    private val userService: UserService,
+    private val kayttajaService: KayttajaService,
     private val koejaksonKoulutussopimusService: KoejaksonKoulutussopimusService,
     private val koejaksonAloituskeskusteluService: KoejaksonAloituskeskusteluService,
     private val koejaksonValiarviointiService: KoejaksonValiarviointiService,
@@ -30,15 +29,14 @@ class KouluttajaKoejaksoResource(
     private val koejaksonVaiheetService: KoejaksonVaiheetService
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 
     @GetMapping("/koejaksot")
     fun getKoejaksot(principal: Principal?): ResponseEntity<List<KoejaksonVaiheDTO>> {
-        val user = userService.getAuthenticatedUser(principal)
-        val koejaksonVaiheet = koejaksonVaiheetService.findAllByKouluttajaKayttajaUserId(user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        val koejaksonVaiheet = koejaksonVaiheetService.findAllByKouluttajaKayttajaId(kayttaja.id!!)
+
         return ResponseEntity.ok(koejaksonVaiheet)
     }
 
@@ -47,11 +45,10 @@ class KouluttajaKoejaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<KoejaksonKoulutussopimusDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-
-        log.debug("REST request to get koulutussopimus $id for user: $user.id")
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         val koulutussopimusDTO =
-            koejaksonKoulutussopimusService.findOneByIdAndKouluttajaKayttajaUserId(id, user.id!!)
+            koejaksonKoulutussopimusService.findOneByIdAndKouluttajaKayttajaId(id, kayttaja.id!!)
+
         return ResponseUtil.wrapOrNotFound(koulutussopimusDTO)
     }
 
@@ -73,7 +70,7 @@ class KouluttajaKoejaksoResource(
             )
         }
 
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val existingKoulutussopimusDTO =
             koejaksonKoulutussopimusService.findOne(koulutussopimusDTO.id!!)
@@ -87,7 +84,8 @@ class KouluttajaKoejaksoResource(
         }
 
         val result =
-            koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id!!)
+            koejaksonKoulutussopimusService.update(koulutussopimusDTO, kayttaja.id!!)
+
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -105,16 +103,16 @@ class KouluttajaKoejaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
-        log.debug("REST request to get aloituskeskustelu $id for user: $user.id")
         var aloituskeskusteluDTO =
-            koejaksonAloituskeskusteluService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
+            koejaksonAloituskeskusteluService.findOneByIdAndLahikouluttajaId(id, kayttaja.id!!)
 
         if (!aloituskeskusteluDTO.isPresent) {
             aloituskeskusteluDTO =
-                koejaksonAloituskeskusteluService.findOneByIdAndLahiesimiesUserId(id, user.id!!)
+                koejaksonAloituskeskusteluService.findOneByIdAndLahiesimiesId(id, kayttaja.id!!)
         }
+
         return ResponseUtil.wrapOrNotFound(aloituskeskusteluDTO)
     }
 
@@ -124,19 +122,19 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
         validateId(aloituskeskusteluDTO.id, ENTITY_KOEJAKSON_ALOITUSKESKUSTELU)
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         var aloituskeskustelu =
-            koejaksonAloituskeskusteluService.findOneByIdAndLahikouluttajaUserId(
+            koejaksonAloituskeskusteluService.findOneByIdAndLahikouluttajaId(
                 aloituskeskusteluDTO.id!!,
-                user.id!!
+                kayttaja.id!!
             )
 
         if (!aloituskeskustelu.isPresent) {
             aloituskeskustelu =
-                koejaksonAloituskeskusteluService.findOneByIdAndLahiesimiesUserId(
+                koejaksonAloituskeskusteluService.findOneByIdAndLahiesimiesId(
                     aloituskeskusteluDTO.id!!,
-                    user.id!!
+                    kayttaja.id!!
                 )
 
             if (!aloituskeskustelu.isPresent) {
@@ -171,7 +169,7 @@ class KouluttajaKoejaksoResource(
         )
 
         val result =
-            koejaksonAloituskeskusteluService.update(aloituskeskusteluDTO, user.id!!)
+            koejaksonAloituskeskusteluService.update(aloituskeskusteluDTO, kayttaja.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -189,16 +187,16 @@ class KouluttajaKoejaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
-        log.debug("REST request to get valiarviointi $id for user: $user.id")
         var valiarviointiDTO =
-            koejaksonValiarviointiService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
+            koejaksonValiarviointiService.findOneByIdAndLahikouluttajaId(id, kayttaja.id!!)
 
         if (!valiarviointiDTO.isPresent) {
             valiarviointiDTO =
-                koejaksonValiarviointiService.findOneByIdAndLahiesimiesUserId(id, user.id!!)
+                koejaksonValiarviointiService.findOneByIdAndLahiesimiesId(id, kayttaja.id!!)
         }
+
         return ResponseUtil.wrapOrNotFound(valiarviointiDTO)
     }
 
@@ -208,19 +206,19 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
         validateId(valiarviointiDTO.id, ENTITY_KOEJAKSON_LOPPUKESKUSTELU)
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         var valiarviointi =
-            koejaksonValiarviointiService.findOneByIdAndLahikouluttajaUserId(
+            koejaksonValiarviointiService.findOneByIdAndLahikouluttajaId(
                 valiarviointiDTO.id!!,
-                user.id!!
+                kayttaja.id!!
             )
 
         if (!valiarviointi.isPresent) {
             valiarviointi =
-                koejaksonValiarviointiService.findOneByIdAndLahiesimiesUserId(
+                koejaksonValiarviointiService.findOneByIdAndLahiesimiesId(
                     valiarviointiDTO.id!!,
-                    user.id!!
+                    kayttaja.id!!
                 )
 
             if (!valiarviointi.isPresent) {
@@ -247,7 +245,8 @@ class KouluttajaKoejaksoResource(
         )
 
         val result =
-            koejaksonValiarviointiService.update(valiarviointiDTO, user.id!!)
+            koejaksonValiarviointiService.update(valiarviointiDTO, kayttaja.id!!)
+
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -265,19 +264,19 @@ class KouluttajaKoejaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
-        log.debug("REST request to get kehittamistoimenpiteet $id for user: $user.id")
         var kehittamistoimenpiteetDTO =
-            koejaksonKehittamistoimenpiteetService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
+            koejaksonKehittamistoimenpiteetService.findOneByIdAndLahikouluttajaId(id, kayttaja.id!!)
 
         if (!kehittamistoimenpiteetDTO.isPresent) {
             kehittamistoimenpiteetDTO =
-                koejaksonKehittamistoimenpiteetService.findOneByIdAndLahiesimiesUserId(
+                koejaksonKehittamistoimenpiteetService.findOneByIdAndLahiesimiesId(
                     id,
-                    user.id!!
+                    kayttaja.id!!
                 )
         }
+
         return ResponseUtil.wrapOrNotFound(kehittamistoimenpiteetDTO)
     }
 
@@ -287,19 +286,19 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
         validateId(kehittamistoimenpiteetDTO.id, ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET)
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         var kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findOneByIdAndLahikouluttajaUserId(
+            koejaksonKehittamistoimenpiteetService.findOneByIdAndLahikouluttajaId(
                 kehittamistoimenpiteetDTO.id!!,
-                user.id!!
+                kayttaja.id!!
             )
 
         if (!kehittamistoimenpiteet.isPresent) {
             kehittamistoimenpiteet =
-                koejaksonKehittamistoimenpiteetService.findOneByIdAndLahiesimiesUserId(
+                koejaksonKehittamistoimenpiteetService.findOneByIdAndLahiesimiesId(
                     kehittamistoimenpiteetDTO.id!!,
-                    user.id!!
+                    kayttaja.id!!
                 )
 
             if (!kehittamistoimenpiteet.isPresent) {
@@ -326,7 +325,8 @@ class KouluttajaKoejaksoResource(
         )
 
         val result =
-            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
+            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, kayttaja.id!!)
+
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -344,19 +344,19 @@ class KouluttajaKoejaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
-        log.debug("REST request to get loppukeskustelu $id for user: $user.id")
         var loppukeskusteluDTO =
-            koejaksonLoppukeskusteluService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
+            koejaksonLoppukeskusteluService.findOneByIdAndLahikouluttajaId(id, kayttaja.id!!)
 
         if (!loppukeskusteluDTO.isPresent) {
             loppukeskusteluDTO =
-                koejaksonLoppukeskusteluService.findOneByIdAndLahiesimiesUserId(
+                koejaksonLoppukeskusteluService.findOneByIdAndLahiesimiesId(
                     id,
-                    user.id!!
+                    kayttaja.id!!
                 )
         }
+
         return ResponseUtil.wrapOrNotFound(loppukeskusteluDTO)
     }
 
@@ -366,19 +366,19 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
         validateId(loppukeskusteluDTO.id, ENTITY_KOEJAKSON_LOPPUKESKUSTELU)
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         var loppukeskustelu =
-            koejaksonLoppukeskusteluService.findOneByIdAndLahikouluttajaUserId(
+            koejaksonLoppukeskusteluService.findOneByIdAndLahikouluttajaId(
                 loppukeskusteluDTO.id!!,
-                user.id!!
+                kayttaja.id!!
             )
 
         if (!loppukeskustelu.isPresent) {
             loppukeskustelu =
-                koejaksonLoppukeskusteluService.findOneByIdAndLahiesimiesUserId(
+                koejaksonLoppukeskusteluService.findOneByIdAndLahiesimiesId(
                     loppukeskusteluDTO.id!!,
-                    user.id!!
+                    kayttaja.id!!
                 )
 
             if (!loppukeskustelu.isPresent) {
@@ -405,7 +405,7 @@ class KouluttajaKoejaksoResource(
         )
 
         val result =
-            koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, user.id!!)
+            koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, kayttaja.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(

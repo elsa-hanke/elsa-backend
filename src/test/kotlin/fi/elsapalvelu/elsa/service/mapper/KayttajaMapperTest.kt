@@ -15,7 +15,7 @@ class KayttajaMapperTest {
 
     @Test
     fun testEntityFromId() {
-        val id = 1L
+        val id = "b3863335-71c8-4e0d-8c45-82f06991e285"
         assertThat(kayttajaMapper.fromId(id)?.id).isEqualTo(id)
         assertThat(kayttajaMapper.fromId(null)).isNull()
     }

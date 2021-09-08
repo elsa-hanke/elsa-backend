@@ -7,7 +7,7 @@ interface SuoritusarvioinninKommenttiService {
 
     fun save(
         suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO,
-        userId: String
+        kayttajaId: String
     ): SuoritusarvioinninKommenttiDTO
 
     fun findAll(): List<SuoritusarvioinninKommenttiDTO>

@@ -8,26 +8,26 @@ interface TyoskentelyjaksoService {
 
     fun create(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
-        userId: String,
+        kayttajaId: String,
         newAsiakirjat: MutableSet<AsiakirjaDTO>
     ): TyoskentelyjaksoDTO?
 
     fun update(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
-        userId: String,
+        kayttajaId: String,
         newAsiakirjat: MutableSet<AsiakirjaDTO>,
         deletedAsiakirjaIds: MutableSet<Int>?
     ): TyoskentelyjaksoDTO?
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<TyoskentelyjaksoDTO>
+    fun findAllByErikoistuvaLaakariKayttajaId(kayttajaId: String): List<TyoskentelyjaksoDTO>
 
-    fun validateByLiitettyKoejaksoon(userId: String): Triple<Boolean, Boolean, Boolean>
+    fun validateByLiitettyKoejaksoon(kayttajaId: String): Triple<Boolean, Boolean, Boolean>
 
-    fun findOne(id: Long, userId: String): TyoskentelyjaksoDTO?
+    fun findOne(id: Long, kayttajaId: String): TyoskentelyjaksoDTO?
 
-    fun delete(id: Long, userId: String)
+    fun delete(id: Long, kayttajaId: String)
 
-    fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO
+    fun getTilastot(kayttajaId: String): TyoskentelyjaksotTilastotDTO
 
-    fun updateLiitettyKoejaksoon(id: Long, userId: String, liitettyKoejaksoon: Boolean): TyoskentelyjaksoDTO?
+    fun updateLiitettyKoejaksoon(id: Long, kayttajaId: String, liitettyKoejaksoon: Boolean): TyoskentelyjaksoDTO?
 }

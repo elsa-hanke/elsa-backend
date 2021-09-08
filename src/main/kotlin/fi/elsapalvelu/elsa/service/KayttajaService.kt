@@ -1,26 +1,32 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
-import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.KayttooikeusHakemusDTO
+import java.security.Principal
 import java.util.*
 
 interface KayttajaService {
 
     fun save(kayttajaDTO: KayttajaDTO): KayttajaDTO
 
-    fun save(kayttajaDTO: KayttajaDTO, userDTO: UserDTO): KayttajaDTO
-
     fun findAll(): List<KayttajaDTO>
 
-    fun findOne(id: Long): Optional<KayttajaDTO>
+    fun findOne(id: String): Optional<KayttajaDTO>
 
-    fun findByUserId(id: String): Optional<KayttajaDTO>
+    fun delete(id: String)
 
     fun findKouluttajat(): List<KayttajaDTO>
 
     fun findVastuuhenkilot(): List<KayttajaDTO>
 
-    fun findKouluttajatAndVastuuhenkilot(userId: String): List<KayttajaDTO>
+    fun findKouluttajatAndVastuuhenkilot(kayttajaId: String): List<KayttajaDTO>
 
-    fun delete(id: Long)
+    fun updateKayttajaAuthorities(
+        principal: Principal?,
+        kayttooikeusHakemusDTO: KayttooikeusHakemusDTO
+    )
+
+    fun getAuthenticatedKayttaja(principal: Principal?): KayttajaDTO
+
+    fun existsByEmail(sahkopostiosoite: String): Boolean
 }

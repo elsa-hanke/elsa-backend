@@ -1,9 +1,12 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
+import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.KayttooikeusHakemusDTO
+import fi.elsapalvelu.elsa.service.dto.UusiLahikouluttajaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
@@ -13,17 +16,12 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariMuutToiminnotResource(
-    private val userService: UserService,
     private val kayttajaService: KayttajaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val verificationTokenService: VerificationTokenService,
@@ -37,8 +35,8 @@ class ErikoistuvaLaakariMuutToiminnotResource(
     fun getErikoistuvaLaakari(
         principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let {
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        erikoistuvaLaakariService.findOneByKayttajaId(kayttaja.id!!)?.let {
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -49,7 +47,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         principal: Principal?,
         request: HttpServletRequest
     ) {
-        userService.updateUserAuthorities(principal, kayttooikeusHakemusDTO)
+        kayttajaService.updateKayttajaAuthorities(principal, kayttooikeusHakemusDTO)
     }
 
     @PostMapping("/lahikouluttajat")
@@ -57,10 +55,10 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         @Valid @RequestBody uusiLahikouluttajaDTO: UusiLahikouluttajaDTO,
         principal: Principal?
     ): ResponseEntity<KayttajaDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        erikoistuvaLaakariService.findOneByKayttajaId(kayttaja.id!!)
             ?.let { _ ->
-                if (userService.existsByEmail(uusiLahikouluttajaDTO.sahkoposti!!)) {
+                if (kayttajaService.existsByEmail(uusiLahikouluttajaDTO.sahkoposti!!)) {
                     throw BadRequestAlertException(
                         "Samalla sähköpostilla löytyy jo käyttäjä",
                         "kayttaja",
@@ -69,24 +67,22 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                 }
 
                 val result = kayttajaService.save(
-                    KayttajaDTO(nimi = uusiLahikouluttajaDTO.nimi),
-                    UserDTO(
-                        id = UUID.randomUUID().toString(),
-                        login = uusiLahikouluttajaDTO.sahkoposti,
-                        email = uusiLahikouluttajaDTO.sahkoposti,
-                        activated = false,
+                    KayttajaDTO(
+                        etunimi = uusiLahikouluttajaDTO.etunimi,
+                        sukunimi = uusiLahikouluttajaDTO.sukunimi,
+                        sahkopostiosoite = uusiLahikouluttajaDTO.sahkoposti,
                         authorities = setOf(KOULUTTAJA)
-                    )
+                    ),
                 )
 
-                val token = verificationTokenService.save(result.userId!!)
+                val token = verificationTokenService.save(result.id!!)
                 mailService.sendEmailFromTemplate(
-                    User(email = uusiLahikouluttajaDTO.sahkoposti),
+                    Kayttaja(sahkopostiosoite = uusiLahikouluttajaDTO.sahkoposti),
                     "uusiKouluttaja.html",
                     "email.uusikouluttaja.title",
                     properties = mapOf(
                         Pair(MailProperty.ID, token),
-                        Pair(MailProperty.NAME, user.firstName + " " + user.lastName)
+                        Pair(MailProperty.NAME, "${kayttaja.etunimi} ${kayttaja.sukunimi}")
                     )
                 )
 

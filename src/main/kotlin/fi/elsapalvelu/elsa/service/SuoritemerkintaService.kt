@@ -4,11 +4,11 @@ import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
 
 interface SuoritemerkintaService {
 
-    fun save(suoritemerkintaDTO: SuoritemerkintaDTO, userId: String): SuoritemerkintaDTO?
+    fun save(suoritemerkintaDTO: SuoritemerkintaDTO, kayttajaId: String): SuoritemerkintaDTO?
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId: String): List<SuoritemerkintaDTO>
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(kayttajaId: String): List<SuoritemerkintaDTO>
 
-    fun findOne(id: Long, userId: String): SuoritemerkintaDTO?
+    fun findOne(id: Long, kayttajaId: String): SuoritemerkintaDTO?
 
-    fun delete(id: Long, userId: String)
+    fun delete(id: Long, kayttajaId: String)
 }

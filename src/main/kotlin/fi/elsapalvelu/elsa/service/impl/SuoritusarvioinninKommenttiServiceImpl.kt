@@ -26,9 +26,9 @@ class SuoritusarvioinninKommenttiServiceImpl(
 
     override fun save(
         suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO,
-        userId: String
+        kayttajaId: String
     ): SuoritusarvioinninKommenttiDTO {
-        val kayttaja = kayttajaRepository.findOneByUserId(userId).get()
+        val kayttaja = kayttajaRepository.findById(kayttajaId).get()
         val kayttajaDTO = kayttajaMapper.toDto(kayttaja)
 
         // Tarkisteaan, että muokkaaja on sama kuin kommentin tekijä
@@ -51,14 +51,14 @@ class SuoritusarvioinninKommenttiServiceImpl(
         ) {
             suoritusarvioinninKommentti =
                 suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
-            val user =
+            val arvioinninAntajaKayttaja =
                 if (kayttaja == suoritusarviointi.arvioinninAntaja) kayttajaRepository.findById(
                     suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.id!!
-                ).get().user!!
+                ).get()
                 else kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!)
-                    .get().user!!
+                    .get()
             mailService.sendEmailFromTemplate(
-                user,
+                arvioinninAntajaKayttaja,
                 "suoritusarvioinninKommenttiEmail.html",
                 "email.suoritusarvioinninkommentti.title",
                 properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))

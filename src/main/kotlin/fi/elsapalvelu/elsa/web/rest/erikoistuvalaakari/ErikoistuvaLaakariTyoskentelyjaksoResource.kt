@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
-import fi.elsapalvelu.elsa.validation.FileValidator
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import org.slf4j.LoggerFactory
@@ -15,16 +14,14 @@ import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
-import java.time.temporal.ChronoUnit
 import javax.validation.Valid
-import kotlin.math.ceil
 
 private const val ENTITY_NAME = "tyoskentelyjakso"
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariTyoskentelyjaksoResource(
-    private val userService: UserService,
+    private val kayttajaService: KayttajaService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
@@ -32,7 +29,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val keskeytysaikaService: KeskeytysaikaService,
     private val asiakirjaService: AsiakirjaService,
     private val objectMapper: ObjectMapper,
-    private val fileValidator: FileValidator
+    private val fileValidator: FileValidatorService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -46,11 +43,10 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @Valid @RequestParam files: List<MultipartFile>?,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
         }?.also {
-            log.debug("REST request to create Tyoskentelyjakso : $this")
             if (it.id != null) {
                 throw BadRequestAlertException(
                     "Uusi tyoskentelyjakso ei saa sisältää ID:tä.",
@@ -67,8 +63,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 )
             }
         }?.also { validatePaattymispaiva(it) }?.let {
-            val asiakirjaDTOs = getMappedFiles(files, user.id!!) ?: mutableSetOf()
-            tyoskentelyjaksoService.create(it, user.id!!, asiakirjaDTOs)?.let { result ->
+            val asiakirjaDTOs = getMappedFiles(files, kayttaja.id!!) ?: mutableSetOf()
+            tyoskentelyjaksoService.create(it, kayttaja.id!!, asiakirjaDTOs)?.let { result ->
                 return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${result.id}"))
                     .headers(
                         HeaderUtil.createEntityCreationAlert(
@@ -92,18 +88,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         tyoskentelyjaksoDTO.run {
             if (paattymispaiva != null
             ) {
-                val daysBetween = ChronoUnit.DAYS.between(
-                    alkamispaiva,
-                    paattymispaiva
-                ) + 1
-                val minDays = ceil(
-                    (
-                        30 * (
-                            100 / osaaikaprosentti!!
-                                .coerceIn(50, 100)
-                            )
-                        ).toDouble()
-                ).toInt()
                 if (paattymispaiva!!.isBefore(alkamispaiva!!)) {
                     throw BadRequestAlertException(
                         "Työskentelyjakson päättymispäivä ei saa olla ennen alkamisaikaa",
@@ -117,10 +101,10 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
     private fun getMappedFiles(
         files: List<MultipartFile>?,
-        userId: String
+        kayttajaId: String
     ): MutableSet<AsiakirjaDTO>? {
         files?.let {
-            fileValidator.validate(it, userId)
+            fileValidator.validate(it, kayttajaId)
             return it.map { file ->
                 AsiakirjaDTO(
                     nimi = file.originalFilename,
@@ -143,11 +127,10 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @RequestParam deletedAsiakirjaIdsJson: String?,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
         }?.also {
-            log.debug("REST request to update Tyoskentelyjakso : $this")
             if (it.id == null) {
                 throw BadRequestAlertException(
                     "Työskentelyjakson ID puuttuu.",
@@ -156,11 +139,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 )
             }
         }?.also { validatePaattymispaiva(it) }?.let {
-            val newAsiakirjat = getMappedFiles(files, user.id!!) ?: mutableSetOf()
+            val newAsiakirjat = getMappedFiles(files, kayttaja.id!!) ?: mutableSetOf()
             val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let { id ->
                 objectMapper.readValue(id, mutableSetOf<Int>()::class.java)
             }
-            tyoskentelyjaksoService.update(it, user.id!!, newAsiakirjat, deletedAsiakirjaIds)
+            tyoskentelyjaksoService.update(it, kayttaja.id!!, newAsiakirjat, deletedAsiakirjaIds)
                 ?.let { result ->
                     return ResponseEntity.ok()
                         .headers(
@@ -184,16 +167,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun getTyoskentelyjaksoTable(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksotTableDTO> {
-        log.debug("REST request to get a page of Tyoskentelyjakso")
-
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         val table = TyoskentelyjaksotTableDTO()
         table.poissaolonSyyt = poissaolonSyyService.findAll().toMutableSet()
         table.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            .findAllByErikoistuvaLaakariKayttajaId(kayttaja.id!!).toMutableSet()
         table.keskeytykset = keskeytysaikaService
-            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
-        table.tilastot = tyoskentelyjaksoService.getTilastot(user.id!!)
+            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(kayttaja.id!!).toMutableSet()
+        table.tilastot = tyoskentelyjaksoService.getTilastot(kayttaja.id!!)
 
         return ResponseEntity.ok(table)
     }
@@ -202,9 +183,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun getTyoskentelyjaksot(
         principal: Principal?
     ): ResponseEntity<List<TyoskentelyjaksoDTO>> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         val tyoskentelyjaksot =
-            tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
 
         return ResponseEntity.ok(tyoskentelyjaksot)
     }
@@ -214,10 +195,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
-        log.debug("REST request to get Tyoskentelyjakso : $id")
-
-        val user = userService.getAuthenticatedUser(principal)
-        tyoskentelyjaksoService.findOne(id, user.id!!)?.let {
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        tyoskentelyjaksoService.findOne(id, kayttaja.id!!)?.let {
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -227,12 +206,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<Void> {
-        log.debug("REST request to delete Tyoskentelyjakso : $id")
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
-        val user = userService.getAuthenticatedUser(principal)
+        asiakirjaService.removeTyoskentelyjaksoReference(kayttaja.id!!, id)
+        tyoskentelyjaksoService.delete(id, kayttaja.id!!)
 
-        asiakirjaService.removeTyoskentelyjaksoReference(user.id!!, id)
-        tyoskentelyjaksoService.delete(id, user.id!!)
         return ResponseEntity.noContent()
             .headers(
                 HeaderUtil.createEntityDeletionAlert(
@@ -248,17 +226,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun getTyoskentelyjaksoForm(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoFormDTO> {
-        log.debug("REST request to get TyoskentelyjaksoForm")
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
-        val user = userService.getAuthenticatedUser(principal)
         val form = TyoskentelyjaksoFormDTO()
-
         form.kunnat = kuntaService.findAll().toMutableSet()
-
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
-
         form.reservedAsiakirjaNimet =
-            asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { it.nimi!! }
+            asiakirjaService.findAllByErikoistuvaLaakariId(kayttaja.id!!).map { it.nimi!! }
                 .toMutableSet()
 
         return ResponseEntity.ok(form)
@@ -268,16 +242,12 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun getKeskeytysaikaForm(
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaFormDTO> {
-        log.debug("REST request to get PoissaoloForm")
-
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         val form = KeskeytysaikaFormDTO()
-
         form.poissaolonSyyt = poissaolonSyyService.findAll().toMutableSet()
-
         form.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            .findAllByErikoistuvaLaakariKayttajaId(kayttaja.id!!).toMutableSet()
 
         return ResponseEntity.ok(form)
     }
@@ -287,7 +257,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @Valid @RequestBody keskeytysaikaDTO: KeskeytysaikaDTO,
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaDTO> {
-        log.debug("REST request to create Keskeytysaika : $keskeytysaikaDTO")
 
         if (keskeytysaikaDTO.id != null) {
             throw BadRequestAlertException(
@@ -304,9 +273,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             )
         }
 
-        val user = userService.getAuthenticatedUser(principal)
-
-        keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)?.let {
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        keskeytysaikaService.save(keskeytysaikaDTO, kayttaja.id!!)?.let {
             return ResponseEntity.created(URI("/api/tyoskentelyjaksot/poissaolot/${it.id}"))
                 .headers(
                     HeaderUtil.createEntityCreationAlert(
@@ -329,14 +297,12 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @Valid @RequestBody keskeytysaikaDTO: KeskeytysaikaDTO,
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaDTO> {
-        log.debug("REST request to update Keskeytysaika : $keskeytysaikaDTO")
-
         if (keskeytysaikaDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
         }
 
-        val user = userService.getAuthenticatedUser(principal)
-        keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)?.let {
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        keskeytysaikaService.save(keskeytysaikaDTO, kayttaja.id!!)?.let {
             return ResponseEntity.ok()
                 .headers(
                     HeaderUtil.createEntityUpdateAlert(
@@ -359,10 +325,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaDTO> {
-        log.debug("REST request to get Keskeytysaika : $id")
-
-        val user = userService.getAuthenticatedUser(principal)
-        keskeytysaikaService.findOne(id, user.id!!)?.let {
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        keskeytysaikaService.findOne(id, kayttaja.id!!)?.let {
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -372,10 +336,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<Void> {
-        log.debug("REST request to delete Keskeytysaika : $id")
-
-        val user = userService.getAuthenticatedUser(principal)
-        keskeytysaikaService.delete(id, user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        keskeytysaikaService.delete(id, kayttaja.id!!)
         return ResponseEntity.noContent()
             .headers(
                 HeaderUtil.createEntityDeletionAlert(
@@ -393,7 +355,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO?> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         if (tyoskentelyjaksoDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
@@ -408,7 +370,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         tyoskentelyjaksoService.updateLiitettyKoejaksoon(
             tyoskentelyjaksoDTO.id!!,
-            user.id!!,
+            kayttaja.id!!,
             tyoskentelyjaksoDTO.liitettyKoejaksoon!!
         )?.let {
             val response = ResponseEntity.ok()

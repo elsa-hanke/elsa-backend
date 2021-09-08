@@ -33,10 +33,10 @@ class KoejaksonKoulutussopimusServiceImpl(
 
     override fun create(
         koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonKoulutussopimusDTO {
         val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
         var koulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
         koulutussopimus.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         koulutussopimus.koulutuspaikat?.forEach { it.koulutussopimus = koulutussopimus }
@@ -49,7 +49,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         if (koulutussopimus.lahetetty) {
             koulutussopimus.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
+                    kayttajaRepository.findById(it.kouluttaja?.id!!).get(),
                     "koulutussopimusKouluttajalle.html",
                     "email.koulutussopimuskouluttajalle.title",
                     properties = mapOf(Pair(MailProperty.ID, koulutussopimus.id!!.toString()))
@@ -62,7 +62,7 @@ class KoejaksonKoulutussopimusServiceImpl(
 
     override fun update(
         koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonKoulutussopimusDTO {
 
         var koulutussopimus =
@@ -70,7 +70,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                 .orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
 
         val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
 
         val updatedKoulutussopimus =
             koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
@@ -82,12 +82,12 @@ class KoejaksonKoulutussopimusServiceImpl(
         }
 
         koulutussopimus.kouluttajat?.toTypedArray()?.forEach {
-            if (it.kouluttaja?.user?.id == userId) {
+            if (it.kouluttaja?.id == kayttajaId) {
                 koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
             }
         }
 
-        if (koulutussopimus.vastuuhenkilo?.user?.id == userId) {
+        if (koulutussopimus.vastuuhenkilo?.id == kayttajaId) {
             koulutussopimus = handleVastuuhenkilo(koulutussopimus, updatedKoulutussopimus)
         }
 
@@ -130,7 +130,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         if (updated.lahetetty) {
             result.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
+                    kayttajaRepository.findById(it.kouluttaja?.id!!).get(),
                     "koulutussopimusKouluttajalle.html",
                     "email.koulutussopimuskouluttajalle.title",
                     properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -177,7 +177,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         // Sähköposti vastuuhenkilölle hyväksytystä sopimuksesta
         if (result.kouluttajat?.all { it.sopimusHyvaksytty } == true) {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.vastuuhenkilo?.id!!).get().user!!,
+                kayttajaRepository.findById(result.vastuuhenkilo?.id!!).get(),
                 "koulutussopimusVastuuhenkilolle.html",
                 "email.koulutussopimusvastuuhenkilolle.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -186,11 +186,11 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         // Sähköposti erikoistuvalle ja toiselle kouluttajalle palautetusta sopimuksesta
         else if (result.korjausehdotus != null) {
-            val erikoistuvaLaakari =
+            val erikoistuvaLaakariKayttaja =
                 kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+                    .get()
             mailService.sendEmailFromTemplate(
-                erikoistuvaLaakari,
+                erikoistuvaLaakariKayttaja,
                 "koulutussopimusPalautettu.html",
                 "email.koulutussopimuspalautettu.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -199,13 +199,13 @@ class KoejaksonKoulutussopimusServiceImpl(
             result.kouluttajat?.forEach {
                 if (it.id != kouluttaja.id) {
                     mailService.sendEmailFromTemplate(
-                        kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
+                        kayttajaRepository.findById(it.kouluttaja?.id!!).get(),
                         "koulutussopimusPalautettuKouluttaja.html",
                         "email.koulutussopimuspalautettu.title",
                         properties = mapOf(
                             Pair(
                                 MailProperty.NAME,
-                                erikoistuvaLaakari.getName()
+                                "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}"
                             ),
                             Pair(MailProperty.TEXT, result.korjausehdotus!!)
                         )
@@ -242,11 +242,11 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         // Sähköposti erikoistujalle, kouluttajille ja opintohallinnolle hyväksytystä sopimuksesta
         if (result.vastuuhenkiloHyvaksynyt) {
-            val erikoistuvaLaakari =
+            val erikoistuvaLaakariKayttaja =
                 kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+                    .get()
             mailService.sendEmailFromTemplate(
-                erikoistuvaLaakari,
+                erikoistuvaLaakariKayttaja,
                 "koulutussopimusHyvaksytty.html",
                 "email.koulutussopimushyvaksytty.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -254,12 +254,15 @@ class KoejaksonKoulutussopimusServiceImpl(
 
             result.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
+                    kayttajaRepository.findById(it.kouluttaja?.id!!).get(),
                     "koulutussopimusHyvaksyttyKouluttaja.html",
                     "email.koulutussopimushyvaksytty.title",
                     properties = mapOf(
                         Pair(MailProperty.ID, result.id!!.toString()),
-                        Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                        Pair(
+                            MailProperty.NAME,
+                            "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}"
+                        )
                     )
                 )
             }
@@ -267,11 +270,11 @@ class KoejaksonKoulutussopimusServiceImpl(
         }
         // Sähköposti erikoistujalle ja kouluttajille palautetusta sopimuksesta
         else {
-            val erikoistuvaLaakari =
+            val erikoistuvaLaakariKayttaja =
                 kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+                    .get()
             mailService.sendEmailFromTemplate(
-                erikoistuvaLaakari,
+                erikoistuvaLaakariKayttaja,
                 "koulutussopimusPalautettu.html",
                 "email.koulutussopimuspalautettu.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -279,11 +282,14 @@ class KoejaksonKoulutussopimusServiceImpl(
 
             result.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
+                    kayttajaRepository.findById(it.kouluttaja?.id!!).get(),
                     "koulutussopimusPalautettuKouluttaja.html",
                     "email.koulutussopimuspalautettu.title",
                     properties = mapOf(
-                        Pair(MailProperty.NAME, erikoistuvaLaakari.getName()),
+                        Pair(
+                            MailProperty.NAME,
+                            "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}"
+                        ),
                         Pair(MailProperty.TEXT, result.korjausehdotus!!)
                     )
                 )
@@ -300,37 +306,37 @@ class KoejaksonKoulutussopimusServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonKoulutussopimusDTO> {
-        return koejaksonKoulutussopimusRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
+    override fun findByErikoistuvaLaakariKayttajaId(kayttajaId: String): Optional<KoejaksonKoulutussopimusDTO> {
+        return koejaksonKoulutussopimusRepository.findByErikoistuvaLaakariKayttajaId(kayttajaId)
             .map(koejaksonKoulutussopimusMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndKouluttajaKayttajaUserId(
+    override fun findOneByIdAndKouluttajaKayttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonKoulutussopimusDTO> {
         val koulutussopimus =
-            koejaksonKoulutussopimusRepository.findOneByIdAndKouluttajatKouluttajaUserId(
+            koejaksonKoulutussopimusRepository.findOneByIdAndKouluttajatKouluttajaId(
                 id,
-                userId
+                kayttajaId
             ).map(koejaksonKoulutussopimusMapper::toDto)
 
-        val currentKayttaja = kayttajaRepository.findOneByUserId(userId).get()
+        val currentKayttaja = kayttajaRepository.findById(kayttajaId).get()
         val currentKoulutussopimuksenKouluttaja = if (koulutussopimus.isPresent)
             koulutussopimus.get().kouluttajat?.find {
                 it.kayttajaId == currentKayttaja.id
             } else null
         if (currentKoulutussopimuksenKouluttaja?.sahkoposti.isNullOrEmpty()) {
-            currentKoulutussopimuksenKouluttaja?.sahkoposti = currentKayttaja.user?.email
+            currentKoulutussopimuksenKouluttaja?.sahkoposti = currentKayttaja.sahkopostiosoite
         }
         return koulutussopimus
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByKouluttajaKayttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO> {
+    override fun findAllByKouluttajaKayttajaId(kayttajaId: String): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO> {
         val koulutussopimukset =
-            koejaksonKoulutussopimusRepository.findAllByKouluttajatKouluttajaUserId(userId)
+            koejaksonKoulutussopimusRepository.findAllByKouluttajatKouluttajaId(kayttajaId)
         return koulutussopimukset.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonKoulutussopimusMapper.toDto(
                 it
@@ -339,9 +345,9 @@ class KoejaksonKoulutussopimusServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByVastuuhenkiloKayttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO> {
+    override fun findAllByVastuuhenkiloKayttajaId(kayttajaId: String): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO> {
         val koulutussopimukset =
-            koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(userId)
+            koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloId(kayttajaId)
         return koulutussopimukset.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonKoulutussopimusMapper.toDto(
                 it
@@ -350,13 +356,13 @@ class KoejaksonKoulutussopimusServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndVastuuhenkiloKayttajaUserId(
+    override fun findOneByIdAndVastuuhenkiloKayttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonKoulutussopimusDTO> {
-        return koejaksonKoulutussopimusRepository.findOneByIdAndVastuuhenkiloUserId(
+        return koejaksonKoulutussopimusRepository.findOneByIdAndVastuuhenkiloId(
             id,
-            userId
+            kayttajaId
         ).map(koejaksonKoulutussopimusMapper::toDto)
     }
 

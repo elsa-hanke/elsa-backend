@@ -19,9 +19,6 @@ data class ErikoistuvaLaakari(
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
 
-    @Column(name = "puhelinnumero", nullable = false)
-    var puhelinnumero: String? = null,
-
     @Column(name = "opiskelijatunnus")
     var opiskelijatunnus: String? = null,
 
@@ -106,9 +103,6 @@ data class ErikoistuvaLaakari(
 
     override fun toString() = "ErikoistuvaLaakari{" +
         "id=$id" +
-        ", puhelinnumero='$puhelinnumero'" +
-        ", opiskelijatunnus='$opiskelijatunnus'" +
-        ", opintojenAloitusvuosi=$opintojenAloitusvuosi" +
         "}"
 
     companion object {

@@ -5,11 +5,12 @@ import javax.validation.constraints.NotNull
 
 data class UusiLahikouluttajaDTO(
     @get: NotNull
-    var nimi: String? = null,
+    var etunimi: String? = null,
+
+    @get: NotNull
+    var sukunimi: String? = null,
 
     @get: NotNull
     var sahkoposti: String? = null
 
-) : Serializable {
-    override fun hashCode() = 31
-}
+) : Serializable

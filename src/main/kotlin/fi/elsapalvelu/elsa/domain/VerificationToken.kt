@@ -20,7 +20,7 @@ class VerificationToken(
     @NotNull
     @OneToOne(optional = false)
     @JoinColumn(unique = true)
-    var user: User? = null,
+    var kayttaja: Kayttaja? = null,
 
     ) : Serializable {
 

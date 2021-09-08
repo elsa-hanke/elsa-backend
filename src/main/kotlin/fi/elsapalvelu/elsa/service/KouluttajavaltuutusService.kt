@@ -10,9 +10,12 @@ interface KouluttajavaltuutusService {
 
     fun findAll(): List<KouluttajavaltuutusDTO>
 
-    fun findAllValtuutettuByValtuuttajaKayttajaUserId(id: String): List<KayttajaDTO>
+    fun findAllValtuutettuByValtuuttajaKayttajaId(kayttajaId: String): List<KayttajaDTO>
 
-    fun findValtuutettuByValtuuttajaAndValtuutettu(valtuutettuId: String, valtuuttajaId: String): Optional<KouluttajavaltuutusDTO>
+    fun findValtuutettuByValtuuttajaAndValtuutettu(
+        valtuutettuId: String,
+        valtuuttajaId: String
+    ): Optional<KouluttajavaltuutusDTO>
 
     fun findOne(id: Long): Optional<KouluttajavaltuutusDTO>
 

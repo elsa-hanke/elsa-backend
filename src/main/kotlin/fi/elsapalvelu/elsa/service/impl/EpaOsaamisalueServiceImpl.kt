@@ -38,9 +38,9 @@ class EpaOsaamisalueServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<EpaOsaamisalueDTO> {
+    override fun findAllByErikoistuvaLaakariKayttajaId(kayttajaId: String): List<EpaOsaamisalueDTO> {
         val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
         // Jos erikoistumisen aloituspäivää ei ole määritetty, käytetään nykyistä päivää voimassaolon rajaamisessa
         return epaOsaamisalueRepository.findAllByErikoisalaIdAndValid(
             kirjautunutErikoistuvaLaakari?.erikoisala?.id,

@@ -40,10 +40,10 @@ class TyoskentelyjaksoServiceImpl(
 
     override fun create(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
-        userId: String,
+        kayttajaId: String,
         newAsiakirjat: MutableSet<AsiakirjaDTO>
     ): TyoskentelyjaksoDTO? {
-        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        val resultTyoskentelyjakso = erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
             ?.let { kirjautunutErikoistuvaLaakari ->
                 tyoskentelyjaksoDTO.apply {
                     erikoistuvaLaakariId = erikoistuvaLaakariId ?: kirjautunutErikoistuvaLaakari.id
@@ -70,23 +70,25 @@ class TyoskentelyjaksoServiceImpl(
                             )
                         }
                     }
-            }?.let {
-                tyoskentelyjaksoRepository.save(it)?.let { saved ->
-                    return tyoskentelyjaksoMapper.toDto(saved)
-                }
             }
+
+        if (resultTyoskentelyjakso != null) {
+            tyoskentelyjaksoRepository.save(resultTyoskentelyjakso).let { saved ->
+                return tyoskentelyjaksoMapper.toDto(saved)
+            }
+        }
 
         return null
     }
 
     override fun update(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
-        userId: String,
+        kayttajaId: String,
         newAsiakirjat: MutableSet<AsiakirjaDTO>,
         deletedAsiakirjaIds: MutableSet<Int>?
     ): TyoskentelyjaksoDTO? {
-        tyoskentelyjaksoDTO.id?.let { id ->
-            tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)
+        val resultTyoskentelyjakso = tyoskentelyjaksoDTO.id?.let { id ->
+            tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaId(id, kayttajaId)
                 ?.takeIf { tyoskentelyjaksoDTO.erikoistuvaLaakariId == it.erikoistuvaLaakari?.id }
                 ?.let { tyoskentelyjakso ->
                     // Jos työskentelyjaksolle on lisätty arviointeja tai arviointipyyntöjä, sallitaan vain
@@ -130,8 +132,10 @@ class TyoskentelyjaksoServiceImpl(
                         tyoskentelyjakso.erikoistuvaLaakari!!
                     )
                 }
-        }?.let { updated ->
-            tyoskentelyjaksoRepository.save(updated)?.let { persisted ->
+        }
+
+        if (resultTyoskentelyjakso != null) {
+            tyoskentelyjaksoRepository.save(resultTyoskentelyjakso).let { persisted ->
                 return tyoskentelyjaksoMapper.toDto(persisted)
             }
         }
@@ -200,20 +204,20 @@ class TyoskentelyjaksoServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<TyoskentelyjaksoDTO> {
-        log.debug("Request to get list of Tyoskentelyjakso by user id : $userId")
+    override fun findAllByErikoistuvaLaakariKayttajaId(kayttajaId: String): List<TyoskentelyjaksoDTO> {
+        log.debug("Request to get list of Tyoskentelyjakso by user id : $kayttajaId")
 
-        return tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+        return tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaId(kayttajaId)
             .map(tyoskentelyjaksoMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOne(id: Long, userId: String): TyoskentelyjaksoDTO? {
+    override fun findOne(id: Long, kayttajaId: String): TyoskentelyjaksoDTO? {
         log.debug("Request to get Tyoskentelyjakso : $id")
 
         tyoskentelyjaksoRepository.findByIdOrNull(id)?.let { tyoskentelyjakso ->
             tyoskentelyjakso.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
                     ?.let { kirjautunutErikoistuvaLaakari ->
                         if (kirjautunutErikoistuvaLaakari == it) {
                             return tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
@@ -226,12 +230,12 @@ class TyoskentelyjaksoServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun validateByLiitettyKoejaksoon(userId: String): Triple<Boolean, Boolean, Boolean> {
+    override fun validateByLiitettyKoejaksoon(kayttajaId: String): Triple<Boolean, Boolean, Boolean> {
         var tyoskentelyJaksoLiitetty = false
         var tyoskentelyjaksonPituusRiittava = false
         var tyotodistusLiitetty = false
 
-        tyoskentelyjaksoRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId)?.let {
+        tyoskentelyjaksoRepository.findOneByErikoistuvaLaakariKayttajaIdAndLiitettyKoejaksoonTrue(kayttajaId)?.let {
             tyoskentelyJaksoLiitetty = true
             tyoskentelyjaksonPituusRiittava = validateTyoskentelyjaksonPituusKoejaksolleRiittava(it)
             tyotodistusLiitetty = it.asiakirjat.isNotEmpty()
@@ -248,12 +252,12 @@ class TyoskentelyjaksoServiceImpl(
         return months >= 6
     }
 
-    override fun delete(id: Long, userId: String) {
+    override fun delete(id: Long, kayttajaId: String) {
         log.debug("Request to delete Tyoskentelyjakso : $id")
 
         tyoskentelyjaksoRepository.findByIdOrNull(id)?.let { tyoskentelyjakso ->
             tyoskentelyjakso.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
                     ?.let { kirjautunutErikoistuvaLaakari ->
                         if (
                             kirjautunutErikoistuvaLaakari == it &&
@@ -267,7 +271,7 @@ class TyoskentelyjaksoServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO {
+    override fun getTilastot(kayttajaId: String): TyoskentelyjaksotTilastotDTO {
         log.debug("Request to get TyoskentelyjaksotTilastot")
 
         val counter = TilastotCounter()
@@ -277,7 +281,7 @@ class TyoskentelyjaksoServiceImpl(
         val tyoskentelyjaksotSuoritettu =
             mutableSetOf<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>()
         val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+            tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaId(kayttajaId)
 
         tyoskentelyjaksot.map {
             getTyoskentelyjaksoTilastot(
@@ -288,7 +292,7 @@ class TyoskentelyjaksoServiceImpl(
             )
         }
 
-        val erikoisala = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.erikoisala
+        val erikoisala = erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)?.erikoisala
         val yhteensaVaadittuVahintaan = erikoisala?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
         val arvioErikoistumiseenHyvaksyttavista =
             min(yhteensaVaadittuVahintaan / 2, counter.hyvaksyttyToiselleErikoisalalleSuoritettu) +
@@ -329,10 +333,10 @@ class TyoskentelyjaksoServiceImpl(
 
     override fun updateLiitettyKoejaksoon(
         id: Long,
-        userId: String,
+        kayttajaId: String,
         liitettyKoejaksoon: Boolean
     ): TyoskentelyjaksoDTO? {
-        tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)?.let {
+        tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaId(id, kayttajaId)?.let {
             it.liitettyKoejaksoon = liitettyKoejaksoon
             tyoskentelyjaksoRepository.save(it)
             return tyoskentelyjaksoMapper.toDto(it)

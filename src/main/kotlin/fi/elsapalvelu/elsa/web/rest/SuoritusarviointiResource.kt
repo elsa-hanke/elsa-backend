@@ -1,8 +1,8 @@
-package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
+package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.SuoritusarviointiQueryService
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
-import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -21,7 +21,7 @@ private const val ENTITY_NAME = "suoritusarviointi"
 open class SuoritusarviointiResource(
     private val suoritusarviointiService: SuoritusarviointiService,
     private val suoritusarviointiQueryService: SuoritusarviointiQueryService,
-    private val userService: UserService
+    private val kayttajaService: KayttajaService
 ) {
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
@@ -30,9 +30,9 @@ open class SuoritusarviointiResource(
     fun getAllSuoritusarvioinnit(
         principal: Principal?
     ): ResponseEntity<List<SuoritusarviointiDTO>> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         val suoritusarvioinnit =
-            suoritusarviointiQueryService.findByKouluttajaOrVastuuhenkiloUserId(user.id!!)
+            suoritusarviointiQueryService.findByKouluttajaOrVastuuhenkiloId(kayttaja.id!!)
         val avoimet = suoritusarvioinnit.filter { it.arviointiAika == null }
         val muut = suoritusarvioinnit.filter { it.arviointiAika != null }
         val sortedSuoritusarvioinnit =
@@ -46,9 +46,9 @@ open class SuoritusarviointiResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         val suoritusarviointiDTO =
-            suoritusarviointiService.findOneByIdAndArvioinninAntajauserId(id, user.id!!)
+            suoritusarviointiService.findOneByIdAndArvioinninAntajaId(id, kayttaja.id!!)
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
     }
 
@@ -70,8 +70,8 @@ open class SuoritusarviointiResource(
                 "dataillegal"
             )
         }
-        val user = userService.getAuthenticatedUser(principal)
-        val result = suoritusarviointiService.save(suoritusarviointiDTO, user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        val result = suoritusarviointiService.save(suoritusarviointiDTO, kayttaja.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(

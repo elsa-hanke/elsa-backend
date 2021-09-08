@@ -32,10 +32,10 @@ class KoejaksonValiarviointiServiceImpl(
 
     override fun create(
         koejaksonValiarviointiDTO: KoejaksonValiarviointiDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonValiarviointiDTO {
         val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
         var valiarvointi =
             koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
         valiarvointi.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
@@ -43,7 +43,7 @@ class KoejaksonValiarviointiServiceImpl(
 
         // Sähköposti kouluttajalle
         mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(valiarvointi.lahikouluttaja?.id!!).get().user!!,
+            kayttajaRepository.findById(valiarvointi.lahikouluttaja?.id!!).get(),
             "valiarviointiKouluttajalle.html",
             "email.valiarviointikouluttajalle.title",
             properties = mapOf(Pair(MailProperty.ID, valiarvointi.id!!.toString()))
@@ -54,7 +54,7 @@ class KoejaksonValiarviointiServiceImpl(
 
     override fun update(
         koejaksonValiarviointiDTO: KoejaksonValiarviointiDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonValiarviointiDTO {
 
         var valiarviointi =
@@ -63,15 +63,15 @@ class KoejaksonValiarviointiServiceImpl(
 
         val updatedValiarviointi = koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
 
-        if (valiarviointi.erikoistuvaLaakari?.kayttaja?.user?.id == userId && valiarviointi.lahiesimiesHyvaksynyt) {
+        if (valiarviointi.erikoistuvaLaakari?.kayttaja?.id == kayttajaId && valiarviointi.lahiesimiesHyvaksynyt) {
             valiarviointi = handleErikoistuva(valiarviointi)
         }
 
-        if (valiarviointi.lahikouluttaja?.user?.id == userId && !valiarviointi.lahiesimiesHyvaksynyt) {
+        if (valiarviointi.lahikouluttaja?.id == kayttajaId && !valiarviointi.lahiesimiesHyvaksynyt) {
             valiarviointi = handleKouluttaja(valiarviointi, updatedValiarviointi)
         }
 
-        if (valiarviointi.lahiesimies?.user?.id == userId && valiarviointi.lahikouluttajaHyvaksynyt) {
+        if (valiarviointi.lahiesimies?.id == kayttajaId && valiarviointi.lahikouluttajaHyvaksynyt) {
             valiarviointi = handleEsimies(valiarviointi, updatedValiarviointi)
         }
 
@@ -86,25 +86,31 @@ class KoejaksonValiarviointiServiceImpl(
 
         // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
         if (result.erikoistuvaAllekirjoittanut) {
-            val erikoistuvaLaakari =
+            val erikoistuvaLaakariKayttaja =
                 kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+                    .get()
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahikouluttaja?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahikouluttaja?.id!!).get(),
                 "valiarviointiHyvaksytty.html",
                 "email.valiarviointihyvaksytty.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, result.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                    Pair(
+                        MailProperty.NAME,
+                        "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}"
+                    )
                 )
             )
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahiesimies?.id!!).get(),
                 "valiarviointiHyvaksytty.html",
                 "email.valiarviointihyvaksytty.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, result.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                    Pair(
+                        MailProperty.NAME,
+                        "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}"
+                    )
                 )
             )
         }
@@ -131,7 +137,7 @@ class KoejaksonValiarviointiServiceImpl(
         if (result.lahikouluttajaHyvaksynyt) {
             // Sähköposti esimiehelle kouluttajan hyväksymästä väliarvioinnista
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahiesimies?.id!!).get(),
                 "valiarviointiKuitattava.html",
                 "email.valiarviointikuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -163,7 +169,7 @@ class KoejaksonValiarviointiServiceImpl(
         if (result.lahikouluttajaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!,
+                    .get(),
                 "valiarviointiKuitattava.html",
                 "email.valiarviointikuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -173,7 +179,7 @@ class KoejaksonValiarviointiServiceImpl(
         else {
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.lahikouluttaja?.id!!)
-                    .get().user!!,
+                    .get(),
                 "valiarviointiPalautettu.html",
                 "email.valiarviointipalautettu.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
@@ -190,37 +196,37 @@ class KoejaksonValiarviointiServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonValiarviointiDTO> {
-        return koejaksonValiarviointiRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
+    override fun findByErikoistuvaLaakariKayttajaId(kayttajaId: String): Optional<KoejaksonValiarviointiDTO> {
+        return koejaksonValiarviointiRepository.findByErikoistuvaLaakariKayttajaId(kayttajaId)
             .map(koejaksonValiarviointiMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndLahikouluttajaUserId(
+    override fun findOneByIdAndLahikouluttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonValiarviointiDTO> {
-        return koejaksonValiarviointiRepository.findOneByIdAndLahikouluttajaUserId(
+        return koejaksonValiarviointiRepository.findOneByIdAndLahikouluttajaId(
             id,
-            userId
+            kayttajaId
         ).map(koejaksonValiarviointiMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndLahiesimiesUserId(
+    override fun findOneByIdAndLahiesimiesId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonValiarviointiDTO> {
-        return koejaksonValiarviointiRepository.findOneByIdAndLahiesimiesUserId(
+        return koejaksonValiarviointiRepository.findOneByIdAndLahiesimiesId(
             id,
-            userId
+            kayttajaId
         ).map(koejaksonValiarviointiMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonValiarviointiDTO> {
+    override fun findAllByKouluttajaId(kayttajaId: String): Map<KayttajaDTO, KoejaksonValiarviointiDTO> {
         val valiarvioinnit =
-            koejaksonValiarviointiRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
+            koejaksonValiarviointiRepository.findAllByLahikouluttajaIdOrLahiesimiesId(kayttajaId)
         return valiarvioinnit.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonValiarviointiMapper.toDto(
                 it

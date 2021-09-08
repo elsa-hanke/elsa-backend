@@ -45,11 +45,10 @@ class CacheConfiguration(
     }
 
     @Bean
-    fun hibernatePropertiesCustomizer(
-        cacheManager: javax.cache.CacheManager
-    ) = HibernatePropertiesCustomizer { hibernateProperties ->
-        hibernateProperties[ConfigSettings.CACHE_MANAGER] = cacheManager
-    }
+    fun hibernatePropertiesCustomizer(cacheManager: javax.cache.CacheManager) =
+        HibernatePropertiesCustomizer { hibernateProperties ->
+            hibernateProperties[ConfigSettings.CACHE_MANAGER] = cacheManager
+        }
 
     @Bean
     fun cacheManagerCustomizer(): JCacheManagerCustomizer {
@@ -69,6 +68,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari::class.java.name + ".annetutValtuutukset")
             createCache(cm, fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari::class.java.name + ".tyoskentelyjaksot")
             createCache(cm, fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".authorities")
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".saadutValtuutukset")
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Keskeytysaika::class.java.name)
@@ -96,20 +96,18 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Suoritusarviointi::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelyjakso::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelypaikka::class.java.name)
-            createCache(cm, fi.elsapalvelu.elsa.domain.User::class.java.name + ".authorities")
-            createCache(cm, fi.elsapalvelu.elsa.domain.User::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.VerificationToken::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Yliopisto::class.java.name + ".erikoisalat")
             createCache(cm, fi.elsapalvelu.elsa.domain.Yliopisto::class.java.name + ".kayttajat")
             createCache(cm, fi.elsapalvelu.elsa.domain.Yliopisto::class.java.name)
-            createCache(cm, fi.elsapalvelu.elsa.repository.UserRepository.USERS_BY_EMAIL_CACHE)
-            createCache(cm, fi.elsapalvelu.elsa.repository.UserRepository.USERS_BY_LOGIN_CACHE)
         }
     }
 
     private fun createCache(cm: javax.cache.CacheManager, cacheName: String) {
         val cache: javax.cache.Cache<Any, Any>? = cm.getCache(cacheName)
-        if (cache == null) {
+        if (cache != null) {
+            cache.clear()
+        } else {
             cm.createCache(cacheName, jcacheConfiguration)
         }
     }

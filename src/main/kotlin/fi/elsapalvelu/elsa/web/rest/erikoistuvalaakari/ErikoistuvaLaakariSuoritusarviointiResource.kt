@@ -21,7 +21,6 @@ private const val ENTITY_NAME = "suoritusarviointi"
 class ErikoistuvaLaakariSuoritusarviointiResource(
     private val suoritusarviointiService: SuoritusarviointiService,
     private val suoritusarviointiQueryService: SuoritusarviointiQueryService,
-    private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
@@ -37,16 +36,16 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     fun getSuoritusarvioinnitRajaimet(
         principal: Principal?
     ): ResponseEntity<SuoritusarvioinnitOptionsDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        val id = user.id!!
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         val options = SuoritusarvioinnitOptionsDTO()
         options.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+            .findAllByErikoistuvaLaakariKayttajaId(kayttaja.id!!).toMutableSet()
         options.epaOsaamisalueet =
-            epaOsaamisalueService.findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+            epaOsaamisalueService.findAllByErikoistuvaLaakariKayttajaId(kayttaja.id!!).toMutableSet()
         options.tapahtumat = suoritusarviointiService
-            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
-        options.kouluttajatAndVastuuhenkilot = kayttajaService.findKouluttajatAndVastuuhenkilot(id).toMutableSet()
+            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(kayttaja.id!!).toMutableSet()
+        options.kouluttajatAndVastuuhenkilot =
+            kayttajaService.findKouluttajatAndVastuuhenkilot(kayttaja.id!!).toMutableSet()
 
         return ResponseEntity.ok(options)
     }
@@ -56,12 +55,11 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         criteria: SuoritusarviointiCriteria,
         principal: Principal?
     ): ResponseEntity<List<SuoritusarviointiDTO>> {
-        val user = userService.getAuthenticatedUser(principal)
-        val id = user.id!!
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
 
         return ResponseEntity.ok(
             suoritusarviointiQueryService
-                .findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(criteria, id)
+                .findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaId(criteria, kayttaja.id!!)
         )
     }
 
@@ -69,15 +67,14 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     fun getArviointipyyntoForm(
         principal: Principal?
     ): ResponseEntity<ArviointipyyntoFormDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        val id = user.id!!
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         val form = ArviointipyyntoFormDTO()
         form.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+            .findAllByErikoistuvaLaakariKayttajaId(kayttaja.id!!).toMutableSet()
         form.kunnat = kuntaService.findAll().toMutableSet()
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
         form.epaOsaamisalueenKategoriat =
-            epaOsaamisalueService.findAllByErikoistuvaLaakariKayttajaUserId(id)
+            epaOsaamisalueService.findAllByErikoistuvaLaakariKayttajaId(kayttaja.id!!)
                 .groupBy { it.kategoria }.map {
                     EpaOsaamisalueenKategoriaDTO(
                         it.key?.id,
@@ -89,7 +86,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                     )
                 }.toMutableSet()
 
-        form.kouluttajatAndVastuuhenkilot = kayttajaService.findKouluttajatAndVastuuhenkilot(id).toMutableSet()
+        form.kouluttajatAndVastuuhenkilot =
+            kayttajaService.findKouluttajatAndVastuuhenkilot(kayttaja.id!!).toMutableSet()
         return ResponseEntity.ok(form)
     }
 
@@ -98,7 +96,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         @Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO,
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         if (suoritusarviointiDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi arviointipyyntö ei saa sisältää ID:tä.",
@@ -142,9 +140,9 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
             )
         } else {
             val tyoskentelyjakso = tyoskentelyjaksoService
-                .findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!, user.id!!)
+                .findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!, kayttaja.id!!)
             val kirjautunutErikoistuvaLaakari =
-                erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+                erikoistuvaLaakariService.findOneByKayttajaId(kayttaja.id!!)
 
             if (tyoskentelyjakso == null || kirjautunutErikoistuvaLaakari == null) {
                 throw BadRequestAlertException(
@@ -198,8 +196,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         if (suoritusarviointiDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
-        val user = userService.getAuthenticatedUser(principal)
-        val result = suoritusarviointiService.save(suoritusarviointiDTO, user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        val result = suoritusarviointiService.save(suoritusarviointiDTO, kayttaja.id!!)
         return ResponseEntity.ok()
             .headers(
                 HeaderUtil.createEntityUpdateAlert(
@@ -217,9 +215,9 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
         val suoritusarviointiDTO = suoritusarviointiService
-            .findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id, user.id!!)
+            .findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaId(id, kayttaja.id!!)
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
     }
 
@@ -228,8 +226,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<Void> {
-        val user = userService.getAuthenticatedUser(principal)
-        suoritusarviointiService.delete(id, user.id!!)
+        val kayttaja = kayttajaService.getAuthenticatedKayttaja(principal)
+        suoritusarviointiService.delete(id, kayttaja.id!!)
         return ResponseEntity.noContent()
             .headers(
                 HeaderUtil.createEntityDeletionAlert(

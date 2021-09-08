@@ -7,7 +7,7 @@ import java.util.*
 
 @Repository
 interface SuoritemerkintaRepository : JpaRepository<Suoritemerkinta, Long> {
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id: String): List<Suoritemerkinta>
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(kayttajaId: String): List<Suoritemerkinta>
 
     fun findOneById(id: Long): Optional<Suoritemerkinta>
 }

@@ -4,17 +4,10 @@ import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
-import javax.validation.constraints.NotNull
 
 data class ErikoistuvaLaakariDTO(
 
     var id: Long? = null,
-
-    @get: NotNull
-    var puhelinnumero: String? = null,
-
-    @get: NotNull
-    var sahkoposti: String? = null,
 
     var opiskelijatunnus: String? = null,
 

@@ -17,7 +17,6 @@ interface KoulutussopimuksenKouluttajaMapper :
 
     @Mappings(
         Mapping(source = "kouluttaja.id", target = "kayttajaId"),
-        Mapping(source = "kouluttaja.user.id", target = "kayttajaUserId")
     )
     override fun toDto(entity: KoulutussopimuksenKouluttaja): KoulutussopimuksenKouluttajaDTO
 

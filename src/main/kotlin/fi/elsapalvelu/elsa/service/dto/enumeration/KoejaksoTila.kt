@@ -17,7 +17,7 @@ enum class KoejaksoTila {
     companion object {
         fun fromSopimus(
             koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO?,
-            kayttajaId: Long? = null
+            kayttajaId: String? = null
         ): KoejaksoTila {
             return if (koejaksonKoulutussopimusDTO == null) UUSI
             else if (koejaksonKoulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true) HYVAKSYTTY
@@ -32,7 +32,7 @@ enum class KoejaksoTila {
 
         fun fromAloituskeskustelu(
             aloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO?,
-            kayttajaId: Long? = null
+            kayttajaId: String? = null
         ): KoejaksoTila {
             return if (aloituskeskusteluDTO == null) UUSI
             else if (aloituskeskusteluDTO.lahiesimies?.sopimusHyvaksytty == true) HYVAKSYTTY
@@ -45,7 +45,7 @@ enum class KoejaksoTila {
         fun fromValiarvointi(
             aloituskeskusteluHyvaksytty: Boolean,
             valiarviointiDTO: KoejaksonValiarviointiDTO?,
-            kayttajaId: Long? = null
+            kayttajaId: String? = null
         ): KoejaksoTila {
             return if (!aloituskeskusteluHyvaksytty) EI_AKTIIVINEN
             else if (valiarviointiDTO == null) UUSI
@@ -59,7 +59,7 @@ enum class KoejaksoTila {
         fun fromKehittamistoimenpiteet(
             kehittamistoimenpiteita: Boolean,
             kehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO?,
-            kayttajaId: Long? = null
+            kayttajaId: String? = null
         ): KoejaksoTila {
             return if (!kehittamistoimenpiteita) EI_AKTIIVINEN
             else if (kehittamistoimenpiteetDTO == null) UUSI
@@ -73,7 +73,7 @@ enum class KoejaksoTila {
         fun fromLoppukeskustelu(
             aktiivinen: Boolean,
             loppukeskusteluDTO: KoejaksonLoppukeskusteluDTO?,
-            kayttajaId: Long? = null
+            kayttajaId: String? = null
         ): KoejaksoTila {
             return if (!aktiivinen) EI_AKTIIVINEN
             else if (loppukeskusteluDTO == null) UUSI

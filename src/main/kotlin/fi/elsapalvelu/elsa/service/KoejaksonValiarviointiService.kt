@@ -8,32 +8,32 @@ interface KoejaksonValiarviointiService {
 
     fun create(
         koejaksonValiarviointiDTO: KoejaksonValiarviointiDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonValiarviointiDTO
 
     fun update(
         koejaksonValiarviointiDTO: KoejaksonValiarviointiDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonValiarviointiDTO
 
     fun findOne(id: Long): Optional<KoejaksonValiarviointiDTO>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    fun findByErikoistuvaLaakariKayttajaId(
+        kayttajaId: String
     ): Optional<KoejaksonValiarviointiDTO>
 
-    fun findOneByIdAndLahikouluttajaUserId(
+    fun findOneByIdAndLahikouluttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonValiarviointiDTO>
 
-    fun findOneByIdAndLahiesimiesUserId(
+    fun findOneByIdAndLahiesimiesId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonValiarviointiDTO>
 
-    fun findAllByKouluttajaUserId(
-        userId: String
+    fun findAllByKouluttajaId(
+        kayttajaId: String
     ): Map<KayttajaDTO, KoejaksonValiarviointiDTO>
 
     fun delete(id: Long)

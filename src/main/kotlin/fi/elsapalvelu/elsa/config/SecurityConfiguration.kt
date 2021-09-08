@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.config
 
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
 import org.springframework.context.annotation.Import
@@ -13,7 +13,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
@@ -42,7 +41,6 @@ class SecurityConfiguration(
     private val corsFilter: CorsFilter,
     private val applicationProperties: ApplicationProperties,
     private val problemSupport: SecurityProblemSupport,
-    private val userRepository: UserRepository,
     private val verificationTokenRepository: VerificationTokenRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
@@ -65,10 +63,12 @@ class SecurityConfiguration(
     @Throws(Exception::class)
     public override fun configure(http: HttpSecurity) {
         val withHttpOnlyFalse = CookieCsrfTokenRepository.withHttpOnlyFalse()
+        withHttpOnlyFalse.setCookieDomain(applicationProperties.getCsrf().cookie.domain)
+
         val authenticationProvider =
             OpenSamlAuthenticationProvider() // TODO: update to OpenSaml4AuthenticationProvider when opensaml-api updates to 4.1.1 in maven
         authenticationProvider.setResponseAuthenticationConverter(authenticationConverter())
-        withHttpOnlyFalse.setCookieDomain(applicationProperties.getCsrf().cookie.domain)
+
         http
             .csrf()
             .csrfTokenRepository(withHttpOnlyFalse)
@@ -96,7 +96,6 @@ class SecurityConfiguration(
             .deny()
             .and()
             .authorizeRequests()
-            .antMatchers("/authorize").authenticated()
             .antMatchers("/api/auth-info").permitAll()
             .antMatchers("/api/erikoistuva-laakari/kayttooikeushakemus").authenticated()
             .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
@@ -130,13 +129,13 @@ class SecurityConfiguration(
             .createDefaultResponseAuthenticationConverter()
             .convert(responseToken) as Saml2Authentication
         val principal = token.principal as Saml2AuthenticatedPrincipal
-        val hetu = principal.attributes["urn:oid:1.2.246.21"]?.get(0)
-        val firstName = principal.attributes["urn:oid:2.5.4.42"]?.get(0) as String
-        val lastName = principal.attributes["urn:oid:2.5.4.4"]?.get(0) as String
+        val henkilotunnus = principal.attributes["urn:oid:1.2.246.21"]?.get(0) as String
+        val etunimi = principal.attributes["urn:oid:2.5.4.42"]?.get(0) as String
+        val sukunimi = principal.attributes["urn:oid:2.5.4.4"]?.get(0) as String
 
         val response = responseToken.response
         val assertion = CollectionUtils.firstElement(response.assertions)
-        val nameID = assertion.subject.nameID
+        val nameID = assertion!!.subject.nameID
         principal.attributes["nameID"] = mutableListOf(nameID.value) as List<Any>?
         principal.attributes["nameIDFormat"] = mutableListOf(nameID.format) as List<Any>?
         principal.attributes["nameIDQualifier"] = mutableListOf(nameID.nameQualifier) as List<Any>?
@@ -157,105 +156,111 @@ class SecurityConfiguration(
         val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
         val verificationToken = attr.request.getParameter("RelayState")
 
-        // Check invited user
+        // Tarkistetaan kutsuttu käyttäjä
         if (verificationToken != null) {
             verificationTokenRepository.findById(verificationToken)
                 .ifPresent {
-                    val tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
+                    val existingKayttaja = findExistingKayttaja(cipher, originalKey, henkilotunnus)
 
-                    val existingUser = findExistingUser(cipher, originalKey, hetu)
-
-                    // If user with same hetu exists, merge users
-                    if (existingUser != null) {
-                        val existingKayttaja = kayttajaRepository.findOneByUserId(existingUser.id!!)
-                        val tokenKayttaja = kayttajaRepository.findOneByUserId(tokenUser.id!!)
-
-                        updateKouluttajaReferences(
-                            tokenKayttaja.get().id!!,
-                            existingKayttaja.get().id!!
-                        )
-
-                        existingUser.email = tokenUser.email
-                        existingUser.authorities.clear()
-                        existingUser.authorities.addAll(tokenUser.authorities)
-
-                        kayttajaRepository.delete(tokenKayttaja.get())
-                        verificationTokenRepository.delete(it)
-                        userRepository.delete(tokenUser)
-                        userRepository.save(existingUser)
-                    } else {
-                        cipher.init(Cipher.ENCRYPT_MODE, originalKey)
-                        val params = cipher.parameters
-                        val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
-                        val ciphertext =
-                            cipher.doFinal(hetu.toString().toByteArray(StandardCharsets.UTF_8))
-
-                        tokenUser.hetu = ciphertext
-                        tokenUser.initVector = iv
-                        tokenUser.firstName = firstName
-                        tokenUser.lastName = lastName
-
-                        userRepository.save(tokenUser)
-                        verificationTokenRepository.delete(it)
-                    }
+                    // If user with same henkilotunnus exists, merge users
+//                    if (existingKayttaja != null) {
+//                        val existingKayttaja = kayttajaRepository.findOneByUserId(existingUser.id!!)
+//                        val tokenKayttaja = kayttajaRepository.findOneByUserId(tokenUser.id!!)
+//
+//                        updateKouluttajaReferences(
+//                            tokenKayttaja.get().id!!,
+//                            existingKayttaja.get().id!!
+//                        )
+//
+//                        existingUser.email = tokenUser.email
+//                        existingUser.authorities.clear()
+//                        existingUser.authorities.addAll(tokenUser.authorities)
+//
+//                        kayttajaRepository.delete(tokenKayttaja.get())
+//                        verificationTokenRepository.delete(it)
+//                        userRepository.delete(tokenUser)
+//                        userRepository.save(existingUser)
+//                    } else {
+//                        cipher.init(Cipher.ENCRYPT_MODE, originalKey)
+//                        val params = cipher.parameters
+//                        val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
+//                        val ciphertext =
+//                            cipher.doFinal(henkilotunnus.toByteArray(StandardCharsets.UTF_8))
+//
+//                        tokenUser.hetu = ciphertext
+//                        tokenUser.initVector = iv
+//                        tokenUser.firstName = firstName
+//                        tokenUser.lastName = lastName
+//
+//                        userRepository.save(tokenUser)
+//                        verificationTokenRepository.delete(it)
+//                    }
                 }
         }
 
-        val existingUser = findExistingUser(cipher, originalKey, hetu)
-        if (existingUser != null) {
-            return Saml2Authentication(
-                DefaultSaml2AuthenticatedPrincipal(existingUser.id, principal.attributes),
-                token.saml2Response,
-                existingUser.authorities.map { SimpleGrantedAuthority(it.name) }
-            )
-        }
-
-        cipher.init(Cipher.ENCRYPT_MODE, originalKey)
-        val params = cipher.parameters
-        val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
-        val ciphertext =
-            cipher.doFinal(hetu.toString().toByteArray(StandardCharsets.UTF_8))
-
-        // New user
-        var user = User(
-            firstName = firstName,
-            lastName = lastName,
-            hetu = ciphertext,
-            initVector = iv,
-            login = UUID.randomUUID().toString(),
-            activated = true
-        )
-        user = userRepository.save(user)
+//        val existingUser = findExistingUser(cipher, originalKey, hetu)
+//        if (existingUser != null) {
+//            return Saml2Authentication(
+//                DefaultSaml2AuthenticatedPrincipal(existingUser.id, principal.attributes),
+//                token.saml2Response,
+//                existingUser.authorities.map { SimpleGrantedAuthority(it.name) }
+//            )
+//        }
+//
+//        cipher.init(Cipher.ENCRYPT_MODE, originalKey)
+//        val params = cipher.parameters
+//        val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
+//        val ciphertext =
+//            cipher.doFinal(hetu.toString().toByteArray(StandardCharsets.UTF_8))
+//
+//        // New user
+//        var user = User(
+//            firstName = firstName,
+//            lastName = lastName,
+//            hetu = ciphertext,
+//            initVector = iv,
+//            login = UUID.randomUUID().toString(),
+//            activated = true
+//        )
+//        user = userRepository.save(user)
+//
+//        return Saml2Authentication(
+//            DefaultSaml2AuthenticatedPrincipal(user.id, principal.attributes),
+//            token.saml2Response,
+//            mutableListOf()
+//        )
 
         return Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, principal.attributes),
+            DefaultSaml2AuthenticatedPrincipal("todo", principal.attributes),
             token.saml2Response,
             mutableListOf()
         )
     }
 
-    private fun findExistingUser(cipher: Cipher, originalKey: SecretKey, hetu: Any?): User? {
-        userRepository.findAllWithAuthorities().filter { u -> u.hetu != null }.forEach { u ->
-            cipher.init(Cipher.DECRYPT_MODE, originalKey, IvParameterSpec(u.initVector))
-            val userHetu = String(cipher.doFinal(u.hetu), StandardCharsets.UTF_8)
-            if (userHetu == hetu) {
-                return u
+    private fun findExistingKayttaja(cipher: Cipher, originalKey: SecretKey, henkilotunnus: Any?): Kayttaja? {
+        kayttajaRepository.findAllWithAuthorities()
+            .filter { k -> k.henkilotunnus != null }
+            .forEach { k ->
+                cipher.init(Cipher.DECRYPT_MODE, originalKey, IvParameterSpec(k.initVector))
+                val kHenkilotunnus = String(cipher.doFinal(k.henkilotunnus), StandardCharsets.UTF_8)
+                if (kHenkilotunnus == henkilotunnus) {
+                    return k
+                }
             }
-        }
 
         return null
     }
 
-    private fun updateKouluttajaReferences(oldId: Long, newId: Long) {
-        suoritusarviointiRepository.changeKouluttaja(oldId, newId)
-        koejaksonKoulutussopimusRepository.changeKouluttaja(oldId, newId)
-        koejaksonAloituskeskusteluRepository.changeKouluttaja(oldId, newId)
-        koejaksonAloituskeskusteluRepository.changeEsimies(oldId, newId)
-        koejaksonValiarviointiRepository.changeKouluttaja(oldId, newId)
-        koejaksonValiarviointiRepository.changeEsimies(oldId, newId)
-        koejaksonKehittamistoimenpiteetRepository.changeKouluttaja(oldId, newId)
-        koejaksonKehittamistoimenpiteetRepository.changeEsimies(oldId, newId)
-        koejaksonLoppukeskusteluRepository.changeKouluttaja(oldId, newId)
-        koejaksonLoppukeskusteluRepository.changeEsimies(oldId, newId)
-    }
+//    private fun updateKouluttajaReferences(oldId: Long, newId: Long) {
+//        suoritusarviointiRepository.changeKouluttaja(oldId, newId)
+//        koejaksonKoulutussopimusRepository.changeKouluttaja(oldId, newId)
+//        koejaksonAloituskeskusteluRepository.changeKouluttaja(oldId, newId)
+//        koejaksonAloituskeskusteluRepository.changeEsimies(oldId, newId)
+//        koejaksonValiarviointiRepository.changeKouluttaja(oldId, newId)
+//        koejaksonValiarviointiRepository.changeEsimies(oldId, newId)
+//        koejaksonKehittamistoimenpiteetRepository.changeKouluttaja(oldId, newId)
+//        koejaksonKehittamistoimenpiteetRepository.changeEsimies(oldId, newId)
+//        koejaksonLoppukeskusteluRepository.changeKouluttaja(oldId, newId)
+//        koejaksonLoppukeskusteluRepository.changeEsimies(oldId, newId)
+//    }
 }

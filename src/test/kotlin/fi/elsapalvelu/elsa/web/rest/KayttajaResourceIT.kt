@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.security.USER
 import fi.elsapalvelu.elsa.service.dto.UserDTO
@@ -35,8 +34,6 @@ class KayttajaResourceIT {
 
     @BeforeEach
     fun setup() {
-        cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE)!!.clear()
-        cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE)!!.clear()
     }
 
     @BeforeEach
@@ -45,7 +42,7 @@ class KayttajaResourceIT {
         user.apply {
             login = DEFAULT_LOGIN
             email = DEFAULT_EMAIL
-            phoneNumber = DEFAULT_PHONE_NUMBER
+            puhelinnumero = DEFAULT_PUHELINNUMERO
         }
     }
 
@@ -70,7 +67,7 @@ class KayttajaResourceIT {
             firstName = DEFAULT_FIRSTNAME,
             lastName = DEFAULT_LASTNAME,
             email = DEFAULT_EMAIL,
-            phoneNumber = DEFAULT_PHONE_NUMBER,
+            puhelinnumero = DEFAULT_PUHELINNUMERO,
             activated = true,
             langKey = DEFAULT_LANGKEY,
             createdBy = DEFAULT_LOGIN,
@@ -85,7 +82,7 @@ class KayttajaResourceIT {
         assertThat(user.firstName).isEqualTo(DEFAULT_FIRSTNAME)
         assertThat(user.lastName).isEqualTo(DEFAULT_LASTNAME)
         assertThat(user.email).isEqualTo(DEFAULT_EMAIL)
-        assertThat(user.phoneNumber).isEqualTo(DEFAULT_PHONE_NUMBER)
+        assertThat(user.puhelinnumero).isEqualTo(DEFAULT_PUHELINNUMERO)
         assertThat(user.activated).isEqualTo(true)
         assertThat(user.langKey).isEqualTo(DEFAULT_LANGKEY)
         assertThat(user.createdBy).isNull()
@@ -152,7 +149,7 @@ class KayttajaResourceIT {
 
         private const val DEFAULT_EMAIL = "johndoe@localhost"
 
-        private const val DEFAULT_PHONE_NUMBER = "1234567890"
+        private const val DEFAULT_PUHELINNUMERO = "1234567890"
 
         private const val DEFAULT_FIRSTNAME = "john"
 
@@ -169,7 +166,7 @@ class KayttajaResourceIT {
                 login = DEFAULT_LOGIN + RandomStringUtils.randomAlphabetic(5),
                 activated = true,
                 email = RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL,
-                phoneNumber = RandomStringUtils.randomAlphabetic(5) +  DEFAULT_PHONE_NUMBER,
+                puhelinnumero = RandomStringUtils.randomAlphabetic(5) + DEFAULT_PUHELINNUMERO,
                 firstName = names?.dropLast(1)?.joinToString(),
                 lastName = names?.last(),
                 langKey = DEFAULT_LANGKEY,

@@ -33,7 +33,7 @@ class SuoritusarviointiServiceImpl(
         var suoritusarviointi = suoritusarviointiMapper.toEntity(suoritusarviointiDTO)
         suoritusarviointi = suoritusarviointiRepository.save(suoritusarviointi)
         mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!).get().user!!,
+            kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!).get(),
             "arviointipyyntoKouluttajalleEmail.html",
             "email.arviointipyyntokouluttajalle.title",
             properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
@@ -43,20 +43,20 @@ class SuoritusarviointiServiceImpl(
 
     override fun save(
         suoritusarviointiDTO: SuoritusarviointiDTO,
-        userId: String
+        kayttajaId: String
     ): SuoritusarviointiDTO {
         var suoritusarviointi =
             suoritusarviointiRepository.findOneById(suoritusarviointiDTO.id!!).get()
 
         val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
         if (kirjautunutErikoistuvaLaakari != null
             && kirjautunutErikoistuvaLaakari == suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari
         ) {
             suoritusarviointi = handleErikoistuva(suoritusarviointiDTO, suoritusarviointi)
         }
 
-        val kirjautunutKayttaja = kayttajaRepository.findOneByUserId(userId)
+        val kirjautunutKayttaja = kayttajaRepository.findById(kayttajaId)
         if (kirjautunutKayttaja.isPresent && kirjautunutKayttaja.get() == suoritusarviointi.arvioinninAntaja) {
             suoritusarviointi = handleKouluttaja(suoritusarviointiDTO, suoritusarviointi)
         }
@@ -128,7 +128,7 @@ class SuoritusarviointiServiceImpl(
 
         mailService.sendEmailFromTemplate(
             kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.id!!)
-                .get().user!!,
+                .get(),
             templateName,
             titleKey,
             properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
@@ -138,38 +138,38 @@ class SuoritusarviointiServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
+        kayttajaId: String
     ): List<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-            userId
+        return suoritusarviointiRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
+            kayttajaId
         )
             .map(suoritusarviointiMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+    override fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+        return suoritusarviointiRepository.findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
             id,
-            userId
+            kayttajaId
         ).map(suoritusarviointiMapper::toDto)
     }
 
-    override fun findOneByIdAndArvioinninAntajauserId(
+    override fun findOneByIdAndArvioinninAntajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findOneByIdAndArvioinninAntajaUserId(id, userId)
+        return suoritusarviointiRepository.findOneByIdAndArvioinninAntajaId(id, kayttajaId)
             .map(suoritusarviointiMapper::toDto)
     }
 
-    override fun delete(id: Long, userId: String) {
+    override fun delete(id: Long, kayttajaId: String) {
         suoritusarviointiRepository.findOneById(id).ifPresent {
             val kirjautunutErikoistuvaLaakari =
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
             val canDelete = it.arviointiAika == null && !it.lukittu
             if (kirjautunutErikoistuvaLaakari != null
                 && kirjautunutErikoistuvaLaakari == it.tyoskentelyjakso?.erikoistuvaLaakari

@@ -23,27 +23,27 @@ interface SuoritusarviointiRepository :
         pageable: Pageable
     ): Page<Suoritusarviointi>
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String,
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
+        kayttajaId: String,
         pageable: Pageable
     ): Page<Suoritusarviointi>
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
+        kayttajaId: String
     ): List<Suoritusarviointi>
 
-    fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+    fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<Suoritusarviointi>
 
-    fun findOneByIdAndArvioinninAntajaUserId(
+    fun findOneByIdAndArvioinninAntajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<Suoritusarviointi>
 
     @Transactional
     @Modifying
     @Query("update Suoritusarviointi s set s.arvioinninAntaja.id = :newKayttaja where s.arvioinninAntaja.id = :currentKayttaja")
-    fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+    fun changeKouluttaja(currentKayttaja: String, newKayttaja: String)
 }

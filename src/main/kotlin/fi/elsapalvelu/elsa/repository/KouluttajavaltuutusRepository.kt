@@ -8,6 +8,10 @@ import java.util.*
 
 @Repository
 interface KouluttajavaltuutusRepository : JpaRepository<Kouluttajavaltuutus, Long> {
-    fun findAllByValtuuttajaKayttajaUserIdAndPaattymispaivaAfter(id: String, pvm: LocalDate): List<Kouluttajavaltuutus>
-    fun findByValtuuttajaKayttajaUserIdAndValtuutettuUserIdAndPaattymispaivaAfter(valtuuttajaId: String, valtuutettuId: String, pvm: LocalDate): Optional<Kouluttajavaltuutus>
+    fun findAllByValtuuttajaKayttajaIdAndPaattymispaivaAfter(id: String, pvm: LocalDate): List<Kouluttajavaltuutus>
+    fun findByValtuuttajaKayttajaIdAndValtuutettuIdAndPaattymispaivaAfter(
+        valtuuttajaId: String,
+        valtuutettuId: String,
+        pvm: LocalDate
+    ): Optional<Kouluttajavaltuutus>
 }

@@ -9,11 +9,6 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken
 import java.util.*
 
-/**
- * Get the login of the current user.
- *
- * @return the login of the current user.
- */
 fun getCurrentUserLogin(): Optional<String> =
     Optional.ofNullable(extractPrincipal(SecurityContextHolder.getContext().authentication))
 

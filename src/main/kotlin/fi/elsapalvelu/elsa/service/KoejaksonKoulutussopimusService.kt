@@ -8,36 +8,36 @@ interface KoejaksonKoulutussopimusService {
 
     fun create(
         koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonKoulutussopimusDTO
 
     fun update(
         koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonKoulutussopimusDTO
 
     fun findOne(id: Long): Optional<KoejaksonKoulutussopimusDTO>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    fun findByErikoistuvaLaakariKayttajaId(
+        kayttajaId: String
     ): Optional<KoejaksonKoulutussopimusDTO>
 
-    fun findOneByIdAndKouluttajaKayttajaUserId(
+    fun findOneByIdAndKouluttajaKayttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonKoulutussopimusDTO>
 
-    fun findAllByKouluttajaKayttajaUserId(
-        userId: String
+    fun findAllByKouluttajaKayttajaId(
+        kayttajaId: String
     ): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO>
 
-    fun findAllByVastuuhenkiloKayttajaUserId(
-        userId: String
+    fun findAllByVastuuhenkiloKayttajaId(
+        kayttajaId: String
     ): Map<KayttajaDTO, KoejaksonKoulutussopimusDTO>
 
-    fun findOneByIdAndVastuuhenkiloKayttajaUserId(
+    fun findOneByIdAndVastuuhenkiloKayttajaId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonKoulutussopimusDTO>
 
     fun delete(id: Long)

@@ -31,10 +31,10 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
     override fun create(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonVastuuhenkilonArvioDTO {
         val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId)
         var vastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
         vastuuhenkilonArvio.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
@@ -42,7 +42,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
         // Sähköposti vastuuhenkilölle
         mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(vastuuhenkilonArvio.vastuuhenkilo?.id!!).get().user!!,
+            kayttajaRepository.findById(vastuuhenkilonArvio.vastuuhenkilo?.id!!).get(),
             "vastuuhenkilonArvioKuitattava.html",
             "email.vastuuhenkilonarviokuitattava.title",
             properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
@@ -53,7 +53,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
     override fun update(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
-        userId: String
+        kayttajaId: String
     ): KoejaksonVastuuhenkilonArvioDTO {
 
         var vastuuhenkilonArvio =
@@ -63,14 +63,14 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val updatedVastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
 
-        if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.user?.id == userId
+        if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.id == kayttajaId
             && vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null
         ) {
             vastuuhenkilonArvio.erikoistuvaAllekirjoittanut = true
             vastuuhenkilonArvio.erikoistuvanAllekirjoitusaika = LocalDate.now()
         }
 
-        if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
+        if (vastuuhenkilonArvio.vastuuhenkilo?.id == kayttajaId) {
             vastuuhenkilonArvio.apply {
                 vastuuhenkiloAllekirjoittanut = true
                 vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
@@ -84,29 +84,32 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
         // Sähköposti vastuuhenkilölle allekirjoitetusta loppukeskustelusta
-        if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.user?.id == userId
+        if (vastuuhenkilonArvio.erikoistuvaLaakari?.kayttaja?.id == kayttajaId
             && vastuuhenkilonArvio.erikoistuvaAllekirjoittanut
         ) {
-            val erikoistuvaLaakari =
+            val erikoistuvaLaakariKayttaja =
                 kayttajaRepository.findById(vastuuhenkilonArvio?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+                    .get()
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(vastuuhenkilonArvio.vastuuhenkilo?.id!!)
-                    .get().user!!,
+                    .get(),
                 "vastuuhenkilonArvioHyvaksytty.html",
                 "email.vastuuhenkilonarviohyvaksytty.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
+                    Pair(
+                        MailProperty.NAME,
+                        "${erikoistuvaLaakariKayttaja.etunimi} ${erikoistuvaLaakariKayttaja.sukunimi}"
+                    )
                 )
             )
-        } else if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
+        } else if (vastuuhenkilonArvio.vastuuhenkilo?.id == kayttajaId) {
 
             // Sähköposti erikoistuvalle vastuuhenkilon kuittaamasta arviosta
             if (vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(vastuuhenkilonArvio?.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
+                        .get(),
                     "vastuuhenkilonArvioKuitattava.html",
                     "email.vastuuhenkilonarviokuitattava.title",
                     properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
@@ -124,24 +127,24 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonVastuuhenkilonArvioDTO> {
-        return koejaksonVastuuhenkilonArvioRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
+    override fun findByErikoistuvaLaakariKayttajaId(kayttajaId: String): Optional<KoejaksonVastuuhenkilonArvioDTO> {
+        return koejaksonVastuuhenkilonArvioRepository.findByErikoistuvaLaakariKayttajaId(kayttajaId)
             .map(koejaksonVastuuhenkilonArvioMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndVastuuhenkiloUserId(
+    override fun findOneByIdAndVastuuhenkiloId(
         id: Long,
-        userId: String
+        kayttajaId: String
     ): Optional<KoejaksonVastuuhenkilonArvioDTO> {
-        return koejaksonVastuuhenkilonArvioRepository.findOneByIdAndVastuuhenkiloUserId(id, userId)
+        return koejaksonVastuuhenkilonArvioRepository.findOneByIdAndVastuuhenkiloId(id, kayttajaId)
             .map(koejaksonVastuuhenkilonArvioMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByVastuuhenkiloUserId(userId: String): Map<KayttajaDTO, KoejaksonVastuuhenkilonArvioDTO> {
+    override fun findAllByVastuuhenkiloId(kayttajaId: String): Map<KayttajaDTO, KoejaksonVastuuhenkilonArvioDTO> {
         val arviot =
-            koejaksonVastuuhenkilonArvioRepository.findAllByVastuuhenkiloUserId(userId)
+            koejaksonVastuuhenkilonArvioRepository.findAllByVastuuhenkiloId(kayttajaId)
         return arviot.associate {
             kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonVastuuhenkilonArvioMapper.toDto(
                 it
