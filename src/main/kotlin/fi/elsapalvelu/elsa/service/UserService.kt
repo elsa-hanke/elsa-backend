@@ -10,6 +10,8 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.KayttooikeusHakemusDTO
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import net.coobird.thumbnailator.Thumbnails
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -21,6 +23,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.io.ByteArrayOutputStream
 import java.security.Principal
 
 
@@ -41,7 +44,7 @@ class UserService(
     fun getUserFromAuthentication(authToken: Saml2Authentication): UserDTO {
         val principal = authToken.principal as Saml2AuthenticatedPrincipal
 
-        val user = userRepository.findById(principal.name).get()
+        val user = userRepository.findById(principal.name).orElse(User())
         user.id = principal.name
         user.firstName = principal.getFirstAttribute("urn:oid:2.5.4.42")
         user.lastName = principal.getFirstAttribute("urn:oid:2.5.4.4")
@@ -105,12 +108,35 @@ class UserService(
         )
     }
 
-    fun updateUserDetails(omatTiedotDTO: OmatTiedotDTO, userId: String): UserDTO {
+    fun updateUserDetails(
+        omatTiedotDTO: OmatTiedotDTO,
+        userId: String
+    ): UserDTO {
         var user = userRepository.findById(userId).get()
+        if (user.email != omatTiedotDTO.email && existsByEmail(omatTiedotDTO.email)) {
+            throw BadRequestAlertException(
+                "Samalla sähköpostilla löytyy jo käyttäjä",
+                "kayttaja",
+                "dataillegal"
+            )
+        }
         user.email = omatTiedotDTO.email
         user.phoneNumber = omatTiedotDTO.phoneNumber
-        user.avatar = omatTiedotDTO.avatar
-        user.avatarContentType = omatTiedotDTO.avatarContentType
+
+        if (omatTiedotDTO.avatarUpdated) {
+            omatTiedotDTO.avatar?.inputStream?.let {
+                val outputStream = ByteArrayOutputStream()
+                Thumbnails.of(it)
+                    .size(256, 256)
+                    .outputQuality(0.8)
+                    .outputFormat("jpg")
+                    .toOutputStream(outputStream)
+                user.avatar = outputStream.toByteArray()
+                it.close()
+            } ?: run {
+                user.avatar = null
+            }
+        }
 
         user = userRepository.save(user)
 

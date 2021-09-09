@@ -17,8 +17,10 @@ class KayttajaResource(
     fun getKayttaja(principal: Principal?): UserDTO = userService.getAuthenticatedUser(principal)
 
     @PutMapping("/kayttaja")
-    fun updateKayttajaDetails(@Valid @RequestBody omatTiedotDTO: OmatTiedotDTO,
-                       principal: Principal?): UserDTO {
+    fun updateKayttajaDetails(
+        @Valid @ModelAttribute omatTiedotDTO: OmatTiedotDTO,
+        principal: Principal?
+    ): UserDTO {
         val user = userService.getAuthenticatedUser(principal)
         return userService.updateUserDetails(omatTiedotDTO, user.id!!)
     }

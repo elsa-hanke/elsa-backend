@@ -12,9 +12,6 @@
             <column name="avatar" type="longblob">
                 <constraints nullable="true" />
             </column>
-            <column name="avatar_content_type" type="varchar(255)">
-                <constraints nullable="true" />
-            </column>
         </addColumn>
     </changeSet>
 </databaseChangeLog>
