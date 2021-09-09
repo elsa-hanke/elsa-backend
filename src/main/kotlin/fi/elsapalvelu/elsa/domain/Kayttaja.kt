@@ -50,6 +50,10 @@ data class Kayttaja(
         return this.user?.firstName + " " + this.user?.lastName
     }
 
+    fun getAvatar(): ByteArray? {
+        return this.user?.avatar
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Kayttaja) return false
