@@ -23,7 +23,6 @@ import java.time.LocalDateTime
 import kotlin.math.max
 import kotlin.math.min
 
-
 @Service
 @Transactional
 class TyoskentelyjaksoServiceImpl(
@@ -227,24 +226,34 @@ class TyoskentelyjaksoServiceImpl(
 
     @Transactional(readOnly = true)
     override fun validateByLiitettyKoejaksoon(userId: String): Triple<Boolean, Boolean, Boolean> {
-        var tyoskentelyJaksoLiitetty = false
-        var tyoskentelyjaksonPituusRiittava = false
-        var tyotodistusLiitetty = false
+        var tyoskentelyJaksoLiitetty: Boolean
+        var tyoskentelyjaksonPituusRiittava: Boolean
+        var tyotodistusLiitetty: Boolean
 
-        tyoskentelyjaksoRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId)?.let {
+        tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId).let {
             tyoskentelyJaksoLiitetty = true
             tyoskentelyjaksonPituusRiittava = validateTyoskentelyjaksonPituusKoejaksolleRiittava(it)
-            tyotodistusLiitetty = it.asiakirjat.isNotEmpty()
+            tyotodistusLiitetty = !it.any { tyoskentelyjakso -> tyoskentelyjakso.asiakirjat.isEmpty() }
         }
 
         return Triple(tyoskentelyJaksoLiitetty, tyoskentelyjaksonPituusRiittava, tyotodistusLiitetty)
     }
 
-    private fun validateTyoskentelyjaksonPituusKoejaksolleRiittava(tyoskentelyjakso: Tyoskentelyjakso): Boolean {
-        val tyoskentelyJaksonPituusDays = tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso)
-        val years = tyoskentelyJaksonPituusDays / 365
+    private fun validateTyoskentelyjaksonPituusKoejaksolleRiittava(
+        tyoskentelyjaksot: List<Tyoskentelyjakso>
+    ): Boolean {
+        var totalLength = 0.0
+        val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
+            hyvaksiluettavatPerYearMap =
+                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(tyoskentelyjaksot)
+        }
+        tyoskentelyjaksot.forEach {
+           totalLength += tyoskentelyjaksonPituusCounterService.calculateInDays(it, hyvaksiluettavatCounter)
+        }
+
+        val years = totalLength / 365
         val months = years * 12
-        // Koejaksoon liitetyn työskentelyjakson vähimmäispituus on 6kk.
+        // Koejaksoon liitetyn työskentelyjakson (voi koostua useammasta jaksosta) vähimmäispituus on 6kk.
         return months >= 6
     }
 
@@ -270,19 +279,23 @@ class TyoskentelyjaksoServiceImpl(
     override fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO {
         log.debug("Request to get TyoskentelyjaksotTilastot")
 
-        val counter = TilastotCounter()
-
+        val tilastotCounter = TilastotCounter()
         val kaytannonKoulutusSuoritettuMap =
             KaytannonKoulutusTyyppi.values().map { it to 0.0 }.toMap().toMutableMap()
         val tyoskentelyjaksotSuoritettu =
             mutableSetOf<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>()
         val tyoskentelyjaksot =
             tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+        val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
+            hyvaksiluettavatPerYearMap =
+                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(tyoskentelyjaksot)
+        }
 
         tyoskentelyjaksot.map {
             getTyoskentelyjaksoTilastot(
                 it,
-                counter,
+                tilastotCounter,
+                hyvaksiluettavatCounter,
                 kaytannonKoulutusSuoritettuMap,
                 tyoskentelyjaksotSuoritettu
             )
@@ -291,13 +304,13 @@ class TyoskentelyjaksoServiceImpl(
         val erikoisala = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.erikoisala
         val yhteensaVaadittuVahintaan = erikoisala?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
         val arvioErikoistumiseenHyvaksyttavista =
-            min(yhteensaVaadittuVahintaan / 2, counter.hyvaksyttyToiselleErikoisalalleSuoritettu) +
-                counter.nykyiselleErikoisalalleSuoritettu
+            min(yhteensaVaadittuVahintaan / 2, tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu) +
+                tilastotCounter.nykyiselleErikoisalalleSuoritettu
 
-        counter.tyoskentelyaikaYhteensa = max(0.0, counter.tyoskentelyaikaYhteensa)
+        tilastotCounter.tyoskentelyaikaYhteensa = max(0.0, tilastotCounter.tyoskentelyaikaYhteensa)
 
         return TyoskentelyjaksotTilastotDTO(
-            tyoskentelyaikaYhteensa = counter.tyoskentelyaikaYhteensa,
+            tyoskentelyaikaYhteensa = tilastotCounter.tyoskentelyaikaYhteensa,
             arvioErikoistumiseenHyvaksyttavista = arvioErikoistumiseenHyvaksyttavista,
             arvioPuuttuvastaKoulutuksesta = max(
                 0.0,
@@ -306,13 +319,13 @@ class TyoskentelyjaksoServiceImpl(
             koulutustyypit = TyoskentelyjaksotTilastotKoulutustyypitDTO(
                 terveyskeskusVaadittuVahintaan = erikoisala?.terveyskeskuskoulutusjaksonVahimmaispituus
                     ?: 0.0,
-                terveyskeskusSuoritettu = counter.terveyskeskusSuoritettu,
+                terveyskeskusSuoritettu = tilastotCounter.terveyskeskusSuoritettu,
                 yliopistosairaalaVaadittuVahintaan = erikoisala?.yliopistosairaalajaksonVahimmaispituus
                     ?: 0.0,
-                yliopistosairaalaSuoritettu = counter.yliopistosairaalaSuoritettu,
+                yliopistosairaalaSuoritettu = tilastotCounter.yliopistosairaalaSuoritettu,
                 yliopistosairaaloidenUlkopuolinenVaadittuVahintaan =
                 erikoisala?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus ?: 0.0,
-                yliopistosairaaloidenUlkopuolinenSuoritettu = counter.yliopistosairaaloidenUlkopuolinenSuoritettu,
+                yliopistosairaaloidenUlkopuolinenSuoritettu = tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu,
                 yhteensaVaadittuVahintaan = yhteensaVaadittuVahintaan,
                 yhteensaSuoritettu = arvioErikoistumiseenHyvaksyttavista
             ),
@@ -343,17 +356,18 @@ class TyoskentelyjaksoServiceImpl(
 
     fun getTyoskentelyjaksoTilastot(
         tyoskentelyjakso: Tyoskentelyjakso,
-        counter: TilastotCounter,
+        tilastotCounter: TilastotCounter,
+        hyvaksiluettavatCounterData: HyvaksiluettavatCounterData,
         kaytannonKoulutusSuoritettuMap: MutableMap<KaytannonKoulutusTyyppi, Double>,
         tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>
     ) {
-        val tyoskentelyjaksonPituus = tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso)
+        val tyoskentelyjaksonPituus = tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso, hyvaksiluettavatCounterData)
         if (tyoskentelyjaksonPituus > 0) {
             // Summataan suoritettu aika koulutustyypettäin
             when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
-                TERVEYSKESKUS -> counter.terveyskeskusSuoritettu += tyoskentelyjaksonPituus
-                YLIOPISTOLLINEN_SAIRAALA -> counter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
-                else -> counter.yliopistosairaaloidenUlkopuolinenSuoritettu += tyoskentelyjaksonPituus
+                TERVEYSKESKUS -> tilastotCounter.terveyskeskusSuoritettu += tyoskentelyjaksonPituus
+                YLIOPISTOLLINEN_SAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
+                else -> tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu += tyoskentelyjaksonPituus
             }
 
             // Summataan suoritettu aika käytännön koulutuksettain
@@ -374,13 +388,13 @@ class TyoskentelyjaksoServiceImpl(
 
             // Summataan nykyiselle tai hyväksytylle erikoisalalle
             if (tyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan) {
-                counter.hyvaksyttyToiselleErikoisalalleSuoritettu += tyoskentelyjaksonPituus
+                tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu += tyoskentelyjaksonPituus
             } else {
-                counter.nykyiselleErikoisalalleSuoritettu += tyoskentelyjaksonPituus
+                tilastotCounter.nykyiselleErikoisalalleSuoritettu += tyoskentelyjaksonPituus
             }
 
             // Summataan työskentelyaika yhteensä
-            counter.tyoskentelyaikaYhteensa += tyoskentelyjaksonPituus
+            tilastotCounter.tyoskentelyaikaYhteensa += tyoskentelyjaksonPituus
 
             // Kootaan työskentelyjaksojen suoritetut työskentelyajat
             tyoskentelyjaksotSuoritettu.add(
