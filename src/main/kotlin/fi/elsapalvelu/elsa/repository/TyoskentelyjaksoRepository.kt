@@ -11,5 +11,5 @@ interface TyoskentelyjaksoRepository : JpaRepository<Tyoskentelyjakso, Long> {
 
     fun findOneByIdAndErikoistuvaLaakariKayttajaUserId(id: Long, userId: String): Tyoskentelyjakso?
 
-    fun findOneByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId: String): Tyoskentelyjakso?
+    fun findAllByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId: String): List<Tyoskentelyjakso>
 }
