@@ -976,7 +976,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         em.detach(tyoskentelyjakso)
 
-        val tyoskentelyjakso2 = createEntity(em, user)
+        val tyoskentelyjakso2 = createEntity(
+            em,
+            user,
+            LocalDate.of(2020, 2, 1),
+            LocalDate.of(2020, 2, 15))
         tyoskentelyjakso2.hyvaksyttyAiempaanErikoisalaan = true
         tyoskentelyjakso2.kaytannonKoulutus =
             KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
@@ -995,21 +999,21 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.keskeytykset").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.tilastot.tyoskentelyaikaYhteensa").value(57.0))
-            .andExpect(jsonPath("$.tilastot.arvioErikoistumiseenHyvaksyttavista").value(57.0))
-            .andExpect(jsonPath("$.tilastot.arvioPuuttuvastaKoulutuksesta").value(1768.0))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyaikaYhteensa").value(45.0))
+            .andExpect(jsonPath("$.tilastot.arvioErikoistumiseenHyvaksyttavista").value(45.0))
+            .andExpect(jsonPath("$.tilastot.arvioPuuttuvastaKoulutuksesta").value(1780.0))
             .andExpect(
                 jsonPath("$.tilastot.koulutustyypit.terveyskeskusVaadittuVahintaan").value(
                     273.75
                 )
             )
-            .andExpect(jsonPath("$.tilastot.koulutustyypit.terveyskeskusSuoritettu").value(27.0))
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.terveyskeskusSuoritettu").value(30.0))
             .andExpect(
                 jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaVaadittuVahintaan").value(
                     365.0
                 )
             )
-            .andExpect(jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaSuoritettu").value(30.0))
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaSuoritettu").value(15.0))
             .andExpect(
                 jsonPath("$.tilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenVaadittuVahintaan").value(
                     365.0
@@ -1021,11 +1025,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
                 )
             )
             .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaVaadittuVahintaan").value(1825.0))
-            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaSuoritettu").value(57.0))
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaSuoritettu").value(45.0))
             .andExpect(jsonPath("$.tilastot.kaytannonKoulutus").value(Matchers.hasSize<Any>(4)))
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
-            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[0].suoritettu").value(27.0))
-            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[1].suoritettu").value(30.0))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[0].suoritettu").value(30.0))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[1].suoritettu").value(15.0))
     }
 
     @Test
@@ -1116,10 +1120,15 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         private const val UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN: Boolean = true
 
         @JvmStatic
-        fun createEntity(em: EntityManager, user: User? = null): Tyoskentelyjakso {
+        fun createEntity(
+            em: EntityManager,
+            user: User? = null,
+            alkamispaiva: LocalDate? = DEFAULT_ALKAMISPAIVA,
+            paattymispaiva: LocalDate? = DEFAULT_PAATTYMISPAIVA
+        ): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
-                alkamispaiva = DEFAULT_ALKAMISPAIVA,
-                paattymispaiva = DEFAULT_PAATTYMISPAIVA,
+                alkamispaiva = alkamispaiva,
+                paattymispaiva = paattymispaiva,
                 osaaikaprosentti = DEFAULT_OSAAIKAPROSENTTI,
                 kaytannonKoulutus = DEFAULT_KAYTANNON_KOULUTUS,
                 hyvaksyttyAiempaanErikoisalaan = DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
