@@ -20,7 +20,8 @@ enum class MailProperty(val property: String) {
     BASE_URL("baseUrl"),
     ID("id"),
     NAME("name"),
-    TEXT("text")
+    TEXT("text"),
+    DATE("date")
 }
 
 @Service

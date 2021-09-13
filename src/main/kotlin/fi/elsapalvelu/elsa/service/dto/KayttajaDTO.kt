@@ -12,6 +12,12 @@ data class KayttajaDTO(
     @get: NotNull
     var nimi: String? = null,
 
+    var etunimi: String? = null,
+
+    var sukunimi: String? = null,
+
+    var sahkoposti: String? = null,
+
     @Lob
     var profiilikuva: ByteArray? = null,
     var profiilikuvaContentType: String? = null,
