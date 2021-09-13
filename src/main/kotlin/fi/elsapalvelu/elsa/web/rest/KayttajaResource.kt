@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import javax.validation.Valid
@@ -22,6 +23,14 @@ class KayttajaResource(
         principal: Principal?
     ): UserDTO {
         val user = userService.getAuthenticatedUser(principal)
+        if (user.email != omatTiedotDTO.email && userService.existsByEmail(omatTiedotDTO.email)) {
+            throw BadRequestAlertException(
+                "Samalla sähköpostilla löytyy jo käyttäjä",
+                "kayttaja",
+                "dataillegal"
+            )
+        }
+        
         return userService.updateUserDetails(omatTiedotDTO, user.id!!)
     }
 }
