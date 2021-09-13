@@ -12,4 +12,6 @@ class SuoritemerkintaFormDTO(
 
     var oppimistavoitteenKategoriat: MutableSet<OppimistavoitteenKategoriaDTO> = mutableSetOf()
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "SuoritemerkintaFormDTO"
+}

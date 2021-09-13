@@ -17,4 +17,6 @@ data class KoejaksonKouluttajaDTO(
 
     var kuittausaika: LocalDate? = null
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "KoejaksonKouluttajaDTO"
+}

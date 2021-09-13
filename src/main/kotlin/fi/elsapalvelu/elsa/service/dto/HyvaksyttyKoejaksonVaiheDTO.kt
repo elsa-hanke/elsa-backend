@@ -12,4 +12,6 @@ data class HyvaksyttyKoejaksonVaiheDTO(
 
     var pvm: LocalDate? = null
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "HyvaksyttyKoejaksonVaiheDTO"
+}

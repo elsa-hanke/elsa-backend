@@ -15,8 +15,12 @@ data class KoejaksonVaiheDTO(
 
     var erikoistuvanNimi: String? = null,
 
+    var erikoistuvanAvatar: ByteArray? = null,
+
     var pvm: LocalDate? = null,
 
     var hyvaksytytVaiheet: MutableList<HyvaksyttyKoejaksonVaiheDTO> = mutableListOf()
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "KoejaksonVaiheDTO"
+}

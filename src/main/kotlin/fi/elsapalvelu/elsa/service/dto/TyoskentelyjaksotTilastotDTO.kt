@@ -16,4 +16,6 @@ class TyoskentelyjaksotTilastotDTO(
 
     var tyoskentelyjaksot: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO> = mutableSetOf()
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "TyoskentelyjaksotTilastotDTO"
+}

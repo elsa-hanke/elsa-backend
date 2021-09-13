@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
 import java.time.LocalDate
+import javax.persistence.Lob
 import javax.validation.constraints.NotNull
 
 data class KoejaksonKoulutussopimusDTO(
@@ -26,6 +27,9 @@ data class KoejaksonKoulutussopimusDTO(
 
     var erikoistuvanSahkoposti: String? = null,
 
+    @Lob
+    var erikoistuvanAvatar: ByteArray? = null,
+
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
     var koejaksonAlkamispaiva: LocalDate? = null,
@@ -44,4 +48,6 @@ data class KoejaksonKoulutussopimusDTO(
 
     var erikoistuvanAllekirjoitusaika: LocalDate? = null
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "KoejaksonKoulutussopimusDTO"
+}

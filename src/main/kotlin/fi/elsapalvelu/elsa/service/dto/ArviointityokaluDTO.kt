@@ -10,4 +10,6 @@ data class ArviointityokaluDTO(
     @get: NotNull
     var nimi: String? = null
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "ArviointityokaluDTO"
+}

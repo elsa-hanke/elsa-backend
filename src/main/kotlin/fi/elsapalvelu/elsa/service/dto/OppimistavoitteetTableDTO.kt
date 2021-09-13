@@ -8,4 +8,6 @@ class OppimistavoitteetTableDTO(
 
     var suoritemerkinnat: MutableSet<SuoritemerkintaDTO> = mutableSetOf()
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "OppimistavoitteetTableDTO"
+}

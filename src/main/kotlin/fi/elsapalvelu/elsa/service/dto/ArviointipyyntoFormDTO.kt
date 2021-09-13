@@ -14,4 +14,7 @@ data class ArviointipyyntoFormDTO(
 
     var kouluttajatAndVastuuhenkilot: MutableSet<KayttajaDTO> = mutableSetOf()
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "ArviointipyyntoFormDTO"
+}
+
