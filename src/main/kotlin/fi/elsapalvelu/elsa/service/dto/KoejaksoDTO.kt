@@ -35,4 +35,6 @@ data class KoejaksoDTO(
 
     var tyoskentelyjaksot: List<TyoskentelyjaksoDTO> = listOf()
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "KoejaksoDTO"
+}

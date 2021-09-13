@@ -29,4 +29,6 @@ data class KoulutussopimuksenKouluttajaDTO(
 
     var kuittausaika: LocalDate? = null
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "KoulutussopimuksenKouluttajaDTO"
+}

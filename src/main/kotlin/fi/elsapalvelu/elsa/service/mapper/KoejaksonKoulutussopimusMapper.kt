@@ -17,6 +17,7 @@ interface KoejaksonKoulutussopimusMapper :
     EntityMapper<KoejaksonKoulutussopimusDTO, KoejaksonKoulutussopimus> {
 
     @Mappings(
+        Mapping(source = "erikoistuvaLaakari.kayttaja.user.avatar", target = "erikoistuvanAvatar"),
         Mapping(source = "vastuuhenkilonNimi", target = "vastuuhenkilo.nimi"),
         Mapping(source = "vastuuhenkilonNimike", target = "vastuuhenkilo.nimike"),
         Mapping(source = "vastuuhenkiloHyvaksynyt", target = "vastuuhenkilo.sopimusHyvaksytty"),

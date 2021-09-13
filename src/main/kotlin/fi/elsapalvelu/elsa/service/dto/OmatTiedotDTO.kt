@@ -13,4 +13,6 @@ data class OmatTiedotDTO(
 
     var avatarUpdated: Boolean = false
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "OmatTiedotDTO"
+}
