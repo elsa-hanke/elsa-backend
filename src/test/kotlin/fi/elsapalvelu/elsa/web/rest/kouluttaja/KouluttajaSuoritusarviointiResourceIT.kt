@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
-import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
+import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.EpaOsaamisalueHelper
@@ -139,7 +139,7 @@ class KouluttajaSuoritusarviointiResourceIT {
     }
 
     fun initTest(userId: String? = DEFAULT_ID) {
-        user = KayttajaResourceIT.createEntity()
+        user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
         val userDetails = mapOf<String, List<Any>>(

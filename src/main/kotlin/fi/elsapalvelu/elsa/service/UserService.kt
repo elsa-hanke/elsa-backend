@@ -11,6 +11,7 @@ import fi.elsapalvelu.elsa.service.dto.KayttooikeusHakemusDTO
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import net.coobird.thumbnailator.Thumbnails
+import net.coobird.thumbnailator.tasks.UnsupportedFormatException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -115,19 +116,23 @@ class UserService(
         user.email = omatTiedotDTO.email
         user.phoneNumber = omatTiedotDTO.phoneNumber
 
-        if (omatTiedotDTO.avatarUpdated) {
-            omatTiedotDTO.avatar?.inputStream?.let {
-                val outputStream = ByteArrayOutputStream()
-                Thumbnails.of(it)
-                    .size(256, 256)
-                    .outputQuality(0.8)
-                    .outputFormat("jpg")
-                    .toOutputStream(outputStream)
-                user.avatar = outputStream.toByteArray()
-                it.close()
-            } ?: run {
-                user.avatar = null
+        try {
+            if (omatTiedotDTO.avatarUpdated) {
+                omatTiedotDTO.avatar?.inputStream?.let {
+                    val outputStream = ByteArrayOutputStream()
+                    Thumbnails.of(it)
+                        .size(256, 256)
+                        .outputQuality(0.8)
+                        .outputFormat("jpg")
+                        .toOutputStream(outputStream)
+                    user.avatar = outputStream.toByteArray()
+                    it.close()
+                } ?: run {
+                    user.avatar = null
+                }
             }
+        } catch (ex: UnsupportedFormatException) {
+            // Ohitetaan profiilikuvan päivittäminen jos ei tuettu formaatti
         }
 
         user = userRepository.save(user)
