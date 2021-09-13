@@ -10,7 +10,6 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.KayttooikeusHakemusDTO
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
-import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import net.coobird.thumbnailator.Thumbnails
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -113,13 +112,6 @@ class UserService(
         userId: String
     ): UserDTO {
         var user = userRepository.findById(userId).get()
-        if (user.email != omatTiedotDTO.email && existsByEmail(omatTiedotDTO.email)) {
-            throw BadRequestAlertException(
-                "Samalla sähköpostilla löytyy jo käyttäjä",
-                "kayttaja",
-                "dataillegal"
-            )
-        }
         user.email = omatTiedotDTO.email
         user.phoneNumber = omatTiedotDTO.phoneNumber
 
