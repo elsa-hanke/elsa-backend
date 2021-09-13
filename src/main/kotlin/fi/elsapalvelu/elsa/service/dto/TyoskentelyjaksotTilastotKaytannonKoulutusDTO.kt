@@ -9,4 +9,6 @@ class TyoskentelyjaksotTilastotKaytannonKoulutusDTO(
 
     var suoritettu: Double,
 
-) : Serializable
+    ) : Serializable {
+    override fun toString() = "TyoskentelyjaksotTilastotKaytannonKoulutusDTO"
+}

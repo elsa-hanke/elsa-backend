@@ -10,4 +10,6 @@ class TyoskentelyjaksoFormDTO(
 
     var reservedAsiakirjaNimet: MutableSet<String> = mutableSetOf()
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "TyoskentelyjaksoFormDTO"
+}

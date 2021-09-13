@@ -288,6 +288,7 @@ class KoejaksonVaiheetServiceImpl(
             KoejaksoTyyppi.KOULUTUSSOPIMUS,
             KoejaksoTila.fromSopimus(koejaksonKoulutussopimusDTO, kayttajaId),
             koejaksonKoulutussopimusDTO.erikoistuvanNimi,
+            koejaksonKoulutussopimusDTO.erikoistuvanAvatar,
             koejaksonKoulutussopimusDTO.muokkauspaiva
         )
     }
@@ -301,6 +302,7 @@ class KoejaksonVaiheetServiceImpl(
             KoejaksoTyyppi.ALOITUSKESKUSTELU,
             KoejaksoTila.fromAloituskeskustelu(koejaksonAloituskeskusteluDTO, kayttajaId),
             koejaksonAloituskeskusteluDTO.erikoistuvanNimi,
+            koejaksonAloituskeskusteluDTO.erikoistuvanAvatar,
             koejaksonAloituskeskusteluDTO.muokkauspaiva
         )
     }
@@ -324,6 +326,7 @@ class KoejaksonVaiheetServiceImpl(
             KoejaksoTyyppi.VALIARVIOINTI,
             KoejaksoTila.fromValiarvointi(true, koejaksonValiarviointiDTO, kayttajaId),
             koejaksonValiarviointiDTO.erikoistuvanNimi,
+            koejaksonValiarviointiDTO.erikoistuvanAvatar,
             koejaksonValiarviointiDTO.muokkauspaiva
         )
     }
@@ -351,6 +354,7 @@ class KoejaksonVaiheetServiceImpl(
                 kayttajaId
             ),
             koejaksonKehittamistoimenpiteetDTO.erikoistuvanNimi,
+            koejaksonKehittamistoimenpiteetDTO.erikoistuvanAvatar,
             koejaksonKehittamistoimenpiteetDTO.muokkauspaiva
         )
     }
@@ -374,6 +378,7 @@ class KoejaksonVaiheetServiceImpl(
             KoejaksoTyyppi.LOPPUKESKUSTELU,
             KoejaksoTila.fromLoppukeskustelu(true, koejaksonLoppukeskusteluDTO, kayttajaId),
             koejaksonLoppukeskusteluDTO.erikoistuvanNimi,
+            koejaksonLoppukeskusteluDTO.erikoistuvanAvatar,
             koejaksonLoppukeskusteluDTO.muokkauspaiva
         )
     }
@@ -394,6 +399,7 @@ class KoejaksonVaiheetServiceImpl(
             KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
             KoejaksoTila.fromVastuuhenkilonArvio(true, vastuuhenkilonArvioDTO),
             vastuuhenkilonArvioDTO.erikoistuvanNimi,
+            vastuuhenkilonArvioDTO.erikoistuvanAvatar,
             vastuuhenkilonArvioDTO.muokkauspaiva
         )
     }

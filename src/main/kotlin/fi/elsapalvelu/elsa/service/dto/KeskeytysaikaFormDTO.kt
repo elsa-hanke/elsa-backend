@@ -6,6 +6,10 @@ class KeskeytysaikaFormDTO(
 
     var poissaolonSyyt: MutableSet<PoissaolonSyyDTO> = mutableSetOf(),
 
-    var tyoskentelyjaksot: MutableSet<TyoskentelyjaksoDTO> = mutableSetOf(),
+    var tyoskentelyjaksot: MutableSet<TyoskentelyjaksoDTO> = mutableSetOf()
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "KeskeytysaikaFormDTO"
+}
+
+

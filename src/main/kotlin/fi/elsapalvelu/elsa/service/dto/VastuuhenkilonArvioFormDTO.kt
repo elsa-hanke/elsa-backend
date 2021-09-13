@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
 
-data class VastuuhenkilonArvioFormDTO (
+data class VastuuhenkilonArvioFormDTO(
 
     var vastuuhenkilot: List<KayttajaDTO>? = null,
 
@@ -12,4 +12,6 @@ data class VastuuhenkilonArvioFormDTO (
 
     var tyotodistusLiitetty: Boolean = false
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "VastuuhenkilonArvioFormDTO"
+}

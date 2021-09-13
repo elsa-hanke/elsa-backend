@@ -20,6 +20,7 @@ interface KayttajaMapper :
 
     @Mappings(
         Mapping(source = "user.id", target = "userId"),
+        Mapping(source = "user.avatar", target = "avatar"),
         Mapping(
             target = "nimi",
             expression = "java(entity.getUser() == null ? \"\" : entity.getUser().getFirstName() + \" \" + entity.getUser().getLastName())"

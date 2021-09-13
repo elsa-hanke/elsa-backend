@@ -12,4 +12,6 @@ class TyoskentelyjaksotTableDTO(
 
     var tilastot: TyoskentelyjaksotTilastotDTO? = null
 
-) : Serializable
+) : Serializable {
+    override fun toString() = "TyoskentelyjaksotTableDTO"
+}

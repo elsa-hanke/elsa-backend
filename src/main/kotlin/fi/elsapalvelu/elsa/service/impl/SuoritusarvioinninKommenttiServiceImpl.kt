@@ -37,13 +37,15 @@ class SuoritusarvioinninKommenttiServiceImpl(
         ) {
             throw IllegalArgumentException("Kommenttia voi muokata vain kommentin tekijä.")
         }
-        // Asetetaan kommentoija uuteen kommenttiin
-        if (suoritusarvioinninKommenttiDTO.kommentoija == null) {
-            suoritusarvioinninKommenttiDTO.kommentoija = kayttajaDTO
-        }
 
         var suoritusarvioinninKommentti =
             suoritusarvioinninKommenttiMapper.toEntity(suoritusarvioinninKommenttiDTO)
+
+        // Asetetaan kommentoija uuteen kommenttiin
+        if (suoritusarvioinninKommentti.kommentoija == null) {
+            suoritusarvioinninKommentti.kommentoija = kayttaja
+        }
+
         val suoritusarviointi = suoritusarviointiRepository
             .findOneById(suoritusarvioinninKommentti.suoritusarviointi?.id!!).get()
         if (kayttaja == suoritusarviointi.arvioinninAntaja ||
