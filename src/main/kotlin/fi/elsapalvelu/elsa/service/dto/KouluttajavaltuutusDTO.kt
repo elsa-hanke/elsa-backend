@@ -9,21 +9,12 @@ data class KouluttajavaltuutusDTO(
 
     var id: Long? = null,
 
-    @get: NotNull
     var alkamispaiva: LocalDate? = null,
 
     @get: NotNull
     var paattymispaiva: LocalDate? = null,
 
-    @get: NotNull
-    var valtuutuksenLuontiaika: Instant? = null,
-
-    @get: NotNull
-    var valtuutuksenMuokkausaika: Instant? = null,
-
-    var valtuuttajaId: Long? = null,
-
-    var valtuutettuId: Long? = null
+    var valtuutettu: KayttajaDTO? = null
 
 ) : Serializable {
 

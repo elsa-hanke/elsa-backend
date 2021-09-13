@@ -24,12 +24,18 @@ interface KayttajaMapper :
             target = "nimi",
             expression = "java(entity.getUser() == null ? \"\" : entity.getUser().getFirstName() + \" \" + entity.getUser().getLastName())"
         ),
+        Mapping(source = "user.firstName", target = "etunimi"),
+        Mapping(source = "user.lastName", target = "sukunimi"),
+        Mapping(source = "user.email", target = "sahkoposti"),
         Mapping(source = "user.authorities", target = "authorities")
     )
     override fun toDto(entity: Kayttaja): KayttajaDTO
 
     @Mappings(
         Mapping(source = "userId", target = "user"),
+        Mapping(source = "etunimi", target = "user.firstName"),
+        Mapping(source = "sukunimi", target = "user.lastName"),
+        Mapping(source = "sahkoposti", target = "user.email"),
         Mapping(target = "saadutValtuutukset", ignore = true),
         Mapping(target = "removeValtuutus", ignore = true)
     )

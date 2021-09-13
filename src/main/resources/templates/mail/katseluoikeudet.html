@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>[ELSA-palvelu] Olet saanut katseluoikeudet ELSA-palveluun</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
+</head>
+<body>
+<p>
+    Hei,
+</p>
+<p>
+    Erikoistuva <span th:text="${name}"></span> on lisännyt sinulle katseluoikeudet hänen
+    tietoihinsa <span th:text="${date}"></span> asti.
+</p>
+<p>
+    HUOM! Tähän sähköpostiviestiin ei voi vastata.
+</p>
+<p>
+    <span>Terveisin, </span>
+    <br/>
+    <em>ELSA-palvelu</em>
+</p>
+</body>
+</html>
