@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
+import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import junit.framework.TestCase.assertNotNull
@@ -311,7 +311,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
     }
 
     fun initTest(userId: String? = null) {
-        user = KayttajaResourceIT.createEntity()
+        user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
         val userDetails = mapOf<String, List<Any>>(

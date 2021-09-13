@@ -77,7 +77,7 @@
     <include file="config/liquibase/changelog/20210830130114_modify_loppukeskustelu_texttypes.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210902143914_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210906111554_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210906140915_modify_entity_user.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210906140915_modify_entity_User.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210908122024_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210908130930_modify_entity_Kayttaja.xml" relativeToChangelogFile="false"/>
 

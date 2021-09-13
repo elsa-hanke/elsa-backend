@@ -94,13 +94,13 @@ class User(
 
     override fun toString() =
         "User{" +
-            "login='" + login + '\'' +
-            ", firstName='" + firstName + '\'' +
-            ", lastName='" + lastName + '\'' +
-            ", email='" + email + '\'' +
-            ", phoneNumber='" + phoneNumber + '\'' +
-            ", activated='" + activated + '\'' +
-            ", langKey='" + langKey + '\'' +
+            "login='$login'" +
+            ", firstName='$firstName'" +
+            ", lastName='$lastName'" +
+            ", email='$email'" +
+            ", phoneNumber='$phoneNumber'" +
+            ", activated='$activated'" +
+            ", langKey='$langKey'" +
             "}"
 
     companion object {
