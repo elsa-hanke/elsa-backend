@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.*
-import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
+import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
@@ -894,7 +894,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     }
 
     fun initTest(userId: String? = DEFAULT_ID) {
-        user = KayttajaResourceIT.createEntity()
+        user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
         val userDetails = mapOf<String, List<Any>>(

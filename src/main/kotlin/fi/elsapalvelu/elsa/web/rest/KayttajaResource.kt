@@ -30,7 +30,7 @@ class KayttajaResource(
                 "dataillegal"
             )
         }
-        
+
         return userService.updateUserDetails(omatTiedotDTO, user.id!!)
     }
 }

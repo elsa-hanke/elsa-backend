@@ -1,180 +1,193 @@
 package fi.elsapalvelu.elsa.web.rest
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.UserRepository
-import fi.elsapalvelu.elsa.security.ADMIN
-import fi.elsapalvelu.elsa.security.USER
-import fi.elsapalvelu.elsa.service.dto.UserDTO
-import fi.elsapalvelu.elsa.service.mapper.UserMapper
-import org.apache.commons.lang3.RandomStringUtils
-import org.assertj.core.api.Assertions.assertThat
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cache.CacheManager
-import org.springframework.security.test.context.support.WithMockUser
-import java.time.Instant
-import kotlin.test.assertNotNull
+import org.springframework.mock.web.MockMultipartFile
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.security.test.context.TestSecurityContextHolder
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.transaction.annotation.Transactional
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
+import javax.persistence.EntityManager
+
 
 @AutoConfigureMockMvc
-@WithMockUser(authorities = [ADMIN])
 @SpringBootTest(classes = [ElsaBackendApp::class])
 class KayttajaResourceIT {
 
     @Autowired
-    private lateinit var userMapper: UserMapper
+    private lateinit var userRepository: UserRepository
 
     @Autowired
-    private lateinit var cacheManager: CacheManager
+    private lateinit var em: EntityManager
+
+    @Autowired
+    private lateinit var restKayttajaMockMvc: MockMvc
 
     private lateinit var user: User
 
     @BeforeEach
     fun setup() {
-        cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE)!!.clear()
-        cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE)!!.clear()
-    }
-
-    @BeforeEach
-    fun initTest() {
-        user = createEntity()
-        user.apply {
-            login = DEFAULT_LOGIN
-            email = DEFAULT_EMAIL
-            phoneNumber = DEFAULT_PHONE_NUMBER
-        }
+        MockitoAnnotations.openMocks(this)
     }
 
     @Test
-    @Throws(Exception::class)
-    fun testUserEquals() {
-        equalsVerifier(User::class)
-        val user1 = User(id = "id1")
-        val user2 = User(id = user1.id)
-        assertThat(user1).isEqualTo(user2)
-        user2.id = "id2"
-        assertThat(user1).isNotEqualTo(user2)
-        user1.id = null
-        assertThat(user1).isNotEqualTo(user2)
+    @Transactional
+    fun testUserDetailsUpdateWithInvalidEmail() {
+        initTest()
+
+        restKayttajaMockMvc.perform(
+            multipart("/api/kayttaja")
+                .param("email", "system@localhost")
+                .param("phoneNumber", UPDATED_PHONE_NUMBER)
+                .param("avatarUpdated", "false")
+                .with { it.method = "PUT"; it }
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
     }
 
     @Test
-    fun testUserDTOtoUser() {
-        val userDTO = UserDTO(
-            id = DEFAULT_ID,
-            login = DEFAULT_LOGIN,
-            firstName = DEFAULT_FIRSTNAME,
-            lastName = DEFAULT_LASTNAME,
-            email = DEFAULT_EMAIL,
-            phoneNumber = DEFAULT_PHONE_NUMBER,
-            activated = true,
-            langKey = DEFAULT_LANGKEY,
-            createdBy = DEFAULT_LOGIN,
-            lastModifiedBy = DEFAULT_LOGIN,
-            authorities = setOf(USER)
+    @Transactional
+    fun testUserDetailsUpdateWithAvatar() {
+        initTest()
+
+        val imageBaos = ByteArrayOutputStream()
+        ImageIO.write(
+            BufferedImage(
+                256, 256,
+                BufferedImage.TYPE_INT_RGB
+            ), "jpg", imageBaos
         )
 
-        val user = userMapper.userDTOToUser(userDTO)
-        assertNotNull(user)
-        assertThat(user.id).isEqualTo(DEFAULT_ID)
-        assertThat(user.login).isEqualTo(DEFAULT_LOGIN)
-        assertThat(user.firstName).isEqualTo(DEFAULT_FIRSTNAME)
-        assertThat(user.lastName).isEqualTo(DEFAULT_LASTNAME)
-        assertThat(user.email).isEqualTo(DEFAULT_EMAIL)
-        assertThat(user.phoneNumber).isEqualTo(DEFAULT_PHONE_NUMBER)
-        assertThat(user.activated).isEqualTo(true)
-        assertThat(user.langKey).isEqualTo(DEFAULT_LANGKEY)
-        assertThat(user.createdBy).isNull()
-        assertThat(user.createdDate).isNotNull
-        assertThat(user.lastModifiedBy).isNull()
-        assertThat(user.lastModifiedDate).isNotNull
-        assertThat(user.authorities).extracting("name").containsExactly(USER)
+        restKayttajaMockMvc.perform(
+            multipart("/api/kayttaja")
+                .file(
+                    MockMultipartFile(
+                        "avatar",
+                        "avatar.jpg",
+                        "image/jpg",
+                        imageBaos.toByteArray()
+                    )
+                )
+                .param("email", UPDATED_EMAIL)
+                .param("phoneNumber", UPDATED_PHONE_NUMBER)
+                .param("avatarUpdated", "true")
+                .with { it.method = "PUT"; it }
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val updatedUser = userRepository.findOneByEmail(UPDATED_EMAIL).get()
+        Assertions.assertThat(updatedUser.email).isEqualTo(UPDATED_EMAIL)
+        Assertions.assertThat(updatedUser.phoneNumber).isEqualTo(UPDATED_PHONE_NUMBER)
+        Assertions.assertThat(updatedUser.avatar).isNotEmpty
     }
 
     @Test
-    fun testUserToUserDTO() {
-        user.id = DEFAULT_ID
-        user.createdBy = DEFAULT_LOGIN
-        user.createdDate = Instant.now()
-        user.lastModifiedBy = DEFAULT_LOGIN
-        user.lastModifiedDate = Instant.now()
-        user.authorities = mutableSetOf(Authority(name = USER))
+    @Transactional
+    fun testUserDetailsUpdateWithInvalidAvatar() {
+        initTest()
 
-        val userDTO = userMapper.userToUserDTO(user)
+        restKayttajaMockMvc.perform(
+            multipart("/api/kayttaja")
+                .file(
+                    MockMultipartFile(
+                        "avatar",
+                        "avatar.jpg",
+                        "image/jpg",
+                        UPDATED_AVATAR
+                    )
+                )
+                .param("email", UPDATED_EMAIL)
+                .param("phoneNumber", UPDATED_PHONE_NUMBER)
+                .param("avatarUpdated", "true")
+                .with { it.method = "PUT"; it }
+                .with(csrf())
+        ).andExpect(status().isOk)
 
-        assertThat(userDTO.id).isEqualTo(DEFAULT_ID)
-        assertThat(userDTO.login).isEqualTo(DEFAULT_LOGIN)
-        assertThat(userDTO.firstName).isEqualTo(DEFAULT_FIRSTNAME)
-        assertThat(userDTO.lastName).isEqualTo(DEFAULT_LASTNAME)
-        assertThat(userDTO.email).isEqualTo(DEFAULT_EMAIL)
-        assertThat(userDTO.isActivated()).isEqualTo(true)
-        assertThat(userDTO.langKey).isEqualTo(DEFAULT_LANGKEY)
-        assertThat(userDTO.createdBy).isEqualTo(DEFAULT_LOGIN)
-        assertThat(userDTO.createdDate).isEqualTo(user.createdDate)
-        assertThat(userDTO.lastModifiedBy).isEqualTo(DEFAULT_LOGIN)
-        assertThat(userDTO.lastModifiedDate).isEqualTo(user.lastModifiedDate)
-        assertThat(userDTO.authorities).containsExactly(USER)
-        assertThat(userDTO.toString()).isNotNull
+        val updatedUser = userRepository.findOneByEmail(UPDATED_EMAIL).get()
+        Assertions.assertThat(updatedUser.email).isEqualTo(UPDATED_EMAIL)
+        Assertions.assertThat(updatedUser.phoneNumber).isEqualTo(UPDATED_PHONE_NUMBER)
+        Assertions.assertThat(updatedUser.avatar).isNotEmpty
     }
 
     @Test
-    fun testAuthorityEquals() {
-        val authorityA = Authority()
-        assertThat(authorityA).isEqualTo(authorityA)
-        assertThat(authorityA).isNotEqualTo(null)
-        assertThat(authorityA).isNotEqualTo(Any())
-        assertThat(authorityA.hashCode()).isEqualTo(31)
-        assertThat(authorityA.toString()).isNotNull
+    @Transactional
+    fun testUserDetailsUpdateWithoutAvatar() {
+        initTest()
 
-        val authorityB = Authority()
-        assertThat(authorityA.name).isEqualTo(authorityB.name)
+        restKayttajaMockMvc.perform(
+            multipart("/api/kayttaja")
+                .param("email", UPDATED_EMAIL)
+                .param("phoneNumber", UPDATED_PHONE_NUMBER)
+                .param("avatarUpdated", "false")
+                .with { it.method = "PUT"; it }
+                .with(csrf())
+        ).andExpect(status().isOk)
 
-        authorityB.name = ADMIN
-        assertThat(authorityA).isNotEqualTo(authorityB)
-
-        authorityA.name = USER
-        assertThat(authorityA).isNotEqualTo(authorityB)
-
-        authorityB.name = USER
-        assertThat(authorityA).isEqualTo(authorityB)
-        assertThat(authorityA.hashCode()).isEqualTo(authorityB.hashCode())
+        val updatedUser = userRepository.findOneByEmail(UPDATED_EMAIL).get()
+        Assertions.assertThat(updatedUser.email).isEqualTo(UPDATED_EMAIL)
+        Assertions.assertThat(updatedUser.phoneNumber).isEqualTo(UPDATED_PHONE_NUMBER)
+        Assertions.assertThat(updatedUser.avatar).isEqualTo(DEFAULT_AVATAR)
     }
+
+    @Test
+    @Transactional
+    fun testUserDetailsUpdateAndAvatarRemoval() {
+        initTest()
+
+        restKayttajaMockMvc.perform(
+            multipart("/api/kayttaja")
+                .param("email", UPDATED_EMAIL)
+                .param("phoneNumber", UPDATED_PHONE_NUMBER)
+                .param("avatar", null)
+                .param("avatarUpdated", "true")
+                .with { it.method = "PUT"; it }
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val updatedUser = userRepository.findOneByEmail(UPDATED_EMAIL).get()
+        Assertions.assertThat(updatedUser.email).isEqualTo(UPDATED_EMAIL)
+        Assertions.assertThat(updatedUser.phoneNumber).isEqualTo(UPDATED_PHONE_NUMBER)
+        Assertions.assertThat(updatedUser.avatar).isEqualTo(null)
+    }
+
+    fun initTest() {
+        user = KayttajaResourceWithMockUserIT.createEntity()
+        user.avatar = DEFAULT_AVATAR
+        em.persist(user)
+        em.flush()
+        val userDetails = mapOf<String, List<Any>>(
+        )
+        val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
+        val authentication = Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            "test",
+            authorities
+        )
+        TestSecurityContextHolder.getContext().authentication = authentication
+    }
+
 
     companion object {
-
-        private const val DEFAULT_LOGIN = "johndoe"
-
-        private const val DEFAULT_ID = "id1"
-
-        private const val DEFAULT_EMAIL = "johndoe@localhost"
-
-        private const val DEFAULT_PHONE_NUMBER = "1234567890"
-
-        private const val DEFAULT_FIRSTNAME = "john"
-
-        private const val DEFAULT_LASTNAME = "doe"
-
-        private const val DEFAULT_LANGKEY = "en"
-
-        @JvmStatic
-        fun createEntity(
-            nimi: String? = "$DEFAULT_FIRSTNAME $DEFAULT_LASTNAME"
-        ): User {
-            val names = nimi?.split(" ")
-            return User(
-                login = DEFAULT_LOGIN + RandomStringUtils.randomAlphabetic(5),
-                activated = true,
-                email = RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL,
-                phoneNumber = RandomStringUtils.randomAlphabetic(5) +  DEFAULT_PHONE_NUMBER,
-                firstName = names?.dropLast(1)?.joinToString(),
-                lastName = names?.last(),
-                langKey = DEFAULT_LANGKEY,
-                authorities = mutableSetOf()
-            )
-        }
+        private const val UPDATED_EMAIL = "test@localhost"
+        private const val UPDATED_PHONE_NUMBER = "0000000000"
+        private val DEFAULT_AVATAR: ByteArray = createByteArray(1, "0")
+        private val UPDATED_AVATAR: ByteArray = createByteArray(1, "1")
     }
 }

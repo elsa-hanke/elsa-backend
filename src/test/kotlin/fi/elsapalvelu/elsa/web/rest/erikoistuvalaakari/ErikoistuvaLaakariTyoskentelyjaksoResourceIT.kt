@@ -12,7 +12,7 @@ import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
 import fi.elsapalvelu.elsa.service.mapper.KuntaMapper
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
-import fi.elsapalvelu.elsa.web.rest.KayttajaResourceIT
+import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
@@ -1060,7 +1060,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     }
 
     fun initTest(userId: String? = null) {
-        user = KayttajaResourceIT.createEntity()
+        user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
         val userDetails = mapOf<String, List<Any>>(
