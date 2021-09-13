@@ -12,6 +12,7 @@ import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import net.coobird.thumbnailator.Thumbnails
 import net.coobird.thumbnailator.tasks.UnsupportedFormatException
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -35,6 +36,8 @@ class UserService(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val erikoisalaRepository: ErikoisalaRepository,
 ) {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional(readOnly = true)
     fun getAllManagedUsers(pageable: Pageable): Page<UserDTO> =
@@ -132,7 +135,7 @@ class UserService(
                 }
             }
         } catch (ex: UnsupportedFormatException) {
-            // Ohitetaan profiilikuvan päivittäminen jos ei tuettu formaatti
+            log.debug("Päivitettävä profiilikuva ei ole tuettu")
         }
 
         user = userRepository.save(user)
