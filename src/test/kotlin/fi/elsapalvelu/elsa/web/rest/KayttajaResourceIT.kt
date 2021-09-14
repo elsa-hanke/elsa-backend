@@ -11,6 +11,7 @@ import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
@@ -18,7 +19,9 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.awt.image.BufferedImage
@@ -167,6 +170,20 @@ class KayttajaResourceIT {
         Assertions.assertThat(updatedUser.avatar).isEqualTo(null)
     }
 
+    @Test
+    @Transactional
+    fun testGetExistingAccount() {
+        initTest()
+
+        restKayttajaMockMvc.perform(
+            MockMvcRequestBuilders.get("/api/kayttaja")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.authorities").value(ERIKOISTUVA_LAAKARI))
+    }
+
     fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         user.avatar = DEFAULT_AVATAR
@@ -182,7 +199,6 @@ class KayttajaResourceIT {
         )
         TestSecurityContextHolder.getContext().authentication = authentication
     }
-
 
     companion object {
         private const val UPDATED_EMAIL = "test@localhost"
