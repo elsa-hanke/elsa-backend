@@ -11,19 +11,25 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("/api")
 class KayttajaResource(
-    private val userService: UserService
+    private val userService: UserService,
 ) {
 
     @GetMapping("/kayttaja")
-    fun getKayttaja(principal: Principal?): UserDTO = userService.getAuthenticatedUser(principal)
+    fun getKayttaja(principal: Principal?): UserDTO {
+        val userId = userService.getAuthenticatedUser(principal).id!!
+        
+        return userService.getUser(userId)
+    }
 
     @PutMapping("/kayttaja")
     fun updateKayttajaDetails(
         @Valid @ModelAttribute omatTiedotDTO: OmatTiedotDTO,
         principal: Principal?
     ): UserDTO {
-        val user = userService.getAuthenticatedUser(principal)
-        if (user.email != omatTiedotDTO.email && userService.existsByEmail(omatTiedotDTO.email)) {
+        val userId = userService.getAuthenticatedUser(principal).id!!
+
+        val userDTO = userService.getUser(userId)
+        if (userDTO.email != omatTiedotDTO.email && userService.existsByEmail(omatTiedotDTO.email)) {
             throw BadRequestAlertException(
                 "Samalla sähköpostilla löytyy jo käyttäjä",
                 "kayttaja",
@@ -31,6 +37,6 @@ class KayttajaResource(
             )
         }
 
-        return userService.updateUserDetails(omatTiedotDTO, user.id!!)
+        return userService.updateUserDetails(omatTiedotDTO, userId)
     }
 }
