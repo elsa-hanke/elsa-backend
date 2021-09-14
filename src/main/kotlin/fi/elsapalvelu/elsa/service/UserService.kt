@@ -47,7 +47,7 @@ class UserService(
     fun getUserFromAuthentication(authToken: Saml2Authentication): UserDTO {
         val principal = authToken.principal as Saml2AuthenticatedPrincipal
 
-        val user = userRepository.findById(principal.name).orElse(User())
+        val user = User()
         user.id = principal.name
         user.firstName = principal.getFirstAttribute("urn:oid:2.5.4.42")
         user.lastName = principal.getFirstAttribute("urn:oid:2.5.4.4")
@@ -55,6 +55,11 @@ class UserService(
             .map { Authority(name = it) }
             .toMutableSet()
         return UserDTO(user)
+    }
+
+    @Transactional(readOnly = true)
+    fun getUser(userId: String): UserDTO {
+        return UserDTO(userRepository.findById(userId).get())
     }
 
     fun getAuthenticatedUser(principal: Principal?): UserDTO {
