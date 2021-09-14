@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.ADMIN
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.USER
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import fi.elsapalvelu.elsa.service.mapper.UserMapper
@@ -180,7 +181,7 @@ class KayttajaResourceWithMockUserIT {
                 firstName = names?.dropLast(1)?.joinToString(),
                 lastName = names?.last(),
                 langKey = DEFAULT_LANGKEY,
-                authorities = mutableSetOf()
+                authorities = mutableSetOf(Authority(name = ERIKOISTUVA_LAAKARI))
             )
         }
     }
