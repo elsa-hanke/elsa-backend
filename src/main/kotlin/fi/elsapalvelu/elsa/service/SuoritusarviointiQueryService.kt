@@ -171,7 +171,7 @@ class SuoritusarviointiQueryService(
                         buildReferringEntitySpecification(
                             criteria.arvioitavaOsaalueId,
                             Suoritusarviointi_.arvioitavaOsaalue,
-                            EpaOsaamisalue_.id
+                            ArvioitavaKokonaisuus_.id
                         )
                     )
             }

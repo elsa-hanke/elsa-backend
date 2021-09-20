@@ -28,7 +28,9 @@ data class ArvioitavaOsaalueDTO(
     @get: NotNull
     var rooli: CanmedsOsaalue? = null,
 
-    var epaOsaamisalueId: Long? = null
+    var arvioitavaKokonaisuusId: Long? = null,
+
+    var arviointiAsteikko: ArviointiasteikkoDTO? = null
 
 ) : Serializable {
 

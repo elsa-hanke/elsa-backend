@@ -1,19 +1,19 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.EpaOsaamisalue
+import fi.elsapalvelu.elsa.domain.ArvioitavaKokonaisuus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 @Repository
-interface EpaOsaamisalueRepository : JpaRepository<EpaOsaamisalue, Long> {
+interface ArvioitavaKokonaisuusRepository : JpaRepository<ArvioitavaKokonaisuus, Long> {
 
     @Query(
-        "select oa from EpaOsaamisalue oa left join oa.erikoisala e " +
+        "select oa from ArvioitavaKokonaisuus oa left join oa.erikoisala e " +
             "where e.id = ?1 " +
             "and oa.voimassaoloAlkaa <= ?2 " +
             "and (oa.voimassaoloLoppuu is null or oa.voimassaoloLoppuu >= ?2)"
     )
-    fun findAllByErikoisalaIdAndValid(id: Long?, valid: LocalDate): List<EpaOsaamisalue>
+    fun findAllByErikoisalaIdAndValid(id: Long?, valid: LocalDate): List<ArvioitavaKokonaisuus>
 }
