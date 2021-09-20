@@ -7,17 +7,21 @@ import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.mapstruct.ReportingPolicy
 
-@Mapper(componentModel = "spring", uses = [EpaOsaamisalueMapper::class], unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(
+    componentModel = "spring",
+    uses = [ArvioitavaKokonaisuusMapper::class],
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 interface ArvioitavaOsaalueMapper :
     EntityMapper<ArvioitavaOsaalueDTO, ArvioitavaOsaalue> {
 
     @Mappings(
-        Mapping(source = "epaOsaamisalue.id", target = "epaOsaamisalueId")
+        Mapping(source = "arvioitavaKokonaisuus.id", target = "arvioitavaKokonaisuusId")
     )
     override fun toDto(entity: ArvioitavaOsaalue): ArvioitavaOsaalueDTO
 
     @Mappings(
-        Mapping(source = "epaOsaamisalueId", target = "epaOsaamisalue")
+        Mapping(source = "arvioitavaKokonaisuusId", target = "arvioitavaKokonaisuus")
     )
     override fun toEntity(dto: ArvioitavaOsaalueDTO): ArvioitavaOsaalue
 

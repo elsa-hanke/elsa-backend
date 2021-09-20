@@ -21,7 +21,7 @@ import java.util.*
 class SuoritusarviointiServiceImpl(
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
-    private val epaOsaamisalueRepository: EpaOsaamisalueRepository,
+    private val arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository,
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val suoritusarviointiMapper: SuoritusarviointiMapper,
@@ -70,21 +70,21 @@ class SuoritusarviointiServiceImpl(
     ): Suoritusarviointi {
         val isItsearviointiNotEmpty =
             !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiVaativuustaso) &&
-                !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiLuottamuksenTaso) &&
+                !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiArviointiasteikonTaso) &&
                 !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenItsearviointi)
 
         // Itsearvioinnin tekeminen
         if (isItsearviointiNotEmpty) {
             suoritusarviointi.itsearviointiVaativuustaso =
                 suoritusarviointiDTO.itsearviointiVaativuustaso
-            suoritusarviointi.itsearviointiLuottamuksenTaso =
-                suoritusarviointiDTO.itsearviointiLuottamuksenTaso
+            suoritusarviointi.itsearviointiArviointiasteikonTaso =
+                suoritusarviointiDTO.itsearviointiArviointiasteikonTaso
             suoritusarviointi.sanallinenItsearviointi =
                 suoritusarviointiDTO.sanallinenItsearviointi
             suoritusarviointi.itsearviointiAika = LocalDate.now(ZoneId.systemDefault())
         } else {
             // Arviointipyynnön muokkaus
-            suoritusarviointi.arvioitavaOsaalue = epaOsaamisalueRepository
+            suoritusarviointi.arvioitavaOsaalue = arvioitavaKokonaisuusRepository
                 .findByIdOrNull(suoritusarviointiDTO.arvioitavaOsaalueId)
             suoritusarviointi.arvioitavaTapahtuma = suoritusarviointiDTO.arvioitavaTapahtuma
             suoritusarviointi.lisatiedot = suoritusarviointiDTO.lisatiedot
@@ -101,7 +101,7 @@ class SuoritusarviointiServiceImpl(
         suoritusarviointi: Suoritusarviointi
     ): Suoritusarviointi {
         suoritusarviointi.vaativuustaso = suoritusarviointiDTO.vaativuustaso
-        suoritusarviointi.luottamuksenTaso = suoritusarviointiDTO.luottamuksenTaso
+        suoritusarviointi.arviointiasteikonTaso = suoritusarviointiDTO.arviointiasteikonTaso
         suoritusarviointi.sanallinenArviointi = suoritusarviointiDTO.sanallinenArviointi
         suoritusarviointi.arviointiAika = LocalDate.now(ZoneId.systemDefault())
         suoritusarviointi.arviointityokalut = arviointityokaluRepository.findAllByIdIn(

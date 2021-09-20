@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.EpaOsaamisalueenKategoria
+import fi.elsapalvelu.elsa.domain.ArvioitavanKokonaisuudenKategoria
 import java.time.LocalDate
 import java.time.ZoneId
 
-class EpaOsaamisalueenKategoriaHelper {
+class ArvioitavanKokonaisuudenKategoriaHelper {
 
     companion object {
 
@@ -21,27 +21,23 @@ class EpaOsaamisalueenKategoriaHelper {
         private val UPDATED_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(): EpaOsaamisalueenKategoria {
-            val epaOsaamisalueenKategoria = EpaOsaamisalueenKategoria(
+        fun createEntity(): ArvioitavanKokonaisuudenKategoria {
+            return ArvioitavanKokonaisuudenKategoria(
                 nimi = DEFAULT_NIMI,
                 jarjestysnumero = DEFAULT_JARJESTYSNUMERO,
                 voimassaoloAlkaa = DEFAULT_VOIMASSAOLO_ALKAA,
                 voimassaoloLoppuu = DEFAULT_VOIMASSAOLO_LOPPUU
             )
-
-            return epaOsaamisalueenKategoria
         }
 
         @JvmStatic
-        fun createUpdatedEntity(): EpaOsaamisalueenKategoria {
-            val epaOsaamisalueenKategoria = EpaOsaamisalueenKategoria(
+        fun createUpdatedEntity(): ArvioitavanKokonaisuudenKategoria {
+            return ArvioitavanKokonaisuudenKategoria(
                 nimi = UPDATED_NIMI,
                 jarjestysnumero = UPDATED_JARJESTYSNUMERO,
                 voimassaoloAlkaa = UPDATED_VOIMASSAOLO_ALKAA,
                 voimassaoloLoppuu = UPDATED_VOIMASSAOLO_LOPPUU
             )
-
-            return epaOsaamisalueenKategoria
         }
     }
 }

@@ -29,7 +29,7 @@ data class SuoritusarviointiDTO(
 
     @get: Min(value = 1)
     @get: Max(value = 5)
-    var itsearviointiLuottamuksenTaso: Int? = null,
+    var itsearviointiArviointiasteikonTaso: Int? = null,
 
     @Lob
     var sanallinenItsearviointi: String? = null,
@@ -42,7 +42,7 @@ data class SuoritusarviointiDTO(
 
     @get: Min(value = 1)
     @get: Max(value = 5)
-    var luottamuksenTaso: Int? = null,
+    var arviointiasteikonTaso: Int? = null,
 
     @Lob
     var sanallinenArviointi: String? = null,
@@ -63,7 +63,7 @@ data class SuoritusarviointiDTO(
 
     var arvioinninAntaja: KayttajaDTO? = null,
 
-    var arvioitavaOsaalue: EpaOsaamisalueDTO? = null,
+    var arvioitavaOsaalue: ArvioitavaKokonaisuusDTO? = null,
 
     var tyoskentelyjakso: TyoskentelyjaksoDTO? = null,
 

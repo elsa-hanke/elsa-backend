@@ -10,6 +10,7 @@ import org.mapstruct.ReportingPolicy
 @Mapper(
     componentModel = "spring",
     uses = [
+        ArviointiasteikkoMapper::class,
         ErikoisalaMapper::class,
         OppimistavoiteMapper::class
     ],
@@ -19,7 +20,8 @@ interface OppimistavoitteenKategoriaMapper :
     EntityMapper<OppimistavoitteenKategoriaDTO, OppimistavoitteenKategoria> {
 
     @Mappings(
-        Mapping(source = "erikoisala.id", target = "erikoisalaId")
+        Mapping(source = "erikoisala.id", target = "erikoisalaId"),
+        Mapping(source = "erikoisala.arviointiasteikko", target = "arviointiasteikko")
     )
     override fun toDto(entity: OppimistavoitteenKategoria): OppimistavoitteenKategoriaDTO
 

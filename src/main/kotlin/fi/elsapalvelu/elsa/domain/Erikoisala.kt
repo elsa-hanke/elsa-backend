@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -57,50 +58,18 @@ data class Erikoisala(
 
     @OneToMany(mappedBy = "erikoisala")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var epaOsaamisalueet: MutableSet<EpaOsaamisalue> = mutableSetOf(),
+    var arvioitavatKokonaisuudet: MutableSet<ArvioitavaKokonaisuus> = mutableSetOf(),
 
     @ManyToMany(mappedBy = "erikoisalat")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnore
-    var yliopistot: MutableSet<Yliopisto> = mutableSetOf()
+    var yliopistot: MutableSet<Yliopisto> = mutableSetOf(),
+
+    @ManyToOne
+    @JsonIgnoreProperties(value = ["erikoisalat"], allowSetters = true)
+    var arviointiasteikko: Arviointiasteikko? = null
 
 ) : Serializable {
-
-    fun addKategoria(oppimistavoitteenKategoria: OppimistavoitteenKategoria): Erikoisala {
-        this.kategoriat.add(oppimistavoitteenKategoria)
-        oppimistavoitteenKategoria.erikoisala = this
-        return this
-    }
-
-    fun removeKategoria(oppimistavoitteenKategoria: OppimistavoitteenKategoria): Erikoisala {
-        this.kategoriat.remove(oppimistavoitteenKategoria)
-        oppimistavoitteenKategoria.erikoisala = null
-        return this
-    }
-
-    fun addEpaOsaamisalue(epaOsaamisalue: EpaOsaamisalue): Erikoisala {
-        this.epaOsaamisalueet.add(epaOsaamisalue)
-        epaOsaamisalue.erikoisala = this
-        return this
-    }
-
-    fun removeEpaOsaamisalue(epaOsaamisalue: EpaOsaamisalue): Erikoisala {
-        this.epaOsaamisalueet.remove(epaOsaamisalue)
-        epaOsaamisalue.erikoisala = null
-        return this
-    }
-
-    fun addYliopisto(yliopisto: Yliopisto): Erikoisala {
-        this.yliopistot.add(yliopisto)
-        yliopisto.erikoisalat.add(this)
-        return this
-    }
-
-    fun removeYliopisto(yliopisto: Yliopisto): Erikoisala {
-        this.yliopistot.remove(yliopisto)
-        yliopisto.erikoisalat.remove(this)
-        return this
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

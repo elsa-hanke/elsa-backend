@@ -9,9 +9,9 @@ import javax.persistence.*
 import javax.validation.constraints.*
 
 @Entity
-@Table(name = "epa_osaamisalue")
+@Table(name = "arvioitava_kokonaisuus")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-data class EpaOsaamisalue(
+data class ArvioitavaKokonaisuus(
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
@@ -32,44 +32,44 @@ data class EpaOsaamisalue(
     @Column(name = "voimassaolo_loppuu")
     var voimassaoloLoppuu: LocalDate? = null,
 
-    @OneToMany(mappedBy = "epaOsaamisalue")
+    @OneToMany(mappedBy = "arvioitavaKokonaisuus")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var arvioitavatOsaalueet: MutableSet<ArvioitavaOsaalue> = mutableSetOf(),
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["epaOsaamisalueet"], allowSetters = true)
+    @JsonIgnoreProperties(value = ["arvioitavatKokonaisuudet"], allowSetters = true)
     var erikoisala: Erikoisala? = null,
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["epaOsaamisalueet"], allowSetters = true)
-    var kategoria: EpaOsaamisalueenKategoria? = null
+    @JsonIgnoreProperties(value = ["arvioitavatKokonaisuudet"], allowSetters = true)
+    var kategoria: ArvioitavanKokonaisuudenKategoria? = null
 
 ) : Serializable {
 
-    fun addArvioitavaOsaalue(arvioitavaOsaalue: ArvioitavaOsaalue): EpaOsaamisalue {
+    fun addArvioitavaOsaalue(arvioitavaOsaalue: ArvioitavaOsaalue): ArvioitavaKokonaisuus {
         this.arvioitavatOsaalueet.add(arvioitavaOsaalue)
-        arvioitavaOsaalue.epaOsaamisalue = this
+        arvioitavaOsaalue.arvioitavaKokonaisuus = this
         return this
     }
 
-    fun removeArvioitavaOsaalue(arvioitavaOsaalue: ArvioitavaOsaalue): EpaOsaamisalue {
+    fun removeArvioitavaOsaalue(arvioitavaOsaalue: ArvioitavaOsaalue): ArvioitavaKokonaisuus {
         this.arvioitavatOsaalueet.remove(arvioitavaOsaalue)
-        arvioitavaOsaalue.epaOsaamisalue = null
+        arvioitavaOsaalue.arvioitavaKokonaisuus = null
         return this
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is EpaOsaamisalue) return false
+        if (other !is ArvioitavaKokonaisuus) return false
 
         return id != null && other.id != null && id == other.id
     }
 
     override fun hashCode() = 31
 
-    override fun toString() = "EpaOsaamisalue{" +
+    override fun toString() = "ArvioitavaKokonaisuus{" +
         "id=$id" +
         ", nimi='$nimi'" +
         ", kuvaus='$kuvaus'" +

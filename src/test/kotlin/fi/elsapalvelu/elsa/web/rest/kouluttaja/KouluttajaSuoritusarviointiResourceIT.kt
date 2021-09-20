@@ -9,7 +9,7 @@ import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
-import fi.elsapalvelu.elsa.web.rest.helpers.EpaOsaamisalueHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavaKokonaisuusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import org.assertj.core.api.Assertions.assertThat
@@ -79,7 +79,7 @@ class KouluttajaSuoritusarviointiResourceIT {
         updatedSuoritusarviointi.arviointiPerustuu = ArvioinninPerustuminen.LASNA
         updatedSuoritusarviointi.arviointityokalut = arviointityokalut
         updatedSuoritusarviointi.sanallinenArviointi = UPDATED_LISATIEDOT
-        updatedSuoritusarviointi.luottamuksenTaso = 5
+        updatedSuoritusarviointi.arviointiasteikonTaso = 5
         updatedSuoritusarviointi.vaativuustaso = 5
         val suoritusarviointiDTO = suoritusarviointiMapper.toDto(updatedSuoritusarviointi)
 
@@ -97,7 +97,7 @@ class KouluttajaSuoritusarviointiResourceIT {
         assertThat(testSuoritusarviointi.arviointiAika).isEqualTo(UPDATED_TAPAHTUMAN_AJANKOHTA)
         assertThat(testSuoritusarviointi.arviointityokalut).isEqualTo(arviointityokalut)
         assertThat(testSuoritusarviointi.sanallinenArviointi).isEqualTo(UPDATED_LISATIEDOT)
-        assertThat(testSuoritusarviointi.luottamuksenTaso).isEqualTo(5)
+        assertThat(testSuoritusarviointi.arviointiasteikonTaso).isEqualTo(5)
         assertThat(testSuoritusarviointi.vaativuustaso).isEqualTo(5)
     }
 
@@ -194,15 +194,15 @@ class KouluttajaSuoritusarviointiResourceIT {
             suoritusarviointi.arvioinninAntaja = kayttaja
 
             // Lisätään pakollinen tieto
-            val epaOsaamisalue: EpaOsaamisalue
-            if (em.findAll(EpaOsaamisalue::class).isEmpty()) {
-                epaOsaamisalue = EpaOsaamisalueHelper.createEntity(em)
-                em.persist(epaOsaamisalue)
+            val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
+            if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
+                arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
+                em.persist(arvioitavaKokonaisuus)
                 em.flush()
             } else {
-                epaOsaamisalue = em.findAll(EpaOsaamisalue::class).get(0)
+                arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaOsaalue = epaOsaamisalue
+            suoritusarviointi.arvioitavaOsaalue = arvioitavaKokonaisuus
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
@@ -239,15 +239,15 @@ class KouluttajaSuoritusarviointiResourceIT {
             suoritusarviointi.arvioinninAntaja = kayttaja
 
             // Lisätään pakollinen tieto
-            val epaOsaamisalue: EpaOsaamisalue
-            if (em.findAll(EpaOsaamisalue::class).isEmpty()) {
-                epaOsaamisalue = EpaOsaamisalueHelper.createUpdatedEntity(em)
-                em.persist(epaOsaamisalue)
+            val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
+            if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
+                arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createUpdatedEntity(em)
+                em.persist(arvioitavaKokonaisuus)
                 em.flush()
             } else {
-                epaOsaamisalue = em.findAll(EpaOsaamisalue::class).get(0)
+                arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaOsaalue = epaOsaamisalue
+            suoritusarviointi.arvioitavaOsaalue = arvioitavaKokonaisuus
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso

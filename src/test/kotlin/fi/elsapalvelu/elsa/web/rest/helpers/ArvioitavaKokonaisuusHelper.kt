@@ -1,14 +1,14 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.EpaOsaamisalue
-import fi.elsapalvelu.elsa.domain.EpaOsaamisalueenKategoria
+import fi.elsapalvelu.elsa.domain.ArvioitavaKokonaisuus
+import fi.elsapalvelu.elsa.domain.ArvioitavanKokonaisuudenKategoria
 import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.persistence.EntityManager
 
-class EpaOsaamisalueHelper {
+class ArvioitavaKokonaisuusHelper {
 
     companion object {
 
@@ -25,10 +25,12 @@ class EpaOsaamisalueHelper {
         private val UPDATED_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(em: EntityManager,
-                         voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
-                         voimassaoloLoppuu: LocalDate? = DEFAULT_VOIMASSAOLO_LOPPUU): EpaOsaamisalue {
-            val epaOsaamisalue = EpaOsaamisalue(
+        fun createEntity(
+            em: EntityManager,
+            voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
+            voimassaoloLoppuu: LocalDate? = DEFAULT_VOIMASSAOLO_LOPPUU
+        ): ArvioitavaKokonaisuus {
+            val arvioitavaKokonaisuus = ArvioitavaKokonaisuus(
                 nimi = DEFAULT_NIMI,
                 kuvaus = DEFAULT_KUVAUS,
                 voimassaoloAlkaa = voimassaoloAlkaa,
@@ -42,27 +44,29 @@ class EpaOsaamisalueHelper {
                 em.persist(erikoisala)
                 em.flush()
             } else {
-                erikoisala = em.findAll(Erikoisala::class).get(0)
+                erikoisala = em.findAll(Erikoisala::class)[0]
             }
-            epaOsaamisalue.erikoisala = erikoisala
+            arvioitavaKokonaisuus.erikoisala = erikoisala
 
             // Lisätään pakollinen tieto
-            val epaOsaamisalueenKategoria: EpaOsaamisalueenKategoria
-            if (em.findAll(EpaOsaamisalueenKategoria::class).isEmpty()) {
-                epaOsaamisalueenKategoria = EpaOsaamisalueenKategoriaHelper.createEntity()
-                em.persist(epaOsaamisalueenKategoria)
+            val arvioitavanKokonaisuudenKategoria: ArvioitavanKokonaisuudenKategoria
+            if (em.findAll(ArvioitavanKokonaisuudenKategoria::class).isEmpty()) {
+                arvioitavanKokonaisuudenKategoria =
+                    ArvioitavanKokonaisuudenKategoriaHelper.createEntity()
+                em.persist(arvioitavanKokonaisuudenKategoria)
                 em.flush()
             } else {
-                epaOsaamisalueenKategoria = em.findAll(EpaOsaamisalueenKategoria::class).get(0)
+                arvioitavanKokonaisuudenKategoria =
+                    em.findAll(ArvioitavanKokonaisuudenKategoria::class)[0]
             }
-            epaOsaamisalue.kategoria = epaOsaamisalueenKategoria
+            arvioitavaKokonaisuus.kategoria = arvioitavanKokonaisuudenKategoria
 
-            return epaOsaamisalue
+            return arvioitavaKokonaisuus
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): EpaOsaamisalue {
-            val epaOsaamisalue = EpaOsaamisalue(
+        fun createUpdatedEntity(em: EntityManager): ArvioitavaKokonaisuus {
+            val arvioitavaKokonaisuus = ArvioitavaKokonaisuus(
                 nimi = UPDATED_NIMI,
                 kuvaus = UPDATED_KUVAUS,
                 voimassaoloAlkaa = UPDATED_VOIMASSAOLO_ALKAA,
@@ -76,22 +80,24 @@ class EpaOsaamisalueHelper {
                 em.persist(erikoisala)
                 em.flush()
             } else {
-                erikoisala = em.findAll(Erikoisala::class).get(0)
+                erikoisala = em.findAll(Erikoisala::class)[0]
             }
-            epaOsaamisalue.erikoisala = erikoisala
+            arvioitavaKokonaisuus.erikoisala = erikoisala
 
             // Lisätään pakollinen tieto
-            val epaOsaamisalueenKategoria: EpaOsaamisalueenKategoria
-            if (em.findAll(EpaOsaamisalueenKategoria::class).isEmpty()) {
-                epaOsaamisalueenKategoria = EpaOsaamisalueenKategoriaHelper.createUpdatedEntity()
-                em.persist(epaOsaamisalueenKategoria)
+            val arvioitavanKokonaisuudenKategoria: ArvioitavanKokonaisuudenKategoria
+            if (em.findAll(ArvioitavanKokonaisuudenKategoria::class).isEmpty()) {
+                arvioitavanKokonaisuudenKategoria =
+                    ArvioitavanKokonaisuudenKategoriaHelper.createUpdatedEntity()
+                em.persist(arvioitavanKokonaisuudenKategoria)
                 em.flush()
             } else {
-                epaOsaamisalueenKategoria = em.findAll(EpaOsaamisalueenKategoria::class).get(0)
+                arvioitavanKokonaisuudenKategoria =
+                    em.findAll(ArvioitavanKokonaisuudenKategoria::class)[0]
             }
-            epaOsaamisalue.kategoria = epaOsaamisalueenKategoria
+            arvioitavaKokonaisuus.kategoria = arvioitavanKokonaisuudenKategoria
 
-            return epaOsaamisalue
+            return arvioitavaKokonaisuus
         }
     }
 }

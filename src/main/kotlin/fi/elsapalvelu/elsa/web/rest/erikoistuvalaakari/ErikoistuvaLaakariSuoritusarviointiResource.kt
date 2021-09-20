@@ -26,7 +26,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
-    private val epaOsaamisalueService: EpaOsaamisalueService,
+    private val arvioitavaKokonaisuusService: ArvioitavaKokonaisuusService,
     private val kayttajaService: KayttajaService
 ) {
 
@@ -42,11 +42,12 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         val options = SuoritusarvioinnitOptionsDTO()
         options.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
-        options.epaOsaamisalueet =
-            epaOsaamisalueService.findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+        options.arvioitavatKokonaisuudet =
+            arvioitavaKokonaisuusService.findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
         options.tapahtumat = suoritusarviointiService
             .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
-        options.kouluttajatAndVastuuhenkilot = kayttajaService.findKouluttajatAndVastuuhenkilot(id).toMutableSet()
+        options.kouluttajatAndVastuuhenkilot =
+            kayttajaService.findKouluttajatAndVastuuhenkilot(id).toMutableSet()
 
         return ResponseEntity.ok(options)
     }
@@ -75,11 +76,12 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         form.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
         form.kunnat = kuntaService.findAll().toMutableSet()
-        form.erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
-        form.epaOsaamisalueenKategoriat =
-            epaOsaamisalueService.findAllByErikoistuvaLaakariKayttajaUserId(id)
+        form.erikoisalat =
+            erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+        form.arvioitavanKokonaisuudenKategoriat =
+            arvioitavaKokonaisuusService.findAllByErikoistuvaLaakariKayttajaUserId(id)
                 .groupBy { it.kategoria }.map {
-                    EpaOsaamisalueenKategoriaDTO(
+                    ArvioitavanKokonaisuudenKategoriaDTO(
                         it.key?.id,
                         it.key?.nimi,
                         it.key?.jarjestysnumero,
@@ -89,7 +91,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                     )
                 }.toMutableSet()
 
-        form.kouluttajatAndVastuuhenkilot = kayttajaService.findKouluttajatAndVastuuhenkilot(id).toMutableSet()
+        form.kouluttajatAndVastuuhenkilot =
+            kayttajaService.findKouluttajatAndVastuuhenkilot(id).toMutableSet()
         return ResponseEntity.ok(form)
     }
 
@@ -106,9 +109,9 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 "idexists"
             )
         }
-        if (suoritusarviointiDTO.luottamuksenTaso != null) {
+        if (suoritusarviointiDTO.arviointiasteikonTaso != null) {
             throw BadRequestAlertException(
-                "Uusi arviointipyyntö ei saa sisältää luottamuksen tasoa. Kouluttaja määrittelee sen.",
+                "Uusi arviointipyyntö ei saa sisältää arviointiasteikon tasoa. Kouluttaja määrittelee sen.",
                 ENTITY_NAME,
                 "dataillegal"
             )

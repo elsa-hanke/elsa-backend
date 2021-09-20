@@ -8,9 +8,9 @@ import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 
 @Entity
-@Table(name = "epa_osaamisalueen_kategoria")
+@Table(name = "arvioitavan_kokonaisuuden_kategoria")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-data class EpaOsaamisalueenKategoria(
+data class ArvioitavanKokonaisuudenKategoria(
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
@@ -34,32 +34,20 @@ data class EpaOsaamisalueenKategoria(
 
     @OneToMany(mappedBy = "kategoria")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var epaOsaamisalueet: MutableSet<EpaOsaamisalue> = mutableSetOf()
+    var arvioitavatKokonaisuudet: MutableSet<ArvioitavaKokonaisuus> = mutableSetOf()
 
 ) : Serializable {
 
-    fun addEpaOsaamisalue(epaOsaamisalue: EpaOsaamisalue): EpaOsaamisalueenKategoria {
-        this.epaOsaamisalueet.add(epaOsaamisalue)
-        epaOsaamisalue.kategoria = this
-        return this
-    }
-
-    fun removeEpaOsaamisalue(epaOsaamisalue: EpaOsaamisalue): EpaOsaamisalueenKategoria {
-        this.epaOsaamisalueet.remove(epaOsaamisalue)
-        epaOsaamisalue.kategoria = null
-        return this
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is EpaOsaamisalueenKategoria) return false
+        if (other !is ArvioitavanKokonaisuudenKategoria) return false
 
         return id != null && other.id != null && id == other.id
     }
 
     override fun hashCode() = 31
 
-    override fun toString() = "EpaOsaamisalueenKategoria{" +
+    override fun toString() = "ArvioitavanKokonaisuudenKategoria{" +
         "id=$id" +
         ", nimi='$nimi'" +
         ", jarjestysnumero=$jarjestysnumero" +

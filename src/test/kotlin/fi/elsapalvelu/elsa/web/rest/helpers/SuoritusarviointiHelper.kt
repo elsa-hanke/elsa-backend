@@ -54,10 +54,10 @@ class SuoritusarviointiHelper {
                 pyynnonAika = DEFAULT_PYYNNON_AIKA,
                 lisatiedot = DEFAULT_LISATIEDOT,
                 itsearviointiVaativuustaso = DEFAULT_ITSEARVIOINTI_VAATIVUUSTASO,
-                itsearviointiLuottamuksenTaso = DEFAULT_ITSEARVIOINTI_LUOTTAMUKSEN_TASO,
+                itsearviointiArviointiasteikonTaso = DEFAULT_ITSEARVIOINTI_LUOTTAMUKSEN_TASO,
                 sanallinenItsearviointi = DEFAULT_SANALLINEN_ITSEARVIOINTI,
                 vaativuustaso = DEFAULT_VAATIVUUSTASO,
-                luottamuksenTaso = DEFAULT_LUOTTAMUKSEN_TASO,
+                arviointiasteikonTaso = DEFAULT_LUOTTAMUKSEN_TASO,
                 sanallinenArviointi = DEFAULT_SANALLINEN_ARVIOINTI,
                 arviointiAika = DEFAULT_ARVIOINTI_AIKA,
                 lukittu = DEFAULT_LUKITTU
@@ -75,15 +75,15 @@ class SuoritusarviointiHelper {
             suoritusarviointi.arvioinninAntaja = kayttaja
 
             // Lisätään pakollinen tieto
-            val epaOsaamisalue: EpaOsaamisalue
-            if (em.findAll(EpaOsaamisalue::class).isEmpty()) {
-                epaOsaamisalue = EpaOsaamisalueHelper.createEntity(em)
-                em.persist(epaOsaamisalue)
+            val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
+            if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
+                arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
+                em.persist(arvioitavaKokonaisuus)
                 em.flush()
             } else {
-                epaOsaamisalue = em.findAll(EpaOsaamisalue::class).get(0)
+                arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaOsaalue = epaOsaamisalue
+            suoritusarviointi.arvioitavaOsaalue = arvioitavaKokonaisuus
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
@@ -107,10 +107,10 @@ class SuoritusarviointiHelper {
                 pyynnonAika = UPDATED_PYYNNON_AIKA,
                 lisatiedot = UPDATED_LISATIEDOT,
                 itsearviointiVaativuustaso = UPDATED_ITSEARVIOINTI_VAATIVUUSTASO,
-                itsearviointiLuottamuksenTaso = UPDATED_ITSEARVIOINTI_LUOTTAMUKSEN_TASO,
+                itsearviointiArviointiasteikonTaso = UPDATED_ITSEARVIOINTI_LUOTTAMUKSEN_TASO,
                 sanallinenItsearviointi = UPDATED_SANALLINEN_ITSEARVIOINTI,
                 vaativuustaso = UPDATED_VAATIVUUSTASO,
-                luottamuksenTaso = UPDATED_LUOTTAMUKSEN_TASO,
+                arviointiasteikonTaso = UPDATED_LUOTTAMUKSEN_TASO,
                 sanallinenArviointi = UPDATED_SANALLINEN_ARVIOINTI,
                 arviointiAika = UPDATED_ARVIOINTI_AIKA,
                 lukittu = UPDATED_LUKITTU
@@ -128,15 +128,15 @@ class SuoritusarviointiHelper {
             suoritusarviointi.arvioinninAntaja = kayttaja
 
             // Lisätään pakollinen tieto
-            val epaOsaamisalue: EpaOsaamisalue
-            if (em.findAll(EpaOsaamisalue::class).isEmpty()) {
-                epaOsaamisalue = EpaOsaamisalueHelper.createUpdatedEntity(em)
-                em.persist(epaOsaamisalue)
+            val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
+            if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
+                arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createUpdatedEntity(em)
+                em.persist(arvioitavaKokonaisuus)
                 em.flush()
             } else {
-                epaOsaamisalue = em.findAll(EpaOsaamisalue::class).get(0)
+                arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaOsaalue = epaOsaamisalue
+            suoritusarviointi.arvioitavaOsaalue = arvioitavaKokonaisuus
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso

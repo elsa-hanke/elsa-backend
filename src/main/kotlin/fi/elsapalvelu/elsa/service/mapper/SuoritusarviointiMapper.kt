@@ -12,7 +12,7 @@ import org.mapstruct.ReportingPolicy
     uses = [
         ErikoistuvaLaakariMapper::class,
         KayttajaMapper::class,
-        EpaOsaamisalueMapper::class,
+        ArvioitavaKokonaisuusMapper::class,
         TyoskentelyjaksoMapper::class,
         SuoritusarvioinninKommenttiMapper::class,
         ArviointityokaluMapper::class

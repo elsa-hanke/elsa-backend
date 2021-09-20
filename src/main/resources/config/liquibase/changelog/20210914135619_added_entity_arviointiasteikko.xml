@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20210914135619-1" author="jhipster">
+
+        <renameTable oldTableName="epa_osaamisalue" newTableName="arvioitava_kokonaisuus"/>
+        <renameTable oldTableName="epa_osaamisalueen_kategoria"
+            newTableName="arvioitavan_kokonaisuuden_kategoria"/>
+
+        <addColumn tableName="erikoisala">
+            <column name="arviointiasteikko_id" type="bigint"/>
+        </addColumn>
+
+        <createTable tableName="arviointiasteikko">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nimi" type="varchar(255)"/>
+        </createTable>
+
+        <createTable tableName="arviointiasteikon_taso">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="taso" type="numeric"/>
+            <column name="nimi" type="varchar(255)"/>
+            <column name="arviointiasteikko_id" type="bigint"/>
+        </createTable>
+
+        <renameColumn
+            tableName="suoritusarviointi"
+            oldColumnName="luottamuksen_taso"
+            newColumnName="arviointiasteikon_taso"/>
+
+        <renameColumn
+            tableName="suoritusarviointi"
+            oldColumnName="itsearviointi_luottamuksen_taso"
+            newColumnName="itsearviointi_arviointiasteikon_taso"/>
+
+        <renameColumn
+            tableName="suoritemerkinta"
+            oldColumnName="luottamuksen_taso"
+            newColumnName="arviointiasteikon_taso"/>
+
+        <modifyDataType tableName="arvioitava_kokonaisuus"
+            columnName="kuvaus" newDataType="text"/>
+
+    </changeSet>
+
+    <changeSet id="20210914135619-1-data" author="jhipster">
+        <loadData
+            file="config/liquibase/data/arviointiasteikko.csv"
+            separator=";"
+            tableName="arviointiasteikko">
+            <column name="id" type="numeric"/>
+            <column name="nimi" type="string"/>
+        </loadData>
+        <loadData
+            file="config/liquibase/data/arviointiasteikon_taso.csv"
+            separator=";"
+            tableName="arviointiasteikon_taso">
+            <column name="id" type="numeric"/>
+            <column name="taso" type="numeric"/>
+            <column name="nimi" type="string"/>
+            <column name="arviointiasteikko_id" type="numeric"/>
+        </loadData>
+        <update tableName="erikoisala">
+            <column name="arviointiasteikko_id" value="1"/>
+        </update>
+    </changeSet>
+</databaseChangeLog>

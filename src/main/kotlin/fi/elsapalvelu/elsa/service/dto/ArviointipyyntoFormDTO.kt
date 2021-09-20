@@ -10,7 +10,7 @@ data class ArviointipyyntoFormDTO(
 
     var erikoisalat: MutableSet<ErikoisalaDTO> = mutableSetOf(),
 
-    var epaOsaamisalueenKategoriat: MutableSet<EpaOsaamisalueenKategoriaDTO> = mutableSetOf(),
+    var arvioitavanKokonaisuudenKategoriat: MutableSet<ArvioitavanKokonaisuudenKategoriaDTO> = mutableSetOf(),
 
     var kouluttajatAndVastuuhenkilot: MutableSet<KayttajaDTO> = mutableSetOf()
 

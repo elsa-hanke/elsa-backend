@@ -26,8 +26,8 @@ data class Suoritemerkinta(
     @get: NotNull
     @get: Min(value = 1)
     @get: Max(value = 5)
-    @Column(name = "luottamuksen_taso", nullable = false)
-    var luottamuksenTaso: Int? = null,
+    @Column(name = "arviointiasteikon_taso", nullable = false)
+    var arviointiasteikonTaso: Int? = null,
 
     @get: NotNull
     @get: Min(value = 1)
@@ -68,7 +68,7 @@ data class Suoritemerkinta(
     override fun toString() = "Suoritemerkinta{" +
         "id=$id" +
         ", suorituspaiva='$suorituspaiva'" +
-        ", luottamuksenTaso=$luottamuksenTaso" +
+        ", arviointiasteikonTaso=$arviointiasteikonTaso" +
         ", vaativuustaso=$vaativuustaso" +
         ", lisatiedot='$lisatiedot'" +
         ", lukittu='$lukittu'" +
