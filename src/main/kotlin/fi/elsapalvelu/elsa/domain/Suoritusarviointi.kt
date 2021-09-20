@@ -44,8 +44,8 @@ data class Suoritusarviointi(
 
     @get: Min(value = 1)
     @get: Max(value = 5)
-    @Column(name = "itsearviointi_luottamuksen_taso")
-    var itsearviointiLuottamuksenTaso: Int? = null,
+    @Column(name = "itsearviointi_arviointiasteikon_taso")
+    var itsearviointiArviointiasteikonTaso: Int? = null,
 
     @Lob
     @Type(type = "org.hibernate.type.TextType")
@@ -62,8 +62,8 @@ data class Suoritusarviointi(
 
     @get: Min(value = 1)
     @get: Max(value = 5)
-    @Column(name = "luottamuksen_taso")
-    var luottamuksenTaso: Int? = null,
+    @Column(name = "arviointiasteikon_taso")
+    var arviointiasteikonTaso: Int? = null,
 
     @Lob
     @Type(type = "org.hibernate.type.TextType")
@@ -92,7 +92,7 @@ data class Suoritusarviointi(
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
-    var arvioitavaOsaalue: EpaOsaamisalue? = null,
+    var arvioitavaOsaalue: ArvioitavaKokonaisuus? = null,
 
     @NotNull
     @ManyToOne(optional = false)
@@ -156,11 +156,11 @@ data class Suoritusarviointi(
         ", pyynnonAika='$pyynnonAika'" +
         ", lisatiedot='$lisatiedot'" +
         ", itsearviointiVaativuustaso=$itsearviointiVaativuustaso" +
-        ", itsearviointiLuottamuksenTaso=$itsearviointiLuottamuksenTaso" +
+        ", itsearviointiArviointiasteikonTaso=$itsearviointiArviointiasteikonTaso" +
         ", sanallinenItsearviointi='$sanallinenItsearviointi'" +
         ", itsearviointiAika='$itsearviointiAika'" +
         ", vaativuustaso=$vaativuustaso" +
-        ", luottamuksenTaso=$luottamuksenTaso" +
+        ", arviointiasteikonTaso=$arviointiasteikonTaso" +
         ", sanallinenArviointi='$sanallinenArviointi'" +
         ", arviointiAika='$arviointiAika'" +
         ", lukittu='$lukittu'" +

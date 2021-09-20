@@ -9,7 +9,7 @@ import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
-import fi.elsapalvelu.elsa.web.rest.helpers.EpaOsaamisalueHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavaKokonaisuusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
@@ -64,22 +64,55 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         MockitoAnnotations.openMocks(this)
 
         // Lisätään voimassaoleva EPA-osaamisalue ja päättymistä ei määritetty
-        em.persist(EpaOsaamisalueHelper.createEntity(em, LocalDate.ofEpochDay(0L), null))
+        em.persist(ArvioitavaKokonaisuusHelper.createEntity(em, LocalDate.ofEpochDay(0L), null))
         // Lisätään voimassaoleva EPA-osaamisalue ja päättyminen määritetty
-        em.persist(EpaOsaamisalueHelper.createEntity(em, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(20L)))
+        em.persist(
+            ArvioitavaKokonaisuusHelper.createEntity(
+                em,
+                LocalDate.ofEpochDay(0L),
+                LocalDate.ofEpochDay(20L)
+            )
+        )
         // Lisätään EPA-osaamisalue jonka voimassaolo ei ole alkanut vielä
-        em.persist(EpaOsaamisalueHelper.createEntity(em, LocalDate.ofEpochDay(15L), LocalDate.ofEpochDay(20L)))
+        em.persist(
+            ArvioitavaKokonaisuusHelper.createEntity(
+                em,
+                LocalDate.ofEpochDay(15L),
+                LocalDate.ofEpochDay(20L)
+            )
+        )
         // Lisätään EPA-osaamisalue, jonka voimassaolo on jo päättynyt
-        em.persist(EpaOsaamisalueHelper.createEntity(em, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
+        em.persist(
+            ArvioitavaKokonaisuusHelper.createEntity(
+                em,
+                LocalDate.ofEpochDay(0L),
+                LocalDate.ofEpochDay(5L)
+            )
+        )
 
         // Lisätään voimassaoleva erikoisala ja päättymistä ei määritetty
         em.persist(ErikoisalaHelper.createEntity(LocalDate.ofEpochDay(0L), null))
         // Lisätään voimassaoleva erikoisala ja päättyminen määritetty
-        em.persist(ErikoisalaHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(20L)))
+        em.persist(
+            ErikoisalaHelper.createEntity(
+                LocalDate.ofEpochDay(0L),
+                LocalDate.ofEpochDay(20L)
+            )
+        )
         // Lisätään erikoisala jonka voimassaolo ei ole alkanut vielä
-        em.persist(ErikoisalaHelper.createEntity(LocalDate.ofEpochDay(15L), LocalDate.ofEpochDay(20L)))
+        em.persist(
+            ErikoisalaHelper.createEntity(
+                LocalDate.ofEpochDay(15L),
+                LocalDate.ofEpochDay(20L)
+            )
+        )
         // Lisätään erikoisala, jonka voimassaolo on jo päättynyt
-        em.persist(ErikoisalaHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
+        em.persist(
+            ErikoisalaHelper.createEntity(
+                LocalDate.ofEpochDay(0L),
+                LocalDate.ofEpochDay(5L)
+            )
+        )
 
         em.flush()
     }
@@ -206,7 +239,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.epaOsaamisalueet").value(Matchers.hasSize<Any>(2))) // 2 voimassaolevaa
+            .andExpect(jsonPath("$.arvioitavatKokonaisuudet").value(Matchers.hasSize<Any>(2))) // 2 voimassaolevaa
             .andExpect(jsonPath("$.tapahtumat").value(Matchers.hasSize<Any>(0)))
             .andExpect(jsonPath("$.kouluttajatAndVastuuhenkilot").value(Matchers.hasSize<Any>(0)))
     }
@@ -222,8 +255,20 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
             .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(2))) // 2 voimassaolevaa
-            .andExpect(jsonPath("$.epaOsaamisalueenKategoriat").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.epaOsaamisalueenKategoriat.[0].epaOsaamisalueet").value(Matchers.hasSize<Any>(2))) // 2 voimassaolevaa
+            .andExpect(
+                jsonPath("$.arvioitavanKokonaisuudenKategoriat").value(
+                    Matchers.hasSize<Any>(
+                        1
+                    )
+                )
+            )
+            .andExpect(
+                jsonPath("$.arvioitavanKokonaisuudenKategoriat.[0].arvioitavatKokonaisuudet").value(
+                    Matchers.hasSize<Any>(
+                        2
+                    )
+                )
+            ) // 2 voimassaolevaa
             .andExpect(jsonPath("$.kouluttajatAndVastuuhenkilot").value(Matchers.hasSize<Any>(0)))
     }
 
@@ -283,15 +328,15 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             suoritusarviointi.arvioinninAntaja = kayttaja
 
             // Lisätään pakollinen tieto
-            val epaOsaamisalue: EpaOsaamisalue
-            if (em.findAll(EpaOsaamisalue::class).isEmpty()) {
-                epaOsaamisalue = EpaOsaamisalueHelper.createEntity(em)
-                em.persist(epaOsaamisalue)
+            val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
+            if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
+                arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
+                em.persist(arvioitavaKokonaisuus)
                 em.flush()
             } else {
-                epaOsaamisalue = em.findAll(EpaOsaamisalue::class).get(0)
+                arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaOsaalue = epaOsaamisalue
+            suoritusarviointi.arvioitavaOsaalue = arvioitavaKokonaisuus
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
@@ -328,15 +373,15 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             suoritusarviointi.arvioinninAntaja = kayttaja
 
             // Lisätään pakollinen tieto
-            val epaOsaamisalue: EpaOsaamisalue
-            if (em.findAll(EpaOsaamisalue::class).isEmpty()) {
-                epaOsaamisalue = EpaOsaamisalueHelper.createUpdatedEntity(em)
-                em.persist(epaOsaamisalue)
+            val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
+            if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
+                arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createUpdatedEntity(em)
+                em.persist(arvioitavaKokonaisuus)
                 em.flush()
             } else {
-                epaOsaamisalue = em.findAll(EpaOsaamisalue::class).get(0)
+                arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaOsaalue = epaOsaamisalue
+            suoritusarviointi.arvioitavaOsaalue = arvioitavaKokonaisuus
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso

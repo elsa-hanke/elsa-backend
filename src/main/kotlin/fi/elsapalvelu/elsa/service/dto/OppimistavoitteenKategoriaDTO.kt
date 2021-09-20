@@ -18,6 +18,8 @@ data class OppimistavoitteenKategoriaDTO(
 
     var erikoisalaId: Long? = null,
 
+    var arviointiasteikko: ArviointiasteikkoDTO? = null,
+
     var oppimistavoitteet: MutableSet<OppimistavoiteDTO>? = null
 
 ) : Serializable {

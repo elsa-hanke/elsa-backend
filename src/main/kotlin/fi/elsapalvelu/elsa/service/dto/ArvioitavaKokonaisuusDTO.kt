@@ -4,7 +4,7 @@ import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
 
-data class EpaOsaamisalueDTO(
+data class ArvioitavaKokonaisuusDTO(
 
     var id: Long? = null,
 
@@ -20,13 +20,15 @@ data class EpaOsaamisalueDTO(
 
     var erikoisalaId: Long? = null,
 
-    var kategoria: EpaOsaamisalueenKategoriaSimpleDTO? = null
+    var kategoria: ArvioitavanKokonaisuudenKategoriaSimpleDTO? = null,
+
+    var arviointiasteikko: ArviointiasteikkoDTO? = null
 
 ) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is EpaOsaamisalueDTO) return false
+        if (other !is ArvioitavaKokonaisuusDTO) return false
         return id != null && id == other.id
     }
 

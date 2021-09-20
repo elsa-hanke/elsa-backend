@@ -20,7 +20,11 @@ interface SuoritemerkintaMapper :
 
     @Mappings(
         Mapping(source = "oppimistavoite.id", target = "oppimistavoiteId"),
-        Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId")
+        Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId"),
+        Mapping(
+            source = "oppimistavoite.kategoria.erikoisala.arviointiasteikko",
+            target = "arviointiasteikko"
+        )
     )
     override fun toDto(entity: Suoritemerkinta): SuoritemerkintaDTO
 

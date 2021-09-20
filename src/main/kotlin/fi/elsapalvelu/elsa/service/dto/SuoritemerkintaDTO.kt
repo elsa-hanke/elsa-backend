@@ -17,7 +17,7 @@ data class SuoritemerkintaDTO(
     @get: NotNull
     @get: Min(value = 1)
     @get: Max(value = 5)
-    var luottamuksenTaso: Int? = null,
+    var arviointiasteikonTaso: Int? = null,
 
     @get: NotNull
     @get: Min(value = 1)
@@ -35,7 +35,9 @@ data class SuoritemerkintaDTO(
 
     var oppimistavoite: OppimistavoiteDTO? = null,
 
-    var tyoskentelyjakso: TyoskentelyjaksoDTO? = null
+    var tyoskentelyjakso: TyoskentelyjaksoDTO? = null,
+
+    var arviointiasteikko: ArviointiasteikkoDTO? = null
 
 ) : Serializable {
 

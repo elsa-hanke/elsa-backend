@@ -70,13 +70,41 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         em.persist(erikoisala)
 
         // Lisätään voimassaoleva oppimistavoitteen kategoria ja päättymistä ei määritetty
-        em.persist(OppimistavoitteenKategoriaHelper.createEntity(em, erikoisala, LocalDate.ofEpochDay(0L), null))
+        em.persist(
+            OppimistavoitteenKategoriaHelper.createEntity(
+                em,
+                erikoisala,
+                LocalDate.ofEpochDay(0L),
+                null
+            )
+        )
         // Lisätään voimassaoleva oppimistavoitteen kategoria ja päättyminen määritetty
-        em.persist(OppimistavoitteenKategoriaHelper.createEntity(em, erikoisala, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(20L)))
+        em.persist(
+            OppimistavoitteenKategoriaHelper.createEntity(
+                em,
+                erikoisala,
+                LocalDate.ofEpochDay(0L),
+                LocalDate.ofEpochDay(20L)
+            )
+        )
         // Lisätään oppimistavoitteen kategoria, jonka voimassaolo ei ole alkanut vielä
-        em.persist(OppimistavoitteenKategoriaHelper.createEntity(em, erikoisala, LocalDate.ofEpochDay(15L), LocalDate.ofEpochDay(20L)))
+        em.persist(
+            OppimistavoitteenKategoriaHelper.createEntity(
+                em,
+                erikoisala,
+                LocalDate.ofEpochDay(15L),
+                LocalDate.ofEpochDay(20L)
+            )
+        )
         // Lisätään oppimistavoitteen kategoria, jonka voimassaolo on jo päättynyt
-        em.persist(OppimistavoitteenKategoriaHelper.createEntity(em, erikoisala, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
+        em.persist(
+            OppimistavoitteenKategoriaHelper.createEntity(
+                em,
+                erikoisala,
+                LocalDate.ofEpochDay(0L),
+                LocalDate.ofEpochDay(5L)
+            )
+        )
 
         em.flush()
     }
@@ -100,7 +128,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         assertThat(suoritemerkintaList).hasSize(databaseSizeBeforeCreate + 1)
         val testSuoritemerkinta = suoritemerkintaList[suoritemerkintaList.size - 1]
         assertThat(testSuoritemerkinta.suorituspaiva).isEqualTo(DEFAULT_SUORITUSPAIVA)
-        assertThat(testSuoritemerkinta.luottamuksenTaso).isEqualTo(DEFAULT_LUOTTAMUKSEN_TASO)
+        assertThat(testSuoritemerkinta.arviointiasteikonTaso).isEqualTo(DEFAULT_LUOTTAMUKSEN_TASO)
         assertThat(testSuoritemerkinta.vaativuustaso).isEqualTo(DEFAULT_VAATIVUUSTASO)
         assertThat(testSuoritemerkinta.lisatiedot).isEqualTo(DEFAULT_LISATIEDOT)
         assertThat(testSuoritemerkinta.lukittu).isEqualTo(DEFAULT_LUKITTU)
@@ -168,7 +196,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(suoritemerkinta.id as Any))
             .andExpect(jsonPath("$.suorituspaiva").value(DEFAULT_SUORITUSPAIVA.toString()))
-            .andExpect(jsonPath("$.luottamuksenTaso").value(DEFAULT_LUOTTAMUKSEN_TASO))
+            .andExpect(jsonPath("$.arviointiasteikonTaso").value(DEFAULT_LUOTTAMUKSEN_TASO))
             .andExpect(jsonPath("$.vaativuustaso").value(DEFAULT_VAATIVUUSTASO))
             .andExpect(jsonPath("$.lisatiedot").value(DEFAULT_LISATIEDOT))
             .andExpect(jsonPath("$.lukittu").value(DEFAULT_LUKITTU))
@@ -212,7 +240,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         em.detach(updatedSuoritemerkinta)
 
         updatedSuoritemerkinta.suorituspaiva = UPDATED_SUORITUSPAIVA
-        updatedSuoritemerkinta.luottamuksenTaso = UPDATED_LUOTTAMUKSEN_TASO
+        updatedSuoritemerkinta.arviointiasteikonTaso = UPDATED_LUOTTAMUKSEN_TASO
         updatedSuoritemerkinta.vaativuustaso = UPDATED_VAATIVUUSTASO
         updatedSuoritemerkinta.lisatiedot = UPDATED_LISATIEDOT
         updatedSuoritemerkinta.lukittu = UPDATED_LUKITTU
@@ -229,7 +257,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         assertThat(suoritemerkintaList).hasSize(databaseSizeBeforeUpdate)
         val testSuoritemerkinta = suoritemerkintaList[suoritemerkintaList.size - 1]
         assertThat(testSuoritemerkinta.suorituspaiva).isEqualTo(UPDATED_SUORITUSPAIVA)
-        assertThat(testSuoritemerkinta.luottamuksenTaso).isEqualTo(UPDATED_LUOTTAMUKSEN_TASO)
+        assertThat(testSuoritemerkinta.arviointiasteikonTaso).isEqualTo(UPDATED_LUOTTAMUKSEN_TASO)
         assertThat(testSuoritemerkinta.vaativuustaso).isEqualTo(UPDATED_VAATIVUUSTASO)
         assertThat(testSuoritemerkinta.lisatiedot).isEqualTo(UPDATED_LISATIEDOT)
         assertThat(testSuoritemerkinta.lukittu).isEqualTo(false) // Lukitseminen tehdään eri rajapinnan kautta
@@ -293,7 +321,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         em.detach(updatedSuoritemerkinta)
 
         updatedSuoritemerkinta.suorituspaiva = UPDATED_SUORITUSPAIVA
-        updatedSuoritemerkinta.luottamuksenTaso = UPDATED_LUOTTAMUKSEN_TASO
+        updatedSuoritemerkinta.arviointiasteikonTaso = UPDATED_LUOTTAMUKSEN_TASO
         updatedSuoritemerkinta.vaativuustaso = UPDATED_VAATIVUUSTASO
         updatedSuoritemerkinta.lisatiedot = UPDATED_LISATIEDOT
         updatedSuoritemerkinta.lukittu = UPDATED_LUKITTU
@@ -310,7 +338,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         assertThat(suoritemerkintaList).hasSize(databaseSizeBeforeUpdate)
         val testSuoritemerkinta = suoritemerkintaList[suoritemerkintaList.size - 1]
         assertThat(testSuoritemerkinta.suorituspaiva).isEqualTo(DEFAULT_SUORITUSPAIVA)
-        assertThat(testSuoritemerkinta.luottamuksenTaso).isEqualTo(DEFAULT_LUOTTAMUKSEN_TASO)
+        assertThat(testSuoritemerkinta.arviointiasteikonTaso).isEqualTo(DEFAULT_LUOTTAMUKSEN_TASO)
         assertThat(testSuoritemerkinta.vaativuustaso).isEqualTo(DEFAULT_VAATIVUUSTASO)
         assertThat(testSuoritemerkinta.lisatiedot).isEqualTo(DEFAULT_LISATIEDOT)
         assertThat(testSuoritemerkinta.lukittu).isEqualTo(true)
@@ -469,10 +497,14 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         private const val UPDATED_LUKITTU: Boolean = true
 
         @JvmStatic
-        fun createEntity(em: EntityManager, erikoisala: Erikoisala? = null, user: User? = null): Suoritemerkinta {
+        fun createEntity(
+            em: EntityManager,
+            erikoisala: Erikoisala? = null,
+            user: User? = null
+        ): Suoritemerkinta {
             val suoritemerkinta = Suoritemerkinta(
                 suorituspaiva = DEFAULT_SUORITUSPAIVA,
-                luottamuksenTaso = DEFAULT_LUOTTAMUKSEN_TASO,
+                arviointiasteikonTaso = DEFAULT_LUOTTAMUKSEN_TASO,
                 vaativuustaso = DEFAULT_VAATIVUUSTASO,
                 lisatiedot = DEFAULT_LISATIEDOT,
                 lukittu = DEFAULT_LUKITTU
@@ -507,7 +539,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         fun createUpdatedEntity(em: EntityManager): Suoritemerkinta {
             val suoritemerkinta = Suoritemerkinta(
                 suorituspaiva = UPDATED_SUORITUSPAIVA,
-                luottamuksenTaso = UPDATED_LUOTTAMUKSEN_TASO,
+                arviointiasteikonTaso = UPDATED_LUOTTAMUKSEN_TASO,
                 vaativuustaso = UPDATED_VAATIVUUSTASO,
                 lisatiedot = UPDATED_LISATIEDOT,
                 lukittu = UPDATED_LUKITTU

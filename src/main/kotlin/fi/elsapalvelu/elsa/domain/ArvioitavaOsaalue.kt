@@ -49,7 +49,7 @@ data class ArvioitavaOsaalue(
 
     @ManyToOne
     @JsonIgnoreProperties(value = ["arvioitavaOsaalueet"], allowSetters = true)
-    var epaOsaamisalue: EpaOsaamisalue? = null
+    var arvioitavaKokonaisuus: ArvioitavaKokonaisuus? = null
 
 ) : Serializable {
 

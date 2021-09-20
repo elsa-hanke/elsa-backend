@@ -61,11 +61,11 @@ open class SuoritusarviointiResource(
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
         if (suoritusarviointiDTO.vaativuustaso == null
-            || suoritusarviointiDTO.luottamuksenTaso == null
+            || suoritusarviointiDTO.arviointiasteikonTaso == null
             || suoritusarviointiDTO.sanallinenArviointi == null
         ) {
             throw BadRequestAlertException(
-                "Kouluttajan arvioinnin täytyy sisältää vaativuustaso, luottamuksen taso ja sanallien arviointi",
+                "Kouluttajan arvioinnin täytyy sisältää vaativuustaso, arviointiasteikon taso ja sanallien arviointi",
                 ENTITY_NAME,
                 "dataillegal"
             )
