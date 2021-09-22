@@ -20,6 +20,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
@@ -248,10 +249,11 @@ class TyoskentelyjaksoServiceImpl(
                 tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(tyoskentelyjaksot)
         }
         tyoskentelyjaksot.forEach {
-           totalLength += tyoskentelyjaksonPituusCounterService.calculateInDays(it, hyvaksiluettavatCounter)
+            totalLength += tyoskentelyjaksonPituusCounterService.calculateInDays(it, hyvaksiluettavatCounter)
         }
 
-        val years = totalLength / 365
+        // Pyöristetään päivät ylöspäin UOELSA-717 mukaisesti
+        val years = ceil(totalLength) / 365
         val months = years * 12
         // Koejaksoon liitetyn työskentelyjakson (voi koostua useammasta jaksosta) vähimmäispituus on 6kk.
         return months >= 6
@@ -361,7 +363,8 @@ class TyoskentelyjaksoServiceImpl(
         kaytannonKoulutusSuoritettuMap: MutableMap<KaytannonKoulutusTyyppi, Double>,
         tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>
     ) {
-        val tyoskentelyjaksonPituus = tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso, hyvaksiluettavatCounterData)
+        val tyoskentelyjaksonPituus =
+            tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso, hyvaksiluettavatCounterData)
         if (tyoskentelyjaksonPituus > 0) {
             // Summataan suoritettu aika koulutustyypettäin
             when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
