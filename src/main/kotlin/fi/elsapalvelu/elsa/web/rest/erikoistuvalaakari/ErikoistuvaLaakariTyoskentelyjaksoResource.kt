@@ -53,7 +53,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
         }?.let {
             validateNewTyoskentelyjaksoDTO(it)
-            validatePaattymispaiva(it)
+            validatePaattymispaiva(user.id!!, it)
             validateTyoskentelyaika(user.id!!, it)
 
             val asiakirjaDTOs = getMappedFiles(files, user.id!!) ?: mutableSetOf()
@@ -95,7 +95,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                     "idnull"
                 )
             }
-            validatePaattymispaiva(it)
+            validatePaattymispaiva(user.id!!, it)
             validateTyoskentelyaika(user.id!!, it)
 
             val newAsiakirjat = getMappedFiles(files, user.id!!) ?: mutableSetOf()
@@ -120,67 +120,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             TYOSKENTELYJAKSO_ENTITY_NAME,
             "dataillegal"
         )
-    }
-
-    private fun validateNewTyoskentelyjaksoDTO(it: TyoskentelyjaksoDTO) {
-        if (it.id != null) {
-            throw BadRequestAlertException(
-                "Uusi tyoskentelyjakso ei saa sisältää ID:tä.",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
-                "idexists"
-            )
-        }
-        if (it.tyoskentelypaikka == null || it.tyoskentelypaikka!!.id != null) {
-            throw BadRequestAlertException(
-                "Uusi tyoskentelypaikka ei saa sisältää ID:tä.",
-                "tyoskentelypaikka",
-                "idexists"
-            )
-        }
-    }
-
-    private fun validateTyoskentelyaika(userId: String, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
-        if (!overlappingTyoskentelyjaksoValidator.validateTyoskentelyjakso(userId, tyoskentelyjaksoDTO)) {
-            throw BadRequestAlertException(
-                "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
-                tyoskentelyaikaErrorKey
-            )
-        }
-    }
-
-    private fun validatePaattymispaiva(tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
-        if (tyoskentelyjaksoDTO.paattymispaiva != null
-        ) {
-            if (tyoskentelyjaksoDTO.paattymispaiva!!.isBefore(tyoskentelyjaksoDTO.alkamispaiva!!)) {
-                throw BadRequestAlertException(
-                    "Työskentelyjakson päättymispäivä ei saa olla ennen alkamisaikaa",
-                    "tyoskentelypaikka",
-                    "dataillegal"
-                )
-            }
-        }
-    }
-
-    private fun getMappedFiles(
-        files: List<MultipartFile>?,
-        userId: String
-    ): MutableSet<AsiakirjaDTO>? {
-        files?.let {
-            fileValidator.validate(it, userId)
-            return it.map { file ->
-                AsiakirjaDTO(
-                    nimi = file.originalFilename,
-                    tyyppi = file.contentType,
-                    asiakirjaData = AsiakirjaDataDTO(
-                        fileInputStream = file.inputStream,
-                        fileSize = file.size
-                    )
-                )
-            }.toMutableSet()
-        }
-
-        return null
     }
 
     @GetMapping("/tyoskentelyjaksot-taulukko")
@@ -431,6 +370,64 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             TYOSKENTELYJAKSO_ENTITY_NAME,
             "dataillegal"
         )
+    }
+
+    private fun getMappedFiles(
+        files: List<MultipartFile>?,
+        userId: String
+    ): MutableSet<AsiakirjaDTO>? {
+        files?.let {
+            fileValidator.validate(it, userId)
+            return it.map { file ->
+                AsiakirjaDTO(
+                    nimi = file.originalFilename,
+                    tyyppi = file.contentType,
+                    asiakirjaData = AsiakirjaDataDTO(
+                        fileInputStream = file.inputStream,
+                        fileSize = file.size
+                    )
+                )
+            }.toMutableSet()
+        }
+
+        return null
+    }
+
+    private fun validateNewTyoskentelyjaksoDTO(it: TyoskentelyjaksoDTO) {
+        if (it.id != null) {
+            throw BadRequestAlertException(
+                "Uusi tyoskentelyjakso ei saa sisältää ID:tä.",
+                TYOSKENTELYJAKSO_ENTITY_NAME,
+                "idexists"
+            )
+        }
+        if (it.tyoskentelypaikka == null || it.tyoskentelypaikka!!.id != null) {
+            throw BadRequestAlertException(
+                "Uusi tyoskentelypaikka ei saa sisältää ID:tä.",
+                "tyoskentelypaikka",
+                "idexists"
+            )
+        }
+    }
+
+    private fun validateTyoskentelyaika(userId: String, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
+        if (!overlappingTyoskentelyjaksoValidator.validateTyoskentelyjakso(userId, tyoskentelyjaksoDTO)) {
+            throw BadRequestAlertException(
+                "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
+                TYOSKENTELYJAKSO_ENTITY_NAME,
+                tyoskentelyaikaErrorKey
+            )
+        }
+    }
+
+    private fun validatePaattymispaiva(userId: String, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
+        if (!tyoskentelyjaksoService.validatePaattymispaiva(tyoskentelyjaksoDTO, userId)) {
+            throw BadRequestAlertException(
+                "Työskentelyjakson päättymispäivä ei ole kelvollinen",
+                TYOSKENTELYJAKSO_ENTITY_NAME,
+                "dataillegal"
+            )
+        }
     }
 
     private fun validateKeskeytysaika(

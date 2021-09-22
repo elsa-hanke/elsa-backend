@@ -407,6 +407,51 @@ class TyoskentelyjaksoServiceImpl(
         }
     }
 
+    override fun validatePaattymispaiva(
+        tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
+        userId: String,
+    ): Boolean {
+        var valid = true
+        tyoskentelyjaksoDTO.run {
+            if (
+                paattymispaiva != null &&
+                paattymispaiva!!.isBefore(alkamispaiva!!)
+            ) {
+                valid = false
+            }
+        }
+
+        if (tyoskentelyjaksoDTO.id != null) {
+            tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(
+                tyoskentelyjaksoDTO.id!!,
+                userId
+            )?.let { tyoskentelyjakso ->
+                val tyoskentelyjaksoPaattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
+                if (tyoskentelyjaksoPaattymispaiva != null) {
+                    tyoskentelyjakso.suoritusarvioinnit.forEach { suoritusarviointi ->
+                        if (tyoskentelyjaksoPaattymispaiva.isBefore(suoritusarviointi.tapahtumanAjankohta)) {
+                            valid = false
+                        }
+                    }
+                    tyoskentelyjakso.suoritemerkinnat.forEach { suoritemerkinta ->
+                        if (tyoskentelyjaksoPaattymispaiva.isBefore(suoritemerkinta.suorituspaiva)) {
+                            valid = false
+                        }
+                    }
+                    tyoskentelyjakso.keskeytykset.forEach { keskeytys ->
+                        if (tyoskentelyjaksoPaattymispaiva.isBefore(keskeytys.paattymispaiva)) {
+                            valid = false
+                        }
+                    }
+                }
+            } ?: run {
+                valid = false
+            }
+        }
+
+        return valid
+    }
+
     data class TilastotCounter(
         var terveyskeskusSuoritettu: Double = 0.0,
         var yliopistosairaalaSuoritettu: Double = 0.0,

@@ -30,4 +30,9 @@ interface TyoskentelyjaksoService {
     fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO
 
     fun updateLiitettyKoejaksoon(id: Long, userId: String, liitettyKoejaksoon: Boolean): TyoskentelyjaksoDTO?
+
+    fun validatePaattymispaiva(
+        tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
+        userId: String,
+    ): Boolean
 }
