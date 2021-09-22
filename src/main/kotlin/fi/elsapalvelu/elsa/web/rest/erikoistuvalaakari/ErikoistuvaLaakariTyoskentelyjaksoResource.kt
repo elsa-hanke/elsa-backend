@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.tyoskentelyaikaErrorKey
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.validation.FileValidator
+import fi.elsapalvelu.elsa.validation.OverlappingTyoskentelyjaksoValidator
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import org.slf4j.LoggerFactory
@@ -32,7 +33,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val keskeytysaikaService: KeskeytysaikaService,
     private val asiakirjaService: AsiakirjaService,
     private val objectMapper: ObjectMapper,
-    private val fileValidator: FileValidator
+    private val fileValidator: FileValidator,
+    private val overlappingTyoskentelyjaksoValidator: OverlappingTyoskentelyjaksoValidator
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
