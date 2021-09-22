@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.constants.tyoskentelyaikaErrorKey
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.validation.FileValidator
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -15,11 +16,10 @@ import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
-import java.time.temporal.ChronoUnit
 import javax.validation.Valid
-import kotlin.math.ceil
 
-private const val ENTITY_NAME = "tyoskentelyjakso"
+private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
+private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
@@ -49,24 +49,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
-        }?.also {
-            log.debug("REST request to create Tyoskentelyjakso : $this")
-            if (it.id != null) {
-                throw BadRequestAlertException(
-                    "Uusi tyoskentelyjakso ei saa sisältää ID:tä.",
-                    ENTITY_NAME,
-                    "idexists"
-                )
-            }
-            val tyoskentelypaikka = it.tyoskentelypaikka
-            if (tyoskentelypaikka == null || tyoskentelypaikka.id != null) {
-                throw BadRequestAlertException(
-                    "Uusi tyoskentelypaikka ei saa sisältää ID:tä.",
-                    "tyoskentelypaikka",
-                    "idexists"
-                )
-            }
-        }?.also { validatePaattymispaiva(it) }?.let {
+        }?.let {
+            validateNewTyoskentelyjaksoDTO(it)
+            validatePaattymispaiva(it)
+            validateTyoskentelyaika(user.id!!, it)
+
             val asiakirjaDTOs = getMappedFiles(files, user.id!!) ?: mutableSetOf()
             tyoskentelyjaksoService.create(it, user.id!!, asiakirjaDTOs)?.let { result ->
                 return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${result.id}"))
@@ -74,7 +61,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                         HeaderUtil.createEntityCreationAlert(
                             applicationName,
                             true,
-                            ENTITY_NAME,
+                            TYOSKENTELYJAKSO_ENTITY_NAME,
                             result.id.toString()
                         )
                     )
@@ -83,34 +70,92 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         } ?: throw BadRequestAlertException(
             "Työskentelyjakson lisääminen epäonnistui.",
-            ENTITY_NAME,
+            TYOSKENTELYJAKSO_ENTITY_NAME,
             "dataillegal"
         )
     }
 
-    private fun validatePaattymispaiva(tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
-        tyoskentelyjaksoDTO.run {
-            if (paattymispaiva != null
-            ) {
-                val daysBetween = ChronoUnit.DAYS.between(
-                    alkamispaiva,
-                    paattymispaiva
-                ) + 1
-                val minDays = ceil(
-                    (
-                        30 * (
-                            100 / osaaikaprosentti!!
-                                .coerceIn(50, 100)
+    @PutMapping("/tyoskentelyjaksot")
+    fun updateTyoskentelyjakso(
+        @Valid @RequestParam tyoskentelyjaksoJson: String,
+        @Valid @RequestParam files: List<MultipartFile>?,
+        @RequestParam deletedAsiakirjaIdsJson: String?,
+        principal: Principal?
+    ): ResponseEntity<TyoskentelyjaksoDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        tyoskentelyjaksoJson.let {
+            objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
+        }?.let {
+            if (it.id == null) {
+                throw BadRequestAlertException(
+                    "Työskentelyjakson ID puuttuu.",
+                    TYOSKENTELYJAKSO_ENTITY_NAME,
+                    "idnull"
+                )
+            }
+            validatePaattymispaiva(it)
+            validateTyoskentelyaika(user.id!!, it)
+
+            val newAsiakirjat = getMappedFiles(files, user.id!!) ?: mutableSetOf()
+            val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let { id ->
+                objectMapper.readValue(id, mutableSetOf<Int>()::class.java)
+            }
+            tyoskentelyjaksoService.update(it, user.id!!, newAsiakirjat, deletedAsiakirjaIds)
+                ?.let { result ->
+                    return ResponseEntity.ok()
+                        .headers(
+                            HeaderUtil.createEntityUpdateAlert(
+                                applicationName,
+                                true,
+                                TYOSKENTELYJAKSO_ENTITY_NAME,
+                                result.id.toString()
                             )
-                        ).toDouble()
-                ).toInt()
-                if (paattymispaiva!!.isBefore(alkamispaiva!!)) {
-                    throw BadRequestAlertException(
-                        "Työskentelyjakson päättymispäivä ei saa olla ennen alkamisaikaa",
-                        "tyoskentelypaikka",
-                        "dataillegal"
-                    )
+                        )
+                        .body(result)
                 }
+        } ?: throw BadRequestAlertException(
+            "Työskentelyjakson päivittäminen epäonnistui.",
+            TYOSKENTELYJAKSO_ENTITY_NAME,
+            "dataillegal"
+        )
+    }
+
+    private fun validateNewTyoskentelyjaksoDTO(it: TyoskentelyjaksoDTO) {
+        if (it.id != null) {
+            throw BadRequestAlertException(
+                "Uusi tyoskentelyjakso ei saa sisältää ID:tä.",
+                TYOSKENTELYJAKSO_ENTITY_NAME,
+                "idexists"
+            )
+        }
+        if (it.tyoskentelypaikka == null || it.tyoskentelypaikka!!.id != null) {
+            throw BadRequestAlertException(
+                "Uusi tyoskentelypaikka ei saa sisältää ID:tä.",
+                "tyoskentelypaikka",
+                "idexists"
+            )
+        }
+    }
+
+    private fun validateTyoskentelyaika(userId: String, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
+        if (!overlappingTyoskentelyjaksoValidator.validateTyoskentelyjakso(userId, tyoskentelyjaksoDTO)) {
+            throw BadRequestAlertException(
+                "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
+                TYOSKENTELYJAKSO_ENTITY_NAME,
+                tyoskentelyaikaErrorKey
+            )
+        }
+    }
+
+    private fun validatePaattymispaiva(tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
+        if (tyoskentelyjaksoDTO.paattymispaiva != null
+        ) {
+            if (tyoskentelyjaksoDTO.paattymispaiva!!.isBefore(tyoskentelyjaksoDTO.alkamispaiva!!)) {
+                throw BadRequestAlertException(
+                    "Työskentelyjakson päättymispäivä ei saa olla ennen alkamisaikaa",
+                    "tyoskentelypaikka",
+                    "dataillegal"
+                )
             }
         }
     }
@@ -134,50 +179,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         }
 
         return null
-    }
-
-    @PutMapping("/tyoskentelyjaksot")
-    fun updateTyoskentelyjakso(
-        @Valid @RequestParam tyoskentelyjaksoJson: String,
-        @Valid @RequestParam files: List<MultipartFile>?,
-        @RequestParam deletedAsiakirjaIdsJson: String?,
-        principal: Principal?
-    ): ResponseEntity<TyoskentelyjaksoDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        tyoskentelyjaksoJson.let {
-            objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
-        }?.also {
-            log.debug("REST request to update Tyoskentelyjakso : $this")
-            if (it.id == null) {
-                throw BadRequestAlertException(
-                    "Työskentelyjakson ID puuttuu.",
-                    ENTITY_NAME,
-                    "idnull"
-                )
-            }
-        }?.also { validatePaattymispaiva(it) }?.let {
-            val newAsiakirjat = getMappedFiles(files, user.id!!) ?: mutableSetOf()
-            val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let { id ->
-                objectMapper.readValue(id, mutableSetOf<Int>()::class.java)
-            }
-            tyoskentelyjaksoService.update(it, user.id!!, newAsiakirjat, deletedAsiakirjaIds)
-                ?.let { result ->
-                    return ResponseEntity.ok()
-                        .headers(
-                            HeaderUtil.createEntityUpdateAlert(
-                                applicationName,
-                                true,
-                                ENTITY_NAME,
-                                result.id.toString()
-                            )
-                        )
-                        .body(result)
-                }
-        } ?: throw BadRequestAlertException(
-            "Työskentelyjakson päivittäminen epäonnistui.",
-            ENTITY_NAME,
-            "dataillegal"
-        )
     }
 
     @GetMapping("/tyoskentelyjaksot-taulukko")
@@ -238,7 +239,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 HeaderUtil.createEntityDeletionAlert(
                     applicationName,
                     true,
-                    ENTITY_NAME,
+                    TYOSKENTELYJAKSO_ENTITY_NAME,
                     id.toString()
                 )
             ).build()
@@ -332,10 +333,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         log.debug("REST request to update Keskeytysaika : $keskeytysaikaDTO")
 
         if (keskeytysaikaDTO.id == null) {
-            throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
+            throw BadRequestAlertException("Invalid id", TYOSKENTELYJAKSO_ENTITY_NAME, "idnull")
         }
 
         val user = userService.getAuthenticatedUser(principal)
+        validateKeskeytysaika(user.id!!, keskeytysaikaDTO)
         keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)?.let {
             return ResponseEntity.ok()
                 .headers(
@@ -349,7 +351,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 .body(it)
         } ?: throw BadRequestAlertException(
             "Keskeytysajan päivittäminen epäonnistui.",
-            ENTITY_NAME,
+            TYOSKENTELYJAKSO_ENTITY_NAME,
             "dataillegal"
         )
     }
@@ -375,6 +377,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         log.debug("REST request to delete Keskeytysaika : $id")
 
         val user = userService.getAuthenticatedUser(principal)
+        validateKeskeytysaikaDelete(user.id!!, id)
         keskeytysaikaService.delete(id, user.id!!)
         return ResponseEntity.noContent()
             .headers(
@@ -395,13 +398,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     ): ResponseEntity<TyoskentelyjaksoDTO?> {
         val user = userService.getAuthenticatedUser(principal)
         if (tyoskentelyjaksoDTO.id == null) {
-            throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
+            throw BadRequestAlertException("Virheellinen id", TYOSKENTELYJAKSO_ENTITY_NAME, "idnull")
         }
 
         if (tyoskentelyjaksoDTO.liitettyKoejaksoon == null) {
             throw BadRequestAlertException(
                 "liitettyKoejaksoon on pakollinen tieto",
-                ENTITY_NAME,
+                TYOSKENTELYJAKSO_ENTITY_NAME,
                 "illegaldata"
             )
         }
@@ -423,8 +426,38 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             return if (tyoskentelyjaksoDTO.liitettyKoejaksoon!!) response.body(it) else response.build()
         } ?: throw BadRequestAlertException(
             "Työskentelyjakson päivittäminen epäonnistui.",
-            ENTITY_NAME,
+            TYOSKENTELYJAKSO_ENTITY_NAME,
             "dataillegal"
         )
+    }
+
+    private fun validateKeskeytysaika(
+        userId: String,
+        keskeytysaikaDTO: KeskeytysaikaDTO
+    ) {
+        if (!overlappingTyoskentelyjaksoValidator.validateKeskeytysaika(
+                userId,
+                keskeytysaikaDTO
+            )
+        ) {
+            throw BadRequestAlertException(
+                "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
+                TYOSKENTELYJAKSO_ENTITY_NAME,
+                tyoskentelyaikaErrorKey
+            )
+        }
+    }
+
+    private fun validateKeskeytysaikaDelete(
+        userId: String,
+        keskeytysaikaId: Long
+    ) {
+        if (!overlappingTyoskentelyjaksoValidator.validateKeskeytysaikaDelete(userId, keskeytysaikaId)) {
+            throw BadRequestAlertException(
+                "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
+                KESKEYTYSAIKA_ENTITY_NAME,
+                tyoskentelyaikaErrorKey
+            )
+        }
     }
 }
