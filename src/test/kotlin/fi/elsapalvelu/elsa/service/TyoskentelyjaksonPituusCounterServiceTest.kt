@@ -1,13 +1,12 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
+import fi.elsapalvelu.elsa.service.helpers.KeskeytysaikaMockHelper
+import fi.elsapalvelu.elsa.service.helpers.TyoskentelyjaksoMockHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
-import org.mockito.Mockito.mock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
@@ -22,7 +21,8 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculate without osaaikaprosenti`() {
-        val tyoskentelyjakso = createTyoskentelyjakso(
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(0L),
             LocalDate.ofEpochDay(30L), 100, mutableSetOf()
         )
@@ -34,7 +34,8 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculate with osaaikaprosentti 50`() {
-        val tyoskentelyjakso = createTyoskentelyjakso(
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(0L),
             LocalDate.ofEpochDay(58L), 50, mutableSetOf()
         )
@@ -46,12 +47,13 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculate with one week keskeytysaika`() {
-        val keskeytysaikaMock = createKeskeytysaikaMock(
+        val keskeytysaikaMock = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(15L),
             LocalDate.ofEpochDay(22L), 0
         )
 
-        val tyoskentelyjakso = createTyoskentelyjakso(
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(0L),
             LocalDate.ofEpochDay(37L), 100, mutableSetOf(keskeytysaikaMock)
         )
@@ -63,11 +65,12 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculate with osaaikaprosentti 50 and keskeytysaika of one week`() {
-        val keskeytysaikaMock = createKeskeytysaikaMock(
+        val keskeytysaikaMock = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(15L),
             LocalDate.ofEpochDay(22L), 0
         )
-        val tyoskentelyjakso = createTyoskentelyjakso(
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(0L),
             LocalDate.ofEpochDay(58L), 50, mutableSetOf(keskeytysaikaMock)
         )
@@ -79,11 +82,12 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculate with osaaikaprosentti 50 and keskeytysaika of one week with osaaikaprosentti 50`() {
-        val keskeytysaikaMock = createKeskeytysaikaMock(
+        val keskeytysaikaMock = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(15L),
             LocalDate.ofEpochDay(22L), 50
         )
-        val tyoskentelyjakso = createTyoskentelyjakso(
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(0L),
             LocalDate.ofEpochDay(58L), 50, mutableSetOf(keskeytysaikaMock)
         )
@@ -99,7 +103,8 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculate with alkamispaiva in the future and paattymispaiva null`() {
-        val tyoskentelyjakso = createTyoskentelyjakso(
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.now().plusDays(5),
             null, 100, mutableSetOf()
         )
@@ -111,7 +116,8 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculate alkamispaiva in the past and paattymispaiva null`() {
-        val tyoskentelyjakso = createTyoskentelyjakso(
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.now().minusDays(5),
             null, 100, mutableSetOf()
         )
@@ -123,15 +129,18 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test getHyvaksiluettavatPerYearMap`() {
-        val tyoskentelyjakso1 = createTyoskentelyjakso(
+        val tyoskentelyjakso1 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(350L),
             LocalDate.ofEpochDay(400L)
         )
-        val tyoskentelyjakso2 = createTyoskentelyjakso(
+        val tyoskentelyjakso2 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(600),
             LocalDate.ofEpochDay(745L), 50
         )
-        val tyoskentelyjakso3 = createTyoskentelyjakso(
+        val tyoskentelyjakso3 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(400L),
             LocalDate.ofEpochDay(750L), 50
         )
@@ -151,20 +160,21 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculate with type vahennetaan ylimeneva osa`() {
-        val keskeytysaikaMock1 = createKeskeytysaikaMock(
+        val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(370L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA
         )
-        val keskeytysaikaMock2 = createKeskeytysaikaMock(
+        val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(700L),
             LocalDate.ofEpochDay(730L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA
         )
 
-        val tyoskentelyjakso = createTyoskentelyjakso(
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(350L),
             LocalDate.ofEpochDay(740L), 100,
             mutableSetOf(keskeytysaikaMock1, keskeytysaikaMock2)
@@ -180,49 +190,50 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculate with type vahennetaan ylimeneva osa per vuosi`() {
-        val keskeytysaikaMock1 = createKeskeytysaikaMock(
+        val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(370L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock2 = createKeskeytysaikaMock(
+        val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(390L),
             LocalDate.ofEpochDay(410L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock3 = createKeskeytysaikaMock(
+        val keskeytysaikaMock3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(600L),
             LocalDate.ofEpochDay(650L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock4 = createKeskeytysaikaMock(
+        val keskeytysaikaMock4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(900L),
             LocalDate.ofEpochDay(910L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock5 = createKeskeytysaikaMock(
+        val keskeytysaikaMock5 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(990L),
             LocalDate.ofEpochDay(1025L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock6 = createKeskeytysaikaMock(
+        val keskeytysaikaMock6 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(1300L),
             LocalDate.ofEpochDay(1350L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val tyoskentelyjakso = createTyoskentelyjakso(
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(350L),
             LocalDate.ofEpochDay(1360L), 100, mutableSetOf(
                 keskeytysaikaMock1,
@@ -256,49 +267,50 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculate with type vahennetaan ylimeneva osa per vuosi with osa-aikaiset poissaolot`() {
-        val keskeytysaikaMock1 = createKeskeytysaikaMock(
+        val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(370L),
             50,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock2 = createKeskeytysaikaMock(
+        val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(390L),
             LocalDate.ofEpochDay(410L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock3 = createKeskeytysaikaMock(
+        val keskeytysaikaMock3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(600L),
             LocalDate.ofEpochDay(650L),
             25,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock4 = createKeskeytysaikaMock(
+        val keskeytysaikaMock4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(900L),
             LocalDate.ofEpochDay(910L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock5 = createKeskeytysaikaMock(
+        val keskeytysaikaMock5 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(990L),
             LocalDate.ofEpochDay(1025L),
             66,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock6 = createKeskeytysaikaMock(
+        val keskeytysaikaMock6 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(1300L),
             LocalDate.ofEpochDay(1350L),
             80,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val tyoskentelyjakso = createTyoskentelyjakso(
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(350L),
             LocalDate.ofEpochDay(1360L), 100, mutableSetOf(
                 keskeytysaikaMock1,
@@ -335,28 +347,29 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculate with vahennetaan ylimeneva osa with osa-aikaiset poissaolot and tyoskentelyjakso`() {
-        val keskeytysaikaMock1 = createKeskeytysaikaMock(
+        val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(370L),
             50,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock2 = createKeskeytysaikaMock(
+        val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(390L),
             LocalDate.ofEpochDay(410L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock3 = createKeskeytysaikaMock(
+        val keskeytysaikaMock3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(560L),
             LocalDate.ofEpochDay(650L),
             25,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val tyoskentelyjakso = createTyoskentelyjakso(
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(350L),
             LocalDate.ofEpochDay(660L), 75, mutableSetOf(
                 keskeytysaikaMock1,
@@ -389,56 +402,57 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
     @Test
     fun `test calculateInDays with type vahennetaan ylimeneva osa per vuosi with multiple tyoskentelyjaksot`() {
-        val keskeytysaikaMock1 = createKeskeytysaikaMock(
+        val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(390L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock2 = createKeskeytysaikaMock(
+        val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(400L),
             LocalDate.ofEpochDay(420L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock3 = createKeskeytysaikaMock(
+        val keskeytysaikaMock3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(600L),
             LocalDate.ofEpochDay(650L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock4 = createKeskeytysaikaMock(
+        val keskeytysaikaMock4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(900L),
             LocalDate.ofEpochDay(910L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock5 = createKeskeytysaikaMock(
+        val keskeytysaikaMock5 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(990L),
             LocalDate.ofEpochDay(1025L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock6 = createKeskeytysaikaMock(
+        val keskeytysaikaMock6 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(1050L),
             LocalDate.ofEpochDay(1100L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val keskeytysaikaMock7 = createKeskeytysaikaMock(
+        val keskeytysaikaMock7 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             LocalDate.ofEpochDay(1105L),
             LocalDate.ofEpochDay(1139L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
 
-        val tyoskentelyjakso1 = createTyoskentelyjakso(
+        val tyoskentelyjakso1 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(350L),
             LocalDate.ofEpochDay(500L), 100, mutableSetOf(
                 keskeytysaikaMock1,
@@ -446,7 +460,8 @@ class TyoskentelyjaksonPituusCounterServiceTest {
             )
         )
 
-        val tyoskentelyjakso2 = createTyoskentelyjakso(
+        val tyoskentelyjakso2 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(510L),
             LocalDate.ofEpochDay(700L), 100, mutableSetOf(
                 keskeytysaikaMock3,
@@ -454,7 +469,8 @@ class TyoskentelyjaksonPituusCounterServiceTest {
             )
         )
 
-        val tyoskentelyjakso3 = createTyoskentelyjakso(
+        val tyoskentelyjakso3 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
             LocalDate.ofEpochDay(705L),
             LocalDate.ofEpochDay(1200L), 100, mutableSetOf(
                 keskeytysaikaMock5,
@@ -494,44 +510,93 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         assertThat(totalLength).isEqualTo(697.0)
     }
 
-    companion object {
-        @JvmStatic
-        fun createTyoskentelyjakso(
-            alkamispaiva: LocalDate?,
-            paattymispaiva: LocalDate?,
-            osaaikaprosentti: Int = 100,
-            keskeytykset: MutableSet<Keskeytysaika> = mutableSetOf()
-        ): Tyoskentelyjakso {
-            val tyoskentelyjakso = Tyoskentelyjakso(
-                alkamispaiva = alkamispaiva,
-                paattymispaiva = paattymispaiva,
-                osaaikaprosentti = osaaikaprosentti,
-                keskeytykset = keskeytykset
+    @Test
+    fun `test calculateHyvaksiluettavatDaysLeft`() {
+        val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            LocalDate.ofEpochDay(355L),
+            LocalDate.ofEpochDay(390L),
+            100,
+            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
+        )
+
+        val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            LocalDate.ofEpochDay(400L),
+            LocalDate.ofEpochDay(420L),
+            100,
+            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
+        )
+
+        val keskeytysaikaMock3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            LocalDate.ofEpochDay(900L),
+            LocalDate.ofEpochDay(910L),
+            100,
+            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
+        )
+
+        val keskeytysaikaMock4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            LocalDate.ofEpochDay(1130L),
+            LocalDate.ofEpochDay(1139L),
+            100,
+            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA
+        )
+
+        val keskeytysaikaMock5 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            LocalDate.ofEpochDay(1150L),
+            LocalDate.ofEpochDay(1159L),
+            100,
+            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA
+        )
+
+        val tyoskentelyjakso1 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
+            LocalDate.ofEpochDay(350L),
+            LocalDate.ofEpochDay(500L), 100, mutableSetOf(
+                keskeytysaikaMock1,
+                keskeytysaikaMock2
             )
-            tyoskentelyjakso.tyoskentelypaikka = mock(Tyoskentelypaikka::class.java)
-            tyoskentelyjakso.erikoistuvaLaakari = mock(ErikoistuvaLaakari::class.java)
+        )
 
-            return tyoskentelyjakso
-        }
+        val tyoskentelyjakso2 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
+            LocalDate.ofEpochDay(510L),
+            LocalDate.ofEpochDay(700L), 100, mutableSetOf(
+                keskeytysaikaMock3,
+                keskeytysaikaMock4
+            )
+        )
 
-        @JvmStatic
-        fun createKeskeytysaikaMock(
-            alkamispaiva: LocalDate?,
-            paattymispaiva: LocalDate?,
-            osaaikaprosentti: Int = 100,
-            poissaolonSyyTyyppi: PoissaolonSyyTyyppi = PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN
-        ): Keskeytysaika {
-            val keskeytysaikaMock = mock(Keskeytysaika::class.java)
-            Mockito.`when`(keskeytysaikaMock.alkamispaiva).thenReturn(alkamispaiva)
-            Mockito.`when`(keskeytysaikaMock.paattymispaiva).thenReturn(paattymispaiva)
-            Mockito.`when`(keskeytysaikaMock.osaaikaprosentti).thenReturn(osaaikaprosentti)
-            val poissaolonSyyMock = mock(PoissaolonSyy::class.java)
-            Mockito.`when`(poissaolonSyyMock.vahennystyyppi).thenReturn(poissaolonSyyTyyppi)
-            Mockito.`when`(keskeytysaikaMock.poissaolonSyy).thenReturn(poissaolonSyyMock)
+        val tyoskentelyjakso3 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
+            LocalDate.ofEpochDay(705L),
+            LocalDate.ofEpochDay(1200L), 100, mutableSetOf(
+                keskeytysaikaMock5
+            )
+        )
 
-            return keskeytysaikaMock
-        }
+        val tyoskentelyjaksot = listOf(tyoskentelyjakso1, tyoskentelyjakso2, tyoskentelyjakso3)
 
+        val hyvaksiluettavatCounterData =
+            tyoskentelyjaksonPituusCounterService.calculateHyvaksiluettavatDaysLeft(tyoskentelyjaksot)
+
+        // 1. työskentelyjakso 151 päivää:
+        // 1. poissaolo (ajoittuu kahdelle vuodelle) ->  1970: 10 päivää, 1971: 26 päivää
+        // -> jäljellä olevia päiviä hyväksiluettavaksi vuonna 1970 jää 20 ja vuonna 1971 30 - 26 = 4 päivää.
+        // 2. poissaolo -> 1971: 21 päivää. Jäljellä olevia päiviä hyväksiluettavaksi vuodelle 1971 jää 0 kpl.
+        // 2. työskentelyjakso 191 päivää:
+        // 1. poissaolo -> 1972: 11 päivää. Jäljellä olevia päiviä hyväksiluettavaksi vuodelle 1972 jää 19 kpl.
+        // 2. poissaolo (tyyppiä VÄHENNETÄÄN_YLIMENEVÄ_AIKA): 10 päivää,
+        // Jäljellä olevia päiviä hyväksiluettavaksi ko. poissaolotyypillä jää 20 päivää.
+        // 3. työskentelyjakso 496 päivää
+        // 1. poissaolo (tyyppiä VÄHENNETÄÄN_YLIMENEVÄ_AIKA): 10 päivää,
+        // Jäljellä olevia päiviä hyväksiluettavaksi ko. poissaolotyypillä jää 10 päivää.
+
+        assertThat(hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[1970]).isEqualTo(20.0)
+        assertThat(hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[1971]).isEqualTo(0.0)
+        assertThat(hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[1972]).isEqualTo(19.0)
+        assertThat(hyvaksiluettavatCounterData.hyvaksiluettavatDays).isEqualTo(10.0)
+    }
+
+    companion object {
         @JvmStatic
         fun createHyvaksiluettavatCounterData(range: IntRange): HyvaksiluettavatCounterData {
             return HyvaksiluettavatCounterData().apply {
