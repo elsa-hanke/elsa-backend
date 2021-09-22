@@ -8,14 +8,13 @@ import fi.elsapalvelu.elsa.extensions.duringYears
 import fi.elsapalvelu.elsa.extensions.endOfYearDate
 import fi.elsapalvelu.elsa.extensions.startOfYearDate
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
+import fi.elsapalvelu.elsa.service.constants.hyvaksiluettavatDays
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.max
-
-private const val hyvaksiluettavatDays: Double = 30.0
 
 @Service
 @Transactional
@@ -36,53 +35,45 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
 
             // Vähennetään keskeytykset
             tyoskentelyjakso.keskeytykset.map { keskeytysaika ->
-                val keskeytysaikaDaysBetween = keskeytysaika.alkamispaiva!!.daysBetween(keskeytysaika.paattymispaiva!!)
-                val keskeytysaikaProsentti = keskeytysaika.osaaikaprosentti!!.toDouble()
-                // Keskeytysajan prosentti 0 % tarkoittaa kokopäiväpoissaoloa
-                val keskeytysaikaFactor =
-                    if (keskeytysaikaProsentti == 0.0) 1.0
-                    else keskeytysaikaProsentti / 100.0
-                // Kerrotaan myös työskentelyjakson osa-aikaprosentilla, koska esim. 50% poissaolo 50% mittaisesta
-                // työpäivästä vähentää hyväksiluettavia päiviä kyseisen päivän osalta vain 0,25 päivää.
-                val keskeytysaikaLength = keskeytysaikaFactor * tyoskentelyjaksoFactor * keskeytysaikaDaysBetween
-
-                when (keskeytysaika.poissaolonSyy!!.vahennystyyppi!!) {
-                    VAHENNETAAN_SUORAAN -> {
-                        result -= keskeytysaikaLength
-                    }
-                    VAHENNETAAN_YLIMENEVA_AIKA -> {
-                        val (amountOfReducedDays, hyvaksiLuettavatLeft) =
-                            getAmountOfReducedDaysAndHyvaksiluettavatLeft(
-                                keskeytysaikaLength,
-                                hyvaksiluettavatCounterData.hyvaksiluettavatDays
-                            )
-                        result -= amountOfReducedDays
-                        hyvaksiluettavatCounterData.hyvaksiluettavatDays = hyvaksiLuettavatLeft
-                    }
-                    VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI -> {
-                        val keskeytysaikaMap = getKeskeytysaikaMap(
-                            keskeytysaika,
-                            keskeytysaikaFactor,
-                            tyoskentelyjaksoFactor
-                        )
-                        keskeytysaikaMap.forEach {
-                            val (amountOfReducedDays, hyvaksiLuettavatLeft) =
-                                getAmountOfReducedDaysAndHyvaksiluettavatLeft(
-                                    it.value,
-                                    hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key]!!
-                                )
-                            result -= amountOfReducedDays
-                            hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key] = hyvaksiLuettavatLeft
-                        }
-                    }
-                }
+                val amountOfReducedDays =
+                    calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
+                        keskeytysaika,
+                        tyoskentelyjaksoFactor,
+                        hyvaksiluettavatCounterData
+                    )
+                result -= amountOfReducedDays
             }
 
-            // Koskaan ei summata negatiivisa arvoja laskuriin! (Esim. jos on kirjattu poissaolo useampaan kertaan)
+            // Koskaan ei summata negatiivisia arvoja laskuriin! (Esim. jos on kirjattu poissaolo useampaan kertaan)
             return max(0.0, result)
         }
 
         return 0.0
+    }
+
+    override fun calculateHyvaksiluettavatDaysLeft(
+        tyoskentelyjaksot: List<Tyoskentelyjakso>,
+        calculateUntilDate: LocalDate?
+    ): HyvaksiluettavatCounterData {
+        val hyvaksiluettavatCounterData = HyvaksiluettavatCounterData().apply {
+            hyvaksiluettavatPerYearMap = getHyvaksiluettavatPerYearMap(tyoskentelyjaksot)
+        }
+
+        tyoskentelyjaksot.forEach {
+            val tyoskentelyjaksoFactor = it.osaaikaprosentti!!.toDouble() / 100.0
+
+            for (keskeytys in it.keskeytykset) {
+                //if (keskeytys.paattymispaiva!! >= calculateUntilDate) continue
+                calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
+                    keskeytys,
+                    tyoskentelyjaksoFactor,
+                    hyvaksiluettavatCounterData,
+                    calculateUntilDate
+                )
+            }
+        }
+
+        return hyvaksiluettavatCounterData
     }
 
     // Muodostetaan Map jossa avaimena työskentelyjakson vuosi ja arvona mahdollisten hyväksiluettavien
@@ -108,6 +99,63 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
         }
 
         return hyvaksiLuettavatPerYearMap
+    }
+
+    private fun calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
+        keskeytysaika: Keskeytysaika,
+        tyoskentelyjaksoFactor: Double,
+        hyvaksiluettavatCounterData: HyvaksiluettavatCounterData,
+        calculateUntilDate: LocalDate? = null
+    ): Double {
+        val endDate =
+            if (calculateUntilDate != null && calculateUntilDate < keskeytysaika.paattymispaiva!!) calculateUntilDate
+            else keskeytysaika.paattymispaiva!!
+        val keskeytysaikaDaysBetween =
+            keskeytysaika.alkamispaiva!!.daysBetween(endDate)
+
+        if (keskeytysaikaDaysBetween < 1) return 0.0
+
+        val keskeytysaikaProsentti = keskeytysaika.osaaikaprosentti!!.toDouble()
+        // Keskeytysajan prosentti 0 % tarkoittaa kokopäiväpoissaoloa
+        val keskeytysaikaFactor =
+            if (keskeytysaikaProsentti == 0.0) 1.0
+            else keskeytysaikaProsentti / 100.0
+        // Kerrotaan myös työskentelyjakson osa-aikaprosentilla, koska esim. 50% poissaolo 50% mittaisesta
+        // työpäivästä vähentää hyväksiluettavia päiviä kyseisen päivän osalta vain 0,25 päivää.
+        val keskeytysaikaLength = keskeytysaikaFactor * tyoskentelyjaksoFactor * keskeytysaikaDaysBetween
+
+        when (keskeytysaika.poissaolonSyy!!.vahennystyyppi!!) {
+            VAHENNETAAN_SUORAAN -> {
+                return keskeytysaikaLength
+            }
+            VAHENNETAAN_YLIMENEVA_AIKA -> {
+                val (amountOfReducedDays, hyvaksiLuettavatLeft) =
+                    getAmountOfReducedDaysAndHyvaksiluettavatLeft(
+                        keskeytysaikaLength,
+                        hyvaksiluettavatCounterData.hyvaksiluettavatDays
+                    )
+                hyvaksiluettavatCounterData.hyvaksiluettavatDays = hyvaksiLuettavatLeft
+                return amountOfReducedDays
+            }
+            VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI -> {
+                val keskeytysaikaMap = getKeskeytysaikaMap(
+                    keskeytysaika,
+                    keskeytysaikaFactor,
+                    tyoskentelyjaksoFactor
+                )
+                var reducedDaysTotal = 0.0
+                keskeytysaikaMap.forEach {
+                    val (amountOfReducedDays, hyvaksiLuettavatLeft) =
+                        getAmountOfReducedDaysAndHyvaksiluettavatLeft(
+                            it.value,
+                            hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key]!!
+                        )
+                    hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key] = hyvaksiLuettavatLeft
+                    reducedDaysTotal += amountOfReducedDays
+                }
+                return reducedDaysTotal
+            }
+        }
     }
 
     private fun getAmountOfReducedDaysAndHyvaksiluettavatLeft(
