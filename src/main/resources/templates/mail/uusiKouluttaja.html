@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<html lang="fi" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>[ELSA-palvelu] Olet saanut kutsun liittyä ELSA-järjestelmän käyttäjäksi</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
     <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
 </head>
 <body>
@@ -15,8 +15,8 @@
     Pääset kirjautumaan järjestelmään seuraavan linkin kautta:
 </p>
 <p>
-    <a th:with="url=(@{|${baseUrl}/login?token=${id}|})" th:href="${url}"
-       th:text="${url}"></a>
+    <a th:href="${url}" th:text="${url}"
+       th:with="url=(@{|${baseUrl}/kirjautuminen?token=${id}|})"></a>
 </p>
 <p>
     HUOM! Tähän sähköpostiviestiin ei voi vastata.
