@@ -14,6 +14,10 @@ fun LocalDate.daysBetween(endDate: LocalDate): Int {
     ).toInt() + 1
 }
 
+fun LocalDate.isInRange(startDate: LocalDate, endDate: LocalDate?): Boolean {
+    return startDate <= this && (endDate == null || endDate >= this)
+}
+
 fun Int.startOfYearDate(): LocalDate {
     return LocalDate.of(this, 1, 1)
 }
@@ -21,3 +25,4 @@ fun Int.startOfYearDate(): LocalDate {
 fun Int.endOfYearDate(): LocalDate {
     return YearMonth.of(this, 12).atEndOfMonth()
 }
+
