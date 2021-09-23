@@ -16,6 +16,8 @@ data class TyoskentelyjaksoDTO(
 
     var paattymispaiva: LocalDate? = null,
 
+    var minPaattymispaiva: LocalDate? = null,
+
     @get: NotNull
     @get: Min(value = 50)
     @get: Max(value = 100)
