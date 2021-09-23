@@ -43,7 +43,7 @@ class UserService(
     fun getAllManagedUsers(pageable: Pageable): Page<UserDTO> =
         userRepository.findAllByLoginNot(pageable, ANONYMOUS_USER).map { UserDTO(it) }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getUserFromAuthentication(authToken: Saml2Authentication): UserDTO {
         val principal = authToken.principal as Saml2AuthenticatedPrincipal
 
@@ -62,6 +62,7 @@ class UserService(
         return UserDTO(userRepository.findById(userId).get())
     }
 
+    @Transactional(readOnly = true)
     fun getAuthenticatedUser(principal: Principal?): UserDTO {
         if (principal is Saml2Authentication) {
             return getUserFromAuthentication(principal)
@@ -148,7 +149,7 @@ class UserService(
         return UserDTO(user)
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun existsByEmail(email: String): Boolean {
         return userRepository.findOneByEmail(email).isPresent
     }
