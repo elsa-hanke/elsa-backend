@@ -17,7 +17,7 @@ class KayttajaResource(
     @GetMapping("/kayttaja")
     fun getKayttaja(principal: Principal?): UserDTO {
         val userId = userService.getAuthenticatedUser(principal).id!!
-        
+
         return userService.getUser(userId)
     }
 
@@ -27,11 +27,12 @@ class KayttajaResource(
         principal: Principal?
     ): UserDTO {
         val userId = userService.getAuthenticatedUser(principal).id!!
+        val email = omatTiedotDTO.email!!
 
         val userDTO = userService.getUser(userId)
-        if (userDTO.email != omatTiedotDTO.email && userService.existsByEmail(omatTiedotDTO.email)) {
+        if (userDTO.email != email && userService.existsByEmail(email)) {
             throw BadRequestAlertException(
-                "Samalla sähköpostilla löytyy jo käyttäjä",
+                "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
                 "kayttaja",
                 "dataillegal"
             )
