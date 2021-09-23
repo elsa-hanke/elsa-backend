@@ -2,10 +2,12 @@ package fi.elsapalvelu.elsa.service.dto
 
 import org.springframework.web.multipart.MultipartFile
 import java.io.Serializable
+import javax.validation.constraints.NotNull
 
 data class OmatTiedotDTO(
 
-    var email: String,
+    @get: NotNull
+    var email: String? = null,
 
     var phoneNumber: String? = null,
 
