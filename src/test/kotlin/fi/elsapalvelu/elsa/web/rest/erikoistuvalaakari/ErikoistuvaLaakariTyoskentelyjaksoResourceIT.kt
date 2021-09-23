@@ -401,7 +401,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
     @Test
     @Transactional
-    fun updateTyoskentelyjaksoWithSuoritusarvioinnit_shouldUpdateOnlyPaattymispaiva() {
+    fun updateTyoskentelyjaksoWithSuoritusarvioinnitShouldUpdateOnlyPaattymispaiva() {
         initTest()
 
         assertThat(tyoskentelyjakso.suoritusarvioinnit).isEmpty()
@@ -980,7 +980,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             em,
             user,
             LocalDate.of(2020, 2, 1),
-            LocalDate.of(2020, 2, 15))
+            LocalDate.of(2020, 2, 15)
+        )
         tyoskentelyjakso2.hyvaksyttyAiempaanErikoisalaan = true
         tyoskentelyjakso2.kaytannonKoulutus =
             KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS

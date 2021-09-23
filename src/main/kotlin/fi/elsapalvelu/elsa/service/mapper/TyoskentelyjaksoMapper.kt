@@ -23,8 +23,8 @@ interface TyoskentelyjaksoMapper :
         Mapping(source = "omaaErikoisalaaTukeva.id", target = "omaaErikoisalaaTukevaId"),
         Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId"),
         Mapping(
-            expression = "java(entity.isSuoritusarvioinnitNotEmpty())",
-            target = "suoritusarvioinnit"
+            expression = "java(entity.hasTapahtumia())",
+            target = "tapahtumia"
         )
     )
     override fun toDto(entity: Tyoskentelyjakso): TyoskentelyjaksoDTO

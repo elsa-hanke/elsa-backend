@@ -421,10 +421,20 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     }
 
     private fun validatePaattymispaiva(userId: String, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
+        tyoskentelyjaksoDTO.paattymispaiva?.isBefore(tyoskentelyjaksoDTO.alkamispaiva)?.let {
+            if (it) {
+                throw BadRequestAlertException(
+                    "Työskentelyjakson päättymispäivä ei saa olla ennen alkamisaikaa",
+                    "tyoskentelypaikka",
+                    "dataillegal"
+                )
+            }
+        }
+
         if (!tyoskentelyjaksoService.validatePaattymispaiva(tyoskentelyjaksoDTO, userId)) {
             throw BadRequestAlertException(
-                "Työskentelyjakson päättymispäivä ei ole kelvollinen",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
+                "Työskentelyjakson päättymispäivä ei ole kelvollinen.",
+                "tyoskentelyjakso",
                 "dataillegal"
             )
         }
