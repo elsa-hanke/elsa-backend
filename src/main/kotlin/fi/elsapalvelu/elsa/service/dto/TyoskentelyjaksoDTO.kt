@@ -37,7 +37,7 @@ data class TyoskentelyjaksoDTO(
 
     var omaaErikoisalaaTukeva: ErikoisalaDTO? = null,
 
-    var suoritusarvioinnit: Boolean? = null,
+    var tapahtumia: Boolean? = null,
 
     var liitettyKoejaksoon: Boolean? = null,
 

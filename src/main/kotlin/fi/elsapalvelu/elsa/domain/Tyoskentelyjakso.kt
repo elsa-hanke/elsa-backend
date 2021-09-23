@@ -6,7 +6,6 @@ import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.LocalDate
-import java.util.*
 import javax.persistence.*
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
@@ -111,17 +110,19 @@ data class Tyoskentelyjakso(
         return this
     }
 
-    fun isSuoritusarvioinnitNotEmpty(): Boolean {
-        return this.suoritusarvioinnit.isNotEmpty()
+    fun getMinPaattymispaiva(): LocalDate? {
+        val dates = listOfNotNull(this.alkamispaiva)
+            .plus(suoritemerkinnat.map { it.suorituspaiva })
+            .plus(keskeytykset.map { it.paattymispaiva })
+            .plus(suoritusarvioinnit.map { it.tapahtumanAjankohta })
+
+        return dates.maxWithOrNull { o1, o2 ->
+            o1!!.compareTo(o2 ?: LocalDate.MIN)
+        }
     }
 
-    fun getMinPaattymispaiva(): LocalDate? {
-        return Collections.max(
-            listOf(this.alkamispaiva)
-                .plus(suoritemerkinnat.map { it.suorituspaiva })
-                .plus(keskeytykset.map { it.paattymispaiva })
-                .plus(suoritusarvioinnit.map { it.tapahtumanAjankohta })
-        )
+    fun hasTapahtumia(): Boolean {
+        return suoritemerkinnat.size + keskeytykset.size + suoritusarvioinnit.size > 0
     }
 
     override fun equals(other: Any?): Boolean {

@@ -91,7 +91,7 @@ class TyoskentelyjaksoServiceImpl(
                 ?.let { tyoskentelyjakso ->
                     // Jos työskentelyjaksolle on lisätty arviointeja tai arviointipyyntöjä, sallitaan vain
                     // päättymispäivän muokkaus.
-                    tyoskentelyjakso.takeIf { it.isSuoritusarvioinnitNotEmpty() }
+                    tyoskentelyjakso.takeIf { it.hasTapahtumia() }
                         ?.apply {
                             paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
                         } ?: tyoskentelyjakso.let {
@@ -266,7 +266,7 @@ class TyoskentelyjaksoServiceImpl(
                     ?.let { kirjautunutErikoistuvaLaakari ->
                         if (
                             kirjautunutErikoistuvaLaakari == it &&
-                            !tyoskentelyjakso.isSuoritusarvioinnitNotEmpty()
+                            !tyoskentelyjakso.hasTapahtumia()
                         ) {
                             tyoskentelyjaksoRepository.deleteById(id)
                         }
