@@ -71,7 +71,7 @@ class TyoskentelyjaksoServiceImpl(
                         }
                     }
             }?.let {
-                tyoskentelyjaksoRepository.save(it)?.let { saved ->
+                tyoskentelyjaksoRepository.save(it).let { saved ->
                     return tyoskentelyjaksoMapper.toDto(saved)
                 }
             }
@@ -411,45 +411,37 @@ class TyoskentelyjaksoServiceImpl(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         userId: String,
     ): Boolean {
-        var valid = true
-        tyoskentelyjaksoDTO.run {
-            if (
-                paattymispaiva != null &&
-                paattymispaiva!!.isBefore(alkamispaiva!!)
-            ) {
-                valid = false
-            }
-        }
-
-        if (tyoskentelyjaksoDTO.id != null) {
+        return tyoskentelyjaksoDTO.id?.let { tyoskentelyjaksoId ->
             tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(
-                tyoskentelyjaksoDTO.id!!,
+                tyoskentelyjaksoId,
                 userId
-            )?.let { tyoskentelyjakso ->
-                val tyoskentelyjaksoPaattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
-                if (tyoskentelyjaksoPaattymispaiva != null) {
-                    tyoskentelyjakso.suoritusarvioinnit.forEach { suoritusarviointi ->
-                        if (tyoskentelyjaksoPaattymispaiva.isBefore(suoritusarviointi.tapahtumanAjankohta)) {
-                            valid = false
-                        }
-                    }
-                    tyoskentelyjakso.suoritemerkinnat.forEach { suoritemerkinta ->
-                        if (tyoskentelyjaksoPaattymispaiva.isBefore(suoritemerkinta.suorituspaiva)) {
-                            valid = false
-                        }
-                    }
-                    tyoskentelyjakso.keskeytykset.forEach { keskeytys ->
-                        if (tyoskentelyjaksoPaattymispaiva.isBefore(keskeytys.paattymispaiva)) {
-                            valid = false
-                        }
-                    }
-                }
-            } ?: run {
-                valid = false
+            )
+        }?.let { tyoskentelyjakso ->
+            val paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva ?: return true
+            if (paattymispaiva.isBefore(tyoskentelyjakso.alkamispaiva)) {
+                return false
             }
-        }
 
-        return valid
+            for (suoritemerkinta in tyoskentelyjakso.suoritemerkinnat) {
+                if (paattymispaiva.isBefore(suoritemerkinta.suorituspaiva)) {
+                    return false
+                }
+            }
+
+            for (keskeytys in tyoskentelyjakso.keskeytykset) {
+                if (paattymispaiva.isBefore(keskeytys.paattymispaiva)) {
+                    return false
+                }
+            }
+
+            for (suoritusarviointi in tyoskentelyjakso.suoritusarvioinnit) {
+                if (paattymispaiva.isBefore(suoritusarviointi.tapahtumanAjankohta)) {
+                    return false
+                }
+            }
+
+            true
+        } ?: true
     }
 
     data class TilastotCounter(
