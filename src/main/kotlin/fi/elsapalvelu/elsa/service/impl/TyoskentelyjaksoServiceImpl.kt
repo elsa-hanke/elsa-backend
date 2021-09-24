@@ -418,10 +418,7 @@ class TyoskentelyjaksoServiceImpl(
             )
         }?.let { tyoskentelyjakso ->
             val paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva ?: return true
-            if (paattymispaiva.isBefore(tyoskentelyjakso.alkamispaiva)) {
-                return false
-            }
-
+            
             for (suoritemerkinta in tyoskentelyjakso.suoritemerkinnat) {
                 if (paattymispaiva.isBefore(suoritemerkinta.suorituspaiva)) {
                     return false
