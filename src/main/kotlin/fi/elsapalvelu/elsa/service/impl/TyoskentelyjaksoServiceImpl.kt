@@ -131,9 +131,7 @@ class TyoskentelyjaksoServiceImpl(
                     )
                 }
         }?.let { updated ->
-            tyoskentelyjaksoRepository.save(updated)?.let { persisted ->
-                return tyoskentelyjaksoMapper.toDto(persisted)
-            }
+            return tyoskentelyjaksoMapper.toDto(updated)
         }
 
         return null
