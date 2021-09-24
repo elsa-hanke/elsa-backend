@@ -145,6 +145,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 null,
                 LocalDate.ofEpochDay(0L),
                 LocalDate.ofEpochDay(30L),
+                null,
                 25
             )
         )
@@ -180,6 +181,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 null,
                 LocalDate.ofEpochDay(0L),
                 LocalDate.ofEpochDay(30L),
+                null,
                 25
             )
         )
@@ -217,6 +219,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 1,
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(19L),
+                null,
                 100
             )
         )
@@ -254,6 +257,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 1,
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(20L),
+                null,
                 100
             )
         )
@@ -298,6 +302,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 1,
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(20L),
+                null,
                 25
             )
         )
@@ -368,6 +373,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 1,
                 LocalDate.ofEpochDay(70L),
                 LocalDate.ofEpochDay(90L),
+                null,
                 100
             )
         )
@@ -438,6 +444,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 1,
                 LocalDate.ofEpochDay(40L),
                 LocalDate.ofEpochDay(78L),
+                null,
                 100
             )
         )
@@ -523,6 +530,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 1,
                 LocalDate.ofEpochDay(451L),
                 LocalDate.ofEpochDay(470L),
+                null,
                 100
             )
         )
@@ -579,6 +587,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 1,
                 LocalDate.ofEpochDay(360L),
                 LocalDate.ofEpochDay(370L),
+                null,
                 100
             )
         )
@@ -608,6 +617,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 null,
                 LocalDate.ofEpochDay(0L),
                 LocalDate.ofEpochDay(30L),
+                null,
                 25
             )
         )
@@ -643,6 +653,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 null,
                 LocalDate.ofEpochDay(0L),
                 LocalDate.ofEpochDay(30L),
+                null,
                 25
             )
         )
@@ -677,6 +688,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 null,
                 LocalDate.ofEpochDay(31L),
                 LocalDate.ofEpochDay(50L),
+                null,
                 50
             )
         )
@@ -733,6 +745,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 null,
                 LocalDate.ofEpochDay(490L),
                 LocalDate.ofEpochDay(510L),
+                null,
                 50
             )
         )
@@ -770,6 +783,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 1,
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(20L),
+                null,
                 100
             )
         )
@@ -807,6 +821,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 1,
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(20L),
+                null,
                 100
             )
         )
@@ -851,6 +866,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
                 1,
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(20L),
+                null,
                 50
             )
         )
