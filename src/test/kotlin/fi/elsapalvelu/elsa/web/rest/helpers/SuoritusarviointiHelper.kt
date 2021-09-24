@@ -47,9 +47,13 @@ class SuoritusarviointiHelper {
         private const val UPDATED_LUKITTU: Boolean = true
 
         @JvmStatic
-        fun createEntity(em: EntityManager, user: User? = null): Suoritusarviointi {
+        fun createEntity(
+            em: EntityManager,
+            user: User? = null,
+            tapahtumanAjankohta: LocalDate = DEFAULT_TAPAHTUMAN_AJANKOHTA
+        ): Suoritusarviointi {
             val suoritusarviointi = Suoritusarviointi(
-                tapahtumanAjankohta = DEFAULT_TAPAHTUMAN_AJANKOHTA,
+                tapahtumanAjankohta = tapahtumanAjankohta,
                 arvioitavaTapahtuma = DEFAULT_ARVIOITAVA_TAPAHTUMA,
                 pyynnonAika = DEFAULT_PYYNNON_AIKA,
                 lisatiedot = DEFAULT_LISATIEDOT,
