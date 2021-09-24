@@ -465,6 +465,74 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
     @Test
     @Transactional
+    fun updateTyoskentelyjaksoWithSuoritusarvioinnitAndInvalidPaattymispaiva() {
+        initTest()
+
+        assertThat(tyoskentelyjakso.suoritusarvioinnit).isEmpty()
+
+        tyoskentelyjakso.suoritusarvioinnit.add(
+            SuoritusarviointiHelper.createEntity(em, user, LocalDate.of(2020, 1, 20))
+        )
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        val id = tyoskentelyjakso.id
+        assertNotNull(id)
+
+        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(id).get()
+        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(existingTyoskentelyjakso)
+
+        // Asetetaan päättymispäivä suoritusarvioinnin ulkopuolelle
+        tyoskentelyjaksoDTO.apply {
+            paattymispaiva = LocalDate.of(2020, 1, 19)
+        }
+
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
+        restTyoskentelyjaksoMockMvc.perform(
+            put("/api/erikoistuva-laakari/tyoskentelyjaksot")
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun updateTyoskentelyjaksoWithSuoritusarvioinnitAndValidPaattymispaiva() {
+        initTest()
+
+        assertThat(tyoskentelyjakso.suoritusarvioinnit).isEmpty()
+
+        val suoritusarviointiTapahtumanAjankohta = LocalDate.of(2020, 1, 20)
+
+        tyoskentelyjakso.suoritusarvioinnit.add(
+            SuoritusarviointiHelper.createEntity(em, user, suoritusarviointiTapahtumanAjankohta)
+        )
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        val id = tyoskentelyjakso.id
+        assertNotNull(id)
+
+        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(id).get()
+        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(existingTyoskentelyjakso)
+
+        // Asetetaan päättymispäivä suoritusarvioinnin päivälle
+        tyoskentelyjaksoDTO.apply {
+            paattymispaiva = suoritusarviointiTapahtumanAjankohta
+        }
+
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
+        restTyoskentelyjaksoMockMvc.perform(
+            put("/api/erikoistuva-laakari/tyoskentelyjaksot")
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
+                .with(csrf())
+        ).andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.paattymispaiva").value(suoritusarviointiTapahtumanAjankohta.toString()))
+    }
+
+    @Test
+    @Transactional
     fun updateTyoskentelyjaksoWithoutId() {
         initTest()
 
