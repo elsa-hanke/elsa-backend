@@ -130,9 +130,7 @@ class TyoskentelyjaksoServiceImpl(
                     )
                 }
         }?.let { updated ->
-            tyoskentelyjaksoRepository.save(updated)?.let { persisted ->
-                return tyoskentelyjaksoMapper.toDto(persisted)
-            }
+            return tyoskentelyjaksoMapper.toDto(updated)
         }
 
         return null
@@ -248,7 +246,7 @@ class TyoskentelyjaksoServiceImpl(
                 tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(tyoskentelyjaksot)
         }
         tyoskentelyjaksot.forEach {
-           totalLength += tyoskentelyjaksonPituusCounterService.calculateInDays(it, hyvaksiluettavatCounter)
+            totalLength += tyoskentelyjaksonPituusCounterService.calculateInDays(it, hyvaksiluettavatCounter)
         }
 
         val years = totalLength / 365
@@ -361,7 +359,8 @@ class TyoskentelyjaksoServiceImpl(
         kaytannonKoulutusSuoritettuMap: MutableMap<KaytannonKoulutusTyyppi, Double>,
         tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>
     ) {
-        val tyoskentelyjaksonPituus = tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso, hyvaksiluettavatCounterData)
+        val tyoskentelyjaksonPituus =
+            tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso, hyvaksiluettavatCounterData)
         if (tyoskentelyjaksonPituus > 0) {
             // Summataan suoritettu aika koulutustyypettäin
             when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
