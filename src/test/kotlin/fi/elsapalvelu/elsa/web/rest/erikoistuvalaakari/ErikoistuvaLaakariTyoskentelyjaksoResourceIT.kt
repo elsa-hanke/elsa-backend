@@ -888,12 +888,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     fun deleteKeskeytysaika() {
         initTest()
 
-        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
-        val tyoskentelyjaksoTableSizeBeforeDelete = keskeytysaikaRepository.findAll().size
+        val keskeytysaikaTableSizeBeforeDelete = keskeytysaikaRepository.findAll().size
 
         restKeskeytysaikaMockMvc.perform(
             delete("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot/{id}", keskeytysaika.id)
@@ -902,7 +901,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         ).andExpect(status().isNoContent)
 
         val keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete - 1)
+        assertThat(keskeytysaikaList).hasSize(keskeytysaikaTableSizeBeforeDelete - 1)
     }
 
     @Test
@@ -913,21 +912,22 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         initTest(erikoistuvaLaakari.kayttaja?.user?.id)
 
-        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
-        val tyoskentelyjaksoTableSizeBeforeDelete = keskeytysaikaRepository.findAll().size
+        val keskeytysaikaTableSizeBeforeDelete = keskeytysaikaRepository.findAll().size
+        val keskeytysaikaDTO = keskeytysaikaMapper.toDto(keskeytysaika)
 
         restKeskeytysaikaMockMvc.perform(
-            delete("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot/{id}", keskeytysaika.id)
-                .accept(MediaType.APPLICATION_JSON)
+            delete("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(keskeytysaikaDTO))
                 .with(csrf())
-        ).andExpect(status().isNoContent)
+        ).andExpect(status().isBadRequest)
 
         val keskeytysaikaList = keskeytysaikaRepository.findAll()
-        assertThat(keskeytysaikaList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete)
+        assertThat(keskeytysaikaList).hasSize(keskeytysaikaTableSizeBeforeDelete)
     }
 
     @Test
