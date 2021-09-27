@@ -24,7 +24,12 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
         tyoskentelyjakso: Tyoskentelyjakso,
         hyvaksiluettavatCounterData: HyvaksiluettavatCounterData
     ): Double {
-        val tyoskentelyJaksoEndDate = tyoskentelyjakso.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
+        val now = LocalDate.now(ZoneId.systemDefault())
+        val tyoskentelyJaksoEndDate =
+            if (tyoskentelyjakso.paattymispaiva == null || tyoskentelyjakso.paattymispaiva!! > now)
+                now
+            else
+                tyoskentelyjakso.paattymispaiva!!
         // Lasketaan työskentelyjakson päivät
         val daysBetween = tyoskentelyjakso.alkamispaiva!!.daysBetween(tyoskentelyJaksoEndDate)
 
