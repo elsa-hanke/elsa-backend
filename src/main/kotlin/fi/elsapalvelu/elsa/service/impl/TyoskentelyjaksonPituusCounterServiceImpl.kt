@@ -63,7 +63,6 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
             val tyoskentelyjaksoFactor = it.osaaikaprosentti!!.toDouble() / 100.0
 
             for (keskeytys in it.keskeytykset) {
-                //if (keskeytys.paattymispaiva!! >= calculateUntilDate) continue
                 calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
                     keskeytys,
                     tyoskentelyjaksoFactor,
