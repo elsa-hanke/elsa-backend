@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
-import fi.elsapalvelu.elsa.validation.FileValidator
+import fi.elsapalvelu.elsa.service.FileValidationService
 import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -24,7 +24,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
     private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val asiakirjaService: AsiakirjaService,
-    private val fileValidator: FileValidator
+    private val fileValidationService: FileValidationService
 ) {
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
@@ -35,7 +35,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        fileValidator.validate(files, user.id!!)
+        fileValidationService.validate(files, user.id!!)
 
         val asiakirjat =
             files.map {

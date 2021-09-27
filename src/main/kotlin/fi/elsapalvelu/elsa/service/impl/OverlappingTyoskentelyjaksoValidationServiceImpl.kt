@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.validation.impl
+package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi
@@ -10,7 +10,7 @@ import fi.elsapalvelu.elsa.service.constants.hyvaksiluettavatDays
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
-import fi.elsapalvelu.elsa.validation.OverlappingTyoskentelyjaksoValidator
+import fi.elsapalvelu.elsa.service.OverlappingTyoskentelyjaksoValidationService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -22,11 +22,11 @@ private const val ENTITY_NAME_TYOSKENTELYJAKSO = "tyoskentelyjakso"
 private const val ENTITY_NAME_KESKEYTYSAIKA = "keskeytysaika"
 
 @Service
-class OverlappingTyoskentelyjaksoValidatorImpl(
+class OverlappingTyoskentelyjaksoValidationServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val keskeytysaikaRepository: KeskeytysaikaRepository,
     private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService
-) : OverlappingTyoskentelyjaksoValidator {
+) : OverlappingTyoskentelyjaksoValidationService {
 
     override fun validateTyoskentelyjakso(
         userId: String,

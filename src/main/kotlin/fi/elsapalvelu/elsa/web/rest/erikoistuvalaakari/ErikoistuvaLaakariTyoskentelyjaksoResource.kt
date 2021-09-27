@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.tyoskentelyaikaErrorKey
 import fi.elsapalvelu.elsa.service.dto.*
-import fi.elsapalvelu.elsa.validation.FileValidator
-import fi.elsapalvelu.elsa.validation.OverlappingTyoskentelyjaksoValidator
+import fi.elsapalvelu.elsa.service.FileValidationService
+import fi.elsapalvelu.elsa.service.OverlappingTyoskentelyjaksoValidationService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import org.slf4j.LoggerFactory
@@ -33,8 +33,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val keskeytysaikaService: KeskeytysaikaService,
     private val asiakirjaService: AsiakirjaService,
     private val objectMapper: ObjectMapper,
-    private val fileValidator: FileValidator,
-    private val overlappingTyoskentelyjaksoValidator: OverlappingTyoskentelyjaksoValidator
+    private val fileValidationService: FileValidationService,
+    private val overlappingTyoskentelyjaksoValidationService: OverlappingTyoskentelyjaksoValidationService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -377,7 +377,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         userId: String
     ): MutableSet<AsiakirjaDTO>? {
         files?.let {
-            fileValidator.validate(it, userId)
+            fileValidationService.validate(it, userId)
             return it.map { file ->
                 AsiakirjaDTO(
                     nimi = file.originalFilename,
@@ -411,7 +411,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     }
 
     private fun validateTyoskentelyaika(userId: String, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
-        if (!overlappingTyoskentelyjaksoValidator.validateTyoskentelyjakso(userId, tyoskentelyjaksoDTO)) {
+        if (!overlappingTyoskentelyjaksoValidationService.validateTyoskentelyjakso(userId, tyoskentelyjaksoDTO)) {
             throw BadRequestAlertException(
                 "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
                 TYOSKENTELYJAKSO_ENTITY_NAME,
@@ -444,7 +444,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         userId: String,
         keskeytysaikaDTO: KeskeytysaikaDTO
     ) {
-        if (!overlappingTyoskentelyjaksoValidator.validateKeskeytysaika(
+        if (!overlappingTyoskentelyjaksoValidationService.validateKeskeytysaika(
                 userId,
                 keskeytysaikaDTO
             )
@@ -461,7 +461,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         userId: String,
         keskeytysaikaId: Long
     ) {
-        if (!overlappingTyoskentelyjaksoValidator.validateKeskeytysaikaDelete(userId, keskeytysaikaId)) {
+        if (!overlappingTyoskentelyjaksoValidationService.validateKeskeytysaikaDelete(userId, keskeytysaikaId)) {
             throw BadRequestAlertException(
                 "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
                 KESKEYTYSAIKA_ENTITY_NAME,
