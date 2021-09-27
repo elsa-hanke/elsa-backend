@@ -1,7 +1,7 @@
-package fi.elsapalvelu.elsa.validation.impl
+package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.service.AsiakirjaService
-import fi.elsapalvelu.elsa.validation.FileValidator
+import fi.elsapalvelu.elsa.service.FileValidationService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
@@ -9,9 +9,9 @@ import org.springframework.web.multipart.MultipartFile
 private const val MAXIMUM_FILE_NAME_LENGTH = 255
 
 @Service
-class FileValidatorImpl(
+class FileValidationServiceImpl(
     private val asiakirjaService: AsiakirjaService
-    ) : FileValidator {
+    ) : FileValidationService {
 
     private val allowedContentTypes = listOf("application/pdf", "image/jpg", "image/jpeg", "image/png")
 

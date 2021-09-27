@@ -1,9 +1,9 @@
-package fi.elsapalvelu.elsa.validation
+package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 
-interface OverlappingTyoskentelyjaksoValidator {
+interface OverlappingTyoskentelyjaksoValidationService {
 
     fun validateTyoskentelyjakso(userId: String, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO): Boolean
 

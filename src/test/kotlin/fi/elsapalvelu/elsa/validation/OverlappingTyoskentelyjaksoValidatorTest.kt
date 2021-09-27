@@ -10,8 +10,8 @@ import fi.elsapalvelu.elsa.service.dto.PoissaolonSyyDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.helpers.KeskeytysaikaMockHelper
 import fi.elsapalvelu.elsa.service.helpers.TyoskentelyjaksoMockHelper
+import fi.elsapalvelu.elsa.service.impl.OverlappingTyoskentelyjaksoValidationServiceImpl
 import fi.elsapalvelu.elsa.service.impl.TyoskentelyjaksonPituusCounterServiceImpl
-import fi.elsapalvelu.elsa.validation.impl.OverlappingTyoskentelyjaksoValidatorImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -22,7 +22,7 @@ import java.time.LocalDate
 
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
-class OverlappingTyoskentelyjaksoValidatorTest {
+class OverlappingTyoskentelyjaksoValidationServiceTest {
 
     private fun testValidateTyoskentelyjakso(
         expectedResult: Boolean,
@@ -39,7 +39,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
             )
         ).thenReturn(tyoskentelyjaksotToReturn)
 
-        val validator = OverlappingTyoskentelyjaksoValidatorImpl(
+        val validator = OverlappingTyoskentelyjaksoValidationServiceImpl(
             tyoskentelyjaksoRepositoryMock,
             mock(KeskeytysaikaRepository::class.java),
             TyoskentelyjaksonPituusCounterServiceImpl()
@@ -64,7 +64,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
             )
         ).thenReturn(tyoskentelyjaksotToReturn)
 
-        val validator = OverlappingTyoskentelyjaksoValidatorImpl(
+        val validator = OverlappingTyoskentelyjaksoValidationServiceImpl(
             tyoskentelyjaksoRepositoryMock,
             mock(KeskeytysaikaRepository::class.java),
             TyoskentelyjaksonPituusCounterServiceImpl()
@@ -111,7 +111,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
             )
         ).thenReturn(keskeytysaikaMock)
 
-        val validator = OverlappingTyoskentelyjaksoValidatorImpl(
+        val validator = OverlappingTyoskentelyjaksoValidationServiceImpl(
             tyoskentelyjaksoRepositoryMock,
             keskeytysaikaRepositoryMock,
             TyoskentelyjaksonPituusCounterServiceImpl()
