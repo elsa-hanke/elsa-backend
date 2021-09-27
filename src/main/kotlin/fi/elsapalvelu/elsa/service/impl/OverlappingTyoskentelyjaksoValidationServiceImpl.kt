@@ -5,21 +5,17 @@ import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi
 import fi.elsapalvelu.elsa.extensions.isInRange
 import fi.elsapalvelu.elsa.repository.KeskeytysaikaRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
+import fi.elsapalvelu.elsa.service.OverlappingTyoskentelyjaksoValidationService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
 import fi.elsapalvelu.elsa.service.constants.hyvaksiluettavatDays
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
-import fi.elsapalvelu.elsa.service.OverlappingTyoskentelyjaksoValidationService
-import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.abs
 import kotlin.math.max
-
-private const val ENTITY_NAME_TYOSKENTELYJAKSO = "tyoskentelyjakso"
-private const val ENTITY_NAME_KESKEYTYSAIKA = "keskeytysaika"
 
 @Service
 class OverlappingTyoskentelyjaksoValidationServiceImpl(
@@ -86,11 +82,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
             keskeytysaikaRepository.findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
                 keskeytysaikaId,
                 userId
-            ) ?: throw BadRequestAlertException(
-                "Keskeytysaikaa ei löydy",
-                ENTITY_NAME_KESKEYTYSAIKA,
-                "dataillegal"
-            )
+            ) ?: return false
 
         val tyoskentelyjaksoId = keskeytysaika.tyoskentelyjakso?.id!!
         val tyoskentelyjaksoEndDate =
@@ -214,35 +206,25 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                     paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
                     osaaikaprosentti = tyoskentelyjaksoDTO.osaaikaprosentti
                 }
-            } ?: throw BadRequestAlertException(
-                "Työskentelyjaksoa ei löydy",
-                ENTITY_NAME_TYOSKENTELYJAKSO,
-                "dataillegal"
-            )
+            }
         }
     }
 
     private fun updateExistingTyoskentelyjaksoKeskeytysaika(
         keskeytysaikaDTO: KeskeytysaikaDTO,
         tyoskentelyjaksot: List<Tyoskentelyjakso>
-    ): Tyoskentelyjakso {
+    ) {
         val tyoskentelyjaksoWithUpdatedKeskeytysaika =
             findTyoskentelyjakso(keskeytysaikaDTO.tyoskentelyjaksoId!!, tyoskentelyjaksot)
 
-        tyoskentelyjaksoWithUpdatedKeskeytysaika.keskeytykset.find {
+        tyoskentelyjaksoWithUpdatedKeskeytysaika?.keskeytykset?.find {
             it.id == keskeytysaikaDTO.id
         }?.apply {
             alkamispaiva = keskeytysaikaDTO.alkamispaiva
             paattymispaiva = keskeytysaikaDTO.paattymispaiva
             osaaikaprosentti = keskeytysaikaDTO.osaaikaprosentti
             poissaolonSyy?.vahennystyyppi = keskeytysaikaDTO.poissaolonSyy?.vahennystyyppi
-        } ?: throw BadRequestAlertException(
-            "Keskeytysaikaa ei löydy",
-            ENTITY_NAME_KESKEYTYSAIKA,
-            "dataillegal"
-        )
-
-        return tyoskentelyjaksoWithUpdatedKeskeytysaika
+        }
     }
 
     private fun removeKeskeytysaikaFromTyoskententelyjakso(
@@ -251,7 +233,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         tyoskentelyjaksot: List<Tyoskentelyjakso>
     ) {
         val tyoskentelyjaksoWithRemovedKeskeytysaika = findTyoskentelyjakso(tyoskentelyjaksoId, tyoskentelyjaksot)
-        tyoskentelyjaksoWithRemovedKeskeytysaika.keskeytykset.removeIf {
+        tyoskentelyjaksoWithRemovedKeskeytysaika?.keskeytykset?.removeIf {
             it.id == keskeytysaikaId
         }
     }
@@ -259,13 +241,9 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
     private fun findTyoskentelyjakso(
         id: Long,
         tyoskentelyjaksot: List<Tyoskentelyjakso>
-    ): Tyoskentelyjakso {
+    ): Tyoskentelyjakso? {
         return tyoskentelyjaksot.find {
             it.id == id
-        } ?: throw BadRequestAlertException(
-            "Työskentelyjaksoa, johon keskeytysaika kohdistuu ei löydy",
-            ENTITY_NAME_TYOSKENTELYJAKSO,
-            "dataillegal"
-        )
+        }
     }
 }

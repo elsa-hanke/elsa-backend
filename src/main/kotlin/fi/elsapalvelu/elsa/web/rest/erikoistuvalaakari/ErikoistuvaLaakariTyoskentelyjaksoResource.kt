@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.tyoskentelyaikaErrorKey
 import fi.elsapalvelu.elsa.service.dto.*
-import fi.elsapalvelu.elsa.service.FileValidationService
-import fi.elsapalvelu.elsa.service.OverlappingTyoskentelyjaksoValidationService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import org.slf4j.LoggerFactory
@@ -21,6 +19,7 @@ import javax.validation.Valid
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
+private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
@@ -378,6 +377,15 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     ): MutableSet<AsiakirjaDTO>? {
         files?.let {
             fileValidationService.validate(it, userId)
+
+            if (!fileValidationService.validate(it, userId)) {
+            throw BadRequestAlertException(
+                "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
+                ASIAKIRJA_ENTITY_NAME,
+                "illegaldata"
+            )
+        }
+
             return it.map { file ->
                 AsiakirjaDTO(
                     nimi = file.originalFilename,
