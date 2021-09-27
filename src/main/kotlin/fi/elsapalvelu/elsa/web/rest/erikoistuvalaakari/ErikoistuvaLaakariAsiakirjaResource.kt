@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.AsiakirjaService
-import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
+import fi.elsapalvelu.elsa.service.FileValidationService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
-import fi.elsapalvelu.elsa.service.FileValidationService
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -22,7 +22,6 @@ private const val ENTITY_NAME = "asiakirja"
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariAsiakirjaResource(
     private val userService: UserService,
-    private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val asiakirjaService: AsiakirjaService,
     private val fileValidationService: FileValidationService
 ) {
@@ -35,7 +34,14 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        fileValidationService.validate(files, user.id!!)
+
+        if (!fileValidationService.validate(files, user.id!!)) {
+            throw BadRequestAlertException(
+                "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
+                ENTITY_NAME,
+                "illegaldata"
+            )
+        }
 
         val asiakirjat =
             files.map {
