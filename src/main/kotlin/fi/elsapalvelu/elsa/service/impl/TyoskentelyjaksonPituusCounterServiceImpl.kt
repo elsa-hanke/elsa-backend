@@ -107,9 +107,7 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
         hyvaksiluettavatCounterData: HyvaksiluettavatCounterData,
         calculateUntilDate: LocalDate? = null
     ): Double {
-        val endDate =
-            if (calculateUntilDate != null && calculateUntilDate < keskeytysaika.paattymispaiva!!) calculateUntilDate
-            else keskeytysaika.paattymispaiva!!
+        val endDate = getEndDate(keskeytysaika.paattymispaiva!!, calculateUntilDate)
         val keskeytysaikaDaysBetween =
             keskeytysaika.alkamispaiva!!.daysBetween(endDate)
 
@@ -139,7 +137,8 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
             }
             VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI -> {
                 val keskeytysaikaMap = getKeskeytysaikaMap(
-                    keskeytysaika,
+                    keskeytysaika.alkamispaiva!!,
+                    endDate,
                     keskeytysaikaFactor,
                     tyoskentelyjaksoFactor
                 )
@@ -190,21 +189,22 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
     // Muodostetaan Map, jossa avaimena vuosi ja arvona kuinka monta päivää keskeytysajasta
     // kyseiselle vuodelle sijoittuu.
     private fun getKeskeytysaikaMap(
-        keskeytysaika: Keskeytysaika,
+        startDate: LocalDate,
+        endDate: LocalDate,
         keskeytysaikaFactor: Double,
         tyoskentelyjaksoFactor: Double
     ): MutableMap<Int, Double> {
         val keskeytysaikaMap = mutableMapOf<Int, Double>()
-        val keskeytysaikaDuringYears = keskeytysaika.alkamispaiva!!.duringYears(keskeytysaika.paattymispaiva!!)
+        val keskeytysaikaDuringYears = startDate.duringYears(endDate)
         val first = keskeytysaikaDuringYears.first()
         val last = keskeytysaikaDuringYears.last()
 
         keskeytysaikaDuringYears.forEach {
             val dateFrom =
-                if (it == first) keskeytysaika.alkamispaiva!!
+                if (it == first) startDate
                 else it.startOfYearDate()
             val dateTo =
-                if (it == last) keskeytysaika.paattymispaiva!!
+                if (it == last) endDate
                 else it.endOfYearDate()
             val betweenDays = dateFrom.daysBetween(dateTo)
             // Kerrotaan myös työskentelyjakson osa-aikaprosentilla, koska esim. 50% poissaolo 50% mittaisesta
@@ -213,5 +213,10 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
         }
 
         return keskeytysaikaMap
+    }
+
+    private fun getEndDate(endDate: LocalDate, calculateUntilDate: LocalDate?): LocalDate {
+        return if (calculateUntilDate != null && calculateUntilDate < endDate) calculateUntilDate
+        else endDate
     }
 }

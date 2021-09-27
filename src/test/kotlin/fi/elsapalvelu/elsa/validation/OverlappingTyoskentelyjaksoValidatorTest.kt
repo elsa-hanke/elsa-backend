@@ -33,7 +33,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
             tyoskentelyjaksot.filter { it.alkamispaiva!! <= tyoskententelyjaksoDTO.paattymispaiva }
         val tyoskentelyjaksoRepositoryMock = mock(TyoskentelyjaksoRepository::class.java)
         `when`(
-            tyoskentelyjaksoRepositoryMock.findAllByErikoistuvaUntilDateWithKeskeytyksetAndSuoritusarvioinnit(
+            tyoskentelyjaksoRepositoryMock.findAllByErikoistuvaUntilDateEagerWithRelationships(
                 "",
                 tyoskententelyjaksoDTO.paattymispaiva!!
             )
@@ -58,7 +58,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
             tyoskentelyjaksot.filter { it.alkamispaiva!! <= keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva }
         val tyoskentelyjaksoRepositoryMock = mock(TyoskentelyjaksoRepository::class.java)
         `when`(
-            tyoskentelyjaksoRepositoryMock.findAllByErikoistuvaUntilDateWithKeskeytyksetAndSuoritusarvioinnit(
+            tyoskentelyjaksoRepositoryMock.findAllByErikoistuvaUntilDateEagerWithRelationships(
                 "",
                 keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva!!
             )
@@ -83,7 +83,7 @@ class OverlappingTyoskentelyjaksoValidatorTest {
             tyoskentelyjaksot.filter { it.alkamispaiva!! <= keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva }
         val tyoskentelyjaksoRepositoryMock = mock(TyoskentelyjaksoRepository::class.java)
         `when`(
-            tyoskentelyjaksoRepositoryMock.findAllByErikoistuvaUntilDateWithKeskeytyksetAndSuoritusarvioinnit(
+            tyoskentelyjaksoRepositoryMock.findAllByErikoistuvaUntilDateEagerWithRelationships(
                 "",
                 keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva!!
             )

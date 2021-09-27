@@ -15,10 +15,11 @@ interface TyoskentelyjaksoRepository : JpaRepository<Tyoskentelyjakso, Long> {
         "select t from Tyoskentelyjakso t " +
             "left join fetch t.keskeytykset " +
             "left join fetch t.suoritusarvioinnit " +
+            "left join fetch t.suoritemerkinnat " +
             "where t.erikoistuvaLaakari.kayttaja.user.id = :id " +
             "and t.alkamispaiva <= :untilDate"
     )
-    fun findAllByErikoistuvaUntilDateWithKeskeytyksetAndSuoritusarvioinnit(
+    fun findAllByErikoistuvaUntilDateEagerWithRelationships(
         id: String,
         untilDate: LocalDate
     ): List<Tyoskentelyjakso>
