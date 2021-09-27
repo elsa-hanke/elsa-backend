@@ -128,6 +128,32 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     }
 
     @Test
+    fun `test calculate with alkamispaiva in the future and paattymispaiva in the future`() {
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
+            LocalDate.now().plusDays(5),
+            LocalDate.now().plusDays(10), 100, mutableSetOf()
+        )
+        val tyoskentelyJaksonPituusDays =
+            tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso, HyvaksiluettavatCounterData())
+
+        assertThat(tyoskentelyJaksonPituusDays).isEqualTo(0.0)
+    }
+
+    @Test
+    fun `test calculate alkamispaiva in the past and paattymispaiva in the future`() {
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
+            LocalDate.now().minusDays(5),
+            LocalDate.now().plusDays(5), 100, mutableSetOf()
+        )
+        val tyoskentelyJaksonPituusDays =
+            tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso, HyvaksiluettavatCounterData())
+
+        assertThat(tyoskentelyJaksonPituusDays).isEqualTo(6.0)
+    }
+
+    @Test
     fun `test getHyvaksiluettavatPerYearMap`() {
         val tyoskentelyjakso1 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
             null,
