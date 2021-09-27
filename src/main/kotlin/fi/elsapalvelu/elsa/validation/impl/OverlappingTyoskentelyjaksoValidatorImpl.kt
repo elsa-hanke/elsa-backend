@@ -35,7 +35,7 @@ class OverlappingTyoskentelyjaksoValidatorImpl(
         val tyoskentelyjaksoEndDate =
             tyoskentelyjaksoDTO.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
         val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByErikoistuvaUntilDateWithKeskeytyksetAndSuoritusarvioinnit(
+            tyoskentelyjaksoRepository.findAllByErikoistuvaUntilDateEagerWithRelationships(
                 userId,
                 tyoskentelyjaksoEndDate
             )
@@ -61,7 +61,7 @@ class OverlappingTyoskentelyjaksoValidatorImpl(
             keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
 
         val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByErikoistuvaUntilDateWithKeskeytyksetAndSuoritusarvioinnit(
+            tyoskentelyjaksoRepository.findAllByErikoistuvaUntilDateEagerWithRelationships(
                 userId,
                 tyoskentelyjaksoEndDate
             )
@@ -96,7 +96,7 @@ class OverlappingTyoskentelyjaksoValidatorImpl(
         val tyoskentelyjaksoEndDate =
             keskeytysaika.tyoskentelyjakso?.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
         val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByErikoistuvaUntilDateWithKeskeytyksetAndSuoritusarvioinnit(
+            tyoskentelyjaksoRepository.findAllByErikoistuvaUntilDateEagerWithRelationships(
                 userId,
                 tyoskentelyjaksoEndDate
             )
@@ -167,9 +167,9 @@ class OverlappingTyoskentelyjaksoValidatorImpl(
                             overallTyoskentelyaikaFactorForCurrentDate -= keskeytysaikaFactor
                         }
                         PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA -> {
-                            val counterData =
                             // Lasketaan hyväksiluetut päivät vain kerran ja vain ensimmäistä yli 100% allokaation
-                                // ylittävää päivää edeltävään päivään saakka.
+                            // ylittävää päivää edeltävään päivään saakka.
+                            val counterData =
                                 getHyvaksiluettavatCounterData(tyoskentelyjaksot, date.minusDays(1))
                             val reducedFactor = counterData.hyvaksiluettavatDays - keskeytysaikaFactor
                             // Jos reducedFactor on negatiivinen, ei hyväksiluettavia päiviä ole enää jäljellä, joten
@@ -207,7 +207,7 @@ class OverlappingTyoskentelyjaksoValidatorImpl(
         // tiedot suoraan siihen.
         if (tyoskentelyjaksoDTO.id != null) {
             tyoskentelyjaksot.find { it.id == tyoskentelyjaksoDTO.id }?.apply {
-                if (tyoskentelyjaksot.isNotEmpty()) {
+                if (this.hasTapahtumia()) {
                     paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
                 } else {
                     alkamispaiva = tyoskentelyjaksoDTO.alkamispaiva
