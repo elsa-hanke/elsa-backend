@@ -20,9 +20,9 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 @Service
 @Transactional
@@ -251,7 +251,7 @@ class TyoskentelyjaksoServiceImpl(
         }
 
         // Pyöristetään päivät ylöspäin UOELSA-717 mukaisesti
-        val years = ceil(totalLength) / 365
+        val years = totalLength.roundToInt() / 365
         val months = years * 12
         // Koejaksoon liitetyn työskentelyjakson (voi koostua useammasta jaksosta) vähimmäispituus on 6kk.
         return months >= 6
