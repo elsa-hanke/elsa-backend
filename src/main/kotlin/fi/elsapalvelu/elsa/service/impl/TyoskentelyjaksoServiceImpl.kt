@@ -257,7 +257,7 @@ class TyoskentelyjaksoServiceImpl(
         return months >= 6
     }
 
-    override fun delete(id: Long, userId: String) {
+    override fun delete(id: Long, userId: String): Boolean {
         log.debug("Request to delete Tyoskentelyjakso : $id")
 
         tyoskentelyjaksoRepository.findByIdOrNull(id)?.let { tyoskentelyjakso ->
@@ -269,10 +269,12 @@ class TyoskentelyjaksoServiceImpl(
                             !tyoskentelyjakso.hasTapahtumia()
                         ) {
                             tyoskentelyjaksoRepository.deleteById(id)
+                            return true
                         }
                     }
             }
         }
+        return false
     }
 
     @Transactional(readOnly = true)
@@ -418,7 +420,7 @@ class TyoskentelyjaksoServiceImpl(
             )
         }?.let { tyoskentelyjakso ->
             val paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva ?: return true
-            
+
             for (suoritemerkinta in tyoskentelyjakso.suoritemerkinnat) {
                 if (paattymispaiva.isBefore(suoritemerkinta.suorituspaiva)) {
                     return false

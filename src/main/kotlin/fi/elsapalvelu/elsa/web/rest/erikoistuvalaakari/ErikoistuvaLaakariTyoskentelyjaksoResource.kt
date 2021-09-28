@@ -173,7 +173,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
 
         asiakirjaService.removeTyoskentelyjaksoReference(user.id!!, id)
-        tyoskentelyjaksoService.delete(id, user.id!!)
+        if (!tyoskentelyjaksoService.delete(id, user.id!!)) {
+            throw BadRequestAlertException(
+                "Työskentelyjakson poistaminen epäonnistui",
+                TYOSKENTELYJAKSO_ENTITY_NAME,
+                "dataillegal"
+            )
+        }
         return ResponseEntity.noContent()
             .headers(
                 HeaderUtil.createEntityDeletionAlert(
