@@ -25,7 +25,7 @@ interface TyoskentelyjaksoService {
 
     fun findOne(id: Long, userId: String): TyoskentelyjaksoDTO?
 
-    fun delete(id: Long, userId: String)
+    fun delete(id: Long, userId: String): Boolean
 
     fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO
 
