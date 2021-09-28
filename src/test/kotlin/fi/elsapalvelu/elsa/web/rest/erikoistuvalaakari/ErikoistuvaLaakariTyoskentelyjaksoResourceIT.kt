@@ -625,7 +625,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             delete("/api/erikoistuva-laakari/tyoskentelyjaksot/{id}", tyoskentelyjakso.id)
                 .accept(MediaType.APPLICATION_JSON)
                 .with(csrf())
-        ).andExpect(status().isNoContent)
+        ).andExpect(status().isBadRequest)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete)
@@ -650,7 +650,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             delete("/api/erikoistuva-laakari/tyoskentelyjaksot/{id}", tyoskentelyjakso.id)
                 .accept(MediaType.APPLICATION_JSON)
                 .with(csrf())
-        ).andExpect(status().isNoContent)
+        ).andExpect(status().isBadRequest)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete)
