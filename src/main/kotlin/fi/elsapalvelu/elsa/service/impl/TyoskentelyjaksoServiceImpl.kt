@@ -225,15 +225,12 @@ class TyoskentelyjaksoServiceImpl(
 
     @Transactional(readOnly = true)
     override fun validateByLiitettyKoejaksoon(userId: String): Triple<Boolean, Boolean, Boolean> {
-        var tyoskentelyJaksoLiitetty: Boolean
-        var tyoskentelyjaksonPituusRiittava: Boolean
-        var tyotodistusLiitetty: Boolean
-
-        tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId).let {
-            tyoskentelyJaksoLiitetty = true
-            tyoskentelyjaksonPituusRiittava = validateTyoskentelyjaksonPituusKoejaksolleRiittava(it)
-            tyotodistusLiitetty = !it.any { tyoskentelyjakso -> tyoskentelyjakso.asiakirjat.isEmpty() }
-        }
+        val tyoskentelyjaksotLiitetty =
+            tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId)
+        val tyoskentelyJaksoLiitetty = tyoskentelyjaksotLiitetty.any()
+        val tyoskentelyjaksonPituusRiittava = validateTyoskentelyjaksonPituusKoejaksolleRiittava(tyoskentelyjaksotLiitetty)
+        val tyotodistusLiitetty =
+            !tyoskentelyjaksotLiitetty.any { tyoskentelyjakso -> tyoskentelyjakso.asiakirjat.isEmpty() }
 
         return Triple(tyoskentelyJaksoLiitetty, tyoskentelyjaksonPituusRiittava, tyotodistusLiitetty)
     }
