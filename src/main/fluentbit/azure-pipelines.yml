@@ -1,0 +1,37 @@
+name: $(date:yyyy-MM-dd)$(rev:.r)
+variables:
+  - name: vmImageName
+    value: 'Ubuntu 16.04'
+  - name: tag
+    value: $(Build.BuildNumber)
+
+stages:
+  - stage: Build
+    displayName: Build and push stage
+    jobs:
+      - job: Build
+        pool:
+          vmImage: $(vmImageName)
+        variables:
+          - name: NODE_VERSION
+            value: 12.16.1
+          - name: imageName
+            value: 'ecr-dev-fluentbit'
+
+        steps:
+          - task: Docker@2
+            displayName: Build an image
+            inputs:
+              repository: $(imageName)
+              command: build
+              Dockerfile: src/main/fluentbit/Dockerfile
+              buildContext: src/main/fluentbit
+          - task: ECRPushImage@1
+            inputs:
+              awsCredentials: 'elsa-ci'
+              regionName: 'eu-west-1'
+              imageSource: 'imagename'
+              sourceImageName: $(imageName)
+              sourceImageTag: $(tag)
+              repositoryName: $(imageName)
+            displayName: 'Push image'
