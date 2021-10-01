@@ -3,9 +3,9 @@ package fi.elsapalvelu.elsa.config
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.ConsoleAppender
-import co.elastic.logging.logback.EcsEncoder
+import ch.qos.logback.more.appenders.DataFluentAppender
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import io.github.jhipster.config.JHipsterProperties
 import io.github.jhipster.config.logging.LoggingUtils.*
 import org.slf4j.LoggerFactory
@@ -37,14 +37,14 @@ class LoggingConfiguration(
         val logstashProperties = loggingProperties.logstash
 
         if (loggingProperties.isUseJsonFormat) {
-            val consoleAppender = ConsoleAppender<ILoggingEvent>()
-            consoleAppender.context = context
-            consoleAppender.encoder = EcsEncoder()
-            consoleAppender.name = CONSOLE_APPENDER_NAME
-            consoleAppender.start()
+            val fluentAppender = createFluentAppender("fluent_backend", "backend", context)
+            context.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(fluentAppender)
+
+            val fluentSecurityAppender =
+                createFluentAppender("fluent_security", "security", context)
+            context.getLogger(ExceptionTranslator::class.java).addAppender(fluentSecurityAppender)
 
             context.getLogger(Logger.ROOT_LOGGER_NAME).detachAppender(CONSOLE_APPENDER_NAME)
-            context.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(consoleAppender)
         }
         if (logstashProperties.isEnabled) {
             addLogstashTcpSocketAppender(context, customFields, logstashProperties)
@@ -55,5 +55,20 @@ class LoggingConfiguration(
         if (jHipsterProperties.metrics.logs.isEnabled) {
             setMetricsMarkerLogbackFilter(context, loggingProperties.isUseJsonFormat)
         }
+    }
+
+    private fun createFluentAppender(
+        name: String,
+        tag: String,
+        context: LoggerContext
+    ): DataFluentAppender<ILoggingEvent> {
+        val appender = DataFluentAppender<ILoggingEvent>()
+        appender.context = context
+        appender.remoteHost = System.getenv("FLUENT_HOST") // Injected by AWS firelens
+        appender.port = System.getenv("FLUENT_PORT").toInt()
+        appender.tag = tag
+        appender.name = name
+        appender.start()
+        return appender
     }
 }
