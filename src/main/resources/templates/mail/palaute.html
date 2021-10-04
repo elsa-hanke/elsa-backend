@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>[ELSA-palvelu] Olet saanut uuden käyttäjäpalautteen</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
+</head>
+<body>
+<p>
+    Hei,
+</p>
+<p>
+    Olet saanut uuden käyttäjäpalautteen ELSA-palvelusta.
+
+    Palautteen aihe: <span th:text="${feedbackTopic}"></span>
+
+    Palaute: <p th:text="${feedback}"></p>
+
+</p>
+<p>
+    <span>Terveisin, </span>
+    <br/>
+    <em>ELSA-palvelu</em>
+</p>
+</body>
+</html>

@@ -194,3 +194,5 @@ application:
     saml-certificate-location: "classpath:public.crt"
     saml-suomifi-certificate-location: "classpath:suomifi.crt"
     saml-scheme: http
+  feedback:
+    to: matti.hiitola@oulu.fi
