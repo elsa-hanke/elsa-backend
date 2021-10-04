@@ -18,7 +18,6 @@ import java.time.ZoneId
 import java.util.*
 import javax.persistence.EntityNotFoundException
 
-
 @Service
 @Transactional
 class KoejaksonLoppukeskusteluServiceImpl(

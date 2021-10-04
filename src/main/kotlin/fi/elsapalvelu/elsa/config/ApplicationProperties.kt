@@ -13,6 +13,7 @@ class ApplicationProperties {
     private val csrf = Csrf()
     private val keycloak = Keycloak()
     private val security = Security()
+    private val feedback = Feedback()
 
     fun getCsrf(): Csrf {
         return csrf
@@ -24,6 +25,10 @@ class ApplicationProperties {
 
     fun getSecurity(): Security {
         return security
+    }
+
+    fun getFeedback(): Feedback {
+        return feedback
     }
 
     class Csrf {
@@ -53,5 +58,9 @@ class ApplicationProperties {
         var samlCertificateLocation: String? = null
         var samlSuomifiCertificateLocation: String? = null
         var samlScheme: String? = null
+    }
+
+    class Feedback {
+        var to: String? = null
     }
 }
