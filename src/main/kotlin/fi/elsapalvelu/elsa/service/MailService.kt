@@ -21,7 +21,9 @@ enum class MailProperty(val property: String) {
     ID("id"),
     NAME("name"),
     TEXT("text"),
-    DATE("date")
+    DATE("date"),
+    FEEDBACK("feedback"),
+    FEEDBACK_TOPIC("feedbackTopic")
 }
 
 @Service
@@ -72,7 +74,7 @@ class MailService(
         properties: Map<MailProperty, String>
     ) {
         if (user.email == null) {
-            log.debug("Email doesn't exist for user '${user.login}'")
+            log.debug("Sähköpostiosoitetta ei löydy käyttäjälle '${user.login}'")
             return
         }
         var locale = Locale.forLanguageTag("fi")
@@ -85,8 +87,41 @@ class MailService(
                 setVariable(it.key.property, it.value)
             }
         }
+
+        sendEmailFromTemplate(user.email!!, templateName, titleKey, locale, context)
+    }
+
+    @Async
+    fun sendEmailFromTemplate(
+        to: String?,
+        templateName: String,
+        titleKey: String,
+        properties: Map<MailProperty, String>
+    ) {
+        if (to == null) {
+            log.debug("Vastaanottajan sähköpostiosoitetta ei ole määritetty.")
+            return
+        }
+
+        val locale = Locale.forLanguageTag("fi")
+        val context = Context(locale).apply {
+            setVariable(MailProperty.BASE_URL.property, jHipsterProperties.mail.baseUrl)
+            properties.forEach {
+                setVariable(it.key.property, it.value)
+            }
+        }
+        sendEmailFromTemplate(to, templateName, titleKey, locale, context)
+    }
+
+    private fun sendEmailFromTemplate(
+        to: String,
+        templateName: String,
+        titleKey: String,
+        locale: Locale,
+        context: Context
+    ) {
         val content = templateEngine.process("mail/${templateName}", context)
         val subject = messageSource.getMessage(titleKey, null, locale)
-        sendEmail(user.email!!, subject, content, isMultipart = false, isHtml = true)
+        sendEmail(to, subject, content, isMultipart = false, isHtml = true)
     }
 }
