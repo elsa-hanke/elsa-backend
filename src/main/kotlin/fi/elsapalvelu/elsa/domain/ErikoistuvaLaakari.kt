@@ -60,9 +60,18 @@ data class ErikoistuvaLaakari(
 
     @NotNull
     @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu? = null
+    var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu? = null,
 
-) : Serializable {
+    @JsonIgnoreProperties(
+        value = [
+            "erikoistuvaLaakari", "koulutussuunnitelmaAsiakirja", "motivaatiokirjeAsiakirja"
+        ],
+        allowSetters = true
+    )
+    @OneToOne(mappedBy = "erikoistuvaLaakari")
+    var koulutussuunnitelma: Koulutussuunnitelma? = null,
+
+    ) : Serializable {
 
     fun addValtuutus(kouluttajavaltuutus: Kouluttajavaltuutus): ErikoistuvaLaakari {
         this.annetutValtuutukset.add(kouluttajavaltuutus)
