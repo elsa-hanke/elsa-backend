@@ -57,6 +57,7 @@ class ApplicationProperties {
         var samlPrivateKeyLocation: String? = null
         var samlCertificateLocation: String? = null
         var samlSuomifiCertificateLocation: String? = null
+        var samlHakaCertificateLocation: String? = null
         var samlScheme: String? = null
     }
 

@@ -207,6 +207,7 @@ application:
     saml-private-key-location: "classpath:private.key"
     saml-certificate-location: "classpath:public.crt"
     saml-suomifi-certificate-location: "classpath:suomifi.crt"
+    saml-haka-certificate-location: "classpath:"
     saml-scheme: http
   feedback:
     to: matti.hiitola@oulu.fi

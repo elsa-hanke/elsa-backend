@@ -3,7 +3,9 @@ package fi.elsapalvelu.elsa.web.rest
 import fi.elsapalvelu.elsa.security.logout.OpenSamlLogoutRequestResolver
 import fi.elsapalvelu.elsa.security.logout.Saml2LogoutRequest
 import fi.elsapalvelu.elsa.security.logout.Saml2LogoutRequestResolver
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.util.Assert
@@ -26,6 +28,8 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @Profile("dev", "prod")
 class LogoutResource(private val logoutRequestResolver: OpenSamlLogoutRequestResolver) {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     /**
      * `POST  /api/logout` : logout the current user.
@@ -53,12 +57,11 @@ class LogoutResource(private val logoutRequestResolver: OpenSamlLogoutRequestRes
         addParameter("Signature", logoutRequest, uriBuilder)
         val logoutUrl = uriBuilder.build(true).toUriString()
 
+        request.session.invalidate()
         val logoutDetails = mutableMapOf(
             "logoutUrl" to logoutUrl
         )
-        request.session.invalidate()
-        val httpRequest = HttpRequest.newBuilder().uri(URI(logoutUrl)).GET().build()
-        HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString())
+
         return ResponseEntity.ok().body(logoutDetails)
     }
 

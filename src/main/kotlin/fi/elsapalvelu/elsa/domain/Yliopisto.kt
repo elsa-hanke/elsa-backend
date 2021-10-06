@@ -31,7 +31,16 @@ data class Yliopisto(
 
     @OneToMany(mappedBy = "yliopisto")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var kayttajat: MutableSet<Kayttaja> = mutableSetOf()
+    var kayttajat: MutableSet<Kayttaja> = mutableSetOf(),
+
+    @Column(name = "haka_id", nullable = true)
+    var hakaId: String? = null,
+
+    @Column(name = "haka_entity_id", nullable = true)
+    var hakaEntityId: String? = null,
+
+    @Column(name = "haka_sso_location", nullable = true)
+    var hakaSSOLocation: String? = null
 
 ) : Serializable {
 

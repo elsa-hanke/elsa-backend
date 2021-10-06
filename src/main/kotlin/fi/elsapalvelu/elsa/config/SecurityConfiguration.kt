@@ -72,6 +72,7 @@ class SecurityConfiguration(
         http
             .csrf()
             .csrfTokenRepository(withHttpOnlyFalse)
+            .ignoringAntMatchers("/api/") // logout uudelleenohjaus
             .and()
             .addFilterBefore(corsFilter, CsrfFilter::class.java)
             .exceptionHandling()
@@ -97,6 +98,8 @@ class SecurityConfiguration(
             .and()
             .authorizeRequests()
             .antMatchers("/authorize").authenticated()
+            .antMatchers("/api/").permitAll() // ohjaus etusivulle
+            .antMatchers("/api/haka-yliopistot").permitAll()
             .antMatchers("/api/auth-info").permitAll()
             .antMatchers("/api/erikoistuva-laakari/kayttooikeushakemus").authenticated()
             .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
@@ -130,9 +133,17 @@ class SecurityConfiguration(
             .createDefaultResponseAuthenticationConverter()
             .convert(responseToken) as Saml2Authentication
         val principal = token.principal as Saml2AuthenticatedPrincipal
-        val hetu = principal.attributes["urn:oid:1.2.246.21"]?.get(0)
         val firstName = principal.attributes["urn:oid:2.5.4.42"]?.get(0) as String
         val lastName = principal.attributes["urn:oid:2.5.4.4"]?.get(0) as String
+        val mail = principal.attributes["urn:oid:0.9.2342.19200300.100.1.3"]?.get(0) as String?
+
+        // Suomi.fi
+        val hetu = principal.attributes["urn:oid:1.2.246.21"]?.get(0) as String?
+
+        // Haka
+        val eppn = principal.attributes["urn:oid:1.3.6.1.4.1.5923.1.1.1.6"]?.get(0) as String?
+        //val eduPersonAffiliation = principal.attributes["urn:oid:1.3.6.1.4.1.5923.1.1.1.1"]?.get(0)
+        //val organization = principal.attributes["schacHomeOrganization"]?.get(0)
 
         val response = responseToken.response
         val assertion = CollectionUtils.firstElement(response.assertions)
@@ -157,15 +168,15 @@ class SecurityConfiguration(
         val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
         val verificationToken = attr.request.getParameter("RelayState")
 
-        // Check invited user
+        // Kutsuttu käyttäjä
         if (verificationToken != null) {
             verificationTokenRepository.findById(verificationToken)
                 .ifPresent {
                     val tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
 
-                    val existingUser = findExistingUser(cipher, originalKey, hetu)
+                    val existingUser = findExistingUser(cipher, originalKey, hetu, eppn)
 
-                    // If user with same hetu exists, merge users
+                    // Yhdistä käyttäjä jos löytyy
                     if (existingUser != null) {
                         val existingKayttaja = kayttajaRepository.findOneByUserId(existingUser.id!!)
                         val tokenKayttaja = kayttajaRepository.findOneByUserId(tokenUser.id!!)
@@ -187,10 +198,13 @@ class SecurityConfiguration(
                         cipher.init(Cipher.ENCRYPT_MODE, originalKey)
                         val params = cipher.parameters
                         val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
-                        val ciphertext =
-                            cipher.doFinal(hetu.toString().toByteArray(StandardCharsets.UTF_8))
+                        val ciphertext = if (hetu != null)
+                            cipher.doFinal(
+                                hetu.toString().toByteArray(StandardCharsets.UTF_8)
+                            ) else null
 
                         tokenUser.hetu = ciphertext
+                        tokenUser.eppn = eppn
                         tokenUser.initVector = iv
                         tokenUser.firstName = firstName
                         tokenUser.lastName = lastName
@@ -201,7 +215,7 @@ class SecurityConfiguration(
                 }
         }
 
-        val existingUser = findExistingUser(cipher, originalKey, hetu)
+        val existingUser = findExistingUser(cipher, originalKey, hetu, eppn)
         if (existingUser != null) {
             return Saml2Authentication(
                 DefaultSaml2AuthenticatedPrincipal(existingUser.id, principal.attributes),
@@ -213,14 +227,16 @@ class SecurityConfiguration(
         cipher.init(Cipher.ENCRYPT_MODE, originalKey)
         val params = cipher.parameters
         val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
-        val ciphertext =
-            cipher.doFinal(hetu.toString().toByteArray(StandardCharsets.UTF_8))
+        val ciphertext = if (hetu != null)
+            cipher.doFinal(hetu.toByteArray(StandardCharsets.UTF_8)) else null
 
-        // New user
+        // Uusi käyttäjä
         var user = User(
             firstName = firstName,
             lastName = lastName,
             hetu = ciphertext,
+            eppn = eppn,
+            email = mail,
             initVector = iv,
             login = UUID.randomUUID().toString(),
             activated = true
@@ -234,12 +250,25 @@ class SecurityConfiguration(
         )
     }
 
-    private fun findExistingUser(cipher: Cipher, originalKey: SecretKey, hetu: Any?): User? {
-        userRepository.findAllWithAuthorities().filter { u -> u.hetu != null }.forEach { u ->
-            cipher.init(Cipher.DECRYPT_MODE, originalKey, IvParameterSpec(u.initVector))
-            val userHetu = String(cipher.doFinal(u.hetu), StandardCharsets.UTF_8)
-            if (userHetu == hetu) {
-                return u
+    private fun findExistingUser(
+        cipher: Cipher,
+        originalKey: SecretKey,
+        hetu: String?,
+        eppn: String?
+    ): User? {
+        if (hetu != null) {
+            userRepository.findAllWithAuthorities().filter { u -> u.hetu != null }.forEach { u ->
+                cipher.init(Cipher.DECRYPT_MODE, originalKey, IvParameterSpec(u.initVector))
+                val userHetu = String(cipher.doFinal(u.hetu), StandardCharsets.UTF_8)
+                if (userHetu == hetu) {
+                    return u
+                }
+            }
+        } else if (eppn != null) {
+            userRepository.findAllWithAuthorities().filter { u -> u.eppn != null }.forEach { u ->
+                if (u.eppn == eppn) {
+                    return u
+                }
             }
         }
 

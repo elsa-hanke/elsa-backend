@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.YliopistoService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
+import fi.elsapalvelu.elsa.service.dto.HakaYliopistoDTO
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
 import org.slf4j.LoggerFactory
@@ -38,6 +39,13 @@ class MuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<List<YliopistoDTO>> {
         return ResponseEntity.ok(yliopistoService.findAll())
+    }
+
+    @GetMapping("/haka-yliopistot")
+    fun getHakaYliopistot(
+        principal: Principal?
+    ): ResponseEntity<List<HakaYliopistoDTO>> {
+        return ResponseEntity.ok(yliopistoService.findAllHaka())
     }
 
     @GetMapping("/arviointityokalut")
