@@ -23,5 +23,5 @@
                                  referencedColumnNames="id"
                                  referencedTableName="asiakirja"/>
     </changeSet>
-    
+
 </databaseChangeLog>
