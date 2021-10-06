@@ -188,7 +188,6 @@ repositories {
 dependencies {
     // import JHipster dependencies BOM
     implementation platform("io.github.jhipster:jhipster-dependencies:${jhipsterDependenciesVersion}")
-
     // Use ", version: jhipsterDependenciesVersion, changing: true" if you want
     // to use a SNAPSHOT release instead of a stable release
     implementation group: "io.github.jhipster", name: "jhipster-framework"
@@ -254,19 +253,16 @@ dependencies {
     testImplementation "com.tngtech.archunit:archunit-junit5-api:${archunitJunit5Version}"
     testRuntimeOnly "com.tngtech.archunit:archunit-junit5-engine:${archunitJunit5Version}"
     testImplementation "com.h2database:h2"
-
     implementation "co.elastic.logging:logback-ecs-encoder:1.0.1"
     implementation "commons-codec:commons-codec:1.15"
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.5.0"
     implementation "org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE"
     implementation "com.jayway.jsonpath:json-path:2.6.0"
     implementation "org.apache.commons:commons-lang3:3.12.0"
+    implementation "org.apache.santuario:xmlsec:2.2.3"
     implementation "net.coobird:thumbnailator:0.4.14"
-
     implementation "org.fluentd:fluent-logger:0.3.4"
     implementation "com.sndyuk:logback-more-appenders:1.8.6"
-
-
 }
 
 task cleanResources(type: Delete) {
