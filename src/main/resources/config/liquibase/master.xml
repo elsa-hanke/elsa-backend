@@ -88,6 +88,8 @@
     <include file="config/liquibase/changelog/20211008132011_create_hibernate_sequence.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211008133544_added_audit_log_entities.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211012152034_removed_jhi_audit_event_entities.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211006143551_modify_entity_User.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211013153219_modify_entity_Yliopisto.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>

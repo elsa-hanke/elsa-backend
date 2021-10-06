@@ -58,6 +58,10 @@ class User(
     @Column
     var hetu: ByteArray? = null,
 
+    @field:Size(max = 254)
+    @Column(name = "eppn", length = 254)
+    var eppn: String? = null,
+
     @Column(name = "init_vector")
     var initVector: ByteArray? = null,
 

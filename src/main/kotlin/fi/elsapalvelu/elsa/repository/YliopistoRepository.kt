@@ -23,4 +23,7 @@ interface YliopistoRepository : JpaRepository<Yliopisto, Long> {
 
     @Query("select yliopisto from Yliopisto yliopisto left join fetch yliopisto.erikoisalat where yliopisto.id =:id")
     fun findOneWithEagerRelationships(@Param("id") id: Long): Optional<Yliopisto>
+
+    @Query("select yliopisto from Yliopisto yliopisto where yliopisto.hakaId is not null")
+    fun findAllHaka(): MutableList<Yliopisto>
 }

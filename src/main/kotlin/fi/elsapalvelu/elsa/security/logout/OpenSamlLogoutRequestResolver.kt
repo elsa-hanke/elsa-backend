@@ -61,7 +61,10 @@ class OpenSamlLogoutRequestResolver(
             authentication,
             "Failed to lookup logged-in user for formulating LogoutRequest"
         )
-        val registration = relyingPartyRegistrationRepository.findByRegistrationId("suomifi")
+        // TODO: Ei toimi tuotannossa, koska kovakoodattu haka id. Ota spring security 5.6.0 käyttöön, jossa SLO tuki.
+        val registrationId =
+            if ((authentication as Saml2Authentication).saml2Response.contains("suomifi")) "suomifi" else "haka"
+        val registration = relyingPartyRegistrationRepository.findByRegistrationId(registrationId)
         val uriComponents = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
             .replacePath(request?.contextPath).replaceQuery(null).fragment(null).build()
         Assert.notNull(
