@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211006161952" author="jhipster">
+
+        <dropForeignKeyConstraint baseTableName="osaalueen_arviointi"
+                                  constraintName="fk_osaalueen_arviointi_arvioitava_osaalue_id"/>
+
+        <dropTable cascadeConstraints="true"
+                   tableName="arvioitava_osaalue"/>
+
+    </changeSet>
+</databaseChangeLog>

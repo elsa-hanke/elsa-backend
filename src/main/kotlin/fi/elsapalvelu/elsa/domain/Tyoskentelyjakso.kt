@@ -74,42 +74,6 @@ data class Tyoskentelyjakso(
 
 ) : Serializable {
 
-    fun addSuoritusarviointi(suoritusarviointi: Suoritusarviointi): Tyoskentelyjakso {
-        this.suoritusarvioinnit.add(suoritusarviointi)
-        suoritusarviointi.tyoskentelyjakso = this
-        return this
-    }
-
-    fun removeSuoritusarviointi(suoritusarviointi: Suoritusarviointi): Tyoskentelyjakso {
-        this.suoritusarvioinnit.remove(suoritusarviointi)
-        suoritusarviointi.tyoskentelyjakso = null
-        return this
-    }
-
-    fun addSuoritemerkinta(suoritemerkinta: Suoritemerkinta): Tyoskentelyjakso {
-        this.suoritemerkinnat.add(suoritemerkinta)
-        suoritemerkinta.tyoskentelyjakso = this
-        return this
-    }
-
-    fun removeSuoritemerkinta(suoritemerkinta: Suoritemerkinta): Tyoskentelyjakso {
-        this.suoritemerkinnat.remove(suoritemerkinta)
-        suoritemerkinta.tyoskentelyjakso = null
-        return this
-    }
-
-    fun addKeskeytysaika(keskeytysaika: Keskeytysaika): Tyoskentelyjakso {
-        this.keskeytykset.add(keskeytysaika)
-        keskeytysaika.tyoskentelyjakso = this
-        return this
-    }
-
-    fun removeKeskeytysaika(keskeytysaika: Keskeytysaika): Tyoskentelyjakso {
-        this.keskeytykset.remove(keskeytysaika)
-        keskeytysaika.tyoskentelyjakso = null
-        return this
-    }
-
     fun getMinPaattymispaiva(): LocalDate? {
         val dates = listOfNotNull(this.alkamispaiva)
             .plus(suoritemerkinnat.map { it.suorituspaiva })

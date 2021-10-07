@@ -5,7 +5,8 @@ import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import javax.persistence.*
-import javax.validation.constraints.*
+import javax.validation.constraints.Max
+import javax.validation.constraints.Min
 
 @Entity
 @Table(name = "osaalueen_arviointi")
@@ -21,10 +22,6 @@ data class OsaalueenArviointi(
     @get: Max(value = 5)
     @Column(name = "arvio")
     var arvio: Int? = null,
-
-    @ManyToOne
-    @JsonIgnoreProperties(value = ["osaalueenArvioinnit"], allowSetters = true)
-    var arvioitavaOsaalue: ArvioitavaOsaalue? = null,
 
     @ManyToOne
     @JsonIgnoreProperties(value = ["osaalueenArvioinnit"], allowSetters = true)

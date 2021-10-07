@@ -8,7 +8,9 @@ import org.hibernate.annotations.Type
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
-import javax.validation.constraints.*
+import javax.validation.constraints.Max
+import javax.validation.constraints.Min
+import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "suoritusarviointi")
@@ -115,30 +117,6 @@ data class Suoritusarviointi(
     var muuPeruste: String? = null,
 
     ) : Serializable {
-
-    fun addOsaalueenArviointi(osaalueenArviointi: OsaalueenArviointi): Suoritusarviointi {
-        this.osaalueenArvioinnit.add(osaalueenArviointi)
-        osaalueenArviointi.suoritusarviointi = this
-        return this
-    }
-
-    fun removeOsaalueenArviointi(osaalueenArviointi: OsaalueenArviointi): Suoritusarviointi {
-        this.osaalueenArvioinnit.remove(osaalueenArviointi)
-        osaalueenArviointi.suoritusarviointi = null
-        return this
-    }
-
-    fun addKommentti(suoritusarvioinninKommentti: SuoritusarvioinninKommentti): Suoritusarviointi {
-        this.kommentit.add(suoritusarvioinninKommentti)
-        suoritusarvioinninKommentti.suoritusarviointi = this
-        return this
-    }
-
-    fun removeKommentti(suoritusarvioinninKommentti: SuoritusarvioinninKommentti): Suoritusarviointi {
-        this.kommentit.remove(suoritusarvioinninKommentti)
-        suoritusarvioinninKommentti.suoritusarviointi = null
-        return this
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

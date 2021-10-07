@@ -38,25 +38,4 @@
             </column>
         </createTable>
     </changeSet>
-
-    <changeSet id="20201020080037-1-relations" author="jhipster">
-
-    </changeSet>
-    <changeSet id="20201020080037-1-data" author="jhipster" context="faker">
-        <loadData
-                  file="config/liquibase/fake-data/arvioitava_osaalue.csv"
-                  separator=";"
-                  tableName="arvioitava_osaalue">
-            <column name="id" type="numeric"/>
-            <column name="tunnus" type="string"/>
-            <column name="nimi" type="string"/>
-            <column name="kuvaus" type="string"/>
-            <column name="osaamisen_rajaarvo" type="string"/>
-            <column name="arviointikriteerit" type="string"/>
-            <column name="voimassaolo_alkaa" type="date"/>
-            <column name="voimassaolo_loppuu" type="date"/>
-            <column name="rooli" type="string"/>
-        </loadData>
-    </changeSet>
-
 </databaseChangeLog>

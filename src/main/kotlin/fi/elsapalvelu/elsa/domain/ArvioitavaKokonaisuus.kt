@@ -6,7 +6,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
-import javax.validation.constraints.*
+import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "arvioitava_kokonaisuus")
@@ -32,10 +32,6 @@ data class ArvioitavaKokonaisuus(
     @Column(name = "voimassaolo_loppuu")
     var voimassaoloLoppuu: LocalDate? = null,
 
-    @OneToMany(mappedBy = "arvioitavaKokonaisuus")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var arvioitavatOsaalueet: MutableSet<ArvioitavaOsaalue> = mutableSetOf(),
-
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["arvioitavatKokonaisuudet"], allowSetters = true)
@@ -47,18 +43,6 @@ data class ArvioitavaKokonaisuus(
     var kategoria: ArvioitavanKokonaisuudenKategoria? = null
 
 ) : Serializable {
-
-    fun addArvioitavaOsaalue(arvioitavaOsaalue: ArvioitavaOsaalue): ArvioitavaKokonaisuus {
-        this.arvioitavatOsaalueet.add(arvioitavaOsaalue)
-        arvioitavaOsaalue.arvioitavaKokonaisuus = this
-        return this
-    }
-
-    fun removeArvioitavaOsaalue(arvioitavaOsaalue: ArvioitavaOsaalue): ArvioitavaKokonaisuus {
-        this.arvioitavatOsaalueet.remove(arvioitavaOsaalue)
-        arvioitavaOsaalue.arvioitavaKokonaisuus = null
-        return this
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
