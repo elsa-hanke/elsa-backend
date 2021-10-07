@@ -32,9 +32,7 @@ interface SuoritusarviointiMapper :
 
     @Mappings(
         Mapping(target = "osaalueenArvioinnit", ignore = true),
-        Mapping(target = "removeOsaalueenArviointi", ignore = true),
         Mapping(target = "kommentit", ignore = true),
-        Mapping(target = "removeKommentti", ignore = true),
         Mapping(source = "arvioinninAntajaId", target = "arvioinninAntaja"),
         Mapping(source = "arvioitavaOsaalueId", target = "arvioitavaOsaalue"),
         Mapping(source = "tyoskentelyjaksoId", target = "tyoskentelyjakso")

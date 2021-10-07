@@ -26,8 +26,6 @@ interface ArvioitavaKokonaisuusMapper :
     override fun toDto(entity: ArvioitavaKokonaisuus): ArvioitavaKokonaisuusDTO
 
     @Mappings(
-        Mapping(target = "arvioitavatOsaalueet", ignore = true),
-        Mapping(target = "removeArvioitavaOsaalue", ignore = true),
         Mapping(source = "erikoisalaId", target = "erikoisala")
     )
     override fun toEntity(dto: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuus

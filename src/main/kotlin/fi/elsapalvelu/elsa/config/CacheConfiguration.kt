@@ -63,7 +63,6 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Arviointityokalu::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.ArvioitavaKokonaisuus::class.java.name + ".arvioitavatOsaalueet")
             createCache(cm, fi.elsapalvelu.elsa.domain.ArvioitavaKokonaisuus::class.java.name)
-            createCache(cm, fi.elsapalvelu.elsa.domain.ArvioitavaOsaalue::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.ArvioitavanKokonaisuudenKategoria::class.java.name + ".arvioitavatKokonaisuudet")
             createCache(cm, fi.elsapalvelu.elsa.domain.ArvioitavanKokonaisuudenKategoria::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Asiakirja::class.java.name)
