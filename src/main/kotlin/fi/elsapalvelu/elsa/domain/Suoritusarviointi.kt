@@ -79,10 +79,6 @@ data class Suoritusarviointi(
     @Column(name = "lukittu", nullable = false)
     var lukittu: Boolean = false,
 
-    @OneToMany(mappedBy = "suoritusarviointi")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var osaalueenArvioinnit: MutableSet<OsaalueenArviointi> = mutableSetOf(),
-
     @OneToMany(mappedBy = "suoritusarviointi", cascade = [CascadeType.ALL], orphanRemoval = true)
     var kommentit: MutableSet<SuoritusarvioinninKommentti> = mutableSetOf(),
 

@@ -31,7 +31,6 @@ interface SuoritusarviointiMapper :
     override fun toDto(entity: Suoritusarviointi): SuoritusarviointiDTO
 
     @Mappings(
-        Mapping(target = "osaalueenArvioinnit", ignore = true),
         Mapping(target = "kommentit", ignore = true),
         Mapping(source = "arvioinninAntajaId", target = "arvioinninAntaja"),
         Mapping(source = "arvioitavaOsaalueId", target = "arvioitavaOsaalue"),
