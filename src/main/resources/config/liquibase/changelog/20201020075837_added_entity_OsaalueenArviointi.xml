@@ -20,19 +20,4 @@
             </column>
         </createTable>
     </changeSet>
-
-    <changeSet id="20201020075837-1-relations" author="jhipster">
-
-    </changeSet>
-
-    <changeSet id="20201020075837-1-data" author="jhipster" context="faker">
-        <loadData
-                  file="config/liquibase/fake-data/osaalueen_arviointi.csv"
-                  separator=";"
-                  tableName="osaalueen_arviointi">
-            <column name="id" type="numeric"/>
-            <column name="arvio" type="numeric"/>
-        </loadData>
-    </changeSet>
-
 </databaseChangeLog>
