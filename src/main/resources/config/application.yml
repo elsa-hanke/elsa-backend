@@ -91,6 +91,13 @@ spring:
       hibernate.query.fail_on_pagination_over_collection_fetch: true
       hibernate.query.in_clause_parameter_padding: true
       hibernate.jdbc.use_streams_for_binary: true
+      org:
+        hibernate:
+          envers:
+            audit_table_suffix: _audit
+            revision_field_name: revision_id
+            revision_type_field_name: revision_type
+            store_data_at_delete: true
     hibernate:
       ddl-auto: none
       naming:
