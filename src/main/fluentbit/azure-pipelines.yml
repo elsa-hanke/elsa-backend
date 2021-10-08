@@ -26,6 +26,7 @@ stages:
               command: build
               Dockerfile: src/main/fluentbit/Dockerfile
               buildContext: src/main/fluentbit
+              tags: $(tag)
           - task: ECRPushImage@1
             inputs:
               awsCredentials: 'elsa-ci'
