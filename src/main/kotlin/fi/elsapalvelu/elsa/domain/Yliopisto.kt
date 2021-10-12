@@ -35,16 +35,6 @@ data class Yliopisto(
 
 ) : Serializable {
 
-    fun addErikoisala(erikoisala: Erikoisala): Yliopisto {
-        this.erikoisalat.add(erikoisala)
-        return this
-    }
-
-    fun removeErikoisala(erikoisala: Erikoisala): Yliopisto {
-        this.erikoisalat.remove(erikoisala)
-        return this
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Yliopisto) return false
