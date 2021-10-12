@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211006112732-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="koulutusjakso_id"
+                                 baseTableName="rel_koulutusjakso__tyoskentelyjakso"
+                                 constraintName="fk_rel_koulutusjakso__tyoskentelyjakso__koulutusjakso_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="koulutusjakso"/>
+
+        <addForeignKeyConstraint baseColumnNames="tyoskentelyjakso_id"
+                                 baseTableName="rel_koulutusjakso__tyoskentelyjakso"
+                                 constraintName="fk_rel_koulutusjakso__tyoskentelyjakso__tyoskentelyjakso_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="tyoskentelyjakso"/>
+
+        <addForeignKeyConstraint baseColumnNames="koulutusjakso_id"
+                                 baseTableName="rel_koulutusjakso__osaamistavoitteet"
+                                 constraintName="fk_rel_koulutusjakso__osaamistavoitteet__koulutusjakso_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="koulutusjakso"/>
+
+        <addForeignKeyConstraint baseColumnNames="osaamistavoitteet_id"
+                                 baseTableName="rel_koulutusjakso__osaamistavoitteet"
+                                 constraintName="fk_rel_koulutusjakso__osaamistavoitteet__osaamistavoitteet_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="arvioitava_kokonaisuus"/>
+
+        <addForeignKeyConstraint baseColumnNames="koulutussuunnitelma_id"
+                                 baseTableName="koulutusjakso"
+                                 constraintName="fk_koulutusjakso__koulutussuunnitelma_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="koulutussuunnitelma"/>
+
+    </changeSet>
+
+</databaseChangeLog>
