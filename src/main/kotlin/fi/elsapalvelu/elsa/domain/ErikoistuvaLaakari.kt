@@ -73,30 +73,6 @@ data class ErikoistuvaLaakari(
 
     ) : Serializable {
 
-    fun addValtuutus(kouluttajavaltuutus: Kouluttajavaltuutus): ErikoistuvaLaakari {
-        this.annetutValtuutukset.add(kouluttajavaltuutus)
-        kouluttajavaltuutus.valtuuttaja = this
-        return this
-    }
-
-    fun removeValtuutus(kouluttajavaltuutus: Kouluttajavaltuutus): ErikoistuvaLaakari {
-        this.annetutValtuutukset.remove(kouluttajavaltuutus)
-        kouluttajavaltuutus.valtuuttaja = null
-        return this
-    }
-
-    fun addTyoskentelyjakso(tyoskentelyjakso: Tyoskentelyjakso): ErikoistuvaLaakari {
-        this.tyoskentelyjaksot.add(tyoskentelyjakso)
-        tyoskentelyjakso.erikoistuvaLaakari = this
-        return this
-    }
-
-    fun removeTyoskentelyjakso(tyoskentelyjakso: Tyoskentelyjakso): ErikoistuvaLaakari {
-        this.tyoskentelyjaksot.remove(tyoskentelyjakso)
-        tyoskentelyjakso.erikoistuvaLaakari = null
-        return this
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ErikoistuvaLaakari) return false

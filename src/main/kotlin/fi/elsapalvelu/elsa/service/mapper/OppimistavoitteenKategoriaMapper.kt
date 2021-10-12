@@ -27,7 +27,6 @@ interface OppimistavoitteenKategoriaMapper :
 
     @Mappings(
         Mapping(target = "oppimistavoitteet", ignore = true),
-        Mapping(target = "removeOppimistavoite", ignore = true),
         Mapping(source = "erikoisalaId", target = "erikoisala")
     )
     override fun toEntity(dto: OppimistavoitteenKategoriaDTO): OppimistavoitteenKategoria
