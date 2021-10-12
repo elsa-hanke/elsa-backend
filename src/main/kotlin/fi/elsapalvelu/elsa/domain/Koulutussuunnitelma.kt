@@ -124,21 +124,6 @@ data class Koulutussuunnitelma(
 
 ) : Serializable {
 
-    fun addKoulutusjakso(koulutusjakso: Koulutusjakso): Koulutussuunnitelma {
-        if (this.koulutusjaksot == null) {
-            this.koulutusjaksot = mutableSetOf()
-        }
-        this.koulutusjaksot?.add(koulutusjakso)
-        koulutusjakso.koulutussuunnitelma = this
-        return this
-    }
-
-    fun removeKoulutusjakso(koulutusjakso: Koulutusjakso): Koulutussuunnitelma {
-        this.koulutusjaksot?.remove(koulutusjakso)
-        koulutusjakso.koulutussuunnitelma = null
-        return this
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Koulutussuunnitelma) return false
