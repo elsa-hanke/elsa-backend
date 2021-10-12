@@ -95,37 +95,9 @@ data class Koulutusjakso(
         ],
         allowSetters = true
     )
-    var koulutussuunnitelma: Koulutussuunnitelma? = null,
+    var koulutussuunnitelma: Koulutussuunnitelma? = null
 
-    ) : Serializable {
-
-    fun addTyoskentelyjakso(tyoskentelyjakso: Tyoskentelyjakso): Koulutusjakso {
-        if (this.tyoskentelyjaksot == null) {
-            this.tyoskentelyjaksot = mutableSetOf()
-        }
-        this.tyoskentelyjaksot?.add(tyoskentelyjakso)
-        tyoskentelyjakso.koulutusjaksot?.add(this)
-        return this
-    }
-
-    fun removeTyoskentelyjakso(tyoskentelyjakso: Tyoskentelyjakso): Koulutusjakso {
-        this.tyoskentelyjaksot?.remove(tyoskentelyjakso)
-        return this
-    }
-
-    fun addOsaamistavoitteet(arvioitavaKokonaisuus: ArvioitavaKokonaisuus): Koulutusjakso {
-        if (this.osaamistavoitteet == null) {
-            this.osaamistavoitteet = mutableSetOf()
-        }
-        this.osaamistavoitteet?.add(arvioitavaKokonaisuus)
-        arvioitavaKokonaisuus.koulutusjaksot?.add(this)
-        return this
-    }
-
-    fun removeOsaamistavoitteet(arvioitavaKokonaisuus: ArvioitavaKokonaisuus): Koulutusjakso {
-        this.osaamistavoitteet?.remove(arvioitavaKokonaisuus)
-        return this
-    }
+) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

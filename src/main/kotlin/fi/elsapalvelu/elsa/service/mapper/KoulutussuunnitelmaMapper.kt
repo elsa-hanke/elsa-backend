@@ -33,7 +33,6 @@ interface KoulutussuunnitelmaMapper :
     @Mappings(
         Mapping(source = "erikoistuvaLaakariId", target = "erikoistuvaLaakari"),
         Mapping(target = "koulutusjaksot", ignore = true),
-        Mapping(target = "removeKoulutusjakso", ignore = true),
     )
     override fun toEntity(dto: KoulutussuunnitelmaDTO): Koulutussuunnitelma
 

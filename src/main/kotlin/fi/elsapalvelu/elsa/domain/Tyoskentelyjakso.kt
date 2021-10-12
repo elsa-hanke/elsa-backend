@@ -84,21 +84,6 @@ data class Tyoskentelyjakso(
 
 ) : Serializable {
 
-    fun addKoulutusjakso(koulutusjakso: Koulutusjakso): Tyoskentelyjakso {
-        if (this.koulutusjaksot == null) {
-            this.koulutusjaksot = mutableSetOf()
-        }
-        this.koulutusjaksot?.add(koulutusjakso)
-        koulutusjakso.tyoskentelyjaksot?.add(this)
-        return this
-    }
-
-    fun removeKoulutusjakso(koulutusjakso: Koulutusjakso): Tyoskentelyjakso {
-        this.koulutusjaksot?.remove(koulutusjakso)
-        koulutusjakso.tyoskentelyjaksot?.remove(this)
-        return this
-    }
-
     fun getMinPaattymispaiva(): LocalDate? {
         val dates = listOfNotNull(this.alkamispaiva)
             .plus(suoritemerkinnat.map { it.suorituspaiva })
