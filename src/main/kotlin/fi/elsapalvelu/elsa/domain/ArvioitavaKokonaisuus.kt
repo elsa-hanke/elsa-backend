@@ -40,9 +40,34 @@ data class ArvioitavaKokonaisuus(
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["arvioitavatKokonaisuudet"], allowSetters = true)
-    var kategoria: ArvioitavanKokonaisuudenKategoria? = null
+    var kategoria: ArvioitavanKokonaisuudenKategoria? = null,
+
+    @ManyToMany(mappedBy = "osaamistavoitteet")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JsonIgnoreProperties(
+        value = [
+            "tyoskentelyjaksot", "osaamistavoitteet"
+        ],
+        allowSetters = true
+    )
+    var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf()
 
 ) : Serializable {
+
+    fun addKoulutusjakso(koulutusjakso: Koulutusjakso): ArvioitavaKokonaisuus {
+        if (this.koulutusjaksot == null) {
+            this.koulutusjaksot = mutableSetOf()
+        }
+        this.koulutusjaksot?.add(koulutusjakso)
+        koulutusjakso.osaamistavoitteet?.add(this)
+        return this
+    }
+
+    fun removeKoulutusjakso(koulutusjakso: Koulutusjakso): ArvioitavaKokonaisuus {
+        this.koulutusjaksot?.remove(koulutusjakso)
+        koulutusjakso.osaamistavoitteet?.remove(this)
+        return this
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

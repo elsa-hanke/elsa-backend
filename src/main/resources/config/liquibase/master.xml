@@ -84,6 +84,7 @@
     <include file="config/liquibase/changelog/20210929104412_added_entity_Koulutussuunnitelma.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211006161952_remove_entity_ArvioitavaOsaalue.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211007105355_remove_entity_OsaalueenArviointi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211006112732_added_entity_Koulutusjakso.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
@@ -96,5 +97,6 @@
     <include file="config/liquibase/changelog/20210623152123_added_entity_constraints_verification_token.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210914135619_added_entity_constraints_arviointiasteikko.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210929104412_added_entity_constraints_Koulutussuunnitelma.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211006112732_added_entity_constraints_Koulutusjakso.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

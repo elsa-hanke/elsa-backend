@@ -110,7 +110,34 @@ data class Koulutussuunnitelma(
     @JoinColumn(unique = true)
     var motivaatiokirjeAsiakirja: Asiakirja? = null,
 
-    ) : Serializable {
+    @OneToMany(mappedBy = "koulutussuunnitelma")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JsonIgnoreProperties(
+        value = [
+            "tyoskentelyjaksot",
+            "osaamistavoitteet",
+            "koulutussuunnitelma"
+        ],
+        allowSetters = true
+    )
+    var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf()
+
+) : Serializable {
+
+    fun addKoulutusjakso(koulutusjakso: Koulutusjakso): Koulutussuunnitelma {
+        if (this.koulutusjaksot == null) {
+            this.koulutusjaksot = mutableSetOf()
+        }
+        this.koulutusjaksot?.add(koulutusjakso)
+        koulutusjakso.koulutussuunnitelma = this
+        return this
+    }
+
+    fun removeKoulutusjakso(koulutusjakso: Koulutusjakso): Koulutussuunnitelma {
+        this.koulutusjaksot?.remove(koulutusjakso)
+        koulutusjakso.koulutussuunnitelma = null
+        return this
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

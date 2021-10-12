@@ -5,9 +5,13 @@ import java.util.*
 
 interface ArvioitavanKokonaisuudenKategoriaService {
 
-    fun save(arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaDTO): ArvioitavanKokonaisuudenKategoriaDTO
+    fun save(
+        arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaDTO
+    ): ArvioitavanKokonaisuudenKategoriaDTO
 
     fun findAll(): List<ArvioitavanKokonaisuudenKategoriaDTO>
+
+    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<ArvioitavanKokonaisuudenKategoriaDTO>
 
     fun findOne(id: Long): Optional<ArvioitavanKokonaisuudenKategoriaDTO>
 
