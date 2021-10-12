@@ -6,6 +6,7 @@ import org.ehcache.config.builders.CacheConfigurationBuilder
 import org.ehcache.config.builders.ExpiryPolicyBuilder
 import org.ehcache.config.builders.ResourcePoolsBuilder
 import org.ehcache.jsr107.Eh107Configuration
+import org.hibernate.SessionFactory
 import org.hibernate.cache.jcache.ConfigSettings
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer

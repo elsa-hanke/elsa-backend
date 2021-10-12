@@ -4,7 +4,7 @@ import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import javax.persistence.*
-import javax.validation.constraints.*
+import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "yliopisto")

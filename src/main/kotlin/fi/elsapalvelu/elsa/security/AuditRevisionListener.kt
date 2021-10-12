@@ -21,6 +21,6 @@ class AuditRevisionListener : RevisionListener {
             } else {
                 SYSTEM_ACCOUNT
             }
-        audit.modifiedDate = LocalDateTime.now().toString()
+        audit.modifiedDate = LocalDateTime.now()
     }
 }

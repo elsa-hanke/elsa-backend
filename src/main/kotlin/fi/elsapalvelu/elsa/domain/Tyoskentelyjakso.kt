@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
+import org.hibernate.envers.NotAudited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
@@ -12,12 +15,13 @@ import javax.validation.constraints.Min
 import javax.validation.constraints.NotNull
 
 @Entity
+@Audited
 @Table(name = "tyoskentelyjakso")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Tyoskentelyjakso(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
 
@@ -49,21 +53,26 @@ data class Tyoskentelyjakso(
     var tyoskentelypaikka: Tyoskentelypaikka? = null,
 
     @OneToMany(mappedBy = "tyoskentelyjakso")
+    @NotAudited
     var suoritusarvioinnit: MutableSet<Suoritusarviointi> = mutableSetOf(),
 
     @OneToMany(mappedBy = "tyoskentelyjakso", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @NotAudited
     var suoritemerkinnat: MutableSet<Suoritemerkinta> = mutableSetOf(),
 
     @OneToMany(mappedBy = "tyoskentelyjakso", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @NotAudited
     var keskeytykset: MutableSet<Keskeytysaika> = mutableSetOf(),
 
     @ManyToOne
     @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var omaaErikoisalaaTukeva: Erikoisala? = null,
 
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
     @Column(name = "liitetty_koejaksoon")

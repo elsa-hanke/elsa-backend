@@ -4,11 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.Type
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import javax.persistence.*
 import javax.validation.constraints.NotNull
 
 @Entity
+@Audited
 @Table(name = "koulutussuunnitelma")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Koulutussuunnitelma(
@@ -86,6 +89,7 @@ data class Koulutussuunnitelma(
     @NotNull
     @OneToOne(optional = false)
     @JoinColumn(unique = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
     @JsonIgnoreProperties(

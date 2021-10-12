@@ -37,8 +37,7 @@ interface KayttajaMapper :
         Mapping(source = "etunimi", target = "user.firstName"),
         Mapping(source = "sukunimi", target = "user.lastName"),
         Mapping(source = "sahkoposti", target = "user.email"),
-        Mapping(target = "saadutValtuutukset", ignore = true),
-        Mapping(target = "removeValtuutus", ignore = true)
+        Mapping(target = "saadutValtuutukset", ignore = true)
     )
     override fun toEntity(dto: KayttajaDTO): Kayttaja
 

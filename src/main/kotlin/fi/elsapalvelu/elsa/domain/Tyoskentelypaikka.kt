@@ -5,11 +5,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import javax.persistence.*
-import javax.validation.constraints.*
+import javax.validation.constraints.NotNull
 
 @Entity
+@Audited
 @Table(name = "tyoskentelypaikka")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Tyoskentelypaikka(
@@ -34,6 +37,7 @@ data class Tyoskentelypaikka(
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["tyoskentelypaikat"], allowSetters = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var kunta: Kunta? = null,
 
     @OneToOne(mappedBy = "tyoskentelypaikka")
