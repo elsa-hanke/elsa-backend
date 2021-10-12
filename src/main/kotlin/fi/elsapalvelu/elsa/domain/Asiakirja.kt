@@ -4,11 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.sun.istack.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
+@Audited
 @Table(name = "asiakirja")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Asiakirja(
@@ -20,6 +23,7 @@ data class Asiakirja(
 
     @ManyToOne(optional = false)
     @JoinColumn(unique = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
     @ManyToOne(optional = true)
@@ -41,6 +45,7 @@ data class Asiakirja(
     @NotNull
     @OneToOne(optional = false, cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(unique = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var asiakirjaData: AsiakirjaData? = null
 
 ) : Serializable {

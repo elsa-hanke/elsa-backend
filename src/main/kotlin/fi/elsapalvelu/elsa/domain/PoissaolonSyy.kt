@@ -3,10 +3,12 @@ package fi.elsapalvelu.elsa.domain
 import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
-import javax.validation.constraints.*
+import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "poissaolon_syy")
@@ -25,6 +27,7 @@ data class PoissaolonSyy(
     @get: NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "vahennystyyppi", nullable = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var vahennystyyppi: PoissaolonSyyTyyppi? = null,
 
     @get: NotNull

@@ -4,12 +4,17 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.Type
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
-import javax.validation.constraints.*
+import javax.validation.constraints.Max
+import javax.validation.constraints.Min
+import javax.validation.constraints.NotNull
 
 @Entity
+@Audited
 @Table(name = "suoritemerkinta")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Suoritemerkinta(
@@ -47,11 +52,13 @@ data class Suoritemerkinta(
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["suoritemerkinnat"], allowSetters = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var oppimistavoite: Oppimistavoite? = null,
 
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["suoritemerkinnat"], allowSetters = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var tyoskentelyjakso: Tyoskentelyjakso? = null
 
 ) : Serializable {

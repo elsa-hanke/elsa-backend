@@ -2,6 +2,8 @@ package fi.elsapalvelu.elsa.domain
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
 import java.time.ZoneId
@@ -9,6 +11,7 @@ import javax.persistence.*
 import javax.validation.constraints.NotNull
 
 @Entity
+@Audited
 @Table(name = "koejakson_koulutussopimus")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class KoejaksonKoulutussopimus(
@@ -21,6 +24,7 @@ data class KoejaksonKoulutussopimus(
     @NotNull
     @OneToOne(optional = false)
     @JoinColumn(unique = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
     @NotNull
@@ -64,6 +68,7 @@ data class KoejaksonKoulutussopimus(
     var muokkauspaiva: LocalDate? = null,
 
     @ManyToOne
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var vastuuhenkilo: Kayttaja? = null,
 
     @Column(name = "vastuuhenkilon_nimi", nullable = false)
