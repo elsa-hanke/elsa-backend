@@ -1,0 +1,721 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211008133544-1" author="jhipster">
+
+        <createTable tableName="revinfo">
+            <column name="id" type="int">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="timestamp" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="modified_date" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="user_id" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="tyoskentelyjakso_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="alkamispaiva" type="date">
+                <constraints nullable="false" />
+            </column>
+            <column name="paattymispaiva" type="date"/>
+            <column name="osaaikaprosentti" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="kaytannon_koulutus" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="hyvaksytty_aiempaan_erikoisalaan" type="boolean">
+                <constraints nullable="false" />
+            </column>
+            <column name="tyoskentelypaikka_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="omaa_erikoisalaa_tukeva_id" type="bigint"/>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="liitetty_koejaksoon" type="boolean"/>
+        </createTable>
+
+        <createTable tableName="suoritusarviointi_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="tapahtuman_ajankohta" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arvioitava_tapahtuma" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pyynnon_aika" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lisatiedot" type="${clobType}"/>
+            <column name="itsearviointi_vaativuustaso" type="integer" />
+            <column name="itsearviointi_arviointiasteikon_taso" type="integer"/>
+            <column name="sanallinen_itsearviointi" type="${clobType}"/>
+            <column name="itsearviointi_aika" type="date"/>
+            <column name="vaativuustaso" type="integer"/>
+            <column name="arviointiasteikon_taso" type="integer"/>
+            <column name="sanallinen_arviointi" type="${clobType}"/>
+            <column name="arviointi_aika" type="date"/>
+            <column name="lukittu" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arvioinnin_antaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arvioitava_osaalue_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tyoskentelyjakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arviointi_perustuu" type="varchar(255)"/>
+            <column name="muu_peruste" type="varchar(255)"/>
+        </createTable>
+
+        <createTable tableName="kouluttajavaltuutus_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="alkamispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="paattymispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valtuutuksen_luontiaika" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valtuutuksen_muokkausaika" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valtuuttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valtuutettu_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="tyoskentelypaikka_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tyyppi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="muu_tyyppi" type="varchar(255)"/>
+            <column name="kunta_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="suoritusarvioinnin_kommentti_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="teksti" type="${clobType}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="luontiaika" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="muokkausaika" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kommentoija_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="suoritusarviointi_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="suoritusarvioinnin_arviointityokalut_audit">
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="suoritusarviointi_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arviointityokalu_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="suoritemerkinta_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="suorituspaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arviointiasteikon_taso" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vaativuustaso" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lisatiedot" type="${clobType}"/>
+            <column name="lukittu" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="oppimistavoite_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tyoskentelyjakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="keskeytysaika_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="alkamispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="paattymispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="osaaikaprosentti" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="poissaolon_syy_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tyoskentelyjakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="koejakson_koulutussopimus_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_opiskelijatunnus" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_syntymaaika" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_yliopisto" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opintooikeuden_myontamispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koejakson_alkamispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_puhelinnumero" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_sahkoposti" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahetetty" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="muokkauspaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vastuuhenkilo_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vastuuhenkilon_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vastuuhenkilon_nimike" type="varchar(255)"/>
+            <column name="vastuuhenkilo_hyvaksynyt" type="boolean"/>
+            <column name="vastuuhenkilon_kuittausaika" type="date"/>
+            <column name="korjausehdotus" type="varchar(255)"/>
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+            <column name="erikoistuvan_erikoisala" type="varchar(255)"/>
+        </createTable>
+
+        <createTable tableName="koulutussopimuksen_kouluttaja_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="kouluttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nimike" type="varchar(255)"/>
+            <column name="toimipaikka" type="varchar(255)"/>
+            <column name="lahiosoite" type="varchar(255)"/>
+            <column name="postitoimipaikka" type="varchar(255)"/>
+            <column name="puhelin" type="varchar(255)"/>
+            <column name="sahkoposti" type="varchar(255)"/>
+            <column name="sopimus_hyvaksytty" type="boolean"/>
+            <column name="kuittausaika" type="date"/>
+            <column name="koulutussopimus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="koulutussopimuksen_koulutuspaikka_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yliopisto" type="varchar(255)"/>
+            <column name="koulutussopimus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="koejakson_aloituskeskustelu_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_erikoisala" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_opiskelijatunnus" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_yliopisto" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_sahkoposti" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koejakson_suorituspaikka" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koejakson_toinen_suorituspaikka" type="varchar(255)"/>
+            <column name="koejakson_alkamispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koejakson_paattymispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="suoritettu_kokoaikatyossa" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tyotunnit_viikossa" type="double"/>
+            <column name="lahikouluttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahikouluttajan_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahikouluttaja_hyvaksynyt" type="boolean"/>
+            <column name="lahikouluttajan_kuittausaika" type="date"/>
+            <column name="lahiesimies_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahiesimiehen_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahiesimies_hyvaksynyt" type="boolean"/>
+            <column name="lahiesimiehen_kuittausaika" type="date"/>
+            <column name="koejakson_osaamistavoitteet" type="text"/>
+            <column name="lahetetty" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="muokkauspaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="korjausehdotus" type="varchar(255)"/>
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+        </createTable>
+
+        <createTable tableName="koejakson_valiarviointi_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_erikoisala" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_opiskelijatunnus" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_yliopisto" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="edistyminen_tavoitteiden_mukaista" type="boolean"/>
+            <column name="vahvuudet" type="text"/>
+            <column name="kehittamistoimenpiteet" type="text"/>
+            <column name="lahikouluttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahikouluttajan_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahikouluttaja_hyvaksynyt" type="boolean"/>
+            <column name="lahikouluttajan_kuittausaika" type="date"/>
+            <column name="lahiesimies_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahiesimiehen_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahiesimies_hyvaksynyt" type="boolean"/>
+            <column name="lahiesimiehen_kuittausaika" type="date"/>
+            <column name="muokkauspaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="korjausehdotus" type="varchar(255)"/>
+            <column name="erikoistuva_allekirjoittanut" type="boolean"/>
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+            <column name="muu_kategoria" type="varchar(255)"/>
+        </createTable>
+
+        <createTable tableName="koejakson_valiarviointi_kehittamistoimenpidekategoriat_audit">
+            <column name="valiarviointi_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="kategoria" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="koejakson_kehittamistoimenpiteet_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_erikoisala" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_opiskelijatunnus" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_yliopisto" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kehittamistoimenpiteet_riittavat" type="boolean"/>
+            <column name="lahikouluttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahikouluttajan_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahikouluttaja_hyvaksynyt" type="boolean"/>
+            <column name="lahikouluttajan_kuittausaika" type="date"/>
+            <column name="lahiesimies_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahiesimiehen_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahiesimies_hyvaksynyt" type="boolean"/>
+            <column name="lahiesimiehen_kuittausaika" type="date"/>
+            <column name="muokkauspaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="korjausehdotus" type="varchar(255)"/>
+            <column name="erikoistuva_allekirjoittanut" type="boolean"/>
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+        </createTable>
+
+        <createTable tableName="koejakson_loppukeskustelu_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_erikoisala" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_opiskelijatunnus" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_yliopisto" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="esitetaan_koejakson_hyvaksymista" type="boolean"/>
+            <column name="lahikouluttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahikouluttajan_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahikouluttaja_hyvaksynyt" type="boolean"/>
+            <column name="lahikouluttajan_kuittausaika" type="date"/>
+            <column name="lahiesimies_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahiesimiehen_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lahiesimies_hyvaksynyt" type="boolean"/>
+            <column name="lahiesimiehen_kuittausaika" type="date"/>
+            <column name="muokkauspaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="korjausehdotus" type="varchar(255)"/>
+            <column name="erikoistuva_allekirjoittanut" type="boolean"/>
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+            <column name="jatkotoimenpiteet" type="text"/>
+        </createTable>
+
+        <createTable tableName="koejakson_vastuuhenkilon_arvio_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_erikoisala" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_opiskelijatunnus" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuvan_yliopisto" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vastuuhenkilo_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vastuuhenkilon_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vastuuhenkilo_allekirjoittanut" type="boolean"/>
+            <column name="vastuuhenkilon_kuittausaika" type="date"/>
+            <column name="muokkauspaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuva_allekirjoittanut" type="boolean"/>
+            <column name="erikoistuvan_allekirjoitusaika" type="date"/>
+            <column name="koejakso_hyvaksytty" type="boolean"/>
+            <column name="perustelu_hylkaamiselle" type="text"/>
+            <column name="hylatty_arviointi_kayty_lapi_keskustellen" type="boolean"/>
+            <column name="vastuuhenkilon_nimike" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="asiakirja_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tyoskentelyjakso_id" type="bigint"/>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tyyppi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lisattypvm" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="asiakirja_data_id" type="bigint"/>
+        </createTable>
+
+        <createTable tableName="koulutussuunnitelma_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="motivaatiokirje" type="${clobType}"/>
+            <column name="motivaatiokirje_yksityinen" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opiskelu_ja_tyohistoria" type="${clobType}"/>
+            <column name="opiskelu_ja_tyohistoria_yksityinen" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vahvuudet" type="${clobType}"/>
+            <column name="vahvuudet_yksityinen" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tulevaisuuden_visiointi" type="${clobType}"/>
+            <column name="tulevaisuuden_visiointi_yksityinen" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="osaamisen_kartuttaminen" type="${clobType}"/>
+            <column name="osaamisen_kartuttaminen_yksityinen" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="elamankentta" type="clob"/>
+            <column name="elamankentta_yksityinen" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuva_laakari_id" type="bigint"/>
+            <column name="koulutussuunnitelma_asiakirja_id" type="bigint"/>
+            <column name="motivaatiokirje_asiakirja_id" type="bigint"/>
+        </createTable>
+
+        <createTable tableName="koulutusjakso_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="muut_osaamistavoitteet" type="${clobType}" />
+            <column name="luotu" type="date" />
+            <column name="tallennettu" type="date" />
+            <column name="lukittu" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koulutussuunnitelma_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="rel_koulutusjakso__tyoskentelyjakso_audit">
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="tyoskentelyjakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koulutusjakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="rel_koulutusjakso__osaamistavoitteet_audit">
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="osaamistavoitteet_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koulutusjakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+    </changeSet>
+</databaseChangeLog>

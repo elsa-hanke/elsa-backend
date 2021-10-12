@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211008133544-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="tyoskentelyjakso_audit"
+                                 constraintName="fk_tyoskentelyjakso_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="suoritusarviointi_audit"
+                                 constraintName="fk_suoritusarviointi_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="kouluttajavaltuutus_audit"
+                                 constraintName="fk_kouluttajavaltuutus_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="tyoskentelypaikka_audit"
+                                 constraintName="fk_tyoskentelypaikka_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="suoritusarvioinnin_kommentti_audit"
+                                 constraintName="fk_suoritusarvioinnin_kommentti_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="suoritemerkinta_audit"
+                                 constraintName="fk_suoritemerkinta_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="keskeytysaika_audit"
+                                 constraintName="fk_keskeytysaika_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="koejakson_koulutussopimus_audit"
+                                 constraintName="fk_koejakson_koulutussopimus_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="koulutussopimuksen_kouluttaja_audit"
+                                 constraintName="fk_koulutussopimuksen_kouluttaja_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="koulutussopimuksen_koulutuspaikka_audit"
+                                 constraintName="fk_koulutussopimuksen_koulutuspaikka_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="koejakson_aloituskeskustelu_audit"
+                                 constraintName="fk_koejakson_aloituskeskustelu_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="koejakson_valiarviointi_audit"
+                                 constraintName="fk_koejakson_valiarviointi_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="koejakson_valiarviointi_kehittamistoimenpidekategoriat_audit"
+                                 constraintName="fk_koejakson_valiarviointi_kehittamistoimenpidekategoriat_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="koejakson_kehittamistoimenpiteet_audit"
+                                 constraintName="fk_koejakson_kehittamistoimenpiteet_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="koejakson_loppukeskustelu_audit"
+                                 constraintName="fk_koejakson_loppukeskustelu_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="koejakson_vastuuhenkilon_arvio_audit"
+                                 constraintName="fk_koejakson_vastuuhenkilon_arvio_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="asiakirja_audit"
+                                 constraintName="fk_asiakirja_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="koulutussuunnitelma_audit"
+                                 constraintName="fk_koulutussuunnitelma_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="rel_koulutusjakso__tyoskentelyjakso_audit"
+                                 constraintName="fk_rel_koulutusjakso__tyoskentelyjakso_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="rel_koulutusjakso__osaamistavoitteet_audit"
+                                 constraintName="fk_rel_koulutusjakso__osaamistavoitteet_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="suoritusarvioinnin_arviointityokalut_audit"
+                                 constraintName="fk_suoritusarvioinnin_arviointityokalut_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+    </changeSet>
+</databaseChangeLog>
