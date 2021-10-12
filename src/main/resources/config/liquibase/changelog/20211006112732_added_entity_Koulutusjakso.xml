@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211006112732-1" author="jhipster">
+        <createTable tableName="koulutusjakso">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="muut_osaamistavoitteet" type="${clobType}">
+                <constraints nullable="true"/>
+            </column>
+            <column name="luotu" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="tallennettu" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="lukittu" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koulutussuunnitelma_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20211006112732-1-relations" author="jhipster">
+
+        <createTable tableName="rel_koulutusjakso__tyoskentelyjakso">
+            <column name="tyoskentelyjakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koulutusjakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="koulutusjakso_id, tyoskentelyjakso_id"
+                       tableName="rel_koulutusjakso__tyoskentelyjakso"/>
+
+        <createTable tableName="rel_koulutusjakso__osaamistavoitteet">
+            <column name="osaamistavoitteet_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koulutusjakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="koulutusjakso_id, osaamistavoitteet_id"
+                       tableName="rel_koulutusjakso__osaamistavoitteet"/>
+    </changeSet>
+
+</databaseChangeLog>

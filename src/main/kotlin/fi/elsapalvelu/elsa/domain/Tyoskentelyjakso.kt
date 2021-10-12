@@ -70,9 +70,34 @@ data class Tyoskentelyjakso(
     var liitettyKoejaksoon: Boolean = false,
 
     @OneToMany(mappedBy = "tyoskentelyjakso", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
-    var asiakirjat: MutableSet<Asiakirja> = mutableSetOf()
+    var asiakirjat: MutableSet<Asiakirja> = mutableSetOf(),
+
+    @ManyToMany(mappedBy = "tyoskentelyjaksot")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JsonIgnoreProperties(
+        value = [
+            "tyoskentelyjaksot", "osaamistavoitteet"
+        ],
+        allowSetters = true
+    )
+    var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf()
 
 ) : Serializable {
+
+    fun addKoulutusjakso(koulutusjakso: Koulutusjakso): Tyoskentelyjakso {
+        if (this.koulutusjaksot == null) {
+            this.koulutusjaksot = mutableSetOf()
+        }
+        this.koulutusjaksot?.add(koulutusjakso)
+        koulutusjakso.tyoskentelyjaksot?.add(this)
+        return this
+    }
+
+    fun removeKoulutusjakso(koulutusjakso: Koulutusjakso): Tyoskentelyjakso {
+        this.koulutusjaksot?.remove(koulutusjakso)
+        koulutusjakso.tyoskentelyjaksot?.remove(this)
+        return this
+    }
 
     fun getMinPaattymispaiva(): LocalDate? {
         val dates = listOfNotNull(this.alkamispaiva)
