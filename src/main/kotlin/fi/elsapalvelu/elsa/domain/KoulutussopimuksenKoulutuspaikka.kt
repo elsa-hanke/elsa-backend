@@ -3,10 +3,13 @@ package fi.elsapalvelu.elsa.domain
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import javax.persistence.*
 
 @Entity
+@Audited
 @Table(name = "koulutussopimuksen_koulutuspaikka")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class KoulutussopimuksenKoulutuspaikka(
@@ -20,6 +23,7 @@ data class KoulutussopimuksenKoulutuspaikka(
     var nimi: String? = null,
 
     @Column(name = "yliopisto", nullable = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var yliopisto: String? = null,
 
     @ManyToOne

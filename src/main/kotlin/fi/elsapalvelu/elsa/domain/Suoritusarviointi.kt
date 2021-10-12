@@ -5,6 +5,9 @@ import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.Type
+import org.hibernate.envers.Audited
+import org.hibernate.envers.NotAudited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
@@ -13,6 +16,7 @@ import javax.validation.constraints.Min
 import javax.validation.constraints.NotNull
 
 @Entity
+@Audited
 @Table(name = "suoritusarviointi")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Suoritusarviointi(
@@ -80,16 +84,19 @@ data class Suoritusarviointi(
     var lukittu: Boolean = false,
 
     @OneToMany(mappedBy = "suoritusarviointi", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @NotAudited
     var kommentit: MutableSet<SuoritusarvioinninKommentti> = mutableSetOf(),
 
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var arvioinninAntaja: Kayttaja? = null,
 
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var arvioitavaOsaalue: ArvioitavaKokonaisuus? = null,
 
     @NotNull
@@ -103,6 +110,7 @@ data class Suoritusarviointi(
         joinColumns = [JoinColumn(name = "suoritusarviointi_id", referencedColumnName = "id")],
         inverseJoinColumns = [JoinColumn(name = "arviointityokalu_id", referencedColumnName = "id")]
     )
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var arviointityokalut: MutableSet<Arviointityokalu>? = mutableSetOf(),
 
     @Enumerated(EnumType.STRING)
