@@ -54,21 +54,6 @@ data class ArvioitavaKokonaisuus(
 
 ) : Serializable {
 
-    fun addKoulutusjakso(koulutusjakso: Koulutusjakso): ArvioitavaKokonaisuus {
-        if (this.koulutusjaksot == null) {
-            this.koulutusjaksot = mutableSetOf()
-        }
-        this.koulutusjaksot?.add(koulutusjakso)
-        koulutusjakso.osaamistavoitteet?.add(this)
-        return this
-    }
-
-    fun removeKoulutusjakso(koulutusjakso: Koulutusjakso): ArvioitavaKokonaisuus {
-        this.koulutusjaksot?.remove(koulutusjakso)
-        koulutusjakso.osaamistavoitteet?.remove(this)
-        return this
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ArvioitavaKokonaisuus) return false

@@ -24,10 +24,4 @@ interface KoulutusjaksoMapper :
         Mapping(target = "koulutussuunnitelma", source = "koulutussuunnitelma", qualifiedByName = ["id"])
     )
     override fun toDto(entity: Koulutusjakso): KoulutusjaksoDTO
-
-    @Mappings(
-        Mapping(target = "removeTyoskentelyjakso", ignore = true),
-        Mapping(target = "removeOsaamistavoitteet", ignore = true)
-    )
-    override fun toEntity(dto: KoulutusjaksoDTO): Koulutusjakso
 }
