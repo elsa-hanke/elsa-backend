@@ -40,18 +40,6 @@ class OppimistavoitteenKategoria(
 
 ) : Serializable {
 
-    fun addOppimistavoite(oppimistavoite: Oppimistavoite): OppimistavoitteenKategoria {
-        this.oppimistavoitteet.add(oppimistavoite)
-        oppimistavoite.kategoria = this
-        return this
-    }
-
-    fun removeOppimistavoite(oppimistavoite: Oppimistavoite): OppimistavoitteenKategoria {
-        this.oppimistavoitteet.remove(oppimistavoite)
-        oppimistavoite.kategoria = null
-        return this
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is OppimistavoitteenKategoria) return false

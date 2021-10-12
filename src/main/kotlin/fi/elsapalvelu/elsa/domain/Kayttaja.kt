@@ -34,18 +34,6 @@ data class Kayttaja(
 
 ) : Serializable {
 
-    fun addValtuutus(kouluttajavaltuutus: Kouluttajavaltuutus): Kayttaja {
-        this.saadutValtuutukset.add(kouluttajavaltuutus)
-        kouluttajavaltuutus.valtuutettu = this
-        return this
-    }
-
-    fun removeValtuutus(kouluttajavaltuutus: Kouluttajavaltuutus): Kayttaja {
-        this.saadutValtuutukset.remove(kouluttajavaltuutus)
-        kouluttajavaltuutus.valtuutettu = null
-        return this
-    }
-
     fun getNimi(): String {
         return this.user?.firstName + " " + this.user?.lastName
     }
