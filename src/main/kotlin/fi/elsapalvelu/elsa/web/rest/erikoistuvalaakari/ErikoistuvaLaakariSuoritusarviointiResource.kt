@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
@@ -181,15 +180,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         suoritusarviointiDTO.pyynnonAika = LocalDate.now(ZoneId.systemDefault())
 
         val result = suoritusarviointiService.save(suoritusarviointiDTO)
-        return ResponseEntity.created(URI("/api/suoritusarvioinnit/${result.id}"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    result.id.toString()
-                )
-            )
+        return ResponseEntity
+            .created(URI("/api/suoritusarvioinnit/${result.id}"))
             .body(result)
     }
 
@@ -203,16 +195,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         }
         val user = userService.getAuthenticatedUser(principal)
         val result = suoritusarviointiService.save(suoritusarviointiDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    suoritusarviointiDTO.id.toString()
-                )
-            )
-            .body(result)
+        return ResponseEntity.ok(result)
     }
 
     @GetMapping("/suoritusarvioinnit/{id}")
@@ -233,14 +216,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
         suoritusarviointiService.delete(id, user.id!!)
-        return ResponseEntity.noContent()
-            .headers(
-                HeaderUtil.createEntityDeletionAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    id.toString()
-                )
-            ).build()
+        return ResponseEntity
+            .noContent()
+            .build()
     }
 }

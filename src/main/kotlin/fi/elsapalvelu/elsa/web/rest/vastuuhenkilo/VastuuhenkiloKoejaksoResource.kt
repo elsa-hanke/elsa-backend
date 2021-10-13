@@ -8,7 +8,6 @@ import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -86,16 +85,7 @@ class VastuuhenkiloKoejaksoResource(
 
         val result =
             koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_SOPIMUS,
-                    koulutussopimusDTO.id.toString()
-                )
-            )
-            .body(result)
+        return ResponseEntity.ok(result)
     }
 
     @GetMapping("/koejakso/vastuuhenkilonarvio/{id}")
@@ -148,17 +138,7 @@ class VastuuhenkiloKoejaksoResource(
             )
         }
 
-        val result =
-            koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                    vastuuhenkilonArvioDTO.id.toString()
-                )
-            )
-            .body(result)
+        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id!!)
+        return ResponseEntity.ok(result)
     }
 }

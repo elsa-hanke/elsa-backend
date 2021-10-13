@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.service.dto.OppimistavoitteetTableDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -55,15 +54,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         val user = userService.getAuthenticatedUser(principal)
 
         suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
-            return ResponseEntity.created(URI("/api/suoritemerkinnat/${it.id}"))
-                .headers(
-                    HeaderUtil.createEntityCreationAlert(
-                        applicationName,
-                        true,
-                        ENTITY_NAME,
-                        it.id.toString()
-                    )
-                )
+            return ResponseEntity
+                .created(URI("/api/suoritemerkinnat/${it.id}"))
                 .body(it)
         } ?: throw BadRequestAlertException(
             "Uuden suoritemerkinnän työskentelyjakso täytyy olla oma.",
@@ -86,16 +78,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         val user = userService.getAuthenticatedUser(principal)
 
         suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
-            return ResponseEntity.ok()
-                .headers(
-                    HeaderUtil.createEntityUpdateAlert(
-                        applicationName,
-                        true,
-                        ENTITY_NAME,
-                        suoritemerkintaDTO.id.toString()
-                    )
-                )
-                .body(it)
+            return ResponseEntity.ok(it)
         } ?: throw BadRequestAlertException(
             "Suoritemerkinnän työskentelyjakso täytyy olla oma.",
             ENTITY_NAME,
@@ -125,8 +108,9 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
 
         val user = userService.getAuthenticatedUser(principal)
         suoritemerkintaService.delete(id, user.id!!)
-        return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build()
+        return ResponseEntity
+            .noContent()
+            .build()
     }
 
     @GetMapping("/oppimistavoitteet-taulukko")

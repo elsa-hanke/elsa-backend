@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -89,15 +88,8 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                     )
                 )
 
-                return ResponseEntity.created(URI("/api/kayttajat/${result.id}"))
-                    .headers(
-                        HeaderUtil.createEntityCreationAlert(
-                            applicationName,
-                            true,
-                            "KAYTTAJA_ENTITY_NAME",
-                            result.id.toString()
-                        )
-                    )
+                return ResponseEntity
+                    .created(URI("/api/kayttajat/${result.id}"))
                     .body(result)
             } ?: throw BadRequestAlertException(
             "Uuden lahikouluttajan voi lisätä vain erikoistuva lääkäri",
