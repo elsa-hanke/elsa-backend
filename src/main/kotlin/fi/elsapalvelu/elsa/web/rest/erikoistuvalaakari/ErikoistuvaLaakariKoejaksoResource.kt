@@ -135,7 +135,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         if (koulutussopimusDTO.id != null) {
             throw BadRequestAlertException(
-                "Uusi koulutussopimus ei saa sisältää ID:tä.",
+                "Uusi koulutussopimus ei saa sisältää ID:tä",
                 ENTITY_KOEJAKSON_SOPIMUS,
                 "idexists"
             )
@@ -187,7 +187,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Koulutussopimusta ei löydy.",
                 ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal"
+                "dataillegal.koulutussopimusta-ei-loydy"
             )
         }
 
@@ -195,7 +195,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Lähetettyä koulutussopimusta ei saa muokata.",
                 ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal"
+                "dataillegal.lahetettya-koulutussopimusta-ei-saa-muokata"
             )
         }
 
@@ -267,7 +267,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Koejakson aloituskeskustelua ei löydy.",
                 ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                "dataillegal"
+                "dataillegal.koejakson-aloituskeskustelua-ei-loydy"
             )
         }
 
@@ -275,7 +275,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Allekirjoitettua arviointia ei saa muokata.",
                 ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                "dataillegal"
+                "dataillegal.allekirjoitettua-arviointia-ei-saa-muokata"
             )
         }
 
@@ -286,7 +286,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 "Erikoistuvan koejakson arviointi ei saa sisältää lähikouluttaja kuittausta. " +
                     "Lähikouluttaja määrittelee sen.",
                 ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                "dataillegal"
+                "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahikouluttaja-kuittausta"
             )
         }
         if (aloituskeskusteluDTO.lahiesimies?.sopimusHyvaksytty == true
@@ -296,7 +296,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 "Erikoistuvan koejakson arviointi ei saa sisältää lähiesimiehen kuittausta. " +
                     "Lähiesimies määrittelee sen.",
                 ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                "dataillegal"
+                "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahiesimiehen-kuisttausta"
             )
         }
 
@@ -346,7 +346,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Aloituskeskustelu täytyy hyväksyä ennen väliarviointia.",
                 ENTITY_KOEJAKSON_VALIARVIOINTI,
-                "dataillegal"
+                "dataillegal.aloituskeskustelu-taytyy-hyvaksya-ennen-valiarviointia"
             )
         }
 
@@ -377,7 +377,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Koejakson väliarviointia ei löydy.",
                 ENTITY_KOEJAKSON_VALIARVIOINTI,
-                "dataillegal"
+                "dataillegal.koejakson-valiarviointia-ei-loydy"
             )
         }
 
@@ -433,7 +433,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Väliarviointi täytyy hyväksyä kehitettävillä asioilla ennen kehittämistoimenpiteitä.",
                 ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                "dataillegal"
+                "dataillegal.valiarviointi-taytyy-hyvaksya-kehitettavilla-asioilla-ennen-kehittamistoimenpiteita"
             )
         }
 
@@ -465,7 +465,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Koejakson kehittämistoimenpiteitä ei löydy.",
                 ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                "dataillegal"
+                "dataillegal.koejakson-kehittamistoimenpiteita-ei-loydy"
             )
         }
 
@@ -528,7 +528,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 "Väliarviointi täytyy hyväksyä ilman kehitettäviä asioita " +
                     "tai kehittämistoimenpiteet täytyy hyväksyä ennen loppukeskustelua.",
                 ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                "dataillegal"
+                "dataillegal.valiarviointi-taytyy-hyvaksya-ilman-kehitettavia-asioita-tai-kehittamistoimenpiteet-taytyy-hyvaksya-ennen-loppukeskustelua"
             )
         }
 
@@ -560,7 +560,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Koejakson loppukeskustelua ei löydy.",
                 ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                "dataillegal"
+                "dataillegal.koejakson-loppukeskustelua-ei-loydy"
             )
         }
 
@@ -622,7 +622,7 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         if (vastuuhenkilonArvioDTO.id != null) {
             throw BadRequestAlertException(
-                "Uusi vastuuhenkilön arvio ei saa sisältää ID:tä.",
+                "Uusi vastuuhenkilön arvio ei saa sisältää ID:tä",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
                 "idexists"
             )
@@ -632,10 +632,10 @@ class ErikoistuvaLaakariKoejaksoResource(
             || vastuuhenkilonArvioDTO.vastuuhenkilo?.kuittausaika != null
         ) {
             throw BadRequestAlertException(
-                "Erikoistuvan koejakson vastuhenkilön arvio ei saa sisältää vastuuhenkilön " +
+                "Erikoistuvan koejakson vastuuhenkilön arvio ei saa sisältää vastuuhenkilön " +
                     "kuittausta. Vastuuhenkilö määrittelee sen.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal"
+                "dataillegal.erikoistuvan-koejakson-vastuuhenkion-arvio-ei-saa-sisaltaa-vastuuhenkilon-kuittausta"
             )
         }
 
@@ -645,7 +645,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Loppukeskustelu täytyy hyväksyä ennen vastuuhenkilön arviota.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal"
+                "dataillegal.loppukeskustelu-taytyy-hyvaksya-ennen-vastuuhenkilon-arviota"
             )
         }
 
@@ -677,7 +677,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Koejakson vastuuhenkilön arviota ei löydy.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal"
+                "dataillegal.koejakson-vastuuhenkilon-arviota-ei-loydy"
             )
         }
 
@@ -714,7 +714,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Koulutussopimus ei saa sisältää vastuuhenkilön kuittausta. Vastuuhenkilö määrittelee sen.",
                 ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal"
+                "dataillegal.koulutussopimus-ei-saa-sisaltaa-vastuuhenkilon-kuittausta"
             )
         }
         if (koulutussopimusDTO.kouluttajat?.any { k ->
@@ -724,7 +724,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Koulutussopimus ei saa sisältää kouluttajan kuittausta. Kouluttaja määrittelee sen.",
                 ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal"
+                "dataillegal.koulutussopimus-ei-saa-sisaltaa-kouluttajan-kuittausta"
             )
         }
     }
@@ -738,7 +738,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     ) {
         if (id != null) {
             throw BadRequestAlertException(
-                "Uusi arviointi ei saa sisältää ID:tä.",
+                "Uusi arviointi ei saa sisältää ID:tä",
                 entity,
                 "idexists"
             )
@@ -747,21 +747,21 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Erikoistuvan koejakson arviointi ei saa sisältää lähikouluttaja kuittausta. Lähikouluttaja määrittelee sen.",
                 entity,
-                "dataillegal"
+                "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahikouluttaja-kuittausta"
             )
         }
         if (esimies?.sopimusHyvaksytty == true || esimies?.kuittausaika != null) {
             throw BadRequestAlertException(
                 "Erikoistuvan koejakson arviointi ei saa sisältää lähiesimiehen kuittausta. Lähiesimies määrittelee sen.",
                 entity,
-                "dataillegal"
+                "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahiesimiehen-kuittausta"
             )
         }
         if (erikoistuvaAllekirjoittanut == true) {
             throw BadRequestAlertException(
                 "Erikoistuvan koejakson arviointi ei saa sisältää erikoistuvan kuittausta ennen kuin lähiesimies on hyväksynyt vaiheen.",
                 entity,
-                "dataillegal"
+                "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-erikoistuvan-kuittausta-ennen-kuin-lahiesimies-on-hyvaksynyt-vaiheen"
             )
         }
     }
@@ -771,7 +771,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             throw BadRequestAlertException(
                 "Erikoistuva ei voi allekirjoittaa sopimusta, jos esimies ei ole kuitannut sitä",
                 entity,
-                "dataillegal"
+                "dataillegal.erikoistuva-ei-voi-allekirjoittaa-sopimusta-jos-esimies-ei-ole-kuitannut-sita"
             )
         }
     }

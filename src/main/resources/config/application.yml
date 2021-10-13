@@ -105,6 +105,13 @@ spring:
         implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
   messages:
     basename: i18n/messages
+  web:
+    locale-resolver: accept_header
+    locale: fi
+  resources:
+    add-mappings: false # NoHandlerFoundAdviceTrait needs this
+  mvc:
+    throw-exception-if-no-handler-found: true # NoHandlerFoundAdviceTrait needs this
   main:
     allow-bean-definition-overriding: true
   task:

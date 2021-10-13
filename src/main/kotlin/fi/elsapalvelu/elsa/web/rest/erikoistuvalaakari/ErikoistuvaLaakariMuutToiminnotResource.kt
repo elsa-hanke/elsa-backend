@@ -17,6 +17,8 @@ import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
+private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
+
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariMuutToiminnotResource(
@@ -56,12 +58,12 @@ class ErikoistuvaLaakariMuutToiminnotResource(
     ): ResponseEntity<KayttajaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
-            ?.let { _ ->
+            ?.let {
                 if (userService.existsByEmail(uusiLahikouluttajaDTO.sahkoposti!!)) {
                     throw BadRequestAlertException(
-                        "Samalla sähköpostilla löytyy jo käyttäjä",
-                        "kayttaja",
-                        "dataillegal"
+                        "Samalla sähköpostilla löytyy jo toinen käyttäjä",
+                        KAYTTAJA_ENTITY_NAME,
+                        "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
                     )
                 }
 
@@ -92,15 +94,15 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                         HeaderUtil.createEntityCreationAlert(
                             applicationName,
                             true,
-                            "kayttaja",
+                            "KAYTTAJA_ENTITY_NAME",
                             result.id.toString()
                         )
                     )
                     .body(result)
             } ?: throw BadRequestAlertException(
-            "Uuden lahikouluttajan voi lisätä vain erikoistuva lääkäri.",
-            "kayttaja",
-            "dataillegal"
+            "Uuden lahikouluttajan voi lisätä vain erikoistuva lääkäri",
+            KAYTTAJA_ENTITY_NAME,
+            "dataillegal.uuden-lahikouluttajan-voi-lisata-vain-erikoistuva-laakari"
         )
     }
 }

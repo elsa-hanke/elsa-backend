@@ -44,7 +44,11 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
         if (koulutussuunnitelmaDTO.erikoistuvaLaakariId == null) {
-            throw BadRequestAlertException("Erikoistuva lääkäri puuttuu", ENTITY_NAME, "dataillegal")
+            throw BadRequestAlertException(
+                "Erikoistuva lääkäri puuttuu",
+                ENTITY_NAME,
+                "dataillegal.erikoistuva-laakari-puuttuu"
+            )
         }
 
         koulutussuunnitelmaDTO.koulutussuunnitelmaAsiakirja = getMappedFile(koulutussuunnitelmaFile, user.id!!)
@@ -86,7 +90,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
                 throw BadRequestAlertException(
                     "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
                     ENTITY_NAME,
-                    "illegaldata"
+                    "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
                 )
             }
 

@@ -1,21 +1,24 @@
 package fi.elsapalvelu.elsa.web.rest.errors
 
-import io.github.jhipster.web.util.HeaderUtil
+import io.github.jhipster.config.JHipsterConstants
+import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.env.Environment
 import org.springframework.dao.ConcurrencyFailureException
+import org.springframework.dao.DataAccessException
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageConversionException
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.NativeWebRequest
-import org.zalando.problem.DefaultProblem
-import org.zalando.problem.Problem
-import org.zalando.problem.Status
+import org.zalando.problem.*
 import org.zalando.problem.spring.web.advice.ProblemHandling
 import org.zalando.problem.spring.web.advice.security.SecurityAdviceTrait
 import org.zalando.problem.violations.ConstraintViolationProblem
+import java.net.URI
 import javax.servlet.http.HttpServletRequest
 
 private const val FIELD_ERRORS_KEY = "fieldErrors"
@@ -28,7 +31,9 @@ private const val VIOLATIONS_KEY = "violations"
  * The error response follows RFC7807 - Problem Details for HTTP APIs (https://tools.ietf.org/html/rfc7807).
  */
 @ControllerAdvice
-class ExceptionTranslator : ProblemHandling, SecurityAdviceTrait {
+class ExceptionTranslator(
+    private val env: Environment
+) : ProblemHandling, SecurityAdviceTrait {
 
     @Value("\${jhipster.clientApp.name}")
     private val applicationName: String? = null
@@ -38,10 +43,7 @@ class ExceptionTranslator : ProblemHandling, SecurityAdviceTrait {
     /**
      * Post-process the Problem payload to add the message key for the front-end if needed.
      */
-    override fun process(
-        entity: ResponseEntity<Problem>?,
-        request: NativeWebRequest?
-    ): ResponseEntity<Problem>? {
+    override fun process(entity: ResponseEntity<Problem>?, request: NativeWebRequest?): ResponseEntity<Problem>? {
         if (entity == null) {
             return null
         }
@@ -49,11 +51,14 @@ class ExceptionTranslator : ProblemHandling, SecurityAdviceTrait {
         if (!(problem is ConstraintViolationProblem || problem is DefaultProblem)) {
             return entity
         }
+        val nativeRequest = request?.getNativeRequest(HttpServletRequest::class.java)
+        val requestUri = if (nativeRequest != null) nativeRequest.requestURI else StringUtils.EMPTY
+
         val builder = Problem.builder()
             .withType(if (Problem.DEFAULT_TYPE == problem.type) DEFAULT_TYPE else problem.type)
             .withStatus(problem.status)
             .withTitle(problem.title)
-            .with(PATH_KEY, request!!.getNativeRequest(HttpServletRequest::class.java)!!.requestURI)
+            .with(PATH_KEY, requestUri)
 
         if (problem is ConstraintViolationProblem) {
             builder
@@ -78,7 +83,11 @@ class ExceptionTranslator : ProblemHandling, SecurityAdviceTrait {
     ): ResponseEntity<Problem>? {
         val result = ex.bindingResult
         val fieldErrors = result.fieldErrors.map {
-            FieldErrorVM(it.objectName.replaceFirst(Regex("DTO$"), ""), it.field, it.code)
+            FieldErrorVM(
+                it.objectName.replaceFirst(Regex("DTO$"), ""),
+                it.field,
+                it.code
+            )
         }
 
         val problem = Problem.builder()
@@ -98,14 +107,7 @@ class ExceptionTranslator : ProblemHandling, SecurityAdviceTrait {
     ): ResponseEntity<Problem>? =
         create(
             ex,
-            request,
-            HeaderUtil.createFailureAlert(
-                applicationName,
-                true,
-                ex.entityName,
-                ex.errorKey,
-                ex.message
-            )
+            request
         )
 
     @ExceptionHandler
@@ -133,4 +135,31 @@ class ExceptionTranslator : ProblemHandling, SecurityAdviceTrait {
         )
         return super.handleAccessDenied(e, request)
     }
+
+    override fun prepare(throwable: Throwable, status: StatusType, type: URI): ProblemBuilder {
+        val activeProfiles = env.activeProfiles
+        var detail = throwable.message
+        if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_PRODUCTION)) {
+            detail = when (throwable) {
+                is HttpMessageConversionException -> "Unable to convert http message"
+                is DataAccessException -> "Failure during data access"
+                else -> {
+                    if (containsPackageName(throwable.message)) {
+                        "Unexpected runtime exception"
+                    } else {
+                        throwable.message
+                    }
+                }
+            }
+        }
+        return Problem.builder()
+            .withType(type)
+            .withTitle(status.reasonPhrase)
+            .withStatus(status)
+            .withDetail(detail)
+            .withCause(throwable.cause.takeIf { isCausalChainsEnabled }?.let { toProblem(it) })
+    }
+
+    private fun containsPackageName(message: String?) =
+        listOf("org.", "java.", "net.", "javax.", "com.", "io.", "de.", "fi.elsapalvelu.elsa").any { it == message }
 }

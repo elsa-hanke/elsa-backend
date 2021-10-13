@@ -39,7 +39,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
             throw BadRequestAlertException(
                 "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
                 ENTITY_NAME,
-                "illegaldata"
+                "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
             )
         }
 

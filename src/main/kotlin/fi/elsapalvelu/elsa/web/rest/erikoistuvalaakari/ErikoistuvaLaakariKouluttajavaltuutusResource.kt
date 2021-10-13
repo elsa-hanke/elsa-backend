@@ -15,6 +15,7 @@ import java.time.LocalDate
 import javax.validation.Valid
 
 private const val ENTITY_NAME = "kouluttajavaltuutus"
+private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
@@ -45,7 +46,7 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
         if (valtuutettu.userId == null) {
             throw BadRequestAlertException(
                 "Virheellinen id",
-                "kayttaja",
+                KAYTTAJA_ENTITY_NAME,
                 "idnull"
             )
         }
@@ -56,8 +57,8 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
         ).ifPresent {
             throw BadRequestAlertException(
                 "Erikoistuva on jo valtuuttanut kouluttajan",
-                "kouluttajavaltuutus",
-                "dataillegal"
+                ENTITY_NAME,
+                "dataillegal.erikoistuva-on-jo-valtuuttanut-kouluttajan"
             )
         }
         val result = kouluttajavaltuutusService.save(

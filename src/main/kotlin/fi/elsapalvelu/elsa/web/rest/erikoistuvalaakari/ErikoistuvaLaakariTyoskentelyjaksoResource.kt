@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.constants.tyoskentelyaikaErrorKey
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.HeaderUtil
@@ -20,6 +19,7 @@ import javax.validation.Valid
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
 private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
+private const val TYOSKENTELYPAIKKA_ENTITY_NAME = "tyoskentelypaikka"
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
@@ -72,7 +72,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         } ?: throw BadRequestAlertException(
             "Työskentelyjakson lisääminen epäonnistui.",
             TYOSKENTELYJAKSO_ENTITY_NAME,
-            "dataillegal"
+            "dataillegal.tyoskentelyjakson-lisaaminen-epaonnistui"
         )
     }
 
@@ -117,7 +117,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         } ?: throw BadRequestAlertException(
             "Työskentelyjakson päivittäminen epäonnistui.",
             TYOSKENTELYJAKSO_ENTITY_NAME,
-            "dataillegal"
+            "dataillegal.tyoskentelyjakson-paivittaminen-epaonnistui"
         )
     }
 
@@ -177,7 +177,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             throw BadRequestAlertException(
                 "Työskentelyjakson poistaminen epäonnistui",
                 TYOSKENTELYJAKSO_ENTITY_NAME,
-                "dataillegal"
+                "dataillegal.tyoskentelyjakson-poistaminen-epaonnistui"
             )
         }
         return ResponseEntity.noContent()
@@ -238,16 +238,16 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         if (keskeytysaikaDTO.id != null) {
             throw BadRequestAlertException(
-                "Uusi keskeytysaika ei saa sisältää ID:tä.",
-                "keskeytysaika",
+                "Uusi keskeytysaika ei saa sisältää ID:tä",
+                KESKEYTYSAIKA_ENTITY_NAME,
                 "idexists"
             )
         }
         if (keskeytysaikaDTO.alkamispaiva!!.isAfter(keskeytysaikaDTO.paattymispaiva)) {
             throw BadRequestAlertException(
                 "Keskeytysajan päättymispäivä ei saa olla ennen alkamisaikaa",
-                "keskeytysaika",
-                "dataillegal"
+                KESKEYTYSAIKA_ENTITY_NAME,
+                "dataillegal.keskeytysajan-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa"
             )
         }
 
@@ -265,9 +265,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 )
                 .body(it)
         } ?: throw BadRequestAlertException(
-            "Keskeytysajan lisääminen epäonnistui.",
-            "keskeytysaika",
-            "dataillegal"
+            "Keskeytysajan lisääminen epäonnistui",
+            KESKEYTYSAIKA_ENTITY_NAME,
+            "dataillegal.keskeytysajan-lisaaminen-epaonnistui"
         )
     }
 
@@ -279,7 +279,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         log.debug("REST request to update Keskeytysaika : $keskeytysaikaDTO")
 
         if (keskeytysaikaDTO.id == null) {
-            throw BadRequestAlertException("Invalid id", TYOSKENTELYJAKSO_ENTITY_NAME, "idnull")
+            throw BadRequestAlertException("Virheellinen id", TYOSKENTELYJAKSO_ENTITY_NAME, "idnull")
         }
 
         val user = userService.getAuthenticatedUser(principal)
@@ -296,9 +296,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 )
                 .body(it)
         } ?: throw BadRequestAlertException(
-            "Keskeytysajan päivittäminen epäonnistui.",
+            "Keskeytysajan päivittäminen epäonnistui",
             TYOSKENTELYJAKSO_ENTITY_NAME,
-            "dataillegal"
+            "dataillegal.keskeytysajan-paivittaminen-epaonnistui"
         )
     }
 
@@ -349,9 +349,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         if (tyoskentelyjaksoDTO.liitettyKoejaksoon == null) {
             throw BadRequestAlertException(
-                "liitettyKoejaksoon on pakollinen tieto",
+                "Liitetty koejaksoon on pakollinen tieto",
                 TYOSKENTELYJAKSO_ENTITY_NAME,
-                "illegaldata"
+                "dataillegal.liitetty-koejaksoon-on-pakollinen-tieto"
             )
         }
 
@@ -373,7 +373,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         } ?: throw BadRequestAlertException(
             "Työskentelyjakson päivittäminen epäonnistui.",
             TYOSKENTELYJAKSO_ENTITY_NAME,
-            "dataillegal"
+            "dataillegal.tyoskentelyjakson-paivittaminen-epaonnistui"
         )
     }
 
@@ -385,12 +385,12 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             fileValidationService.validate(it, userId)
 
             if (!fileValidationService.validate(it, userId)) {
-            throw BadRequestAlertException(
-                "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
-                ASIAKIRJA_ENTITY_NAME,
-                "illegaldata"
-            )
-        }
+                throw BadRequestAlertException(
+                    "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
+                    ASIAKIRJA_ENTITY_NAME,
+                    "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
+                )
+            }
 
             return it.map { file ->
                 AsiakirjaDTO(
@@ -410,15 +410,15 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private fun validateNewTyoskentelyjaksoDTO(it: TyoskentelyjaksoDTO) {
         if (it.id != null) {
             throw BadRequestAlertException(
-                "Uusi tyoskentelyjakso ei saa sisältää ID:tä.",
+                "Uusi tyoskentelyjakso ei saa sisältää ID:tä",
                 TYOSKENTELYJAKSO_ENTITY_NAME,
                 "idexists"
             )
         }
         if (it.tyoskentelypaikka == null || it.tyoskentelypaikka!!.id != null) {
             throw BadRequestAlertException(
-                "Uusi tyoskentelypaikka ei saa sisältää ID:tä.",
-                "tyoskentelypaikka",
+                "Uusi tyoskentelypaikka ei saa sisältää ID:tä",
+                TYOSKENTELYPAIKKA_ENTITY_NAME,
                 "idexists"
             )
         }
@@ -429,7 +429,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             throw BadRequestAlertException(
                 "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
                 TYOSKENTELYJAKSO_ENTITY_NAME,
-                tyoskentelyaikaErrorKey
+                "dataillegal.tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy"
             )
         }
     }
@@ -439,8 +439,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             if (it) {
                 throw BadRequestAlertException(
                     "Työskentelyjakson päättymispäivä ei saa olla ennen alkamisaikaa",
-                    "tyoskentelypaikka",
-                    "dataillegal"
+                    TYOSKENTELYPAIKKA_ENTITY_NAME,
+                    "dataillegal.tyoskentelyjakson-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa"
                 )
             }
         }
@@ -448,8 +448,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         if (!tyoskentelyjaksoService.validatePaattymispaiva(tyoskentelyjaksoDTO, userId)) {
             throw BadRequestAlertException(
                 "Työskentelyjakson päättymispäivä ei ole kelvollinen.",
-                "tyoskentelyjakso",
-                "dataillegal"
+                TYOSKENTELYJAKSO_ENTITY_NAME,
+                "dataillegal.tyoskentelyjakson-paattymispaiva-ei-ole-kelvollinen"
             )
         }
     }
@@ -466,7 +466,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             throw BadRequestAlertException(
                 "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
                 TYOSKENTELYJAKSO_ENTITY_NAME,
-                tyoskentelyaikaErrorKey
+                "dataillegal.tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy"
             )
         }
     }
@@ -479,7 +479,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             throw BadRequestAlertException(
                 "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
                 KESKEYTYSAIKA_ENTITY_NAME,
-                tyoskentelyaikaErrorKey
+                "dataillegal.tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy"
             )
         }
     }

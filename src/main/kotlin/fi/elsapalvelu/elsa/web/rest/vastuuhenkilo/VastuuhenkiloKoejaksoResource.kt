@@ -72,7 +72,7 @@ class VastuuhenkiloKoejaksoResource(
             throw BadRequestAlertException(
                 "Vastuuhenkilö ei saa muokata sopimusta, jos erikoistuva ei ole allekirjoittanut sitä",
                 ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal"
+                "dataillegal.vastuuhenkilo-ei-saa-muokata-sopimusta-jos-erikoistuva-ei-ole-allekirjoittanut-sita"
             )
         }
 
@@ -80,7 +80,7 @@ class VastuuhenkiloKoejaksoResource(
             throw BadRequestAlertException(
                 "Vastuuhenkilö ei saa muokata sopimusta, jos kouluttajat eivät ole allekirjoittaneet sitä",
                 ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal"
+                "dataillegal.vastuuhenkilo-ei-saa-muokata-sopimusta-jos-kouluttajat-eivat-ole-allekirjottaneet-sita"
             )
         }
 
@@ -136,7 +136,7 @@ class VastuuhenkiloKoejaksoResource(
             throw BadRequestAlertException(
                 "Koejakson vastuuhenkilön arviota ei löydy.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal"
+                "dataillegal.koejakson-vastuuhenkilon-arviota-ei-loydy"
             )
         }
 
@@ -144,7 +144,7 @@ class VastuuhenkiloKoejaksoResource(
             throw BadRequestAlertException(
                 "Allekirjoitettua arviointia ei saa muokata.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal"
+                "dataillegal.allekirjoitettua-arviointia-ei-saa-muokata"
             )
         }
 

@@ -104,7 +104,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         val user = userService.getAuthenticatedUser(principal)
         if (suoritusarviointiDTO.id != null) {
             throw BadRequestAlertException(
-                "Uusi arviointipyyntö ei saa sisältää ID:tä.",
+                "Uusi arviointipyyntö ei saa sisältää ID:tä",
                 ENTITY_NAME,
                 "idexists"
             )
@@ -113,35 +113,35 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
             throw BadRequestAlertException(
                 "Uusi arviointipyyntö ei saa sisältää arviointiasteikon tasoa. Kouluttaja määrittelee sen.",
                 ENTITY_NAME,
-                "dataillegal"
+                "dataillegal.uusi-arviointipyynto-ei-saa-sisaltaa-arviointiasteikon-tasoa"
             )
         }
         if (suoritusarviointiDTO.vaativuustaso != null) {
             throw BadRequestAlertException(
                 "Uusi arviointipyyntö ei saa sisältää vaativuustasoa. Kouluttaja määrittelee sen.",
                 ENTITY_NAME,
-                "dataillegal"
+                "dataillegal.uusi-arviointipyynto-ei-saa-sisaltaa-vaativuustasoa"
             )
         }
         if (suoritusarviointiDTO.sanallinenArviointi != null) {
             throw BadRequestAlertException(
-                "Uusi arviointipyyntö ei saa sisältää sanallista arviointi. Kouluttaja määrittelee sen.",
+                "Uusi arviointipyyntö ei saa sisältää sanallista arviointia. Kouluttaja määrittelee sen.",
                 ENTITY_NAME,
-                "dataillegal"
+                "dataillegal.uusi-arviointipyynto-ei-saa-sisltaa-sanallista-arviointia"
             )
         }
         if (suoritusarviointiDTO.arviointiAika != null) {
             throw BadRequestAlertException(
                 "Uusi arviointipyyntö ei saa sisältää arvioinnin aikaa. Kouluttaja määrittelee sen.",
                 ENTITY_NAME,
-                "dataillegal"
+                "dataillegal.uusi-arviointipyynto-ei-saa-sisaltaa-arvioinnin-aikaa"
             )
         }
         if (suoritusarviointiDTO.tyoskentelyjaksoId == null) {
             throw BadRequestAlertException(
                 "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
                 ENTITY_NAME,
-                "dataillegal"
+                "dataillegal.uuden-arviointipyynnon-pitaa-kohdistua-johonkin-erikoistuvan-tyoskentelyjaksoon"
             )
         } else {
             val tyoskentelyjakso = tyoskentelyjaksoService
@@ -153,7 +153,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 throw BadRequestAlertException(
                     "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
                     ENTITY_NAME,
-                    "dataillegal"
+                    "dataillegal.uuden-arviointipyynnon-pitaa-kohdistua-johonkin-erikoistuvan-tyoskentelyjaksoon"
                 )
             }
 
@@ -161,7 +161,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 throw BadRequestAlertException(
                     "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
                     ENTITY_NAME,
-                    "dataillegal"
+                    "dataillegal-uuden-arviointipyynnon-pitaa-kohdistua-johonkin-erikoistuvan-tyoskentelyjaksoon"
                 )
             }
             if (tyoskentelyjakso.alkamispaiva!! > suoritusarviointiDTO.tapahtumanAjankohta!! ||
@@ -173,7 +173,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 throw BadRequestAlertException(
                     "Uuden arviointipyynnön pitää kohdistua työskentelyjakson väliin.",
                     ENTITY_NAME,
-                    "dataillegal"
+                    "dataillegal.uuden-arviointipyynnon-pitaa-kohdistua-tyoskentelyjakson-valiin"
                 )
             }
         }
