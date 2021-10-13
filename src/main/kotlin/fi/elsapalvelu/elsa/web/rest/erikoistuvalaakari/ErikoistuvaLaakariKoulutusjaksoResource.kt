@@ -43,7 +43,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
 
         if (koulutusjaksoDTO.id != null) {
             throw BadRequestAlertException(
-                "A new koulutusjakso cannot already have an ID",
+                "Uusi koulutusjakso ei saa sisältää ID:tä",
                 ENTITY_NAME,
                 "idexists"
             )
@@ -71,19 +71,23 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
 
         if (koulutusjaksoDTO.id == null) {
-            throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
+            throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
 
         if (!Objects.equals(id, koulutusjaksoDTO.id)) {
-            throw BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid")
+            throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idinvalid")
         }
 
         if (!koulutusjaksoRepository.existsById(id)) {
-            throw BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound")
+            throw BadRequestAlertException("Entiteetti ei löydy", ENTITY_NAME, "idnotfound")
         }
 
         if (koulutusjaksoService.findOne(id, user.id!!)?.lukittu == true) {
-            throw BadRequestAlertException("Lukittua koulutusjaksoa ei voi muokata", ENTITY_NAME, "dataillegal")
+            throw BadRequestAlertException(
+                "Lukittua koulutusjaksoa ei voi muokata",
+                ENTITY_NAME,
+                "dataillegal.lukittua-koulutusjaksoa-ei-voi-muokata"
+            )
         }
 
         val result = koulutusjaksoService.save(koulutusjaksoDTO, user.id!!)
@@ -131,7 +135,11 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
 
         if (koulutusjaksoService.findOne(id, user.id!!)?.lukittu == true) {
-            throw BadRequestAlertException("Lukittua koulutusjaksoa ei voi poistaa", ENTITY_NAME, "dataillegal")
+            throw BadRequestAlertException(
+                "Lukittua koulutusjaksoa ei voi poistaa",
+                ENTITY_NAME,
+                "dataillegal.lukittua-koulutusjaksoa-ei-voi-poistaa"
+            )
         }
 
         koulutusjaksoService.delete(id, user.id!!)

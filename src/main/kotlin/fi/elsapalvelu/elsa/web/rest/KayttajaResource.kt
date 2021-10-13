@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import javax.validation.Valid
 
+private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
+
 @RestController
 @RequestMapping("/api")
 class KayttajaResource(
@@ -33,8 +35,8 @@ class KayttajaResource(
         if (userDTO.email != email && userService.existsByEmail(email)) {
             throw BadRequestAlertException(
                 "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
-                "kayttaja",
-                "dataillegal"
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
             )
         }
 

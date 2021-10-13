@@ -30,8 +30,7 @@ class PalauteResource(
         val user = userService.getAuthenticatedUser(principal)
         try {
             palauteService.send(palauteDTO, user.id!!)
-        }
-        catch(ex: Exception) {
+        } catch (ex: Exception) {
             log.error("Käyttäjän ${user.id!!} antaman palautteen lähettäminen epäonnistui!")
             throw ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE)
         }

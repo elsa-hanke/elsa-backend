@@ -67,7 +67,7 @@ open class SuoritusarviointiResource(
             throw BadRequestAlertException(
                 "Kouluttajan arvioinnin täytyy sisältää vaativuustaso, arviointiasteikon taso ja sanallien arviointi",
                 ENTITY_NAME,
-                "dataillegal"
+                "dataillegal.kouluttajan-arvioinnin-taytyy-sisaltaa-vaativuustaso-arviointiasteikon-tason-ja-sanallinen-arviointi"
             )
         }
         val user = userService.getAuthenticatedUser(principal)

@@ -32,7 +32,7 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
     ): ResponseEntity<SuoritusarvioinninKommenttiDTO> {
         if (suoritusarvioinninKommenttiDTO.id != null) {
             throw BadRequestAlertException(
-                "Uusi suoritusarvioinnin kommentti ei saa sisältää ID:tä.",
+                "Uusi suoritusarvioinnin kommentti ei saa sisältää id:tä",
                 ENTITY_NAME,
                 "idexists"
             )
@@ -63,7 +63,7 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
         principal: Principal?
     ): ResponseEntity<SuoritusarvioinninKommenttiDTO> {
         if (suoritusarvioinninKommenttiDTO.id == null) {
-            throw BadRequestAlertException("Invalid id", "suoritusarvioinnin_kommentti", "idnull")
+            throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
         val user = userService.getAuthenticatedUser(principal)
         suoritusarvioinninKommenttiDTO.muokkausaika = Instant.now()
