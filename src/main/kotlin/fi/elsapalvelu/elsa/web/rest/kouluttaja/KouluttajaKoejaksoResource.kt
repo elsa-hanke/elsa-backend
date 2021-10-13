@@ -69,7 +69,7 @@ class KouluttajaKoejaksoResource(
                 "Koulutussopimus ei saa sisältää vastuuhenkilön kuittausta. " +
                     "Vastuuhenkilö määrittelee sen.",
                 ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal"
+                "dataillegal.koulutussopimus-ei-saa-sisaltaa-vastuuhenkilon-kuittausta"
             )
         }
 
@@ -82,7 +82,7 @@ class KouluttajaKoejaksoResource(
             throw BadRequestAlertException(
                 "Koulutussopimusta ei saa muokata, jos erikoistuva ei ole allekirjoittanut sitä",
                 ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal"
+                "dataillegal.koulutussopimusta-ei-saa-muokata-jos-erikoistua-ei-ole-allekirjoittanut-sita"
             )
         }
 
@@ -143,7 +143,7 @@ class KouluttajaKoejaksoResource(
                 throw BadRequestAlertException(
                     "Koejakson aloituskeskustelua ei löydy.",
                     ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                    "dataillegal"
+                    "dataillegal.koejakson-aloituskeskustelua-ei-loydy"
                 )
             }
 
@@ -152,7 +152,7 @@ class KouluttajaKoejaksoResource(
                     "Esimies ei saa muokata aloituskeskustelua, " +
                         "jos kouluttaja ei ole allekirjoittanut sitä",
                     ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                    "dataillegal"
+                    "dataillegal.erimies-ei-saa-muokata-aloituskeskustelua-jos-kouluttaja-ei-ole-allekirjoittanut-sita"
                 )
             }
         }
@@ -161,7 +161,7 @@ class KouluttajaKoejaksoResource(
             throw BadRequestAlertException(
                 "Arviointia ei saa muokata, jos erikoistuva ei ole lähettänyt pyyntöä.",
                 ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                "dataillegal"
+                "dataillegal.arviointia-ei-saa-muokata-jos-erikoistuva-ei-ole-lahettanyt-pyyntoa"
             )
         }
 
@@ -227,7 +227,7 @@ class KouluttajaKoejaksoResource(
                 throw BadRequestAlertException(
                     "Koejakson väliarviointia ei löydy.",
                     ENTITY_KOEJAKSON_VALIARVIOINTI,
-                    "dataillegal"
+                    "dataillegal.koejakson-valiarviointia-ei-loydy"
                 )
             }
 
@@ -236,7 +236,7 @@ class KouluttajaKoejaksoResource(
                     "Esimies ei saa muokata väliarviointia, " +
                         "jos kouluttaja ei ole allekirjoittanut sitä",
                     ENTITY_KOEJAKSON_VALIARVIOINTI,
-                    "dataillegal"
+                    "dataillegal.esimies-ei-saa-muoktata-valiarviointia-jos-kouluttaja-ei-ole-allekirjoittanut-sita"
                 )
             }
         }
@@ -306,7 +306,7 @@ class KouluttajaKoejaksoResource(
                 throw BadRequestAlertException(
                     "Koejakson kehittämistoimenpiteitä ei löydy.",
                     ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                    "dataillegal"
+                    "dataillegal.koejakson-kehittamistoimenpiteita-ei-loydy"
                 )
             }
 
@@ -315,7 +315,7 @@ class KouluttajaKoejaksoResource(
                     "Esimies ei saa muokata kehittämistoimenpiteitä, " +
                         "jos kouluttaja ei ole allekirjoittanut niitä",
                     ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                    "dataillegal"
+                    "dataillegal.esimies-ei-saa-muokata-kehittamistoimenpiteita-jos-kouluttaja-ei-ole-allekirjottanut-niita"
                 )
             }
         }
@@ -385,7 +385,7 @@ class KouluttajaKoejaksoResource(
                 throw BadRequestAlertException(
                     "Koejakson loppukeskustelua ei löydy.",
                     ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                    "dataillegal"
+                    "dataillegal.koejakson-loppukeskustelua-ei-loydy"
                 )
             }
 
@@ -394,7 +394,7 @@ class KouluttajaKoejaksoResource(
                     "Esimies ei saa muokata loppukeskustelua, " +
                         "jos kouluttaja ei ole allekirjoittanut niitä",
                     ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                    "dataillegal"
+                    "dataillegal.esimies-ei-saa-muokata-loppukeskustelua-jos-kouluttaja-ei-ole-allekirjoittanut-niita"
                 )
             }
         }
@@ -426,7 +426,7 @@ class KouluttajaKoejaksoResource(
             throw BadRequestAlertException(
                 "Hyväksyttyä arviointia ei saa muokata",
                 entity,
-                "dataillegal"
+                "dataillegal.hyvaksyttya-arviointia-ei-saa-muokata"
             )
         }
     }

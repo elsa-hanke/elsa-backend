@@ -43,7 +43,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
 
         if (suoritemerkintaDTO.id != null) {
             throw BadRequestAlertException(
-                "Uusi suoritemerkinta ei saa sisältää ID:tä.",
+                "Uusi suoritemerkinta ei saa sisältää ID:tä",
                 ENTITY_NAME,
                 "idexists"
             )
@@ -68,7 +68,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         } ?: throw BadRequestAlertException(
             "Uuden suoritemerkinnän työskentelyjakso täytyy olla oma.",
             ENTITY_NAME,
-            "dataillegal"
+            "dataillegal.uuden-suoritemerkinnan-tyoskentelyjakso-taytyy-olla-oma"
         )
     }
 
@@ -80,7 +80,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         log.debug("REST request to update Suoritemerkinta : $suoritemerkintaDTO")
 
         if (suoritemerkintaDTO.id == null) {
-            throw BadRequestAlertException("Epäkelvollinen id", ENTITY_NAME, "idnull")
+            throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
         suoritemerkintaDTO.lukittu = false
         val user = userService.getAuthenticatedUser(principal)
@@ -99,7 +99,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         } ?: throw BadRequestAlertException(
             "Suoritemerkinnän työskentelyjakso täytyy olla oma.",
             ENTITY_NAME,
-            "dataillegal"
+            "dataillegal.suoritemerkinnan-tyoskentelyjakso-taytyy-olla-oma"
         )
     }
 
