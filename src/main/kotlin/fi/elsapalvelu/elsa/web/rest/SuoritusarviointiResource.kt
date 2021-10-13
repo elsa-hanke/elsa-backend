@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.service.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
@@ -72,15 +71,6 @@ open class SuoritusarviointiResource(
         }
         val user = userService.getAuthenticatedUser(principal)
         val result = suoritusarviointiService.save(suoritusarviointiDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    suoritusarviointiDTO.id.toString()
-                )
-            )
-            .body(result)
+        return ResponseEntity.ok(result)
     }
 }

@@ -7,7 +7,6 @@ import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.service.dto.KoulutussuunnitelmaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -56,16 +55,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
 
         koulutussuunnitelmaService.save(koulutussuunnitelmaDTO, user.id!!)
             ?.let {
-                return ResponseEntity.ok()
-                    .headers(
-                        HeaderUtil.createEntityUpdateAlert(
-                            applicationName,
-                            true,
-                            ENTITY_NAME,
-                            koulutussuunnitelmaDTO.id.toString()
-                        )
-                    )
-                    .body(it)
+                return ResponseEntity.ok(it)
             } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 

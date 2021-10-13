@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -57,15 +56,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
             val asiakirjaDTOs = getMappedFiles(files, user.id!!) ?: mutableSetOf()
             tyoskentelyjaksoService.create(it, user.id!!, asiakirjaDTOs)?.let { result ->
-                return ResponseEntity.created(URI("/api/tyoskentelyjaksot/${result.id}"))
-                    .headers(
-                        HeaderUtil.createEntityCreationAlert(
-                            applicationName,
-                            true,
-                            TYOSKENTELYJAKSO_ENTITY_NAME,
-                            result.id.toString()
-                        )
-                    )
+                return ResponseEntity
+                    .created(URI("/api/tyoskentelyjaksot/${result.id}"))
                     .body(result)
             }
 
@@ -103,16 +95,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             }
             tyoskentelyjaksoService.update(it, user.id!!, newAsiakirjat, deletedAsiakirjaIds)
                 ?.let { result ->
-                    return ResponseEntity.ok()
-                        .headers(
-                            HeaderUtil.createEntityUpdateAlert(
-                                applicationName,
-                                true,
-                                TYOSKENTELYJAKSO_ENTITY_NAME,
-                                result.id.toString()
-                            )
-                        )
-                        .body(result)
+                    return ResponseEntity.ok(result)
                 }
         } ?: throw BadRequestAlertException(
             "Työskentelyjakson päivittäminen epäonnistui.",
@@ -180,15 +163,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 "dataillegal.tyoskentelyjakson-poistaminen-epaonnistui"
             )
         }
-        return ResponseEntity.noContent()
-            .headers(
-                HeaderUtil.createEntityDeletionAlert(
-                    applicationName,
-                    true,
-                    TYOSKENTELYJAKSO_ENTITY_NAME,
-                    id.toString()
-                )
-            ).build()
+        return ResponseEntity
+            .noContent()
+            .build()
     }
 
     @GetMapping("/tyoskentelyjakso-lomake")
@@ -254,15 +231,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
 
         keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)?.let {
-            return ResponseEntity.created(URI("/api/tyoskentelyjaksot/poissaolot/${it.id}"))
-                .headers(
-                    HeaderUtil.createEntityCreationAlert(
-                        applicationName,
-                        true,
-                        "keskeytysaika",
-                        it.id.toString()
-                    )
-                )
+            return ResponseEntity
+                .created(URI("/api/tyoskentelyjaksot/poissaolot/${it.id}"))
                 .body(it)
         } ?: throw BadRequestAlertException(
             "Keskeytysajan lisääminen epäonnistui",
@@ -285,16 +255,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         validateKeskeytysaika(user.id!!, keskeytysaikaDTO)
         keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)?.let {
-            return ResponseEntity.ok()
-                .headers(
-                    HeaderUtil.createEntityUpdateAlert(
-                        applicationName,
-                        true,
-                        "keskeytysaika",
-                        keskeytysaikaDTO.id.toString()
-                    )
-                )
-                .body(it)
+            return ResponseEntity.ok(it)
         } ?: throw BadRequestAlertException(
             "Keskeytysajan päivittäminen epäonnistui",
             TYOSKENTELYJAKSO_ENTITY_NAME,
@@ -325,15 +286,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         validateKeskeytysaikaDelete(user.id!!, id)
         keskeytysaikaService.delete(id, user.id!!)
-        return ResponseEntity.noContent()
-            .headers(
-                HeaderUtil.createEntityDeletionAlert(
-                    applicationName,
-                    true,
-                    "keskeytysaika",
-                    id.toString()
-                )
-            )
+        return ResponseEntity
+            .noContent()
             .build()
     }
 
@@ -361,14 +315,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             tyoskentelyjaksoDTO.liitettyKoejaksoon!!
         )?.let {
             val response = ResponseEntity.ok()
-                .headers(
-                    HeaderUtil.createEntityUpdateAlert(
-                        applicationName,
-                        true,
-                        "tyoskentelyjakso",
-                        it.id.toString()
-                    )
-                )
             return if (tyoskentelyjaksoDTO.liitettyKoejaksoon!!) response.body(it) else response.build()
         } ?: throw BadRequestAlertException(
             "Työskentelyjakson päivittäminen epäonnistui.",

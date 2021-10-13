@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
@@ -56,15 +55,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
             }
 
         val result = asiakirjaService.create(asiakirjat, user.id!!)
-        return ResponseEntity.created(URI("/api/asiakirjat"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    result?.size.toString()
-                )
-            )
+        return ResponseEntity
+            .created(URI("/api/asiakirjat"))
             .body(result)
     }
 
@@ -114,15 +106,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
         asiakirjaService.delete(id, user.id!!)
-        return ResponseEntity.noContent()
-            .headers(
-                HeaderUtil.createEntityDeletionAlert(
-                    applicationName,
-                    true,
-                    "asiakirja",
-                    id.toString()
-                )
-            )
+        return ResponseEntity
+            .noContent()
             .build()
     }
 }

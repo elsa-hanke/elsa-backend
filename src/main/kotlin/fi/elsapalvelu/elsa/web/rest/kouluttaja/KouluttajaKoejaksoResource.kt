@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest.kouluttaja
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import io.github.jhipster.web.util.ResponseUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -86,18 +85,8 @@ class KouluttajaKoejaksoResource(
             )
         }
 
-        val result =
-            koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_SOPIMUS,
-                    koulutussopimusDTO.id.toString()
-                )
-            )
-            .body(result)
+        val result = koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id!!)
+        return ResponseEntity.ok(result)
     }
 
     @GetMapping("/koejakso/aloituskeskustelu/{id}")
@@ -170,18 +159,8 @@ class KouluttajaKoejaksoResource(
             ENTITY_KOEJAKSON_ALOITUSKESKUSTELU
         )
 
-        val result =
-            koejaksonAloituskeskusteluService.update(aloituskeskusteluDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                    aloituskeskusteluDTO.id.toString()
-                )
-            )
-            .body(result)
+        val result = koejaksonAloituskeskusteluService.update(aloituskeskusteluDTO, user.id!!)
+        return ResponseEntity.ok(result)
     }
 
     @GetMapping("/koejakso/valiarviointi/{id}")
@@ -246,18 +225,8 @@ class KouluttajaKoejaksoResource(
             ENTITY_KOEJAKSON_VALIARVIOINTI
         )
 
-        val result =
-            koejaksonValiarviointiService.update(valiarviointiDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_VALIARVIOINTI,
-                    valiarviointiDTO.id.toString()
-                )
-            )
-            .body(result)
+        val result = koejaksonValiarviointiService.update(valiarviointiDTO, user.id!!)
+        return ResponseEntity.ok(result)
     }
 
     @GetMapping("/koejakso/kehittamistoimenpiteet/{id}")
@@ -325,18 +294,8 @@ class KouluttajaKoejaksoResource(
             ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
         )
 
-        val result =
-            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                    kehittamistoimenpiteetDTO.id.toString()
-                )
-            )
-            .body(result)
+        val result = koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
+        return ResponseEntity.ok(result)
     }
 
     @GetMapping("/koejakso/loppukeskustelu/{id}")
@@ -404,18 +363,8 @@ class KouluttajaKoejaksoResource(
             ENTITY_KOEJAKSON_LOPPUKESKUSTELU
         )
 
-        val result =
-            koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                    loppukeskusteluDTO.id.toString()
-                )
-            )
-            .body(result)
+        val result = koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, user.id!!)
+        return ResponseEntity.ok(result)
     }
 
     private fun validateArviointi(

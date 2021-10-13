@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -70,15 +69,8 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
             )
         )
 
-        return ResponseEntity.created(URI("/api/kouluttajavaltuutukset"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    result.id.toString()
-                )
-            )
+        return ResponseEntity
+            .created(URI("/api/kouluttajavaltuutukset"))
             .body(result)
     }
 

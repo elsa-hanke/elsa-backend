@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.service.SuoritusarvioinninKommenttiService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -46,14 +45,6 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
             .save(suoritusarvioinninKommenttiDTO, user.id!!)
 
         return ResponseEntity.created(URI("/api/suoritusarvioinnit/$id/kommentti/${result.id}"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    result.id.toString()
-                )
-            )
             .body(result)
     }
 
@@ -69,15 +60,6 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
         suoritusarvioinninKommenttiDTO.muokkausaika = Instant.now()
         val result =
             suoritusarvioinninKommenttiService.save(suoritusarvioinninKommenttiDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    suoritusarvioinninKommenttiDTO.id.toString()
-                )
-            )
-            .body(result)
+        return ResponseEntity.ok(result)
     }
 }
