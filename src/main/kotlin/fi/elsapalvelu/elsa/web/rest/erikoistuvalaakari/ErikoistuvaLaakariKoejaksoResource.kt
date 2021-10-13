@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
@@ -155,15 +154,8 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         val result =
             koejaksonKoulutussopimusService.create(koulutussopimusDTO, user.id!!)
-        return ResponseEntity.created(URI("/api/koejakso/koulutussopimus/${result.id}"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_SOPIMUS,
-                    result.id.toString()
-                )
-            )
+        return ResponseEntity
+            .created(URI("/api/koejakso/koulutussopimus/${result.id}"))
             .body(result)
     }
 
@@ -199,18 +191,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        val result =
-            koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_SOPIMUS,
-                    koulutussopimusDTO.id.toString()
-                )
-            )
-            .body(result)
+        val result = koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id!!)
+        return ResponseEntity.ok(result)
     }
 
     @PostMapping("/koejakso/aloituskeskustelu")
@@ -241,15 +223,8 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         val result =
             koejaksonAloituskeskusteluService.create(aloituskeskusteluDTO, user.id!!)
-        return ResponseEntity.created(URI("/api/koejakso/aloituskeskustelu/${result.id}"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                    result.id.toString()
-                )
-            )
+        return ResponseEntity
+            .created(URI("/api/koejakso/aloituskeskustelu/${result.id}"))
             .body(result)
     }
 
@@ -300,18 +275,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        val result =
-            koejaksonAloituskeskusteluService.update(aloituskeskusteluDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                    aloituskeskusteluDTO.id.toString()
-                )
-            )
-            .body(result)
+        val result = koejaksonAloituskeskusteluService.update(aloituskeskusteluDTO, user.id!!)
+        return ResponseEntity.ok(result)
     }
 
     @PostMapping("/koejakso/valiarviointi")
@@ -351,15 +316,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
 
         val result = koejaksonValiarviointiService.create(valiarviointiDTO, user.id!!)
-        return ResponseEntity.created(URI("/api/koejakso/valiarviointi/${result.id}"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_VALIARVIOINTI,
-                    result.id.toString()
-                )
-            )
+        return ResponseEntity
+            .created(URI("/api/koejakso/valiarviointi/${result.id}"))
             .body(result)
     }
 
@@ -387,16 +345,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         )
 
         val result = koejaksonValiarviointiService.update(valiarviointiDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_VALIARVIOINTI,
-                    valiarviointiDTO.id.toString()
-                )
-            )
-            .body(result)
+        return ResponseEntity.ok(result)
     }
 
     @PostMapping("/koejakso/kehittamistoimenpiteet")
@@ -439,15 +388,8 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         val result =
             koejaksonKehittamistoimenpiteetService.create(kehittamistoimenpiteetDTO, user.id!!)
-        return ResponseEntity.created(URI("/api/koejakso/kehittamistoimenpiteet/${result.id}"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                    result.id.toString()
-                )
-            )
+        return ResponseEntity
+            .created(URI("/api/koejakso/kehittamistoimenpiteet/${result.id}"))
             .body(result)
     }
 
@@ -474,18 +416,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
         )
 
-        val result =
-            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                    kehittamistoimenpiteetDTO.id.toString()
-                )
-            )
-            .body(result)
+        val result = koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
+        return ResponseEntity.ok(result)
     }
 
     @PostMapping("/koejakso/loppukeskustelu")
@@ -534,15 +466,8 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         val result =
             koejaksonLoppukeskusteluService.create(loppukeskusteluDTO, user.id!!)
-        return ResponseEntity.created(URI("/api/koejakso/loppukeskustelu/${result.id}"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                    result.id.toString()
-                )
-            )
+        return ResponseEntity
+            .created(URI("/api/koejakso/loppukeskustelu/${result.id}"))
             .body(result)
     }
 
@@ -570,16 +495,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         )
 
         val result = koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                    loppukeskusteluDTO.id.toString()
-                )
-            )
-            .body(result)
+        return ResponseEntity.ok(result)
     }
 
     @GetMapping("/vastuuhenkilonarvio-lomake")
@@ -651,15 +567,8 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         val result =
             koejaksonVastuuhenkilonArvioService.create(vastuuhenkilonArvioDTO, user.id!!)
-        return ResponseEntity.created(URI("/api/koejakso/vastuuhenkilonarvio/${result.id}"))
-            .headers(
-                HeaderUtil.createEntityCreationAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                    result.id.toString()
-                )
-            )
+        return ResponseEntity
+            .created(URI("/api/koejakso/vastuuhenkilonarvio/${result.id}"))
             .body(result)
     }
 
@@ -695,16 +604,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         )
 
         val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                    vastuuhenkilonArvioDTO.id.toString()
-                )
-            )
-            .body(result)
+        return ResponseEntity.ok(result)
     }
 
     private fun validateKoulutussopimus(koulutussopimusDTO: KoejaksonKoulutussopimusDTO) {

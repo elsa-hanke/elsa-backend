@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoulutusjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.KoulutusjaksoFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.HeaderUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -49,15 +48,8 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
             )
         }
         koulutusjaksoService.save(koulutusjaksoDTO, user.id!!)?.let {
-            return ResponseEntity.created(URI("/api/koulutusjaksot/${it.id}"))
-                .headers(
-                    HeaderUtil.createEntityCreationAlert(
-                        applicationName,
-                        true,
-                        ENTITY_NAME,
-                        it.id.toString()
-                    )
-                )
+            return ResponseEntity
+                .created(URI("/api/koulutusjaksot/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
@@ -91,16 +83,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         }
 
         val result = koulutusjaksoService.save(koulutusjaksoDTO, user.id!!)
-        return ResponseEntity.ok()
-            .headers(
-                HeaderUtil.createEntityUpdateAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    koulutusjaksoDTO.id.toString()
-                )
-            )
-            .body(result)
+        return ResponseEntity.ok(result)
     }
 
     @GetMapping("/koulutusjaksot")
@@ -143,15 +126,9 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         }
 
         koulutusjaksoService.delete(id, user.id!!)
-        return ResponseEntity.noContent()
-            .headers(
-                HeaderUtil.createEntityDeletionAlert(
-                    applicationName,
-                    true,
-                    ENTITY_NAME,
-                    id.toString()
-                )
-            ).build()
+        return ResponseEntity
+            .noContent()
+            .build()
     }
 
     @GetMapping("/koulutusjakso-lomake")
