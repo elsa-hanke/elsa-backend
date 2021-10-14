@@ -12,7 +12,7 @@ interface TyoskentelyjaksoRepository : JpaRepository<Tyoskentelyjakso, Long> {
     fun findAllByErikoistuvaLaakariKayttajaUserId(id: String): List<Tyoskentelyjakso>
 
     @Query(
-        "select t from Tyoskentelyjakso t " +
+        "select distinct t from Tyoskentelyjakso t " +
             "left join fetch t.keskeytykset " +
             "left join fetch t.suoritusarvioinnit " +
             "left join fetch t.suoritemerkinnat " +
