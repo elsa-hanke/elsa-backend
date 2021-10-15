@@ -131,7 +131,7 @@ class ExceptionTranslator(
                 "user: ${request.let { it?.userPrincipal?.name }}, " +
                 "method: ${request.let { (it?.nativeRequest as HttpServletRequest).method }}, " +
                 "path: ${request.let { (it?.nativeRequest as HttpServletRequest).requestURI }}, " +
-                "ip: ${request.let { (it?.nativeRequest as HttpServletRequest) }.remoteAddr}"
+                "ip: ${request.let { (it?.nativeRequest as HttpServletRequest) }.getHeader("X-Forwarded-For")}"
         )
         return super.handleAccessDenied(e, request)
     }
