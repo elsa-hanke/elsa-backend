@@ -1,7 +1,7 @@
 name: $(date:yyyy-MM-dd)$(rev:.r)
 variables:
   - name: vmImageName
-    value: 'Ubuntu 16.04'
+    value: 'Ubuntu-latest'
   - name: isMain
     value: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
   - name: tag
