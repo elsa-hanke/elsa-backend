@@ -1,5 +1,5 @@
 variables:
-  vmImageName: 'Ubuntu 16.04'
+  vmImageName: 'Ubuntu-latest'
 
 stages:
   - stage: Build
