@@ -5,7 +5,7 @@ import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.more.appenders.DataFluentAppender
 import com.fasterxml.jackson.databind.ObjectMapper
-import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
+import fi.elsapalvelu.elsa.security.SecurityLoggingWrapper
 import io.github.jhipster.config.JHipsterProperties
 import io.github.jhipster.config.logging.LoggingUtils.*
 import org.slf4j.LoggerFactory
@@ -42,7 +42,7 @@ class LoggingConfiguration(
 
             val fluentSecurityAppender =
                 createFluentAppender("fluent_security", "security", context)
-            context.getLogger(ExceptionTranslator::class.java).addAppender(fluentSecurityAppender)
+            context.getLogger(SecurityLoggingWrapper::class.java).addAppender(fluentSecurityAppender)
 
             context.getLogger(Logger.ROOT_LOGGER_NAME).detachAppender(CONSOLE_APPENDER_NAME)
         }
