@@ -1,9 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.errors
 
+import fi.elsapalvelu.elsa.security.SecurityLoggingWrapper
 import io.github.jhipster.config.JHipsterConstants
 import org.apache.commons.lang3.StringUtils
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.dao.ConcurrencyFailureException
 import org.springframework.dao.DataAccessException
@@ -34,11 +33,6 @@ private const val VIOLATIONS_KEY = "violations"
 class ExceptionTranslator(
     private val env: Environment
 ) : ProblemHandling, SecurityAdviceTrait {
-
-    @Value("\${jhipster.clientApp.name}")
-    private val applicationName: String? = null
-
-    private val log = LoggerFactory.getLogger(javaClass)
 
     /**
      * Post-process the Problem payload to add the message key for the front-end if needed.
@@ -126,7 +120,7 @@ class ExceptionTranslator(
         e: AccessDeniedException?,
         request: NativeWebRequest?
     ): ResponseEntity<Problem> {
-        log.warn(
+        SecurityLoggingWrapper.warn(
             "SECURITY: Access denied for " +
                 "user: ${request.let { it?.userPrincipal?.name }}, " +
                 "method: ${request.let { (it?.nativeRequest as HttpServletRequest).method }}, " +
