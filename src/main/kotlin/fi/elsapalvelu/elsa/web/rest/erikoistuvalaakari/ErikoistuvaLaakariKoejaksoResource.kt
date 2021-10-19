@@ -36,15 +36,12 @@ class ErikoistuvaLaakariKoejaksoResource(
     private val yliopistoService: YliopistoService
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 
     @GetMapping("/koejakso")
     fun getKoejakso(principal: Principal?): ResponseEntity<KoejaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        log.debug("REST request to get Koejakso for user: $user.id")
         val result = KoejaksoDTO()
 
         koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)

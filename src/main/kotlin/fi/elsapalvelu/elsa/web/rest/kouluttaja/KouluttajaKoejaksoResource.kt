@@ -29,8 +29,6 @@ class KouluttajaKoejaksoResource(
     private val koejaksonVaiheetService: KoejaksonVaiheetService
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 
@@ -47,8 +45,6 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKoulutussopimusDTO> {
         val user = userService.getAuthenticatedUser(principal)
-
-        log.debug("REST request to get koulutussopimus $id for user: $user.id")
         val koulutussopimusDTO =
             koejaksonKoulutussopimusService.findOneByIdAndKouluttajaKayttajaUserId(id, user.id!!)
         return ResponseUtil.wrapOrNotFound(koulutussopimusDTO)
@@ -95,8 +91,6 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
-
-        log.debug("REST request to get aloituskeskustelu $id for user: $user.id")
         var aloituskeskusteluDTO =
             koejaksonAloituskeskusteluService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
 
@@ -169,8 +163,6 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-
-        log.debug("REST request to get valiarviointi $id for user: $user.id")
         var valiarviointiDTO =
             koejaksonValiarviointiService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
 
@@ -235,8 +227,6 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
         val user = userService.getAuthenticatedUser(principal)
-
-        log.debug("REST request to get kehittamistoimenpiteet $id for user: $user.id")
         var kehittamistoimenpiteetDTO =
             koejaksonKehittamistoimenpiteetService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
 
@@ -304,8 +294,6 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
-
-        log.debug("REST request to get loppukeskustelu $id for user: $user.id")
         var loppukeskusteluDTO =
             koejaksonLoppukeskusteluService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
 
