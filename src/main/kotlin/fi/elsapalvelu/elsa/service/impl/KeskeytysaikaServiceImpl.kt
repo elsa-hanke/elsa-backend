@@ -20,11 +20,7 @@ class KeskeytysaikaServiceImpl(
     private val keskeytysaikaMapper: KeskeytysaikaMapper
 ) : KeskeytysaikaService {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     override fun save(keskeytysaikaDTO: KeskeytysaikaDTO, userId: String): KeskeytysaikaDTO? {
-        log.debug("Request to save Keskeytysaika : $keskeytysaikaDTO")
-
         tyoskentelyjaksoRepository.findByIdOrNull(keskeytysaikaDTO.tyoskentelyjaksoId)?.let { tyoskentelyjakso ->
             if (
                 userId == tyoskentelyjakso.erikoistuvaLaakari?.kayttaja?.user?.id && (
@@ -64,8 +60,6 @@ class KeskeytysaikaServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findOne(id: Long, userId: String): KeskeytysaikaDTO? {
-        log.debug("Request to get Keskeytysaika : $id")
-
         keskeytysaikaRepository.findByIdOrNull(id)?.let { keskeytysaika ->
             if (keskeytysaika.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.user?.id == userId) {
                 return keskeytysaikaMapper.toDto(keskeytysaika)
@@ -75,8 +69,6 @@ class KeskeytysaikaServiceImpl(
     }
 
     override fun delete(id: Long, userId: String) {
-        log.debug("Request to delete Keskeytysaika : $id")
-
         keskeytysaikaRepository.findByIdOrNull(id)?.let { keskeytysaika ->
             keskeytysaika.tyoskentelyjakso?.erikoistuvaLaakari.let {
                 erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->

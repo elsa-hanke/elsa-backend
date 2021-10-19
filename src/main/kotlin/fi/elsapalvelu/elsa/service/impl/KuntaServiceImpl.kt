@@ -21,8 +21,6 @@ class KuntaServiceImpl(
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun save(kuntaDTO: KuntaDTO): KuntaDTO {
-        log.debug("Request to save Kunta : $kuntaDTO")
-
         var kunta = kuntaMapper.toEntity(kuntaDTO)
         kunta = kuntaRepository.save(kunta)
         return kuntaMapper.toDto(kunta)
@@ -30,24 +28,18 @@ class KuntaServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findAll(pageable: Pageable): Page<KuntaDTO> {
-        log.debug("Request to get all Kunta")
-
         return kuntaRepository.findAll(pageable)
             .map(kuntaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
     override fun findAll(): List<KuntaDTO> {
-        log.debug("Request to get all Kunta")
-
         return kuntaRepository.findAll()
             .map(kuntaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
     override fun findOne(id: String): KuntaDTO? {
-        log.debug("Request to get Kunta : $id")
-
         kuntaRepository.findByIdOrNull(id)?.let {
             return kuntaMapper.toDto(it)
         }
@@ -56,8 +48,6 @@ class KuntaServiceImpl(
     }
 
     override fun delete(id: String) {
-        log.debug("Request to delete Kunta : $id")
-
         kuntaRepository.deleteById(id)
     }
 }
