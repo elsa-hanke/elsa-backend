@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.service.ArvioitavaKokonaisuusService
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusDTO
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusMapper
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -19,11 +18,7 @@ class ArvioitavaKokonaisuusServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 ) : ArvioitavaKokonaisuusService {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     override fun save(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO {
-        log.debug("Request to save ArvioitavaKokonaisuus : $arvioitavaKokonaisuusDTO")
-
         var arvioitavaKokonaisuus = arvioitavaKokonaisuusMapper.toEntity(arvioitavaKokonaisuusDTO)
         arvioitavaKokonaisuus = arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus)
         return arvioitavaKokonaisuusMapper.toDto(arvioitavaKokonaisuus)
@@ -44,15 +39,11 @@ class ArvioitavaKokonaisuusServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<ArvioitavaKokonaisuusDTO> {
-        log.debug("Request to get ArvioitavaKokonaisuus : $id")
-
         return arvioitavaKokonaisuusRepository.findById(id)
             .map(arvioitavaKokonaisuusMapper::toDto)
     }
 
     override fun delete(id: Long) {
-        log.debug("Request to delete ArvioitavaKokonaisuus : $id")
-
         arvioitavaKokonaisuusRepository.deleteById(id)
     }
 }

@@ -20,11 +20,7 @@ class SuoritemerkintaServiceImpl(
     private val suoritemerkintaMapper: SuoritemerkintaMapper
 ) : SuoritemerkintaService {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     override fun save(suoritemerkintaDTO: SuoritemerkintaDTO, userId: String): SuoritemerkintaDTO? {
-        log.debug("Request to save Suoritemerkinta : $suoritemerkintaDTO")
-
         tyoskentelyjaksoRepository.findByIdOrNull(suoritemerkintaDTO.tyoskentelyjaksoId!!)
             ?.let { tyoskentelyjakso ->
                 val kirjautunutErikoistuvaLaakari =
@@ -60,8 +56,6 @@ class SuoritemerkintaServiceImpl(
     override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
         userId: String
     ): List<SuoritemerkintaDTO> {
-        log.debug("Request to get list of Suoritemerkinta by user id : $userId")
-
         return suoritemerkintaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
             userId
         )
@@ -70,8 +64,6 @@ class SuoritemerkintaServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findOne(id: Long, userId: String): SuoritemerkintaDTO? {
-        log.debug("Request to get Suoritemerkinta : $id")
-
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
             suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
                 erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
@@ -87,8 +79,6 @@ class SuoritemerkintaServiceImpl(
     }
 
     override fun delete(id: Long, userId: String) {
-        log.debug("Request to delete Suoritemerkinta : $id")
-
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
             suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
                 erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)

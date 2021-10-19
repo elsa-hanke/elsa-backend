@@ -24,13 +24,10 @@ class MuutToiminnotResource(
     private val arviointityokaluService: ArviointityokaluService
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @GetMapping("/kouluttajat")
     fun getKouluttajat(
         principal: Principal?
     ): ResponseEntity<List<KayttajaDTO>> {
-        log.debug("REST request to get Kouluttajat")
         return ResponseEntity.ok(kayttajaService.findKouluttajat())
     }
 

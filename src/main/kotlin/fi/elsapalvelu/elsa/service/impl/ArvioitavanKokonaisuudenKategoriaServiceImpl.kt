@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.service.ArvioitavanKokonaisuudenKategoriaService
 import fi.elsapalvelu.elsa.service.dto.ArvioitavanKokonaisuudenKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavanKokonaisuudenKategoriaMapper
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -19,13 +18,9 @@ class ArvioitavanKokonaisuudenKategoriaServiceImpl(
     private val arvioitavanKokonaisuudenKategoriaMapper: ArvioitavanKokonaisuudenKategoriaMapper,
 ) : ArvioitavanKokonaisuudenKategoriaService {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     override fun save(
         arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaDTO
     ): ArvioitavanKokonaisuudenKategoriaDTO {
-        log.debug("Request to save ArvioitavanKokonaisuudenKategoria : $arvioitavanKokonaisuudenKategoriaDTO")
-
         var arvioitavanKokonaisuudenKategoria =
             arvioitavanKokonaisuudenKategoriaMapper.toEntity(arvioitavanKokonaisuudenKategoriaDTO)
         arvioitavanKokonaisuudenKategoria =
@@ -35,8 +30,6 @@ class ArvioitavanKokonaisuudenKategoriaServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findAll(): List<ArvioitavanKokonaisuudenKategoriaDTO> {
-        log.debug("Request to get all ArvioitavanKokonaisuudenKategoriat")
-
         return arvioitavanKokonaisuudenKategoriaRepository.findAll()
             .map(arvioitavanKokonaisuudenKategoriaMapper::toDto)
     }
@@ -58,8 +51,6 @@ class ArvioitavanKokonaisuudenKategoriaServiceImpl(
     override fun findOne(
         id: Long
     ): Optional<ArvioitavanKokonaisuudenKategoriaDTO> {
-        log.debug("Request to get ArvioitavanKokonaisuudenKategoria : $id")
-
         return arvioitavanKokonaisuudenKategoriaRepository.findById(id)
             .map(arvioitavanKokonaisuudenKategoriaMapper::toDto)
     }
@@ -67,8 +58,6 @@ class ArvioitavanKokonaisuudenKategoriaServiceImpl(
     override fun delete(
         id: Long
     ) {
-        log.debug("Request to delete ArvioitavanKokonaisuudenKategoria : $id")
-
         arvioitavanKokonaisuudenKategoriaRepository.deleteById(id)
     }
 }

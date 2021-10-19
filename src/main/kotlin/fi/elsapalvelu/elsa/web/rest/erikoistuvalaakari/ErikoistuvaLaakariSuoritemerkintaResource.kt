@@ -28,8 +28,6 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     private val suoritemerkintaService: SuoritemerkintaService
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 
@@ -38,8 +36,6 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         @Valid @RequestBody suoritemerkintaDTO: SuoritemerkintaDTO,
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaDTO> {
-        log.debug("REST request to create Suoritemerkinta : $suoritemerkintaDTO")
-
         if (suoritemerkintaDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi suoritemerkinta ei saa sisältää ID:tä",
@@ -69,8 +65,6 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         @Valid @RequestBody suoritemerkintaDTO: SuoritemerkintaDTO,
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaDTO> {
-        log.debug("REST request to update Suoritemerkinta : $suoritemerkintaDTO")
-
         if (suoritemerkintaDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
@@ -91,8 +85,6 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaDTO> {
-        log.debug("REST request to get Suoritemerkinta : $id")
-
         val user = userService.getAuthenticatedUser(principal)
         suoritemerkintaService.findOne(id, user.id!!)?.let {
             return ResponseEntity.ok(it)
@@ -104,8 +96,6 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<Void> {
-        log.debug("REST request to delete Suoritemerkinta : $id")
-
         val user = userService.getAuthenticatedUser(principal)
         suoritemerkintaService.delete(id, user.id!!)
         return ResponseEntity
@@ -117,8 +107,6 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     fun getOppimistavoitteetTable(
         principal: Principal?
     ): ResponseEntity<OppimistavoitteetTableDTO> {
-        log.debug("REST request to get OppimistavoitteetTable")
-
         val user = userService.getAuthenticatedUser(principal)
         val table = OppimistavoitteetTableDTO()
 
@@ -135,8 +123,6 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     fun getSuoritemerkintaForm(
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaFormDTO> {
-        log.debug("REST request to get SuoritemerkintaForm")
-
         val user = userService.getAuthenticatedUser(principal)
         val form = SuoritemerkintaFormDTO()
 

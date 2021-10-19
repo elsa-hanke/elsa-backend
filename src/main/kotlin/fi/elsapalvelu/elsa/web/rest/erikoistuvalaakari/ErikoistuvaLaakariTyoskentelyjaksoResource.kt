@@ -35,8 +35,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val overlappingTyoskentelyjaksoValidationService: OverlappingTyoskentelyjaksoValidationService
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 
@@ -108,8 +106,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun getTyoskentelyjaksoTable(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksotTableDTO> {
-        log.debug("REST request to get a page of Tyoskentelyjakso")
-
         val user = userService.getAuthenticatedUser(principal)
         val table = TyoskentelyjaksotTableDTO()
         table.poissaolonSyyt = poissaolonSyyService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
@@ -138,8 +134,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
-        log.debug("REST request to get Tyoskentelyjakso : $id")
-
         val user = userService.getAuthenticatedUser(principal)
         tyoskentelyjaksoService.findOne(id, user.id!!)?.let {
             return ResponseEntity.ok(it)
@@ -151,8 +145,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<Void> {
-        log.debug("REST request to delete Tyoskentelyjakso : $id")
-
         val user = userService.getAuthenticatedUser(principal)
 
         asiakirjaService.removeTyoskentelyjaksoReference(user.id!!, id)
@@ -172,8 +164,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun getTyoskentelyjaksoForm(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoFormDTO> {
-        log.debug("REST request to get TyoskentelyjaksoForm")
-
         val user = userService.getAuthenticatedUser(principal)
         val form = TyoskentelyjaksoFormDTO()
 
@@ -192,8 +182,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun getKeskeytysaikaForm(
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaFormDTO> {
-        log.debug("REST request to get PoissaoloForm")
-
         val user = userService.getAuthenticatedUser(principal)
 
         val form = KeskeytysaikaFormDTO()
@@ -211,8 +199,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @Valid @RequestBody keskeytysaikaDTO: KeskeytysaikaDTO,
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaDTO> {
-        log.debug("REST request to create Keskeytysaika : $keskeytysaikaDTO")
-
         if (keskeytysaikaDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi keskeytysaika ei saa sisältää ID:tä",
@@ -246,8 +232,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @Valid @RequestBody keskeytysaikaDTO: KeskeytysaikaDTO,
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaDTO> {
-        log.debug("REST request to update Keskeytysaika : $keskeytysaikaDTO")
-
         if (keskeytysaikaDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", TYOSKENTELYJAKSO_ENTITY_NAME, "idnull")
         }
@@ -268,8 +252,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaDTO> {
-        log.debug("REST request to get Keskeytysaika : $id")
-
         val user = userService.getAuthenticatedUser(principal)
         keskeytysaikaService.findOne(id, user.id!!)?.let {
             return ResponseEntity.ok(it)
@@ -281,8 +263,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<Void> {
-        log.debug("REST request to delete Keskeytysaika : $id")
-
         val user = userService.getAuthenticatedUser(principal)
         validateKeskeytysaikaDelete(user.id!!, id)
         keskeytysaikaService.delete(id, user.id!!)

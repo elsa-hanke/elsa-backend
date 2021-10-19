@@ -36,8 +36,6 @@ class TyoskentelyjaksoServiceImpl(
     private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService
 ) : TyoskentelyjaksoService {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     override fun create(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         userId: String,
@@ -199,16 +197,12 @@ class TyoskentelyjaksoServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<TyoskentelyjaksoDTO> {
-        log.debug("Request to get list of Tyoskentelyjakso by user id : $userId")
-
         return tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
             .map(tyoskentelyjaksoMapper::toDto)
     }
 
     @Transactional(readOnly = true)
     override fun findOne(id: Long, userId: String): TyoskentelyjaksoDTO? {
-        log.debug("Request to get Tyoskentelyjakso : $id")
-
         tyoskentelyjaksoRepository.findByIdOrNull(id)?.let { tyoskentelyjakso ->
             tyoskentelyjakso.erikoistuvaLaakari.let {
                 erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
@@ -255,8 +249,6 @@ class TyoskentelyjaksoServiceImpl(
     }
 
     override fun delete(id: Long, userId: String): Boolean {
-        log.debug("Request to delete Tyoskentelyjakso : $id")
-
         tyoskentelyjaksoRepository.findByIdOrNull(id)?.let { tyoskentelyjakso ->
             tyoskentelyjakso.erikoistuvaLaakari.let {
                 erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
@@ -276,8 +268,6 @@ class TyoskentelyjaksoServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO {
-        log.debug("Request to get TyoskentelyjaksotTilastot")
-
         val tilastotCounter = TilastotCounter()
         val kaytannonKoulutusSuoritettuMap =
             KaytannonKoulutusTyyppi.values().map { it to 0.0 }.toMap().toMutableMap()

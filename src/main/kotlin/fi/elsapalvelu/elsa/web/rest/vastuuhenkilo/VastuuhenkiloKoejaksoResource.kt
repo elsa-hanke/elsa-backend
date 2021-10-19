@@ -9,7 +9,6 @@ import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.ResponseUtil
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -28,8 +27,6 @@ class VastuuhenkiloKoejaksoResource(
     private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
 
@@ -46,8 +43,6 @@ class VastuuhenkiloKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKoulutussopimusDTO> {
         val user = userService.getAuthenticatedUser(principal)
-
-        log.debug("REST request to get Koulutussopimus $id for user: $user.id")
         val koulutussopimusDTO =
             koejaksonKoulutussopimusService.findOneByIdAndVastuuhenkiloKayttajaUserId(id, user.id!!)
         return ResponseUtil.wrapOrNotFound(koulutussopimusDTO)
@@ -94,8 +89,6 @@ class VastuuhenkiloKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
         val user = userService.getAuthenticatedUser(principal)
-
-        log.debug("REST request to get vastuuhenkilon arvio $id for user: $user.id")
         val vastuuhenkilonArvioDTO =
             koejaksonVastuuhenkilonArvioService.findOneByIdAndVastuuhenkiloUserId(id, user.id!!)
         return ResponseUtil.wrapOrNotFound(vastuuhenkilonArvioDTO)
