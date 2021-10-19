@@ -90,6 +90,7 @@
     <include file="config/liquibase/changelog/20211012152034_removed_jhi_audit_event_entities.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211006143551_modify_entity_User.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211013153219_modify_entity_Yliopisto.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211019075629_added_entity_Teoriakoulutus.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
@@ -104,5 +105,6 @@
     <include file="config/liquibase/changelog/20210929104412_added_entity_constraints_Koulutussuunnitelma.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211006112732_added_entity_constraints_Koulutusjakso.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211008133544_added_audit_log_constraints.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211019075629_added_entity_constraints_Teoriakoulutus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

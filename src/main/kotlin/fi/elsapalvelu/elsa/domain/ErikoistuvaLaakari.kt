@@ -48,6 +48,16 @@ data class ErikoistuvaLaakari(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf(),
 
+    @OneToMany(mappedBy = "erikoistuvaLaakari")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JsonIgnoreProperties(
+        value = [
+            "erikoistuvaLaakari"
+        ],
+        allowSetters = true
+    )
+    var teoriakoulutukset: MutableSet<Teoriakoulutus>? = mutableSetOf(),
+
     // TODO: onko pakollinen tieto?
     // @NotNull
     @ManyToOne(optional = false)
