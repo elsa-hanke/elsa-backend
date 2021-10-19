@@ -6,7 +6,6 @@ import org.ehcache.config.builders.CacheConfigurationBuilder
 import org.ehcache.config.builders.ExpiryPolicyBuilder
 import org.ehcache.config.builders.ResourcePoolsBuilder
 import org.ehcache.jsr107.Eh107Configuration
-import org.hibernate.SessionFactory
 import org.hibernate.cache.jcache.ConfigSettings
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer
@@ -101,6 +100,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.SuoritusarvioinninKommentti::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Suoritusarviointi::class.java.name + ".osaalueenArvioinnit")
             createCache(cm, fi.elsapalvelu.elsa.domain.Suoritusarviointi::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Teoriakoulutus::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelyjakso::class.java.name + ".koulutusjaksot")
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelyjakso::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelypaikka::class.java.name)
