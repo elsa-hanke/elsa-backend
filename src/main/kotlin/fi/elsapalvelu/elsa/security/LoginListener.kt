@@ -14,7 +14,7 @@ class LoginListener : ApplicationListener<InteractiveAuthenticationSuccessEvent>
         val principal = event.authentication.principal as Saml2AuthenticatedPrincipal
         val requestAttributes = RequestContextHolder.getRequestAttributes() as ServletRequestAttributes
         val sourceIpAddress = requestAttributes.request.remoteAddr
-        SecurityLoggingWrapper.info("SECURITY: Authentication success event: " +
+        SecurityLoggingWrapper.info("Authentication success event: " +
             "User id: ${principal.name}. Source IP address: $sourceIpAddress")
     }
 }

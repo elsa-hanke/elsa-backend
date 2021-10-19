@@ -19,7 +19,7 @@ class GetRequestInterceptor : HandlerInterceptor {
             val authentication = context.authentication as Saml2Authentication
             val principal = authentication.principal as AuthenticatedPrincipal
             SecurityLoggingWrapper.info(
-                "SECURITY: GET request for ${request.requestURI}, user id: ${principal.name}"
+                "GET request for ${request.requestURI}, user id: ${principal.name}"
             )
         }
         return true
