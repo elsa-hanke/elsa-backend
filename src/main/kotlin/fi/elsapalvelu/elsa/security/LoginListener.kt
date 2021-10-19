@@ -13,7 +13,8 @@ class LoginListener : ApplicationListener<InteractiveAuthenticationSuccessEvent>
     override fun onApplicationEvent(event: InteractiveAuthenticationSuccessEvent) {
         val principal = event.authentication.principal as Saml2AuthenticatedPrincipal
         val requestAttributes = RequestContextHolder.getRequestAttributes() as ServletRequestAttributes
-        val sourceIpAddress = requestAttributes.request.remoteAddr
+        val sourceIpAddress =
+            requestAttributes.request.getHeader("X-Forwarded-For") ?: requestAttributes.request.remoteAddr
         SecurityLoggingWrapper.info("Authentication success event: " +
             "User id: ${principal.name}. Source IP address: $sourceIpAddress")
     }
