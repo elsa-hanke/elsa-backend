@@ -68,5 +68,5 @@ stages:
                     awsCredentials: 'sandbox-elsa-ci'
                     regionName: 'eu-west-1'
                     scriptType: inline
-                    inlineScript: 'aws ecs update-service --cluster elsa-sandbox-cluster --service elsa-sandbox-backend-service --task-definition elsa-sandbox-backend --force-new-deployment > /dev/null'
+                    inlineScript: 'aws ecs update-service --cluster elsa-sandbox-cluster --service elsa-sandbox-backend-service --task-definition elsa-sandbox-backend --enable-execute-command --force-new-deployment > /dev/null'
                   displayName: Force update ecs service
