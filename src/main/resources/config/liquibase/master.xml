@@ -91,6 +91,7 @@
     <include file="config/liquibase/changelog/20211006143551_modify_entity_User.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211013153219_modify_entity_Yliopisto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211019075629_added_entity_Teoriakoulutus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211020103851_modify_entity_Erikoisala.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
