@@ -52,6 +52,10 @@ data class Erikoisala(
     @Column(name = "yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus", nullable = false)
     var yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus: Double? = null,
 
+    @get: NotNull
+    @Column(name = "erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara", nullable = false)
+    var erikoisalanVaatimaTeoriakoulutustenVahimmaismaara: Double? = null,
+
     @OneToMany(mappedBy = "erikoisala")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var kategoriat: MutableSet<OppimistavoitteenKategoria> = mutableSetOf(),
@@ -90,6 +94,7 @@ data class Erikoisala(
         ", terveyskeskuskoulutusjaksonVahimmaispituus=$terveyskeskuskoulutusjaksonVahimmaispituus" +
         ", yliopistosairaalajaksonVahimmaispituus=$yliopistosairaalajaksonVahimmaispituus" +
         ", yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus=$yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus" +
+        ", erikoisalanVaatimaTeoriakoulutustenVahimmaismaara=$erikoisalanVaatimaTeoriakoulutustenVahimmaismaara" +
         "}"
 
     companion object {

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211020103851-1" author="jhipster">
+
+        <addColumn tableName="erikoisala">
+            <column name="erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara" type="double">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20211020103851-1-data" author="jhipster">
+        <loadUpdateData
+            file="config/liquibase/data/erikoisala_teoriakoulutus.csv"
+            separator=";"
+            tableName="erikoisala"
+            primaryKey="id">
+            <column name="id" type="numeric"/>
+            <column name="erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara" type="numeric"/>
+        </loadUpdateData>
+    </changeSet>
+
+    <changeSet id="20211020103851-2" author="jhipster">
+        <addNotNullConstraint tableName="erikoisala" columnName="erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara"/>
+    </changeSet>
+</databaseChangeLog>

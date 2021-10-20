@@ -2,8 +2,10 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 
 import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
+import fi.elsapalvelu.elsa.service.ErikoisalaService
 import fi.elsapalvelu.elsa.service.TeoriakoulutusService
 import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.dto.TeoriakoulutuksetDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
@@ -22,6 +24,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     private val teoriakoulutusService: TeoriakoulutusService,
     private val teoriakoulutusRepository: TeoriakoulutusRepository,
     private val userService: UserService,
+    private val erikoisalaService: ErikoisalaService,
 ) {
 
     companion object {
@@ -44,7 +47,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
                 "idexists"
             )
         }
-        
+
         return teoriakoulutusService.save(teoriakoulutusDTO, user.id!!)?.let {
             ResponseEntity
                 .created(URI("/api/erikoistuva-laakari/teoriakoulutukset/${it.id}"))
@@ -78,9 +81,16 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     @GetMapping("/teoriakoulutukset")
     fun getAllTeoriakoulutukset(
         principal: Principal?
-    ): ResponseEntity<List<TeoriakoulutusDTO>> {
+    ): ResponseEntity<TeoriakoulutuksetDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(teoriakoulutusService.findAll(user.id!!))
+        val teoriakoulutukset = teoriakoulutusService.findAll(user.id!!)
+        val erikoisala = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        return ResponseEntity.ok(
+            TeoriakoulutuksetDTO(
+                teoriakoulutukset = teoriakoulutukset.toMutableSet(),
+                erikoisala = erikoisala.firstOrNull()
+            )
+        )
     }
 
     @GetMapping("/teoriakoulutukset/{id}")
