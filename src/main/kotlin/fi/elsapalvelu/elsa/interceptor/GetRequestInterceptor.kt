@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.interceptor
 
-import fi.elsapalvelu.elsa.security.SecurityLoggingWrapper
+import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
 import org.springframework.security.core.AuthenticatedPrincipal
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
@@ -18,7 +18,7 @@ class GetRequestInterceptor : HandlerInterceptor {
         if (context.authentication is Saml2Authentication) {
             val authentication = context.authentication as Saml2Authentication
             val principal = authentication.principal as AuthenticatedPrincipal
-            SecurityLoggingWrapper.info(
+            AuditLoggingWrapper.info(
                 "GET request for ${request.requestURI}, user id: ${principal.name}"
             )
         }
