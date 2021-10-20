@@ -30,7 +30,10 @@ data class ErikoisalaDTO(
     var yliopistosairaalajaksonVahimmaispituus: Double? = null,
 
     @get: NotNull
-    var yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus: Double? = null
+    var yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus: Double? = null,
+
+    @get: NotNull
+    var erikoisalanVaatimaTeoriakoulutustenVahimmaismaara: Double? = null
 
 ) : Serializable {
 
