@@ -36,5 +36,10 @@ interface KoejaksonValiarviointiService {
         userId: String
     ): Map<KayttajaDTO, KoejaksonValiarviointiDTO>
 
+    fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+        id: Long,
+        vastuuhenkiloUserId: String
+    ): Optional<KoejaksonValiarviointiDTO>
+
     fun delete(id: Long)
 }
