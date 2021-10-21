@@ -36,5 +36,10 @@ interface KoejaksonLoppukeskusteluService {
         userId: String
     ): Map<KayttajaDTO, KoejaksonLoppukeskusteluDTO>
 
+    fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+        id: Long,
+        vastuuhenkiloUserId: String
+    ): Optional<KoejaksonLoppukeskusteluDTO>
+
     fun delete(id: Long)
 }

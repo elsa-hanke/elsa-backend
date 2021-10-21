@@ -36,5 +36,10 @@ interface KoejaksonKehittamistoimenpiteetService {
         userId: String
     ): Map<KayttajaDTO, KoejaksonKehittamistoimenpiteetDTO>
 
+    fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+        id: Long,
+        vastuuhenkiloUserId: String
+    ): Optional<KoejaksonKehittamistoimenpiteetDTO>
+
     fun delete(id: Long)
 }

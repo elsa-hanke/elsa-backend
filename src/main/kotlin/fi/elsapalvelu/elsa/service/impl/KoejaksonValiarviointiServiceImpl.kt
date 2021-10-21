@@ -218,6 +218,15 @@ class KoejaksonValiarviointiServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+        id: Long,
+        vastuuhenkiloUserId: String
+    ): Optional<KoejaksonValiarviointiDTO> {
+        return koejaksonValiarviointiRepository.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(id, vastuuhenkiloUserId)
+            .map(koejaksonValiarviointiMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
     override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonValiarviointiDTO> {
         val valiarvioinnit =
             koejaksonValiarviointiRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)

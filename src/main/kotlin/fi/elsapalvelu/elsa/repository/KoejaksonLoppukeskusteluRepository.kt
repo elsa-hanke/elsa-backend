@@ -24,6 +24,17 @@ interface KoejaksonLoppukeskusteluRepository : JpaRepository<KoejaksonLoppukesku
     fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonLoppukeskustelu>
 
     @Query(
+        "select lk from KoejaksonLoppukeskustelu lk " +
+            "where lk.id = :id and lk.lahikouluttajaHyvaksynyt = true and lk.lahiesimiesHyvaksynyt = true " +
+            "and lk.erikoistuvaLaakari.id in (select va.erikoistuvaLaakari.id from KoejaksonVastuuhenkilonArvio va " +
+            "where va.vastuuhenkilo.user.id = :vastuuhenkiloUserId)"
+    )
+    fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+        id: Long,
+        vastuuhenkiloUserId: String
+    ): Optional<KoejaksonLoppukeskustelu>
+
+    @Query(
         "select l from KoejaksonLoppukeskustelu l left join l.lahikouluttaja lk left join l.lahiesimies le " +
             "where lk.user.id = :userId or (le.user.id = :userId and (l.lahikouluttajaHyvaksynyt = true or (l.korjausehdotus != null and l.korjausehdotus != '')))"
     )
