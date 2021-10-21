@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.errors
 
-import fi.elsapalvelu.elsa.security.SecurityLoggingWrapper
+import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
 import io.github.jhipster.config.JHipsterConstants
 import org.apache.commons.lang3.StringUtils
 import org.springframework.core.env.Environment
@@ -120,7 +120,7 @@ class ExceptionTranslator(
         e: AccessDeniedException?,
         request: NativeWebRequest?
     ): ResponseEntity<Problem> {
-        SecurityLoggingWrapper.warn(
+        AuditLoggingWrapper.warn(
             "Access denied for " +
                 "user: ${request.let { it?.userPrincipal?.name }}, " +
                 "method: ${request.let { (it?.nativeRequest as HttpServletRequest).method }}, " +
