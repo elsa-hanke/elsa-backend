@@ -274,6 +274,18 @@ class KoejaksonAloituskeskusteluServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+        id: Long,
+        vastuuhenkiloUserId: String
+    ): Optional<KoejaksonAloituskeskusteluDTO> {
+        return koejaksonAloituskeskusteluRepository.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+            id,
+            vastuuhenkiloUserId
+        )
+            .map(koejaksonAloituskeskusteluMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
     override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonAloituskeskusteluDTO> {
         val aloituskeskustelut =
             koejaksonAloituskeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)

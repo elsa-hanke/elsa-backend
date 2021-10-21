@@ -240,6 +240,18 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
     }
 
+    @Transactional(readOnly = true)
+    override fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+        id: Long,
+        vastuuhenkiloUserId: String
+    ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
+        return koejaksonKehittamistoimenpiteetRepository.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+            id,
+            vastuuhenkiloUserId
+        )
+            .map(koejaksonKehittamistoimenpiteetMapper::toDto)
+    }
+
     private fun applyWithKehittamistoimenpiteetDescription(
         kehittamistoimenpiteet: Optional<KoejaksonKehittamistoimenpiteet>
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {

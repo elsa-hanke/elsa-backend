@@ -1,12 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
-import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
-import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
-import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
-import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
-import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
+import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.ResponseUtil
 import org.springframework.beans.factory.annotation.Value
@@ -23,6 +18,10 @@ private const val ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO = "koejakson_vastuuhenki
 class VastuuhenkiloKoejaksoResource(
     private val userService: UserService,
     private val koejaksonKoulutussopimusService: KoejaksonKoulutussopimusService,
+    private val koejaksonAloituskeskusteluService: KoejaksonAloituskeskusteluService,
+    private val koejaksonValiarviointiService: KoejaksonValiarviointiService,
+    private val koejaksonKehittamistoimenpiteetService: KoejaksonKehittamistoimenpiteetService,
+    private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService,
     private val koejaksonVaiheetService: KoejaksonVaiheetService,
     private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService
 ) {
@@ -46,6 +45,50 @@ class VastuuhenkiloKoejaksoResource(
         val koulutussopimusDTO =
             koejaksonKoulutussopimusService.findOneByIdAndVastuuhenkiloKayttajaUserId(id, user.id!!)
         return ResponseUtil.wrapOrNotFound(koulutussopimusDTO)
+    }
+
+    @GetMapping("/koejakso/aloituskeskustelu/{id}")
+    fun getAloituskeskustelu(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val aloituskeskusteluDTO =
+            koejaksonAloituskeskusteluService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(id, user.id!!)
+        return ResponseUtil.wrapOrNotFound(aloituskeskusteluDTO)
+    }
+
+    @GetMapping("/koejakso/valiarviointi/{id}")
+    fun getValiarviointi(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<KoejaksonValiarviointiDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val valiarviointiDTO =
+            koejaksonValiarviointiService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(id, user.id!!)
+        return ResponseUtil.wrapOrNotFound(valiarviointiDTO)
+    }
+
+    @GetMapping("/koejakso/kehittamistoimenpiteet/{id}")
+    fun getKehittamistoimenpiteet(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val kehittamistoimenpiteetDTO =
+            koejaksonKehittamistoimenpiteetService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(id, user.id!!)
+        return ResponseUtil.wrapOrNotFound(kehittamistoimenpiteetDTO)
+    }
+
+    @GetMapping("/koejakso/loppukeskustelu/{id}")
+    fun getLoppukeskustelu(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val loppukeskusteluDTO =
+            koejaksonLoppukeskusteluService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(id, user.id!!)
+        return ResponseUtil.wrapOrNotFound(loppukeskusteluDTO)
     }
 
     @PutMapping("/koejakso/koulutussopimus")
