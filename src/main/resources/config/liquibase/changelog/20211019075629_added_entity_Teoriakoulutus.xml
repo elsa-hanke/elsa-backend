@@ -28,6 +28,34 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
+        <createTable tableName="teoriakoulutus_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="koulutuksen_nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koulutuksen_paikka" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="alkamispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="paattymispaiva" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoistumiseen_hyvaksyttava_tuntimaara" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
     </changeSet>
 
 </databaseChangeLog>

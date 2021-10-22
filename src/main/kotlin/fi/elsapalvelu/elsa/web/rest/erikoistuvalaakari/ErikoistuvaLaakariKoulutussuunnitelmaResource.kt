@@ -33,8 +33,8 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
     @PutMapping("/koulutussuunnitelma")
     fun updateKoulutussuunnitelma(
         @Valid koulutussuunnitelmaDTO: KoulutussuunnitelmaDTO,
-        @RequestParam("koulutussuunnitelmaFile") koulutussuunnitelmaFile: MultipartFile?,
-        @RequestParam("motivaatiokirjeFile") motivaatiokirjeFile: MultipartFile?,
+        @RequestParam koulutussuunnitelmaFile: MultipartFile?,
+        @RequestParam motivaatiokirjeFile: MultipartFile?,
         principal: Principal?
     ): ResponseEntity<KoulutussuunnitelmaDTO> {
         val user = userService.getAuthenticatedUser(principal)
