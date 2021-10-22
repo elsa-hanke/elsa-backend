@@ -1,10 +1,14 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.service.ErikoisalaService
+import fi.elsapalvelu.elsa.service.FileValidationService
 import fi.elsapalvelu.elsa.service.TeoriakoulutusService
 import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutuksetDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -12,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
@@ -25,10 +30,13 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     private val teoriakoulutusRepository: TeoriakoulutusRepository,
     private val userService: UserService,
     private val erikoisalaService: ErikoisalaService,
+    private val fileValidationService: FileValidationService,
+    private val objectMapper: ObjectMapper,
 ) {
 
     companion object {
         const val ENTITY_NAME = "teoriakoulutus"
+        const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
     }
 
     @Value("\${jhipster.clientApp.name}")
@@ -36,7 +44,8 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
 
     @PostMapping("/teoriakoulutukset")
     fun createTeoriakoulutus(
-        @Valid @RequestBody teoriakoulutusDTO: TeoriakoulutusDTO,
+        @Valid teoriakoulutusDTO: TeoriakoulutusDTO,
+        @RequestParam todistusFiles: List<MultipartFile>?,
         principal: Principal?
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -48,7 +57,8 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
             )
         }
 
-        return teoriakoulutusService.save(teoriakoulutusDTO, user.id!!)?.let {
+        val todistukset = getMappedFiles(todistusFiles, user.id!!) ?: mutableSetOf()
+        return teoriakoulutusService.save(teoriakoulutusDTO, todistukset, null, user.id!!)?.let {
             ResponseEntity
                 .created(URI("/api/erikoistuva-laakari/teoriakoulutukset/${it.id}"))
                 .body(it)
@@ -58,7 +68,9 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     @PutMapping("/teoriakoulutukset/{id}")
     fun updateTeoriakoulutus(
         @PathVariable(value = "id", required = false) id: Long,
-        @Valid @RequestBody teoriakoulutusDTO: TeoriakoulutusDTO,
+        @Valid teoriakoulutusDTO: TeoriakoulutusDTO,
+        @RequestParam todistusFiles: List<MultipartFile>?,
+        @RequestParam deletedAsiakirjaIdsJson: String?,
         principal: Principal?
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -74,7 +86,11 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
             throw BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound")
         }
 
-        val result = teoriakoulutusService.save(teoriakoulutusDTO, user.id!!)
+        val todistukset = getMappedFiles(todistusFiles, user.id!!) ?: mutableSetOf()
+        val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let {
+            objectMapper.readValue(it, mutableSetOf<Int>()::class.java)
+        }
+        val result = teoriakoulutusService.save(teoriakoulutusDTO, todistukset, deletedAsiakirjaIds, user.id!!)
         return ResponseEntity.ok(result)
     }
 
@@ -112,5 +128,33 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         val user = userService.getAuthenticatedUser(principal)
         teoriakoulutusService.delete(id, user.id!!)
         return ResponseEntity.noContent().build()
+    }
+
+    private fun getMappedFiles(
+        files: List<MultipartFile>?,
+        userId: String
+    ): MutableSet<AsiakirjaDTO>? {
+        files?.let {
+            if (!fileValidationService.validate(it, userId)) {
+                throw BadRequestAlertException(
+                    "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
+                    ASIAKIRJA_ENTITY_NAME,
+                    "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
+                )
+            }
+
+            return it.map { file ->
+                AsiakirjaDTO(
+                    nimi = file.originalFilename,
+                    tyyppi = file.contentType,
+                    asiakirjaData = AsiakirjaDataDTO(
+                        fileInputStream = file.inputStream,
+                        fileSize = file.size
+                    )
+                )
+            }.toMutableSet()
+        }
+
+        return null
     }
 }

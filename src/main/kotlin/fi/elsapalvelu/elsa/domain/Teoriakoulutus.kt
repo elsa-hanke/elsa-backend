@@ -3,6 +3,8 @@ package fi.elsapalvelu.elsa.domain
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
@@ -10,6 +12,7 @@ import javax.validation.constraints.Min
 import javax.validation.constraints.NotNull
 
 @Entity
+@Audited
 @Table(name = "teoriakoulutus")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Teoriakoulutus(
@@ -37,6 +40,19 @@ data class Teoriakoulutus(
     @Column(name = "erikoistumiseen_hyvaksyttava_tuntimaara")
     var erikoistumiseenHyvaksyttavaTuntimaara: Int? = null,
 
+    @OneToMany(
+        mappedBy = "teoriakoulutus",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    )
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JsonIgnoreProperties(
+        value = [
+            "teoriakoulutus"
+        ], allowSetters = true
+    )
+    var todistukset: MutableSet<Asiakirja> = mutableSetOf(),
+
     @NotNull
     @ManyToOne(optional = false)
     @JsonIgnoreProperties(
@@ -50,6 +66,7 @@ data class Teoriakoulutus(
         ],
         allowSetters = true
     )
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
     ) : Serializable {

@@ -30,6 +30,15 @@ data class Asiakirja(
     @JsonIgnoreProperties(value = ["asiakirjat"], allowSetters = true)
     var tyoskentelyjakso: Tyoskentelyjakso? = null,
 
+    @ManyToOne(optional = false)
+    @JsonIgnoreProperties(
+        value = [
+            "todistukset", "erikoistuvaLaakari"
+        ],
+        allowSetters = true
+    )
+    var teoriakoulutus: Teoriakoulutus? = null,
+
     @NotNull
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
