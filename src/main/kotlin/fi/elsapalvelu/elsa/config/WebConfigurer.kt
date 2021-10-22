@@ -43,8 +43,6 @@ class WebConfigurer(
             source.apply {
                 registerCorsConfiguration("/api/**", config)
                 registerCorsConfiguration("/management/**", config)
-                registerCorsConfiguration("/v2/api-docs", config)
-                registerCorsConfiguration("/swagger-resources", config)
             }
         }
         return CorsFilter(source)
