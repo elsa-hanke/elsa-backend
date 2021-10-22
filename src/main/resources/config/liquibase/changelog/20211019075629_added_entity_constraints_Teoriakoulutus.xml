@@ -11,5 +11,11 @@
                                  constraintName="fk_teoriakoulutus__erikoistuva_laakari_id"
                                  referencedColumnNames="id"
                                  referencedTableName="erikoistuva_laakari"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="teoriakoulutus_audit"
+                                 constraintName="fk_teoriakoulutus_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
     </changeSet>
 </databaseChangeLog>
