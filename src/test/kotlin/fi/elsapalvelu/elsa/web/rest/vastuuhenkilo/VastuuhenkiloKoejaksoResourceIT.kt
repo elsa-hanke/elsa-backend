@@ -74,6 +74,8 @@ class VastuuhenkiloKoejaksoResourceIT {
 
     private lateinit var user: User
 
+    private lateinit var vastuuhenkilo: Kayttaja
+
     @BeforeEach
     fun setup() {
         MockitoAnnotations.openMocks(this)
@@ -138,6 +140,444 @@ class VastuuhenkiloKoejaksoResourceIT {
             .andExpect(jsonPath("$.lahetetty").value(koejaksonKoulutussopimus.lahetetty as Any))
             .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonKoulutussopimus.vastuuhenkilo?.id as Any))
             .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getAloituskeskustelu() {
+        initTest()
+
+        koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/aloituskeskustelu/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonAloituskeskustelu.id as Any))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonAloituskeskustelu.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonAloituskeskustelu.erikoistuvanOpiskelijatunnus as Any))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonAloituskeskustelu.erikoistuvanYliopisto as Any))
+            .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonAloituskeskustelu.erikoistuvanSahkoposti as Any))
+            .andExpect(jsonPath("$.lahetetty").value(koejaksonAloituskeskustelu.lahetetty as Any))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonAloituskeskustelu.lahikouluttaja?.id as Any))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonAloituskeskustelu.lahiesimies?.id as Any))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getAloituskeskustelu_LahiKouluttajaNotAccepted_ExpectNotFound() {
+        initTest()
+
+        koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = false
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/aloituskeskustelu/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getAloituskeskustelu_LahiEsimiesNotAccepted_ExpectNotFound() {
+        initTest()
+
+        koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = false
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/aloituskeskustelu/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getAloituskeskustelu_VastuuhenkilonArvioDoesNotExist_ExpectNotFound() {
+        initTest(false)
+
+        koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/aloituskeskustelu/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getAloituskeskustelu_VastuuhenkilonArvioForSameErikoistuvaDoesNotExist_ExpectNotFound() {
+        initTest(false)
+
+        val newUser = KayttajaResourceWithMockUserIT.createEntity()
+        em.persist(newUser)
+        em.flush()
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, newUser)
+        em.persist(erikoistuvaLaakari)
+
+        koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+            em.persist(koejaksonVastuuhenkilonArvio)
+
+        koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/aloituskeskustelu/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getValiarviointi() {
+        initTest()
+
+        koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonValiarviointi.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/valiarviointi/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonValiarviointi.id as Any))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonValiarviointi.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonValiarviointi.erikoistuvanOpiskelijatunnus as Any))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonValiarviointi.erikoistuvanYliopisto as Any))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonValiarviointi.lahikouluttaja?.id as Any))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonValiarviointi.lahiesimies?.id as Any))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getValiarviointi_LahiKouluttajaNotAccepted_ExpectNotFound() {
+        initTest()
+
+        koejaksonValiarviointi.lahikouluttajaHyvaksynyt = false
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonValiarviointi.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/valiarviointi/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getValiarviointi_LahiEsimiesNotAccepted_ExpectNotFound() {
+        initTest()
+
+        koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = false
+
+        val id = koejaksonValiarviointi.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/valiarviointi/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getValiarviointi_VastuuhenkilonArvioDoesNotExist_ExpectNotFound() {
+        initTest(false)
+
+        koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonValiarviointi.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/valiarviointi/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getValiarviointi_VastuuhenkilonArvioForSameErikoistuvaDoesNotExist_ExpectNotFound() {
+        initTest(false)
+
+        val newUser = KayttajaResourceWithMockUserIT.createEntity()
+        em.persist(newUser)
+        em.flush()
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, newUser)
+        em.persist(erikoistuvaLaakari)
+
+        koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+            em.persist(koejaksonVastuuhenkilonArvio)
+
+        koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonValiarviointi.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/valiarviointi/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getKehittamistoimenpiteet() {
+        initTest()
+
+        val id = koejaksonKehittamistoimenpiteet.id
+        assertNotNull(id)
+
+        koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
+        koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonKehittamistoimenpiteet.id as Any))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKehittamistoimenpiteet.erikoistuvanNimi as Any))
+            .andExpect(
+                jsonPath("$.erikoistuvanOpiskelijatunnus").value(
+                    koejaksonKehittamistoimenpiteet.erikoistuvanOpiskelijatunnus as Any
+                )
+            )
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKehittamistoimenpiteet.erikoistuvanYliopisto as Any))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonKehittamistoimenpiteet.lahikouluttaja?.id as Any))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonKehittamistoimenpiteet.lahiesimies?.id as Any))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getKehittamistoimenpiteet_LahiKouluttajaNotAccepted_ExpectNotFound() {
+        initTest()
+
+        koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = false
+        koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonKehittamistoimenpiteet.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getKehittamistoimenpiteet_LahiEsimiesNotAccepted_ExpectNotFound() {
+        initTest()
+
+        koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
+        koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = false
+
+        val id = koejaksonKehittamistoimenpiteet.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getKehittamistoimenpiteet_VastuuhenkilonArvioDoesNotExist_ExpectNotFound() {
+        initTest(false)
+
+        koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
+        koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonKehittamistoimenpiteet.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getKehittamistoimenpiteet_VastuuhenkilonArvioForSameErikoistuvaDoesNotExist_ExpectNotFound() {
+        initTest(false)
+
+        val newUser = KayttajaResourceWithMockUserIT.createEntity()
+        em.persist(newUser)
+        em.flush()
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, newUser)
+        em.persist(erikoistuvaLaakari)
+
+        koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+            em.persist(koejaksonVastuuhenkilonArvio)
+
+        koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
+        koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonKehittamistoimenpiteet.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getLoppukeskustelu() {
+        initTest()
+
+        val id = koejaksonLoppukeskustelu.id
+        assertNotNull(id)
+
+        koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonLoppukeskustelu.id as Any))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonLoppukeskustelu.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonLoppukeskustelu.erikoistuvanOpiskelijatunnus as Any))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonLoppukeskustelu.erikoistuvanYliopisto as Any))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonLoppukeskustelu.lahikouluttaja?.id as Any))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonLoppukeskustelu.lahiesimies?.id as Any))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getLoppukeskustelu_LahiKouluttajaNotAccepted_ExpectNotFound() {
+        initTest()
+
+        koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = false
+        koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonLoppukeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getLoppukeskustelu_LahiEsimiesNotAccepted_ExpectNotFound() {
+        initTest()
+
+        koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = false
+
+        val id = koejaksonLoppukeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getLoppukeskustelu_VastuuhenkilonArvioDoesNotExist_ExpectNotFound() {
+        initTest(false)
+
+        koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonLoppukeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getLoppukeskustelu_VastuuhenkilonArvioForSameErikoistuvaDoesNotExist_ExpectNotFound() {
+        initTest(false)
+
+        val newUser = KayttajaResourceWithMockUserIT.createEntity()
+        em.persist(newUser)
+        em.flush()
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, newUser)
+        em.persist(erikoistuvaLaakari)
+
+        koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+            em.persist(koejaksonVastuuhenkilonArvio)
+
+        koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
+        koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonLoppukeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id
+            )
+        ).andExpect(status().isNotFound)
     }
 
     @Test
@@ -368,7 +808,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         assertThat(testVastuuhenkilonArvio.vastuuhenkilonKuittausaika).isNotNull
     }
 
-    fun initTest(userId: String? = KoejaksonVaiheetHelper.DEFAULT_VASTUUHENKILO_ID) {
+    fun initTest(createVastuuhenkilonArvio: Boolean? = true) {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -385,7 +825,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             ErikoistuvaLaakariHelper.createEntity(em)
         em.persist(erikoistuvaLaakari)
 
-        val vastuuhenkilo = KayttajaHelper.createEntity(em, user)
+        vastuuhenkilo = KayttajaHelper.createEntity(em, user)
         em.persist(vastuuhenkilo)
 
         val kouluttaja = KayttajaHelper.createEntity(em)
@@ -427,8 +867,11 @@ class VastuuhenkiloKoejaksoResourceIT {
         koejaksonLoppukeskustelu =
             KoejaksonVaiheetHelper.createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
         em.persist(koejaksonLoppukeskustelu)
-        koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
-        em.persist(koejaksonVastuuhenkilonArvio)
+
+        if (createVastuuhenkilonArvio == true) {
+            koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+            em.persist(koejaksonVastuuhenkilonArvio)
+        }
     }
 
     companion object {
