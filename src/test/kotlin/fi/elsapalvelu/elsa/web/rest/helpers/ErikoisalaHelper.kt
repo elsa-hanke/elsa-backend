@@ -33,9 +33,14 @@ class ErikoisalaHelper {
         private const val DEFAULT_YLIOPISTOSAIRAALAN_ULKOPUOLISEN_TYOSKENTELYN_VAHIMMAISPITUUS: Double = 1.0
         private const val UPDATED_YLIOPISTOSAIRAALAN_ULKOPUOLISEN_TYOSKENTELYN_VAHIMMAISPITUUS: Double = 2.0
 
+        const val DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA: Double = 100.0
+        const val UPDATED_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA: Double = 120.0
+
         @JvmStatic
-        fun createEntity(voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
-                         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLO_PAATTYY): Erikoisala {
+        fun createEntity(
+            voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
+            voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLO_PAATTYY
+        ): Erikoisala {
             val erikoisala = Erikoisala(
                 nimi = DEFAULT_NIMI,
                 voimassaoloAlkaa = voimassaoloAlkaa,
@@ -45,7 +50,9 @@ class ErikoisalaHelper {
                 terveyskeskuskoulutusjaksonVahimmaispituus = DEFAULT_TERVEYSKESKUSKOULUTUSJAKSON_VAHIMMAISPITUUS,
                 yliopistosairaalajaksonVahimmaispituus = DEFAULT_YLIOPISTOSAIRAALAJAKSON_VAHIMMAISPITUUS,
                 yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus =
-                    DEFAULT_YLIOPISTOSAIRAALAN_ULKOPUOLISEN_TYOSKENTELYN_VAHIMMAISPITUUS
+                DEFAULT_YLIOPISTOSAIRAALAN_ULKOPUOLISEN_TYOSKENTELYN_VAHIMMAISPITUUS,
+                erikoisalanVaatimaTeoriakoulutustenVahimmaismaara =
+                DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA
             )
 
             return erikoisala
@@ -62,7 +69,9 @@ class ErikoisalaHelper {
                 terveyskeskuskoulutusjaksonVahimmaispituus = UPDATED_TERVEYSKESKUSKOULUTUSJAKSON_VAHIMMAISPITUUS,
                 yliopistosairaalajaksonVahimmaispituus = UPDATED_YLIOPISTOSAIRAALAJAKSON_VAHIMMAISPITUUS,
                 yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus =
-                    UPDATED_YLIOPISTOSAIRAALAN_ULKOPUOLISEN_TYOSKENTELYN_VAHIMMAISPITUUS
+                UPDATED_YLIOPISTOSAIRAALAN_ULKOPUOLISEN_TYOSKENTELYN_VAHIMMAISPITUUS,
+                erikoisalanVaatimaTeoriakoulutustenVahimmaismaara =
+                UPDATED_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA
             )
 
             return erikoisala
