@@ -100,11 +100,11 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     ): ResponseEntity<TeoriakoulutuksetDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val teoriakoulutukset = teoriakoulutusService.findAll(user.id!!)
-        val erikoisala = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
         return ResponseEntity.ok(
             TeoriakoulutuksetDTO(
                 teoriakoulutukset = teoriakoulutukset.toMutableSet(),
-                erikoisala = erikoisala.firstOrNull()
+                erikoisala = erikoisalat.firstOrNull()
             )
         )
     }

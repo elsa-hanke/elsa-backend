@@ -21,13 +21,15 @@ class AsiakirjaHelper {
         fun createEntity(
             em: EntityManager,
             user: User? = null,
-            tyoskentelyjakso: Tyoskentelyjakso? = null
+            tyoskentelyjakso: Tyoskentelyjakso? = null,
+            teoriakoulutus: Teoriakoulutus? = null
         ): Asiakirja {
             val asiakirja = Asiakirja(
                 nimi = ASIAKIRJA_PDF_NIMI,
                 tyyppi = ASIAKIRJA_PDF_TYYPPI,
                 lisattypvm = LocalDateTime.now(),
                 tyoskentelyjakso = tyoskentelyjakso,
+                teoriakoulutus = teoriakoulutus,
                 asiakirjaData = AsiakirjaData(
                     data = BlobProxy.generateProxy(ASIAKIRJA_PDF_DATA)
                 )
