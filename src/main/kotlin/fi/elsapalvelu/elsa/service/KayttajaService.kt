@@ -20,6 +20,8 @@ interface KayttajaService {
 
     fun findVastuuhenkilot(): List<KayttajaDTO>
 
+    fun findTeknisetPaakayttajat(): List<KayttajaDTO>
+
     fun findKouluttajatAndVastuuhenkilot(userId: String): List<KayttajaDTO>
 
     fun delete(id: Long)

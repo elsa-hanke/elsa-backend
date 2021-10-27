@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
@@ -70,6 +71,11 @@ class KayttajaServiceImpl(
 
     override fun findVastuuhenkilot(): List<KayttajaDTO> {
         return kayttajaRepository.findAllByUserAuthority(VASTUUHENKILO)
+            .map(kayttajaMapper::toDto)
+    }
+
+    override fun findTeknisetPaakayttajat(): List<KayttajaDTO> {
+        return kayttajaRepository.findAllByUserAuthority(TEKNINEN_PAAKAYTTAJA)
             .map(kayttajaMapper::toDto)
     }
 
