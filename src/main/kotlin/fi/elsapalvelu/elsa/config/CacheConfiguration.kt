@@ -102,7 +102,6 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.SuoritusarvioinninKommentti::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Suoritusarviointi::class.java.name + ".osaalueenArvioinnit")
             createCache(cm, fi.elsapalvelu.elsa.domain.Suoritusarviointi::class.java.name)
-            createCache(cm, fi.elsapalvelu.elsa.domain.Teoriakoulutus::class.java.name + ".todistukset")
             createCache(cm, fi.elsapalvelu.elsa.domain.Teoriakoulutus::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelyjakso::class.java.name + ".koulutusjaksot")
             createCache(cm, fi.elsapalvelu.elsa.domain.Tyoskentelyjakso::class.java.name)

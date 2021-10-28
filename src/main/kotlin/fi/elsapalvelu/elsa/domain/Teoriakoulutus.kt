@@ -45,7 +45,6 @@ data class Teoriakoulutus(
         cascade = [CascadeType.ALL],
         orphanRemoval = true
     )
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(
         value = [
             "teoriakoulutus"
