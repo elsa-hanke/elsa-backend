@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.validation
+package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
