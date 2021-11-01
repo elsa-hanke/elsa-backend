@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.KeskeytysaikaService
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
-import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -31,12 +30,6 @@ class KeskeytysaikaServiceImpl(
                 if (
                     tyoskentelyjakso.paattymispaiva != null &&
                     tyoskentelyjakso.paattymispaiva!!.isBefore(keskeytysaikaDTO.paattymispaiva)
-                ) {
-                    return null
-                }
-
-                if (
-                    keskeytysaikaDTO.osaaikaprosentti!! > tyoskentelyjakso.osaaikaprosentti!!
                 ) {
                     return null
                 }
