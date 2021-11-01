@@ -25,13 +25,20 @@ class ErikoisalaServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun findAll(): List<ErikoisalaDTO> {
+        return erikoisalaRepository.findAll()
+            .map(erikoisalaMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<ErikoisalaDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää
         // voimassaolon rajaamisessa
         return erikoisalaRepository.findAllByValid(
-            kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now())
+            kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
+        )
             .map(erikoisalaMapper::toDto)
     }
 
