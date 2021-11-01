@@ -41,12 +41,14 @@ class KeskeytysaikaMockHelper {
 
         @JvmStatic
         fun createKeskeytysaikaMock(
+            id: Long?,
             alkamispaiva: LocalDate?,
             paattymispaiva: LocalDate?,
             osaaikaprosentti: Int = 100,
             poissaolonSyyTyyppi: PoissaolonSyyTyyppi = PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN
         ): Keskeytysaika {
             val keskeytysaikaMock = mock(Keskeytysaika::class.java)
+            `when`(keskeytysaikaMock.id).thenReturn(id)
             `when`(keskeytysaikaMock.alkamispaiva).thenReturn(alkamispaiva)
             `when`(keskeytysaikaMock.paattymispaiva).thenReturn(paattymispaiva)
             `when`(keskeytysaikaMock.osaaikaprosentti).thenReturn(osaaikaprosentti)
