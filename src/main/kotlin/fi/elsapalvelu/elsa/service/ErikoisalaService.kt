@@ -7,6 +7,8 @@ interface ErikoisalaService {
 
     fun save(erikoisalaDTO: ErikoisalaDTO): ErikoisalaDTO
 
+    fun findAll(): List<ErikoisalaDTO>
+
     fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<ErikoisalaDTO>
 
     fun findOne(id: Long): Optional<ErikoisalaDTO>
