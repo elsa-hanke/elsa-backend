@@ -163,6 +163,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(5L),
                             LocalDate.ofEpochDay(15L),
                             50
@@ -237,6 +238,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(20L),
                             LocalDate.ofEpochDay(20L),
                             100
@@ -275,6 +277,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     50,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(10L),
                             LocalDate.ofEpochDay(15L),
                             50
@@ -288,6 +291,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(16L),
                             LocalDate.ofEpochDay(20L),
                             75
@@ -320,6 +324,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(40L),
                             LocalDate.ofEpochDay(69L),
                             100,
@@ -341,6 +346,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(81L),
                             LocalDate.ofEpochDay(90L),
                             100,
@@ -355,6 +361,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(100L),
                             LocalDate.ofEpochDay(130L),
                             100,
@@ -391,6 +398,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(40L),
                             LocalDate.ofEpochDay(68L),
                             100,
@@ -412,6 +420,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(69L),
                             LocalDate.ofEpochDay(78L),
                             100,
@@ -426,6 +435,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(100L),
                             LocalDate.ofEpochDay(130L),
                             100,
@@ -462,6 +472,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(40L),
                             LocalDate.ofEpochDay(69L),
                             100,
@@ -476,6 +487,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(390L),
                             LocalDate.ofEpochDay(419L),
                             100,
@@ -497,6 +509,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(461L),
                             LocalDate.ofEpochDay(470L),
                             100,
@@ -511,6 +524,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(100L),
                             LocalDate.ofEpochDay(130L),
                             100,
@@ -548,6 +562,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(40L),
                             LocalDate.ofEpochDay(69L),
                             100,
@@ -562,6 +577,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(360L),
                             LocalDate.ofEpochDay(370L),
                             100,
@@ -635,6 +651,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(5L),
                             LocalDate.ofEpochDay(15L),
                             25
@@ -671,6 +688,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(31L),
                             LocalDate.ofEpochDay(50L),
                             100,
@@ -706,6 +724,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(21L),
                             LocalDate.ofEpochDay(50L),
                             100,
@@ -720,12 +739,14 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(490L),
                             LocalDate.ofEpochDay(500L),
                             100,
                             PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN
                         ),
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(501L),
                             LocalDate.ofEpochDay(510L),
                             100,
@@ -808,6 +829,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     25,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(21L),
                             LocalDate.ofEpochDay(21L),
                             100
@@ -839,6 +861,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     50,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(10L),
                             LocalDate.ofEpochDay(15L),
                             50
@@ -852,6 +875,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(16L),
                             LocalDate.ofEpochDay(20L),
                             49
@@ -898,11 +922,13 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(16L),
                             LocalDate.ofEpochDay(19L),
                             50
                         ),
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(20L),
                             LocalDate.ofEpochDay(20L),
                             100
@@ -952,6 +978,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(5L),
                             LocalDate.ofEpochDay(20L),
                             50
@@ -1001,6 +1028,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(15L),
                             LocalDate.ofEpochDay(15L),
                             100
@@ -1050,6 +1078,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(5L),
                             LocalDate.ofEpochDay(20L),
                             50
@@ -1084,6 +1113,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(50L),
                             LocalDate.ofEpochDay(79L),
                             100,
@@ -1137,6 +1167,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(50L),
                             LocalDate.ofEpochDay(78L),
                             100,
@@ -1165,6 +1196,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(380),
                             LocalDate.ofEpochDay(410),
                             100,
@@ -1179,6 +1211,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(430),
                             LocalDate.ofEpochDay(470),
                             100,
@@ -1193,6 +1226,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(550),
                             LocalDate.ofEpochDay(590),
                             100,
@@ -1234,6 +1268,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(50L),
                             LocalDate.ofEpochDay(79L),
                             100,
@@ -1248,6 +1283,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                     100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null,
                             LocalDate.ofEpochDay(365L),
                             LocalDate.ofEpochDay(394L),
                             100,
