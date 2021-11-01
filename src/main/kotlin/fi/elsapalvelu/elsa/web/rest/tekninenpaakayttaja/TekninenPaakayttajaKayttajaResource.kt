@@ -1,7 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
+import fi.elsapalvelu.elsa.service.ErikoistuvaLaakariService
 import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -12,10 +13,11 @@ import java.security.Principal
 @RequestMapping("/api/tekninen-paakayttaja")
 class TekninenPaakayttajaKayttajaResource(
     private val userService: UserService,
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService
 ) {
 
-    @GetMapping("/kayttajat")
-    fun getKayttajat(principal: Principal?): ResponseEntity<List<KayttajaDTO>> {
-        return ResponseEntity.ok(emptyList())
+    @GetMapping("/erikoistuvat-laakarit")
+    fun getErikoistuvatLaakarit(principal: Principal?): ResponseEntity<List<ErikoistuvaLaakariDTO>> {
+        return ResponseEntity.ok(erikoistuvaLaakariService.findAll())
     }
 }

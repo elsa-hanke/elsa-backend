@@ -19,6 +19,7 @@ interface ErikoistuvaLaakariMapper :
     EntityMapper<ErikoistuvaLaakariDTO, ErikoistuvaLaakari> {
 
     @Mappings(
+        Mapping(source = "kayttaja.nimi", target = "nimi"),
         Mapping(source = "kayttaja.id", target = "kayttajaId"),
         Mapping(source = "erikoisala.id", target = "erikoisalaId"),
         Mapping(source = "erikoisala.nimi", target = "erikoisalaNimi"),
