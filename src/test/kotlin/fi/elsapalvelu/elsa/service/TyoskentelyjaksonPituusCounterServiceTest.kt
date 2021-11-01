@@ -48,6 +48,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     @Test
     fun `test calculate with one week keskeytysaika`() {
         val keskeytysaikaMock = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(15L),
             LocalDate.ofEpochDay(22L), 0
         )
@@ -66,6 +67,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     @Test
     fun `test calculate with osaaikaprosentti 50 and keskeytysaika of one week`() {
         val keskeytysaikaMock = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(15L),
             LocalDate.ofEpochDay(22L), 0
         )
@@ -83,6 +85,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     @Test
     fun `test calculate with osaaikaprosentti 50 and keskeytysaika of one week with osaaikaprosentti 50`() {
         val keskeytysaikaMock = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(15L),
             LocalDate.ofEpochDay(22L), 50
         )
@@ -187,12 +190,14 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     @Test
     fun `test calculate with type vahennetaan ylimeneva osa`() {
         val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(370L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA
         )
         val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(700L),
             LocalDate.ofEpochDay(730L),
             100,
@@ -217,6 +222,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     @Test
     fun `test calculate with type vahennetaan ylimeneva osa per vuosi`() {
         val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(370L),
             100,
@@ -224,6 +230,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(390L),
             LocalDate.ofEpochDay(410L),
             100,
@@ -231,6 +238,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(600L),
             LocalDate.ofEpochDay(650L),
             100,
@@ -238,6 +246,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(900L),
             LocalDate.ofEpochDay(910L),
             100,
@@ -245,6 +254,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock5 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(990L),
             LocalDate.ofEpochDay(1025L),
             100,
@@ -252,6 +262,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock6 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(1300L),
             LocalDate.ofEpochDay(1350L),
             100,
@@ -294,6 +305,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     @Test
     fun `test calculate with type vahennetaan ylimeneva osa per vuosi with osa-aikaiset poissaolot`() {
         val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(370L),
             50,
@@ -301,6 +313,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(390L),
             LocalDate.ofEpochDay(410L),
             100,
@@ -308,6 +321,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(600L),
             LocalDate.ofEpochDay(650L),
             25,
@@ -315,6 +329,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(900L),
             LocalDate.ofEpochDay(910L),
             100,
@@ -322,6 +337,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock5 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(990L),
             LocalDate.ofEpochDay(1025L),
             66,
@@ -329,6 +345,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock6 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(1300L),
             LocalDate.ofEpochDay(1350L),
             80,
@@ -374,6 +391,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     @Test
     fun `test calculate with vahennetaan ylimeneva osa with osa-aikaiset poissaolot and tyoskentelyjakso`() {
         val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(370L),
             50,
@@ -381,6 +399,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(390L),
             LocalDate.ofEpochDay(410L),
             100,
@@ -388,6 +407,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(560L),
             LocalDate.ofEpochDay(650L),
             25,
@@ -429,6 +449,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     @Test
     fun `test calculateInDays with type vahennetaan ylimeneva osa per vuosi with multiple tyoskentelyjaksot`() {
         val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(390L),
             100,
@@ -436,6 +457,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(400L),
             LocalDate.ofEpochDay(420L),
             100,
@@ -443,6 +465,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(600L),
             LocalDate.ofEpochDay(650L),
             100,
@@ -450,6 +473,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(900L),
             LocalDate.ofEpochDay(910L),
             100,
@@ -457,6 +481,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock5 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(990L),
             LocalDate.ofEpochDay(1025L),
             100,
@@ -464,6 +489,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock6 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(1050L),
             LocalDate.ofEpochDay(1100L),
             100,
@@ -471,6 +497,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock7 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(1105L),
             LocalDate.ofEpochDay(1139L),
             100,
@@ -539,6 +566,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     @Test
     fun `test calculateHyvaksiluettavatDaysLeft`() {
         val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(390L),
             100,
@@ -546,6 +574,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(400L),
             LocalDate.ofEpochDay(420L),
             100,
@@ -553,6 +582,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(900L),
             LocalDate.ofEpochDay(910L),
             100,
@@ -560,6 +590,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(1130L),
             LocalDate.ofEpochDay(1139L),
             100,
@@ -567,6 +598,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock5 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(1150L),
             LocalDate.ofEpochDay(1159L),
             100,
@@ -625,6 +657,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     @Test
     fun `test calculateHyvaksiluettavatDaysLeft with calculateUntilDate`() {
         val keskeytysaikaMock1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(355L),
             LocalDate.ofEpochDay(390L),
             100,
@@ -632,6 +665,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock2 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(400L),
             LocalDate.ofEpochDay(420L),
             100,
@@ -639,6 +673,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(900L),
             LocalDate.ofEpochDay(910L),
             100,
@@ -646,6 +681,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(1130L),
             LocalDate.ofEpochDay(1139L),
             100,
@@ -653,6 +689,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         )
 
         val keskeytysaikaMock5 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+            null,
             LocalDate.ofEpochDay(1150L),
             LocalDate.ofEpochDay(1159L),
             100,
