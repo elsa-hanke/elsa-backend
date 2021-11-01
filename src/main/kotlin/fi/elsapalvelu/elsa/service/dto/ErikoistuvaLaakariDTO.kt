@@ -8,6 +8,8 @@ data class ErikoistuvaLaakariDTO(
 
     var id: Long? = null,
 
+    var nimi: String? = null,
+
     @get: NotNull
     var puhelinnumero: String? = null,
 
