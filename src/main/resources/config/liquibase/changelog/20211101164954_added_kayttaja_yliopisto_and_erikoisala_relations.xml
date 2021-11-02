@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211101164954-1" author="jhipster">
+        <createTable tableName="rel_kayttaja__yliopisto">
+            <column name="yliopisto_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kayttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="kayttaja_id, yliopisto_id"
+                       tableName="rel_kayttaja__yliopisto"/>
+
+        <createTable tableName="rel_kayttaja__erikoisala">
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kayttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="kayttaja_id, erikoisala_id"
+                       tableName="rel_kayttaja__erikoisala"/>
+
+    </changeSet>
+
+    <changeSet id="20211101164954-1-audit" author="jhipster">
+        <createTable tableName="rel_kayttaja__yliopisto_audit">
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="yliopisto_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kayttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="rel_kayttaja__erikoisala_audit">
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kayttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+    </changeSet>
+
+</databaseChangeLog>

@@ -30,7 +30,33 @@ data class Kayttaja(
 
     @ManyToOne(optional = true)
     @JsonIgnoreProperties(value = ["kayttajat"], allowSetters = true)
-    var yliopisto: Yliopisto? = null
+    var yliopisto: Yliopisto? = null,
+
+    @ManyToMany
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JoinTable(
+        name = "rel_kayttaja__yliopisto",
+        joinColumns = [
+            JoinColumn(name = "kayttaja_id")
+        ],
+        inverseJoinColumns = [
+            JoinColumn(name = "yliopisto_id")
+        ]
+    )
+    var yliopistot: MutableSet<Yliopisto>? = mutableSetOf(),
+
+    @ManyToMany
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JoinTable(
+        name = "rel_kayttaja__erikoisala",
+        joinColumns = [
+            JoinColumn(name = "kayttaja_id")
+        ],
+        inverseJoinColumns = [
+            JoinColumn(name = "erikoisala_id")
+        ]
+    )
+    var erikoisalat: MutableSet<Erikoisala>? = mutableSetOf()
 
 ) : Serializable {
 
