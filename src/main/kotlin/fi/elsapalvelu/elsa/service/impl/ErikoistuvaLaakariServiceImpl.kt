@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoist
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
 import fi.elsapalvelu.elsa.service.mapper.ErikoistuvaLaakariMapper
 import fi.elsapalvelu.elsa.service.mapper.YliopistoMapper
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -83,7 +84,6 @@ class ErikoistuvaLaakariServiceImpl(
             "email.uusierikoistuvalaakari.title",
             properties = mapOf(
                 Pair(MailProperty.ID, token),
-                Pair(MailProperty.NAME, user.firstName!!)
             )
         )
 
@@ -124,5 +124,20 @@ class ErikoistuvaLaakariServiceImpl(
         }
 
         return null
+    }
+
+    override fun resendInvitation(id: Long) {
+        erikoistuvaLaakariRepository.findByIdOrNull(id)?.let { erikoistuvaLaakari ->
+            verificationTokenService.findOne(erikoistuvaLaakari.kayttaja?.user?.id!!)?.let { token ->
+                mailService.sendEmailFromTemplate(
+                    erikoistuvaLaakari.kayttaja?.user!!,
+                    "uusiErikoistuvaLaakari.html",
+                    "email.uusierikoistuvalaakari.title",
+                    properties = mapOf(
+                        Pair(MailProperty.ID, token),
+                    )
+                )
+            }
+        }
     }
 }
