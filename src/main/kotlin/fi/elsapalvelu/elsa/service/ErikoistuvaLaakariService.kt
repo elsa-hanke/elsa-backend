@@ -19,4 +19,6 @@ interface ErikoistuvaLaakariService {
     fun findOneByKayttajaUserId(userId: String): ErikoistuvaLaakariDTO?
 
     fun findOneByKayttajaId(kayttajaId: Long): ErikoistuvaLaakariDTO?
+
+    fun resendInvitation(id: Long)
 }

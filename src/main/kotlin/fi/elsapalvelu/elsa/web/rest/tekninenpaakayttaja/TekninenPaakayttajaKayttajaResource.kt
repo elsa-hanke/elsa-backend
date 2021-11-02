@@ -69,10 +69,23 @@ class TekninenPaakayttajaKayttajaResource(
         principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
         val result = erikoistuvaLaakariService.save(kayttajahallintaErikoistuvaLaakariDTO)
-        
+
         return ResponseEntity
             .created(URI("/api/tekninen-paakayttaja/kayttajat/${result.kayttajaId}"))
             .body(result)
 
+    }
+
+    @PostMapping("/erikoistuvat-laakarit/{id}/invite")
+    @PreAuthorize("hasAuthority('ROLE_TEKNINEN_PAAKAYTTAJA')")
+    fun resendErikoistuvaLaakariInvitation(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<ErikoistuvaLaakariDTO> {
+        erikoistuvaLaakariService.resendInvitation(id)
+
+        return ResponseEntity
+            .noContent()
+            .build()
     }
 }
