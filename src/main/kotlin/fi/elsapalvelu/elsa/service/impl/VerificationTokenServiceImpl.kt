@@ -17,4 +17,8 @@ class VerificationTokenServiceImpl(
         val verificationToken = VerificationToken(user = User(id = userId))
         return verificationTokenRepository.save(verificationToken).id!!
     }
+
+    override fun findOne(userId: String): String? {
+        return verificationTokenRepository.findOneByUserId(userId)?.id
+    }
 }
