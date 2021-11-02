@@ -27,7 +27,11 @@ data class KayttajaDTO(
 
     var nimike: String? = null,
 
-    var yliopisto: YliopistoDTO? = null
+    var yliopisto: YliopistoDTO? = null,
+
+    var yliopistot: MutableSet<YliopistoDTO>? = null,
+
+    var erikoisalat: MutableSet<ErikoisalaDTO>? = null
 
 ) : Serializable {
 
