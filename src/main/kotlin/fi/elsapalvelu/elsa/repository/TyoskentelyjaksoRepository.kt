@@ -24,6 +24,17 @@ interface TyoskentelyjaksoRepository : JpaRepository<Tyoskentelyjakso, Long> {
         untilDate: LocalDate
     ): List<Tyoskentelyjakso>
 
+    @Query(
+        "select t from Tyoskentelyjakso t " +
+            "left join fetch t.keskeytykset " +
+            "where t.id = :id " +
+            "and t.erikoistuvaLaakari.kayttaja.user.id = :userId"
+    )
+    fun findOneByIdAndErikoistuvaLaakariKayttajaUserIdEagerWithKeskeytykset(
+        id: Long,
+        userId: String
+    ): Tyoskentelyjakso?
+
     fun findOneByIdAndErikoistuvaLaakariKayttajaUserId(id: Long, userId: String): Tyoskentelyjakso?
 
     fun findAllByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId: String): List<Tyoskentelyjakso>
