@@ -17,7 +17,7 @@ import javax.validation.Valid
 
 @RestController
 @RequestMapping("/api/tekninen-paakayttaja")
-class TekninenPaakayttajaKayttajaResource(
+class TekninenPaakayttajaKayttajahallintaResource(
     private val userService: UserService,
     private val kayttajaService: KayttajaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,

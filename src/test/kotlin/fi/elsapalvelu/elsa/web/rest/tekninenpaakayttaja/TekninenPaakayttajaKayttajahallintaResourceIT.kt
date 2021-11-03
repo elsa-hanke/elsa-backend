@@ -35,7 +35,7 @@ import javax.persistence.EntityManager
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
-class TekninenPaakayttajaKayttajaResourceIT {
+class TekninenPaakayttajaKayttajahallintaResourceIT {
 
     @Autowired
     private lateinit var em: EntityManager
