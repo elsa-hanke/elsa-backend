@@ -15,7 +15,7 @@ class ErikoistuvaLaakariHelper {
         private const val DEFAULT_OPISKELIJATUNNUS = "AAAAAAAAAA"
         private const val UPDATED_OPISKELIJATUNNUS = "BBBBBBBBBB"
 
-        private const val DEFAULT_YLIOPISTO = "TAYS"
+        const val DEFAULT_YLIOPISTO = "TAYS"
 
         private val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
 
