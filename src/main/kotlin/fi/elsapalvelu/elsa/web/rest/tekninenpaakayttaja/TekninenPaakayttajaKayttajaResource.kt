@@ -6,12 +6,14 @@ import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaFormDTO
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 import java.security.Principal
 import javax.validation.Valid
+
 
 @RestController
 @RequestMapping("/api/tekninen-paakayttaja")
@@ -22,6 +24,10 @@ class TekninenPaakayttajaKayttajaResource(
     private val yliopistoService: YliopistoService,
     private val erikoisalaService: ErikoisalaService
 ) {
+
+    companion object {
+        const val KAYTTAJA_ENTITY_NAME = "kayttaja"
+    }
 
     @GetMapping("/erikoistuvat-laakarit")
     @PreAuthorize("hasAuthority('ROLE_TEKNINEN_PAAKAYTTAJA')")
@@ -50,7 +56,7 @@ class TekninenPaakayttajaKayttajaResource(
 
     @GetMapping("/kayttaja-lomake")
     @PreAuthorize("hasAuthority('ROLE_TEKNINEN_PAAKAYTTAJA')")
-    fun getTyoskentelyjaksoForm(
+    fun getKayttajaForm(
         principal: Principal?
     ): ResponseEntity<KayttajahallintaKayttajaFormDTO> {
         val form = KayttajahallintaKayttajaFormDTO()
@@ -68,6 +74,30 @@ class TekninenPaakayttajaKayttajaResource(
         @Valid @RequestBody kayttajahallintaErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariDTO,
         principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
+        if (userService.existsByEmail(kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite!!)) {
+            throw BadRequestAlertException(
+                "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
+            )
+        }
+
+        if (yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).isEmpty) {
+            throw BadRequestAlertException(
+                "Yliopistoa ei löydy.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.yliopistoa-ei-loydy"
+            )
+        }
+
+        if (erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!).isEmpty) {
+            throw BadRequestAlertException(
+                "Erikoisalaa ei löydy.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.erikoisalaa-ei-loydy"
+            )
+        }
+
         val result = erikoistuvaLaakariService.save(kayttajahallintaErikoistuvaLaakariDTO)
 
         return ResponseEntity
@@ -76,7 +106,7 @@ class TekninenPaakayttajaKayttajaResource(
 
     }
 
-    @PostMapping("/erikoistuvat-laakarit/{id}/invite")
+    @PutMapping("/erikoistuvat-laakarit/{id}/invite")
     @PreAuthorize("hasAuthority('ROLE_TEKNINEN_PAAKAYTTAJA')")
     fun resendErikoistuvaLaakariInvitation(
         @PathVariable id: Long,
