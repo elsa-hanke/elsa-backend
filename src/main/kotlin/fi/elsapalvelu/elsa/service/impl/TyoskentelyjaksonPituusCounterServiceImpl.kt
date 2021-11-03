@@ -118,10 +118,7 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
         if (keskeytysaikaDaysBetween < 1) return 0.0
 
         val keskeytysaikaProsentti = keskeytysaika.poissaoloprosentti!!.toDouble()
-        // Keskeytysajan prosentti 0 % tarkoittaa kokopäiväpoissaoloa
-        val keskeytysaikaFactor =
-            if (keskeytysaikaProsentti == 0.0) 1.0
-            else keskeytysaikaProsentti / 100.0
+        val keskeytysaikaFactor = keskeytysaikaProsentti / 100.0
         // Kerrotaan myös työskentelyjakson osa-aikaprosentilla, koska esim. 50% poissaolo 50% mittaisesta
         // työpäivästä vähentää hyväksiluettavia päiviä kyseisen päivän osalta vain 0,25 päivää.
         val keskeytysaikaLength = keskeytysaikaFactor * tyoskentelyjaksoFactor * keskeytysaikaDaysBetween
