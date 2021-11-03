@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -32,7 +31,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val asiakirjaService: AsiakirjaService,
     private val objectMapper: ObjectMapper,
     private val fileValidationService: FileValidationService,
-    private val overlappingTyoskentelyjaksoValidationService: OverlappingTyoskentelyjaksoValidationService
+    private val overlappingTyoskentelyjaksoValidationService: OverlappingTyoskentelyjaksoValidationService,
+    private val overlappingKeskeytysaikaValidationService: OverlappingKeskeytysaikaValidationService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -206,15 +206,17 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 "idexists"
             )
         }
-        if (keskeytysaikaDTO.alkamispaiva!!.isAfter(keskeytysaikaDTO.paattymispaiva)) {
+
+        validateKeskeytysaikaDTO(keskeytysaikaDTO)
+        val user = userService.getAuthenticatedUser(principal)
+
+        if (!overlappingKeskeytysaikaValidationService.validateKeskeytysaika(user.id!!, keskeytysaikaDTO)) {
             throw BadRequestAlertException(
-                "Keskeytysajan päättymispäivä ei saa olla ennen alkamisaikaa",
+                "Päällekkäisten poissaolojen päiväkohtainen kertymä ei voi ylittää 100%:a",
                 KESKEYTYSAIKA_ENTITY_NAME,
-                "dataillegal.keskeytysajan-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa"
+                "dataillegal.paallekkaisten-poissaolojen-yhteenlaskettu-aika-ylittyy"
             )
         }
-
-        val user = userService.getAuthenticatedUser(principal)
 
         keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)?.let {
             return ResponseEntity
@@ -236,13 +238,27 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             throw BadRequestAlertException("Virheellinen id", TYOSKENTELYJAKSO_ENTITY_NAME, "idnull")
         }
 
+        validateKeskeytysaikaDTO(keskeytysaikaDTO)
         val user = userService.getAuthenticatedUser(principal)
-        validateKeskeytysaika(user.id!!, keskeytysaikaDTO)
+
+        if (!overlappingKeskeytysaikaValidationService.validateKeskeytysaika(user.id!!, keskeytysaikaDTO)) {
+            throw BadRequestAlertException(
+                "Päällekkäisten poissaolojen päiväkohtainen kertymä ei voi ylittää 100%:a",
+                KESKEYTYSAIKA_ENTITY_NAME,
+                "dataillegal.paallekkaisten-poissaolojen-yhteenlaskettu-aika-ylittyy"
+            )
+        }
+
+        if (!overlappingTyoskentelyjaksoValidationService.validateKeskeytysaika(user.id!!, keskeytysaikaDTO)
+        ) {
+            throwOverlappingTyoskentelyjaksotException()
+        }
+
         keskeytysaikaService.save(keskeytysaikaDTO, user.id!!)?.let {
             return ResponseEntity.ok(it)
         } ?: throw BadRequestAlertException(
             "Keskeytysajan päivittäminen epäonnistui",
-            TYOSKENTELYJAKSO_ENTITY_NAME,
+            KESKEYTYSAIKA_ENTITY_NAME,
             "dataillegal.keskeytysajan-paivittaminen-epaonnistui"
         )
     }
@@ -264,7 +280,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
-        validateKeskeytysaikaDelete(user.id!!, id)
+
+        if (!overlappingTyoskentelyjaksoValidationService.validateKeskeytysaikaDelete(user.id!!, id)) {
+            throwOverlappingTyoskentelyjaksotException()
+        }
+
         keskeytysaikaService.delete(id, user.id!!)
         return ResponseEntity
             .noContent()
@@ -352,11 +372,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
     private fun validateTyoskentelyaika(userId: String, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
         if (!overlappingTyoskentelyjaksoValidationService.validateTyoskentelyjakso(userId, tyoskentelyjaksoDTO)) {
-            throw BadRequestAlertException(
-                "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
-                "dataillegal.tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy"
-            )
+            throwOverlappingTyoskentelyjaksotException()
         }
     }
 
@@ -380,33 +396,56 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         }
     }
 
-    private fun validateKeskeytysaika(
-        userId: String,
-        keskeytysaikaDTO: KeskeytysaikaDTO
-    ) {
-        if (!overlappingTyoskentelyjaksoValidationService.validateKeskeytysaika(
-                userId,
-                keskeytysaikaDTO
+    private fun validateKeskeytysaikaDTO(keskeytysaikaDTO: KeskeytysaikaDTO) {
+        if (keskeytysaikaDTO.alkamispaiva == null || keskeytysaikaDTO.paattymispaiva == null) {
+            throw BadRequestAlertException(
+                "Keskeytysajan alkamis- ja päättymispäivä ovat pakollisia tietoja",
+                KESKEYTYSAIKA_ENTITY_NAME,
+                "dataillegal.keskeytysaika-alkamis-ja-paattymispaiva-ovat-pakollisia-tietoja"
+            )
+        }
+
+        if (keskeytysaikaDTO.alkamispaiva!!.isAfter(keskeytysaikaDTO.paattymispaiva)) {
+            throw BadRequestAlertException(
+                "Keskeytysajan päättymispäivä ei saa olla ennen alkamisaikaa",
+                KESKEYTYSAIKA_ENTITY_NAME,
+                "dataillegal.keskeytysajan-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa"
+            )
+        }
+
+        if (keskeytysaikaDTO.alkamispaiva!!.isBefore(keskeytysaikaDTO.tyoskentelyjakso!!.alkamispaiva)) {
+            throw BadRequestAlertException(
+                "Keskeytysajan alkamispäivä ei voi olla ennen työskentelyjakson alkamispäivää",
+                KESKEYTYSAIKA_ENTITY_NAME,
+                "dataillegal.keskeytysajan-alkamispaiva-ei-voi-olla-ennen-tyoskentelyjakson-alkamispaivaa"
+            )
+        }
+
+        if (keskeytysaikaDTO.tyoskentelyjakso!!.paattymispaiva != null && keskeytysaikaDTO.paattymispaiva!!.isAfter(
+                keskeytysaikaDTO.tyoskentelyjakso!!.paattymispaiva
             )
         ) {
             throw BadRequestAlertException(
-                "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
-                "dataillegal.tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy"
+                "Keskeytysajan päättymispäivä ei voi olla työskentelyjakson päättymispäivän jälkeen",
+                KESKEYTYSAIKA_ENTITY_NAME,
+                "dataillegal.keskeytysajan-paattymispaiva-ei-voi-olla-tyoskentelyjakson-paattymispaivan-jalkeen"
+            )
+        }
+
+        if (keskeytysaikaDTO.tyoskentelyjakso == null) {
+            throw BadRequestAlertException(
+                "Keskeytysajan täytyy kohdistua työskentelyjaksoon",
+                KESKEYTYSAIKA_ENTITY_NAME,
+                "dataillegal.keskeytysajan-taytyy-kohdistua-tyoskentelyjaksoon"
             )
         }
     }
 
-    private fun validateKeskeytysaikaDelete(
-        userId: String,
-        keskeytysaikaId: Long
-    ) {
-        if (!overlappingTyoskentelyjaksoValidationService.validateKeskeytysaikaDelete(userId, keskeytysaikaId)) {
-            throw BadRequestAlertException(
-                "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
-                KESKEYTYSAIKA_ENTITY_NAME,
-                "dataillegal.tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy"
-            )
-        }
+    private fun throwOverlappingTyoskentelyjaksotException() {
+        throw BadRequestAlertException(
+            "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
+            TYOSKENTELYJAKSO_ENTITY_NAME,
+            "dataillegal.paallekkaisten-tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy"
+        )
     }
 }
