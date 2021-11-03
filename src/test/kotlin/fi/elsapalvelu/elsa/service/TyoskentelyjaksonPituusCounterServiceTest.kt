@@ -50,7 +50,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         val keskeytysaikaMock = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             null,
             LocalDate.ofEpochDay(15L),
-            LocalDate.ofEpochDay(22L), 0
+            LocalDate.ofEpochDay(22L), 100
         )
 
         val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
@@ -69,7 +69,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         val keskeytysaikaMock = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             null,
             LocalDate.ofEpochDay(15L),
-            LocalDate.ofEpochDay(22L), 0
+            LocalDate.ofEpochDay(22L), 100
         )
         val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
             null,
