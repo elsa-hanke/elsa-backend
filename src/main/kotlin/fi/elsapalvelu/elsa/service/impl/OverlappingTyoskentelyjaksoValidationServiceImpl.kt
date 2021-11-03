@@ -69,7 +69,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         return validateTyoskentelyaika(
             keskeytysaikaDTO.tyoskentelyjaksoId,
             keskeytysaikaDTO.tyoskentelyjakso?.alkamispaiva!!,
-            keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva!!,
+            tyoskentelyjaksoEndDate,
             tyoskentelyjaksot
         )
     }
@@ -100,7 +100,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         return validateTyoskentelyaika(
             tyoskentelyjaksoId,
             keskeytysaika.tyoskentelyjakso?.alkamispaiva!!,
-            keskeytysaika.tyoskentelyjakso?.paattymispaiva!!,
+            tyoskentelyjaksoEndDate,
             tyoskentelyjaksot
         )
     }
@@ -126,6 +126,10 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
             }
             return hyvaksiluettavatCounterData as HyvaksiluettavatCounterData
         }
+
+        // Mikäli työskentelyjakso sijoittuu tulevaisuuteen eikä sille ole määritelty päättymispäivää
+        // ei validointia tehdä.
+        if (tyoskentelyjaksoEndDate < tyoskentelyjaksoStartDate) return true
 
         dates@ for (date in tyoskentelyjaksoStartDate.datesUntil(tyoskentelyjaksoEndDate.plusDays(1))) {
             val overlappingTyoskentelyjaksotForCurrentDate =
