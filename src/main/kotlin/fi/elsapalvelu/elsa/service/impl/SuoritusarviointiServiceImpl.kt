@@ -166,6 +166,18 @@ class SuoritusarviointiServiceImpl(
             .map(suoritusarviointiMapper::toDto)
     }
 
+    override fun findForSeurantajakso(
+        userId: String,
+        alkamispaiva: LocalDate,
+        paattymispaiva: LocalDate
+    ): List<SuoritusarviointiDTO> {
+        return suoritusarviointiRepository.findForSeurantajakso(
+            userId,
+            alkamispaiva,
+            paattymispaiva
+        ).map(suoritusarviointiMapper::toDto)
+    }
+
     override fun delete(id: Long, userId: String) {
         suoritusarviointiRepository.findOneById(id).ifPresent {
             val kirjautunutErikoistuvaLaakari =

@@ -33,7 +33,7 @@ class KoulutusjaksoServiceImpl(
                 }
                     ?.let { true } ?: false
             }
-            
+
             val osaamistavoitteetErikoisalalla =
                 arvioitavaKokonaisuusService.findAllByErikoistuvaLaakariKayttajaUserId(userId)
             koulutusjaksoDTO.osaamistavoitteet.filter {
@@ -52,7 +52,9 @@ class KoulutusjaksoServiceImpl(
     override fun findAllByKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(
         userId: String
     ): List<KoulutusjaksoDTO> {
-        return koulutusjaksoRepository.findAllByKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(userId)
+        return koulutusjaksoRepository.findAllByKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(
+            userId
+        )
             .map(koulutusjaksoMapper::toDto)
     }
 
@@ -67,10 +69,18 @@ class KoulutusjaksoServiceImpl(
             }
     }
 
+    override fun findForSeurantajakso(ids: List<Long>, userId: String): List<KoulutusjaksoDTO> {
+        return koulutusjaksoRepository.findForSeurantajakso(ids, userId)
+            .map(koulutusjaksoMapper::toDto)
+    }
+
     override fun delete(
         id: Long,
         userId: String
     ) {
-        koulutusjaksoRepository.deleteByIdAndKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(id, userId)
+        koulutusjaksoRepository.deleteByIdAndKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(
+            id,
+            userId
+        )
     }
 }

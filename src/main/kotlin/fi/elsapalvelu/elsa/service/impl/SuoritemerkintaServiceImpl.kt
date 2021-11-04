@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 @Service
 @Transactional
@@ -59,6 +60,15 @@ class SuoritemerkintaServiceImpl(
         return suoritemerkintaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
             userId
         )
+            .map(suoritemerkintaMapper::toDto)
+    }
+
+    override fun findForSeurantajakso(
+        userId: String,
+        alkamispaiva: LocalDate,
+        paattymispaiva: LocalDate
+    ): List<SuoritemerkintaDTO> {
+        return suoritemerkintaRepository.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
             .map(suoritemerkintaMapper::toDto)
     }
 

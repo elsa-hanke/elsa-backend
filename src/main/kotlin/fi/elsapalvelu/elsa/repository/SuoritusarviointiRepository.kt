@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.util.*
 
 @Repository
@@ -41,6 +42,22 @@ interface SuoritusarviointiRepository :
         id: Long,
         userId: String
     ): Optional<Suoritusarviointi>
+
+    @Query(
+        """
+        select a from Suoritusarviointi a
+        join a.tyoskentelyjakso t
+        join t.erikoistuvaLaakari e
+        join e.kayttaja k
+        join k.user u
+        where a.tapahtumanAjankohta between :alkamispaiva and :paattymispaiva and u.id = :userId and a.arviointiAika is not null
+        """
+    )
+    fun findForSeurantajakso(
+        userId: String,
+        alkamispaiva: LocalDate,
+        paattymispaiva: LocalDate
+    ): List<Suoritusarviointi>
 
     @Transactional
     @Modifying

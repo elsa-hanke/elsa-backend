@@ -6,12 +6,14 @@ import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.service.TeoriakoulutusService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.KoulutusjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.TeoriakoulutusMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Service
@@ -29,31 +31,33 @@ class TeoriakoulutusServiceImpl(
         deletedAsiakirjaIds: Set<Int>?,
         userId: String
     ): TeoriakoulutusDTO? {
-        return erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { erikoistuvaLaakari ->
-            teoriakoulutusDTO.erikoistuvaLaakariId = erikoistuvaLaakari.id
-            if (teoriakoulutusDTO.id != null) {
-                teoriakoulutusRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(
-                    teoriakoulutusDTO.id!!,
-                    userId
-                )?.let {
-                    it.koulutuksenNimi = teoriakoulutusDTO.koulutuksenNimi
-                    it.koulutuksenPaikka = teoriakoulutusDTO.koulutuksenPaikka
-                    it.alkamispaiva = teoriakoulutusDTO.alkamispaiva
-                    it.paattymispaiva = teoriakoulutusDTO.paattymispaiva
-                    it.erikoistumiseenHyvaksyttavaTuntimaara = teoriakoulutusDTO.erikoistumiseenHyvaksyttavaTuntimaara
-                    mapTodistukset(it, todistukset, deletedAsiakirjaIds, erikoistuvaLaakari)
-                }
-                    ?.let {
-                        teoriakoulutusMapper.toDto(it)
+        return erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            ?.let { erikoistuvaLaakari ->
+                teoriakoulutusDTO.erikoistuvaLaakariId = erikoistuvaLaakari.id
+                if (teoriakoulutusDTO.id != null) {
+                    teoriakoulutusRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(
+                        teoriakoulutusDTO.id!!,
+                        userId
+                    )?.let {
+                        it.koulutuksenNimi = teoriakoulutusDTO.koulutuksenNimi
+                        it.koulutuksenPaikka = teoriakoulutusDTO.koulutuksenPaikka
+                        it.alkamispaiva = teoriakoulutusDTO.alkamispaiva
+                        it.paattymispaiva = teoriakoulutusDTO.paattymispaiva
+                        it.erikoistumiseenHyvaksyttavaTuntimaara =
+                            teoriakoulutusDTO.erikoistumiseenHyvaksyttavaTuntimaara
+                        mapTodistukset(it, todistukset, deletedAsiakirjaIds, erikoistuvaLaakari)
                     }
-            } else {
-                var teoriakoulutus = teoriakoulutusMapper.toEntity(teoriakoulutusDTO).let {
-                    mapTodistukset(it, todistukset, deletedAsiakirjaIds, erikoistuvaLaakari)
+                        ?.let {
+                            teoriakoulutusMapper.toDto(it)
+                        }
+                } else {
+                    var teoriakoulutus = teoriakoulutusMapper.toEntity(teoriakoulutusDTO).let {
+                        mapTodistukset(it, todistukset, deletedAsiakirjaIds, erikoistuvaLaakari)
+                    }
+                    teoriakoulutus = teoriakoulutusRepository.save(teoriakoulutus)
+                    teoriakoulutusMapper.toDto(teoriakoulutus)
                 }
-                teoriakoulutus = teoriakoulutusRepository.save(teoriakoulutus)
-                teoriakoulutusMapper.toDto(teoriakoulutus)
             }
-        }
     }
 
     @Transactional(readOnly = true)
@@ -69,9 +73,19 @@ class TeoriakoulutusServiceImpl(
         id: Long,
         userId: String
     ): TeoriakoulutusDTO? {
-        return teoriakoulutusRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)?.let {
-            teoriakoulutusMapper.toDto(it)
-        }
+        return teoriakoulutusRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)
+            ?.let {
+                teoriakoulutusMapper.toDto(it)
+            }
+    }
+
+    @Transactional(readOnly = true)
+    override fun findForSeurantajakso(userId: String,
+                                      alkamispaiva: LocalDate,
+                                      paattymispaiva: LocalDate
+    ): List<TeoriakoulutusDTO> {
+        return teoriakoulutusRepository.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
+            .map(teoriakoulutusMapper::toDto)
     }
 
     override fun delete(
