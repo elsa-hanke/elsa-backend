@@ -21,25 +21,20 @@ class ErikoistuvaLaakariHelper {
 
         @JvmStatic
         fun createEntity(em: EntityManager, user: User? = null): ErikoistuvaLaakari {
-            val erikoistuvaLaakari = ErikoistuvaLaakari(
-                puhelinnumero = DEFAULT_PUHELINNUMERO,
-                opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
-                opintosuunnitelmaKaytossaPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA
-            )
+            val erikoistuvaLaakari = ErikoistuvaLaakari()
 
-            // Lisätään pakollinen tieto
             var kayttaja = em.findAll(Kayttaja::class).firstOrNull { it.user == user }
             if (kayttaja == null) {
                 kayttaja = KayttajaHelper.createEntity(em, user)
                 em.persist(kayttaja)
                 em.flush()
             }
+
             val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
             em.persist(yliopisto)
             kayttaja.yliopisto = yliopisto
             erikoistuvaLaakari.kayttaja = kayttaja
 
-            // Lisätään pakollinen tieto
             val erikoisala: Erikoisala
             if (em.findAll(Erikoisala::class).isEmpty()) {
                 erikoisala = ErikoisalaHelper.createEntity()
@@ -48,17 +43,33 @@ class ErikoistuvaLaakariHelper {
             } else {
                 erikoisala = em.findAll(Erikoisala::class).get(0)
             }
-            erikoistuvaLaakari.erikoisala = erikoisala
+
+            em.persist(erikoistuvaLaakari)
+
+            val opiskeluoikeus: Opiskeluoikeus
+            if (em.findAll(Opiskeluoikeus::class).isEmpty()) {
+                opiskeluoikeus = Opiskeluoikeus(
+                    opintooikeudenMyontamispaiva = LocalDate.ofEpochDay(0L),
+                    opintooikeudenPaattymispaiva = LocalDate.ofEpochDay(10L),
+                    opiskelijatunnus = "123456",
+                    opintosuunnitelmaKaytossaPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA,
+                    erikoistuvaLaakari = erikoistuvaLaakari,
+                    yliopisto = yliopisto,
+                    erikoisala = erikoisala
+                )
+                em.persist(opiskeluoikeus)
+                em.flush()
+            } else {
+                opiskeluoikeus = em.findAll(Opiskeluoikeus::class).get(0)
+            }
+            erikoistuvaLaakari.opiskeluoikeudet.add(opiskeluoikeus)
 
             return erikoistuvaLaakari
         }
 
         @JvmStatic
         fun createUpdatedEntity(em: EntityManager): ErikoistuvaLaakari {
-            val erikoistuvaLaakari = ErikoistuvaLaakari(
-                puhelinnumero = UPDATED_PUHELINNUMERO,
-                opiskelijatunnus = UPDATED_OPISKELIJATUNNUS
-            )
+            val erikoistuvaLaakari = ErikoistuvaLaakari()
 
             // Lisätään pakollinen tieto
             val kayttaja: Kayttaja

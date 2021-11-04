@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211104160212-1" author="jhipster">
+
+        <createTable tableName="opiskeluoikeus">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="opintooikeuden_myontamispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opintooikeuden_paattymispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opiskelijatunnus" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opintosuunnitelma_kaytossa_pvm" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yliopisto_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <dropColumn tableName="erikoistuva_laakari">
+            <column name="puhelinnumero"/>
+            <column name="opiskelijatunnus"/>
+            <column name="opintosuunnitelma_kaytossa_pvm"/>
+            <column name="opintooikeuden_myontamispaiva"/>
+            <column name="opintooikeuden_paattymispaiva"/>
+            <column name="erikoisala_id"/>
+        </dropColumn>
+
+    </changeSet>
+</databaseChangeLog>

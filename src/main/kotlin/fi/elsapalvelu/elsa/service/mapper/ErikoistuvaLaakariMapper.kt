@@ -11,7 +11,8 @@ import org.mapstruct.ReportingPolicy
     componentModel = "spring",
     uses = [
         KayttajaMapper::class,
-        ErikoisalaMapper::class
+        ErikoisalaMapper::class,
+        OpiskeluoikeusMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
@@ -21,9 +22,8 @@ interface ErikoistuvaLaakariMapper :
     @Mappings(
         Mapping(source = "kayttaja.nimi", target = "nimi"),
         Mapping(source = "kayttaja.id", target = "kayttajaId"),
-        Mapping(source = "erikoisala.id", target = "erikoisalaId"),
-        Mapping(source = "erikoisala.nimi", target = "erikoisalaNimi"),
         Mapping(source = "kayttaja.user.email", target = "sahkoposti"),
+        Mapping(source = "kayttaja.user.phoneNumber", target = "puhelinnumero"),
         Mapping(source = "kayttaja.yliopisto.nimi", target = "yliopisto")
     )
     override fun toDto(entity: ErikoistuvaLaakari): ErikoistuvaLaakariDTO
@@ -31,7 +31,6 @@ interface ErikoistuvaLaakariMapper :
     @Mappings(
         Mapping(source = "kayttajaId", target = "kayttaja"),
         Mapping(target = "tyoskentelyjaksot", ignore = true),
-        Mapping(source = "erikoisalaId", target = "erikoisala")
     )
     override fun toEntity(dto: ErikoistuvaLaakariDTO): ErikoistuvaLaakari
 

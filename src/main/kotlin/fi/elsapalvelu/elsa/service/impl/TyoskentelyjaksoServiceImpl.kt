@@ -15,7 +15,6 @@ import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
 import org.hibernate.engine.jdbc.BlobProxy
-import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -222,7 +221,8 @@ class TyoskentelyjaksoServiceImpl(
         val tyoskentelyjaksotLiitetty =
             tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId)
         val tyoskentelyJaksoLiitetty = tyoskentelyjaksotLiitetty.any()
-        val tyoskentelyjaksonPituusRiittava = validateTyoskentelyjaksonPituusKoejaksolleRiittava(tyoskentelyjaksotLiitetty)
+        val tyoskentelyjaksonPituusRiittava =
+            validateTyoskentelyjaksonPituusKoejaksolleRiittava(tyoskentelyjaksotLiitetty)
         val tyotodistusLiitetty =
             !tyoskentelyjaksotLiitetty.any { tyoskentelyjakso -> tyoskentelyjakso.asiakirjat.isEmpty() }
 
@@ -290,7 +290,8 @@ class TyoskentelyjaksoServiceImpl(
             )
         }
 
-        val erikoisala = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.erikoisala
+        val erikoisala =
+            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.opiskeluoikeudet?.first()?.erikoisala
         val yhteensaVaadittuVahintaan = erikoisala?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
         val arvioErikoistumiseenHyvaksyttavista =
             min(yhteensaVaadittuVahintaan / 2, tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu) +

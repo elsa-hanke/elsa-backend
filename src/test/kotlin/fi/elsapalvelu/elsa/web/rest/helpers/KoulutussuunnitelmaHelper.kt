@@ -81,7 +81,7 @@ class KoulutussuunnitelmaHelper {
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager, user: User? = null): Koulutussuunnitelma {
+        fun createUpdatedEntity(em: EntityManager): Koulutussuunnitelma {
             val koulutussuunnitelma = Koulutussuunnitelma(
                 motivaatiokirje = UPDATED_MOTIVAATIOKIRJE,
                 motivaatiokirjeYksityinen = UPDATED_MOTIVAATIOKIRJE_YKSITYINEN,
@@ -107,7 +107,7 @@ class KoulutussuunnitelmaHelper {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
             koulutussuunnitelma.erikoistuvaLaakari = erikoistuvaLaakari
-            
+
             return koulutussuunnitelma
         }
     }
