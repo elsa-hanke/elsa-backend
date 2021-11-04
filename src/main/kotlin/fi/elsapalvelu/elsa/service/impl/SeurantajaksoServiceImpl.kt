@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.Seurantajakso
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
@@ -8,6 +9,7 @@ import fi.elsapalvelu.elsa.service.dto.SeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.mapper.SeurantajaksoMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import javax.persistence.EntityNotFoundException
 
 
@@ -153,7 +155,55 @@ class SeurantajaksoServiceImpl(
                     )
                 )
             )
+
+            // Poistetaan lukot jos ei päällekkäisiä seurantajaksoja
+            val seurantajaksot =
+                seurantajaksoRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
+                    .filter { it.id != seurantajakso.id }
+            val arvioinnit =
+                suoritusarviointiRepository.findForSeurantajakso(
+                    userId,
+                    seurantajakso.alkamispaiva!!,
+                    seurantajakso.paattymispaiva!!
+                )
+            arvioinnit.forEach { arviointi ->
+                if (!onkoSeurantajaksolla(seurantajaksot, arviointi.tapahtumanAjankohta!!)) {
+                    arviointi.lukittu = false
+                }
+            }
+            suoritusarviointiRepository.saveAll(arvioinnit)
+
+            val suoritemerkinnat = suoritemerkintaRepository.findForSeurantajakso(
+                userId, seurantajakso.alkamispaiva!!, seurantajakso.paattymispaiva!!
+            )
+            suoritemerkinnat.forEach { suoritemerkinta ->
+                if (!onkoSeurantajaksolla(seurantajaksot, suoritemerkinta.suorituspaiva!!)) {
+                    suoritemerkinta.lukittu = false
+                }
+            }
+            suoritemerkintaRepository.saveAll(suoritemerkinnat)
+
+            val koulutusjaksot = seurantajakso.koulutusjaksot
+            koulutusjaksot.forEach { koulutusjakso ->
+                if (seurantajaksot.none { it.koulutusjaksot.contains(koulutusjakso) }) {
+                    koulutusjakso.lukittu = true
+                }
+            }
+            koulutusjaksoRepository.saveAll(koulutusjaksot)
+
             seurantajaksoRepository.delete(seurantajakso)
         }
+    }
+
+    private fun onkoSeurantajaksolla(seurantajaksot: List<Seurantajakso>, pvm: LocalDate): Boolean {
+        seurantajaksot.forEach {
+            if (pvm.isAfter(it.alkamispaiva) && pvm.isBefore(
+                    it.paattymispaiva
+                )
+            ) {
+                return true
+            }
+        }
+        return false
     }
 }
