@@ -30,9 +30,12 @@ class OppimistavoitteenKategoriaServiceImpl(
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<OppimistavoitteenKategoriaDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        val opiskeluoikeus = kirjautunutErikoistuvaLaakari?.opiskeluoikeudet?.first()
+
         return oppimistavoitteenKategoriaRepository.findAllByErikoisalaIdAndValid(
-            kirjautunutErikoistuvaLaakari?.erikoisala?.id,
-            kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now())
+            opiskeluoikeus?.erikoisala?.id,
+            opiskeluoikeus?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
+        )
             .map(oppimistavoitteenKategoriaMapper::toDto)
     }
 

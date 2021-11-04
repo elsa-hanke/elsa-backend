@@ -2,10 +2,7 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.KayttooikeusHakemusDTO
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
@@ -26,6 +23,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.ByteArrayOutputStream
 import java.security.Principal
+import java.time.LocalDate
+import java.time.ZoneId
 
 
 @Service
@@ -34,7 +33,9 @@ class UserService(
     private val userRepository: UserRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val opiskeluoikeusRepository: OpiskeluoikeusRepository,
     private val erikoisalaRepository: ErikoisalaRepository,
+    private val yliopistoRepository: YliopistoRepository
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -89,20 +90,27 @@ class UserService(
                 yliopisto = Yliopisto(id = kayttooikeusHakemusDTO.yliopisto)
             )
         )
-        // TODO: erikoisalan valinta opinto-oikeuden mukaan
+
+        var erikoistuvaLaakari = ErikoistuvaLaakari(kayttaja = kayttaja)
+        erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+
+        // TODO: opiskeluoikeus opintotietojärjestelmstä
+        val yliopisto = yliopistoRepository.findByIdOrNull(kayttooikeusHakemusDTO.yliopisto)
         val erikoisala = erikoisalaRepository.findByIdOrNull(46)
-        erikoisala?.let {
-            erikoistuvaLaakariRepository.save(
-                ErikoistuvaLaakari(
-                    kayttaja = kayttaja,
-                    erikoisala = erikoisala,
-                )
-            )
-        } ?: erikoistuvaLaakariRepository.save(
-            ErikoistuvaLaakari(
-                kayttaja = kayttaja,
-            )
+        var opiskeluoikeus = Opiskeluoikeus(
+            opintooikeudenMyontamispaiva = LocalDate.now(ZoneId.systemDefault()),
+            opintooikeudenPaattymispaiva = LocalDate.now(ZoneId.systemDefault()),
+            opiskelijatunnus = "123456",
+            opintosuunnitelmaKaytossaPvm = LocalDate.now(ZoneId.systemDefault()),
+            erikoistuvaLaakari = erikoistuvaLaakari,
+            yliopisto = yliopisto,
+            erikoisala = erikoisala
         )
+        opiskeluoikeus = opiskeluoikeusRepository.save(opiskeluoikeus)
+
+        erikoistuvaLaakari.opiskeluoikeudet.add(opiskeluoikeus)
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+
 
         val existingAuthentication =
             SecurityContextHolder.getContext().authentication as Saml2Authentication

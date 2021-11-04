@@ -6,39 +6,31 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
+import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "erikoistuva_laakari")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class ErikoistuvaLaakari(
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
 
-    @Column(name = "puhelinnumero", nullable = false)
-    var puhelinnumero: String? = null,
-
-    @Column(name = "opiskelijatunnus")
-    var opiskelijatunnus: String? = null,
-
     @Column(name = "syntymaaika")
     var syntymaaika: LocalDate? = null,
-
-    @Column(name = "opintosuunnitelma_kaytossa_pvm")
-    var opintosuunnitelmaKaytossaPvm: LocalDate? = null,
-
-    @Column(name = "opintooikeuden_myontamispaiva")
-    var opintooikeudenMyontamispaiva: LocalDate? = null,
-
-    @Column(name = "opintooikeuden_paattymispaiva")
-    var opintooikeudenPaattymispaiva: LocalDate? = null,
 
     @NotNull
     @OneToOne(optional = false)
     @JoinColumn(unique = true)
     var kayttaja: Kayttaja? = null,
+
+    @NotEmpty
+    @OneToMany(mappedBy = "erikoistuvaLaakari")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    var opiskeluoikeudet: MutableSet<Opiskeluoikeus> = mutableSetOf(),
 
     @OneToMany(mappedBy = "valtuuttaja")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -58,12 +50,6 @@ data class ErikoistuvaLaakari(
     )
     var teoriakoulutukset: MutableSet<Teoriakoulutus>? = mutableSetOf(),
 
-    // TODO: onko pakollinen tieto?
-    // @NotNull
-    @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["erikoistuvatLaakarit"], allowSetters = true)
-    var erikoisala: Erikoisala? = null,
-
     @NotNull
     @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
     var koejaksonKoulutussopimus: KoejaksonKoulutussopimus? = null,
@@ -79,9 +65,9 @@ data class ErikoistuvaLaakari(
         allowSetters = true
     )
     @OneToOne(mappedBy = "erikoistuvaLaakari")
-    var koulutussuunnitelma: Koulutussuunnitelma? = null,
+    var koulutussuunnitelma: Koulutussuunnitelma? = null
 
-    ) : Serializable {
+) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -94,8 +80,6 @@ data class ErikoistuvaLaakari(
 
     override fun toString() = "ErikoistuvaLaakari{" +
         "id=$id" +
-        ", puhelinnumero='$puhelinnumero'" +
-        ", opiskelijatunnus='$opiskelijatunnus'" +
         "}"
 
     companion object {

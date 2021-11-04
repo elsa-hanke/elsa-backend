@@ -416,7 +416,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         assertNotNull(id)
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
-        erikoistuvaLaakari.erikoisala = suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
+        erikoistuvaLaakari.opiskeluoikeudet.first().erikoisala = suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
         restSuoritemerkintaMockMvc.perform(get("/api/erikoistuva-laakari/oppimistavoitteet-taulukko"))
@@ -443,7 +443,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         assertNotNull(id)
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
-        erikoistuvaLaakari.erikoisala = suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
+        erikoistuvaLaakari.opiskeluoikeudet.first().erikoisala = suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
         restSuoritemerkintaMockMvc.perform(get("/api/erikoistuva-laakari/suoritemerkinta-lomake"))

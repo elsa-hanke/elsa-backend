@@ -28,11 +28,13 @@ class ArvioitavaKokonaisuusServiceImpl(
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<ArvioitavaKokonaisuusDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        val opiskeluoikeus = kirjautunutErikoistuvaLaakari?.opiskeluoikeudet?.first()
+
         // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä, ei ole määritetty, käytetään nykyistä päivää
         // voimassaolon rajaamisessa
         return arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
-            kirjautunutErikoistuvaLaakari?.erikoisala?.id,
-            kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
+            opiskeluoikeus?.erikoisala?.id,
+            opiskeluoikeus?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
         )
             .map(arvioitavaKokonaisuusMapper::toDto)
     }

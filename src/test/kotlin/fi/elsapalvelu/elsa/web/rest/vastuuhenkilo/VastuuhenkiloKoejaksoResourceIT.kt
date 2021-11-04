@@ -237,7 +237,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.persist(erikoistuvaLaakari)
 
         koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
-            em.persist(koejaksonVastuuhenkilonArvio)
+        em.persist(koejaksonVastuuhenkilonArvio)
 
         koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
@@ -345,7 +345,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.persist(erikoistuvaLaakari)
 
         koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
-            em.persist(koejaksonVastuuhenkilonArvio)
+        em.persist(koejaksonVastuuhenkilonArvio)
 
         koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
         koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
@@ -457,7 +457,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.persist(erikoistuvaLaakari)
 
         koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
-            em.persist(koejaksonVastuuhenkilonArvio)
+        em.persist(koejaksonVastuuhenkilonArvio)
 
         koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
         koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
@@ -565,7 +565,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.persist(erikoistuvaLaakari)
 
         koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
-            em.persist(koejaksonVastuuhenkilonArvio)
+        em.persist(koejaksonVastuuhenkilonArvio)
 
         koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
         koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
@@ -884,7 +884,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             return KoejaksonVastuuhenkilonArvio(
                 erikoistuvaLaakari = erikoistuvaLaakari,
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskelijatunnus,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskeluoikeudet.first().opiskelijatunnus,
                 erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
                 erikoistuvanErikoisala = KoejaksonVaiheetHelper.DEFAULT_ERIKOISALA,
                 muokkauspaiva = KoejaksonVaiheetHelper.DEFAULT_MUOKKAUSPAIVA,
