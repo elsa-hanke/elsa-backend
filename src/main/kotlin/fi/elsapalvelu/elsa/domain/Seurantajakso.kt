@@ -77,13 +77,11 @@ data class Seurantajakso(
 
     @NotNull
     @ManyToOne(optional = false)
-    @JoinColumn(unique = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
     @NotNull
     @ManyToOne(optional = false)
-    @JoinColumn(unique = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var kouluttaja: Kayttaja? = null,
 
@@ -94,9 +92,9 @@ data class Seurantajakso(
         joinColumns = [JoinColumn(name = "seurantajakso_id", referencedColumnName = "id")],
         inverseJoinColumns = [JoinColumn(name = "koulutusjakso_id", referencedColumnName = "id")]
     )
-    var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf(),
+    var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf()
 
-    ) : Serializable {
+) : Serializable {
 
     override fun hashCode() = 31
 
