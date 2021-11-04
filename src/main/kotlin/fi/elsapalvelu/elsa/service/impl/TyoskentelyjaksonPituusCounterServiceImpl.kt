@@ -117,7 +117,7 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
 
         if (keskeytysaikaDaysBetween < 1) return 0.0
 
-        val keskeytysaikaProsentti = keskeytysaika.osaaikaprosentti!!.toDouble()
+        val keskeytysaikaProsentti = keskeytysaika.poissaoloprosentti!!.toDouble()
         // Keskeytysajan prosentti 0 % tarkoittaa kokopäiväpoissaoloa
         val keskeytysaikaFactor =
             if (keskeytysaikaProsentti == 0.0) 1.0

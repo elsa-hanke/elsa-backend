@@ -83,7 +83,7 @@ class TyoskentelyjaksonPituusCounterServiceTest {
     }
 
     @Test
-    fun `test calculate with osaaikaprosentti 50 and keskeytysaika of one week with osaaikaprosentti 50`() {
+    fun `test calculate with osaaikaprosentti 50 and keskeytysaika of one week with poissaoloprosentti 50`() {
         val keskeytysaikaMock = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             null,
             LocalDate.ofEpochDay(15L),
