@@ -32,6 +32,7 @@ class SeurantajaksoServiceImpl(
     ): SeurantajaksoDTO {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                ?: throw EntityNotFoundException("Vain erikoistuva lääkäri saa lisätä seurantajakson")
         var seurantajakso = seurantajaksoMapper.toEntity(seurantajaksoDTO)
         seurantajakso.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
         seurantajakso = seurantajaksoRepository.save(seurantajakso)
@@ -79,16 +80,14 @@ class SeurantajaksoServiceImpl(
             seurantajaksoRepository.findById(seurantajaksoDTO.id!!)
                 .orElseThrow { EntityNotFoundException("Seurantajaksoa ei löydy") }
 
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-
         val updatedSeurantajakso =
             seurantajaksoMapper.toEntity(seurantajaksoDTO)
 
-        if (kirjautunutErikoistuvaLaakari != null
-            && kirjautunutErikoistuvaLaakari == seurantajakso.erikoistuvaLaakari
-        ) {
-            if (seurantajakso.seurantakeskustelunYhteisetMerkinnat == null || seurantajakso.korjausehdotus != null) {
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId).let {
+            if (it == seurantajakso.erikoistuvaLaakari
+                && (seurantajakso.seurantakeskustelunYhteisetMerkinnat == null
+                    || seurantajakso.korjausehdotus != null)
+            ) {
                 seurantajakso.omaArviointi = updatedSeurantajakso.omaArviointi
                 seurantajakso.lisahuomioita = updatedSeurantajakso.lisahuomioita
                 seurantajakso.seuraavanJaksonTavoitteet =
@@ -98,15 +97,15 @@ class SeurantajaksoServiceImpl(
                 seurantajakso.seuraavanKeskustelunAjankohta =
                     updatedSeurantajakso.seuraavanKeskustelunAjankohta
                 seurantajakso.korjausehdotus = null
-            }
-            seurantajakso = seurantajaksoRepository.save(seurantajakso)
+                seurantajakso = seurantajaksoRepository.save(seurantajakso)
 
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
-                "seurantajaksonYhteisetMerkinnat.html",
-                "email.seurantajaksonyhteisetmerkinnat.title",
-                properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
-            )
+                mailService.sendEmailFromTemplate(
+                    kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
+                    "seurantajaksonYhteisetMerkinnat.html",
+                    "email.seurantajaksonyhteisetmerkinnat.title",
+                    properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
+                )
+            }
         }
 
         if (seurantajakso.kouluttaja?.user?.id == userId) {
