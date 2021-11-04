@@ -1331,7 +1331,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
             id: Long,
             alkamispaiva: LocalDate?,
             paattymispaiva: LocalDate?,
-            osaaikaProsentti: Int?,
+            poissaoloProsentti: Int?,
             poissaolonSyy: PoissaolonSyyTyyppi? = PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN,
             tyoskentelyjaksoId: Long?,
             tyoskentelyjaksonAlkamispaiva: LocalDate?,
@@ -1341,7 +1341,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 id,
                 alkamispaiva,
                 paattymispaiva,
-                osaaikaProsentti,
+                poissaoloProsentti,
                 null,
                 tyoskentelyjaksoId,
                 PoissaolonSyyDTO(

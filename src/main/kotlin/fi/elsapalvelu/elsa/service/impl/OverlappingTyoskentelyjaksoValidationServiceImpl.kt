@@ -152,7 +152,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
 
                 keskeytyksetForCurrentDate.forEach {
                     val keskeytysaikaFactor =
-                        it.osaaikaprosentti!!.toDouble() / 100.0 * (tyoskentelyjakso.osaaikaprosentti!!.toDouble() / 100.0)
+                        it.poissaoloprosentti!!.toDouble() / 100.0 * (tyoskentelyjakso.osaaikaprosentti!!.toDouble() / 100.0)
 
                     when (it.poissaolonSyy?.vahennystyyppi) {
                         PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN -> {
@@ -222,7 +222,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         }?.apply {
             alkamispaiva = keskeytysaikaDTO.alkamispaiva
             paattymispaiva = keskeytysaikaDTO.paattymispaiva
-            osaaikaprosentti = keskeytysaikaDTO.osaaikaprosentti
+            poissaoloprosentti = keskeytysaikaDTO.poissaoloprosentti
             poissaolonSyy?.vahennystyyppi = keskeytysaikaDTO.poissaolonSyy?.vahennystyyppi
         }
     }
