@@ -1,11 +1,9 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.OpiskeluoikeusRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.*
@@ -30,6 +28,7 @@ class ErikoistuvaLaakariServiceImpl(
     private val erikoisalaMapper: ErikoisalaMapper,
     private val userRepository: UserRepository,
     private val kayttajaRepository: KayttajaRepository,
+    private val opiskeluoikeusRepository: OpiskeluoikeusRepository,
     private val verificationTokenService: VerificationTokenService,
     private val mailService: MailService
 ) : ErikoistuvaLaakariService {
@@ -45,36 +44,46 @@ class ErikoistuvaLaakariServiceImpl(
     override fun save(
         kayttajahallintaErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariDTO
     ): ErikoistuvaLaakariDTO {
-        var user = User()
-        user.login = kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite
-        user.authorities.add(Authority(ERIKOISTUVA_LAAKARI))
-        user.firstName = kayttajahallintaErikoistuvaLaakariDTO.etunimi
-        user.lastName = kayttajahallintaErikoistuvaLaakariDTO.sukunimi
-        user.email = kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite
-        user.activated = true
-
+        var user = User(
+            login = kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite,
+            firstName = kayttajahallintaErikoistuvaLaakariDTO.etunimi,
+            lastName = kayttajahallintaErikoistuvaLaakariDTO.sukunimi,
+            email = kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite,
+            activated = true,
+            authorities = mutableSetOf(Authority(ERIKOISTUVA_LAAKARI))
+        )
         user = userRepository.save(user)
 
 
-        var kayttaja = Kayttaja()
-        kayttaja.user = user
-        kayttaja.yliopisto = yliopistoMapper.toEntity(
-            yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).orElse(null)
+        var kayttaja = Kayttaja(
+            user = user,
+            yliopisto = yliopistoMapper.toEntity(
+                yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).orElse(null)
+            )
         )
-
         kayttaja = kayttajaRepository.save(kayttaja)
 
-        var erikoistuvaLaakari = ErikoistuvaLaakari()
-        erikoistuvaLaakari.kayttaja = kayttaja
-        erikoistuvaLaakari.opiskelijatunnus = kayttajahallintaErikoistuvaLaakariDTO.opiskelijatunnus
-        erikoistuvaLaakari.opintosuunnitelmaKaytossaPvm =
-            kayttajahallintaErikoistuvaLaakariDTO.opintosuunnitelmaKaytossaPvm
-        erikoistuvaLaakari.opintooikeudenMyontamispaiva = kayttajahallintaErikoistuvaLaakariDTO.opiskeluoikeusAlkaa
-        erikoistuvaLaakari.opintooikeudenPaattymispaiva = kayttajahallintaErikoistuvaLaakariDTO.opiskeluoikeusPaattyy
-        erikoistuvaLaakari.erikoisala = erikoisalaMapper.toEntity(
-            erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!).orElse(null)
+        var erikoistuvaLaakari = ErikoistuvaLaakari(
+            kayttaja = kayttaja,
         )
+        erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
+        var opiskeluoikeus = Opiskeluoikeus(
+            opintooikeudenMyontamispaiva = kayttajahallintaErikoistuvaLaakariDTO.opiskeluoikeusAlkaa,
+            opintooikeudenPaattymispaiva = kayttajahallintaErikoistuvaLaakariDTO.opiskeluoikeusPaattyy,
+            opintosuunnitelmaKaytossaPvm = kayttajahallintaErikoistuvaLaakariDTO.opintosuunnitelmaKaytossaPvm,
+            opiskelijatunnus = kayttajahallintaErikoistuvaLaakariDTO.opiskelijatunnus,
+            erikoistuvaLaakari = erikoistuvaLaakari,
+            yliopisto = yliopistoMapper.toEntity(
+                yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).orElse(null)
+            ),
+            erikoisala = erikoisalaMapper.toEntity(
+                erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!).orElse(null)
+            )
+        )
+        opiskeluoikeus = opiskeluoikeusRepository.save(opiskeluoikeus)
+
+        erikoistuvaLaakari.opiskeluoikeudet.add(opiskeluoikeus)
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
         val token = verificationTokenService.save(user.id!!)

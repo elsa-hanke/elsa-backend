@@ -42,8 +42,8 @@
     <include file="config/liquibase/changelog/20210421111507_added_entity_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111903_added_entity_KoejaksonLoppukeskustelu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421112408_added_entity_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210510161855_modify_user_information.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210503131107_added_entity_Asiakirja.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210510161855_modify_user_information.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210525173141_added_user_identification.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210528103633_added_entity_AsiakirjaData.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210528103748_modify_entity_Asiakirja.xml" relativeToChangelogFile="false"/>
@@ -52,7 +52,36 @@
     <include file="config/liquibase/changelog/20210623152123_added_entity_verification_token.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210630161925_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210811145903_modify_entity_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210819100902_modify_entity_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210825143711_modify_entity_KoejaksonLoppukeskustelu.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210826103405_modify_koejakso_texttypes.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210830122345_modify_entity_VastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210830130114_modify_loppukeskustelu_texttypes.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210902143914_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210906111554_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210906140915_modify_entity_User.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210908122024_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210908130930_modify_entity_Kayttaja.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210914135619_added_entity_arviointiasteikko.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210929104412_added_entity_Koulutussuunnitelma.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211006112732_added_entity_Koulutusjakso.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211006143551_modify_entity_User.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211006161952_remove_entity_ArvioitavaOsaalue.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211007105355_remove_entity_OsaalueenArviointi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211008132011_create_hibernate_sequence.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211008133544_added_audit_log_entities.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211012152034_removed_jhi_audit_event_entities.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211013153219_modify_entity_Yliopisto.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211019075629_added_entity_Teoriakoulutus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211020103851_modify_entity_Erikoisala.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211021171413_added_entity_Seurantajakso.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211022123451_modify_entity_Asiakirja.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211027103228_added_tekninen_paakayttaja_to_entity_Authority.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211101164954_added_kayttaja_yliopisto_and_erikoisala_relations.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211102152030_modify_entity_Keskeytysaika.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211104160212_modify_entity_Erikoistuva_Laakari.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211108093341_update_arviointityokalut_data.xml" relativeToChangelogFile="false"/>
+
     <include file="config/liquibase/changelog/20201020075037_added_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075137_added_entity_constraints_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20201020075637_added_entity_constraints_Tyoskentelyjakso.xml" relativeToChangelogFile="false"/>
@@ -70,39 +99,11 @@
     <include file="config/liquibase/changelog/20210210152137_added_entity_constraints_Arviointityokalu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210310162139_added_entity_constraints_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210331163926_added_entity_constraints_KoejaksonAloituskeskustelu.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210503131107_added_entity_constraints_Asiakirja.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210819100902_modify_entity_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210825143711_modify_entity_KoejaksonLoppukeskustelu.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210826103405_modify_koejakso_texttypes.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210830130114_modify_loppukeskustelu_texttypes.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210902143914_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210906111554_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210906140915_modify_entity_User.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210908122024_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210908130930_modify_entity_Kayttaja.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210914135619_added_entity_arviointiasteikko.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20210929104412_added_entity_Koulutussuunnitelma.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211006161952_remove_entity_ArvioitavaOsaalue.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211007105355_remove_entity_OsaalueenArviointi.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211006112732_added_entity_Koulutusjakso.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211008132011_create_hibernate_sequence.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211008133544_added_audit_log_entities.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211012152034_removed_jhi_audit_event_entities.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211006143551_modify_entity_User.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211013153219_modify_entity_Yliopisto.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211019075629_added_entity_Teoriakoulutus.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211020103851_modify_entity_Erikoisala.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211022123451_modify_entity_Asiakirja.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211027103228_added_tekninen_paakayttaja_to_entity_Authority.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211102152030_modify_entity_Keskeytysaika.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211021171413_added_entity_Seurantajakso.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211101164954_added_kayttaja_yliopisto_and_erikoisala_relations.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211108093341_update_arviointityokalut_data.xml" relativeToChangelogFile="false"/>
-
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111903_added_entity_constraints_KoejaksonLoppukeskustelu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421112408_added_entity_constraints_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20210503131107_added_entity_constraints_Asiakirja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210527120142_modify_koejakso_null_constraints.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210528103748_modify_entity_constaints_Asiakirja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210602150426_modify_koulutussopimuksen_kouluttaja_null_constraints.xml" relativeToChangelogFile="false"/>
@@ -113,8 +114,9 @@
     <include file="config/liquibase/changelog/20211006112732_added_entity_constraints_Koulutusjakso.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211008133544_added_audit_log_constraints.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211019075629_added_entity_constraints_Teoriakoulutus.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20211022123451_modify_entity_constraints_Asiakirja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211021171413_added_entity_constraints_Seurantajakso.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211022123451_modify_entity_constraints_Asiakirja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211101164954_added_constraints_kayttaja_relations.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211104160212_modify_entity_constraints_Erikoistuva_Laakari.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

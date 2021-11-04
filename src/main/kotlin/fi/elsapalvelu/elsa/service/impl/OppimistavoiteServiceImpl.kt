@@ -30,11 +30,13 @@ class OppimistavoiteServiceImpl(
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<OppimistavoiteDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        val opiskeluoikeus = kirjautunutErikoistuvaLaakari?.opiskeluoikeudet?.first()
 
         // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää
         // voimassaolon rajaamisessa
         return oppimistavoiteRepository.findAllByValid(
-            kirjautunutErikoistuvaLaakari?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now())
+            opiskeluoikeus?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
+        )
             .map(oppimistavoiteMapper::toDto)
     }
 
