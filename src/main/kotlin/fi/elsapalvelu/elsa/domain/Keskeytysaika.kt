@@ -34,8 +34,8 @@ data class Keskeytysaika(
     @get: NotNull
     @get: Min(value = 0)
     @get: Max(value = 100)
-    @Column(name = "osaaikaprosentti", nullable = false)
-    var osaaikaprosentti: Int? = null,
+    @Column(name = "poissaoloprosentti", nullable = false)
+    var poissaoloprosentti: Int? = null,
 
     @NotNull
     @ManyToOne(optional = false)
@@ -64,7 +64,7 @@ data class Keskeytysaika(
         "id=$id" +
         ", alkamispaiva='$alkamispaiva'" +
         ", paattymispaiva='$paattymispaiva'" +
-        ", osaaikaprosentti=$osaaikaprosentti" +
+        ", poissaoloprosentti=$poissaoloprosentti" +
         "}"
 
     companion object {

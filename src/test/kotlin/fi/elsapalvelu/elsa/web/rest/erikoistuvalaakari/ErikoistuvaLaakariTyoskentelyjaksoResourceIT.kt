@@ -681,7 +681,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         val testKeskeytysaika = keskeytysaikaList[keskeytysaikaList.size - 1]
         assertThat(testKeskeytysaika.alkamispaiva).isEqualTo(KeskeytysaikaHelper.DEFAULT_ALKAMISPAIVA)
         assertThat(testKeskeytysaika.paattymispaiva).isEqualTo(KeskeytysaikaHelper.DEFAULT_PAATTYMISPAIVA)
-        assertThat(testKeskeytysaika.osaaikaprosentti).isEqualTo(KeskeytysaikaHelper.DEFAULT_OSAAIKAPROSENTTI)
+        assertThat(testKeskeytysaika.poissaoloprosentti).isEqualTo(KeskeytysaikaHelper.DEFAULT_POISSAOLOPROSENTTI)
     }
 
     @Test
@@ -816,7 +816,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.id").value(keskeytysaika.id as Any))
             .andExpect(jsonPath("$.alkamispaiva").value(KeskeytysaikaHelper.DEFAULT_ALKAMISPAIVA.toString()))
             .andExpect(jsonPath("$.paattymispaiva").value(KeskeytysaikaHelper.DEFAULT_PAATTYMISPAIVA.toString()))
-            .andExpect(jsonPath("$.osaaikaprosentti").value(KeskeytysaikaHelper.DEFAULT_OSAAIKAPROSENTTI))
+            .andExpect(jsonPath("$.poissaoloprosentti").value(KeskeytysaikaHelper.DEFAULT_POISSAOLOPROSENTTI))
     }
 
     @Test
@@ -863,7 +863,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         em.detach(updatedKeskeytysaika)
         updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
         updatedKeskeytysaika.paattymispaiva = KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA
-        updatedKeskeytysaika.osaaikaprosentti = KeskeytysaikaHelper.UPDATED_OSAAIKAPROSENTTI
+        updatedKeskeytysaika.poissaoloprosentti = KeskeytysaikaHelper.UPDATED_POISSAOLOPROSENTTI
         val keskeytysaikaDTO = keskeytysaikaMapper.toDto(updatedKeskeytysaika)
 
         restKeskeytysaikaMockMvc.perform(
@@ -878,7 +878,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         val testKeskeytysaika = keskeytysaikaList[keskeytysaikaList.size - 1]
         assertThat(testKeskeytysaika.alkamispaiva).isEqualTo(KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA)
         assertThat(testKeskeytysaika.paattymispaiva).isEqualTo(KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA)
-        assertThat(testKeskeytysaika.osaaikaprosentti).isEqualTo(KeskeytysaikaHelper.UPDATED_OSAAIKAPROSENTTI)
+        assertThat(testKeskeytysaika.poissaoloprosentti).isEqualTo(KeskeytysaikaHelper.UPDATED_POISSAOLOPROSENTTI)
     }
 
     @Test
@@ -903,7 +903,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         em.detach(updatedKeskeytysaika)
         updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
         updatedKeskeytysaika.paattymispaiva = KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA
-        updatedKeskeytysaika.osaaikaprosentti = KeskeytysaikaHelper.UPDATED_OSAAIKAPROSENTTI
+        updatedKeskeytysaika.poissaoloprosentti = KeskeytysaikaHelper.UPDATED_POISSAOLOPROSENTTI
         val keskeytysaikaDTO = keskeytysaikaMapper.toDto(updatedKeskeytysaika)
 
         restKeskeytysaikaMockMvc.perform(
@@ -937,7 +937,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         updatedKeskeytysaika.id = null
         updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
         updatedKeskeytysaika.paattymispaiva = KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA
-        updatedKeskeytysaika.osaaikaprosentti = KeskeytysaikaHelper.UPDATED_OSAAIKAPROSENTTI
+        updatedKeskeytysaika.poissaoloprosentti = KeskeytysaikaHelper.UPDATED_POISSAOLOPROSENTTI
         val keskeytysaikaDTO = keskeytysaikaMapper.toDto(updatedKeskeytysaika)
 
         restKeskeytysaikaMockMvc.perform(

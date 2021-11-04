@@ -31,7 +31,7 @@ class OverlappingKeskeytysaikaValidationServiceImpl(
                     date.isInRange(keskeytysaika.alkamispaiva!!, keskeytysaika.paattymispaiva)
                 }
                 val overallKeskeytysaikaFactorForCurrentDate = keskeytyksetForCurrentDate.sumOf { k ->
-                    k.osaaikaprosentti!!.toDouble() / 100.0
+                    k.poissaoloprosentti!!.toDouble() / 100.0
                 }
                 if (overallKeskeytysaikaFactorForCurrentDate > 1) {
                     return false

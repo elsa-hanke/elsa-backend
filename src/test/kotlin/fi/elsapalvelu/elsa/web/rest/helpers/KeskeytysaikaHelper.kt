@@ -17,15 +17,15 @@ class KeskeytysaikaHelper {
         val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 1, 10)
         val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 1, 25)
 
-        const val DEFAULT_OSAAIKAPROSENTTI: Int = 50
-        const val UPDATED_OSAAIKAPROSENTTI: Int = 60
+        const val DEFAULT_POISSAOLOPROSENTTI: Int = 50
+        const val UPDATED_POISSAOLOPROSENTTI: Int = 60
 
         @JvmStatic
         fun createEntity(em: EntityManager, tyoskentelyjakso: Tyoskentelyjakso): Keskeytysaika {
             val keskeytysaika = Keskeytysaika(
                 alkamispaiva = DEFAULT_ALKAMISPAIVA,
                 paattymispaiva = DEFAULT_PAATTYMISPAIVA,
-                osaaikaprosentti = DEFAULT_OSAAIKAPROSENTTI
+                poissaoloprosentti = DEFAULT_POISSAOLOPROSENTTI
             )
 
             // Lisätään pakollinen tieto
@@ -49,7 +49,7 @@ class KeskeytysaikaHelper {
             val keskeytysaika = Keskeytysaika(
                 alkamispaiva = UPDATED_ALKAMISPAIVA,
                 paattymispaiva = UPDATED_PAATTYMISPAIVA,
-                osaaikaprosentti = UPDATED_OSAAIKAPROSENTTI
+                poissaoloprosentti = UPDATED_POISSAOLOPROSENTTI
             )
 
             // Lisätään pakollinen tieto

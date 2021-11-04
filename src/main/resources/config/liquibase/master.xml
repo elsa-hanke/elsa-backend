@@ -94,6 +94,7 @@
     <include file="config/liquibase/changelog/20211020103851_modify_entity_Erikoisala.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211022123451_modify_entity_Asiakirja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211027103228_added_tekninen_paakayttaja_to_entity_Authority.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211102152030_modify_entity_Keskeytysaika.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>

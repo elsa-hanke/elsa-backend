@@ -19,7 +19,7 @@ data class KeskeytysaikaDTO(
     @get: NotNull
     @get: Min(value = 0)
     @get: Max(value = 100)
-    var osaaikaprosentti: Int? = null,
+    var poissaoloprosentti: Int? = null,
 
     var poissaolonSyyId: Long? = null,
 
