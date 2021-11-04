@@ -94,7 +94,7 @@ data class Seurantajakso(
         joinColumns = [JoinColumn(name = "seurantajakso_id", referencedColumnName = "id")],
         inverseJoinColumns = [JoinColumn(name = "koulutusjakso_id", referencedColumnName = "id")]
     )
-    var koulutusjaksot: MutableSet<Koulutusjakso> = mutableSetOf(),
+    var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf(),
 
     ) : Serializable {
 

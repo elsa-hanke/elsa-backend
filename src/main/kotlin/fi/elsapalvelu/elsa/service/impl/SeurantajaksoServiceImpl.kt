@@ -56,8 +56,10 @@ class SeurantajaksoServiceImpl(
         suoritemerkintaRepository.saveAll(suoritemerkinnat)
 
         val koulutusjaksot = seurantajakso.koulutusjaksot
-        koulutusjaksot.forEach { it.lukittu = true }
-        koulutusjaksoRepository.saveAll(koulutusjaksot)
+        if (koulutusjaksot != null && koulutusjaksot.size > 0) {
+            koulutusjaksot.forEach { it.lukittu = true }
+            koulutusjaksoRepository.saveAll(koulutusjaksot)
+        }
 
         mailService.sendEmailFromTemplate(
             kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
@@ -184,12 +186,14 @@ class SeurantajaksoServiceImpl(
             suoritemerkintaRepository.saveAll(suoritemerkinnat)
 
             val koulutusjaksot = seurantajakso.koulutusjaksot
-            koulutusjaksot.forEach { koulutusjakso ->
-                if (seurantajaksot.none { it.koulutusjaksot.contains(koulutusjakso) }) {
-                    koulutusjakso.lukittu = true
+            if (koulutusjaksot != null && koulutusjaksot.size > 0) {
+                koulutusjaksot.forEach { koulutusjakso ->
+                    if (seurantajaksot.none { it.koulutusjaksot?.contains(koulutusjakso) == true }) {
+                        koulutusjakso.lukittu = false
+                    }
                 }
+                koulutusjaksoRepository.saveAll(koulutusjaksot)
             }
-            koulutusjaksoRepository.saveAll(koulutusjaksot)
 
             seurantajaksoRepository.delete(seurantajakso)
         }
