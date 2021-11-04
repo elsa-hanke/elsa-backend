@@ -21,11 +21,7 @@ class ErikoistuvaLaakariHelper {
 
         @JvmStatic
         fun createEntity(em: EntityManager, user: User? = null): ErikoistuvaLaakari {
-            val erikoistuvaLaakari = ErikoistuvaLaakari(
-                puhelinnumero = DEFAULT_PUHELINNUMERO,
-                opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
-                opintosuunnitelmaKaytossaPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA
-            )
+            val erikoistuvaLaakari = ErikoistuvaLaakari()
 
             // Lisätään pakollinen tieto
             var kayttaja = em.findAll(Kayttaja::class).firstOrNull { it.user == user }
@@ -48,17 +44,14 @@ class ErikoistuvaLaakariHelper {
             } else {
                 erikoisala = em.findAll(Erikoisala::class).get(0)
             }
-            erikoistuvaLaakari.erikoisala = erikoisala
+            erikoistuvaLaakari.opiskeluoikeudet.first().erikoisala = erikoisala
 
             return erikoistuvaLaakari
         }
 
         @JvmStatic
         fun createUpdatedEntity(em: EntityManager): ErikoistuvaLaakari {
-            val erikoistuvaLaakari = ErikoistuvaLaakari(
-                puhelinnumero = UPDATED_PUHELINNUMERO,
-                opiskelijatunnus = UPDATED_OPISKELIJATUNNUS
-            )
+            val erikoistuvaLaakari = ErikoistuvaLaakari()
 
             // Lisätään pakollinen tieto
             val kayttaja: Kayttaja

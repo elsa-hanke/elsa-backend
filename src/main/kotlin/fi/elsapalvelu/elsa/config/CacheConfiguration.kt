@@ -94,6 +94,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Koulutussuunnitelma::class.java.name + ".koulutusjaksot")
             createCache(cm, fi.elsapalvelu.elsa.domain.Koulutussuunnitelma::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Kunta::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Opiskeluoikeus::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Oppimistavoite::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria::class.java.name + ".oppimistavoitteet")
             createCache(cm, fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria::class.java.name)

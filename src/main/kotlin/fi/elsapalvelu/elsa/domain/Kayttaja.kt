@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull
 @Table(name = "kayttaja")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Kayttaja(
+    
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")

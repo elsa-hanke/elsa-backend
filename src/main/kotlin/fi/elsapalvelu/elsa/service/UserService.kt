@@ -2,10 +2,7 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.KayttooikeusHakemusDTO
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
@@ -15,7 +12,6 @@ import net.coobird.thumbnailator.tasks.UnsupportedFormatException
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.AuthenticatedPrincipal
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -34,6 +30,7 @@ class UserService(
     private val userRepository: UserRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val opiskeluoikeusRepository: OpiskeluoikeusRepository,
     private val erikoisalaRepository: ErikoisalaRepository,
 ) {
 
@@ -90,15 +87,7 @@ class UserService(
             )
         )
         // TODO: erikoisalan valinta opinto-oikeuden mukaan
-        val erikoisala = erikoisalaRepository.findByIdOrNull(46)
-        erikoisala?.let {
-            erikoistuvaLaakariRepository.save(
-                ErikoistuvaLaakari(
-                    kayttaja = kayttaja,
-                    erikoisala = erikoisala,
-                )
-            )
-        } ?: erikoistuvaLaakariRepository.save(
+        erikoistuvaLaakariRepository.save(
             ErikoistuvaLaakari(
                 kayttaja = kayttaja,
             )

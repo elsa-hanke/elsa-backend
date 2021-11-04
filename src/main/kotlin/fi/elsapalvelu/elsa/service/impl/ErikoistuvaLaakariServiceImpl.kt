@@ -1,11 +1,9 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.OpiskeluoikeusRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.*
@@ -30,6 +28,7 @@ class ErikoistuvaLaakariServiceImpl(
     private val erikoisalaMapper: ErikoisalaMapper,
     private val userRepository: UserRepository,
     private val kayttajaRepository: KayttajaRepository,
+    private val opiskeluoikeusRepository: OpiskeluoikeusRepository,
     private val verificationTokenService: VerificationTokenService,
     private val mailService: MailService
 ) : ErikoistuvaLaakariService {
@@ -52,7 +51,6 @@ class ErikoistuvaLaakariServiceImpl(
         user.lastName = kayttajahallintaErikoistuvaLaakariDTO.sukunimi
         user.email = kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite
         user.activated = true
-
         user = userRepository.save(user)
 
 
@@ -61,20 +59,21 @@ class ErikoistuvaLaakariServiceImpl(
         kayttaja.yliopisto = yliopistoMapper.toEntity(
             yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).orElse(null)
         )
-
         kayttaja = kayttajaRepository.save(kayttaja)
+
+        var opiskeluoikeus = Opiskeluoikeus()
+        opiskeluoikeus.opintooikeudenMyontamispaiva = kayttajahallintaErikoistuvaLaakariDTO.opiskeluoikeusAlkaa
+        opiskeluoikeus.opintooikeudenPaattymispaiva = kayttajahallintaErikoistuvaLaakariDTO.opiskeluoikeusPaattyy
+        opiskeluoikeus.opintosuunnitelmaKaytossaPvm = kayttajahallintaErikoistuvaLaakariDTO.opintosuunnitelmaKaytossaPvm
+        opiskeluoikeus.opiskelijatunnus = kayttajahallintaErikoistuvaLaakariDTO.opiskelijatunnus
+        opiskeluoikeus.erikoisala = erikoisalaMapper.toEntity(
+            erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!).orElse(null)
+        )
+        opiskeluoikeus = opiskeluoikeusRepository.save(opiskeluoikeus)
 
         var erikoistuvaLaakari = ErikoistuvaLaakari()
         erikoistuvaLaakari.kayttaja = kayttaja
-        erikoistuvaLaakari.opiskelijatunnus = kayttajahallintaErikoistuvaLaakariDTO.opiskelijatunnus
-        erikoistuvaLaakari.opintosuunnitelmaKaytossaPvm =
-            kayttajahallintaErikoistuvaLaakariDTO.opintosuunnitelmaKaytossaPvm
-        erikoistuvaLaakari.opintooikeudenMyontamispaiva = kayttajahallintaErikoistuvaLaakariDTO.opiskeluoikeusAlkaa
-        erikoistuvaLaakari.opintooikeudenPaattymispaiva = kayttajahallintaErikoistuvaLaakariDTO.opiskeluoikeusPaattyy
-        erikoistuvaLaakari.erikoisala = erikoisalaMapper.toEntity(
-            erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!).orElse(null)
-        )
-
+        erikoistuvaLaakari.opiskeluoikeudet.add(opiskeluoikeus)
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
         val token = verificationTokenService.save(user.id!!)

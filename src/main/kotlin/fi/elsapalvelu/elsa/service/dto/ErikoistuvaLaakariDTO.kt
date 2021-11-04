@@ -11,26 +11,11 @@ data class ErikoistuvaLaakariDTO(
     var nimi: String? = null,
 
     @get: NotNull
-    var puhelinnumero: String? = null,
-
-    @get: NotNull
     var sahkoposti: String? = null,
-
-    var opiskelijatunnus: String? = null,
 
     var syntymaaika: LocalDate? = null,
 
-    var opintosuunnitelmaKaytossaPvm: LocalDate? = null,
-
-    var opintooikeudenMyontamispaiva: LocalDate? = null,
-
-    var opintooikeudenPaattymispaiva: LocalDate? = null,
-
     var kayttajaId: Long? = null,
-
-    var erikoisalaId: Long? = null,
-
-    var erikoisalaNimi: String? = null,
 
     var yliopisto: String? = null
 
@@ -43,4 +28,5 @@ data class ErikoistuvaLaakariDTO(
     }
 
     override fun hashCode() = 31
+
 }

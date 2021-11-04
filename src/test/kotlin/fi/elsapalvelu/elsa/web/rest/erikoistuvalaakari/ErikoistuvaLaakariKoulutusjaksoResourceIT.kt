@@ -486,7 +486,7 @@ class ErikoistuvaLaakariKoulutusjaksoResourceIT {
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager, user: User? = null): Koulutusjakso {
+        fun createUpdatedEntity(em: EntityManager): Koulutusjakso {
             val koulutusjakso = Koulutusjakso(
                 nimi = UPDATED_NIMI,
                 muutOsaamistavoitteet = UPDATED_MUUT_OSAAMISTAVOITTEET,
@@ -497,7 +497,7 @@ class ErikoistuvaLaakariKoulutusjaksoResourceIT {
             // Lisätään pakollinen tieto
             val koulutussuunnitelma: Koulutussuunnitelma
             if (em.findAll(Koulutussuunnitelma::class).isEmpty()) {
-                koulutussuunnitelma = KoulutussuunnitelmaHelper.createUpdatedEntity(em, user)
+                koulutussuunnitelma = KoulutussuunnitelmaHelper.createUpdatedEntity(em)
                 em.persist(koulutussuunnitelma)
                 em.flush()
             } else {
