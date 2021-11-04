@@ -1,12 +1,19 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
+import java.time.LocalDate
 
 interface SuoritemerkintaService {
 
     fun save(suoritemerkintaDTO: SuoritemerkintaDTO, userId: String): SuoritemerkintaDTO?
 
     fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId: String): List<SuoritemerkintaDTO>
+
+    fun findForSeurantajakso(
+        userId: String,
+        alkamispaiva: LocalDate,
+        paattymispaiva: LocalDate
+    ): List<SuoritemerkintaDTO>
 
     fun findOne(id: Long, userId: String): SuoritemerkintaDTO?
 

@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
+import java.time.LocalDate
 
 interface TeoriakoulutusService {
 
@@ -20,6 +21,12 @@ interface TeoriakoulutusService {
         id: Long,
         userId: String
     ): TeoriakoulutusDTO?
+
+    fun findForSeurantajakso(
+        userId: String,
+        alkamispaiva: LocalDate,
+        paattymispaiva: LocalDate
+    ): List<TeoriakoulutusDTO>
 
     fun delete(
         id: Long,

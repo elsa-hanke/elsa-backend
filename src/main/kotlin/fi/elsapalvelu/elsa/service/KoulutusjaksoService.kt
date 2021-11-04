@@ -10,5 +10,7 @@ interface KoulutusjaksoService {
 
     fun findOne(id: Long, userId: String): KoulutusjaksoDTO?
 
+    fun findForSeurantajakso(ids: List<Long>, userId: String): List<KoulutusjaksoDTO>
+
     fun delete(id: Long, userId: String)
 }
