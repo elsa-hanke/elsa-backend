@@ -17,12 +17,14 @@ interface TeoriakoulutusRepository : JpaRepository<Teoriakoulutus, Long> {
     fun deleteByIdAndErikoistuvaLaakariKayttajaUserId(id: Long, userId: String)
 
     @Query(
-        "select tk " +
-            "from Teoriakoulutus tk " +
-            "join tk.erikoistuvaLaakari e " +
-            "join e.kayttaja k " +
-            "join k.user u " +
-            "where tk.alkamispaiva between :alkamispaiva and :paattymispaiva and u.id = :userId"
+        """
+        select tk
+        from Teoriakoulutus tk
+        join tk.erikoistuvaLaakari e
+        join e.kayttaja k
+        join k.user u
+        where tk.alkamispaiva between :alkamispaiva and :paattymispaiva and u.id = :userId
+        """
     )
     fun findForSeurantajakso(
         userId: String,

@@ -13,12 +13,14 @@ interface SuoritemerkintaRepository : JpaRepository<Suoritemerkinta, Long> {
     fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id: String): List<Suoritemerkinta>
 
     @Query(
-        "select m from Suoritemerkinta m " +
-            "join m.tyoskentelyjakso t " +
-            "join t.erikoistuvaLaakari e " +
-            "join e.kayttaja k " +
-            "join k.user u " +
-            "where m.suorituspaiva between :alkamispaiva and :paattymispaiva and u.id = :userId"
+        """
+        select m from Suoritemerkinta m
+        join m.tyoskentelyjakso t
+        join t.erikoistuvaLaakari e
+        join e.kayttaja k
+        join k.user u
+        where m.suorituspaiva between :alkamispaiva and :paattymispaiva and u.id = :userId
+        """
     )
     fun findForSeurantajakso(
         userId: String,

@@ -47,13 +47,15 @@ interface KoulutusjaksoRepository : JpaRepository<Koulutusjakso, Long> {
     fun deleteByIdAndKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(id: Long, userId: String)
 
     @Query(
-        "select kj " +
-            "from Koulutusjakso kj " +
-            "join kj.koulutussuunnitelma s " +
-            "join s.erikoistuvaLaakari e " +
-            "join e.kayttaja k " +
-            "join k.user u " +
-            "where kj.id in :ids and u.id = :userId"
+        """
+        select kj
+        from Koulutusjakso kj
+        join kj.koulutussuunnitelma s
+        join s.erikoistuvaLaakari e
+        join e.kayttaja k
+        join k.user u
+        where kj.id in :ids and u.id = :userId
+        """
     )
     fun findForSeurantajakso(ids: List<Long>, userId: String): List<Koulutusjakso>
 }
