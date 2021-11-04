@@ -75,7 +75,6 @@ class SeurantajaksoServiceImpl(
         seurantajaksoDTO: SeurantajaksoDTO,
         userId: String
     ): SeurantajaksoDTO {
-
         var seurantajakso =
             seurantajaksoRepository.findById(seurantajaksoDTO.id!!)
                 .orElseThrow { EntityNotFoundException("Seurantajaksoa ei löydy") }
