@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211021171413-1" author="jhipster">
+        <createTable tableName="seurantajakso">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="alkamispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="paattymispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="oma_arviointi" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lisahuomioita" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="seuraavan_jakson_tavoitteet" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="edistyminen_tavoitteiden_mukaista" type="boolean">
+                <constraints nullable="true"/>
+            </column>
+            <column name="huolenaiheet" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="kouluttajan_arvio" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoisalan_tyoskentelyvalmiudet" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="jatkotoimet_ja_raportointi" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="hyvaksytty" type="boolean">
+                <constraints nullable="true"/>
+            </column>
+            <column name="seurantakeskustelun_yhteiset_merkinnat" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="seuraavan_keskustelun_ajankohta" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="luotu" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="tallennettu" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kouluttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="korjausehdotus" type="text">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="seurantajakso_koulutusjakso">
+            <column name="seurantajakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koulutusjakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="seurantajakso_id, koulutusjakso_id"
+            tableName="seurantajakso_koulutusjakso"/>
+
+        <createTable tableName="seurantajakso_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="alkamispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="paattymispaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="oma_arviointi" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lisahuomioita" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="seuraavan_jakson_tavoitteet" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="edistyminen_tavoitteiden_mukaista" type="boolean">
+                <constraints nullable="true"/>
+            </column>
+            <column name="huolenaiheet" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="kouluttajan_arvio" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoisalan_tyoskentelyvalmiudet" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="jatkotoimet_ja_raportointi" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="hyvaksytty" type="boolean">
+                <constraints nullable="true"/>
+            </column>
+            <column name="seurantakeskustelun_yhteiset_merkinnat" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="seuraavan_keskustelun_ajankohta" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="luotu" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="tallennettu" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kouluttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="korjausehdotus" type="text">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="seurantajakso_koulutusjakso_audit">
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="seurantajakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="koulutusjakso_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

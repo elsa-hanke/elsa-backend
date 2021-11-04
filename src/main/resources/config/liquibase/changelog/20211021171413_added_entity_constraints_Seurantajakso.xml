@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211021171413-2" author="jhipster">
+        <addForeignKeyConstraint baseColumnNames="erikoistuva_laakari_id"
+            baseTableName="seurantajakso"
+            constraintName="fk_seurantajakso_erikoistuva_laakari_id"
+            referencedColumnNames="id"
+            referencedTableName="erikoistuva_laakari"/>
+
+        <addForeignKeyConstraint baseColumnNames="kouluttaja_id"
+            baseTableName="seurantajakso"
+            constraintName="fk_seurantajakso_kouluttaja_id"
+            referencedColumnNames="id"
+            referencedTableName="kayttaja"/>
+    </changeSet>
+
+</databaseChangeLog>
