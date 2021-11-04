@@ -10,13 +10,8 @@
     Hei,
 </p>
 <p>
-    Olet saanut ELSA-palveluun uuden seurantajakson arvioitavaksi.
-
-    Pääset arvioimaan uuden seurantajakson alla olevan linkin kautta:
-</p>
-<p>
-    <a th:href="${url}" th:text="${url}"
-       th:with="url=(@{|${baseUrl}/seurantakeskustelut/seurantajakso/${id}|})"></a>
+    Erikoistuja <span th:text="${name}"></span> on poistanut sinulle aiemmin lähettämänsä
+    seurantajakson eikä se ole enää tarkasteltavissa ELSA-palvelussa.
 </p>
 <p>
     HUOM! Tähän sähköpostiviestiin ei voi vastata.

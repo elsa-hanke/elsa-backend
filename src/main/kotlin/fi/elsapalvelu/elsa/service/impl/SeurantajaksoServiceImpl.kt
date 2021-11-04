@@ -20,6 +20,7 @@ class SeurantajaksoServiceImpl(
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
     private val suoritemerkintaRepository: SuoritemerkintaRepository,
     private val kayttajaRepository: KayttajaRepository,
+    private val koulutusjaksoRepository: KoulutusjaksoRepository,
     private val mailService: MailService
 ) : SeurantajaksoService {
 
@@ -51,6 +52,10 @@ class SeurantajaksoServiceImpl(
             )
         suoritemerkinnat.forEach { it.lukittu = true }
         suoritemerkintaRepository.saveAll(suoritemerkinnat)
+
+        val koulutusjaksot = seurantajakso.koulutusjaksot
+        koulutusjaksot.forEach { it.lukittu = true }
+        koulutusjaksoRepository.saveAll(koulutusjaksot)
 
         mailService.sendEmailFromTemplate(
             kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
@@ -141,7 +146,12 @@ class SeurantajaksoServiceImpl(
                 kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
                 "seurantajaksoPoistettu.html",
                 "email.seurantajaksopoistettu.title",
-                properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
+                properties = mapOf(
+                    Pair(
+                        MailProperty.NAME,
+                        seurantajakso.erikoistuvaLaakari?.kayttaja?.user?.getName().toString()
+                    )
+                )
             )
             seurantajaksoRepository.delete(seurantajakso)
         }
