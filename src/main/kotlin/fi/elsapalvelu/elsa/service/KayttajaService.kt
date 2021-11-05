@@ -18,7 +18,7 @@ interface KayttajaService {
 
     fun findKouluttajat(): List<KayttajaDTO>
 
-    fun findVastuuhenkilot(): List<KayttajaDTO>
+    fun findVastuuhenkilot(userId: String): List<KayttajaDTO>
 
     fun findTeknisetPaakayttajat(): List<KayttajaDTO>
 
