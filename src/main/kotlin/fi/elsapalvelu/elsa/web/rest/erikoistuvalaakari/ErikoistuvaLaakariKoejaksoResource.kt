@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -112,11 +111,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     fun getKoulutussopimusForm(principal: Principal?): ResponseEntity<KoulutussopimusFormDTO> {
         val form = KoulutussopimusFormDTO().apply {
             val user = userService.getAuthenticatedUser(principal)
-            val kayttajaUser = kayttajaService.findByUserId(user.id!!)
-
-            vastuuhenkilot = kayttajaService.findVastuuhenkilot().filter {
-                it.yliopisto?.id == kayttajaUser.get().yliopisto?.id
-            }
+            vastuuhenkilot = kayttajaService.findVastuuhenkilot(user.id!!)
             yliopistot = yliopistoService.findAll()
         }
 
@@ -499,12 +494,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     fun getVastuuhenkilonArvioForm(principal: Principal?): ResponseEntity<VastuuhenkilonArvioFormDTO> {
         val form = VastuuhenkilonArvioFormDTO().apply {
             val user = userService.getAuthenticatedUser(principal)
-            val kayttaja = kayttajaService.findByUserId(user.id!!)
-
-            vastuuhenkilot = kayttajaService.findVastuuhenkilot().filter {
-                it.yliopisto?.id == kayttaja.get().yliopisto?.id
-            }
-
+            vastuuhenkilot = kayttajaService.findVastuuhenkilot(user.id!!)
             val (tyoskentelyJaksoLiitetty, tyoskentelyjaksonPituusRiittava, tyotodistusLiitetty) =
                 tyoskentelyjaksoService.validateByLiitettyKoejaksoon(user.id!!)
             this.tyoskentelyjaksoLiitetty = tyoskentelyJaksoLiitetty

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
@@ -18,6 +19,7 @@ import java.util.*
 @Transactional
 class KayttajaServiceImpl(
     private val kayttajaRepository: KayttajaRepository,
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val userRepository: UserRepository,
     private val kayttajaMapper: KayttajaMapper,
     private val userMapper: UserMapper
@@ -65,27 +67,33 @@ class KayttajaServiceImpl(
     }
 
     override fun findKouluttajat(): List<KayttajaDTO> {
-        return kayttajaRepository.findAllByUserAuthority(KOULUTTAJA)
+        return kayttajaRepository.findAllByUserAuthorities(listOf(KOULUTTAJA))
             .map(kayttajaMapper::toDto)
     }
 
-    override fun findVastuuhenkilot(): List<KayttajaDTO> {
-        return kayttajaRepository.findAllByUserAuthority(VASTUUHENKILO)
-            .map(kayttajaMapper::toDto)
-    }
-
-    override fun findTeknisetPaakayttajat(): List<KayttajaDTO> {
-        return kayttajaRepository.findAllByUserAuthority(TEKNINEN_PAAKAYTTAJA)
-            .map(kayttajaMapper::toDto)
+    override fun findVastuuhenkilot(userId: String): List<KayttajaDTO> {
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+            return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
+                listOf(VASTUUHENKILO),
+                it.kayttaja?.yliopisto?.id,
+                it.erikoisala?.id
+            ).map(kayttajaMapper::toDto)
+        } ?: return listOf()
     }
 
     override fun findKouluttajatAndVastuuhenkilot(userId: String): List<KayttajaDTO> {
-        val existingUser = kayttajaRepository.findOneByUserId(userId).get()
-        return (kayttajaRepository.findAllByUserAuthority(KOULUTTAJA) +
-            kayttajaRepository.findAllByUserAuthorityAndYliopistoId(
-                VASTUUHENKILO,
-                existingUser.yliopisto?.id
-            ))
+        val kouluttajat = kayttajaRepository.findAllByUserAuthorities(listOf(KOULUTTAJA)).map(kayttajaMapper::toDto)
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+            return kouluttajat + kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
+                listOf(KOULUTTAJA, VASTUUHENKILO),
+                it.kayttaja?.yliopisto?.id,
+                it.erikoisala?.id
+            ).map(kayttajaMapper::toDto)
+        } ?: return kouluttajat
+    }
+
+    override fun findTeknisetPaakayttajat(): List<KayttajaDTO> {
+        return kayttajaRepository.findAllByUserAuthorities(listOf(TEKNINEN_PAAKAYTTAJA))
             .map(kayttajaMapper::toDto)
     }
 
