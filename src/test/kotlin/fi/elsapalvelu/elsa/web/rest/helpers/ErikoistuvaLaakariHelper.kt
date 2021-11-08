@@ -32,7 +32,6 @@ class ErikoistuvaLaakariHelper {
 
             val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
             em.persist(yliopisto)
-            kayttaja.yliopisto = yliopisto
             erikoistuvaLaakari.kayttaja = kayttaja
 
             val erikoisala: Erikoisala

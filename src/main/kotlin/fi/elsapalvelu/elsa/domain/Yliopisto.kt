@@ -29,10 +29,6 @@ data class Yliopisto(
     )
     var erikoisalat: MutableSet<Erikoisala> = mutableSetOf(),
 
-    @OneToMany(mappedBy = "yliopisto")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var kayttajat: MutableSet<Kayttaja> = mutableSetOf(),
-
     @Column(name = "haka_id", nullable = true)
     var hakaId: String? = null,
 

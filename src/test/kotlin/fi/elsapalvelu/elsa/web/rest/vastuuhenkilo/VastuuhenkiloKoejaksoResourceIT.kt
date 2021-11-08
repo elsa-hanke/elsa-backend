@@ -884,8 +884,8 @@ class VastuuhenkiloKoejaksoResourceIT {
             return KoejaksonVastuuhenkilonArvio(
                 erikoistuvaLaakari = erikoistuvaLaakari,
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskeluoikeudet.first().opiskelijatunnus,
-                erikoistuvanYliopisto = erikoistuvaLaakari.kayttaja?.yliopisto?.nimi,
+                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opiskeluoikeudet.firstOrNull()?.opiskelijatunnus,
+                erikoistuvanYliopisto = erikoistuvaLaakari.opiskeluoikeudet.firstOrNull()?.yliopisto?.nimi,
                 erikoistuvanErikoisala = KoejaksonVaiheetHelper.DEFAULT_ERIKOISALA,
                 muokkauspaiva = KoejaksonVaiheetHelper.DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,

@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -11,7 +10,7 @@ import javax.validation.constraints.NotNull
 @Table(name = "kayttaja")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Kayttaja(
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
@@ -28,10 +27,6 @@ data class Kayttaja(
     @OneToMany(mappedBy = "valtuutettu")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var saadutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf(),
-
-    @ManyToOne(optional = true)
-    @JsonIgnoreProperties(value = ["kayttajat"], allowSetters = true)
-    var yliopisto: Yliopisto? = null,
 
     @ManyToMany
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
