@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211108093341" author="jhipster">
+        <update tableName="arviointityokalu">
+            <column name="nimi" value="Mini-CEX"/>
+            <column name="muokkausaika" value="2021-11-08T00:00:00"/>
+            <where>id=1</where>
+        </update>
+        <update tableName="arviointityokalu">
+            <column name="nimi" value="DOPS"/>
+            <column name="muokkausaika" value="2021-11-08T00:00:00"/>
+            <where>id=2</where>
+        </update>
+        <insert tableName="arviointityokalu">
+            <column name="id" value="3"/>
+            <column name="nimi" value="O-Score"/>
+            <column name="kayttaja_id" value="null"/>
+            <column name="luontiaika" value="2021-11-08T00:00:00"/>
+            <column name="muokkausaika" value="2021-11-08T00:00:00"/>
+        </insert>
+        <insert tableName="arviointityokalu">
+            <column name="id" value="4"/>
+            <column name="nimi" value="OSATS"/>
+            <column name="kayttaja_id" value="null"/>
+            <column name="luontiaika" value="2021-11-08T00:00:00"/>
+            <column name="muokkausaika" value="2021-11-08T00:00:00"/>
+        </insert>
+        <insert tableName="arviointityokalu">
+            <column name="id" value="5"/>
+            <column name="nimi" value="360˚"/>
+            <column name="kayttaja_id" value="null"/>
+            <column name="luontiaika" value="2021-11-08T00:00:00"/>
+            <column name="muokkausaika" value="2021-11-08T00:00:00"/>
+        </insert>
+        <insert tableName="arviointityokalu">
+            <column name="id" value="6"/>
+            <column name="nimi" value="OSCE"/>
+            <column name="kayttaja_id" value="null"/>
+            <column name="luontiaika" value="2021-11-08T00:00:00"/>
+            <column name="muokkausaika" value="2021-11-08T00:00:00"/>
+        </insert>
+        <insert tableName="arviointityokalu">
+            <column name="id" value="7"/>
+            <column name="nimi" value="DOCE"/>
+            <column name="kayttaja_id" value="null"/>
+            <column name="luontiaika" value="2021-11-08T00:00:00"/>
+            <column name="muokkausaika" value="2021-11-08T00:00:00"/>
+        </insert>
+        <insert tableName="arviointityokalu">
+            <column name="id" value="8"/>
+            <column name="nimi" value="Muu"/>
+            <column name="kayttaja_id" value="null"/>
+            <column name="luontiaika" value="2021-11-08T00:00:00"/>
+            <column name="muokkausaika" value="2021-11-08T00:00:00"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
