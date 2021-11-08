@@ -97,6 +97,7 @@
     <include file="config/liquibase/changelog/20211102152030_modify_entity_Keskeytysaika.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211021171413_added_entity_Seurantajakso.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211101164954_added_kayttaja_yliopisto_and_erikoisala_relations.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211108093341_load_updated_arviointityokalut_data.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
