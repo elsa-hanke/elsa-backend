@@ -40,7 +40,7 @@ class ArvioitavanKokonaisuudenKategoriaServiceImpl(
     ): List<ArvioitavanKokonaisuudenKategoriaDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        val opiskeluoikeus = kirjautunutErikoistuvaLaakari?.opiskeluoikeudet?.first()
+        val opiskeluoikeus = kirjautunutErikoistuvaLaakari?.opiskeluoikeudet?.firstOrNull()
 
         return arvioitavanKokonaisuudenKategoriaRepository.findAllByErikoisalaIdAndValid(
             opiskeluoikeus?.erikoisala?.id,

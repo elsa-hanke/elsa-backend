@@ -20,6 +20,7 @@ interface OpiskeluoikeusMapper :
     EntityMapper<OpiskeluoikeusDTO, Opiskeluoikeus> {
 
     @Mappings(
+        Mapping(source = "yliopisto.nimi", target = "yliopistoNimi"),
         Mapping(source = "erikoisala.id", target = "erikoisalaId"),
         Mapping(source = "erikoisala.nimi", target = "erikoisalaNimi"),
     )

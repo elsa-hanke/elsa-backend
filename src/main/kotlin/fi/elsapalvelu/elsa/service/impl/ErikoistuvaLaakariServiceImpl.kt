@@ -57,9 +57,6 @@ class ErikoistuvaLaakariServiceImpl(
 
         var kayttaja = Kayttaja(
             user = user,
-            yliopisto = yliopistoMapper.toEntity(
-                yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).orElse(null)
-            )
         )
         kayttaja = kayttajaRepository.save(kayttaja)
 

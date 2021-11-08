@@ -15,6 +15,8 @@ data class OpiskeluoikeusDTO(
 
     var opiskelijatunnus: String? = null,
 
+    var yliopistoNimi: String? = null,
+
     var erikoisalaId: Long? = null,
 
     var erikoisalaNimi: String? = null

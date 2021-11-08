@@ -73,11 +73,11 @@ class KayttajaServiceImpl(
 
     override fun findVastuuhenkilot(userId: String): List<KayttajaDTO> {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
-            val opiskeluoikeus = it.opiskeluoikeudet.first()
+            val opiskeluoikeus = it.opiskeluoikeudet.firstOrNull()
             return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
                 listOf(VASTUUHENKILO),
-                it.kayttaja?.yliopisto?.id,
-                opiskeluoikeus.erikoisala?.id
+                opiskeluoikeus?.yliopisto?.id,
+                opiskeluoikeus?.erikoisala?.id
             ).map(kayttajaMapper::toDto)
         } ?: return listOf()
     }
@@ -85,11 +85,11 @@ class KayttajaServiceImpl(
     override fun findKouluttajatAndVastuuhenkilot(userId: String): List<KayttajaDTO> {
         val kouluttajat = kayttajaRepository.findAllByUserAuthorities(listOf(KOULUTTAJA)).map(kayttajaMapper::toDto)
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
-            val opiskeluoikeus = it.opiskeluoikeudet.first()
+            val opiskeluoikeus = it.opiskeluoikeudet.firstOrNull()
             return kouluttajat + kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
                 listOf(KOULUTTAJA, VASTUUHENKILO),
-                it.kayttaja?.yliopisto?.id,
-                opiskeluoikeus.erikoisala?.id
+                opiskeluoikeus?.yliopisto?.id,
+                opiskeluoikeus?.erikoisala?.id
             ).map(kayttajaMapper::toDto)
         } ?: return kouluttajat
     }
