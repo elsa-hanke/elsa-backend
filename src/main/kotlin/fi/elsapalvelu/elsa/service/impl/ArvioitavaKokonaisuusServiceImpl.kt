@@ -28,7 +28,7 @@ class ArvioitavaKokonaisuusServiceImpl(
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<ArvioitavaKokonaisuusDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        val opiskeluoikeus = kirjautunutErikoistuvaLaakari?.opiskeluoikeudet?.first()
+        val opiskeluoikeus = kirjautunutErikoistuvaLaakari?.opiskeluoikeudet?.firstOrNull()
 
         // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä, ei ole määritetty, käytetään nykyistä päivää
         // voimassaolon rajaamisessa

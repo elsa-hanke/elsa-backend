@@ -69,6 +69,10 @@ data class ErikoistuvaLaakari(
 
 ) : Serializable {
 
+    fun getYliopistoNimi(): String? {
+        return this.opiskeluoikeudet.firstOrNull()?.yliopisto?.nimi
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ErikoistuvaLaakari) return false

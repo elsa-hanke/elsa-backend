@@ -87,7 +87,6 @@ class UserService(
         val kayttaja = kayttajaRepository.save(
             Kayttaja(
                 user = user,
-                yliopisto = Yliopisto(id = kayttooikeusHakemusDTO.yliopisto)
             )
         )
 
