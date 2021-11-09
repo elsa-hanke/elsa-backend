@@ -73,6 +73,14 @@ data class ErikoistuvaLaakari(
         return this.opiskeluoikeudet.firstOrNull()?.yliopisto?.nimi
     }
 
+    fun getOpiskelijatunnus(): String? {
+        return this.opiskeluoikeudet.firstOrNull()?.opiskelijatunnus
+    }
+
+    fun getErikoisalaNimi(): String? {
+        return this.opiskeluoikeudet.firstOrNull()?.erikoisala?.nimi
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ErikoistuvaLaakari) return false
