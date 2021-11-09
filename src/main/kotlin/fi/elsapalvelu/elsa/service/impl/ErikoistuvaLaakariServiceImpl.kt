@@ -15,8 +15,6 @@ import fi.elsapalvelu.elsa.service.mapper.YliopistoMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
-import java.time.ZoneId
 import java.util.*
 
 @Service
@@ -145,29 +143,6 @@ class ErikoistuvaLaakariServiceImpl(
                         Pair(MailProperty.ID, token),
                     )
                 )
-            }
-        }
-    }
-
-    override fun fixOpiskeluoikeudet() {
-        erikoistuvaLaakariRepository.findAll().forEach {
-            if (it.opiskeluoikeudet.isEmpty()) {
-                var opiskeluoikeus = Opiskeluoikeus(
-                    opintooikeudenMyontamispaiva = LocalDate.now(ZoneId.systemDefault()),
-                    opintooikeudenPaattymispaiva = LocalDate.now(ZoneId.systemDefault()),
-                    opiskelijatunnus = "123456",
-                    opintosuunnitelmaKaytossaPvm = LocalDate.now(ZoneId.systemDefault()),
-                    erikoistuvaLaakari = it,
-                    yliopisto = yliopistoMapper.toEntity(
-                        yliopistoService.findAll().last()
-                    ),
-                    erikoisala = erikoisalaMapper.toEntity(
-                        erikoisalaService.findOne(46).orElse(null)
-                    )
-                )
-                opiskeluoikeus = opiskeluoikeusRepository.save(opiskeluoikeus)
-
-                it.opiskeluoikeudet.add(opiskeluoikeus)
             }
         }
     }

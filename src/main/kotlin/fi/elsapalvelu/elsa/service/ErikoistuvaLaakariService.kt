@@ -21,6 +21,4 @@ interface ErikoistuvaLaakariService {
     fun findOneByKayttajaId(kayttajaId: Long): ErikoistuvaLaakariDTO?
 
     fun resendInvitation(id: Long)
-
-    fun fixOpiskeluoikeudet()
 }
