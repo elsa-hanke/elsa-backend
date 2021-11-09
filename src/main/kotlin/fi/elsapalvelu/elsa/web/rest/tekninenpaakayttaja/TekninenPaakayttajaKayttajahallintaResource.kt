@@ -31,8 +31,6 @@ class TekninenPaakayttajaKayttajahallintaResource(
     @GetMapping("/erikoistuvat-laakarit")
     @PreAuthorize("hasAuthority('ROLE_TEKNINEN_PAAKAYTTAJA')")
     fun getErikoistuvatLaakarit(): ResponseEntity<List<ErikoistuvaLaakariDTO>> {
-        // TODO: Väliaikainen korjaus opiskeluoikeuden lisäämiselle
-        erikoistuvaLaakariService.fixOpiskeluoikeudet()
         return ResponseEntity.ok(erikoistuvaLaakariService.findAll())
     }
 
