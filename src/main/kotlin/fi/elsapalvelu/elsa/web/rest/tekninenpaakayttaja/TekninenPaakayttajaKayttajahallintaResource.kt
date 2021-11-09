@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.net.URI
-import java.security.Principal
 import javax.validation.Valid
 
 
@@ -31,15 +30,16 @@ class TekninenPaakayttajaKayttajahallintaResource(
 
     @GetMapping("/erikoistuvat-laakarit")
     @PreAuthorize("hasAuthority('ROLE_TEKNINEN_PAAKAYTTAJA')")
-    fun getErikoistuvatLaakarit(principal: Principal?): ResponseEntity<List<ErikoistuvaLaakariDTO>> {
+    fun getErikoistuvatLaakarit(): ResponseEntity<List<ErikoistuvaLaakariDTO>> {
+        // TODO: Väliaikainen korjaus opiskeluoikeuden lisäämiselle
+        erikoistuvaLaakariService.fixOpiskeluoikeudet()
         return ResponseEntity.ok(erikoistuvaLaakariService.findAll())
     }
 
     @GetMapping("/kayttajat/{id}")
     @PreAuthorize("hasAuthority('ROLE_TEKNINEN_PAAKAYTTAJA')")
     fun getKayttaja(
-        @PathVariable id: Long,
-        principal: Principal?
+        @PathVariable id: Long
     ): ResponseEntity<KayttajahallintaKayttajaDTO> {
         val kayttaja: KayttajaDTO? = kayttajaService.findOne(id).orElse(null)
         val user = kayttaja?.let { userService.getUser(it.userId!!) }
@@ -56,9 +56,7 @@ class TekninenPaakayttajaKayttajahallintaResource(
 
     @GetMapping("/kayttaja-lomake")
     @PreAuthorize("hasAuthority('ROLE_TEKNINEN_PAAKAYTTAJA')")
-    fun getKayttajaForm(
-        principal: Principal?
-    ): ResponseEntity<KayttajahallintaKayttajaFormDTO> {
+    fun getKayttajaForm(): ResponseEntity<KayttajahallintaKayttajaFormDTO> {
         val form = KayttajahallintaKayttajaFormDTO()
 
         form.yliopistot = yliopistoService.findAll().toMutableSet()
@@ -72,7 +70,6 @@ class TekninenPaakayttajaKayttajahallintaResource(
     @PreAuthorize("hasAuthority('ROLE_TEKNINEN_PAAKAYTTAJA')")
     fun createErikoistuvaLaakari(
         @Valid @RequestBody kayttajahallintaErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariDTO,
-        principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
         if (userService.existsByEmail(kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite!!)) {
             throw BadRequestAlertException(
@@ -106,12 +103,11 @@ class TekninenPaakayttajaKayttajahallintaResource(
 
     }
 
-    @PutMapping("/erikoistuvat-laakarit/{id}/invite")
+    @PutMapping("/erikoistuvat-laakarit/{id}/kutsu")
     @PreAuthorize("hasAuthority('ROLE_TEKNINEN_PAAKAYTTAJA')")
     fun resendErikoistuvaLaakariInvitation(
         @PathVariable id: Long,
-        principal: Principal?
-    ): ResponseEntity<ErikoistuvaLaakariDTO> {
+    ): ResponseEntity<Void> {
         erikoistuvaLaakariService.resendInvitation(id)
 
         return ResponseEntity

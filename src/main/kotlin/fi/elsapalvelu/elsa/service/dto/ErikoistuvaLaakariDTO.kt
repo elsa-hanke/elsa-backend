@@ -15,11 +15,15 @@ data class ErikoistuvaLaakariDTO(
 
     var puhelinnumero: String? = null,
 
+    var opiskelijatunnus: String? = null,
+
     var syntymaaika: LocalDate? = null,
 
     var kayttajaId: Long? = null,
 
     var yliopisto: String? = null,
+
+    var erikoisalaNimi: String? = null,
 
     var opiskeluoikeudet: MutableSet<OpiskeluoikeusDTO>? = null
 
