@@ -223,7 +223,7 @@ class TekninenPaakayttajaKayttajahallintaResourceIT {
         em.persist(verificationToken)
 
         restMockMvc.perform(
-            put("/api/tekninen-paakayttaja/erikoistuvat-laakarit/$id/invite")
+            put("/api/tekninen-paakayttaja/erikoistuvat-laakarit/$id/kutsu")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         ).andExpect(status().isNoContent)
     }
