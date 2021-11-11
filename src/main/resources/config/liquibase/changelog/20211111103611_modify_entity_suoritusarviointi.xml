@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211111103611-1" author="jhipster">
+        <addColumn tableName="suoritusarviointi">
+            <column name="arviointi_liite_nimi" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="arviointi_liite_tyyppi" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="arviointi_liite_lisattypvm" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+            <column name="asiakirja_data_id" type="bigint">
+                <constraints unique="true" nullable="true" uniqueConstraintName="ux_suoritusarviointi_asiakirja_data_id"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20211111103611-1-audit" author="jhipster">
+        <addColumn tableName="suoritusarviointi_audit">
+            <column name="arviointi_liite_nimi" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="arviointi_liite_tyyppi" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="arviointi_liite_lisattypvm" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+            <column name="asiakirja_data_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
