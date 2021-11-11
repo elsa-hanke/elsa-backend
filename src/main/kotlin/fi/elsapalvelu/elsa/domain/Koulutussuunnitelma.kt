@@ -99,7 +99,7 @@ data class Koulutussuunnitelma(
         ],
         allowSetters = true
     )
-    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(unique = true)
     var koulutussuunnitelmaAsiakirja: Asiakirja? = null,
 
@@ -110,7 +110,7 @@ data class Koulutussuunnitelma(
         ],
         allowSetters = true
     )
-    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(unique = true)
     var motivaatiokirjeAsiakirja: Asiakirja? = null,
 
