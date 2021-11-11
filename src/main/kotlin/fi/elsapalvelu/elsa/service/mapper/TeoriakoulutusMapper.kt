@@ -29,4 +29,10 @@ interface TeoriakoulutusMapper :
         Mapping(target = "id", source = "id")
     )
     fun toDtoId(teoriakoulutus: Teoriakoulutus): TeoriakoulutusDTO
+
+    fun fromId(id: Long?) = id?.let {
+        val teoriakoulutus = Teoriakoulutus()
+        teoriakoulutus.id = id
+        teoriakoulutus
+    }
 }

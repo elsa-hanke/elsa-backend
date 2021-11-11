@@ -1,7 +1,5 @@
 package fi.elsapalvelu.elsa.config
 
-import io.github.jhipster.config.JHipsterProperties
-import io.github.jhipster.config.cache.PrefixedKeyGenerator
 import org.ehcache.config.builders.CacheConfigurationBuilder
 import org.ehcache.config.builders.ExpiryPolicyBuilder
 import org.ehcache.config.builders.ResourcePoolsBuilder
@@ -15,6 +13,8 @@ import org.springframework.boot.info.GitProperties
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import tech.jhipster.config.JHipsterProperties
+import tech.jhipster.config.cache.PrefixedKeyGenerator
 import java.time.Duration
 
 @Configuration
@@ -101,6 +101,9 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Oppimistavoite::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria::class.java.name + ".oppimistavoitteet")
             createCache(cm, fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.PaivakirjaAihekategoria::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Paivakirjamerkinta::class.java.name + ".aihekategoriat")
+            createCache(cm, fi.elsapalvelu.elsa.domain.Paivakirjamerkinta::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.PoissaolonSyy::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Seurantajakso::class.java.name + ".koulutusjaksot")
             createCache(cm, fi.elsapalvelu.elsa.domain.Seurantajakso::class.java.name)

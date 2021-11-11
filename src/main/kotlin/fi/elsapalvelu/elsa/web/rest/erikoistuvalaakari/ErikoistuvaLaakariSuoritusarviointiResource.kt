@@ -1,7 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.criteria.SuoritusarviointiCriteria
+import fi.elsapalvelu.elsa.service.dto.ArviointipyyntoFormDTO
+import fi.elsapalvelu.elsa.service.dto.ArvioitavanKokonaisuudenKategoriaDTO
+import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinnitOptionsDTO
+import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
