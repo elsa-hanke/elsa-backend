@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.sun.istack.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -16,10 +15,6 @@ data class AsiakirjaData (
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     var id: Long? = null,
-
-    @OneToOne(mappedBy = "asiakirjaData")
-    @JsonIgnore
-    var asiakirja: Asiakirja? = null,
 
     @NotNull
     @Lob
