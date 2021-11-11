@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.FileValidationService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -42,18 +42,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
             )
         }
 
-        val asiakirjat =
-            files.map {
-                AsiakirjaDTO(
-                    nimi = it.originalFilename,
-                    tyyppi = it.contentType,
-                    asiakirjaData = AsiakirjaDataDTO(
-                        fileInputStream = it.inputStream,
-                        fileSize = it.size
-                    )
-                )
-            }
-
+        val asiakirjat = files.map { it.mapAsiakirja() }
         val result = asiakirjaService.create(asiakirjat, user.id!!)
         return ResponseEntity
             .created(URI("/api/asiakirjat"))

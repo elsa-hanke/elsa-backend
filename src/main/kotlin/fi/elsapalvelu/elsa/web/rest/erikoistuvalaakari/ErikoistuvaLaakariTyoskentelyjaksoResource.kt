@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -328,8 +329,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         userId: String
     ): MutableSet<AsiakirjaDTO>? {
         files?.let {
-            fileValidationService.validate(it, userId)
-
             if (!fileValidationService.validate(it, userId)) {
                 throw BadRequestAlertException(
                     "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
@@ -337,17 +336,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                     "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
                 )
             }
-
-            return it.map { file ->
-                AsiakirjaDTO(
-                    nimi = file.originalFilename,
-                    tyyppi = file.contentType,
-                    asiakirjaData = AsiakirjaDataDTO(
-                        fileInputStream = file.inputStream,
-                        fileSize = file.size
-                    )
-                )
-            }.toMutableSet()
+            return it.map { file -> file.mapAsiakirja() }.toMutableSet()
         }
 
         return null

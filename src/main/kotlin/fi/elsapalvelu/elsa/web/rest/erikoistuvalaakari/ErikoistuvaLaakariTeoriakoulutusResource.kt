@@ -2,13 +2,13 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.service.ErikoisalaService
 import fi.elsapalvelu.elsa.service.FileValidationService
 import fi.elsapalvelu.elsa.service.TeoriakoulutusService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutuksetDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -142,17 +142,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
                     "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
                 )
             }
-
-            return it.map { file ->
-                AsiakirjaDTO(
-                    nimi = file.originalFilename,
-                    tyyppi = file.contentType,
-                    asiakirjaData = AsiakirjaDataDTO(
-                        fileInputStream = file.inputStream,
-                        fileSize = file.size
-                    )
-                )
-            }.toMutableSet()
+            return it.map { file -> file.mapAsiakirja() }.toMutableSet()
         }
 
         return null
