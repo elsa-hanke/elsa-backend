@@ -2,10 +2,7 @@ package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.Teoriakoulutus
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
-import org.mapstruct.Mapper
-import org.mapstruct.Mapping
-import org.mapstruct.Mappings
-import org.mapstruct.ReportingPolicy
+import org.mapstruct.*
 
 @Mapper(
     componentModel = "spring", uses = [
@@ -25,4 +22,11 @@ interface TeoriakoulutusMapper :
         Mapping(source = "erikoistuvaLaakariId", target = "erikoistuvaLaakari"),
     )
     override fun toEntity(dto: TeoriakoulutusDTO): Teoriakoulutus
+
+    @Named("id")
+    @BeanMapping(ignoreByDefault = true)
+    @Mappings(
+        Mapping(target = "id", source = "id")
+    )
+    fun toDtoId(teoriakoulutus: Teoriakoulutus): TeoriakoulutusDTO
 }

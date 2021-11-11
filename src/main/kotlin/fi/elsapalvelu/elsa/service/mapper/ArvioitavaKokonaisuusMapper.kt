@@ -2,10 +2,7 @@ package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.ArvioitavaKokonaisuus
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusDTO
-import org.mapstruct.Mapper
-import org.mapstruct.Mapping
-import org.mapstruct.Mappings
-import org.mapstruct.ReportingPolicy
+import org.mapstruct.*
 
 @Mapper(
     componentModel = "spring",
@@ -35,4 +32,11 @@ interface ArvioitavaKokonaisuusMapper :
         arvioitavaKokonaisuus.id = id
         arvioitavaKokonaisuus
     }
+
+    @Named("idSet")
+    @BeanMapping(ignoreByDefault = true)
+    @Mappings(
+        Mapping(target = "id", source = "id")
+    )
+    fun toDtoIdSet(arvioitavaKokonaisuus: Set<ArvioitavaKokonaisuus>): Set<ArvioitavaKokonaisuusDTO>
 }

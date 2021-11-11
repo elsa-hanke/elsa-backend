@@ -5,12 +5,12 @@ import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiCriteria
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
-import io.github.jhipster.service.QueryService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tech.jhipster.service.QueryService
 import javax.persistence.criteria.Join
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")

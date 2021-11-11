@@ -9,7 +9,7 @@ import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import io.github.jhipster.web.util.ResponseUtil
+import tech.jhipster.web.util.ResponseUtil
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -63,7 +63,8 @@ open class SuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirja = suoritusarviointiService.findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(id, user.id!!)
+        val asiakirja = suoritusarviointiService
+            .findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(id, user.id!!)
 
         if (asiakirja != null) {
             return ResponseEntity.ok()

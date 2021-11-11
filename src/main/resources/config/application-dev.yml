@@ -16,16 +16,12 @@
 logging:
   level:
     ROOT: DEBUG
-    io.github.jhipster: DEBUG
+    tech.jhipster: DEBUG
     fi.elsapalvelu.elsa: DEBUG
 
 spring:
   config:
     use-legacy-processing: true
-  profiles:
-    active: dev
-    group:
-      - swagger
   devtools:
     restart:
       enabled: true
@@ -44,7 +40,7 @@ spring:
       poolName: Hikari
       auto-commit: false
   jpa:
-    database-platform: io.github.jhipster.domain.util.FixedPostgreSQL10Dialect
+    database-platform: tech.jhipster.domain.util.FixedPostgreSQL10Dialect
     show-sql: true
   liquibase:
     # Remove 'faker' if you do not want the sample data to be loaded automatically
@@ -107,10 +103,6 @@ jhipster:
     max-age: 1800
   mail: # specific JHipster mail property, for standard properties see MailProperties
     base-url: http://127.0.0.1:9060
-  metrics:
-    logs: # Reports metrics in the logs
-      enabled: false
-      report-frequency: 60 # in seconds
   logging:
     use-json-format: false # By default, logs are not in Json format
     logstash: # Forward logs to logstash over a socket, used by LoggingConfiguration

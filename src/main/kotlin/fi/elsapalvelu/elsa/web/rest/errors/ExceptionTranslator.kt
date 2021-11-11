@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.errors
 
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
-import io.github.jhipster.config.JHipsterConstants
 import org.apache.commons.lang3.StringUtils
 import org.springframework.core.env.Environment
 import org.springframework.dao.ConcurrencyFailureException
@@ -17,6 +16,7 @@ import org.zalando.problem.*
 import org.zalando.problem.spring.web.advice.ProblemHandling
 import org.zalando.problem.spring.web.advice.security.SecurityAdviceTrait
 import org.zalando.problem.violations.ConstraintViolationProblem
+import tech.jhipster.config.JHipsterConstants
 import java.net.URI
 import javax.servlet.http.HttpServletRequest
 

@@ -31,7 +31,7 @@ spring:
     serialization:
       write-durations-as-timestamps: false
   jpa:
-    database-platform: io.github.jhipster.domain.util.FixedH2Dialect
+    database-platform: tech.jhipster.domain.util.FixedH2Dialect
     open-in-view: false
     show-sql: false
     hibernate:
@@ -86,6 +86,17 @@ server:
   port: 10344
   address: localhost
 
+cloud:
+  aws:
+    credentials:
+      access-key: key
+      secret-key: secret
+    region:
+      static: eu-west-1
+    stack:
+      auto: false
+
+
 # ===================================================================
 # JHipster specific properties
 #
@@ -121,19 +132,3 @@ jhipster:
 # ===================================================================
 
 application:
-  keycloak:
-    admin:
-      server-url: http://localhost:9080/auth
-      realm: elsa
-      client-id: web-app-admin
-      client-secret: web-app-admin
-
-cloud:
-  aws:
-    credentials:
-      access-key: key
-      secret-key: secret
-    region:
-      static: eu-west-1
-    stack:
-      auto: false

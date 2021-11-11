@@ -11,7 +11,8 @@ import org.mapstruct.ReportingPolicy
     componentModel = "spring",
     uses = [
         UserMapper::class,
-        YliopistoMapper::class
+        YliopistoMapper::class,
+        ErikoisalaMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
