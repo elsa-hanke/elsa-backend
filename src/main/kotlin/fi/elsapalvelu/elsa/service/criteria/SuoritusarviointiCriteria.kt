@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.dto
+package fi.elsapalvelu.elsa.service.criteria
 
 import tech.jhipster.service.Criteria
 import tech.jhipster.service.filter.IntegerFilter

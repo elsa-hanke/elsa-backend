@@ -2,59 +2,21 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
-import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiCriteria
+import fi.elsapalvelu.elsa.service.criteria.SuoritusarviointiCriteria
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tech.jhipster.service.QueryService
 import javax.persistence.criteria.Join
 
-@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 @Service
 @Transactional(readOnly = true)
 class SuoritusarviointiQueryService(
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
     private val suoritusarviointiMapper: SuoritusarviointiMapper
 ) : QueryService<Suoritusarviointi>() {
-
-    @Transactional(readOnly = true)
-    fun findByCriteria(criteria: SuoritusarviointiCriteria?): MutableList<SuoritusarviointiDTO> {
-        val specification = createSpecification(criteria)
-        return suoritusarviointiMapper.toDto(suoritusarviointiRepository.findAll(specification))
-    }
-
-    @Transactional(readOnly = true)
-    fun findByCriteria(
-        criteria: SuoritusarviointiCriteria?,
-        page: Pageable
-    ): Page<SuoritusarviointiDTO> {
-        val specification = createSpecification(criteria)
-        return suoritusarviointiRepository.findAll(specification, page)
-            .map(suoritusarviointiMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
-    fun findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        criteria: SuoritusarviointiCriteria?,
-        userId: String,
-        page: Pageable
-
-    ): Page<SuoritusarviointiDTO> {
-        val specification = createSpecification(criteria) { root, _, cb ->
-            val user: Join<Kayttaja, User> = root.join(Suoritusarviointi_.tyoskentelyjakso)
-                .join(Tyoskentelyjakso_.erikoistuvaLaakari)
-                .join(ErikoistuvaLaakari_.kayttaja)
-                .join(Kayttaja_.user)
-            cb.equal(user.get(User_.id), userId)
-        }
-
-        return suoritusarviointiRepository.findAll(specification, page)
-            .map(suoritusarviointiMapper::toDto)
-    }
 
     @Transactional(readOnly = true)
     fun findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
@@ -74,12 +36,6 @@ class SuoritusarviointiQueryService(
     }
 
     @Transactional(readOnly = true)
-    fun countByCriteria(criteria: SuoritusarviointiCriteria?): Long {
-        val specification = createSpecification(criteria)
-        return suoritusarviointiRepository.count(specification)
-    }
-
-    @Transactional(readOnly = true)
     fun findByKouluttajaOrVastuuhenkiloUserId(userId: String): List<SuoritusarviointiDTO> {
         val specification = createSpecification(null) { root, _, cb ->
             val user: Join<Kayttaja, User> = root.join(Suoritusarviointi_.arvioinninAntaja)
@@ -91,6 +47,7 @@ class SuoritusarviointiQueryService(
             .map(suoritusarviointiMapper::toDto)
     }
 
+    @Suppress("ComplexMethod")
     protected fun createSpecification(
         criteria: SuoritusarviointiCriteria?,
         spec: Specification<Suoritusarviointi?>? = null

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211111121759-1" author="jhipster">
+        <createTable tableName="paivakirja_aihekategoria">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kuvaus" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="jarjestysnumero" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="teoriakoulutus" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="muun_aiheen_nimi" type="boolean" valueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20211111121759-1-data" author="jhipster">
+        <loadData
+            file="config/liquibase/data/paivakirja_aihekategoria.csv"
+            separator=";"
+            tableName="paivakirja_aihekategoria">
+            <column name="id" type="numeric"/>
+            <column name="nimi" type="string"/>
+            <column name="kuvaus" type="string"/>
+            <column name="jarjestysnumero" type="numeric"/>
+            <column name="teoriakoulutus" type="boolean"/>
+            <column name="muun_aiheen_nimi" type="boolean"/>
+        </loadData>
+    </changeSet>
+</databaseChangeLog>

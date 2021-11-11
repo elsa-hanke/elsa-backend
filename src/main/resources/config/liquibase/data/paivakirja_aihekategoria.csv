@@ -1,0 +1,7 @@
+id;nimi;kuvaus;jarjestysnumero;teoriakoulutus;muun_aiheen_nimi
+1;Koulutukset;Teoria, toimipaikka, simulaatiot, johtamisopinnot, säteilysuojelukoulutus;1;true;false
+2;Keskustelut;Ohjaustapaamiset, tutorkeskustelut, työnohjaus;2;false;false
+3;Itsenäinen syventyminen;Kirjallisuus, tutkimus, omat esitykset, työn tai menetelmien kehitystyö;3;false;false
+4;Tapahtumat työssä;Mieleenpainuneet tapaamiset, oma muistilista;4;false;false
+5;Ajatukset;Kommentit erikoistumisesta ja koulutuspaikasta;5;false;false
+6;Muu aihe;NULL;6;false;true
