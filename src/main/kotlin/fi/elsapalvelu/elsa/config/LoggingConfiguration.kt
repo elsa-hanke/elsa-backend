@@ -7,11 +7,12 @@ import ch.qos.logback.more.appenders.DataFluentAppender
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
 import fi.elsapalvelu.elsa.security.SecurityLoggingWrapper
-import io.github.jhipster.config.JHipsterProperties
-import io.github.jhipster.config.logging.LoggingUtils.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
+import tech.jhipster.config.JHipsterProperties
+import tech.jhipster.config.logging.LoggingUtils.addContextListener
+import tech.jhipster.config.logging.LoggingUtils.addLogstashTcpSocketAppender
 
 private const val CONSOLE_APPENDER_NAME = "CONSOLE"
 
@@ -56,9 +57,6 @@ class LoggingConfiguration(
         }
         if (loggingProperties.isUseJsonFormat || logstashProperties.isEnabled) {
             addContextListener(context, customFields, loggingProperties)
-        }
-        if (jHipsterProperties.metrics.logs.isEnabled) {
-            setMetricsMarkerLogbackFilter(context, loggingProperties.isUseJsonFormat)
         }
     }
 

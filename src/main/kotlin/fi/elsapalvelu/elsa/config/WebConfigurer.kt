@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.config
 
-import io.github.jhipster.config.JHipsterProperties
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.servlet.ServletContextInitializer
 import org.springframework.context.annotation.Bean
@@ -8,6 +7,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.CorsFilter
+import tech.jhipster.config.JHipsterProperties
 import javax.servlet.ServletContext
 import javax.servlet.ServletException
 

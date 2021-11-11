@@ -3,9 +3,7 @@ package fi.elsapalvelu.elsa.web.rest
 import fi.elsapalvelu.elsa.security.logout.OpenSamlLogoutRequestResolver
 import fi.elsapalvelu.elsa.security.logout.Saml2LogoutRequest
 import fi.elsapalvelu.elsa.security.logout.Saml2LogoutRequestResolver
-import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.util.Assert
@@ -14,10 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.util.UriComponentsBuilder
 import org.springframework.web.util.UriUtils
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.security.Principal
 import javax.servlet.http.HttpServletRequest
@@ -29,15 +23,6 @@ import javax.servlet.http.HttpServletRequest
 @Profile("dev", "prod")
 class LogoutResource(private val logoutRequestResolver: OpenSamlLogoutRequestResolver) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
-    /**
-     * `POST  /api/logout` : logout the current user.
-     *
-     * @param request the [HttpServletRequest].
-     * @param idToken the ID token.
-     * @return the [ResponseEntity] with status `200 (OK)` and a body with a global logout URL and ID token.
-     */
     @PostMapping("/api/logout")
     fun logout(
         request: HttpServletRequest,

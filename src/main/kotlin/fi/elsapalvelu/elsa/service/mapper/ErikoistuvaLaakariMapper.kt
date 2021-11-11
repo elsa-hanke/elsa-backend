@@ -2,10 +2,7 @@ package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
-import org.mapstruct.Mapper
-import org.mapstruct.Mapping
-import org.mapstruct.Mappings
-import org.mapstruct.ReportingPolicy
+import org.mapstruct.*
 
 @Mapper(
     componentModel = "spring",
@@ -41,4 +38,11 @@ interface ErikoistuvaLaakariMapper :
         erikoistuvaLaakari.id = id
         erikoistuvaLaakari
     }
+
+    @Named("id")
+    @BeanMapping(ignoreByDefault = true)
+    @Mappings(
+        Mapping(target = "id", source = "id")
+    )
+    fun toDtoId(erikoistuvaLaakari: ErikoistuvaLaakari): ErikoistuvaLaakariDTO
 }

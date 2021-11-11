@@ -1,14 +1,10 @@
 package fi.elsapalvelu.elsa.config
 
-import io.github.jhipster.config.JHipsterConstants
-import io.github.jhipster.config.JHipsterProperties
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
+import org.mockito.Mockito.*
 import org.springframework.http.HttpHeaders
 import org.springframework.mock.env.MockEnvironment
 import org.springframework.mock.web.MockServletContext
@@ -18,11 +14,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
-import javax.servlet.Filter
-import javax.servlet.FilterRegistration
-import javax.servlet.Servlet
-import javax.servlet.ServletException
-import javax.servlet.ServletRegistration
+import tech.jhipster.config.JHipsterConstants
+import tech.jhipster.config.JHipsterProperties
+import javax.servlet.*
 
 /**
  * Unit tests for the [WebConfigurer] class.

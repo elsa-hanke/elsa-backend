@@ -1,12 +1,6 @@
-configurations {
-    developmentOnly
-    runtimeClasspath {
-        extendsFrom developmentOnly
-    }
-}
-
 dependencies {
     developmentOnly "org.springframework.boot:spring-boot-devtools:${springBootVersion}"
+    implementation "com.h2database:h2"
 }
 
 def profiles = "dev"
