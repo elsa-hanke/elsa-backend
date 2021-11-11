@@ -10,6 +10,7 @@ import org.hibernate.envers.NotAudited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.persistence.*
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
@@ -119,6 +120,24 @@ data class Suoritusarviointi(
 
     @Column(name = "muu_peruste")
     var muuPeruste: String? = null,
+
+    @NotNull
+    @Column(name = "arviointi_liite_nimi", nullable = false)
+    var arviointiLiiteNimi: String? = null,
+
+    @NotNull
+    @Column(name = "arviointi_liite_tyyppi", nullable = false)
+    var arviointiLiiteTyyppi: String? = null,
+
+    @NotNull
+    @Column(name = "arviointi_liite_lisattypvm", nullable = false)
+    var arviointiLiiteLisattyPvm: LocalDateTime? = null,
+
+    @NotNull
+    @OneToOne(optional = false, cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+    var asiakirjaData: AsiakirjaData? = null
 
     ) : Serializable {
 
