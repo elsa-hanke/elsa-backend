@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211111121659-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="paivakirjamerkinta_id"
+                                 baseTableName="rel_paivakirjamerkinta__aihekategoria"
+                                 constraintName="fk_rel_paivakirjamerkinta__aihekategoria__paivakirjamerkinta_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="paivakirjamerkinta"/>
+
+        <addForeignKeyConstraint baseColumnNames="aihekategoria_id"
+                                 baseTableName="rel_paivakirjamerkinta__aihekategoria"
+                                 constraintName="fk_rel_paivakirjamerkinta__aihekategoria__aihekategoria_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="paivakirja_aihekategoria"/>
+
+        <addForeignKeyConstraint baseColumnNames="erikoistuva_laakari_id"
+                                 baseTableName="paivakirjamerkinta"
+                                 constraintName="fk_paivakirjamerkinta__erikoistuva_laakari_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="erikoistuva_laakari"/>
+
+        <addForeignKeyConstraint baseColumnNames="teoriakoulutus_id"
+                                 baseTableName="paivakirjamerkinta"
+                                 constraintName="fk_paivakirjamerkinta__teoriakoulutus_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="teoriakoulutus"/>
+    </changeSet>
+</databaseChangeLog>

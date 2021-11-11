@@ -33,16 +33,16 @@ interface ErikoistuvaLaakariMapper :
     )
     override fun toEntity(dto: ErikoistuvaLaakariDTO): ErikoistuvaLaakari
 
-    fun fromId(id: Long?) = id?.let {
-        val erikoistuvaLaakari = ErikoistuvaLaakari()
-        erikoistuvaLaakari.id = id
-        erikoistuvaLaakari
-    }
-
     @Named("id")
     @BeanMapping(ignoreByDefault = true)
     @Mappings(
         Mapping(target = "id", source = "id")
     )
     fun toDtoId(erikoistuvaLaakari: ErikoistuvaLaakari): ErikoistuvaLaakariDTO
+
+    fun fromId(id: Long?) = id?.let {
+        val erikoistuvaLaakari = ErikoistuvaLaakari()
+        erikoistuvaLaakari.id = id
+        erikoistuvaLaakari
+    }
 }

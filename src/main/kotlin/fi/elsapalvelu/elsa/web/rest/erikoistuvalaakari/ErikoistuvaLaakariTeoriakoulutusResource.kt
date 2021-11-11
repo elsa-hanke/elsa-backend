@@ -12,7 +12,6 @@ import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutuksetDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -38,9 +37,6 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         const val ENTITY_NAME = "teoriakoulutus"
         const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
     }
-
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
 
     @PostMapping("/teoriakoulutukset")
     fun createTeoriakoulutus(
@@ -116,7 +112,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
         return teoriakoulutusService.findOne(id, user.id!!)?.let {
-            return ResponseEntity.ok(it)
+            ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 
