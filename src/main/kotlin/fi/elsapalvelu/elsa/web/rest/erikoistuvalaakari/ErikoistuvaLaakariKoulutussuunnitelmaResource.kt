@@ -1,14 +1,15 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.FileValidationService
 import fi.elsapalvelu.elsa.service.KoulutussuunnitelmaService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.service.dto.KoulutussuunnitelmaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -76,22 +77,14 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
         userId: String
     ): AsiakirjaDTO? {
         file?.let {
-            if (!fileValidationService.validate(listOf(it), userId)) {
+            if (!fileValidationService.validate(listOf(it), userId, listOf(MediaType.APPLICATION_PDF_VALUE))) {
                 throw BadRequestAlertException(
                     "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
                     ENTITY_NAME,
                     "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
                 )
             }
-
-            return AsiakirjaDTO(
-                nimi = file.originalFilename,
-                tyyppi = file.contentType,
-                asiakirjaData = AsiakirjaDataDTO(
-                    fileInputStream = file.inputStream,
-                    fileSize = file.size
-                )
-            )
+            return file.mapAsiakirja()
         }
 
         return null
