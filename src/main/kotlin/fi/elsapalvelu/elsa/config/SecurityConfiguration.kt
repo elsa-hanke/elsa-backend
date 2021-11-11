@@ -58,7 +58,6 @@ class SecurityConfiguration(
         web!!.ignoring()
             .antMatchers(HttpMethod.OPTIONS, "/**")
             .antMatchers("/h2-console/**")
-            .antMatchers("/swagger-ui/index.html")
             .antMatchers("/test/**")
     }
 
@@ -111,8 +110,6 @@ class SecurityConfiguration(
             .antMatchers("/management/info").denyAll()
             .antMatchers("/management/prometheus").denyAll()
             .antMatchers("/management/**").hasAuthority(ADMIN)
-            .antMatchers("/v2/api-docs").denyAll()
-            .antMatchers("/swagger-resources").denyAll()
             .and()
             .saml2Login()
             .authenticationConverter(

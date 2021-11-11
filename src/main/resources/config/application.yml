@@ -19,7 +19,7 @@ management:
     web:
       base-path: /management
       exposure:
-        include: [ 'configprops', 'env', 'health', 'info', 'jhimetrics', 'logfile', 'loggers', 'prometheus', 'threaddump' ]
+        include: [ 'configprops', 'env', 'health', 'info', 'jhimetrics', 'logfile', 'loggers', 'prometheus', 'threaddump', 'caches', 'liquibase' ]
   endpoint:
     health:
       show-details: when_authorized
@@ -30,6 +30,11 @@ management:
     git:
       mode: full
   health:
+    group:
+      liveness:
+        include: livenessState
+      readiness:
+        include: readinessState,datasource
     mail:
       enabled: false # When using the MailService, configure an SMTP server and set this to true
   metrics:
@@ -65,6 +70,9 @@ spring:
     # Otherwise, it will be filled in by gradle when building the JAR file
     # Either way, it can be overridden by `--spring.profiles.active` value passed in the commandline or `-Dspring.profiles.active` set in `JAVA_OPTS`
     active: #spring.profiles.active#
+    group:
+      dev:
+        - dev
   jmx:
     enabled: false
   data:
@@ -130,6 +138,7 @@ spring:
   output:
     ansi:
       console-available: true
+
 server:
   servlet:
     session:
@@ -168,22 +177,6 @@ jhipster:
   #     max-age: 1800
   mail:
     from: no-reply@mail.kehitys.elsapalvelu.fi
-  swagger:
-    default-include-pattern: /api/.*
-    title: ELSA-palvelu API
-    description: ELSA-palvelu API-dokumentaatio
-    version: 0.0.1
-    terms-of-service-url:
-    contact-name:
-    contact-url:
-    contact-email:
-    license: EUPL-1.2
-    license-url:
-  security:
-    oauth2:
-      audience:
-        - account
-        - api://default
 # ===================================================================
 # Application specific properties
 # Add your own application properties here, see the ApplicationProperties class
@@ -194,12 +187,6 @@ jhipster:
 # ===================================================================
 
 application:
-  keycloak:
-    admin:
-      server-url: http://localhost:9080/auth
-      realm: elsa
-      client-id: web-app-admin
-      client-secret: web-app-admin
   security:
     encoded-key:
     secret-key-algorithm: AES

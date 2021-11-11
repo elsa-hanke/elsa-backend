@@ -1,8 +1,6 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 
 class TyoskentelyjaksoMapperTest {
 
@@ -13,10 +11,4 @@ class TyoskentelyjaksoMapperTest {
         tyoskentelyjaksoMapper = TyoskentelyjaksoMapperImpl()
     }
 
-    @Test
-    fun testEntityFromId() {
-        val id = 1L
-        assertThat(tyoskentelyjaksoMapper.fromId(id)?.id).isEqualTo(id)
-        assertThat(tyoskentelyjaksoMapper.fromId(null)).isNull()
-    }
 }

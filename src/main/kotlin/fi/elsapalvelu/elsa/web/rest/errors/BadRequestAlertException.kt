@@ -19,7 +19,7 @@ open class BadRequestAlertException(type: URI, defaultMessage: String, val entit
     /**
      * @param defaultMessage ei lokalisoitu viesti. Älä käytä käyttöliittymässä!
      * @param entityName entiteetin nimi.
-     * @param errorKey kannosavain virheelle.
+     * @param errorKey käännösavain virheelle.
      */
     constructor(defaultMessage: String, entityName: String, errorKey: String) :
         this(DEFAULT_TYPE, defaultMessage, entityName, errorKey)

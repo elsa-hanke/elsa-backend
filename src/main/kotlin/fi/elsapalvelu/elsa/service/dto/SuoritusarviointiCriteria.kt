@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import io.github.jhipster.service.Criteria
-import io.github.jhipster.service.filter.IntegerFilter
-import io.github.jhipster.service.filter.LocalDateFilter
-import io.github.jhipster.service.filter.LongFilter
-import io.github.jhipster.service.filter.StringFilter
+import tech.jhipster.service.Criteria
+import tech.jhipster.service.filter.IntegerFilter
+import tech.jhipster.service.filter.LocalDateFilter
+import tech.jhipster.service.filter.LongFilter
+import tech.jhipster.service.filter.StringFilter
 import java.io.Serializable
 
 data class SuoritusarviointiCriteria(

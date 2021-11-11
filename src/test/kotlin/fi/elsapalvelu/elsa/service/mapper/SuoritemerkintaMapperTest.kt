@@ -1,8 +1,6 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 
 class SuoritemerkintaMapperTest {
 
@@ -13,10 +11,4 @@ class SuoritemerkintaMapperTest {
         suoritemerkintaMapper = SuoritemerkintaMapperImpl()
     }
 
-    @Test
-    fun testEntityFromId() {
-        val id = 1L
-        assertThat(suoritemerkintaMapper.fromId(id)?.id).isEqualTo(id)
-        assertThat(suoritemerkintaMapper.fromId(null)).isNull()
-    }
 }

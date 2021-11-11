@@ -2,8 +2,7 @@ package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.Yliopisto
 import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
-import org.mapstruct.Mapper
-import org.mapstruct.ReportingPolicy
+import org.mapstruct.*
 
 @Mapper(
     componentModel = "spring",
@@ -22,4 +21,18 @@ interface YliopistoMapper :
         yliopisto.id = id
         yliopisto
     }
+
+    @Named("id")
+    @BeanMapping(ignoreByDefault = true)
+    @Mappings(
+        Mapping(target = "id", source = "id")
+    )
+    fun toDtoId(yliopisto: Yliopisto): YliopistoDTO
+
+    @Named("idSet")
+    @BeanMapping(ignoreByDefault = true)
+    @Mappings(
+        Mapping(target = "id", source = "id")
+    )
+    fun toDtoIdSet(yliopisto: Set<Yliopisto>): Set<YliopistoDTO>
 }

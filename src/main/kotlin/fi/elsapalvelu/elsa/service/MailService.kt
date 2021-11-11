@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.User
-import io.github.jhipster.config.JHipsterProperties
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.mail.MailException
@@ -11,6 +10,7 @@ import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
 import org.thymeleaf.spring5.SpringTemplateEngine
+import tech.jhipster.config.JHipsterProperties
 import java.nio.charset.StandardCharsets
 import java.util.*
 import javax.mail.MessagingException

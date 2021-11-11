@@ -80,8 +80,7 @@ class OpenSamlLogoutRequestResolver(
             registry.builderFactory.getBuilder(NameID.DEFAULT_ELEMENT_NAME) as NameIDBuilder
         val logoutRequestBuilder =
             registry.builderFactory.getBuilder(LogoutRequest.DEFAULT_ELEMENT_NAME) as LogoutRequestBuilder
-        val principal =
-            (authentication as Saml2Authentication).principal as Saml2AuthenticatedPrincipal
+        val principal = authentication.principal as Saml2AuthenticatedPrincipal
         return OpenSamlLogoutRequestBuilder(
             registration,
             marshaller,

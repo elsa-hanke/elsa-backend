@@ -23,11 +23,9 @@ plugins {
     id "org.springframework.boot"
     id "com.google.cloud.tools.jib"
     id "com.gorylenko.gradle-git-properties"
-    id "net.ltgt.apt-idea"
-    id "net.ltgt.apt"
     id "org.liquibase.gradle"
     id "org.sonarqube"
-    id "io.spring.nohttp" version "0.0.9"
+    id "io.spring.nohttp"
     id "org.owasp.dependencycheck"
 }
 
@@ -36,9 +34,9 @@ version = "0.0.1-SNAPSHOT"
 
 description = ""
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-assert System.properties["java.specification.version"] == "1.8" || "11" || "12" || "13" || "14"
+sourceCompatibility = 11
+targetCompatibility = 11
+assert System.properties["java.specification.version"] == "11" || "12" || "13" || "14" || "15" || "16" || "17"
 
 apply from: "gradle/docker.gradle"
 apply from: "gradle/sonar.gradle"
@@ -48,10 +46,6 @@ if (project.hasProperty("prod")) {
     apply from: "gradle/profile_prod.gradle"
 } else {
     apply from: "gradle/profile_dev.gradle"
-}
-
-if (project.hasProperty("war")) {
-    apply from: "gradle/war.gradle"
 }
 
 idea {
@@ -69,14 +63,9 @@ springBoot {
 test {
     useJUnitPlatform()
     exclude "**/*IT*", "**/*IntTest*"
-
     testLogging {
         events 'FAILED', 'SKIPPED'
-        exceptionFormat = 'full'
     }
-    // uncomment if the tests reports are not generated
-    // see https://github.com/jhipster/generator-jhipster/pull/2771 and https://github.com/jhipster/generator-jhipster/pull/4484
-    // ignoreFailures true
     reports.html.enabled = false
 }
 
@@ -85,19 +74,12 @@ task integrationTest(type: Test) {
     description = "Execute integration tests."
     group = "verification"
     include "**/*IT*", "**/*IntTest*"
-
     testLogging {
         events 'FAILED', 'SKIPPED'
-        exceptionFormat = 'full'
     }
-
     if (project.hasProperty('testcontainers')) {
         environment 'spring.profiles.active', 'testcontainers'
     }
-
-    // uncomment if the tests reports are not generated
-    // see https://github.com/jhipster/generator-jhipster/pull/2771 and https://github.com/jhipster/generator-jhipster/pull/4484
-    // ignoreFailures true
     reports.html.enabled = false
 }
 
@@ -129,7 +111,7 @@ liquibase {
             defaultSchemaName ""
             logLevel "debug"
             classpath "src/main/resources/"
-            referenceUrl "hibernate:spring:fi.elsapalvelu.elsa.domain?dialect=io.github.jhipster.domain.util.FixedPostgreSQL10Dialect&hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
+            referenceUrl "hibernate:spring:fi.elsapalvelu.elsa.domain?dialect=tech.jhipster.domain.util.FixedPostgreSQL10Dialect&hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
         }
         diffLog {
             driver "org.postgresql.Driver"
@@ -137,14 +119,13 @@ liquibase {
             username "elsaBackend"
             password ""
             changeLogFile project.ext.diffChangelogFile
-            referenceUrl "hibernate:spring:fi.elsapalvelu.elsa.domain?dialect=io.github.jhipster.domain.util.FixedPostgreSQL10Dialect&hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
+            referenceUrl "hibernate:spring:fi.elsapalvelu.elsa.domain?dialect=tech.jhipster.domain.util.FixedPostgreSQL10Dialect&hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
             defaultSchemaName ""
             logLevel "debug"
             classpath "$buildDir/classes/java/main"
             excludeObjects "oauth_access_token, oauth_approvals, oauth_client_details, oauth_client_token, oauth_code, oauth_refresh_token"
         }
     }
-
     runList = project.ext.runList
 }
 
@@ -158,6 +139,7 @@ checkstyle {
     configFile file("checkstyle.xml")
     checkstyleTest.enabled = false
 }
+
 nohttp {
     source.include "build.gradle", "README.md"
 }
@@ -165,6 +147,7 @@ nohttp {
 dependencyCheck {
     failBuildOnCVSS = 5
     failOnError = true
+    suppressionFile = "owasp-suppressions.xml"
 }
 
 configurations {
@@ -174,7 +157,7 @@ configurations {
         resolutionStrategy {
             // Inherited version from Spring Boot can't be used because of regressions:
             // To be removed as soon as spring-boot use the same version
-            force 'org.liquibase:liquibase-core:3.9.0'
+            force 'org.liquibase:liquibase-core:4.5.0'
         }
     }
 }
@@ -187,10 +170,10 @@ repositories {
 
 dependencies {
     // import JHipster dependencies BOM
-    implementation platform("io.github.jhipster:jhipster-dependencies:${jhipsterDependenciesVersion}")
+    implementation platform("tech.jhipster:jhipster-dependencies:${jhipsterDependenciesVersion}")
     // Use ", version: jhipsterDependenciesVersion, changing: true" if you want
     // to use a SNAPSHOT release instead of a stable release
-    implementation group: "io.github.jhipster", name: "jhipster-framework"
+    implementation group: "tech.jhipster", name: "jhipster-framework"
     implementation "javax.annotation:javax.annotation-api"
     implementation "org.springframework.boot:spring-boot-starter-cache:${springBootVersion}"
     implementation "io.dropwizard.metrics:metrics-core"
@@ -234,10 +217,6 @@ dependencies {
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
     implementation "org.springframework.security:spring-security-web:${springSecurityVersion}"
     implementation "org.springframework.security:spring-security-saml2-service-provider:${springSecurityVersion}"
-    implementation("io.springfox:springfox-swagger2") {
-        exclude module: "mapstruct"
-    }
-    implementation "io.springfox:springfox-bean-validators"
     implementation "org.postgresql:postgresql:42.2.23"
     liquibaseRuntime "org.postgresql:postgresql"
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
@@ -245,11 +224,9 @@ dependencies {
     annotationProcessor "org.hibernate:hibernate-jpamodelgen:${hibernateVersion}"
     annotationProcessor "org.glassfish.jaxb:jaxb-runtime:${jaxbRuntimeVersion}"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
-    testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") {
-        exclude group: "org.junit.vintage", module: "junit-vintage-engine"
-    }
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.springframework.security:spring-security-test"
-    testImplementation "org.springframework.boot:spring-boot-test:${springBootVersion}"
+    testImplementation "org.springframework.boot:spring-boot-test"
     testImplementation "com.tngtech.archunit:archunit-junit5-api:${archunitJunit5Version}"
     testRuntimeOnly "com.tngtech.archunit:archunit-junit5-engine:${archunitJunit5Version}"
     testImplementation "com.h2database:h2"
@@ -270,7 +247,7 @@ task cleanResources(type: Delete) {
 }
 
 wrapper {
-    gradleVersion = "6.5"
+    gradleVersion = "7.0.2"
 }
 
 compileJava.dependsOn processResources
