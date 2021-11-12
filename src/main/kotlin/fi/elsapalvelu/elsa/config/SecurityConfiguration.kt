@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Profile
 import org.springframework.core.convert.converter.Converter
 import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AbstractAuthenticationToken
@@ -127,6 +128,7 @@ class SecurityConfiguration(
     }
 
     @Bean
+    @Profile("dev", "prod")
     fun authenticationRequestContextResolver(): Saml2AuthenticationRequestContextResolver? {
         val resolver: Saml2AuthenticationRequestContextResolver =
             DefaultSaml2AuthenticationRequestContextResolver(relyingPartyRegistrationResolver)
@@ -137,6 +139,7 @@ class SecurityConfiguration(
     }
 
     @Bean
+    @Profile("dev", "prod")
     fun authenticationRequestFactory(
         authnRequestConverter: ElsaAuthnRequestConverter?
     ): Saml2AuthenticationRequestFactory? {
