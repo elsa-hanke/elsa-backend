@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import io.github.jhipster.web.util.ResponseUtil
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URI
@@ -207,6 +208,27 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         val suoritusarviointiDTO = suoritusarviointiService
             .findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id, user.id!!)
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
+    }
+
+    @GetMapping("/suoritusarvioinnit/{id}/arviointi-liite")
+    fun getArviointiLiite(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<ByteArray> {
+        val user = userService.getAuthenticatedUser(principal)
+        val asiakirja =
+            suoritusarviointiService.findAsiakirjaBySuoritusarviointiIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+                id,
+                user.id!!
+            )
+
+        if (asiakirja != null) {
+            return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + asiakirja.nimi + "\"")
+                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
+                .body(asiakirja.asiakirjaData?.fileInputStream?.readBytes())
+        }
+        return ResponseEntity.notFound().build()
     }
 
     @DeleteMapping("/suoritusarvioinnit/{id}")

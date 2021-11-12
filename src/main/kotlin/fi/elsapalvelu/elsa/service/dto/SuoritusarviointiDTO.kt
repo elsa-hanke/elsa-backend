@@ -71,7 +71,11 @@ data class SuoritusarviointiDTO(
 
     var arviointiPerustuu: ArvioinninPerustuminen? = null,
 
-    var muuPeruste: String? = null
+    var muuPeruste: String? = null,
+
+    var arviointiAsiakirja: AsiakirjaDTO? = null,
+
+    var arviointiAsiakirjaUpdated: Boolean = false
 
 ) : Serializable {
 
