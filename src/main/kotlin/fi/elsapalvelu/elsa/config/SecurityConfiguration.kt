@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.config
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.convert.converter.Converter
 import org.springframework.http.HttpMethod
@@ -14,10 +15,9 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
-import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
-import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.security.saml2.provider.service.authentication.*
+import org.springframework.security.saml2.provider.service.web.DefaultSaml2AuthenticationRequestContextResolver
+import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationRequestContextResolver
 import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
@@ -33,6 +33,7 @@ import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
+import javax.servlet.http.HttpServletRequest
 
 
 @EnableWebSecurity
@@ -123,6 +124,25 @@ class SecurityConfiguration(
             .authenticationManager(ProviderManager(authenticationProvider))
             .defaultSuccessUrl("/", true) // TODO: ohjaa pyydettyyn front end näkymään
             .failureUrl("/") // TODO: Ohjaa kirjautumiseen tai front end näkymään
+    }
+
+    @Bean
+    fun authenticationRequestContextResolver(): Saml2AuthenticationRequestContextResolver? {
+        val resolver: Saml2AuthenticationRequestContextResolver =
+            DefaultSaml2AuthenticationRequestContextResolver(relyingPartyRegistrationResolver)
+        return Saml2AuthenticationRequestContextResolver { request: HttpServletRequest ->
+            val context = resolver.resolve(request)
+            context
+        }
+    }
+
+    @Bean
+    fun authenticationRequestFactory(
+        authnRequestConverter: ElsaAuthnRequestConverter?
+    ): Saml2AuthenticationRequestFactory? {
+        val authenticationRequestFactory = OpenSamlAuthenticationRequestFactory()
+        authenticationRequestFactory.setAuthenticationRequestContextConverter(authnRequestConverter)
+        return authenticationRequestFactory
     }
 
     fun authenticationConverter(): Converter<OpenSamlAuthenticationProvider.ResponseToken, AbstractAuthenticationToken> {
