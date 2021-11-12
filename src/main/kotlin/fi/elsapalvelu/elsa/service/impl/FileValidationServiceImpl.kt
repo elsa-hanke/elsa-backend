@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.FileValidationService
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 
@@ -12,13 +13,19 @@ class FileValidationServiceImpl(
     private val asiakirjaService: AsiakirjaService
 ) : FileValidationService {
 
-    private val allowedContentTypes = listOf("application/pdf", "image/jpg", "image/jpeg", "image/png")
+    private val defaultAllowedContentTypes: List<String> =
+        listOf(MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, "image/jpg")
 
-    override fun validate(files: List<MultipartFile>, userId: String): Boolean {
+    override fun validate(
+        files: List<MultipartFile>,
+        userId: String,
+        allowedContentTypes: List<String>?
+    ): Boolean {
+        val allowedContentTypesOrDefault = allowedContentTypes ?: defaultAllowedContentTypes
         val existingFileNames = asiakirjaService.findAllByErikoistuvaLaakariUserId(userId).map { it.nimi }
         if (files.any {
                 it.originalFilename?.toString() in existingFileNames ||
-                    it.contentType?.toString() !in allowedContentTypes ||
+                    it.contentType?.toString() !in allowedContentTypesOrDefault ||
                     it.name.length > MAXIMUM_FILE_NAME_LENGTH
             }) {
             return false
