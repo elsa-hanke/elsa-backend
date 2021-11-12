@@ -19,7 +19,8 @@ class ElsaAuthnRequestConverter(private val applicationProperties: ApplicationPr
 
     override fun convert(context: Saml2AuthenticationRequestContext): AuthnRequest {
         val issuer = issuerBuilder.buildObject()
-        issuer.value = if (context.issuer.contains("haka")) "haka" else context.issuer
+        issuer.value =
+            if (context.issuer.contains("haka")) "https://api.sandbox.elsapalvelu.fi/saml2/service-provider-metadata/haka" else context.issuer
 
         val authnRequest = requestBuilder.buildObject()
         authnRequest.issuer = issuer
