@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import java.time.LocalDate
 import java.util.*
@@ -22,6 +23,16 @@ interface SuoritusarviointiService {
         id: Long,
         userId: String
     ): Optional<SuoritusarviointiDTO>
+
+    fun findAsiakirjaBySuoritusarviointiIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+        id: Long,
+        userId: String
+    ): AsiakirjaDTO?
+
+    fun findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(
+        id: Long,
+        userId: String
+    ): AsiakirjaDTO?
 
     fun findForSeurantajakso(
         userId: String,

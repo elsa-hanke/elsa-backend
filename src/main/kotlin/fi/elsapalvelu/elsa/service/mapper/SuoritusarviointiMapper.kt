@@ -15,7 +15,8 @@ import org.mapstruct.ReportingPolicy
         ArvioitavaKokonaisuusMapper::class,
         TyoskentelyjaksoMapper::class,
         SuoritusarvioinninKommenttiMapper::class,
-        ArviointityokaluMapper::class
+        ArviointityokaluMapper::class,
+        AsiakirjaDataMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
@@ -26,7 +27,11 @@ interface SuoritusarviointiMapper :
         Mapping(source = "arvioinninAntaja.id", target = "arvioinninAntajaId"),
         Mapping(source = "arvioitavaOsaalue.id", target = "arvioitavaOsaalueId"),
         Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId"),
-        Mapping(source = "tyoskentelyjakso.erikoistuvaLaakari.kayttaja", target = "arvioinninSaaja")
+        Mapping(source = "tyoskentelyjakso.erikoistuvaLaakari.kayttaja", target = "arvioinninSaaja"),
+        Mapping(source = "arviointiLiiteNimi", target = "arviointiAsiakirja.nimi"),
+        Mapping(source = "arviointiLiiteTyyppi", target = "arviointiAsiakirja.tyyppi"),
+        Mapping(source = "arviointiLiiteLisattyPvm", target = "arviointiAsiakirja.lisattypvm"),
+        Mapping(source = "asiakirjaData", target = "arviointiAsiakirja.asiakirjaData")
     )
     override fun toDto(entity: Suoritusarviointi): SuoritusarviointiDTO
 
