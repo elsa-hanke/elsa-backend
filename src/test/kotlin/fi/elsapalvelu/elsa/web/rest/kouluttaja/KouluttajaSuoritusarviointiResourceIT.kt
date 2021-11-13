@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
@@ -7,9 +8,9 @@ import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
-import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavaKokonaisuusHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import org.assertj.core.api.Assertions.assertThat
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
@@ -27,9 +29,10 @@ import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
+import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.persistence.EntityManager
@@ -51,9 +54,16 @@ class KouluttajaSuoritusarviointiResourceIT {
     @Autowired
     private lateinit var restSuoritusarviointiMockMvc: MockMvc
 
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
     private lateinit var suoritusarviointi: Suoritusarviointi
 
     private lateinit var user: User
+
+    private lateinit var tempFile: File
+
+    private lateinit var mockMultipartFile: MockMultipartFile
 
     @BeforeEach
     fun setup() {
@@ -64,6 +74,7 @@ class KouluttajaSuoritusarviointiResourceIT {
     @Transactional
     fun updateSuoritusarviointi() {
         initTest()
+        initMockFile()
 
         suoritusarviointiRepository.saveAndFlush(suoritusarviointi)
 
@@ -81,12 +92,17 @@ class KouluttajaSuoritusarviointiResourceIT {
         updatedSuoritusarviointi.sanallinenArviointi = UPDATED_LISATIEDOT
         updatedSuoritusarviointi.arviointiasteikonTaso = 5
         updatedSuoritusarviointi.vaativuustaso = 5
-        val suoritusarviointiDTO = suoritusarviointiMapper.toDto(updatedSuoritusarviointi)
+        val suoritusarviointiDTO = suoritusarviointiMapper.toDto(updatedSuoritusarviointi).apply {
+            arviointiAsiakirjaUpdated = true
+        }
+
+        val updatedSuoritusarviointiJson = objectMapper.writeValueAsString(suoritusarviointiDTO)
 
         restSuoritusarviointiMockMvc.perform(
-            put("/api/kouluttaja/suoritusarvioinnit")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(suoritusarviointiDTO))
+            multipart("/api/kouluttaja/suoritusarvioinnit")
+                .file(mockMultipartFile)
+                .param("suoritusarviointiJson", updatedSuoritusarviointiJson)
+                .with { it.method = "PUT"; it }
                 .with(csrf())
         ).andExpect(status().isOk)
 
@@ -99,6 +115,25 @@ class KouluttajaSuoritusarviointiResourceIT {
         assertThat(testSuoritusarviointi.sanallinenArviointi).isEqualTo(UPDATED_LISATIEDOT)
         assertThat(testSuoritusarviointi.arviointiasteikonTaso).isEqualTo(5)
         assertThat(testSuoritusarviointi.vaativuustaso).isEqualTo(5)
+        assertThat(testSuoritusarviointi.arviointiLiiteNimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
+        assertThat(testSuoritusarviointi.arviointiLiiteTyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
+        val asiakirjaData = testSuoritusarviointi.asiakirjaData
+        assertThat(asiakirjaData?.data?.binaryStream?.readBytes()).isEqualTo(
+            AsiakirjaHelper.ASIAKIRJA_PDF_DATA
+        )
+    }
+
+    fun initMockFile() {
+        tempFile = File.createTempFile("file", "pdf")
+        tempFile.writeBytes(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        tempFile.deleteOnExit()
+
+        mockMultipartFile = MockMultipartFile(
+            "arviointiFile",
+            AsiakirjaHelper.ASIAKIRJA_PDF_NIMI,
+            AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI,
+            tempFile.readBytes()
+        )
     }
 
     @Test
