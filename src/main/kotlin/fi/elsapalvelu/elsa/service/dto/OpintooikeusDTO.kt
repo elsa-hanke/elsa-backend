@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.dto
 import java.io.Serializable
 import java.time.LocalDate
 
-data class OpiskeluoikeusDTO(
+data class OpintooikeusDTO(
 
     var id: Long? = null,
 
@@ -25,7 +25,7 @@ data class OpiskeluoikeusDTO(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is OpiskeluoikeusDTO) return false
+        if (other !is OpintooikeusDTO) return false
         return id != null && id == other.id
     }
 

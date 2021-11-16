@@ -22,10 +22,10 @@ data class KayttajahallintaErikoistuvaLaakariDTO(
     var opiskelijatunnus: String? = null,
 
     @get: NotNull
-    var opiskeluoikeusAlkaa: LocalDate? = null,
+    var opintooikeusAlkaa: LocalDate? = null,
 
     @get: NotNull
-    var opiskeluoikeusPaattyy: LocalDate? = null,
+    var opintooikeusPaattyy: LocalDate? = null,
 
     @get: NotNull
     var opintosuunnitelmaKaytossaPvm: LocalDate? = null,
