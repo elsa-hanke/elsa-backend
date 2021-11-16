@@ -28,12 +28,12 @@ class PoissaolonSyyServiceImpl(
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<PoissaolonSyyDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        val opiskeluoikeus = kirjautunutErikoistuvaLaakari?.opiskeluoikeudet?.firstOrNull()
+        val opintooikeus = kirjautunutErikoistuvaLaakari?.opintooikeudet?.firstOrNull()
 
         // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää
         // voimassaolon rajaamisessa
         return poissaolonSyyRepository.findAllByValid(
-            opiskeluoikeus?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
+            opintooikeus?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
         )
             .map(poissaolonSyyMapper::toDto)
     }

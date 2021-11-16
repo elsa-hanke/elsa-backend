@@ -253,8 +253,8 @@ class TekninenPaakayttajaKayttajahallintaResourceIT {
                 etunimi = "John",
                 sukunimi = "Doe",
                 opiskelijatunnus = "123456",
-                opiskeluoikeusAlkaa = LocalDate.ofEpochDay(0L),
-                opiskeluoikeusPaattyy = LocalDate.ofEpochDay(30L),
+                opintooikeusAlkaa = LocalDate.ofEpochDay(0L),
+                opintooikeusPaattyy = LocalDate.ofEpochDay(30L),
                 opintosuunnitelmaKaytossaPvm = LocalDate.ofEpochDay(0L),
                 sahkopostiosoite = "john.doe@example.com"
             )

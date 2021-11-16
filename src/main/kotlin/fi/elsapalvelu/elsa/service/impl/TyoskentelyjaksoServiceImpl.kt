@@ -291,7 +291,7 @@ class TyoskentelyjaksoServiceImpl(
         }
 
         val erikoisala =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.opiskeluoikeudet?.firstOrNull()?.erikoisala
+            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.opintooikeudet?.firstOrNull()?.erikoisala
         val yhteensaVaadittuVahintaan = erikoisala?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
         val arvioErikoistumiseenHyvaksyttavista =
             min(yhteensaVaadittuVahintaan / 2, tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu) +

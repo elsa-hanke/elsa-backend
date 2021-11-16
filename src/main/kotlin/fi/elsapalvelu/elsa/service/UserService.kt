@@ -33,7 +33,7 @@ class UserService(
     private val userRepository: UserRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
-    private val opiskeluoikeusRepository: OpiskeluoikeusRepository,
+    private val opintooikeusRepository: OpintooikeusRepository,
     private val erikoisalaRepository: ErikoisalaRepository,
     private val yliopistoRepository: YliopistoRepository
 ) {
@@ -93,10 +93,10 @@ class UserService(
         var erikoistuvaLaakari = ErikoistuvaLaakari(kayttaja = kayttaja)
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        // TODO: opiskeluoikeus opintotietojärjestelmstä
+        // TODO: opinto-oikeus opintotietojärjestelmstä
         val yliopisto = yliopistoRepository.findByIdOrNull(kayttooikeusHakemusDTO.yliopisto)
         val erikoisala = erikoisalaRepository.findByIdOrNull(46)
-        var opiskeluoikeus = Opiskeluoikeus(
+        var opintooikeus = Opintooikeus(
             opintooikeudenMyontamispaiva = LocalDate.now(ZoneId.systemDefault()),
             opintooikeudenPaattymispaiva = LocalDate.now(ZoneId.systemDefault()),
             opiskelijatunnus = "123456",
@@ -105,9 +105,9 @@ class UserService(
             yliopisto = yliopisto,
             erikoisala = erikoisala
         )
-        opiskeluoikeus = opiskeluoikeusRepository.save(opiskeluoikeus)
+        opintooikeus = opintooikeusRepository.save(opintooikeus)
 
-        erikoistuvaLaakari.opiskeluoikeudet.add(opiskeluoikeus)
+        erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
 

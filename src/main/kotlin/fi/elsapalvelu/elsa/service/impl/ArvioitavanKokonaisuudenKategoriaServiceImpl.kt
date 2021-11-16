@@ -40,11 +40,11 @@ class ArvioitavanKokonaisuudenKategoriaServiceImpl(
     ): List<ArvioitavanKokonaisuudenKategoriaDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        val opiskeluoikeus = kirjautunutErikoistuvaLaakari?.opiskeluoikeudet?.firstOrNull()
+        val opintooikeus = kirjautunutErikoistuvaLaakari?.opintooikeudet?.firstOrNull()
 
         return arvioitavanKokonaisuudenKategoriaRepository.findAllByErikoisalaIdAndValid(
-            opiskeluoikeus?.erikoisala?.id,
-            opiskeluoikeus?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
+            opintooikeus?.erikoisala?.id,
+            opintooikeus?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
         )
             .map(arvioitavanKokonaisuudenKategoriaMapper::toDto)
     }

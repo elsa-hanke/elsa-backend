@@ -287,7 +287,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         val erikoisala = ErikoisalaHelper.createEntity()
         em.persist(erikoisala)
         em.flush()
-        teoriakoulutus.erikoistuvaLaakari?.opiskeluoikeudet?.firstOrNull()?.erikoisala = erikoisala
+        teoriakoulutus.erikoistuvaLaakari?.opintooikeudet?.firstOrNull()?.erikoisala = erikoisala
         teoriakoulutusRepository.saveAndFlush(teoriakoulutus)
 
         restTeoriakoulutusMockMvc.perform(get(ENTITY_API_URL))

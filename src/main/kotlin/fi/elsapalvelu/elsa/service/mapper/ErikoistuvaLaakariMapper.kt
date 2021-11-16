@@ -12,7 +12,7 @@ import org.mapstruct.ReportingPolicy
     uses = [
         KayttajaMapper::class,
         ErikoisalaMapper::class,
-        OpiskeluoikeusMapper::class
+        OpintooikeusMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
