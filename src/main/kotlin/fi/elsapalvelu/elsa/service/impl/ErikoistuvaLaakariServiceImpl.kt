@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.OpiskeluoikeusRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.*
@@ -28,7 +28,7 @@ class ErikoistuvaLaakariServiceImpl(
     private val erikoisalaMapper: ErikoisalaMapper,
     private val userRepository: UserRepository,
     private val kayttajaRepository: KayttajaRepository,
-    private val opiskeluoikeusRepository: OpiskeluoikeusRepository,
+    private val opintooikeusRepository: OpintooikeusRepository,
     private val verificationTokenService: VerificationTokenService,
     private val mailService: MailService
 ) : ErikoistuvaLaakariService {
@@ -65,9 +65,9 @@ class ErikoistuvaLaakariServiceImpl(
         )
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        var opiskeluoikeus = Opiskeluoikeus(
-            opintooikeudenMyontamispaiva = kayttajahallintaErikoistuvaLaakariDTO.opiskeluoikeusAlkaa,
-            opintooikeudenPaattymispaiva = kayttajahallintaErikoistuvaLaakariDTO.opiskeluoikeusPaattyy,
+        var opintooikeus = Opintooikeus(
+            opintooikeudenMyontamispaiva = kayttajahallintaErikoistuvaLaakariDTO.opintooikeusAlkaa,
+            opintooikeudenPaattymispaiva = kayttajahallintaErikoistuvaLaakariDTO.opintooikeusPaattyy,
             opintosuunnitelmaKaytossaPvm = kayttajahallintaErikoistuvaLaakariDTO.opintosuunnitelmaKaytossaPvm,
             opiskelijatunnus = kayttajahallintaErikoistuvaLaakariDTO.opiskelijatunnus,
             erikoistuvaLaakari = erikoistuvaLaakari,
@@ -78,9 +78,9 @@ class ErikoistuvaLaakariServiceImpl(
                 erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!).orElse(null)
             )
         )
-        opiskeluoikeus = opiskeluoikeusRepository.save(opiskeluoikeus)
+        opintooikeus = opintooikeusRepository.save(opintooikeus)
 
-        erikoistuvaLaakari.opiskeluoikeudet.add(opiskeluoikeus)
+        erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
         val token = verificationTokenService.save(user.id!!)

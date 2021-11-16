@@ -416,7 +416,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         assertNotNull(id)
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
-        erikoistuvaLaakari.opiskeluoikeudet.firstOrNull()?.erikoisala =
+        erikoistuvaLaakari.opintooikeudet.firstOrNull()?.erikoisala =
             suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
@@ -444,7 +444,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         assertNotNull(id)
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
-        erikoistuvaLaakari.opiskeluoikeudet.firstOrNull()?.erikoisala =
+        erikoistuvaLaakari.opintooikeudet.firstOrNull()?.erikoisala =
             suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 

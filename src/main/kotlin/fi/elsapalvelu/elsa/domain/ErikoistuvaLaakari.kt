@@ -30,7 +30,7 @@ data class ErikoistuvaLaakari(
     @NotEmpty
     @OneToMany(mappedBy = "erikoistuvaLaakari")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var opiskeluoikeudet: MutableSet<Opiskeluoikeus> = mutableSetOf(),
+    var opintooikeudet: MutableSet<Opintooikeus> = mutableSetOf(),
 
     @OneToMany(mappedBy = "valtuuttaja")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -70,15 +70,15 @@ data class ErikoistuvaLaakari(
 ) : Serializable {
 
     fun getYliopistoNimi(): String? {
-        return this.opiskeluoikeudet.firstOrNull()?.yliopisto?.nimi
+        return this.opintooikeudet.firstOrNull()?.yliopisto?.nimi
     }
 
     fun getOpiskelijatunnus(): String? {
-        return this.opiskeluoikeudet.firstOrNull()?.opiskelijatunnus
+        return this.opintooikeudet.firstOrNull()?.opiskelijatunnus
     }
 
     fun getErikoisalaNimi(): String? {
-        return this.opiskeluoikeudet.firstOrNull()?.erikoisala?.nimi
+        return this.opintooikeudet.firstOrNull()?.erikoisala?.nimi
     }
 
     override fun equals(other: Any?): Boolean {
