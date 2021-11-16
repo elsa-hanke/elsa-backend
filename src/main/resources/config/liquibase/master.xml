@@ -121,5 +121,6 @@
     <include file="config/liquibase/changelog/20211101164954_added_constraints_kayttaja_relations.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211104160212_modify_entity_constraints_Erikoistuva_Laakari.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211111103611_modify_entity_constraints_suoritusarviointi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211116150522_modify_entity_with_constraints_Opiskeluoikeus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
