@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.KoulutussuunnitelmaRepository
 import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
@@ -17,7 +18,8 @@ import java.time.LocalDateTime
 class AsiakirjaServiceImpl(
     private val asiakirjaRepository: AsiakirjaRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
-    private val asiakirjaMapper: AsiakirjaMapper
+    private val asiakirjaMapper: AsiakirjaMapper,
+    private val koulutussuunnitelmaRepository: KoulutussuunnitelmaRepository
 ) : AsiakirjaService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -82,11 +84,24 @@ class AsiakirjaServiceImpl(
             asiakirja.erikoistuvaLaakari.let {
                 erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { kirjautunutErikoistuvaLaakari ->
                     if (kirjautunutErikoistuvaLaakari == it) {
+                        deleteKoulutussuunnitelmaReferenceIfExists(id)
                         asiakirjaRepository.deleteById(id)
                     }
                 }
             }
         }
+    }
+
+    private fun deleteKoulutussuunnitelmaReferenceIfExists(asiakirjaId: Long) {
+        koulutussuunnitelmaRepository.findOneByKoulutussuunnitelmaAsiakirjaIdOrMotivaatiokirjeAsiakirjaId(asiakirjaId)
+            ?.let {
+                if (it.koulutussuunnitelmaAsiakirja?.id == asiakirjaId) {
+                    it.koulutussuunnitelmaAsiakirja = null
+                }
+                else if (it.motivaatiokirjeAsiakirja?.id == asiakirjaId) {
+                    it.motivaatiokirjeAsiakirja = null
+                }
+            }
     }
 
     override fun delete(ids: List<Long>, userId: String) {
