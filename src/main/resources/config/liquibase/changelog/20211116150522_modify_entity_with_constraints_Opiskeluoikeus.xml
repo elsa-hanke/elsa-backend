@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211116150522-2" author="jhipster">
+
+        <renameTable oldTableName="opiskeluoikeus" newTableName="opintooikeus"/>
+        <dropAllForeignKeyConstraints baseTableName="opintooikeus" />
+        <addForeignKeyConstraint baseColumnNames="erikoistuva_laakari_id"
+                                 baseTableName="opintooikeus"
+                                 constraintName="fk_opintooikeus__erikoistuva_laakari_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="erikoistuva_laakari"/>
+        <addForeignKeyConstraint baseColumnNames="yliopisto_id"
+                                 baseTableName="opintooikeus"
+                                 constraintName="fk_opintooikeus__yliopisto_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="yliopisto"/>
+        <dropPrimaryKey tableName="opintooikeus" />
+        <addPrimaryKey tableName="opintooikeus" columnNames="id" />
+    </changeSet>
+</databaseChangeLog>
