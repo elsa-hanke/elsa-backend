@@ -10,4 +10,8 @@ interface SeurantajaksoRepository : JpaRepository<Seurantajakso, Long> {
     fun findByErikoistuvaLaakariKayttajaUserId(userId: String): List<Seurantajakso>
 
     fun findByIdAndErikoistuvaLaakariKayttajaUserId(id: Long, userId: String): Seurantajakso?
+
+    fun findByKouluttajaUserId(userId: String): List<Seurantajakso>
+
+    fun findByIdAndKouluttajaUserId(id: Long, userId: String): Seurantajakso?
 }

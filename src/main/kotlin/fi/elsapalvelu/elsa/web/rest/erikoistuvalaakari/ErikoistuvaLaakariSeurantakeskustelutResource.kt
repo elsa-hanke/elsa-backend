@@ -53,48 +53,12 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
         @RequestParam koulutusjaksot: List<Long>
     ): ResponseEntity<SeurantajaksonTiedotDTO> {
         val user = userService.getAuthenticatedUser(principal)
-
-        val arvioinnit =
-            suoritusarviointiService.findForSeurantajakso(user.id!!, alkamispaiva, paattymispaiva)
-        val arvioitavatKokonaisuudetMap = arvioinnit.groupBy { it.arvioitavaOsaalue }
-        val arvioitavatKategoriatMap = arvioitavatKokonaisuudetMap.keys.groupBy { it?.kategoria }
-        val kategoriat = arvioitavatKategoriatMap.map { (kategoria, kokonaisuudet) ->
-            SeurantajaksonArviointiKategoriaDTO(
-                kategoria?.nimi,
-                kategoria?.jarjestysnumero,
-                kokonaisuudet.map {
-                    SeurantajaksonArviointiKokonaisuusDTO(
-                        it?.nimi,
-                        arvioitavatKokonaisuudetMap[it]
-                    )
-                })
-        }.sortedBy { it.jarjestysnumero }
-
-        val suoritemerkinnat =
-            suoritemerkintaService.findForSeurantajakso(user.id!!, alkamispaiva, paattymispaiva)
-        val oppimistavoitteetMap = suoritemerkinnat.groupBy { it.oppimistavoite }
-        val oppimistavoitteet = oppimistavoitteetMap.map { (tavoite, suoritemerkinnat) ->
-            SeurantajaksonSuoritemerkintaDTO(tavoite?.nimi, suoritemerkinnat)
-        }
-
-        val koulutusjaksotDTO = koulutusjaksoService.findForSeurantajakso(koulutusjaksot, user.id!!)
-        val osaamistavoitteet =
-            koulutusjaksotDTO.map { jakso -> jakso.osaamistavoitteet.map { it.nimi } }.flatten()
-                .distinct()
-        val muutTavoitteet =
-            koulutusjaksotDTO.mapNotNull { jakso -> jakso.muutOsaamistavoitteet }
-                .distinct()
-        val teoriakoulutukset =
-            teoriakoulutusService.findForSeurantajakso(user.id!!, alkamispaiva, paattymispaiva)
         return ResponseEntity.ok(
-            SeurantajaksonTiedotDTO(
-                osaamistavoitteet = osaamistavoitteet,
-                muutOsaamistavoitteet = muutTavoitteet,
-                arvioinnit = kategoriat,
-                arviointienMaara = arvioinnit.size,
-                suoritemerkinnat = oppimistavoitteet,
-                suoritemerkinnatMaara = suoritemerkinnat.size,
-                teoriakoulutukset = teoriakoulutukset
+            seurantajaksoService.findSeurantajaksonTiedot(
+                user.id!!,
+                alkamispaiva,
+                paattymispaiva,
+                koulutusjaksot
             )
         )
     }
@@ -218,9 +182,9 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
 
         val seurantajakso = seurantajaksoService.findOne(id, user.id!!)
 
-        if (seurantajakso?.seurantakeskustelunYhteisetMerkinnat != null || seurantajakso?.kouluttajanArvio != null) {
+        if (seurantajakso?.seurantakeskustelunYhteisetMerkinnat != null) {
             throw BadRequestAlertException(
-                "Arvioitua tai keskustelut merkittyä seurantajaksoa ei saa poistaa",
+                "Keskustelut käytyä seurantajaksoa ei saa poistaa",
                 ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME,
                 "dataillegal.arvioitua-tai-keskustelut-merkittya-seurantajaksoa-ei-saa-poistaa"
             )

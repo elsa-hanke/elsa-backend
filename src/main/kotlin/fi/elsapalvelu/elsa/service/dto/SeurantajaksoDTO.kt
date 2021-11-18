@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.service.dto.enumeration.SeurantajaksoTila
 import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
@@ -43,7 +44,13 @@ data class SeurantajaksoDTO(
 
     var koulutusjaksot: MutableSet<KoulutusjaksoDTO>? = null,
 
-    var korjausehdotus: String? = null
+    var korjausehdotus: String? = null,
+
+    var tallennettu: LocalDate? = null,
+
+    var tila: SeurantajaksoTila? = null,
+
+    var aiemmatJaksot: List<SeurantajaksoDTO>? = null
 
 ) : Serializable {
     override fun toString() = "SeurantajaksoDTO"
