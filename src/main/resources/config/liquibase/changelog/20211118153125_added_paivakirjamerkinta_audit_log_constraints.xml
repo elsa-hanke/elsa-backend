@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211118153125-2" author="jhipster">
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="paivakirjamerkinta_audit"
+                                 constraintName="fk_paivakirjamerkinta_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="paivakirja_aihekategoria_audit"
+                                 constraintName="fk_paivakirja_aihekategoria_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="rel_paivakirjamerkinta__aihekategoria_audit"
+                                 constraintName="fk_rel_paivakirjamerkinta__aihekategoria_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+</databaseChangeLog>

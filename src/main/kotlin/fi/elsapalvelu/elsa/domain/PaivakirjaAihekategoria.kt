@@ -2,11 +2,13 @@ package fi.elsapalvelu.elsa.domain
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
 import java.io.Serializable
 import javax.persistence.*
 import javax.validation.constraints.NotNull
 
 @Entity
+@Audited
 @Table(name = "paivakirja_aihekategoria")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class PaivakirjaAihekategoria(

@@ -103,6 +103,7 @@
     <include file="config/liquibase/changelog/20211111103611_modify_entity_suoritusarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211111121659_added_entity_Paivakirjamerkinta.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211111121759_added_entity_PaivakirjaAihekategoria.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211118153125_added_paivakirjamerkinta_audit_log_entities.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
@@ -125,5 +126,6 @@
     <include file="config/liquibase/changelog/20211111103611_modify_entity_constraints_suoritusarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211116150522_modify_entity_with_constraints_Opiskeluoikeus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211111121659_added_entity_constraints_Paivakirjamerkinta.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211118153125_added_paivakirjamerkinta_audit_log_constraints.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
