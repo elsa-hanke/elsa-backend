@@ -3,12 +3,15 @@ package fi.elsapalvelu.elsa.domain
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.Type
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
 import javax.validation.constraints.NotNull
 
 @Entity
+@Audited
 @Table(name = "paivakirjamerkinta")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Paivakirjamerkinta(
@@ -53,6 +56,7 @@ data class Paivakirjamerkinta(
 
     @NotNull
     @ManyToOne(optional = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
     @ManyToOne
