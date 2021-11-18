@@ -2,10 +2,9 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.Seurantajakso
 import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.service.MailProperty
-import fi.elsapalvelu.elsa.service.MailService
-import fi.elsapalvelu.elsa.service.SeurantajaksoService
-import fi.elsapalvelu.elsa.service.dto.SeurantajaksoDTO
+import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.enumeration.SeurantajaksoTila
 import fi.elsapalvelu.elsa.service.mapper.SeurantajaksoMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,7 +22,11 @@ class SeurantajaksoServiceImpl(
     private val suoritemerkintaRepository: SuoritemerkintaRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val koulutusjaksoRepository: KoulutusjaksoRepository,
-    private val mailService: MailService
+    private val mailService: MailService,
+    private val suoritusarviointiService: SuoritusarviointiService,
+    private val suoritemerkintaService: SuoritemerkintaService,
+    private val koulutusjaksoService: KoulutusjaksoService,
+    private val teoriakoulutusService: TeoriakoulutusService
 ) : SeurantajaksoService {
 
     override fun create(
@@ -108,7 +111,7 @@ class SeurantajaksoServiceImpl(
             }
         }
 
-        if (seurantajakso.kouluttaja?.user?.id == userId) {
+        if (seurantajakso.kouluttaja?.user?.id == userId && seurantajakso.hyvaksytty != true) {
             seurantajakso.edistyminenTavoitteidenMukaista =
                 updatedSeurantajakso.edistyminenTavoitteidenMukaista
             seurantajakso.huolenaiheet = updatedSeurantajakso.huolenaiheet
@@ -116,7 +119,41 @@ class SeurantajaksoServiceImpl(
             seurantajakso.erikoisalanTyoskentelyvalmiudet =
                 updatedSeurantajakso.erikoisalanTyoskentelyvalmiudet
             seurantajakso.jatkotoimetJaRaportointi = updatedSeurantajakso.jatkotoimetJaRaportointi
+            seurantajakso.korjausehdotus = updatedSeurantajakso.korjausehdotus
+
+            if (seurantajakso.seurantakeskustelunYhteisetMerkinnat != null && seurantajakso.korjausehdotus == null) {
+                seurantajakso.hyvaksytty = true
+            }
+            if (seurantajakso.edistyminenTavoitteidenMukaista == true) {
+                seurantajakso.huolenaiheet = null
+            }
             seurantajakso = seurantajaksoRepository.save(seurantajakso)
+
+            if (seurantajakso.korjausehdotus != null) {
+                mailService.sendEmailFromTemplate(
+                    kayttajaRepository.findById(seurantajakso.erikoistuvaLaakari?.kayttaja?.id!!)
+                        .get().user!!,
+                    "seurantajaksoPalautettu.html",
+                    "email.seurantajaksopalautettu.title",
+                    properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
+                )
+            } else if (seurantajakso.hyvaksytty == true) {
+                mailService.sendEmailFromTemplate(
+                    kayttajaRepository.findById(seurantajakso.erikoistuvaLaakari?.kayttaja?.id!!)
+                        .get().user!!,
+                    "seurantajaksoHyvaksytty.html",
+                    "email.seurantajaksohyvaksytty.title",
+                    properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
+                )
+            } else {
+                mailService.sendEmailFromTemplate(
+                    kayttajaRepository.findById(seurantajakso.erikoistuvaLaakari?.kayttaja?.id!!)
+                        .get().user!!,
+                    "seurantajaksoArvioitu.html",
+                    "email.seurantajaksoarvioitu.title",
+                    properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
+                )
+            }
         }
 
         return seurantajaksoMapper.toDto(seurantajakso)
@@ -124,8 +161,30 @@ class SeurantajaksoServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): List<SeurantajaksoDTO> {
-        return seurantajaksoRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
+        val result = seurantajaksoRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
             .map(seurantajaksoMapper::toDto)
+        result.forEach { it.tila = SeurantajaksoTila.fromSeurantajakso(it) }
+        return result
+    }
+
+    @Transactional(readOnly = true)
+    override fun findByKouluttajaUserId(userId: String): List<SeurantajaksoDTO> {
+        val result = seurantajaksoRepository.findByKouluttajaUserId(userId)
+            .map(seurantajaksoMapper::toDto)
+        result.forEach { it.tila = SeurantajaksoTila.fromSeurantajakso(it) }
+        return result
+    }
+
+    @Transactional(readOnly = true)
+    override fun findByIdAndKouluttajaUserId(id: Long, userId: String): SeurantajaksoDTO? {
+        val result = seurantajaksoRepository
+            .findByIdAndKouluttajaUserId(id, userId)?.let {
+                seurantajaksoMapper.toDto(it)
+            }
+        if (result != null) {
+            result.tila = SeurantajaksoTila.fromSeurantajakso(result)
+        }
+        return result
     }
 
     @Transactional(readOnly = true)
@@ -133,10 +192,74 @@ class SeurantajaksoServiceImpl(
         id: Long,
         userId: String
     ): SeurantajaksoDTO? {
-        return seurantajaksoRepository
+        val result = seurantajaksoRepository
             .findByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)?.let {
                 seurantajaksoMapper.toDto(it)
             }
+        if (result != null) {
+            result.tila = SeurantajaksoTila.fromSeurantajakso(result)
+        }
+        return result
+    }
+
+    override fun findSeurantajaksonTiedot(
+        userId: String,
+        alkamispaiva: LocalDate,
+        paattymispaiva: LocalDate,
+        koulutusjaksot: List<Long>
+    ): SeurantajaksonTiedotDTO {
+        val arvioinnit =
+            suoritusarviointiService.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
+        val arvioitavatKokonaisuudetMap = arvioinnit.groupBy { it.arvioitavaOsaalue }
+        val arvioitavatKategoriatMap = arvioitavatKokonaisuudetMap.keys.groupBy { it?.kategoria }
+        val kategoriat = arvioitavatKategoriatMap.map { (kategoria, kokonaisuudet) ->
+            SeurantajaksonArviointiKategoriaDTO(
+                kategoria?.nimi,
+                kategoria?.jarjestysnumero,
+                kokonaisuudet.map {
+                    SeurantajaksonArviointiKokonaisuusDTO(
+                        it?.nimi,
+                        arvioitavatKokonaisuudetMap[it]
+                    )
+                })
+        }.sortedBy { it.jarjestysnumero }
+
+        val suoritemerkinnat =
+            suoritemerkintaService.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
+        val oppimistavoitteetMap = suoritemerkinnat.groupBy { it.oppimistavoite }
+        val oppimistavoitteet = oppimistavoitteetMap.map { (tavoite, suoritemerkinnat) ->
+            SeurantajaksonSuoritemerkintaDTO(tavoite?.nimi, suoritemerkinnat)
+        }
+
+        val koulutusjaksotDTO = koulutusjaksoService.findForSeurantajakso(koulutusjaksot, userId)
+        val osaamistavoitteet =
+            koulutusjaksotDTO.map { jakso -> jakso.osaamistavoitteet.map { it.nimi } }.flatten()
+                .distinct()
+        val muutTavoitteet =
+            koulutusjaksotDTO.mapNotNull { jakso -> jakso.muutOsaamistavoitteet }
+                .distinct()
+        val teoriakoulutukset =
+            teoriakoulutusService.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
+        return SeurantajaksonTiedotDTO(
+            osaamistavoitteet = osaamistavoitteet,
+            muutOsaamistavoitteet = muutTavoitteet,
+            arvioinnit = kategoriat,
+            arviointienMaara = arvioinnit.size,
+            suoritemerkinnat = oppimistavoitteet,
+            suoritemerkinnatMaara = suoritemerkinnat.size,
+            teoriakoulutukset = teoriakoulutukset
+        )
+    }
+
+    override fun findSeurantajaksonTiedot(id: Long, userId: String): SeurantajaksonTiedotDTO {
+        val seurantajakso = seurantajaksoRepository.findByIdAndKouluttajaUserId(id, userId)
+
+        return findSeurantajaksonTiedot(
+            seurantajakso?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+            seurantajakso.alkamispaiva!!,
+            seurantajakso.paattymispaiva!!,
+            seurantajakso.koulutusjaksot?.map { it.id!! }.orEmpty()
+        )
     }
 
     override fun delete(id: Long, userId: String) {

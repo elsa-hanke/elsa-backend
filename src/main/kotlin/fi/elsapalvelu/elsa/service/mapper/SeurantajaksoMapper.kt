@@ -8,7 +8,7 @@ import org.mapstruct.ReportingPolicy
 
 @Mapper(
     componentModel = "spring",
-    uses = [KayttajaMapper::class],
+    uses = [KayttajaMapper::class, ErikoistuvaLaakariMapper::class],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
 interface SeurantajaksoMapper :
