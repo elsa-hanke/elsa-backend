@@ -6,6 +6,7 @@ import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.*
@@ -14,6 +15,7 @@ import javax.validation.constraints.NotNull
 @Entity
 @Audited
 @Table(name = "seurantajakso")
+@EntityListeners(AuditingEntityListener::class)
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Seurantajakso(
 
