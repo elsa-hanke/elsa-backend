@@ -112,21 +112,26 @@ class SeurantajaksoServiceImpl(
         }
 
         if (seurantajakso.kouluttaja?.user?.id == userId && seurantajakso.hyvaksytty != true) {
-            seurantajakso.edistyminenTavoitteidenMukaista =
-                updatedSeurantajakso.edistyminenTavoitteidenMukaista
-            seurantajakso.huolenaiheet = updatedSeurantajakso.huolenaiheet
-            seurantajakso.kouluttajanArvio = updatedSeurantajakso.kouluttajanArvio
-            seurantajakso.erikoisalanTyoskentelyvalmiudet =
-                updatedSeurantajakso.erikoisalanTyoskentelyvalmiudet
-            seurantajakso.jatkotoimetJaRaportointi = updatedSeurantajakso.jatkotoimetJaRaportointi
-            seurantajakso.korjausehdotus = updatedSeurantajakso.korjausehdotus
+            if (updatedSeurantajakso.korjausehdotus != null) {
+                seurantajakso.korjausehdotus = updatedSeurantajakso.korjausehdotus
+            } else {
+                seurantajakso.edistyminenTavoitteidenMukaista =
+                    updatedSeurantajakso.edistyminenTavoitteidenMukaista
+                seurantajakso.huolenaiheet = updatedSeurantajakso.huolenaiheet
+                seurantajakso.kouluttajanArvio = updatedSeurantajakso.kouluttajanArvio
+                seurantajakso.erikoisalanTyoskentelyvalmiudet =
+                    updatedSeurantajakso.erikoisalanTyoskentelyvalmiudet
+                seurantajakso.jatkotoimetJaRaportointi =
+                    updatedSeurantajakso.jatkotoimetJaRaportointi
 
-            if (seurantajakso.seurantakeskustelunYhteisetMerkinnat != null && seurantajakso.korjausehdotus == null) {
-                seurantajakso.hyvaksytty = true
+                if (seurantajakso.seurantakeskustelunYhteisetMerkinnat != null && seurantajakso.korjausehdotus == null) {
+                    seurantajakso.hyvaksytty = true
+                }
+                if (seurantajakso.edistyminenTavoitteidenMukaista == true) {
+                    seurantajakso.huolenaiheet = null
+                }
             }
-            if (seurantajakso.edistyminenTavoitteidenMukaista == true) {
-                seurantajakso.huolenaiheet = null
-            }
+
             seurantajakso = seurantajaksoRepository.save(seurantajakso)
 
             if (seurantajakso.korjausehdotus != null) {
