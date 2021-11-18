@@ -5,8 +5,6 @@ import fi.elsapalvelu.elsa.repository.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.service.PaivakirjamerkintaService
 import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.PaivakirjamerkintaMapper
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -25,12 +23,6 @@ class PaivakirjamerkintaServiceImpl(
             paivakirjamerkinta = paivakirjamerkintaRepository.save(paivakirjamerkinta)
             paivakirjamerkintaMapper.toDto(paivakirjamerkinta)
         }
-    }
-
-    @Transactional(readOnly = true)
-    override fun findAll(pageable: Pageable, userId: String): Page<PaivakirjamerkintaDTO> {
-        return paivakirjamerkintaRepository.findAllByErikoistuvaLaakariKayttajaUserId(pageable, userId)
-            .map(paivakirjamerkintaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
