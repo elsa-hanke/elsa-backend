@@ -47,6 +47,7 @@ spring:
       hibernate.generate_statistics: false
       hibernate.hbm2ddl.auto: update
       hibernate.jdbc.time_zone: UTC
+      hibernate.query.fail_on_pagination_over_collection_fetch: true
   liquibase:
     contexts: test
   mail:
@@ -117,10 +118,6 @@ jhipster:
   mail:
     from: test@localhost
     base-url: http://127.0.0.1:8080
-  metrics:
-    logs: # Reports metrics in the logs
-      enabled: true
-      report-frequency: 60 # in seconds
 
 # ===================================================================
 # Application specific properties
