@@ -25,7 +25,7 @@ interface SuoritusarviointiMapper :
 
     @Mappings(
         Mapping(source = "arvioinninAntaja.id", target = "arvioinninAntajaId"),
-        Mapping(source = "arvioitavaOsaalue.id", target = "arvioitavaOsaalueId"),
+        Mapping(source = "arvioitavaKokonaisuus.id", target = "arvioitavaKokonaisuusId"),
         Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId"),
         Mapping(source = "tyoskentelyjakso.erikoistuvaLaakari.kayttaja", target = "arvioinninSaaja"),
         Mapping(source = "arviointiLiiteNimi", target = "arviointiAsiakirja.nimi"),
@@ -38,7 +38,7 @@ interface SuoritusarviointiMapper :
     @Mappings(
         Mapping(target = "kommentit", ignore = true),
         Mapping(source = "arvioinninAntajaId", target = "arvioinninAntaja"),
-        Mapping(source = "arvioitavaOsaalueId", target = "arvioitavaOsaalue"),
+        Mapping(source = "arvioitavaKokonaisuusId", target = "arvioitavaKokonaisuus"),
         Mapping(source = "tyoskentelyjaksoId", target = "tyoskentelyjakso")
     )
     override fun toEntity(dto: SuoritusarviointiDTO): Suoritusarviointi

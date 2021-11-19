@@ -87,7 +87,7 @@ class SuoritusarviointiHelper {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaOsaalue = arvioitavaKokonaisuus
+            suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuus
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
@@ -140,7 +140,7 @@ class SuoritusarviointiHelper {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaOsaalue = arvioitavaKokonaisuus
+            suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuus
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso

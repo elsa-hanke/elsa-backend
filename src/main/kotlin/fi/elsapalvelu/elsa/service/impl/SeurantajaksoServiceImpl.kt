@@ -215,7 +215,7 @@ class SeurantajaksoServiceImpl(
     ): SeurantajaksonTiedotDTO {
         val arvioinnit =
             suoritusarviointiService.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
-        val arvioitavatKokonaisuudetMap = arvioinnit.groupBy { it.arvioitavaOsaalue }
+        val arvioitavatKokonaisuudetMap = arvioinnit.groupBy { it.arvioitavaKokonaisuus }
         val arvioitavatKategoriatMap = arvioitavatKokonaisuudetMap.keys.groupBy { it?.kategoria }
         val kategoriat = arvioitavatKategoriatMap.map { (kategoria, kokonaisuudet) ->
             SeurantajaksonArviointiKategoriaDTO(
