@@ -15,7 +15,6 @@ data class SuoritusarviointiDTO(
     @get: NotNull
     var tapahtumanAjankohta: LocalDate? = null,
 
-    @get: NotNull
     var arvioitavaTapahtuma: String? = null,
 
     var pyynnonAika: LocalDate? = null,

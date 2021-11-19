@@ -30,8 +30,7 @@ data class Suoritusarviointi(
     @Column(name = "tapahtuman_ajankohta", nullable = false)
     var tapahtumanAjankohta: LocalDate? = null,
 
-    @get: NotNull
-    @Column(name = "arvioitava_tapahtuma", nullable = false)
+    @Column(name = "arvioitava_tapahtuma")
     var arvioitavaTapahtuma: String? = null,
 
     @get: NotNull
