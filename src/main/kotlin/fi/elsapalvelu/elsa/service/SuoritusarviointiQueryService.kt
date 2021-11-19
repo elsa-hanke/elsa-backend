@@ -122,12 +122,12 @@ class SuoritusarviointiQueryService(
                         )
                     )
             }
-            if (criteria.arvioitavaOsaalueId != null) {
+            if (criteria.arvioitavaKokonaisuusId != null) {
                 specification = specification
                     .and(
                         buildReferringEntitySpecification(
-                            criteria.arvioitavaOsaalueId,
-                            Suoritusarviointi_.arvioitavaOsaalue,
+                            criteria.arvioitavaKokonaisuusId,
+                            Suoritusarviointi_.arvioitavaKokonaisuus,
                             ArvioitavaKokonaisuus_.id
                         )
                     )
