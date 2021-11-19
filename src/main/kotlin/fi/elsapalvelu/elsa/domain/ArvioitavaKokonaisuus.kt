@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -34,22 +33,14 @@ data class ArvioitavaKokonaisuus(
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["arvioitavatKokonaisuudet"], allowSetters = true)
     var erikoisala: Erikoisala? = null,
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["arvioitavatKokonaisuudet"], allowSetters = true)
     var kategoria: ArvioitavanKokonaisuudenKategoria? = null,
 
     @ManyToMany(mappedBy = "osaamistavoitteet")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(
-        value = [
-            "tyoskentelyjaksot", "osaamistavoitteet"
-        ],
-        allowSetters = true
-    )
     var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf()
 
 ) : Serializable {

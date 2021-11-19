@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -36,7 +35,6 @@ data class Tyoskentelypaikka(
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["tyoskentelypaikat"], allowSetters = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var kunta: Kunta? = null,
 

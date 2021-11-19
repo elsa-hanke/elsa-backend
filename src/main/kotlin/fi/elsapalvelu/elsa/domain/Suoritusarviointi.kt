@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -90,19 +89,16 @@ data class Suoritusarviointi(
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var arvioinninAntaja: Kayttaja? = null,
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var arvioitavaOsaalue: ArvioitavaKokonaisuus? = null,
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["suoritusarvioinnit"], allowSetters = true)
     var tyoskentelyjakso: Tyoskentelyjakso? = null,
 
     @ManyToMany
@@ -139,7 +135,7 @@ data class Suoritusarviointi(
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var asiakirjaData: AsiakirjaData? = null
 
-    ) : Serializable {
+) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

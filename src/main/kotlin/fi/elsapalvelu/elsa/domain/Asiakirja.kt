@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.sun.istack.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -27,16 +26,9 @@ data class Asiakirja(
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
     @ManyToOne(optional = true)
-    @JsonIgnoreProperties(value = ["asiakirjat"], allowSetters = true)
     var tyoskentelyjakso: Tyoskentelyjakso? = null,
 
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(
-        value = [
-            "todistukset", "erikoistuvaLaakari"
-        ],
-        allowSetters = true
-    )
     var teoriakoulutus: Teoriakoulutus? = null,
 
     @NotNull

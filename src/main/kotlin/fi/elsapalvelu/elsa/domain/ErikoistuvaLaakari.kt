@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -42,12 +41,6 @@ data class ErikoistuvaLaakari(
 
     @OneToMany(mappedBy = "erikoistuvaLaakari")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(
-        value = [
-            "erikoistuvaLaakari"
-        ],
-        allowSetters = true
-    )
     var teoriakoulutukset: MutableSet<Teoriakoulutus>? = mutableSetOf(),
 
     @NotNull
@@ -57,13 +50,7 @@ data class ErikoistuvaLaakari(
     @NotNull
     @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
     var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu? = null,
-
-    @JsonIgnoreProperties(
-        value = [
-            "erikoistuvaLaakari", "koulutussuunnitelmaAsiakirja", "motivaatiokirjeAsiakirja"
-        ],
-        allowSetters = true
-    )
+    
     @OneToOne(mappedBy = "erikoistuvaLaakari")
     var koulutussuunnitelma: Koulutussuunnitelma? = null
 
