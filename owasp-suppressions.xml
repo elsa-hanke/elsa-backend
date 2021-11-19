@@ -613,4 +613,27 @@
         <cve>CVE-2017-5929</cve>
     </suppress>
     <!-- /UNLIKELY VULNERABILITIES 2021-08-23 -->
+    <!-- UNLIKELY VULNERABILITIES 2021-11-19 -->
+    <suppress>
+        <notes><![CDATA[
+   file name: micrometer-registry-prometheus-1.7.4.jar
+   ]]></notes>
+        <sha1>7cc097dbfc91c1742fe1efdb95cee44ea5dc8e16</sha1>
+        <cpe>cpe:/a:prometheus:prometheus</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: postgresql-1.16.0.jar
+   ]]></notes>
+        <sha1>ff004be81a0bf47782f8aea1850e75d9ff6d6947</sha1>
+        <cpe>cpe:/a:postgresql:postgresql</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: velocity-1.7.jar
+   ]]></notes>
+        <sha1>2ceb567b8f3f21118ecdec129fe1271dbc09aa7a</sha1>
+        <cve>CVE-2020-13936</cve>
+    </suppress>
+    <!-- /UNLIKELY VULNERABILITIES 2021-11-19 -->
 </suppressions>
