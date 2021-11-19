@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -31,7 +30,6 @@ class Oppimistavoite(
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["oppimistavoitteet"], allowSetters = true)
     var kategoria: OppimistavoitteenKategoria? = null
 
 ) : Serializable {

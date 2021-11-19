@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.Type
@@ -51,18 +50,6 @@ data class Koulutusjakso(
             JoinColumn(name = "tyoskentelyjakso_id")
         ]
     )
-    @JsonIgnoreProperties(
-        value = [
-            "tyoskentelypaikka",
-            "suoritusarvioinnit",
-            "suoritemerkinnat",
-            "keskeytykset",
-            "omaaErikoisalaaTukeva",
-            "erikoistuvaLaakari",
-            "koulutusjaksot"
-        ],
-        allowSetters = true
-    )
     var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso>? = mutableSetOf(),
 
     @ManyToMany
@@ -76,29 +63,11 @@ data class Koulutusjakso(
             JoinColumn(name = "osaamistavoitteet_id")
         ]
     )
-    @JsonIgnoreProperties(
-        value = [
-            "arvioitavatOsaalueet",
-            "erikoisala",
-            "kategoria",
-            "koulutusjaksot"
-        ],
-        allowSetters = true
-    )
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var osaamistavoitteet: MutableSet<ArvioitavaKokonaisuus>? = mutableSetOf(),
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(
-        value = [
-            "erikoistuvaLaakari",
-            "koulutussuunnitelmaAsiakirja",
-            "motivaatiokirjeAsiakirja",
-            "koulutusjaksot"
-        ],
-        allowSetters = true
-    )
     var koulutussuunnitelma: Koulutussuunnitelma? = null
 
 ) : Serializable {

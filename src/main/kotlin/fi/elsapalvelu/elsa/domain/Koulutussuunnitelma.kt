@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.Type
@@ -75,55 +74,22 @@ data class Koulutussuunnitelma(
     @Column(name = "elamankentta_yksityinen", nullable = false)
     var elamankenttaYksityinen: Boolean = false,
 
-    @JsonIgnoreProperties(
-        value = [
-            "kayttaja",
-            "annetutValtuutukset",
-            "tyoskentelyjaksot",
-            "erikoisala",
-            "koejaksonKoulutussopimus",
-            "koejaksonAloituskeskustelu"
-        ],
-        allowSetters = true
-    )
     @NotNull
     @OneToOne(optional = false)
     @JoinColumn(unique = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
-    @JsonIgnoreProperties(
-        value = [
-            "erikoistuvaLaakari",
-            "tyoskentelyjakso",
-        ],
-        allowSetters = true
-    )
     @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(unique = true)
     var koulutussuunnitelmaAsiakirja: Asiakirja? = null,
 
-    @JsonIgnoreProperties(
-        value = [
-            "erikoistuvaLaakari",
-            "tyoskentelyjakso",
-        ],
-        allowSetters = true
-    )
     @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(unique = true)
     var motivaatiokirjeAsiakirja: Asiakirja? = null,
 
     @OneToMany(mappedBy = "koulutussuunnitelma")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(
-        value = [
-            "tyoskentelyjaksot",
-            "osaamistavoitteet",
-            "koulutussuunnitelma"
-        ],
-        allowSetters = true
-    )
     var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf()
 
 ) : Serializable {

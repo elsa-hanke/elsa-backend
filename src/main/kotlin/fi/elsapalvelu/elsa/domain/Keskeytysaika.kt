@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
@@ -39,13 +38,11 @@ data class Keskeytysaika(
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["keskeytykset"], allowSetters = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var poissaolonSyy: PoissaolonSyy? = null,
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["keskeytykset"], allowSetters = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var tyoskentelyjakso: Tyoskentelyjakso? = null
 

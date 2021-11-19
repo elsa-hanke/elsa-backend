@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import fi.elsapalvelu.elsa.domain.enumeration.ArviointiasteikonTasoTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -30,7 +29,6 @@ data class ArviointiasteikonTaso(
     var nimi: ArviointiasteikonTasoTyyppi? = null,
 
     @ManyToOne
-    @JsonIgnoreProperties(value = ["tasot"], allowSetters = true)
     var arviointiasteikko: Arviointiasteikko? = null
 
 ) : Serializable {

@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.Type
@@ -51,13 +50,11 @@ data class Suoritemerkinta(
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["suoritemerkinnat"], allowSetters = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var oppimistavoite: Oppimistavoite? = null,
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["suoritemerkinnat"], allowSetters = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var tyoskentelyjakso: Tyoskentelyjakso? = null
 

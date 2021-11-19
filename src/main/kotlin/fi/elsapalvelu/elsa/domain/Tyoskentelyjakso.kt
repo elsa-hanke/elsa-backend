@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -65,13 +64,11 @@ data class Tyoskentelyjakso(
     var keskeytykset: MutableSet<Keskeytysaika> = mutableSetOf(),
 
     @ManyToOne
-    @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var omaaErikoisalaaTukeva: Erikoisala? = null,
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(value = ["tyoskentelyjaksot"], allowSetters = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
@@ -83,12 +80,6 @@ data class Tyoskentelyjakso(
 
     @ManyToMany(mappedBy = "tyoskentelyjaksot")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(
-        value = [
-            "tyoskentelyjaksot", "osaamistavoitteet"
-        ],
-        allowSetters = true
-    )
     var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf()
 
 ) : Serializable {

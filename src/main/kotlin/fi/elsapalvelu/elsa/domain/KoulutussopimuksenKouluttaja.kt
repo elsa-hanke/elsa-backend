@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
@@ -52,7 +51,6 @@ data class KoulutussopimuksenKouluttaja(
     var kuittausaika: LocalDate? = null,
 
     @ManyToOne
-    @JsonIgnoreProperties(value = ["koulutussopimuksenKouluttajat"], allowSetters = true)
     var koulutussopimus: KoejaksonKoulutussopimus? = null
 
 ) : Serializable {
