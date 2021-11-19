@@ -95,7 +95,7 @@ data class Suoritusarviointi(
     @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var arvioitavaOsaalue: ArvioitavaKokonaisuus? = null,
+    var arvioitavaKokonaisuus: ArvioitavaKokonaisuus? = null,
 
     @NotNull
     @ManyToOne(optional = false)
@@ -117,19 +117,15 @@ data class Suoritusarviointi(
     @Column(name = "muu_peruste")
     var muuPeruste: String? = null,
 
-    @NotNull
-    @Column(name = "arviointi_liite_nimi", nullable = false)
+    @Column(name = "arviointi_liite_nimi")
     var arviointiLiiteNimi: String? = null,
 
-    @NotNull
-    @Column(name = "arviointi_liite_tyyppi", nullable = false)
+    @Column(name = "arviointi_liite_tyyppi")
     var arviointiLiiteTyyppi: String? = null,
 
-    @NotNull
-    @Column(name = "arviointi_liite_lisattypvm", nullable = false)
+    @Column(name = "arviointi_liite_lisattypvm")
     var arviointiLiiteLisattyPvm: LocalDateTime? = null,
 
-    @NotNull
     @OneToOne(optional = false, cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(unique = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)

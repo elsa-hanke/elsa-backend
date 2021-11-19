@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211118171022-2" author="jhipster">
+        <dropForeignKeyConstraint baseTableName="suoritusarviointi"
+                                  constraintName="fk_suoritusarviointi_arvioitava_osaalue_id"/>
+
+        <addForeignKeyConstraint baseTableName="suoritusarviointi" baseColumnNames="arvioitava_kokonaisuus_id"
+                                 constraintName="fk_suoritusarviointi_arvioitava_kokonaisuus_id"
+                                 referencedTableName="arvioitava_kokonaisuus"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

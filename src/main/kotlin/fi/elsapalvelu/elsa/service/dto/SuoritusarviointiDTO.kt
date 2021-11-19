@@ -49,21 +49,25 @@ data class SuoritusarviointiDTO(
 
     var arviointiAika: LocalDate? = null,
 
+    @get: NotNull
     var lukittu: Boolean = false,
 
     var kommentit: MutableSet<SuoritusarvioinninKommenttiDTO>? = null,
 
+    @get: NotNull
     var arvioinninAntajaId: Long? = null,
 
-    var arvioitavaOsaalueId: Long? = null,
+    @get: NotNull
+    var arvioitavaKokonaisuusId: Long? = null,
 
+    @get: NotNull
     var tyoskentelyjaksoId: Long? = null,
 
     var arvioinninSaaja: KayttajaDTO? = null,
 
     var arvioinninAntaja: KayttajaDTO? = null,
 
-    var arvioitavaOsaalue: ArvioitavaKokonaisuusDTO? = null,
+    var arvioitavaKokonaisuus: ArvioitavaKokonaisuusDTO? = null,
 
     var tyoskentelyjakso: TyoskentelyjaksoDTO? = null,
 

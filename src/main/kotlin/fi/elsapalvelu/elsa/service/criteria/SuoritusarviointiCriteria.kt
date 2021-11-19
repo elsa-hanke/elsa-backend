@@ -25,7 +25,7 @@ data class SuoritusarviointiCriteria(
 
     var tyoskentelyjaksoId: LongFilter? = null,
 
-    var arvioitavaOsaalueId: LongFilter? = null,
+    var arvioitavaKokonaisuusId: LongFilter? = null,
 
     var arvioinninAntajaId: LongFilter? = null
 
@@ -41,7 +41,7 @@ data class SuoritusarviointiCriteria(
             other.sanallinenArviointi?.copy(),
             other.arviointiAika?.copy(),
             other.tyoskentelyjaksoId?.copy(),
-            other.arvioitavaOsaalueId?.copy(),
+            other.arvioitavaKokonaisuusId?.copy(),
             other.arvioinninAntajaId?.copy()
         )
 

@@ -89,8 +89,8 @@ class SuoritusarviointiServiceImpl(
             suoritusarviointi.itsearviointiAika = LocalDate.now(ZoneId.systemDefault())
         } else {
             // Arviointipyynnön muokkaus
-            suoritusarviointi.arvioitavaOsaalue = arvioitavaKokonaisuusRepository
-                .findByIdOrNull(suoritusarviointiDTO.arvioitavaOsaalueId)
+            suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuusRepository
+                .findByIdOrNull(suoritusarviointiDTO.arvioitavaKokonaisuusId)
             suoritusarviointi.arvioitavaTapahtuma = suoritusarviointiDTO.arvioitavaTapahtuma
             suoritusarviointi.lisatiedot = suoritusarviointiDTO.lisatiedot
             suoritusarviointi.tapahtumanAjankohta = suoritusarviointiDTO.tapahtumanAjankohta
