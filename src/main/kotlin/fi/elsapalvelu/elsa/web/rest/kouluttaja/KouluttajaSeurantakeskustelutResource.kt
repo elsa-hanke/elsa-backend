@@ -56,13 +56,7 @@ class KouluttajaSeurantakeskustelutResource(
         @RequestParam id: Long
     ): ResponseEntity<SeurantajaksonTiedotDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val seurantajakso = seurantajaksoService.findByIdAndKouluttajaUserId(id, user.id!!)
-        return ResponseEntity.ok(
-            seurantajaksoService.findSeurantajaksonTiedot(
-                seurantajakso?.id!!,
-                user.id!!
-            )
-        )
+        return ResponseEntity.ok(seurantajaksoService.findSeurantajaksonTiedot(id, user.id!!))
     }
 
     @PutMapping("/seurantajakso/{id}")
