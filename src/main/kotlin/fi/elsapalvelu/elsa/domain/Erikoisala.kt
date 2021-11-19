@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -70,7 +69,6 @@ data class Erikoisala(
     var yliopistot: MutableSet<Yliopisto> = mutableSetOf(),
 
     @ManyToOne
-    @JsonIgnoreProperties(value = ["erikoisalat"], allowSetters = true)
     var arviointiasteikko: Arviointiasteikko? = null
 
 ) : Serializable {

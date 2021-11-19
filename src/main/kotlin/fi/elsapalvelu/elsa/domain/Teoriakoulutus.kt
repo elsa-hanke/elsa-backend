@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
@@ -45,30 +44,14 @@ data class Teoriakoulutus(
         cascade = [CascadeType.ALL],
         orphanRemoval = true
     )
-    @JsonIgnoreProperties(
-        value = [
-            "teoriakoulutus"
-        ], allowSetters = true
-    )
     var todistukset: MutableSet<Asiakirja> = mutableSetOf(),
 
     @NotNull
     @ManyToOne(optional = false)
-    @JsonIgnoreProperties(
-        value = [
-            "kayttaja",
-            "annetutValtuutukset",
-            "tyoskentelyjaksot",
-            "teoriakoulutukset",
-            "erikoisala",
-            "koulutussuunnitelma"
-        ],
-        allowSetters = true
-    )
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
+    var erikoistuvaLaakari: ErikoistuvaLaakari? = null
 
-    ) : Serializable {
+) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
