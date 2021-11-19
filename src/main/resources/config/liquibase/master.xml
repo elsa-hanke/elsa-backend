@@ -129,5 +129,6 @@
     <include file="config/liquibase/changelog/20211111121659_added_entity_constraints_Paivakirjamerkinta.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211118153125_added_paivakirjamerkinta_audit_log_constraints.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211118171022_modify_entity_constraints_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211119173244_modify_entity_constraints_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
