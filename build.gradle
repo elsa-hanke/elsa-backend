@@ -212,11 +212,22 @@ dependencies {
     }
     implementation "org.springframework.boot:spring-boot-starter-undertow:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
+    implementation("org.thymeleaf:thymeleaf-spring5") {
+        version {
+            strictly("3.0.11.RELEASE") // CVE-2021-43466 on 3.0.12.RELEASE
+        }
+    }
+    implementation("org.thymeleaf:thymeleaf") {
+        version {
+            strictly("3.0.11.RELEASE") // CVE-2021-43466 on 3.0.12.RELEASE
+        }
+    }
     implementation "org.zalando:problem-spring-web"
     implementation "org.springframework.security:spring-security-config:${springSecurityVersion}"
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
     implementation "org.springframework.security:spring-security-web:${springSecurityVersion}"
     implementation "org.springframework.security:spring-security-saml2-service-provider:${springSecurityVersion}"
+    implementation("org.bouncycastle:bcprov-jdk15on:1.69")
     implementation "org.postgresql:postgresql:42.2.23"
     liquibaseRuntime "org.postgresql:postgresql"
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
