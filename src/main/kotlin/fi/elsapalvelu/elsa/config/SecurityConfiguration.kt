@@ -3,8 +3,10 @@ package fi.elsapalvelu.elsa.config
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.convert.converter.Converter
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.authentication.ProviderManager
@@ -15,10 +17,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
-import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter
+import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutRequestResolver
+import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
@@ -27,6 +31,8 @@ import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.filter.CorsFilter
 import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport
+import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
+import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_PRODUCTION
 import java.nio.charset.StandardCharsets
 import java.util.*
 import javax.crypto.Cipher
@@ -51,7 +57,8 @@ class SecurityConfiguration(
     private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
-    private val relyingPartyRegistrationResolver: ElsaRelyingPartyRegistrationResolver
+    private val relyingPartyRegistrationResolver: ElsaRelyingPartyRegistrationResolver,
+    private val env: Environment
 ) : WebSecurityConfigurerAdapter() {
 
     override fun configure(web: WebSecurity?) {
@@ -64,14 +71,13 @@ class SecurityConfiguration(
     @Throws(Exception::class)
     public override fun configure(http: HttpSecurity) {
         val withHttpOnlyFalse = CookieCsrfTokenRepository.withHttpOnlyFalse()
-        val authenticationProvider =
-            OpenSamlAuthenticationProvider() // TODO: update to OpenSaml4AuthenticationProvider when opensaml-api updates to 4.1.1 in maven
+        val authenticationProvider = OpenSaml4AuthenticationProvider()
         authenticationProvider.setResponseAuthenticationConverter(authenticationConverter())
         withHttpOnlyFalse.setCookieDomain(applicationProperties.getCsrf().cookie.domain)
-        http
+        val httpConfiguration = http
             .csrf()
             .csrfTokenRepository(withHttpOnlyFalse)
-            .ignoringAntMatchers("/api/") // logout uudelleenohjaus
+            .ignoringAntMatchers("/api/logout")
             .and()
             .addFilterBefore(corsFilter, CsrfFilter::class.java)
             .exceptionHandling()
@@ -110,26 +116,55 @@ class SecurityConfiguration(
             .antMatchers("/management/info").denyAll()
             .antMatchers("/management/prometheus").denyAll()
             .antMatchers("/management/**").hasAuthority(ADMIN)
-            .and()
-            .saml2Login()
-            .authenticationConverter(
-                Saml2AuthenticationTokenConverter(
-                    relyingPartyRegistrationResolver
-                )
+
+        if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT) || env.activeProfiles.contains(
+                SPRING_PROFILE_PRODUCTION
             )
-            .authenticationManager(ProviderManager(authenticationProvider))
-            .defaultSuccessUrl("/", true) // TODO: ohjaa pyydettyyn front end näkymään
-            .failureUrl("/") // TODO: Ohjaa kirjautumiseen tai front end näkymään
+        ) {
+            httpConfiguration.and().saml2Login()
+                .authenticationConverter(
+                    Saml2AuthenticationTokenConverter(
+                        relyingPartyRegistrationResolver
+                    )
+                )
+                .authenticationManager(ProviderManager(authenticationProvider))
+                .defaultSuccessUrl("/", true)
+                .failureUrl("/")
+                .and()
+                .saml2Logout { saml2 ->
+                    saml2.logoutRequest { request ->
+                        request.logoutRequestResolver(
+                            logoutRequestResolver()
+                        )
+                    }.logoutUrl("/api/logout")
+                }
+                .logout().logoutSuccessUrl("/")
+        }
     }
 
-    fun authenticationConverter(): Converter<OpenSamlAuthenticationProvider.ResponseToken, AbstractAuthenticationToken> {
+    @Bean
+    fun logoutRequestResolver(): Saml2LogoutRequestResolver {
+        val logoutRequestResolver = OpenSaml4LogoutRequestResolver(relyingPartyRegistrationResolver)
+        logoutRequestResolver.setParametersConsumer { parameters ->
+            val logoutRequest = parameters.logoutRequest
+            val nameId = logoutRequest.nameID
+            val principal = parameters.authentication.principal as Saml2AuthenticatedPrincipal
+            nameId.value = principal.getFirstAttribute("nameID")
+            nameId.format = principal.getFirstAttribute("nameIDFormat")
+            nameId.nameQualifier = principal.getFirstAttribute("nameIDQualifier")
+            nameId.spNameQualifier = principal.getFirstAttribute("nameIDSPQualifier")
+        }
+        return logoutRequestResolver
+    }
+
+    fun authenticationConverter(): Converter<OpenSaml4AuthenticationProvider.ResponseToken, AbstractAuthenticationToken> {
         return Converter { responseToken ->
             convertAuthentication(responseToken)
         }
     }
 
-    fun convertAuthentication(responseToken: OpenSamlAuthenticationProvider.ResponseToken): Saml2Authentication? {
-        val token: Saml2Authentication = OpenSamlAuthenticationProvider
+    fun convertAuthentication(responseToken: OpenSaml4AuthenticationProvider.ResponseToken): Saml2Authentication? {
+        val token: Saml2Authentication = OpenSaml4AuthenticationProvider
             .createDefaultResponseAuthenticationConverter()
             .convert(responseToken) as Saml2Authentication
         val principal = token.principal as Saml2AuthenticatedPrincipal
@@ -148,7 +183,7 @@ class SecurityConfiguration(
         val response = responseToken.response
         val assertion = CollectionUtils.firstElement(response.assertions)
         val nameID = assertion.subject.nameID
-        principal.attributes["nameID"] = mutableListOf(nameID.value) as List<Any>?
+        principal.attributes["nameID"] = mutableListOf(nameID.value) as List<*>?
         principal.attributes["nameIDFormat"] = mutableListOf(nameID.format) as List<Any>?
         principal.attributes["nameIDQualifier"] = mutableListOf(nameID.nameQualifier) as List<Any>?
         principal.attributes["nameIDSPQualifier"] =
@@ -218,7 +253,7 @@ class SecurityConfiguration(
         val existingUser = findExistingUser(cipher, originalKey, hetu, eppn)
         if (existingUser != null) {
             return Saml2Authentication(
-                DefaultSaml2AuthenticatedPrincipal(existingUser.id, principal.attributes),
+                createPrincipal(existingUser.id, principal),
                 token.saml2Response,
                 existingUser.authorities.map { SimpleGrantedAuthority(it.name) }
             )
@@ -244,10 +279,19 @@ class SecurityConfiguration(
         user = userRepository.save(user)
 
         return Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, principal.attributes),
+            createPrincipal(user.id, principal),
             token.saml2Response,
             mutableListOf()
         )
+    }
+
+    private fun createPrincipal(
+        name: String?,
+        principal: Saml2AuthenticatedPrincipal
+    ): DefaultSaml2AuthenticatedPrincipal {
+        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(name, principal.attributes)
+        newPrincipal.relyingPartyRegistrationId = principal.relyingPartyRegistrationId
+        return newPrincipal
     }
 
     private fun findExistingUser(

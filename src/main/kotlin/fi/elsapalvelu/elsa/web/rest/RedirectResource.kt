@@ -21,16 +21,4 @@ class RedirectResource(private val env: Environment) {
             RedirectView(url.replace("api.", ""))
         }
     }
-
-    @PostMapping("/api")
-    fun redirect2FrontendViewPost(request: HttpServletRequest): RedirectView? {
-        val activeProfiles = env.activeProfiles
-        return if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT)) {
-            RedirectView("http://localhost:9060/")
-        } else {
-            val scheme = request.scheme
-            val server = request.serverName
-            RedirectView(scheme + "://" + server.replace("api.", ""))
-        }
-    }
 }

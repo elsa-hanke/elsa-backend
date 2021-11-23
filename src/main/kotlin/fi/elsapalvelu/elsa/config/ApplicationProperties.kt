@@ -38,11 +38,34 @@ class ApplicationProperties {
         var encodedKey: String? = null
         var secretKeyAlgorithm: String? = null
         var cipherAlgorithm: String? = null
-        var samlPrivateKeyLocation: String? = null
-        var samlCertificateLocation: String? = null
-        var samlSuomifiCertificateLocation: String? = null
-        var samlHakaCertificateLocation: String? = null
         var samlScheme: String? = null
+
+        private val suomifi = Suomifi()
+        private val haka = Haka()
+
+        fun getSuomifi(): Suomifi {
+            return suomifi
+        }
+
+        fun getHaka(): Haka {
+            return haka
+        }
+
+        class Suomifi {
+            var enabled: Boolean? = null
+            var samlPrivateKeyLocation: String? = null
+            var samlCertificateLocation: String? = null
+            var samlSuomifiMetadataLocation: String? = null
+            var samlSuomifiEntityId: String? = null
+            var samlSuomifiSloUrl: String? = null
+        }
+
+        class Haka {
+            var enabled: Boolean? = null
+            var samlPrivateKeyLocation: String? = null
+            var samlCertificateLocation: String? = null
+            var samlHakaMetadataLocation: String? = null
+        }
     }
 
     class Feedback {

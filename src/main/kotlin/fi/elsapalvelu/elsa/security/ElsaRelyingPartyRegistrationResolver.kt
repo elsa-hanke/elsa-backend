@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
+import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver
 import org.springframework.security.web.util.UrlUtils
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatcher
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component
 import org.springframework.util.StringUtils
 import org.springframework.web.util.UriComponentsBuilder
 import java.util.function.Function
+import javax.persistence.EntityNotFoundException
 import javax.servlet.http.HttpServletRequest
 
 private const val PATH_DELIMITER = '/'
@@ -19,25 +21,36 @@ private const val PATH_DELIMITER = '/'
 class ElsaRelyingPartyRegistrationResolver(
     private val relyingPartyRegistrationRepository: RelyingPartyRegistrationRepository? = null,
     private val applicationProperties: ApplicationProperties
-) :
-    Converter<HttpServletRequest, RelyingPartyRegistration> {
+) : RelyingPartyRegistrationResolver {
 
     private val registrationIdResolver: RegistrationIdResolver = RegistrationIdResolver
 
-    override fun convert(request: HttpServletRequest): RelyingPartyRegistration? {
-        val registrationId = registrationIdResolver.convert(request) ?: return null
+    fun convert(request: HttpServletRequest): RelyingPartyRegistration? {
+        return resolve(request, null)
+    }
+
+    override fun resolve(
+        request: HttpServletRequest,
+        relyingPartyRegistrationId: String?
+    ): RelyingPartyRegistration {
+        val registrationId = relyingPartyRegistrationId ?: registrationIdResolver.convert(request)
         val relyingPartyRegistration = relyingPartyRegistrationRepository
-            ?.findByRegistrationId(registrationId) ?: return null
+            ?.findByRegistrationId(registrationId)
+            ?: throw EntityNotFoundException("Relying party registration not found")
         val applicationUri = getApplicationUri(request)
-        val templateResolver: Function<String, String> =
-            templateResolver(applicationUri, relyingPartyRegistration)
+        val templateResolver = templateResolver(applicationUri, relyingPartyRegistration)
         val relyingPartyEntityId = templateResolver.apply(relyingPartyRegistration.entityId)
         val assertionConsumerServiceLocation = templateResolver
             .apply(relyingPartyRegistration.assertionConsumerServiceLocation)
+        val singleLogoutServiceLocation = templateResolver
+            .apply(relyingPartyRegistration.singleLogoutServiceLocation)
+        val singleLogoutServiceResponseLocation = templateResolver
+            .apply(relyingPartyRegistration.singleLogoutServiceResponseLocation)
         return RelyingPartyRegistration.withRelyingPartyRegistration(relyingPartyRegistration)
             .entityId(relyingPartyEntityId)
             .assertionConsumerServiceLocation(assertionConsumerServiceLocation)
-            .build()
+            .singleLogoutServiceLocation(singleLogoutServiceLocation)
+            .singleLogoutServiceResponseLocation(singleLogoutServiceResponseLocation).build()
     }
 
     private fun templateResolver(
