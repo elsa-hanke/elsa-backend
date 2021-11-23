@@ -105,6 +105,7 @@
     <include file="config/liquibase/changelog/20211111121759_added_entity_PaivakirjaAihekategoria.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211118153125_added_paivakirjamerkinta_audit_log_entities.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211118171022_modify_entity_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211202160951_modify_entity_Yliopisto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211125160641_modify_entity_Oppimistavoite.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211130112633_modify_entity_OppimistavoitteenKategoria.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211207154920_remove_test_users.xml" relativeToChangelogFile="false"/>

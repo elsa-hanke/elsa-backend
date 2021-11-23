@@ -114,15 +114,31 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(koulutussuunnitelma.id?.toInt()))
             .andExpect(jsonPath("$.motivaatiokirje").value(DEFAULT_MOTIVAATIOKIRJE))
-            .andExpect(jsonPath("$.motivaatiokirjeYksityinen").value(DEFAULT_MOTIVAATIOKIRJE_YKSITYINEN))
+            .andExpect(
+                jsonPath("$.motivaatiokirjeYksityinen").value(
+                    DEFAULT_MOTIVAATIOKIRJE_YKSITYINEN
+                )
+            )
             .andExpect(jsonPath("$.opiskeluJaTyohistoria").value(DEFAULT_OPISKELU_JA_TYOHISTORIA))
-            .andExpect(jsonPath("$.opiskeluJaTyohistoriaYksityinen").value(DEFAULT_OPISKELU_JA_TYOHISTORIA_YKSITYINEN))
+            .andExpect(
+                jsonPath("$.opiskeluJaTyohistoriaYksityinen").value(
+                    DEFAULT_OPISKELU_JA_TYOHISTORIA_YKSITYINEN
+                )
+            )
             .andExpect(jsonPath("$.vahvuudet").value(DEFAULT_VAHVUUDET))
             .andExpect(jsonPath("$.vahvuudetYksityinen").value(DEFAULT_VAHVUUDET_YKSITYINEN))
             .andExpect(jsonPath("$.tulevaisuudenVisiointi").value(DEFAULT_TULEVAISUUDEN_VISIOINTI))
-            .andExpect(jsonPath("$.tulevaisuudenVisiointiYksityinen").value(DEFAULT_TULEVAISUUDEN_VISIOINTI_YKSITYINEN))
+            .andExpect(
+                jsonPath("$.tulevaisuudenVisiointiYksityinen").value(
+                    DEFAULT_TULEVAISUUDEN_VISIOINTI_YKSITYINEN
+                )
+            )
             .andExpect(jsonPath("$.osaamisenKartuttaminen").value(DEFAULT_OSAAMISEN_KARTUTTAMINEN))
-            .andExpect(jsonPath("$.osaamisenKartuttaminenYksityinen").value(DEFAULT_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN))
+            .andExpect(
+                jsonPath("$.osaamisenKartuttaminenYksityinen").value(
+                    DEFAULT_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN
+                )
+            )
             .andExpect(jsonPath("$.elamankentta").value(DEFAULT_ELAMANKENTTA))
             .andExpect(jsonPath("$.elamankenttaYksityinen").value(DEFAULT_ELAMANKENTTA_YKSITYINEN))
     }
@@ -265,18 +281,33 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
                 )
                 .param("id", koulutussuunnitelma.id.toString())
                 .param("motivaatiokirje", UPDATED_MOTIVAATIOKIRJE)
-                .param("motivaatiokirjeYksityinen", if (UPDATED_MOTIVAATIOKIRJE_YKSITYINEN) "true" else "false")
+                .param(
+                    "motivaatiokirjeYksityinen",
+                    if (UPDATED_MOTIVAATIOKIRJE_YKSITYINEN) "true" else "false"
+                )
                 .param("opiskeluJaTyohistoria", UPDATED_OPISKELU_JA_TYOHISTORIA)
-                .param("opiskeluJaTyohistoriaYksityinen", UPDATED_OPISKELU_JA_TYOHISTORIA_YKSITYINEN.toString())
+                .param(
+                    "opiskeluJaTyohistoriaYksityinen",
+                    UPDATED_OPISKELU_JA_TYOHISTORIA_YKSITYINEN.toString()
+                )
                 .param("vahvuudet", UPDATED_VAHVUUDET)
                 .param("vahvuudetYksityinen", UPDATED_VAHVUUDET_YKSITYINEN.toString())
                 .param("tulevaisuudenVisiointi", UPDATED_TULEVAISUUDEN_VISIOINTI)
-                .param("tulevaisuudenVisiointiYksityinen", UPDATED_TULEVAISUUDEN_VISIOINTI_YKSITYINEN.toString())
+                .param(
+                    "tulevaisuudenVisiointiYksityinen",
+                    UPDATED_TULEVAISUUDEN_VISIOINTI_YKSITYINEN.toString()
+                )
                 .param("osaamisenKartuttaminen", UPDATED_OSAAMISEN_KARTUTTAMINEN)
-                .param("osaamisenKartuttaminenYksityinen", UPDATED_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN.toString())
+                .param(
+                    "osaamisenKartuttaminenYksityinen",
+                    UPDATED_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN.toString()
+                )
                 .param("elamankentta", UPDATED_ELAMANKENTTA)
                 .param("elamankenttaYksityinen", UPDATED_ELAMANKENTTA_YKSITYINEN.toString())
-                .param("erikoistuvaLaakariId", koulutussuunnitelma.erikoistuvaLaakari!!.id.toString())
+                .param(
+                    "erikoistuvaLaakariId",
+                    koulutussuunnitelma.erikoistuvaLaakari!!.id.toString()
+                )
                 .param("koulutussuunnitelmaAsiakirjaUpdated", true.toString())
                 .param("motivaatiokirjeAsiakirjaUpdated", true.toString())
                 .with { it.method = "PUT"; it }
@@ -286,29 +317,47 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
         val koulutussuunnitelmaList = koulutussuunnitelmaRepository.findAll()
         Assertions.assertThat(koulutussuunnitelmaList).hasSize(databaseSizeBeforeUpdate)
         val testKoulutussuunnitelma = koulutussuunnitelmaList[koulutussuunnitelmaList.size - 1]
-        Assertions.assertThat(testKoulutussuunnitelma.motivaatiokirje).isEqualTo(UPDATED_MOTIVAATIOKIRJE)
+        Assertions.assertThat(testKoulutussuunnitelma.motivaatiokirje)
+            .isEqualTo(UPDATED_MOTIVAATIOKIRJE)
         Assertions.assertThat(testKoulutussuunnitelma.motivaatiokirjeYksityinen)
             .isEqualTo(UPDATED_MOTIVAATIOKIRJE_YKSITYINEN)
-        Assertions.assertThat(testKoulutussuunnitelma.opiskeluJaTyohistoria).isEqualTo(UPDATED_OPISKELU_JA_TYOHISTORIA)
+        Assertions.assertThat(testKoulutussuunnitelma.opiskeluJaTyohistoria)
+            .isEqualTo(UPDATED_OPISKELU_JA_TYOHISTORIA)
         Assertions.assertThat(testKoulutussuunnitelma.opiskeluJaTyohistoriaYksityinen)
             .isEqualTo(UPDATED_OPISKELU_JA_TYOHISTORIA_YKSITYINEN)
         Assertions.assertThat(testKoulutussuunnitelma.vahvuudet).isEqualTo(UPDATED_VAHVUUDET)
-        Assertions.assertThat(testKoulutussuunnitelma.vahvuudetYksityinen).isEqualTo(UPDATED_VAHVUUDET_YKSITYINEN)
-        Assertions.assertThat(testKoulutussuunnitelma.tulevaisuudenVisiointi).isEqualTo(UPDATED_TULEVAISUUDEN_VISIOINTI)
+        Assertions.assertThat(testKoulutussuunnitelma.vahvuudetYksityinen)
+            .isEqualTo(UPDATED_VAHVUUDET_YKSITYINEN)
+        Assertions.assertThat(testKoulutussuunnitelma.tulevaisuudenVisiointi)
+            .isEqualTo(UPDATED_TULEVAISUUDEN_VISIOINTI)
         Assertions.assertThat(testKoulutussuunnitelma.tulevaisuudenVisiointiYksityinen)
             .isEqualTo(UPDATED_TULEVAISUUDEN_VISIOINTI_YKSITYINEN)
-        Assertions.assertThat(testKoulutussuunnitelma.osaamisenKartuttaminen).isEqualTo(UPDATED_OSAAMISEN_KARTUTTAMINEN)
+        Assertions.assertThat(testKoulutussuunnitelma.osaamisenKartuttaminen)
+            .isEqualTo(UPDATED_OSAAMISEN_KARTUTTAMINEN)
         Assertions.assertThat(testKoulutussuunnitelma.osaamisenKartuttaminenYksityinen)
             .isEqualTo(UPDATED_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN)
         Assertions.assertThat(testKoulutussuunnitelma.elamankentta).isEqualTo(UPDATED_ELAMANKENTTA)
-        Assertions.assertThat(testKoulutussuunnitelma.elamankenttaYksityinen).isEqualTo(UPDATED_ELAMANKENTTA_YKSITYINEN)
+        Assertions.assertThat(testKoulutussuunnitelma.elamankenttaYksityinen)
+            .isEqualTo(UPDATED_ELAMANKENTTA_YKSITYINEN)
         Assertions.assertThat(testKoulutussuunnitelma.koulutussuunnitelmaAsiakirja).isNotNull
-        val koulutussuunnitelmaBlob = testKoulutussuunnitelma.koulutussuunnitelmaAsiakirja?.asiakirjaData?.data
-        Assertions.assertThat(koulutussuunnitelmaBlob?.getBytes(1, koulutussuunnitelmaBlob.length().toInt()))
+        val koulutussuunnitelmaBlob =
+            testKoulutussuunnitelma.koulutussuunnitelmaAsiakirja?.asiakirjaData?.data
+        Assertions.assertThat(
+            koulutussuunnitelmaBlob?.getBytes(
+                1,
+                koulutussuunnitelmaBlob.length().toInt()
+            )
+        )
             .isEqualTo(DEFAULT_FILE)
         Assertions.assertThat(testKoulutussuunnitelma.motivaatiokirjeAsiakirja).isNotNull
-        val motivaatiokirjeBlob = testKoulutussuunnitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data
-        Assertions.assertThat(motivaatiokirjeBlob?.getBytes(1, motivaatiokirjeBlob.length().toInt()))
+        val motivaatiokirjeBlob =
+            testKoulutussuunnitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data
+        Assertions.assertThat(
+            motivaatiokirjeBlob?.getBytes(
+                1,
+                motivaatiokirjeBlob.length().toInt()
+            )
+        )
             .isEqualTo(DEFAULT_FILE)
     }
 
