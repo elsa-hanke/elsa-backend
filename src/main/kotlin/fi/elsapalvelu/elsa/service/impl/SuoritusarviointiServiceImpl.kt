@@ -74,8 +74,7 @@ class SuoritusarviointiServiceImpl(
         suoritusarviointi: Suoritusarviointi
     ): Suoritusarviointi {
         val isItsearviointiNotEmpty =
-            !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiVaativuustaso) &&
-                !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiArviointiasteikonTaso) &&
+            !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiArviointiasteikonTaso) &&
                 !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenItsearviointi)
 
         // Itsearvioinnin tekeminen
