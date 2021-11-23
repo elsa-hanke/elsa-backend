@@ -9,7 +9,6 @@ import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import tech.jhipster.web.util.ResponseUtil
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.multipart.MultipartFile
+import tech.jhipster.web.util.ResponseUtil
 import java.security.Principal
 import javax.validation.Valid
 
@@ -113,14 +113,13 @@ open class SuoritusarviointiResource(
         if (suoritusarviointiDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
-        if (suoritusarviointiDTO.vaativuustaso == null
-            || suoritusarviointiDTO.arviointiasteikonTaso == null
+        if (suoritusarviointiDTO.arviointiasteikonTaso == null
             || suoritusarviointiDTO.sanallinenArviointi == null
         ) {
             throw BadRequestAlertException(
-                "Kouluttajan arvioinnin täytyy sisältää vaativuustaso, arviointiasteikon taso ja sanallien arviointi",
+                "Kouluttajan arvioinnin täytyy sisältää arviointiasteikon taso ja sanallinen arviointi",
                 ENTITY_NAME,
-                "dataillegal.kouluttajan-arvioinnin-taytyy-sisaltaa-vaativuustaso-arviointiasteikon-tason-ja-sanallinen-arviointi"
+                "dataillegal.kouluttajan-arvioinnin-taytyy-sisaltaa-arviointiasteikon-taso-ja-sanallinen-arviointi"
             )
         }
     }
