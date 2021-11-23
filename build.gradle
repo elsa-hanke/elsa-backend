@@ -165,7 +165,7 @@ configurations {
 repositories {
     mavenLocal()
     mavenCentral()
-    jcenter()
+    maven { url "https://build.shibboleth.net/nexus/content/repositories/releases/" }
 }
 
 dependencies {
@@ -227,6 +227,9 @@ dependencies {
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
     implementation "org.springframework.security:spring-security-web:${springSecurityVersion}"
     implementation "org.springframework.security:spring-security-saml2-service-provider:${springSecurityVersion}"
+    implementation "org.opensaml:opensaml-core:${opensamlVersion}"
+    implementation "org.opensaml:opensaml-saml-api:${opensamlVersion}"
+    implementation "org.opensaml:opensaml-saml-impl:${opensamlVersion}"
     implementation("org.bouncycastle:bcprov-jdk15on:1.69")
     implementation "org.postgresql:postgresql:42.2.23"
     liquibaseRuntime "org.postgresql:postgresql"
