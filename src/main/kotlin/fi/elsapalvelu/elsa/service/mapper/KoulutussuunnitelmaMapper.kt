@@ -19,10 +19,9 @@ interface KoulutussuunnitelmaMapper :
         Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId"),
         Mapping(
             source = "koulutussuunnitelmaAsiakirja",
-            target = "koulutussuunnitelmaAsiakirja",
-            qualifiedByName = ["id"]
+            target = "koulutussuunnitelmaAsiakirja"
         ),
-        Mapping(source = "motivaatiokirjeAsiakirja", target = "motivaatiokirjeAsiakirja", qualifiedByName = ["id"]),
+        Mapping(source = "motivaatiokirjeAsiakirja", target = "motivaatiokirjeAsiakirja"),
 
         )
     override fun toDto(entity: Koulutussuunnitelma): KoulutussuunnitelmaDTO
