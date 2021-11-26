@@ -30,7 +30,10 @@ class Oppimistavoite(
 
     @NotNull
     @ManyToOne(optional = false)
-    var kategoria: OppimistavoitteenKategoria? = null
+    var kategoria: OppimistavoitteenKategoria? = null,
+
+    @Column(name = "vaadittu_lkm")
+    var vaadittulkm: Int? = null
 
 ) : Serializable {
 
