@@ -16,7 +16,9 @@ data class OppimistavoiteDTO(
 
     var voimassaolonPaattymispaiva: LocalDate? = null,
 
-    var kategoriaId: Long? = null
+    var kategoriaId: Long? = null,
+
+    var vaadittulkm: Int? = null
 
 ) : Serializable {
 

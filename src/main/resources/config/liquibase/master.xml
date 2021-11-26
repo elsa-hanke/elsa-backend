@@ -105,6 +105,7 @@
     <include file="config/liquibase/changelog/20211111121759_added_entity_PaivakirjaAihekategoria.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211118153125_added_paivakirjamerkinta_audit_log_entities.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211118171022_modify_entity_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211125160641_modify_entity_Oppimistavoite.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
