@@ -14,12 +14,10 @@ data class SuoritemerkintaDTO(
     @get: NotNull
     var suorituspaiva: LocalDate? = null,
 
-    @get: NotNull
     @get: Min(value = 1)
     @get: Max(value = 5)
     var arviointiasteikonTaso: Int? = null,
 
-    @get: NotNull
     @get: Min(value = 1)
     @get: Max(value = 5)
     var vaativuustaso: Int? = null,
