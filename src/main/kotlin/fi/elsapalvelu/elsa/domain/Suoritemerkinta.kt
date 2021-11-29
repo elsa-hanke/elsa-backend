@@ -27,13 +27,11 @@ data class Suoritemerkinta(
     @Column(name = "suorituspaiva", nullable = false)
     var suorituspaiva: LocalDate? = null,
 
-    @get: NotNull
     @get: Min(value = 1)
     @get: Max(value = 5)
     @Column(name = "arviointiasteikon_taso", nullable = false)
     var arviointiasteikonTaso: Int? = null,
 
-    @get: NotNull
     @get: Min(value = 1)
     @get: Max(value = 5)
     @Column(name = "vaativuustaso", nullable = false)
