@@ -20,7 +20,9 @@ data class OppimistavoitteenKategoriaDTO(
 
     var arviointiasteikko: ArviointiasteikkoDTO? = null,
 
-    var oppimistavoitteet: MutableSet<OppimistavoiteDTO>? = null
+    var oppimistavoitteet: MutableSet<OppimistavoiteDTO>? = null,
+
+    var jarjestysnumero: Int? = null
 
 ) : Serializable {
 

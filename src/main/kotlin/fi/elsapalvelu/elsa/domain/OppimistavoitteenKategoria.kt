@@ -34,7 +34,10 @@ class OppimistavoitteenKategoria(
 
     @NotNull
     @ManyToOne(optional = false)
-    var erikoisala: Erikoisala? = null
+    var erikoisala: Erikoisala? = null,
+
+    @Column(name = "jarjestysnumero")
+    var jarjestysnumero: Int? = null,
 
 ) : Serializable {
 
