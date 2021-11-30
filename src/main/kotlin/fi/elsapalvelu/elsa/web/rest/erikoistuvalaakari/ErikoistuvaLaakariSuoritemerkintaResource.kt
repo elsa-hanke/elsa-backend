@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.dto.OppimistavoitteenKategoriaDTO
 import fi.elsapalvelu.elsa.service.dto.OppimistavoitteetTableDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
+import java.util.*
 import javax.validation.Valid
 
 private const val ENTITY_NAME = "suoritemerkinta"
@@ -111,10 +112,11 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         val table = OppimistavoitteetTableDTO()
 
         table.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
-
+            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).let {
+                toSortedOppimistavoitteenKategoriat(it)
+            }
         table.suoritemerkinnat = suoritemerkintaService
-            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toSet()
 
         return ResponseEntity.ok(table)
     }
@@ -127,12 +129,23 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         val form = SuoritemerkintaFormDTO()
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
-        form.kunnat = kuntaService.findAll().toMutableSet()
-        form.erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toSet()
+        form.kunnat = kuntaService.findAll().toSet()
+        form.erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toSet()
         form.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).let {
+                toSortedOppimistavoitteenKategoriat(it)
+            }
 
         return ResponseEntity.ok(form)
+    }
+
+    private fun toSortedOppimistavoitteenKategoriat(oppimistavoitteenKategoriat: List<OppimistavoitteenKategoriaDTO>): SortedSet<OppimistavoitteenKategoriaDTO> {
+        return oppimistavoitteenKategoriat.map {
+            it.apply {
+                oppimistavoitteet = oppimistavoitteet?.sortedBy { oppimistavoite -> oppimistavoite.nimi }?.toSet()
+            }
+            it
+        }.toSortedSet(compareBy { kategoria -> kategoria.jarjestysnumero })
     }
 }
