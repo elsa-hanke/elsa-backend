@@ -4,13 +4,13 @@ import java.io.Serializable
 
 class SuoritemerkintaFormDTO(
 
-    var tyoskentelyjaksot: MutableSet<TyoskentelyjaksoDTO> = mutableSetOf(),
+    var tyoskentelyjaksot: Set<TyoskentelyjaksoDTO> = setOf(),
 
-    var kunnat: MutableSet<KuntaDTO> = mutableSetOf(),
+    var kunnat: Set<KuntaDTO> = setOf(),
 
-    var erikoisalat: MutableSet<ErikoisalaDTO> = mutableSetOf(),
+    var erikoisalat: Set<ErikoisalaDTO> = setOf(),
 
-    var oppimistavoitteenKategoriat: MutableSet<OppimistavoitteenKategoriaDTO> = mutableSetOf()
+    var oppimistavoitteenKategoriat: Set<OppimistavoitteenKategoriaDTO> = setOf()
 
 ) : Serializable {
     override fun toString() = "SuoritemerkintaFormDTO"

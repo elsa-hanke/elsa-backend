@@ -1,12 +1,13 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
+import java.util.*
 
 class OppimistavoitteetTableDTO(
 
-    var oppimistavoitteenKategoriat: MutableSet<OppimistavoitteenKategoriaDTO> = mutableSetOf(),
+    var oppimistavoitteenKategoriat: SortedSet<OppimistavoitteenKategoriaDTO> = sortedSetOf(),
 
-    var suoritemerkinnat: MutableSet<SuoritemerkintaDTO> = mutableSetOf()
+    var suoritemerkinnat: Set<SuoritemerkintaDTO> = setOf()
 
 ) : Serializable {
     override fun toString() = "OppimistavoitteetTableDTO"
