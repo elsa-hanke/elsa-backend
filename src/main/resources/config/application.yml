@@ -198,7 +198,6 @@ application:
       saml-certificate-location: classpath:public.crt
       saml-suomifi-metadata-location: https://testi.apro.tunnistus.fi/static/metadata/idp-metadata.xml
       saml-suomifi-entity-id: https://testi.apro.tunnistus.fi/idp1
-      saml-suomifi-slo-url: https://testi.apro.tunnistus.fi/idp/profile/SAML2/Redirect/SLO
     haka:
       enabled: true
       saml-private-key-location: classpath:private.key
