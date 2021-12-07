@@ -33,10 +33,7 @@ data class Yliopisto(
     var hakaId: String? = null,
 
     @Column(name = "haka_entity_id", nullable = true)
-    var hakaEntityId: String? = null,
-
-    @Column(name = "haka_slo_location", nullable = true)
-    var hakaSLOLocation: String? = null
+    var hakaEntityId: String? = null
 
 ) : Serializable {
 

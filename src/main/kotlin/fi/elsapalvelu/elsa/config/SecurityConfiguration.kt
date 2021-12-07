@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.config
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.convert.converter.Converter
 import org.springframework.core.env.Environment
@@ -20,9 +19,14 @@ import org.springframework.security.saml2.provider.service.authentication.Defaul
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
+import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver
+import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver
 import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter
 import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutRequestResolver
+import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutResponseResolver
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver
+import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutResponseResolver
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
@@ -57,7 +61,6 @@ class SecurityConfiguration(
     private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
-    private val relyingPartyRegistrationResolver: ElsaRelyingPartyRegistrationResolver,
     private val env: Environment
 ) : WebSecurityConfigurerAdapter() {
 
@@ -121,6 +124,10 @@ class SecurityConfiguration(
                 SPRING_PROFILE_PRODUCTION
             )
         ) {
+            val relyingPartyRegistrationRepository =
+                applicationContext.getBean(RelyingPartyRegistrationRepository::class.java)
+            val relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver =
+                DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
             httpConfiguration.and().saml2Login()
                 .authenticationConverter(
                     Saml2AuthenticationTokenConverter(
@@ -131,19 +138,24 @@ class SecurityConfiguration(
                 .defaultSuccessUrl("/", true)
                 .failureUrl("/")
                 .and()
+                .addFilterBefore(ElsaUriFilter(applicationProperties), CsrfFilter::class.java)
                 .saml2Logout { saml2 ->
                     saml2.logoutRequest { request ->
                         request.logoutRequestResolver(
-                            logoutRequestResolver()
+                            logoutRequestResolver(relyingPartyRegistrationResolver)
                         )
                     }.logoutUrl("/api/logout")
+                        .logoutResponse { response ->
+                            response.logoutResponseResolver(
+                                logoutResponseResolver(relyingPartyRegistrationResolver)
+                            )
+                        }
                 }
                 .logout().logoutSuccessUrl("/")
         }
     }
 
-    @Bean
-    fun logoutRequestResolver(): Saml2LogoutRequestResolver {
+    fun logoutRequestResolver(relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver): Saml2LogoutRequestResolver {
         val logoutRequestResolver = OpenSaml4LogoutRequestResolver(relyingPartyRegistrationResolver)
         logoutRequestResolver.setParametersConsumer { parameters ->
             val logoutRequest = parameters.logoutRequest
@@ -155,6 +167,10 @@ class SecurityConfiguration(
             nameId.spNameQualifier = principal.getFirstAttribute("nameIDSPQualifier")
         }
         return logoutRequestResolver
+    }
+
+    fun logoutResponseResolver(relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver): Saml2LogoutResponseResolver {
+        return OpenSaml4LogoutResponseResolver(relyingPartyRegistrationResolver)
     }
 
     fun authenticationConverter(): Converter<OpenSaml4AuthenticationProvider.ResponseToken, AbstractAuthenticationToken> {
