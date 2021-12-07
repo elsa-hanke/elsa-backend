@@ -54,8 +54,7 @@ class RelyingPartyConfiguration(
                     signingCredential,
                     decryptionCredential,
                     "suomifi",
-                    applicationProperties.getSecurity().getSuomifi().samlSuomifiEntityId!!,
-                    applicationProperties.getSecurity().getSuomifi().samlSuomifiSloUrl!!
+                    applicationProperties.getSecurity().getSuomifi().samlSuomifiEntityId!!
                 )
             )
         }
@@ -88,8 +87,7 @@ class RelyingPartyConfiguration(
                         signingCredential,
                         decryptionCredential,
                         it.hakaId!!,
-                        it.hakaEntityId!!,
-                        it.hakaSLOLocation!!
+                        it.hakaEntityId!!
                     )
                 )
             }
@@ -103,16 +101,13 @@ class RelyingPartyConfiguration(
         signingCredential: Saml2X509Credential,
         decryptionCredential: Saml2X509Credential,
         registrationId: String,
-        entityId: String,
-        sloUrl: String
+        entityId: String
     ): RelyingPartyRegistration {
         return RelyingPartyRegistrations
             .fromMetadataLocation(metadataLocation)
             .registrationId(registrationId)
             .assertingPartyDetails { party: RelyingPartyRegistration.AssertingPartyDetails.Builder ->
                 party.entityId(entityId)
-                party.singleLogoutServiceLocation(sloUrl)
-                party.singleLogoutServiceBinding(Saml2MessageBinding.REDIRECT)
             }
             .signingX509Credentials { signing -> signing.add(signingCredential) }
             .decryptionX509Credentials { decryption -> decryption.add(decryptionCredential) }
