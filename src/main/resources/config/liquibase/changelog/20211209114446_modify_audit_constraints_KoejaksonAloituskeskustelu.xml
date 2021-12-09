@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211209114446" author="jhipster">
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="erikoistuvan_sahkoposti"/>
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="koejakson_suorituspaikka"/>
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="koejakson_alkamispaiva"/>
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="koejakson_paattymispaiva"/>
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="suoritettu_kokoaikatyossa"/>
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="tyotunnit_viikossa"/>
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="lahikouluttaja_id"/>
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="lahikouluttajan_nimi"/>
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="lahiesimies_id"/>
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="lahiesimiehen_nimi"/>
+    </changeSet>
+</databaseChangeLog>
