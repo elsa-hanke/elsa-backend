@@ -30,6 +30,7 @@ data class KoejaksonKoulutussopimusDTO(
     @Lob
     var erikoistuvanAvatar: ByteArray? = null,
 
+    @get: NotNull
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
     var koejaksonAlkamispaiva: LocalDate? = null,
