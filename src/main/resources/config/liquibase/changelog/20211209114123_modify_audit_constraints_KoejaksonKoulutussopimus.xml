@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211209114123" author="jhipster">
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus_audit" columnName="koejakson_alkamispaiva"/>
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus_audit" columnName="erikoistuvan_puhelinnumero"/>
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus_audit" columnName="erikoistuvan_sahkoposti"/>
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus_audit" columnName="vastuuhenkilo_id"/>
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus_audit" columnName="vastuuhenkilon_nimi"/>
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus_audit" columnName="vastuuhenkilon_nimi"/>
+
+        <dropNotNullConstraint tableName="koulutussopimuksen_kouluttaja_audit" columnName="kouluttaja_id"/>
+        <dropNotNullConstraint tableName="koulutussopimuksen_kouluttaja_audit" columnName="nimi"/>
+
+        <dropNotNullConstraint tableName="koulutussopimuksen_koulutuspaikka_audit" columnName="nimi"/>
+    </changeSet>
+</databaseChangeLog>

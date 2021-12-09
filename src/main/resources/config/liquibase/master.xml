@@ -136,5 +136,7 @@
     <include file="config/liquibase/changelog/20211119173244_modify_entity_constraints_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211129175050_modify_entity_constraints_Suoritemerkinta.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211209110134_modify_entity_constraints_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211209114123_modify_audit_constraints_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211209114446_modify_audit_constraints_KoejaksonAloituskeskustelu.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
