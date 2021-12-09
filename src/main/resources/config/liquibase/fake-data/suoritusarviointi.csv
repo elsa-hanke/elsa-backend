@@ -1,4 +1,0 @@
-id;tapahtuman_ajankohta;arvioitava_tapahtuma;pyynnon_aika;lisatiedot;itsearviointi_vaativuustaso;itsearviointi_luottamuksen_taso;sanallinen_itsearviointi;itsearviointi_aika;vaativuustaso;sanallinen_arviointi;arviointi_aika;lukittu;arvioinnin_antaja_id;arvioitava_osaalue_id;tyoskentelyjakso_id
-1;2020-10-06;Tapahtuma 1;2020-10-06;../fake-data/blob/lorem.txt;;;../fake-data/blob/lorem.txt;;4;../fake-data/blob/lorem.txt;2020-10-05;false;1;1;1
-2;2020-10-06;Tapahtuma 2;2020-10-06;../fake-data/blob/lorem.txt;;;../fake-data/blob/lorem.txt;;5;../fake-data/blob/lorem.txt;2020-10-06;false;1;1;1
-3;2020-10-05;Tapahtuma 3;2020-10-05;../fake-data/blob/lorem.txt;;;../fake-data/blob/lorem.txt;;5;../fake-data/blob/lorem.txt;2020-10-05;true;1;1;1

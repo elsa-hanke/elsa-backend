@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
     <changeSet id="20201020075137-1" author="jhipster">
@@ -10,44 +10,25 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="puhelinnumero" type="varchar(255)">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="sahkoposti" type="varchar(255)">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="opiskelijatunnus" type="varchar(255)">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="opintojen_aloitusvuosi" type="integer">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="kayttaja_id" type="bigint">
-                <constraints unique="true" nullable="false" uniqueConstraintName="ux_erikoistuva_laakari_kayttaja_id" />
+                <constraints unique="true" nullable="false" uniqueConstraintName="ux_erikoistuva_laakari_kayttaja_id"/>
             </column>
             <column name="erikoisala_id" type="bigint">
                 <!--TODO: onko pakollinen tieto? <constraints nullable="false" />-->
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
         </createTable>
-    </changeSet>
-
-    <changeSet id="20201020075137-1-relations" author="jhipster">
-
-    </changeSet>
-
-    <changeSet id="20201020075137-1-data" author="jhipster" context="faker">
-        <loadData
-                  file="config/liquibase/fake-data/erikoistuva_laakari.csv"
-                  separator=";"
-                  tableName="erikoistuva_laakari">
-            <column name="id" type="numeric"/>
-            <column name="puhelinnumero" type="string"/>
-            <column name="sahkoposti" type="string"/>
-            <column name="opiskelijatunnus" type="string"/>
-            <column name="opintojen_aloitusvuosi" type="numeric"/>
-            <column name="kayttaja_id" type="numeric"/>
-            <column name="erikoisala_id" type="numeric"/>
-        </loadData>
     </changeSet>
 
 </databaseChangeLog>

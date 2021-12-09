@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
     <changeSet id="20201020075937-1" author="jhipster">
@@ -10,22 +10,22 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="nimi" type="varchar(255)">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="kuvaus" type="varchar(255)">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="voimassaolo_alkaa" type="date">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="voimassaolo_loppuu" type="date">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="erikoisala_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="kategoria_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
@@ -36,9 +36,9 @@
 
     <changeSet id="20201020075937-1-data" author="jhipster" context="faker">
         <loadData
-                  file="config/liquibase/fake-data/epa_osaamisalue.csv"
-                  separator=";"
-                  tableName="epa_osaamisalue">
+            file="config/liquibase/fake-data/epa_osaamisalue.csv"
+            separator=";"
+            tableName="epa_osaamisalue">
             <column name="id" type="numeric"/>
             <column name="nimi" type="string"/>
             <column name="kuvaus" type="string"/>

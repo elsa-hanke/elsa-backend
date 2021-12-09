@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
     <changeSet id="20201020075037-1" author="jhipster">
@@ -10,35 +10,18 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="nimi" type="varchar(255)">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="profiilikuva" type="longblob">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="profiilikuva_content_type" type="varchar(255)">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="user_id" type="varchar(100)">
-                <constraints unique="true" nullable="false" uniqueConstraintName="ux_kayttaja_user_id" />
+                <constraints unique="true" nullable="false" uniqueConstraintName="ux_kayttaja_user_id"/>
             </column>
         </createTable>
-    </changeSet>
-
-    <changeSet id="20201020075037-1-relations" author="jhipster">
-
-    </changeSet>
-
-    <changeSet id="20201020075037-1-data" author="jhipster" context="faker">
-        <loadData
-                  file="config/liquibase/fake-data/kayttaja.csv"
-                  separator=";"
-                  tableName="kayttaja">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="profiilikuva" type="blob"/>
-            <column name="profiilikuva_content_type" type="string"/>
-            <column name="user_id" type="string"/>
-        </loadData>
     </changeSet>
 
 </databaseChangeLog>
