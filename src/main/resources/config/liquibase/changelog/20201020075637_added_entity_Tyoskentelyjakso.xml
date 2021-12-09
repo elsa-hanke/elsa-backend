@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
     <changeSet id="20201020075637-1" author="jhipster">
@@ -10,50 +10,31 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="alkamispaiva" type="date">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="paattymispaiva" type="date">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="osaaikaprosentti" type="integer">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="kaytannon_koulutus" type="varchar(255)">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="hyvaksytty_aiempaan_erikoisalaan" type="boolean">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="tyoskentelypaikka_id" type="bigint">
-                <constraints unique="true" nullable="false" uniqueConstraintName="ux_tyoskentelyjakso_tyoskentelypaikka_id" />
+                <constraints unique="true" nullable="false"
+                             uniqueConstraintName="ux_tyoskentelyjakso_tyoskentelypaikka_id"/>
             </column>
             <column name="omaa_erikoisalaa_tukeva_id" type="bigint">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="erikoistuva_laakari_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
         </createTable>
-    </changeSet>
-
-    <changeSet id="20201020075637-1-relations" author="jhipster">
-
-    </changeSet>
-
-    <changeSet id="20201020075637-1-data" author="jhipster" context="faker">
-        <loadData
-                  file="config/liquibase/fake-data/tyoskentelyjakso.csv"
-                  separator=";"
-                  tableName="tyoskentelyjakso">
-            <column name="id" type="numeric"/>
-            <column name="alkamispaiva" type="date"/>
-            <column name="paattymispaiva" type="date"/>
-            <column name="osaaikaprosentti" type="numeric"/>
-            <column name="kaytannon_koulutus" type="string"/>
-            <column name="hyvaksytty_aiempaan_erikoisalaan" type="boolean"/>
-            <column name="tyoskentelypaikka_id" type="numeric"/>
-            <column name="erikoistuva_laakari_id" type="numeric"/>
-        </loadData>
     </changeSet>
 
 </databaseChangeLog>

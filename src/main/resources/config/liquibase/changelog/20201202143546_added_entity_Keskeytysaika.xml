@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
     <changeSet id="20201202143546-1" author="jhipster">
@@ -10,39 +10,21 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="alkamispaiva" type="date">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="paattymispaiva" type="date">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="osaaikaprosentti" type="integer">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="poissaolon_syy_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="tyoskentelyjakso_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
         </createTable>
-    </changeSet>
-
-    <changeSet id="20201202143546-1-relations" author="jhipster">
-
-    </changeSet>
-
-    <changeSet id="20201202143546-1-data" author="jhipster" context="faker">
-        <loadData
-            file="config/liquibase/fake-data/keskeytysaika.csv"
-            separator=";"
-            tableName="keskeytysaika">
-            <column name="id" type="numeric"/>
-            <column name="alkamispaiva" type="date"/>
-            <column name="paattymispaiva" type="date"/>
-            <column name="osaaikaprosentti" type="numeric"/>
-            <column name="poissaolon_syy_id" type="numeric"/>
-            <column name="tyoskentelyjakso_id" type="numeric"/>
-        </loadData>
     </changeSet>
 
 </databaseChangeLog>

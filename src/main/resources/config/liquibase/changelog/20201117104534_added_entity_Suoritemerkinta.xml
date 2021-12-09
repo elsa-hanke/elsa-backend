@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
     <changeSet id="20201117104534-1" author="jhipster">
@@ -10,46 +10,27 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="suorituspaiva" type="date">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="luottamuksen_taso" type="integer">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="vaativuustaso" type="integer">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="lisatiedot" type="${clobType}">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="lukittu" type="boolean">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="oppimistavoite_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="tyoskentelyjakso_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
         </createTable>
-    </changeSet>
-
-    <changeSet id="20201117104534-1-relations" author="jhipster">
-
-    </changeSet>
-    <changeSet id="20201117104534-1-data" author="jhipster" context="faker">
-        <loadData
-            file="config/liquibase/fake-data/suoritemerkinta.csv"
-            separator=";"
-            tableName="suoritemerkinta">
-            <column name="id" type="numeric"/>
-            <column name="suorituspaiva" type="date"/>
-            <column name="luottamuksen_taso" type="numeric"/>
-            <column name="vaativuustaso" type="numeric"/>
-            <column name="lisatiedot" type="clob"/>
-            <column name="lukittu" type="boolean"/>
-            <column name="oppimistavoite_id" type="numeric"/>
-            <column name="tyoskentelyjakso_id" type="numeric"/>
-        </loadData>
     </changeSet>
 
 </databaseChangeLog>
