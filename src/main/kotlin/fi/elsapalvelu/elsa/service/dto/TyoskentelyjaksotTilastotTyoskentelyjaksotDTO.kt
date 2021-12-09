@@ -6,8 +6,8 @@ class TyoskentelyjaksotTilastotTyoskentelyjaksotDTO(
 
     var id: Long,
 
-    var suoritettu: Double,
+    var suoritettu: Double
 
-    ) : Serializable {
+) : Serializable {
     override fun toString() = "TyoskentelyjaksotTilastotTyoskentelyjaksotDTO"
 }

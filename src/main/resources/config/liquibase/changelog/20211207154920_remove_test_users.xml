@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211207154920" author="jhipster">
+        <delete tableName="jhi_user">
+            <where>id in
+                ('395a637e-b517-4fdd-b127-351aa1c73cd8',
+                'ec58bdd4-2358-4666-b4e1-4855c6f6cc24',
+                '829b7a5c-c591-4ecc-bd08-2273fd7e38fc',
+                '75e3c320-3912-4ccb-b281-d9298e84ec6d')
+            </where>
+        </delete>
+    </changeSet>
+</databaseChangeLog>

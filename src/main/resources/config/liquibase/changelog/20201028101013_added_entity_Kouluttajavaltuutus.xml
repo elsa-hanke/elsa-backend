@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
     <changeSet id="20201028101013-1" author="jhipster">
@@ -10,45 +10,28 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="alkamispaiva" type="date">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="paattymispaiva" type="date">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="valtuutuksen_luontiaika" type="datetime">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="valtuutuksen_muokkausaika" type="datetime">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="valtuuttaja_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="valtuutettu_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
         </createTable>
-        <dropDefaultValue tableName="kouluttajavaltuutus" columnName="valtuutuksen_luontiaika" columnDataType="datetime"/>
-        <dropDefaultValue tableName="kouluttajavaltuutus" columnName="valtuutuksen_muokkausaika" columnDataType="datetime"/>
-    </changeSet>
-
-    <changeSet id="20201028101013-1-relations" author="jhipster">
-
-    </changeSet>
-
-    <changeSet id="20201028101013-1-data" author="jhipster" context="faker">
-        <loadData
-            file="config/liquibase/fake-data/kouluttajavaltuutus.csv"
-            separator=";"
-            tableName="kouluttajavaltuutus">
-            <column name="id" type="numeric"/>
-            <column name="alkamispaiva" type="date"/>
-            <column name="paattymispaiva" type="date"/>
-            <column name="valtuutuksen_luontiaika" type="datetime"/>
-            <column name="valtuutuksen_muokkausaika" type="datetime"/>
-            <column name="valtuuttaja_id" type="numeric"/>
-            <column name="valtuutettu_id" type="numeric"/>
-        </loadData>
+        <dropDefaultValue tableName="kouluttajavaltuutus" columnName="valtuutuksen_luontiaika"
+                          columnDataType="datetime"/>
+        <dropDefaultValue tableName="kouluttajavaltuutus" columnName="valtuutuksen_muokkausaika"
+                          columnDataType="datetime"/>
     </changeSet>
 
 </databaseChangeLog>

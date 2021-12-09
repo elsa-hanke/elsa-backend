@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
     <changeSet id="20201020075737-1" author="jhipster">
@@ -10,83 +10,54 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="tapahtuman_ajankohta" type="date">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="arvioitava_tapahtuma" type="varchar(255)">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="pyynnon_aika" type="date">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="lisatiedot" type="${clobType}">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="itsearviointi_vaativuustaso" type="integer">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="itsearviointi_luottamuksen_taso" type="integer">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="sanallinen_itsearviointi" type="${clobType}">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="itsearviointi_aika" type="date">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="vaativuustaso" type="integer">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="luottamuksen_taso" type="integer">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="sanallinen_arviointi" type="${clobType}">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="arviointi_aika" type="date">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="lukittu" type="boolean">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="arvioinnin_antaja_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="arvioitava_osaalue_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="tyoskentelyjakso_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
         </createTable>
-    </changeSet>
-
-    <changeSet id="20201020075737-1-relations" author="jhipster">
-
-    </changeSet>
-
-    <changeSet id="20201020075737-1-data" author="jhipster" context="faker">
-        <loadData
-                  file="config/liquibase/fake-data/suoritusarviointi.csv"
-                  separator=";"
-                  tableName="suoritusarviointi">
-            <column name="id" type="numeric"/>
-            <column name="tapahtuman_ajankohta" type="date"/>
-            <column name="arvioitava_tapahtuma" type="string"/>
-            <column name="pyynnon_aika" type="date"/>
-            <column name="lisatiedot" type="clob"/>
-            <column name="itsearviointi_vaativuustaso" type="numeric"/>
-            <column name="itsearviointi_luottamuksen_taso" type="numeric"/>
-            <column name="itsearviointi_aika" type="date"/>
-            <column name="sanallinen_itsearviointi" type="clob"/>
-            <column name="vaativuustaso" type="numeric"/>
-            <column name="luottamuksen_taso" type="numeric"/>
-            <column name="sanallinen_arviointi" type="clob"/>
-            <column name="arviointi_aika" type="date"/>
-            <column name="lukittu" type="boolean"/>
-            <column name="arvioinnin_antaja_id" type="numeric"/>
-            <column name="arvioitava_osaalue_id" type="numeric"/>
-            <column name="tyoskentelyjakso_id" type="numeric"/>
-        </loadData>
     </changeSet>
 
 </databaseChangeLog>
