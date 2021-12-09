@@ -133,5 +133,6 @@
     <include file="config/liquibase/changelog/20211118171022_modify_entity_constraints_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211119173244_modify_entity_constraints_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211129175050_modify_entity_constraints_Suoritemerkinta.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211209110134_modify_entity_constraints_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
