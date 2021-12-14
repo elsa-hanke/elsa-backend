@@ -5,7 +5,10 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
-import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.KeskeytysaikaRepository
+import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
+import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
@@ -53,9 +56,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
     @Autowired
     private lateinit var keskeytysaikaRepository: KeskeytysaikaRepository
-
-    @Autowired
-    private lateinit var poissaolonSyyRepository: PoissaolonSyyRepository
 
     @Autowired
     private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
@@ -1065,7 +1065,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot-taulukko"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.keskeytykset").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.tilastot.tyoskentelyaikaYhteensa").value(45.0))
