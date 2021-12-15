@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.config
 
+import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
@@ -61,6 +62,7 @@ class SecurityConfiguration(
     private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
+    private val opintooikeusRepository: OpintooikeusRepository,
     private val env: Environment
 ) : WebSecurityConfigurerAdapter() {
 
@@ -136,7 +138,7 @@ class SecurityConfiguration(
                 )
                 .authenticationManager(ProviderManager(authenticationProvider))
                 .defaultSuccessUrl("/", true)
-                .failureUrl("/")
+                .failureUrl("/kirjaudu")
                 .and()
                 .addFilterBefore(ElsaUriFilter(applicationProperties), CsrfFilter::class.java)
                 .saml2Logout { saml2 ->
@@ -266,39 +268,28 @@ class SecurityConfiguration(
                 }
         }
 
-        val existingUser = findExistingUser(cipher, originalKey, hetu, eppn)
-        if (existingUser != null) {
-            return Saml2Authentication(
-                createPrincipal(existingUser.id, principal),
-                token.saml2Response,
-                existingUser.authorities.map { SimpleGrantedAuthority(it.name) }
-            )
+        // Käyttäjä täytyy löytyä järjestelmästä
+        val existingUser =
+            findExistingUser(cipher, originalKey, hetu, eppn)
+                ?: throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
+
+        // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus
+        if (!onOikeus(existingUser)) {
+            throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
         }
 
-        cipher.init(Cipher.ENCRYPT_MODE, originalKey)
-        val params = cipher.parameters
-        val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
-        val ciphertext = if (hetu != null)
-            cipher.doFinal(hetu.toByteArray(StandardCharsets.UTF_8)) else null
-
-        // Uusi käyttäjä
-        var user = User(
-            firstName = firstName,
-            lastName = lastName,
-            hetu = ciphertext,
-            eppn = eppn,
-            email = mail,
-            initVector = iv,
-            login = UUID.randomUUID().toString(),
-            activated = true
-        )
-        user = userRepository.save(user)
-
         return Saml2Authentication(
-            createPrincipal(user.id, principal),
+            createPrincipal(existingUser.id, principal),
             token.saml2Response,
-            mutableListOf()
+            existingUser.authorities.map { SimpleGrantedAuthority(it.name) }
         )
+    }
+
+    private fun onOikeus(user: User): Boolean {
+        if (user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))) {
+            return opintooikeusRepository.existsByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        }
+        return true
     }
 
     private fun createPrincipal(

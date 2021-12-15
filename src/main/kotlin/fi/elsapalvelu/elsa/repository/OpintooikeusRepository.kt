@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository
 
 
 @Repository
-interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>
+interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
+
+    fun existsByErikoistuvaLaakariKayttajaUserId(userId: String): Boolean
+}
