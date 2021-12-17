@@ -1,11 +1,9 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
-import java.time.LocalDate
 import javax.persistence.*
 import javax.validation.constraints.NotNull
 
@@ -24,52 +22,24 @@ data class Erikoisala(
     var nimi: String? = null,
 
     @get: NotNull
-    @Column(name = "voimassaolo_alkaa", nullable = false)
-    var voimassaoloAlkaa: LocalDate? = null,
-
-    @Column(name = "voimassaolo_paattyy")
-    var voimassaoloPaattyy: LocalDate? = null,
-
-    @get: NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "tyyppi", nullable = false)
     var tyyppi: ErikoisalaTyyppi? = null,
 
-    @get: NotNull
-    @Column(name = "kaytannon_koulutuksen_vahimmaispituus", nullable = false)
-    var kaytannonKoulutuksenVahimmaispituus: Double? = null,
-
-    @get: NotNull
-    @Column(name = "terveyskeskuskoulutusjakson_vahimmaispituus", nullable = false)
-    var terveyskeskuskoulutusjaksonVahimmaispituus: Double? = null,
-
-    @get: NotNull
-    @Column(name = "yliopistosairaalajakson_vahimmaispituus", nullable = false)
-    var yliopistosairaalajaksonVahimmaispituus: Double? = null,
-
-    @get: NotNull
-    @Column(name = "yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus", nullable = false)
-    var yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus: Double? = null,
-
-    @get: NotNull
-    @Column(name = "erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara", nullable = false)
-    var erikoisalanVaatimaTeoriakoulutustenVahimmaismaara: Double? = null,
-
     @OneToMany(mappedBy = "erikoisala")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var kategoriat: MutableSet<OppimistavoitteenKategoria> = mutableSetOf(),
+    var kategoriat: MutableSet<SuoritteenKategoria> = mutableSetOf(),
 
     @OneToMany(mappedBy = "erikoisala")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var arvioitavatKokonaisuudet: MutableSet<ArvioitavaKokonaisuus> = mutableSetOf(),
 
+    @OneToMany(mappedBy = "erikoisala")
+    var opintooppaat: MutableSet<Opintoopas> = mutableSetOf(),
+
     @ManyToMany(mappedBy = "erikoisalat")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnore
-    var yliopistot: MutableSet<Yliopisto> = mutableSetOf(),
-
-    @ManyToOne
-    var arviointiasteikko: Arviointiasteikko? = null
+    var yliopistot: MutableSet<Yliopisto> = mutableSetOf()
 
 ) : Serializable {
 
@@ -85,14 +55,7 @@ data class Erikoisala(
     override fun toString() = "Erikoisala{" +
         "id=$id" +
         ", nimi='$nimi'" +
-        ", voimassaoloAlkaa='$voimassaoloAlkaa'" +
-        ", voimassaoloPaattyy='$voimassaoloPaattyy'" +
         ", tyyppi='$tyyppi'" +
-        ", kaytannonKoulutuksenVahimmaispituus=$kaytannonKoulutuksenVahimmaispituus" +
-        ", terveyskeskuskoulutusjaksonVahimmaispituus=$terveyskeskuskoulutusjaksonVahimmaispituus" +
-        ", yliopistosairaalajaksonVahimmaispituus=$yliopistosairaalajaksonVahimmaispituus" +
-        ", yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus=$yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus" +
-        ", erikoisalanVaatimaTeoriakoulutustenVahimmaismaara=$erikoisalanVaatimaTeoriakoulutustenVahimmaismaara" +
         "}"
 
     companion object {

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211214142622-2" author="jhipster">
+        <addColumn tableName="opintooikeus">
+            <column name="opintoopas_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="asetus" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <renameColumn tableName="opintooikeus" oldColumnName="opintosuunnitelma_kaytossa_pvm"
+                      newColumnName="osaamisen_arvioinnin_oppaan_pvm"/>
+
+        <addForeignKeyConstraint baseColumnNames="opintoopas_id"
+                                 baseTableName="opintooikeus"
+                                 constraintName="fk_opintooikeus__opintoopas_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="opintoopas"/>
+    </changeSet>
+</databaseChangeLog>

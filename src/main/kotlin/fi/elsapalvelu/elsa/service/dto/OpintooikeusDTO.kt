@@ -7,19 +7,23 @@ data class OpintooikeusDTO(
 
     var id: Long? = null,
 
-    var opintosuunnitelmaKaytossaPvm: LocalDate? = null,
-
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
     var opintooikeudenPaattymispaiva: LocalDate? = null,
 
     var opiskelijatunnus: String? = null,
 
+    var asetus: String? = null,
+
+    var osaamisenArvioinninOppaanPvm: LocalDate? = null,
+
     var yliopistoNimi: String? = null,
 
     var erikoisalaId: Long? = null,
 
-    var erikoisalaNimi: String? = null
+    var erikoisalaNimi: String? = null,
+
+    var opintoopasId: Long? = null
 
 ) : Serializable {
 

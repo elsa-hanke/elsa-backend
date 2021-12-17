@@ -30,7 +30,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     private val userService: UserService,
     private val erikoisalaService: ErikoisalaService,
     private val fileValidationService: FileValidationService,
-    private val objectMapper: ObjectMapper,
+    private val objectMapper: ObjectMapper
 ) {
 
     companion object {

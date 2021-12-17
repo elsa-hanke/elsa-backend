@@ -1,0 +1,18 @@
+id;nimi;voimassaolo_alkaa;voimassaolo_paattyy;kaytannon_koulutuksen_vahimmaispituus;terveyskeskuskoulutusjakson_vahimmaispituus;terveyskeskuskoulutusjakson_maksimipituus;yliopistosairaalajakson_vahimmaispituus;yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus;erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara;erikoisalan_vaatima_sateilysuojakoulutusten_vahimmaismaara;erikoisalan_vaatima_johtamisopintojen_vahimmaismaara;erikoisala_id;arviointiasteikko_id
+1;Anestesiologia ja tehohoito: Opinto-opas asetuksen 56/2015 mukaan;1985-08-01;2020-07-31;2190;273.75;273.75;821.25;821.25;60;0;10;2;1
+2;Anestesiologia ja tehohoito: Opinto-opas asetusmuutoksen 55/2020 mukaan;2020-08-01;;1825;273.75;273.75;365;365;100;0;10;2;1
+3;Ihotaudit ja allergologia: Opinto-opas asetuksen 56/2015 mukaan;1985-08-01;2020-07-31;2190;273.75;273.75;1095;821.25;60;0;10;9;2
+4;Ihotaudit ja allergologia: Opinto-opas asetusmuutoksen 55/2020 mukaan;2020-08-01;;1825;273.75;273.75;365;365;60;0;10;9;2
+5;Lastenneurologia:  Opinto-opas asetuksen 56/2015 mukaan;1985-08-01;2020-07-31;2190;273.75;273.75;1460;0;60;0;10;22;1
+6;Lastenneurologia: Opinto-opas asetusmuutoksen 55/2020 mukaan;2020-08-01;;1825;273.75;273.75;365;365;80;0;10;22;1
+7;Lastentaudit:  Opinto-opas asetuksen 56/2015 mukaan;1985-08-01;2020-07-31;2190;273.75;273.75;1095;821.25;100;0;10;24;1
+8;Lastentaudit: Opinto-opas asetusmuutoksen 55/2020 mukaan;2020-08-01;;1825;273.75;273.75;365;365;80;0;10;24;1
+9;Ortopedia ja traumatologia: Opinto-opas asetuksen 56/2015 mukaan;1985-08-01;2020-07-31;2190;273.75;273.75;1095;912.5;80;0.5;10;33;1
+10;Ortopedia ja traumatologia: Opinto-opas asetusmuutoksen 55/2020 mukaan;2020-08-01;;1825;273.75;273.75;365;365;140;2;10;33;1
+11;Syöpätaudit: Opinto-opas asetuksen 56/2015 mukaan;1985-08-01;2020-07-31;1825;273.75;273.75;730;638.75;60;1.5;10;44;1
+12;Syöpätaudit: Opinto-opas asetusmuutoksen 55/2020 mukaan;2020-08-01;;1825;273.75;273.75;365;365;60;3;10;44;1
+13;Työterveyshuolto: Opinto-opas asetuksen 56/2015 mukaan (2015-2017);2015-08-01;2017-07-31;2190;273.75;273.75;0;1916.25;100;0;10;46;2
+14;Työterveyshuolto: Opinto-opas asetuksen 56/2015 mukaan (2017-2020);2017-08-01;2020-07-31;2190;273.75;273.75;0;1916.25;200;0;10;46;2
+15;Työterveyshuolto: Opinto-opas asetusmuutoksen 55/2020 mukaan;2020-08-01;;1825;273.75;273.75;0;1551.25;200;0;10;46;2
+16;Yleislääketiede: Opinto-opas asetuksen 56/2015 mukaan;1985-08-01;2020-07-31;2190;1003.75;;0;0;80;0;10;50;2
+17;Yleislääketiede: Opinto-opas asetusmuutoksen 55/2020 mukaan;2020-08-01;;1825;1095;;0;0;120;0;10;50;2

@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -39,7 +38,6 @@ data class Tyoskentelypaikka(
     var kunta: Kunta? = null,
 
     @OneToOne(mappedBy = "tyoskentelypaikka")
-    @JsonIgnore
     var tyoskentelyjakso: Tyoskentelyjakso? = null
 
 ) : Serializable {

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220110164323" author="jhipster">
+        <addNotNullConstraint tableName="opintoopas" columnName="erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara"/>
+        <addNotNullConstraint tableName="opintoopas" columnName="erikoisalan_vaatima_sateilysuojakoulutusten_vahimmaismaara"/>
+        <addNotNullConstraint tableName="opintoopas" columnName="erikoisalan_vaatima_johtamisopintojen_vahimmaismaara"/>
+
+        <addNotNullConstraint tableName="opintoopas_audit" columnName="erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara"/>
+        <addNotNullConstraint tableName="opintoopas_audit" columnName="erikoisalan_vaatima_sateilysuojakoulutusten_vahimmaismaara"/>
+        <addNotNullConstraint tableName="opintoopas_audit" columnName="erikoisalan_vaatima_johtamisopintojen_vahimmaismaara"/>
+    </changeSet>
+</databaseChangeLog>

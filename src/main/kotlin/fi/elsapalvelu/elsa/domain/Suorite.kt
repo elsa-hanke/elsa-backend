@@ -8,9 +8,9 @@ import javax.persistence.*
 import javax.validation.constraints.NotNull
 
 @Entity
-@Table(name = "oppimistavoite")
+@Table(name = "suorite")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-class Oppimistavoite(
+class Suorite(
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
@@ -30,7 +30,7 @@ class Oppimistavoite(
 
     @NotNull
     @ManyToOne(optional = false)
-    var kategoria: OppimistavoitteenKategoria? = null,
+    var kategoria: SuoritteenKategoria? = null,
 
     @Column(name = "vaadittu_lkm")
     var vaadittulkm: Int? = null
@@ -39,14 +39,14 @@ class Oppimistavoite(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Oppimistavoite) return false
+        if (other !is Suorite) return false
 
         return id != null && other.id != null && id == other.id
     }
 
     override fun hashCode() = 31
 
-    override fun toString() = "Oppimistavoite{" +
+    override fun toString() = "Suorite{" +
         "id=$id" +
         ", nimi='$nimi'" +
         ", voimassaolonAlkamispaiva='$voimassaolonAlkamispaiva'" +

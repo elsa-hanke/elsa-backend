@@ -1,13 +1,13 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.Erikoisala
-import fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria
+import fi.elsapalvelu.elsa.domain.SuoritteenKategoria
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.persistence.EntityManager
 
-class OppimistavoitteenKategoriaHelper {
+class SuoritteenKategoriaHelper {
 
     companion object {
 
@@ -22,29 +22,29 @@ class OppimistavoitteenKategoriaHelper {
 
         @JvmStatic
         fun createEntity(em: EntityManager, erikoisala: Erikoisala? = null, voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
-                         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA): OppimistavoitteenKategoria {
-            val oppimistavoitteenKategoria = OppimistavoitteenKategoria(
+                         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA): SuoritteenKategoria {
+            val suoritteenKategoria = SuoritteenKategoria(
                 nimi = DEFAULT_NIMI,
                 voimassaolonAlkamispaiva = voimassaoloAlkaa,
                 voimassaolonPaattymispaiva = voimassaoloPaattyy
             )
 
             erikoisala?.let {
-                oppimistavoitteenKategoria.erikoisala = erikoisala
-                return oppimistavoitteenKategoria
+                suoritteenKategoria.erikoisala = erikoisala
+                return suoritteenKategoria
             }
 
             val newErikoisala = ErikoisalaHelper.createEntity()
             em.persist(newErikoisala)
             em.flush()
 
-            oppimistavoitteenKategoria.erikoisala = newErikoisala
-            return oppimistavoitteenKategoria
+            suoritteenKategoria.erikoisala = newErikoisala
+            return suoritteenKategoria
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): OppimistavoitteenKategoria {
-            val oppimistavoitteenKategoria = OppimistavoitteenKategoria(
+        fun createUpdatedEntity(em: EntityManager): SuoritteenKategoria {
+            val suoritteenKategoria = SuoritteenKategoria(
                 nimi = UPDATED_NIMI,
                 voimassaolonAlkamispaiva = UPDATED_VOIMASSAOLON_ALKAMISPAIVA,
                 voimassaolonPaattymispaiva = UPDATED_VOIMASSAOLON_PAATTYMISPAIVA
@@ -59,8 +59,8 @@ class OppimistavoitteenKategoriaHelper {
             } else {
                 erikoisala = em.findAll(Erikoisala::class).get(0)
             }
-            oppimistavoitteenKategoria.erikoisala = erikoisala
-            return oppimistavoitteenKategoria
+            suoritteenKategoria.erikoisala = erikoisala
+            return suoritteenKategoria
         }
     }
 }

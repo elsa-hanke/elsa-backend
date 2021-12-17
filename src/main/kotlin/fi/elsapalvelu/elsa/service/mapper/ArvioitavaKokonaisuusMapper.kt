@@ -7,7 +7,6 @@ import org.mapstruct.*
 @Mapper(
     componentModel = "spring",
     uses = [
-        ArviointiasteikkoMapper::class,
         ErikoisalaMapper::class,
         ArvioitavanKokonaisuudenKategoriaSimpleMapper::class
     ],
@@ -18,7 +17,6 @@ interface ArvioitavaKokonaisuusMapper :
 
     @Mappings(
         Mapping(source = "erikoisala.id", target = "erikoisalaId"),
-        Mapping(source = "erikoisala.arviointiasteikko", target = "arviointiasteikko")
     )
     override fun toDto(entity: ArvioitavaKokonaisuus): ArvioitavaKokonaisuusDTO
 

@@ -58,6 +58,7 @@ class CacheConfiguration(
         return JCacheManagerCustomizer { cm ->
             createCache(cm, fi.elsapalvelu.elsa.domain.Arviointiasteikko::class.java.name + ".erikoisalat")
             createCache(cm, fi.elsapalvelu.elsa.domain.Arviointiasteikko::class.java.name + ".tasot")
+            createCache(cm, fi.elsapalvelu.elsa.domain.Arviointiasteikko::class.java.name + ".opintooppaat")
             createCache(cm, fi.elsapalvelu.elsa.domain.Arviointiasteikko::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.ArviointiasteikonTaso::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Arviointityokalu::class.java.name)
@@ -97,9 +98,9 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Koulutussuunnitelma::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Kunta::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Opintooikeus::class.java.name)
-            createCache(cm, fi.elsapalvelu.elsa.domain.Oppimistavoite::class.java.name)
-            createCache(cm, fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria::class.java.name + ".oppimistavoitteet")
-            createCache(cm, fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Suorite::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.SuoritteenKategoria::class.java.name + ".suoritteet")
+            createCache(cm, fi.elsapalvelu.elsa.domain.SuoritteenKategoria::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.PaivakirjaAihekategoria::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Paivakirjamerkinta::class.java.name + ".aihekategoriat")
             createCache(cm, fi.elsapalvelu.elsa.domain.Paivakirjamerkinta::class.java.name)
@@ -122,6 +123,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Yliopisto::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.repository.UserRepository.USERS_BY_EMAIL_CACHE)
             createCache(cm, fi.elsapalvelu.elsa.repository.UserRepository.USERS_BY_LOGIN_CACHE)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Opintoopas::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala::class.java.name)
 
         }

@@ -41,15 +41,15 @@ class SuoritemerkintaHelper {
             )
 
             // Lisätään pakollinen tieto
-            val oppimistavoite: Oppimistavoite
-            if (em.findAll(Oppimistavoite::class).isEmpty()) {
-                oppimistavoite = OppimistavoiteHelper.createEntity(em, erikoisala)
-                em.persist(oppimistavoite)
+            val suorite: Suorite
+            if (em.findAll(Suorite::class).isEmpty()) {
+                suorite = SuoriteHelper.createEntity(em, erikoisala)
+                em.persist(suorite)
                 em.flush()
             } else {
-                oppimistavoite = em.findAll(Oppimistavoite::class)[0]
+                suorite = em.findAll(Suorite::class)[0]
             }
-            suoritemerkinta.oppimistavoite = oppimistavoite
+            suoritemerkinta.suorite = suorite
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
@@ -76,15 +76,15 @@ class SuoritemerkintaHelper {
             )
 
             // Lisätään pakollinen tieto
-            val oppimistavoite: Oppimistavoite
-            if (em.findAll(Oppimistavoite::class).isEmpty()) {
-                oppimistavoite = OppimistavoiteHelper.createUpdatedEntity(em)
-                em.persist(oppimistavoite)
+            val suorite: Suorite
+            if (em.findAll(Suorite::class).isEmpty()) {
+                suorite = SuoriteHelper.createUpdatedEntity(em)
+                em.persist(suorite)
                 em.flush()
             } else {
-                oppimistavoite = em.findAll(Oppimistavoite::class)[0]
+                suorite = em.findAll(Suorite::class)[0]
             }
-            suoritemerkinta.oppimistavoite = oppimistavoite
+            suoritemerkinta.suorite = suorite
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso

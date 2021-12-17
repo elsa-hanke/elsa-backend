@@ -44,7 +44,7 @@ class ArvioitavanKokonaisuudenKategoriaServiceImpl(
 
         return arvioitavanKokonaisuudenKategoriaRepository.findAllByErikoisalaIdAndValid(
             opintooikeus?.erikoisala?.id,
-            opintooikeus?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
+            opintooikeus?.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
         )
             .map(arvioitavanKokonaisuudenKategoriaMapper::toDto)
     }
