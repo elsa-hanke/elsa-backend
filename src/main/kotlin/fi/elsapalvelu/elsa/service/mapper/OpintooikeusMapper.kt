@@ -13,6 +13,8 @@ import org.mapstruct.ReportingPolicy
         ErikoistuvaLaakariMapper::class,
         YliopistoMapper::class,
         ErikoisalaMapper::class,
+        OpintoopasMapper::class,
+        AsetusMapper::class,
         OpintoopasMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
@@ -25,6 +27,7 @@ interface OpintooikeusMapper :
         Mapping(source = "erikoisala.id", target = "erikoisalaId"),
         Mapping(source = "erikoisala.nimi", target = "erikoisalaNimi"),
         Mapping(source = "opintoopas.id", target = "opintoopasId"),
+        Mapping(source = "opintoopas.nimi", target = "opintoopasNimi"),
     )
     override fun toDto(entity: Opintooikeus): OpintooikeusDTO
 

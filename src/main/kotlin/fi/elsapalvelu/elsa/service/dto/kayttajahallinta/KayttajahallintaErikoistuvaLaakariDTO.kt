@@ -13,12 +13,14 @@ data class KayttajahallintaErikoistuvaLaakariDTO(
     var sukunimi: String? = null,
 
     @get: NotNull
+    var sahkopostiosoite: String? = null,
+
+    @get: NotNull
     var yliopistoId: Long? = null,
 
     @get: NotNull
     var erikoisalaId: Long? = null,
-
-    @get: NotNull
+    
     var opiskelijatunnus: String? = null,
 
     @get: NotNull
@@ -28,10 +30,13 @@ data class KayttajahallintaErikoistuvaLaakariDTO(
     var opintooikeusPaattyy: LocalDate? = null,
 
     @get: NotNull
-    var opintosuunnitelmaKaytossaPvm: LocalDate? = null,
+    var asetusId: Long? = null,
 
     @get: NotNull
-    var sahkopostiosoite: String? = null
+    var opintoopasId: Long? = null,
+
+    @get: NotNull
+    var osaamisenArvioinninOppaanPvm: LocalDate? = null
 
 ) : Serializable {
     override fun toString() = "ErikoistuvaLaakariDTO"

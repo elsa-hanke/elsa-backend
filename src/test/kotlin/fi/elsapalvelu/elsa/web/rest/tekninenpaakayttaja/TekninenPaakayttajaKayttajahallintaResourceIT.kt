@@ -1,13 +1,12 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.VerificationToken
-import fi.elsapalvelu.elsa.domain.Yliopisto
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
+import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import org.hamcrest.Matchers
@@ -126,9 +125,15 @@ class TekninenPaakayttajaKayttajahallintaResourceIT {
         val erikoisala = ErikoisalaHelper.createEntity()
         em.persist(erikoisala)
 
+        val asetus = em.findAll(Asetus::class).get(0)
+
+        val opintoopas = em.findAll(Opintoopas::class).get(0)
+
         val kayttajahallintaErikoistuvaLaakariDTO = createKayttajahallintaErikoistuvaLaakariDTO()
         kayttajahallintaErikoistuvaLaakariDTO.yliopistoId = yliopisto.id
         kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId = erikoisala.id
+        kayttajahallintaErikoistuvaLaakariDTO.asetusId = asetus.id
+        kayttajahallintaErikoistuvaLaakariDTO.opintoopasId = opintoopas.id
 
         restMockMvc.perform(
             post("/api/tekninen-paakayttaja/erikoistuvat-laakarit")
@@ -252,11 +257,11 @@ class TekninenPaakayttajaKayttajahallintaResourceIT {
             return KayttajahallintaErikoistuvaLaakariDTO(
                 etunimi = "John",
                 sukunimi = "Doe",
+                sahkopostiosoite = "john.doe@example.com",
                 opiskelijatunnus = "123456",
                 opintooikeusAlkaa = LocalDate.ofEpochDay(0L),
                 opintooikeusPaattyy = LocalDate.ofEpochDay(30L),
-                opintosuunnitelmaKaytossaPvm = LocalDate.ofEpochDay(0L),
-                sahkopostiosoite = "john.doe@example.com"
+                osaamisenArvioinninOppaanPvm = LocalDate.ofEpochDay(0L)
             )
         }
     }

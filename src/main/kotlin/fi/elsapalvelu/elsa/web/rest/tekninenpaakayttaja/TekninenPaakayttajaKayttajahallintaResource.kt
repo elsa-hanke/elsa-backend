@@ -21,7 +21,9 @@ class TekninenPaakayttajaKayttajahallintaResource(
     private val kayttajaService: KayttajaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val yliopistoService: YliopistoService,
-    private val erikoisalaService: ErikoisalaService
+    private val erikoisalaService: ErikoisalaService,
+    private val asetusService: AsetusService,
+    private val opintoopasService: OpintoopasService
 ) {
 
     companion object {
@@ -61,6 +63,10 @@ class TekninenPaakayttajaKayttajahallintaResource(
 
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
 
+        form.asetukset = asetusService.findAll().toMutableSet()
+
+        form.opintooppaat = opintoopasService.findAllByValid().toMutableSet()
+
         return ResponseEntity.ok(form)
     }
 
@@ -90,6 +96,22 @@ class TekninenPaakayttajaKayttajahallintaResource(
                 "Erikoisalaa ei löydy.",
                 KAYTTAJA_ENTITY_NAME,
                 "dataillegal.erikoisalaa-ei-loydy"
+            )
+        }
+
+        if (asetusService.findOne(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!) == null) {
+            throw BadRequestAlertException(
+                "Asetusta ei löydy.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.asetusta-ei-loydy"
+            )
+        }
+
+        if (opintoopasService.findOne(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!) == null) {
+            throw BadRequestAlertException(
+                "Opinto-opasta ei löydy.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.opinto-opasta-ei-loydy"
             )
         }
 
