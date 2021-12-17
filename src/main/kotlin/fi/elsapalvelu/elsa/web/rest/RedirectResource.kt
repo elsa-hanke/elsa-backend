@@ -30,8 +30,7 @@ class RedirectResource(private val env: Environment) {
             "http://localhost:9060/"
         } else {
             val url = request.requestURL.toString()
-            url.replace("api.", "")
-            url.replace(request.requestURI, "/")
+            url.replace("api.", "").replace(request.requestURI, "/")
         }
     }
 }
