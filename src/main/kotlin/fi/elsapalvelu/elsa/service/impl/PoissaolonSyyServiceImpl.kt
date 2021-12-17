@@ -33,7 +33,7 @@ class PoissaolonSyyServiceImpl(
         // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää
         // voimassaolon rajaamisessa
         return poissaolonSyyRepository.findAllByValid(
-            opintooikeus?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
+            opintooikeus?.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
         )
             .map(poissaolonSyyMapper::toDto)
     }

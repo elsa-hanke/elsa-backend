@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.OppimistavoitteenKategoriaDTO
-import fi.elsapalvelu.elsa.service.dto.OppimistavoitteetTableDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaFormDTO
+import fi.elsapalvelu.elsa.service.dto.SuoritteenKategoriaDTO
+import fi.elsapalvelu.elsa.service.dto.SuoritteetTableDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -25,7 +25,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
-    private val oppimistavoitteenKategoriaService: OppimistavoitteenKategoriaService,
+    private val suoritteenKategoriaService: SuoritteenKategoriaService,
     private val suoritemerkintaService: SuoritemerkintaService
 ) {
 
@@ -104,16 +104,16 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
             .build()
     }
 
-    @GetMapping("/oppimistavoitteet-taulukko")
-    fun getOppimistavoitteetTable(
+    @GetMapping("/suoritteet-taulukko")
+    fun getSuoritteetTable(
         principal: Principal?
-    ): ResponseEntity<OppimistavoitteetTableDTO> {
+    ): ResponseEntity<SuoritteetTableDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val table = OppimistavoitteetTableDTO()
+        val table = SuoritteetTableDTO()
 
-        table.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
+        table.suoritteenKategoriat = suoritteenKategoriaService
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).let {
-                toSortedOppimistavoitteenKategoriat(it)
+                toSortedSuoritteenKategoriat(it)
             }
         table.suoritemerkinnat = suoritemerkintaService
             .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toSet()
@@ -132,18 +132,18 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toSet()
         form.kunnat = kuntaService.findAll().toSet()
         form.erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toSet()
-        form.oppimistavoitteenKategoriat = oppimistavoitteenKategoriaService
+        form.suoritteenKategoriat = suoritteenKategoriaService
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).let {
-                toSortedOppimistavoitteenKategoriat(it)
+                toSortedSuoritteenKategoriat(it)
             }
 
         return ResponseEntity.ok(form)
     }
 
-    private fun toSortedOppimistavoitteenKategoriat(oppimistavoitteenKategoriat: List<OppimistavoitteenKategoriaDTO>): SortedSet<OppimistavoitteenKategoriaDTO> {
-        return oppimistavoitteenKategoriat.map {
+    private fun toSortedSuoritteenKategoriat(suoritteenKategoriat: List<SuoritteenKategoriaDTO>): SortedSet<SuoritteenKategoriaDTO> {
+        return suoritteenKategoriat.map {
             it.apply {
-                oppimistavoitteet = oppimistavoitteet?.sortedBy { oppimistavoite -> oppimistavoite.nimi }?.toSet()
+                suoritteet = suoritteet?.sortedBy { suoritteet -> suoritteet.nimi }?.toSet()
             }
             it
         }.toSortedSet(compareBy { kategoria -> kategoria.jarjestysnumero })

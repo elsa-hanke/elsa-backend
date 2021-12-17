@@ -4,7 +4,7 @@ import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
 
-data class OppimistavoitteenKategoriaDTO(
+data class SuoritteenKategoriaDTO(
 
     var id: Long? = null,
 
@@ -18,9 +18,7 @@ data class OppimistavoitteenKategoriaDTO(
 
     var erikoisalaId: Long? = null,
 
-    var arviointiasteikko: ArviointiasteikkoDTO? = null,
-
-    var oppimistavoitteet: Set<OppimistavoiteDTO>? = null,
+    var suoritteet: Set<SuoriteDTO>? = null,
 
     var jarjestysnumero: Int? = null
 
@@ -28,7 +26,7 @@ data class OppimistavoitteenKategoriaDTO(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is OppimistavoitteenKategoriaDTO) return false
+        if (other !is SuoritteenKategoriaDTO) return false
         return id != null && id == other.id
     }
 

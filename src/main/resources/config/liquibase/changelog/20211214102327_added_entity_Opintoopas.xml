@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20211214102327-1" author="jhipster">
+        <createTable tableName="opintoopas">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="voimassaolo_alkaa" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="voimassaolo_paattyy" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="kaytannon_koulutuksen_vahimmaispituus" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="terveyskeskuskoulutusjakson_vahimmaispituus" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="terveyskeskuskoulutusjakson_maksimipituus" type="double">
+                <constraints nullable="true"/>
+            </column>
+            <column name="yliopistosairaalajakson_vahimmaispituus" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara" type="double">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoisalan_vaatima_sateilysuojakoulutusten_vahimmaismaara" type="double">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoisalan_vaatima_johtamisopintojen_vahimmaismaara" type="double">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arviointiasteikko_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="opintoopas_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="voimassaolo_alkaa" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="voimassaolo_paattyy" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="kaytannon_koulutuksen_vahimmaispituus" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="terveyskeskuskoulutusjakson_vahimmaispituus" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="terveyskeskuskoulutusjakson_maksimipituus" type="double">
+                <constraints nullable="true"/>
+            </column>
+            <column name="yliopistosairaalajakson_vahimmaispituus" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara" type="double">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoisalan_vaatima_sateilysuojakoulutusten_vahimmaismaara" type="double">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoisalan_vaatima_johtamisopintojen_vahimmaismaara" type="double">
+                <constraints nullable="true"/>
+            </column>
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arviointiasteikko_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="20211214102327-1-data" author="jhipster">
+        <loadData
+            file="config/liquibase/data/opintoopas.csv"
+            separator=";"
+            tableName="opintoopas">
+            <column name="id" type="numeric"/>
+            <column name="nimi" type="string"/>
+            <column name="voimassaolo_alkaa" type="date"/>
+            <column name="voimassaolo_paattyy" type="date"/>
+            <column name="kaytannon_koulutuksen_vahimmaispituus" type="numeric"/>
+            <column name="terveyskeskuskoulutusjakson_vahimmaispituus" type="numeric"/>
+            <column name="terveyskeskuskoulutusjakson_maksimipituus" type="numeric"/>
+            <column name="yliopistosairaalajakson_vahimmaispituus" type="numeric"/>
+            <column name="yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus" type="numeric"/>
+            <column name="erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara" type="numeric"/>
+            <column name="erikoisalan_vaatima_sateilysuojakoulutusten_vahimmaismaara" type="numeric" />
+            <column name="erikoisalan_vaatima_johtamisopintojen_vahimmaismaara" type="numeric"/>
+            <column name="erikoisala_id" type="numeric"/>
+            <column name="arviointiasteikko_id" type="numeric"/>
+        </loadData>
+    </changeSet>
+</databaseChangeLog>

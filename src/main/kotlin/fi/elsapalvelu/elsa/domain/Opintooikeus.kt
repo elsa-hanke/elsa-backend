@@ -30,8 +30,12 @@ data class Opintooikeus(
     var opiskelijatunnus: String? = null,
 
     @NotNull
-    @Column(name = "opintosuunnitelma_kaytossa_pvm")
-    var opintosuunnitelmaKaytossaPvm: LocalDate? = null,
+    @Column(name = "asetus")
+    var asetus: String? = null,
+
+    @NotNull
+    @Column(name = "osaamisen_arvioinnin_oppaan_pvm")
+    var osaamisenArvioinninOppaanPvm: LocalDate? = null,
 
     @NotNull
     @ManyToOne(optional = false)
@@ -43,7 +47,11 @@ data class Opintooikeus(
 
     @NotNull
     @ManyToOne(optional = false)
-    var erikoisala: Erikoisala? = null
+    var erikoisala: Erikoisala? = null,
+
+    @NotNull
+    @ManyToOne(optional = false)
+    var opintoopas: Opintoopas? = null
 
 ) : Serializable {
 
