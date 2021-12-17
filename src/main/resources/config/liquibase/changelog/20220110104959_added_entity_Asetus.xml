@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220110104959-1" author="jhipster">
+        <createTable tableName="asetus">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="asetus_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="nimi" type="varchar(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20220110104959-1-data" author="jhipster">
+        <loadData
+            file="config/liquibase/data/asetus.csv"
+            separator=";"
+            tableName="asetus">
+            <column name="id" type="numeric"/>
+            <column name="nimi" type="string"/>
+        </loadData>
+    </changeSet>
+
+    <changeSet id="20220110104959-2" author="jhipster">
+        <addColumn tableName="opintooikeus">
+            <column name="asetus_id" type="bigint" defaultValue="5">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <dropColumn tableName="opintooikeus" columnName="asetus"/>
+        <dropNotNullConstraint tableName="opintooikeus" columnName="opiskelijatunnus"/>
+    </changeSet>
+</databaseChangeLog>

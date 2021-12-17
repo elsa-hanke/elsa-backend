@@ -24,14 +24,9 @@ data class Opintooikeus(
     @NotNull
     @Column(name = "opintooikeuden_paattymispaiva")
     var opintooikeudenPaattymispaiva: LocalDate? = null,
-
-    @NotNull
+    
     @Column(name = "opiskelijatunnus")
     var opiskelijatunnus: String? = null,
-
-    @NotNull
-    @Column(name = "asetus")
-    var asetus: String? = null,
 
     @NotNull
     @Column(name = "osaamisen_arvioinnin_oppaan_pvm")
@@ -51,7 +46,11 @@ data class Opintooikeus(
 
     @NotNull
     @ManyToOne(optional = false)
-    var opintoopas: Opintoopas? = null
+    var opintoopas: Opintoopas? = null,
+
+    @NotNull
+    @ManyToOne(optional = false)
+    var asetus: Asetus? = null
 
 ) : Serializable {
 

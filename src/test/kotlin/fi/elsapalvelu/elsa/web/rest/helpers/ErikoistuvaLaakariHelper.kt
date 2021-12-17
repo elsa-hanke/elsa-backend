@@ -18,7 +18,7 @@ class ErikoistuvaLaakariHelper {
         const val DEFAULT_YLIOPISTO = "TAYS"
 
         private val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
-        private const val DEFAULT_ASETUS = "55/2020"
+        const val DEFAULT_ASETUS = "55/2020"
 
         @JvmStatic
         fun createEntity(em: EntityManager, user: User? = null): ErikoistuvaLaakari {
@@ -66,6 +66,16 @@ class ErikoistuvaLaakariHelper {
             }
             opintoopas.arviointiasteikko = arviointiasteikko
 
+            // Lisätään pakollinen tieto
+            val asetus: Asetus
+            if (em.findAll(Asetus::class).isEmpty()) {
+                asetus = Asetus(nimi = DEFAULT_ASETUS)
+                em.persist(asetus)
+                em.flush()
+            } else {
+                asetus = em.findAll(Asetus::class).get(0)
+            }
+
             val opintooikeus: Opintooikeus
             if (em.findAll(Opintooikeus::class).isEmpty()) {
                 opintooikeus = Opintooikeus(
@@ -77,7 +87,7 @@ class ErikoistuvaLaakariHelper {
                     yliopisto = yliopisto,
                     erikoisala = erikoisala,
                     opintoopas = opintoopas,
-                    asetus = DEFAULT_ASETUS
+                    asetus = asetus
                 )
                 em.persist(opintooikeus)
                 em.flush()
