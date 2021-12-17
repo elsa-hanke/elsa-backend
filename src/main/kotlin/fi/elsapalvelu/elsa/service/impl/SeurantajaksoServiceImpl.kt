@@ -231,8 +231,8 @@ class SeurantajaksoServiceImpl(
 
         val suoritemerkinnat =
             suoritemerkintaService.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
-        val oppimistavoitteetMap = suoritemerkinnat.groupBy { it.oppimistavoite }
-        val oppimistavoitteet = oppimistavoitteetMap.map { (tavoite, suoritemerkinnat) ->
+        val suoritteetMap = suoritemerkinnat.groupBy { it.suorite }
+        val suoritteet = suoritteetMap.map { (tavoite, suoritemerkinnat) ->
             SeurantajaksonSuoritemerkintaDTO(tavoite?.nimi, suoritemerkinnat)
         }
 
@@ -250,7 +250,7 @@ class SeurantajaksoServiceImpl(
             muutOsaamistavoitteet = muutTavoitteet,
             arvioinnit = kategoriat,
             arviointienMaara = arvioinnit.size,
-            suoritemerkinnat = oppimistavoitteet,
+            suoritemerkinnat = suoritteet,
             suoritemerkinnatMaara = suoritemerkinnat.size,
             teoriakoulutukset = teoriakoulutukset
         )

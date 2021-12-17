@@ -4,7 +4,7 @@ import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
 
-data class OppimistavoiteDTO(
+data class SuoriteDTO(
 
     var id: Long? = null,
 
@@ -24,7 +24,7 @@ data class OppimistavoiteDTO(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is OppimistavoiteDTO) return false
+        if (other !is SuoriteDTO) return false
         return id != null && id == other.id
     }
 

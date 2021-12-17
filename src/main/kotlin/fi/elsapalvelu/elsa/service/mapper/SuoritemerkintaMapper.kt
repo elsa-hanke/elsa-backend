@@ -10,7 +10,7 @@ import org.mapstruct.ReportingPolicy
 @Mapper(
     componentModel = "spring",
     uses = [
-        OppimistavoiteMapper::class,
+        SuoriteMapper::class,
         TyoskentelyjaksoMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
@@ -19,17 +19,13 @@ interface SuoritemerkintaMapper :
     EntityMapper<SuoritemerkintaDTO, Suoritemerkinta> {
 
     @Mappings(
-        Mapping(source = "oppimistavoite.id", target = "oppimistavoiteId"),
-        Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId"),
-        Mapping(
-            source = "oppimistavoite.kategoria.erikoisala.arviointiasteikko",
-            target = "arviointiasteikko"
-        )
+        Mapping(source = "suorite.id", target = "suoriteId"),
+        Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId")
     )
     override fun toDto(entity: Suoritemerkinta): SuoritemerkintaDTO
 
     @Mappings(
-        Mapping(source = "oppimistavoiteId", target = "oppimistavoite"),
+        Mapping(source = "suoriteId", target = "suorite"),
         Mapping(source = "tyoskentelyjaksoId", target = "tyoskentelyjakso")
     )
     override fun toEntity(dto: SuoritemerkintaDTO): Suoritemerkinta

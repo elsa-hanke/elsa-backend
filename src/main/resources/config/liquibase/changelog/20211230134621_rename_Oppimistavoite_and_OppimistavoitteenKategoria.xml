@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211230134621" author="jhipster">
+        <dropForeignKeyConstraint baseTableName="suoritemerkinta"
+                                  constraintName="fk_suoritemerkinta_oppimistavoite_id"/>
+
+        <dropAllForeignKeyConstraints baseTableName="oppimistavoite"/>
+        <dropPrimaryKey tableName="oppimistavoite"/>
+
+        <dropAllForeignKeyConstraints baseTableName="oppimistavoitteen_kategoria"/>
+        <dropPrimaryKey tableName="oppimistavoitteen_kategoria"/>
+
+        <renameTable oldTableName="oppimistavoitteen_kategoria" newTableName="suoritteen_kategoria"/>
+        <addForeignKeyConstraint baseTableName="suoritteen_kategoria" baseColumnNames="erikoisala_id"
+                                 constraintName="fk_suoritteen_kategoria_erikoisala_id" referencedTableName="erikoisala"
+                                 referencedColumnNames="id"/>
+        <addPrimaryKey tableName="suoritteen_kategoria" columnNames="id"/>
+
+        <renameTable oldTableName="oppimistavoite" newTableName="suorite"/>
+        <dropAllForeignKeyConstraints baseTableName="suorite"/>
+        <addForeignKeyConstraint baseTableName="suorite" baseColumnNames="kategoria_id"
+                                 constraintName="fk_suorite_suoritteen_kategoria_id"
+                                 referencedTableName="suoritteen_kategoria"
+                                 referencedColumnNames="id"/>
+        <addPrimaryKey tableName="suorite" columnNames="id"/>
+
+        <renameColumn tableName="suoritemerkinta" oldColumnName="oppimistavoite_id" newColumnName="suorite_id"/>
+        <renameColumn tableName="suoritemerkinta_audit" oldColumnName="oppimistavoite_id" newColumnName="suorite_id"/>
+        <addForeignKeyConstraint baseTableName="suoritemerkinta" baseColumnNames="suorite_id"
+                                 constraintName="fk_suoritemerkinta_suorite_id" referencedTableName="suorite"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

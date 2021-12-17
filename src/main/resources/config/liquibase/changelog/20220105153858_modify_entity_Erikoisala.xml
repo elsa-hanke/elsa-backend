@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220105153858-1" author="jhipster">
+        <dropForeignKeyConstraint baseTableName="erikoisala" constraintName="fk_erikoisala_arviointiasteikko_id"/>
+        <dropColumn tableName="erikoisala" columnName="voimassaolo_alkaa"/>
+        <dropColumn tableName="erikoisala" columnName="voimassaolo_paattyy"/>
+        <dropColumn tableName="erikoisala" columnName="kaytannon_koulutuksen_vahimmaispituus"/>
+        <dropColumn tableName="erikoisala" columnName="terveyskeskuskoulutusjakson_vahimmaispituus"/>
+        <dropColumn tableName="erikoisala" columnName="yliopistosairaalajakson_vahimmaispituus"/>
+        <dropColumn tableName="erikoisala" columnName="yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus"/>
+        <dropColumn tableName="erikoisala" columnName="arviointiasteikko_id"/>
+        <dropColumn tableName="erikoisala" columnName="erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara"/>
+    </changeSet>
+
+</databaseChangeLog>

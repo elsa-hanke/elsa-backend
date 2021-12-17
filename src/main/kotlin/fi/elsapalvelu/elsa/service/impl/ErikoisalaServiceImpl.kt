@@ -7,7 +7,6 @@ import fi.elsapalvelu.elsa.service.dto.ErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.util.*
 
 @Service
@@ -34,14 +33,10 @@ class ErikoisalaServiceImpl(
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<ErikoisalaDTO> {
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        val opintooikeus = kirjautunutErikoistuvaLaakari?.opintooikeudet?.firstOrNull()
 
-        // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää
-        // voimassaolon rajaamisessa
-        return erikoisalaRepository.findAllByValid(
-            opintooikeus?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
-        )
-            .map(erikoisalaMapper::toDto)
+        return kirjautunutErikoistuvaLaakari?.opintooikeudet?.mapNotNull {
+            it.opintoopas?.erikoisala
+        }?.map(erikoisalaMapper::toDto) ?: listOf()
     }
 
     @Transactional(readOnly = true)

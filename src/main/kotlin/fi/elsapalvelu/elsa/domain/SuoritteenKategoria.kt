@@ -8,9 +8,9 @@ import javax.persistence.*
 import javax.validation.constraints.NotNull
 
 @Entity
-@Table(name = "oppimistavoitteen_kategoria")
+@Table(name = "suoritteen_kategoria")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-class OppimistavoitteenKategoria(
+class SuoritteenKategoria(
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
@@ -30,7 +30,7 @@ class OppimistavoitteenKategoria(
 
     @OneToMany(mappedBy = "kategoria")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var oppimistavoitteet: MutableSet<Oppimistavoite> = mutableSetOf(),
+    var suoritteet: MutableSet<Suorite> = mutableSetOf(),
 
     @NotNull
     @ManyToOne(optional = false)
@@ -39,18 +39,18 @@ class OppimistavoitteenKategoria(
     @Column(name = "jarjestysnumero")
     var jarjestysnumero: Int? = null,
 
-) : Serializable {
+    ) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is OppimistavoitteenKategoria) return false
+        if (other !is SuoritteenKategoria) return false
 
         return id != null && other.id != null && id == other.id
     }
 
     override fun hashCode() = 31
 
-    override fun toString() = "Oppimistavoite{" +
+    override fun toString() = "Suorite{" +
         "id=$id" +
         ", nimi='$nimi'" +
         ", voimassaolonAlkamispaiva='$voimassaolonAlkamispaiva'" +

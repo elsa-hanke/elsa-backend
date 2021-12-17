@@ -68,8 +68,8 @@ class ErikoistuvaLaakariServiceImpl(
         var opintooikeus = Opintooikeus(
             opintooikeudenMyontamispaiva = kayttajahallintaErikoistuvaLaakariDTO.opintooikeusAlkaa,
             opintooikeudenPaattymispaiva = kayttajahallintaErikoistuvaLaakariDTO.opintooikeusPaattyy,
-            opintosuunnitelmaKaytossaPvm = kayttajahallintaErikoistuvaLaakariDTO.opintosuunnitelmaKaytossaPvm,
             opiskelijatunnus = kayttajahallintaErikoistuvaLaakariDTO.opiskelijatunnus,
+            osaamisenArvioinninOppaanPvm = kayttajahallintaErikoistuvaLaakariDTO.opintosuunnitelmaKaytossaPvm,
             erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = yliopistoMapper.toEntity(
                 yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).orElse(null)

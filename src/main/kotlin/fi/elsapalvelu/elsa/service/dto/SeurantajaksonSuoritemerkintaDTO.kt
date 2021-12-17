@@ -4,7 +4,7 @@ import java.io.Serializable
 
 data class SeurantajaksonSuoritemerkintaDTO(
 
-    var oppimistavoite: String? = null,
+    var suorite: String? = null,
 
     var suoritemerkinnat: List<SuoritemerkintaDTO>? = null
 

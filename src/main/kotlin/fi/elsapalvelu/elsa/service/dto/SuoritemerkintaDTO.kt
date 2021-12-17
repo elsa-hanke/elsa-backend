@@ -27,11 +27,11 @@ data class SuoritemerkintaDTO(
 
     var lukittu: Boolean = false,
 
-    var oppimistavoiteId: Long? = null,
+    var suoriteId: Long? = null,
 
     var tyoskentelyjaksoId: Long? = null,
 
-    var oppimistavoite: OppimistavoiteDTO? = null,
+    var suorite: SuoriteDTO? = null,
 
     var tyoskentelyjakso: TyoskentelyjaksoDTO? = null,
 

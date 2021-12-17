@@ -1,14 +1,14 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.Erikoisala
-import fi.elsapalvelu.elsa.domain.Oppimistavoite
-import fi.elsapalvelu.elsa.domain.OppimistavoitteenKategoria
+import fi.elsapalvelu.elsa.domain.Suorite
+import fi.elsapalvelu.elsa.domain.SuoritteenKategoria
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.persistence.EntityManager
 
-class OppimistavoiteHelper {
+class SuoriteHelper {
 
     companion object {
 
@@ -23,45 +23,45 @@ class OppimistavoiteHelper {
 
         @JvmStatic
         fun createEntity(em: EntityManager, erikoisala: Erikoisala? = null, voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
-                         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA): Oppimistavoite {
-            val oppimistavoite = Oppimistavoite(
+                         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA): Suorite {
+            val suorite = Suorite(
                 nimi = DEFAULT_NIMI,
                 voimassaolonAlkamispaiva = voimassaoloAlkaa,
                 voimassaolonPaattymispaiva = voimassaoloPaattyy
             )
 
             // Lisätään pakollinen tieto
-            val oppimistavoitteenKategoria: OppimistavoitteenKategoria
-            if (em.findAll(OppimistavoitteenKategoria::class).isEmpty()) {
-                oppimistavoitteenKategoria = OppimistavoitteenKategoriaHelper.createEntity(em, erikoisala)
-                em.persist(oppimistavoitteenKategoria)
+            val suoritteenKategoria: SuoritteenKategoria
+            if (em.findAll(SuoritteenKategoria::class).isEmpty()) {
+                suoritteenKategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+                em.persist(suoritteenKategoria)
                 em.flush()
             } else {
-                oppimistavoitteenKategoria = em.findAll(OppimistavoitteenKategoria::class).get(0)
+                suoritteenKategoria = em.findAll(SuoritteenKategoria::class).get(0)
             }
-            oppimistavoite.kategoria = oppimistavoitteenKategoria
-            return oppimistavoite
+            suorite.kategoria = suoritteenKategoria
+            return suorite
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): Oppimistavoite {
-            val oppimistavoite = Oppimistavoite(
+        fun createUpdatedEntity(em: EntityManager): Suorite {
+            val suorite = Suorite(
                 nimi = UPDATED_NIMI,
                 voimassaolonAlkamispaiva = UPDATED_VOIMASSAOLON_ALKAMISPAIVA,
                 voimassaolonPaattymispaiva = UPDATED_VOIMASSAOLON_PAATTYMISPAIVA
             )
 
             // Lisätään pakollinen tieto
-            val oppimistavoitteenKategoria: OppimistavoitteenKategoria
-            if (em.findAll(OppimistavoitteenKategoria::class).isEmpty()) {
-                oppimistavoitteenKategoria = OppimistavoitteenKategoriaHelper.createUpdatedEntity(em)
-                em.persist(oppimistavoitteenKategoria)
+            val suoritteenKategoria: SuoritteenKategoria
+            if (em.findAll(SuoritteenKategoria::class).isEmpty()) {
+                suoritteenKategoria = SuoritteenKategoriaHelper.createUpdatedEntity(em)
+                em.persist(suoritteenKategoria)
                 em.flush()
             } else {
-                oppimistavoitteenKategoria = em.findAll(OppimistavoitteenKategoria::class).get(0)
+                suoritteenKategoria = em.findAll(SuoritteenKategoria::class).get(0)
             }
-            oppimistavoite.kategoria = oppimistavoitteenKategoria
-            return oppimistavoite
+            suorite.kategoria = suoritteenKategoria
+            return suorite
         }
     }
 }

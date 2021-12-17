@@ -35,7 +35,8 @@ class UserService(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val erikoisalaRepository: ErikoisalaRepository,
-    private val yliopistoRepository: YliopistoRepository
+    private val yliopistoRepository: YliopistoRepository,
+    private val opintoopasRepository: OpintoopasRepository
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -95,15 +96,18 @@ class UserService(
 
         // TODO: opinto-oikeus opintotietojärjestelmstä
         val yliopisto = yliopistoRepository.findByIdOrNull(kayttooikeusHakemusDTO.yliopisto)
-        val erikoisala = erikoisalaRepository.findByIdOrNull(46)
+        val erikoisala = erikoisalaRepository.findByIdOrNull(15)
+        val opintoopas = opintoopasRepository.findByIdOrNull(15)
         var opintooikeus = Opintooikeus(
             opintooikeudenMyontamispaiva = LocalDate.now(ZoneId.systemDefault()),
             opintooikeudenPaattymispaiva = LocalDate.now(ZoneId.systemDefault()),
             opiskelijatunnus = "123456",
-            opintosuunnitelmaKaytossaPvm = LocalDate.now(ZoneId.systemDefault()),
+            asetus = "55/2020",
+            osaamisenArvioinninOppaanPvm = LocalDate.now(ZoneId.systemDefault()),
             erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = yliopisto,
-            erikoisala = erikoisala
+            erikoisala = erikoisala,
+            opintoopas = opintoopas
         )
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 

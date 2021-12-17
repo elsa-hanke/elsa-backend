@@ -20,9 +20,7 @@ data class ArvioitavaKokonaisuusDTO(
 
     var erikoisalaId: Long? = null,
 
-    var kategoria: ArvioitavanKokonaisuudenKategoriaSimpleDTO? = null,
-
-    var arviointiasteikko: ArviointiasteikkoDTO? = null
+    var kategoria: ArvioitavanKokonaisuudenKategoriaSimpleDTO? = null
 
 ) : Serializable {
 

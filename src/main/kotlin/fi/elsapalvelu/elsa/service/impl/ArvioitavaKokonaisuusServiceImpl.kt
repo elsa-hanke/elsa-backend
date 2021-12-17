@@ -33,8 +33,7 @@ class ArvioitavaKokonaisuusServiceImpl(
         // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä, ei ole määritetty, käytetään nykyistä päivää
         // voimassaolon rajaamisessa
         return arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
-            opintooikeus?.erikoisala?.id,
-            opintooikeus?.opintosuunnitelmaKaytossaPvm ?: LocalDate.now()
+            opintooikeus?.erikoisala?.id, opintooikeus?.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
         )
             .map(arvioitavaKokonaisuusMapper::toDto)
     }

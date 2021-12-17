@@ -28,7 +28,7 @@ data class Arviointiasteikko(
 
     @OneToMany(mappedBy = "arviointiasteikko")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var erikoisalat: MutableSet<Erikoisala> = mutableSetOf()
+    var opintooppaat: MutableSet<Opintoopas> = mutableSetOf()
 
 ) : Serializable {
 

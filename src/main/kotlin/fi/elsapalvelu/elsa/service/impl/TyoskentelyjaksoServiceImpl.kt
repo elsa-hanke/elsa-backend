@@ -289,10 +289,9 @@ class TyoskentelyjaksoServiceImpl(
                 tyoskentelyjaksotSuoritettu
             )
         }
-
-        val erikoisala =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.opintooikeudet?.firstOrNull()?.erikoisala
-        val yhteensaVaadittuVahintaan = erikoisala?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
+        
+        val opintooikeus = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.opintooikeudet?.firstOrNull()
+        val yhteensaVaadittuVahintaan = opintooikeus?.opintoopas?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
         val arvioErikoistumiseenHyvaksyttavista =
             min(yhteensaVaadittuVahintaan / 2, tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu) +
                 tilastotCounter.nykyiselleErikoisalalleSuoritettu
@@ -307,14 +306,14 @@ class TyoskentelyjaksoServiceImpl(
                 yhteensaVaadittuVahintaan - arvioErikoistumiseenHyvaksyttavista
             ),
             koulutustyypit = TyoskentelyjaksotTilastotKoulutustyypitDTO(
-                terveyskeskusVaadittuVahintaan = erikoisala?.terveyskeskuskoulutusjaksonVahimmaispituus
+                terveyskeskusVaadittuVahintaan = opintooikeus?.opintoopas?.terveyskeskuskoulutusjaksonVahimmaispituus
                     ?: 0.0,
                 terveyskeskusSuoritettu = tilastotCounter.terveyskeskusSuoritettu,
-                yliopistosairaalaVaadittuVahintaan = erikoisala?.yliopistosairaalajaksonVahimmaispituus
+                yliopistosairaalaVaadittuVahintaan = opintooikeus?.opintoopas?.yliopistosairaalajaksonVahimmaispituus
                     ?: 0.0,
                 yliopistosairaalaSuoritettu = tilastotCounter.yliopistosairaalaSuoritettu,
                 yliopistosairaaloidenUlkopuolinenVaadittuVahintaan =
-                erikoisala?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus ?: 0.0,
+                opintooikeus?.opintoopas?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus ?: 0.0,
                 yliopistosairaaloidenUlkopuolinenSuoritettu = tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu,
                 yhteensaVaadittuVahintaan = yhteensaVaadittuVahintaan,
                 yhteensaSuoritettu = arvioErikoistumiseenHyvaksyttavista

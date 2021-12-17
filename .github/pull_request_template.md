@@ -1,4 +1,5 @@
 ## Muistilista
 
 - [ ] Testit
+- [ ] Dokumentaatio
 - [ ] Auditointitaulut

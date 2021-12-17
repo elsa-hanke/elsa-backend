@@ -3,8 +3,8 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.OppimistavoitteenKategoriaRepository
 import fi.elsapalvelu.elsa.repository.SuoritemerkintaRepository
+import fi.elsapalvelu.elsa.repository.SuoritteenKategoriaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.SuoritemerkintaMapper
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
@@ -45,7 +45,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
     private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 
     @Autowired
-    private lateinit var oppimistavoitteenKategoriaRepository: OppimistavoitteenKategoriaRepository
+    private lateinit var suoritteenKategoriaRepository: SuoritteenKategoriaRepository
 
     @Autowired
     private lateinit var suoritemerkintaMapper: SuoritemerkintaMapper
@@ -69,36 +69,36 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         erikoisala = ErikoisalaHelper.createEntity()
         em.persist(erikoisala)
 
-        // Lisätään voimassaoleva oppimistavoitteen kategoria ja päättymistä ei määritetty
+        // Lisätään voimassaoleva suoritteen kategoria ja päättymistä ei määritetty
         em.persist(
-            OppimistavoitteenKategoriaHelper.createEntity(
+            SuoritteenKategoriaHelper.createEntity(
                 em,
                 erikoisala,
                 LocalDate.ofEpochDay(0L),
                 null
             )
         )
-        // Lisätään voimassaoleva oppimistavoitteen kategoria ja päättyminen määritetty
+        // Lisätään voimassaoleva suoritteen kategoria ja päättyminen määritetty
         em.persist(
-            OppimistavoitteenKategoriaHelper.createEntity(
+            SuoritteenKategoriaHelper.createEntity(
                 em,
                 erikoisala,
                 LocalDate.ofEpochDay(0L),
                 LocalDate.ofEpochDay(20L)
             )
         )
-        // Lisätään oppimistavoitteen kategoria, jonka voimassaolo ei ole alkanut vielä
+        // Lisätään suoritteen kategoria, jonka voimassaolo ei ole alkanut vielä
         em.persist(
-            OppimistavoitteenKategoriaHelper.createEntity(
+            SuoritteenKategoriaHelper.createEntity(
                 em,
                 erikoisala,
                 LocalDate.ofEpochDay(15L),
                 LocalDate.ofEpochDay(20L)
             )
         )
-        // Lisätään oppimistavoitteen kategoria, jonka voimassaolo on jo päättynyt
+        // Lisätään suoritteen kategoria, jonka voimassaolo on jo päättynyt
         em.persist(
-            OppimistavoitteenKategoriaHelper.createEntity(
+            SuoritteenKategoriaHelper.createEntity(
                 em,
                 erikoisala,
                 LocalDate.ofEpochDay(0L),
@@ -407,7 +407,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
     @Test
     @Transactional
-    fun getOppimistavoitteetTable() {
+    fun getSuoritteetTable() {
         initTest()
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
@@ -417,19 +417,19 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
         erikoistuvaLaakari.opintooikeudet.firstOrNull()?.erikoisala =
-            suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
+            suoritemerkinta.suorite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        restSuoritemerkintaMockMvc.perform(get("/api/erikoistuva-laakari/oppimistavoitteet-taulukko"))
+        restSuoritemerkintaMockMvc.perform(get("/api/erikoistuva-laakari/suoritteet-taulukko"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.suoritemerkinnat").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.suoritemerkinnat[0].id").value(suoritemerkinta.id as Any))
-            // Vain yksi oppimistavoitteen kategoria, koska toiseen voimassaolevaan ei ole liitetty yhtään oppimistavoitetta.
-            .andExpect(jsonPath("$.oppimistavoitteenKategoriat").value(Matchers.hasSize<Any>(1)))
+            // Vain yksi suoritteen kategoria, koska toiseen voimassaolevaan ei ole liitetty yhtään suoritetta.
+            .andExpect(jsonPath("$.suoritteenKategoriat").value(Matchers.hasSize<Any>(1)))
             .andExpect(
-                jsonPath("$.oppimistavoitteenKategoriat[0].id")
-                    .value(suoritemerkinta.oppimistavoite?.kategoria?.id as Any)
+                jsonPath("$.suoritteenKategoriat[0].id")
+                    .value(suoritemerkinta.suorite?.kategoria?.id as Any)
             )
     }
 
@@ -445,7 +445,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
         erikoistuvaLaakari.opintooikeudet.firstOrNull()?.erikoisala =
-            suoritemerkinta.oppimistavoite?.kategoria?.erikoisala
+            suoritemerkinta.suorite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
         restSuoritemerkintaMockMvc.perform(get("/api/erikoistuva-laakari/suoritemerkinta-lomake"))
@@ -453,10 +453,10 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.tyoskentelyjaksot[0].id").value(suoritemerkinta.tyoskentelyjakso?.id as Any))
-            .andExpect(jsonPath("$.oppimistavoitteenKategoriat").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.suoritteenKategoriat").value(Matchers.hasSize<Any>(1)))
             .andExpect(
-                jsonPath("$.oppimistavoitteenKategoriat[0].id")
-                    .value(suoritemerkinta.oppimistavoite?.kategoria?.id as Any)
+                jsonPath("$.suoritteenKategoriat[0].id")
+                    .value(suoritemerkinta.suorite?.kategoria?.id as Any)
             )
     }
 
@@ -513,15 +513,15 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             )
 
             // Lisätään pakollinen tieto
-            val oppimistavoite: Oppimistavoite
-            if (em.findAll(Oppimistavoite::class).isEmpty()) {
-                oppimistavoite = OppimistavoiteHelper.createEntity(em, erikoisala)
-                em.persist(oppimistavoite)
+            val suorite: Suorite
+            if (em.findAll(Suorite::class).isEmpty()) {
+                suorite = SuoriteHelper.createEntity(em, erikoisala)
+                em.persist(suorite)
                 em.flush()
             } else {
-                oppimistavoite = em.findAll(Oppimistavoite::class)[0]
+                suorite = em.findAll(Suorite::class)[0]
             }
-            suoritemerkinta.oppimistavoite = oppimistavoite
+            suoritemerkinta.suorite = suorite
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
@@ -548,15 +548,15 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             )
 
             // Lisätään pakollinen tieto
-            val oppimistavoite: Oppimistavoite
-            if (em.findAll(Oppimistavoite::class).isEmpty()) {
-                oppimistavoite = OppimistavoiteHelper.createUpdatedEntity(em)
-                em.persist(oppimistavoite)
+            val suorite: Suorite
+            if (em.findAll(Suorite::class).isEmpty()) {
+                suorite = SuoriteHelper.createUpdatedEntity(em)
+                em.persist(suorite)
                 em.flush()
             } else {
-                oppimistavoite = em.findAll(Oppimistavoite::class)[0]
+                suorite = em.findAll(Suorite::class)[0]
             }
-            suoritemerkinta.oppimistavoite = oppimistavoite
+            suoritemerkinta.suorite = suorite
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso

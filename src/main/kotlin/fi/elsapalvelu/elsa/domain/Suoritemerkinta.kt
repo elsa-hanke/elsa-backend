@@ -49,7 +49,7 @@ data class Suoritemerkinta(
     @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var oppimistavoite: Oppimistavoite? = null,
+    var suorite: Suorite? = null,
 
     @NotNull
     @ManyToOne(optional = false)
