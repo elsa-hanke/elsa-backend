@@ -6,9 +6,12 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
-
 @Repository
 interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
+
+    fun existsByErikoistuvaLaakariKayttajaUserId(userId: String): Boolean
+
+    fun findOneByErikoistuvaLaakariKayttajaUserId(userId: String): Opintooikeus?
 
     @Query(
         """
