@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211220112522-1" author="jhipster">
+
+        <createTable tableName="kayttaja_yliopisto_erikoisala">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="yliopisto_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kayttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+    </changeSet>
+
+    <changeSet id="20211220112522-1-audit" author="jhipster">
+        <createTable tableName="kayttaja_yliopisto_erikoisala_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="yliopisto_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kayttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

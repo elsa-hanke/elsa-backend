@@ -110,6 +110,7 @@
     <include file="config/liquibase/changelog/20211130112633_modify_entity_OppimistavoitteenKategoria.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211207154920_remove_test_users.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211214131634_modify_entity_data_PoissaolonSyy.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211220112522_modify_related_entities_Kayttaja.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
@@ -139,5 +140,7 @@
     <include file="config/liquibase/changelog/20211209110134_modify_entity_constraints_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211209114123_modify_audit_constraints_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211209114446_modify_audit_constraints_KoejaksonAloituskeskustelu.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211220112522_add_related_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20211220112522_drop_kayttaja_rel_tables.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

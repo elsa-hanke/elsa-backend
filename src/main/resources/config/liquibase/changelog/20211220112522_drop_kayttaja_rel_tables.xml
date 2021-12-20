@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211220112522-3" author="jhipster">
+
+        <dropTable tableName="rel_kayttaja__erikoisala" />
+        <dropTable tableName="rel_kayttaja__erikoisala_audit" />
+        <dropTable tableName="rel_kayttaja__yliopisto" />
+        <dropTable tableName="rel_kayttaja__yliopisto_audit" />
+
+    </changeSet>
+</databaseChangeLog>
