@@ -167,21 +167,25 @@ class KayttajaResourceWithMockUserIT {
 
         private const val DEFAULT_LANGKEY = "en"
 
+        private val DEFAULT_AUTHORITY = Authority(name = ERIKOISTUVA_LAAKARI)
+
         @JvmStatic
         fun createEntity(
-            nimi: String? = "$DEFAULT_FIRSTNAME $DEFAULT_LASTNAME"
+            nimi: String = "$DEFAULT_FIRSTNAME $DEFAULT_LASTNAME",
+            email: String = RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL,
+            authority: Authority = DEFAULT_AUTHORITY
         ): User {
-            val names = nimi?.split(" ")
+            val names = nimi.split(" ")
             return User(
                 login = DEFAULT_LOGIN + RandomStringUtils.randomAlphabetic(5),
                 activated = true,
-                email = RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL,
+                email = email,
                 phoneNumber = RandomStringUtils.randomAlphabetic(5) + DEFAULT_PHONE_NUMBER,
                 avatar = DEFAULT_AVATAR,
-                firstName = names?.dropLast(1)?.joinToString(),
-                lastName = names?.last(),
+                firstName = names.dropLast(1).joinToString(),
+                lastName = names.last(),
                 langKey = DEFAULT_LANGKEY,
-                authorities = mutableSetOf(Authority(name = ERIKOISTUVA_LAAKARI))
+                authorities = mutableSetOf(authority)
             )
         }
     }
