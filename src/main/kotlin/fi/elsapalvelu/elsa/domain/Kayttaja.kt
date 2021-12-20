@@ -28,33 +28,11 @@ data class Kayttaja(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var saadutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf(),
 
-    @ManyToMany
+    @OneToMany(mappedBy = "kayttaja")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JoinTable(
-        name = "rel_kayttaja__yliopisto",
-        joinColumns = [
-            JoinColumn(name = "kayttaja_id")
-        ],
-        inverseJoinColumns = [
-            JoinColumn(name = "yliopisto_id")
-        ]
-    )
-    var yliopistot: MutableSet<Yliopisto>? = mutableSetOf(),
+    var yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisala> = mutableSetOf()
 
-    @ManyToMany
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JoinTable(
-        name = "rel_kayttaja__erikoisala",
-        joinColumns = [
-            JoinColumn(name = "kayttaja_id")
-        ],
-        inverseJoinColumns = [
-            JoinColumn(name = "erikoisala_id")
-        ]
-    )
-    var erikoisalat: MutableSet<Erikoisala>? = mutableSetOf()
-
-) : Serializable {
+    ) : Serializable {
 
     fun getNimi(): String {
         return this.user?.firstName + " " + this.user?.lastName

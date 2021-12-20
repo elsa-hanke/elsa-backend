@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20211220112522-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="kayttaja_id"
+                                 baseTableName="kayttaja_yliopisto_erikoisala"
+                                 constraintName="fk_kayttaja_yliopisto_erikoisala_kayttaja_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="kayttaja"/>
+
+        <addForeignKeyConstraint baseColumnNames="yliopisto_id"
+                                 baseTableName="kayttaja_yliopisto_erikoisala"
+                                 constraintName="fk_kayttaja_yliopisto_erikoisala_yliopisto_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="yliopisto"/>
+
+        <addForeignKeyConstraint baseColumnNames="erikoisala_id"
+                                 baseTableName="kayttaja_yliopisto_erikoisala"
+                                 constraintName="fk_kayttaja_yliopisto_erikoisala_erikoisala_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="erikoisala"/>
+    </changeSet>
+
+    <changeSet id="20211220112522-2-audit" author="jhipster">
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="kayttaja_yliopisto_erikoisala_audit"
+                                 constraintName="fk_kayttaja_yliopisto_erikoisala_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+    </changeSet>
+</databaseChangeLog>
