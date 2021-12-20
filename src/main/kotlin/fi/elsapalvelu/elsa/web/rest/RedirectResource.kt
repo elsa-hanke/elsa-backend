@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.config.LoginException
 import org.springframework.core.env.Environment
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException
 import org.springframework.security.web.WebAttributes
@@ -21,7 +22,12 @@ class RedirectResource(private val env: Environment) {
     fun redirect2LoginView(request: HttpServletRequest): RedirectView? {
         val exception: Saml2AuthenticationException =
             request.session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION) as Saml2AuthenticationException
-        return RedirectView(getRedirectUrl(request) + "kirjautuminen?virhe=" + exception.message)
+        var exceptionMessage = LoginException.TUNTEMATON.name
+
+        if (exception.message in (LoginException.values().map { it.name })) {
+            exceptionMessage = exception.message!!
+        }
+        return RedirectView(getRedirectUrl(request) + "kirjautuminen?virhe=" + exceptionMessage)
     }
 
     private fun getRedirectUrl(request: HttpServletRequest): String {
