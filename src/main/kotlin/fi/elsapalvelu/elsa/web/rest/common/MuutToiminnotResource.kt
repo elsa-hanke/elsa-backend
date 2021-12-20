@@ -8,7 +8,6 @@ import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.HakaYliopistoDTO
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
-import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -28,7 +27,8 @@ class MuutToiminnotResource(
     fun getKouluttajat(
         principal: Principal?
     ): ResponseEntity<List<KayttajaDTO>> {
-        return ResponseEntity.ok(kayttajaService.findKouluttajat())
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(kayttajaService.findKouluttajat(user.id!!))
     }
 
     @GetMapping("/yliopistot")

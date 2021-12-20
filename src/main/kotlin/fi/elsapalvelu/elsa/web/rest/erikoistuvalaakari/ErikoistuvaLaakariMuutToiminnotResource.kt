@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
 import java.util.*
+import javax.persistence.EntityExistsException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -58,15 +59,26 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         val user = userService.getAuthenticatedUser(principal)
         erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
             ?.let {
-                if (userService.existsByEmail(uusiLahikouluttajaDTO.sahkoposti!!)) {
+                val kouluttajaEmail = requireNotNull(uusiLahikouluttajaDTO.sahkoposti)
+                val existingKouluttaja = try {
+                    kayttajaService.updateKouluttajaYliopistoAndErikoisalaByEmail(
+                        user.id!!,
+                        kouluttajaEmail
+                    )
+                } catch (ex: EntityExistsException) {
                     throw BadRequestAlertException(
-                        "Samalla sähköpostilla löytyy jo toinen käyttäjä",
+                        "Samalla sähköpostilla löytyy jo toinen käyttäjä saman yliopiston ja erikoisalan alta",
                         KAYTTAJA_ENTITY_NAME,
-                        "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
+                        "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja-saman-yliopiston-ja-erikoisalan-alta"
                     )
                 }
 
-                val result = kayttajaService.save(
+                if (existingKouluttaja != null) {
+                    return ResponseEntity.ok(existingKouluttaja)
+                }
+
+                val result = kayttajaService.saveKouluttaja(
+                    user.id!!,
                     KayttajaDTO(nimi = uusiLahikouluttajaDTO.nimi),
                     UserDTO(
                         id = UUID.randomUUID().toString(),
@@ -76,7 +88,6 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                         authorities = setOf(KOULUTTAJA)
                     )
                 )
-
                 val token = verificationTokenService.save(result.userId!!)
                 mailService.sendEmailFromTemplate(
                     User(email = uusiLahikouluttajaDTO.sahkoposti),

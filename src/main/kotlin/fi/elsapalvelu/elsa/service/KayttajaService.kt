@@ -8,7 +8,11 @@ interface KayttajaService {
 
     fun save(kayttajaDTO: KayttajaDTO): KayttajaDTO
 
-    fun save(kayttajaDTO: KayttajaDTO, userDTO: UserDTO): KayttajaDTO
+    fun saveKouluttaja(
+        erikoistuvaUserId: String,
+        kayttajaDTO: KayttajaDTO,
+        userDTO: UserDTO
+    ): KayttajaDTO
 
     fun findAll(): List<KayttajaDTO>
 
@@ -16,7 +20,7 @@ interface KayttajaService {
 
     fun findByUserId(id: String): Optional<KayttajaDTO>
 
-    fun findKouluttajat(): List<KayttajaDTO>
+    fun findKouluttajat(userId: String): List<KayttajaDTO>
 
     fun findVastuuhenkilot(userId: String): List<KayttajaDTO>
 
@@ -25,4 +29,9 @@ interface KayttajaService {
     fun findKouluttajatAndVastuuhenkilot(userId: String): List<KayttajaDTO>
 
     fun delete(id: Long)
+
+    fun updateKouluttajaYliopistoAndErikoisalaByEmail(
+        erikoistuvaUserId: String,
+        kouluttajaEmail: String
+    ): KayttajaDTO?
 }
