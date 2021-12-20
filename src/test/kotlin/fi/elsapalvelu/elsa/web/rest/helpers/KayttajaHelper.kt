@@ -40,7 +40,7 @@ class KayttajaHelper {
         @JvmStatic
         fun createUpdatedEntity(
             em: EntityManager,
-            nimi: String? = UPDATED_NIMI
+            nimi: String = UPDATED_NIMI
         ): Kayttaja {
             val kayttaja = Kayttaja()
 
