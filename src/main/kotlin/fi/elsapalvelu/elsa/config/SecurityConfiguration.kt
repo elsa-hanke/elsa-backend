@@ -39,6 +39,7 @@ import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_PRODUCTION
 import java.nio.charset.StandardCharsets
+import java.time.LocalDate
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
@@ -287,7 +288,10 @@ class SecurityConfiguration(
 
     private fun onOikeus(user: User): Boolean {
         if (user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))) {
-            return opintooikeusRepository.existsByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            return opintooikeusRepository.existsByErikoistuvaLaakariKayttajaUserId(
+                user.id!!,
+                LocalDate.now()
+            )
         }
         return true
     }
