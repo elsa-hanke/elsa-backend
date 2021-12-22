@@ -636,4 +636,41 @@
         <cve>CVE-2020-13936</cve>
     </suppress>
     <!-- /UNLIKELY VULNERABILITIES 2021-11-19 -->
+    <!-- UNLIKELY VULNERABILITIES 2021-12-22 -->
+    <suppress>
+        <notes><![CDATA[
+   file name: h2-1.4.200.jar
+   ]]></notes>
+        <sha1>f7533fe7cb8e99c87a43d325a77b4b678ad9031a</sha1>
+        <cve>CVE-2021-23463</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: nohttp-checkstyle-0.0.10.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.spring\.nohttp/nohttp\-checkstyle@.*$</packageUrl>
+        <cve>CVE-2021-42550</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: nohttp-cli-0.0.10.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.spring\.nohttp/nohttp\-cli@.*$</packageUrl>
+        <cve>CVE-2021-42550</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: logback-classic-1.2.3.jar
+   ]]></notes>
+        <sha1>7c4f3c474fb2c041d8028740440937705ebb473a</sha1>
+        <cve>CVE-2021-42550</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: logback-core-1.2.3.jar
+   ]]></notes>
+        <sha1>864344400c3d4d92dfeb0a305dc87d953677c03c</sha1>
+        <cve>CVE-2021-42550</cve>
+    </suppress>
+    <!-- /UNLIKELY VULNERABILITIES 2021-12-22 -->
 </suppressions>
