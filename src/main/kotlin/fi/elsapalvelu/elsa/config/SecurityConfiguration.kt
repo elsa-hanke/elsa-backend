@@ -4,6 +4,9 @@ import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
+import org.opensaml.saml.common.assertion.ValidationContext
+import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.convert.converter.Converter
 import org.springframework.core.env.Environment
@@ -16,10 +19,8 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
-import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
-import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.security.saml2.provider.service.authentication.*
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver
 import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver
@@ -78,6 +79,30 @@ class SecurityConfiguration(
     public override fun configure(http: HttpSecurity) {
         val withHttpOnlyFalse = CookieCsrfTokenRepository.withHttpOnlyFalse()
         val authenticationProvider = OpenSaml4AuthenticationProvider()
+        authenticationProvider.setAssertionValidator(
+            OpenSaml4AuthenticationProvider
+                .createDefaultAssertionValidator {
+                    val relyingPartyRegistration: RelyingPartyRegistration =
+                        it.token.relyingPartyRegistration
+                    val audience = relyingPartyRegistration.entityId
+                    val recipient = relyingPartyRegistration.assertionConsumerServiceLocation
+                    val assertingPartyEntityId =
+                        relyingPartyRegistration.assertingPartyDetails.entityId
+                    val params: MutableMap<String, Any> = HashMap()
+                    params[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] =
+                        setOf(
+                            if (audience.contains("haka")) audience.substring(
+                                0,
+                                audience.indexOf("haka")
+                            ) + "haka"; else audience
+                        )
+                    params[SAML2AssertionValidationParameters.SC_VALID_RECIPIENTS] =
+                        setOf(recipient)
+                    params[SAML2AssertionValidationParameters.VALID_ISSUERS] =
+                        setOf(assertingPartyEntityId)
+                    ValidationContext(params)
+                }
+        )
         authenticationProvider.setResponseAuthenticationConverter(authenticationConverter())
         withHttpOnlyFalse.setCookieDomain(applicationProperties.getCsrf().cookie.domain)
         val httpConfiguration = http
@@ -156,6 +181,15 @@ class SecurityConfiguration(
                 }
                 .logout().logoutSuccessUrl("/")
         }
+    }
+
+    @Bean
+    fun authenticationRequestFactory(
+        authnRequestConverter: AuthnRequestConverter?
+    ): Saml2AuthenticationRequestFactory? {
+        val authenticationRequestFactory = OpenSaml4AuthenticationRequestFactory()
+        authenticationRequestFactory.setAuthenticationRequestContextConverter(authnRequestConverter)
+        return authenticationRequestFactory
     }
 
     fun logoutRequestResolver(relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver): Saml2LogoutRequestResolver {
