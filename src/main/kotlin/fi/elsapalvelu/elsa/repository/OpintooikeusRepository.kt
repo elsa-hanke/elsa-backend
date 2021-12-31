@@ -9,6 +9,8 @@ import java.time.LocalDate
 @Repository
 interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
 
+    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<Opintooikeus>
+
     fun existsByErikoistuvaLaakariKayttajaUserId(userId: String): Boolean
 
     fun findOneByErikoistuvaLaakariKayttajaUserId(userId: String): Opintooikeus?

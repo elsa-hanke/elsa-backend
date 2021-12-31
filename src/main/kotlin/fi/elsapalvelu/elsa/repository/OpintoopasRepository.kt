@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository
 
 
 @Repository
-interface OpintoopasRepository : JpaRepository<Opintoopas, Long>
+interface OpintoopasRepository : JpaRepository<Opintoopas, Long> {
+
+    fun findAllByOpintooikeudetErikoistuvaLaakariKayttajaUserId(userId: String): List<Opintoopas>
+}
