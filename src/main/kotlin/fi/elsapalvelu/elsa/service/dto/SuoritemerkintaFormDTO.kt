@@ -10,7 +10,9 @@ class SuoritemerkintaFormDTO(
 
     var erikoisalat: Set<ErikoisalaDTO> = setOf(),
 
-    var suoritteenKategoriat: Set<SuoritteenKategoriaDTO> = setOf()
+    var suoritteenKategoriat: Set<SuoritteenKategoriaDTO> = setOf(),
+
+    var arviointiasteikko: ArviointiasteikkoDTO? = null
 
 ) : Serializable {
     override fun toString() = "SuoritemerkintaFormDTO"

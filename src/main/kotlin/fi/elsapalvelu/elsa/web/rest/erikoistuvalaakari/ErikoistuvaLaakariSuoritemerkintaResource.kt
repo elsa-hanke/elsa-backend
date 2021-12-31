@@ -26,7 +26,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
     private val suoritteenKategoriaService: SuoritteenKategoriaService,
-    private val suoritemerkintaService: SuoritemerkintaService
+    private val suoritemerkintaService: SuoritemerkintaService,
+    private val arviointiasteikkoService: ArviointiasteikkoService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -118,6 +119,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         table.suoritemerkinnat = suoritemerkintaService
             .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toSet()
 
+        table.arviointiasteikko = arviointiasteikkoService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+
         return ResponseEntity.ok(table)
     }
 
@@ -136,6 +139,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).let {
                 toSortedSuoritteenKategoriat(it)
             }
+        form.arviointiasteikko = arviointiasteikkoService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         return ResponseEntity.ok(form)
     }

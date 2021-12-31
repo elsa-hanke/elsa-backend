@@ -9,7 +9,7 @@ class SuoritteetTableDTO(
 
     var suoritemerkinnat: Set<SuoritemerkintaDTO> = setOf(),
 
-    var opintooppaat: Set<OpintoopasDTO> = setOf()
+    var arviointiasteikko: ArviointiasteikkoDTO? = null
 
 ) : Serializable {
     override fun toString() = "SuoritteetTableDTO"
