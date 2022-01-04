@@ -148,6 +148,7 @@
     <include file="config/liquibase/changelog/20211214142622_modified_entity_constraints_Opintooikeus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211220112522_add_related_entity_constraints_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20211220112522_drop_kayttaja_rel_tables.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220104122811_modify_entity_constraints_Suoritemerkinta.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220105153858_modify_entity_Erikoisala.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220110164323_modify_entity_constraints_Opintooikeus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

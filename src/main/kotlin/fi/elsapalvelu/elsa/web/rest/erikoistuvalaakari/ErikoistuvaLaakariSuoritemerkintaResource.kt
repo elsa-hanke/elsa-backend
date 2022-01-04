@@ -51,6 +51,10 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
 
         val user = userService.getAuthenticatedUser(principal)
 
+        suoritemerkintaDTO.arviointiasteikko = arviointiasteikkoService.findByErikoistuvaLaakariKayttajaUserId(
+            user.id!!
+        )
+
         suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
             return ResponseEntity
                 .created(URI("/api/suoritemerkinnat/${it.id}"))
@@ -70,6 +74,11 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         if (suoritemerkintaDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
+
+        if (suoritemerkintaDTO.arviointiasteikko != null) {
+            throw IllegalArgumentException("Käytettyä arviointiasteikkoa ei voi muokata")
+        }
+
         suoritemerkintaDTO.lukittu = false
         val user = userService.getAuthenticatedUser(principal)
 
