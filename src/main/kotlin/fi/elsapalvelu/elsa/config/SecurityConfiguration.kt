@@ -262,7 +262,8 @@ class SecurityConfiguration(
                 .ifPresent {
                     val tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
 
-                    val existingUser = findExistingUser(cipher, originalKey, hetu, eppn)
+                    val existingUser =
+                        findExistingUser(cipher, originalKey, hetu, eppn, firstName, lastName)
 
                     // Yhdistä käyttäjä jos löytyy
                     if (existingUser != null) {
@@ -305,7 +306,7 @@ class SecurityConfiguration(
 
         // Käyttäjä täytyy löytyä järjestelmästä
         val existingUser =
-            findExistingUser(cipher, originalKey, hetu, eppn)
+            findExistingUser(cipher, originalKey, hetu, eppn, firstName, lastName)
                 ?: throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
 
         // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus
@@ -343,7 +344,9 @@ class SecurityConfiguration(
         cipher: Cipher,
         originalKey: SecretKey,
         hetu: String?,
-        eppn: String?
+        eppn: String?,
+        firstName: String?,
+        lastName: String?
     ): User? {
         if (hetu != null) {
             userRepository.findAllWithAuthorities().filter { u -> u.hetu != null }.forEach { u ->
@@ -352,6 +355,24 @@ class SecurityConfiguration(
                 if (userHetu == hetu) {
                     return u
                 }
+            }
+
+            // Lokaalissa ympäristössä luodaan uusi käyttäjä, jos sitä ei löydy
+            if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
+                cipher.init(Cipher.ENCRYPT_MODE, originalKey)
+                val params = cipher.parameters
+                val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
+                val ciphertext = cipher.doFinal(hetu.toString().toByteArray(StandardCharsets.UTF_8))
+                return userRepository.save(
+                    User(
+                        login = UUID.randomUUID().toString(),
+                        firstName = firstName,
+                        lastName = lastName,
+                        activated = true,
+                        hetu = ciphertext,
+                        initVector = iv
+                    )
+                )
             }
         } else if (eppn != null) {
             userRepository.findAllWithAuthorities().filter { u -> u.eppn != null }.forEach { u ->
