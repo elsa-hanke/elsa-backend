@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220104122811-1" author="jhipster">
+        <addColumn tableName="suoritemerkinta">
+            <column name="arviointiasteikko_id" type="bigint"/>
+        </addColumn>
+
+        <update tableName="suoritemerkinta">
+            <column name="arviointiasteikko_id" value="1"/>
+        </update>
+
+        <addNotNullConstraint tableName="suoritemerkinta" columnName="arviointiasteikko_id"/>
+    </changeSet>
+
+    <changeSet id="20220104122811-1-audit" author="jhipster">
+        <addColumn tableName="suoritemerkinta_audit">
+            <column name="arviointiasteikko_id" type="bigint"/>
+        </addColumn>
+
+        <update tableName="suoritemerkinta_audit">
+            <column name="arviointiasteikko_id" value="1"/>
+        </update>
+
+        <addNotNullConstraint tableName="suoritemerkinta_audit" columnName="arviointiasteikko_id"/>
+    </changeSet>
+
+</databaseChangeLog>

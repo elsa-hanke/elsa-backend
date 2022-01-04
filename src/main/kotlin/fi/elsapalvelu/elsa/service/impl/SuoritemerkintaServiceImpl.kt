@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.SuoritemerkintaService
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritemerkintaMapper
-import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -35,6 +34,7 @@ class SuoritemerkintaServiceImpl(
                         val suoritemerkintaOptional =
                             suoritemerkintaRepository.findOneById(suoritemerkinta.id!!)
                         if (suoritemerkintaOptional.isPresent && !suoritemerkintaOptional.get().lukittu) {
+                            suoritemerkinta.arviointiasteikko = suoritemerkintaOptional.get().arviointiasteikko
                             return suoritemerkintaMapper.toDto(
                                 suoritemerkintaRepository.save(
                                     suoritemerkinta
