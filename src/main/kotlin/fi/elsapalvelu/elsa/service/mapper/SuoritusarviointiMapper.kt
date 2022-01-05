@@ -16,7 +16,8 @@ import org.mapstruct.ReportingPolicy
         TyoskentelyjaksoMapper::class,
         SuoritusarvioinninKommenttiMapper::class,
         ArviointityokaluMapper::class,
-        AsiakirjaDataMapper::class
+        AsiakirjaDataMapper::class,
+        ArviointiasteikkoMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )

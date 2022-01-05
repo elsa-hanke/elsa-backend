@@ -31,7 +31,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private val erikoisalaService: ErikoisalaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val arvioitavaKokonaisuusService: ArvioitavaKokonaisuusService,
-    private val kayttajaService: KayttajaService
+    private val kayttajaService: KayttajaService,
+    private val arviointiasteikkoService: ArviointiasteikkoService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -106,6 +107,53 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        validateSuoritusarviointiDTO(suoritusarviointiDTO)
+
+        val tyoskentelyjakso = tyoskentelyjaksoService
+            .findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!, user.id!!)
+        val kirjautunutErikoistuvaLaakari =
+            erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+
+        if (tyoskentelyjakso == null || kirjautunutErikoistuvaLaakari == null) {
+            throw BadRequestAlertException(
+                "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
+                ENTITY_NAME,
+                "dataillegal.uuden-arviointipyynnon-pitaa-kohdistua-johonkin-erikoistuvan-tyoskentelyjaksoon"
+            )
+        }
+
+        if (tyoskentelyjakso.erikoistuvaLaakariId != kirjautunutErikoistuvaLaakari.id) {
+            throw BadRequestAlertException(
+                "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
+                ENTITY_NAME,
+                "dataillegal-uuden-arviointipyynnon-pitaa-kohdistua-johonkin-erikoistuvan-tyoskentelyjaksoon"
+            )
+        }
+        if (tyoskentelyjakso.alkamispaiva!! > suoritusarviointiDTO.tapahtumanAjankohta!! ||
+            (
+                tyoskentelyjakso.paattymispaiva != null &&
+                    suoritusarviointiDTO.tapahtumanAjankohta!! > tyoskentelyjakso.paattymispaiva!!
+                )
+        ) {
+            throw BadRequestAlertException(
+                "Uuden arviointipyynnön pitää kohdistua työskentelyjakson väliin.",
+                ENTITY_NAME,
+                "dataillegal.uuden-arviointipyynnon-pitaa-kohdistua-tyoskentelyjakson-valiin"
+            )
+        }
+
+        suoritusarviointiDTO.arviointiasteikko = arviointiasteikkoService.findByErikoistuvaLaakariKayttajaUserId(
+            user.id!!
+        )
+        suoritusarviointiDTO.pyynnonAika = LocalDate.now(ZoneId.systemDefault())
+
+        val result = suoritusarviointiService.save(suoritusarviointiDTO)
+        return ResponseEntity
+            .created(URI("/api/suoritusarvioinnit/${result.id}"))
+            .body(result)
+    }
+
+    private fun validateSuoritusarviointiDTO(suoritusarviointiDTO: SuoritusarviointiDTO) {
         if (suoritusarviointiDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi arviointipyyntö ei saa sisältää ID:tä",
@@ -147,47 +195,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 ENTITY_NAME,
                 "dataillegal.uuden-arviointipyynnon-pitaa-kohdistua-johonkin-erikoistuvan-tyoskentelyjaksoon"
             )
-        } else {
-            val tyoskentelyjakso = tyoskentelyjaksoService
-                .findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!, user.id!!)
-            val kirjautunutErikoistuvaLaakari =
-                erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
-
-            if (tyoskentelyjakso == null || kirjautunutErikoistuvaLaakari == null) {
-                throw BadRequestAlertException(
-                    "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
-                    ENTITY_NAME,
-                    "dataillegal.uuden-arviointipyynnon-pitaa-kohdistua-johonkin-erikoistuvan-tyoskentelyjaksoon"
-                )
-            }
-
-            if (tyoskentelyjakso.erikoistuvaLaakariId != kirjautunutErikoistuvaLaakari.id) {
-                throw BadRequestAlertException(
-                    "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
-                    ENTITY_NAME,
-                    "dataillegal-uuden-arviointipyynnon-pitaa-kohdistua-johonkin-erikoistuvan-tyoskentelyjaksoon"
-                )
-            }
-            if (tyoskentelyjakso.alkamispaiva!! > suoritusarviointiDTO.tapahtumanAjankohta!! ||
-                (
-                    tyoskentelyjakso.paattymispaiva != null &&
-                        suoritusarviointiDTO.tapahtumanAjankohta!! > tyoskentelyjakso.paattymispaiva!!
-                    )
-            ) {
-                throw BadRequestAlertException(
-                    "Uuden arviointipyynnön pitää kohdistua työskentelyjakson väliin.",
-                    ENTITY_NAME,
-                    "dataillegal.uuden-arviointipyynnon-pitaa-kohdistua-tyoskentelyjakson-valiin"
-                )
-            }
         }
-
-        suoritusarviointiDTO.pyynnonAika = LocalDate.now(ZoneId.systemDefault())
-
-        val result = suoritusarviointiService.save(suoritusarviointiDTO)
-        return ResponseEntity
-            .created(URI("/api/suoritusarvioinnit/${result.id}"))
-            .body(result)
     }
 
     @PutMapping("/suoritusarvioinnit")
@@ -198,6 +206,11 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         if (suoritusarviointiDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
+
+        if (suoritusarviointiDTO.arviointiasteikko != null) {
+            throw IllegalArgumentException("Käytettyä arviointiasteikkoa ei voi muokata")
+        }
+
         val user = userService.getAuthenticatedUser(principal)
         val result = suoritusarviointiService.save(suoritusarviointiDTO, user.id!!)
         return ResponseEntity.ok(result)
