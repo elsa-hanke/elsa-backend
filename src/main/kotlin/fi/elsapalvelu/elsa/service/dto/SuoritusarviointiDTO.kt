@@ -72,6 +72,8 @@ data class SuoritusarviointiDTO(
 
     var arviointityokalut: Set<ArviointityokaluDTO>? = null,
 
+    var arviointiasteikko: ArviointiasteikkoDTO? = null,
+
     var arviointiPerustuu: ArvioinninPerustuminen? = null,
 
     var muuPeruste: String? = null,

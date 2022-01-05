@@ -98,7 +98,13 @@ data class Suoritusarviointi(
 
     @NotNull
     @ManyToOne(optional = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var tyoskentelyjakso: Tyoskentelyjakso? = null,
+
+    @NotNull
+    @ManyToOne(optional = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+    var arviointiasteikko: Arviointiasteikko? = null,
 
     @ManyToMany
     @JoinTable(

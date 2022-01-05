@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220104172911-2" author="jhipster">
+        <addForeignKeyConstraint baseColumnNames="arviointiasteikko_id"
+                                 baseTableName="suoritusarviointi"
+                                 constraintName="fk_suoritusarviointi__arviointiasteikko_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="arviointiasteikko"/>
+    </changeSet>
+</databaseChangeLog>
