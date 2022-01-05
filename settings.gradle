@@ -9,7 +9,6 @@ pluginManagement {
         id "com.gorylenko.gradle-git-properties" version "${gitPropertiesPluginVersion}"
         id "org.liquibase.gradle" version "${liquibasePluginVersion}"
         id "org.sonarqube" version "${sonarqubePluginVersion}"
-        id "io.spring.nohttp" version "${noHttpCheckstyleVersion}"
         id "org.owasp.dependencycheck" version "${owaspDependencyCheckPluginVersion}"
     }
 }

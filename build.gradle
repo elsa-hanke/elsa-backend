@@ -25,7 +25,6 @@ plugins {
     id "com.gorylenko.gradle-git-properties"
     id "org.liquibase.gradle"
     id "org.sonarqube"
-    id "io.spring.nohttp"
     id "org.owasp.dependencycheck"
 }
 
@@ -134,16 +133,6 @@ gitProperties {
     keys = ["git.branch", "git.commit.id.abbrev", "git.commit.id.describe"]
 }
 
-checkstyle {
-    toolVersion '${checkstyleVersion}'
-    configFile file("checkstyle.xml")
-    checkstyleTest.enabled = false
-}
-
-nohttp {
-    source.include "build.gradle", "README.md"
-}
-
 dependencyCheck {
     failBuildOnCVSS = 5
     failOnError = true
@@ -158,6 +147,14 @@ configurations {
             // Inherited version from Spring Boot can't be used because of regressions:
             // To be removed as soon as spring-boot use the same version
             force 'org.liquibase:liquibase-core:3.9.0'
+        }
+    }
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'ch.qos.logback') {
+            details.useVersion '1.2.9'
         }
     }
 }
@@ -178,7 +175,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-cache:${springBootVersion}"
     implementation "io.dropwizard.metrics:metrics-core"
     implementation "io.micrometer:micrometer-registry-prometheus"
-    implementation "net.logstash.logback:logstash-logback-encoder:7.0"
+    implementation "net.logstash.logback:logstash-logback-encoder"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
@@ -244,7 +241,7 @@ dependencies {
     testImplementation "com.tngtech.archunit:archunit-junit5-api:${archunitJunit5Version}"
     testRuntimeOnly "com.tngtech.archunit:archunit-junit5-engine:${archunitJunit5Version}"
     testImplementation "com.h2database:h2"
-    implementation "co.elastic.logging:logback-ecs-encoder:1.3.0"
+    implementation "co.elastic.logging:logback-ecs-encoder:1.3.2"
     implementation "commons-codec:commons-codec:1.15"
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.5.0"
     implementation "org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE"
@@ -256,8 +253,7 @@ dependencies {
     implementation "com.sndyuk:logback-more-appenders:1.8.6"
     // https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot
     implementation(platform("org.apache.logging.log4j:log4j-bom:2.17.1"))
-    implementation "ch.qos.logback:logback-classic:1.2.8"
-    implementation "ch.qos.logback:logback-core:1.2.8"
+
 }
 
 task cleanResources(type: Delete) {
