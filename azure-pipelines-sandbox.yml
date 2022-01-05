@@ -29,7 +29,6 @@ stages:
               path: $(GRADLE_USER_HOME)
             displayName: Gradle build cache
           - script: |
-              ./gradlew checkstyleNohttp
               ./gradlew clean test integrationTest
             displayName: 'Test'
           - script: |
