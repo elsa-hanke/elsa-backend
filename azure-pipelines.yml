@@ -56,7 +56,6 @@ stages:
             displayName: 'Test'
             inputs:
               script: |
-                ./gradlew checkstyleNohttp
                 ./gradlew clean test integrationTest
           - task: CmdLine@2
             continueOnError: true
