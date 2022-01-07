@@ -6,7 +6,7 @@ data class TeoriakoulutuksetDTO(
 
     var teoriakoulutukset: MutableSet<TeoriakoulutusDTO> = mutableSetOf(),
 
-    var erikoisala: ErikoisalaDTO? = null
+    var erikoisalanVaatimaTeoriakoulutustenVahimmaismaara: Double
 
 ) : Serializable {
     override fun toString() = "TeoriakoulutuksetDTO"
