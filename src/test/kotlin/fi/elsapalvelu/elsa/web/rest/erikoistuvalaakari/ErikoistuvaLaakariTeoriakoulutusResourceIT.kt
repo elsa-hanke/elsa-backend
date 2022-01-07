@@ -14,8 +14,8 @@ import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper.Companion.ASIAKIRJA_PDF_NIMI
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper.Companion.DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.OpintoopasHelper.Companion.DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.jupiter.api.BeforeEach
@@ -308,7 +308,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
                 )
             )
             .andExpect(
-                jsonPath("$.erikoisala.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara").value(
+                jsonPath("$.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara").value(
                     DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA
                 )
             )

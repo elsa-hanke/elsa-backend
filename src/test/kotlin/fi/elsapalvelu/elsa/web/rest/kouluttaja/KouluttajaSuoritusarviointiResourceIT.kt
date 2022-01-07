@@ -250,6 +250,9 @@ class KouluttajaSuoritusarviointiResourceIT {
             }
             suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
 
+            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+
             return suoritusarviointi
         }
 
@@ -294,6 +297,9 @@ class KouluttajaSuoritusarviointiResourceIT {
                 tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).get(0)
             }
             suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
+
+            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
 
             return suoritusarviointi
         }

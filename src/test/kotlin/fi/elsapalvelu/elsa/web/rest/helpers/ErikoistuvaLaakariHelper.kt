@@ -18,6 +18,7 @@ class ErikoistuvaLaakariHelper {
         const val DEFAULT_YLIOPISTO = "TAYS"
 
         private val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
+        private const val DEFAULT_ASETUS = "55/2020"
 
         @JvmStatic
         fun createEntity(em: EntityManager, user: User? = null): ErikoistuvaLaakari {
@@ -45,16 +46,39 @@ class ErikoistuvaLaakariHelper {
 
             em.persist(erikoistuvaLaakari)
 
+            val opintoopas: Opintoopas
+            if (em.findAll(Opintoopas::class).isEmpty()) {
+                opintoopas = OpintoopasHelper.createEntity()
+                em.persist(opintoopas)
+                em.flush()
+            } else {
+                opintoopas = em.findAll(Opintoopas::class).get(0)
+            }
+            opintoopas.erikoisala = erikoisala
+
+            // Lisätään pakollinen tieto
+            val arviointiasteikko: Arviointiasteikko
+            if (em.findAll(Arviointiasteikko::class).isEmpty()) {
+                arviointiasteikko = ArviointiasteikkoHelper.createEntity()
+                em.persist(arviointiasteikko)
+                em.flush()
+            } else {
+                arviointiasteikko = em.findAll(Arviointiasteikko::class).get(0)
+            }
+            opintoopas.arviointiasteikko = arviointiasteikko
+
             val opintooikeus: Opintooikeus
             if (em.findAll(Opintooikeus::class).isEmpty()) {
                 opintooikeus = Opintooikeus(
                     opintooikeudenMyontamispaiva = LocalDate.ofEpochDay(0L),
                     opintooikeudenPaattymispaiva = LocalDate.ofEpochDay(10L),
-                    opiskelijatunnus = "123456",
-                    opintosuunnitelmaKaytossaPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA,
+                    opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
+                    osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA,
                     erikoistuvaLaakari = erikoistuvaLaakari,
                     yliopisto = yliopisto,
-                    erikoisala = erikoisala
+                    erikoisala = erikoisala,
+                    opintoopas = opintoopas,
+                    asetus = DEFAULT_ASETUS
                 )
                 em.persist(opintooikeus)
                 em.flush()

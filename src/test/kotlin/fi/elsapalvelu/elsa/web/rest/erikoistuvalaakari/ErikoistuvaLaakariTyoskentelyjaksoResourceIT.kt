@@ -113,10 +113,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         // Lisätään poissaolon syy, jonka voimassaolo on jo päättynyt
         em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
 
-        // Lisätään yksi voimassaoleva erikoisala, päättymistä ei määritelty.
-        erikoisala = ErikoisalaHelper.createEntity(LocalDate.ofEpochDay(0L), null)
-        em.persist(erikoisala)
-
         em.flush()
     }
 
@@ -1030,8 +1026,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
-            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.erikoisalat[0].id").value(erikoisala.id))
+            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(60)))
     }
 
     @Test
@@ -1069,7 +1064,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.keskeytykset").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.tilastot.tyoskentelyaikaYhteensa").value(45.0))
             .andExpect(jsonPath("$.tilastot.arvioErikoistumiseenHyvaksyttavista").value(45.0))
-            .andExpect(jsonPath("$.tilastot.arvioPuuttuvastaKoulutuksesta").value(1780.0))
+            .andExpect(jsonPath("$.tilastot.arvioPuuttuvastaKoulutuksesta").value(2145.0))
             .andExpect(
                 jsonPath("$.tilastot.koulutustyypit.terveyskeskusVaadittuVahintaan").value(
                     273.75
@@ -1078,13 +1073,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.tilastot.koulutustyypit.terveyskeskusSuoritettu").value(30.0))
             .andExpect(
                 jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaVaadittuVahintaan").value(
-                    365.0
+                    821.25
                 )
             )
             .andExpect(jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaSuoritettu").value(15.0))
             .andExpect(
                 jsonPath("$.tilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenVaadittuVahintaan").value(
-                    365.0
+                    821.25
                 )
             )
             .andExpect(
@@ -1092,7 +1087,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
                     0.0
                 )
             )
-            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaVaadittuVahintaan").value(1825.0))
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaVaadittuVahintaan").value(2190.0))
             .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaSuoritettu").value(45.0))
             .andExpect(jsonPath("$.tilastot.kaytannonKoulutus").value(Matchers.hasSize<Any>(4)))
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
