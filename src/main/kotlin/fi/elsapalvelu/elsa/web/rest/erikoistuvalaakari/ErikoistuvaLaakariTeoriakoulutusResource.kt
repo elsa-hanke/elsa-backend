@@ -4,8 +4,8 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
-import fi.elsapalvelu.elsa.service.ErikoisalaService
 import fi.elsapalvelu.elsa.service.FileValidationService
+import fi.elsapalvelu.elsa.service.OpintoopasService
 import fi.elsapalvelu.elsa.service.TeoriakoulutusService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
@@ -28,9 +28,9 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     private val teoriakoulutusService: TeoriakoulutusService,
     private val teoriakoulutusRepository: TeoriakoulutusRepository,
     private val userService: UserService,
-    private val erikoisalaService: ErikoisalaService,
     private val fileValidationService: FileValidationService,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val opintoopasService: OpintoopasService
 ) {
 
     companion object {
@@ -96,11 +96,14 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     ): ResponseEntity<TeoriakoulutuksetDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val teoriakoulutukset = teoriakoulutusService.findAll(user.id!!)
-        val erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintoopas =
+            opintoopasService.findAllByOpintooikeudetErikoistuvaLaakariKayttajaUserId(user.id!!).firstOrNull()
+
         return ResponseEntity.ok(
             TeoriakoulutuksetDTO(
                 teoriakoulutukset = teoriakoulutukset.toMutableSet(),
-                erikoisala = erikoisalat.firstOrNull()
+                erikoisalanVaatimaTeoriakoulutustenVahimmaismaara = opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
+                    ?: 0.0
             )
         )
     }
