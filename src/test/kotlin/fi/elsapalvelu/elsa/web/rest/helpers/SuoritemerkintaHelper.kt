@@ -62,6 +62,9 @@ class SuoritemerkintaHelper {
             }
             suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
 
+            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            suoritemerkinta.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+
             return suoritemerkinta
         }
 
@@ -96,6 +99,10 @@ class SuoritemerkintaHelper {
                 tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class)[0]
             }
             suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
+
+            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            suoritemerkinta.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+
             return suoritemerkinta
         }
     }

@@ -100,6 +100,9 @@ class SuoritusarviointiHelper {
             }
             suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
 
+            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+
             return suoritusarviointi
         }
 
@@ -152,6 +155,9 @@ class SuoritusarviointiHelper {
                 tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).get(0)
             }
             suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
+
+            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
 
             return suoritusarviointi
         }

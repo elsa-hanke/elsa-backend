@@ -10,7 +10,6 @@ import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavaKokonaisuusHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import org.assertj.core.api.Assertions.assertThat
@@ -90,30 +89,6 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             )
         )
 
-        // Lisätään voimassaoleva erikoisala ja päättymistä ei määritetty
-        em.persist(ErikoisalaHelper.createEntity(LocalDate.ofEpochDay(0L), null))
-        // Lisätään voimassaoleva erikoisala ja päättyminen määritetty
-        em.persist(
-            ErikoisalaHelper.createEntity(
-                LocalDate.ofEpochDay(0L),
-                LocalDate.ofEpochDay(20L)
-            )
-        )
-        // Lisätään erikoisala jonka voimassaolo ei ole alkanut vielä
-        em.persist(
-            ErikoisalaHelper.createEntity(
-                LocalDate.ofEpochDay(15L),
-                LocalDate.ofEpochDay(20L)
-            )
-        )
-        // Lisätään erikoisala, jonka voimassaolo on jo päättynyt
-        em.persist(
-            ErikoisalaHelper.createEntity(
-                LocalDate.ofEpochDay(0L),
-                LocalDate.ofEpochDay(5L)
-            )
-        )
-
         em.flush()
     }
 
@@ -158,6 +133,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         updatedSuoritusarviointi.pyynnonAika = UPDATED_PYYNNON_AIKA
         updatedSuoritusarviointi.lisatiedot = UPDATED_LISATIEDOT
         val suoritusarviointiDTO = suoritusarviointiMapper.toDto(updatedSuoritusarviointi)
+        // Käytettyä arviointiasteikkoa ei voi päivittää.
+        suoritusarviointiDTO.arviointiasteikko = null
 
         restSuoritusarviointiMockMvc.perform(
             put("/api/erikoistuva-laakari/suoritusarvioinnit")
@@ -166,12 +143,14 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
                 .with(csrf())
         ).andExpect(status().isOk)
 
+        val opintooikeus = em.findAll(Opintooikeus::class).get(0)
         val suoritusarviointiList = suoritusarviointiRepository.findAll()
         assertThat(suoritusarviointiList).hasSize(databaseSizeBeforeUpdate)
         val testSuoritusarviointi = suoritusarviointiList[suoritusarviointiList.size - 1]
         assertThat(testSuoritusarviointi.tapahtumanAjankohta).isEqualTo(UPDATED_TAPAHTUMAN_AJANKOHTA)
         assertThat(testSuoritusarviointi.arvioitavaTapahtuma).isEqualTo(UPDATED_ARVIOITAVA_TAPAHTUMA)
         assertThat(testSuoritusarviointi.lisatiedot).isEqualTo(UPDATED_LISATIEDOT)
+        assertThat(testSuoritusarviointi.arviointiasteikko).isEqualTo(opintooikeus.opintoopas?.arviointiasteikko)
     }
 
     @Test
@@ -196,6 +175,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         val id = suoritusarviointi.id
         assertNotNull(id)
 
+        val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+
         restSuoritusarviointiMockMvc.perform(
             get(
                 "/api/erikoistuva-laakari/suoritusarvioinnit/{id}",
@@ -209,6 +190,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.arvioitavaTapahtuma").value(DEFAULT_ARVIOITAVA_TAPAHTUMA))
             .andExpect(jsonPath("$.pyynnonAika").value(DEFAULT_PYYNNON_AIKA.toString()))
             .andExpect(jsonPath("$.lisatiedot").value(DEFAULT_LISATIEDOT))
+            .andExpect(jsonPath("$.arviointiasteikko.id").value(opintooikeus.opintoopas?.arviointiasteikko?.id))
     }
 
     @Test
@@ -254,7 +236,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
-            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(2))) // 2 voimassaolevaa
+            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(1)))
             .andExpect(
                 jsonPath("$.arvioitavanKokonaisuudenKategoriat").value(
                     Matchers.hasSize<Any>(
@@ -292,8 +274,6 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
     companion object {
 
         private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
-        private const val DEFAULT_LOGIN = "johndoe"
-        private const val DEFAULT_EMAIL = "john.doe@example.com"
 
         private val DEFAULT_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.now(ZoneId.systemDefault())
@@ -349,6 +329,9 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             }
             suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
 
+            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+
             return suoritusarviointi
         }
 
@@ -393,6 +376,9 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
                 tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).get(0)
             }
             suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
+
+            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
 
             return suoritusarviointi
         }

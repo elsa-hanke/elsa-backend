@@ -186,6 +186,8 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val id = suoritemerkinta.id
         assertNotNull(id)
 
+        val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+
         restSuoritemerkintaMockMvc.perform(
             get(
                 "/api/erikoistuva-laakari/suoritemerkinnat/{id}",
@@ -200,6 +202,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             .andExpect(jsonPath("$.vaativuustaso").value(DEFAULT_VAATIVUUSTASO))
             .andExpect(jsonPath("$.lisatiedot").value(DEFAULT_LISATIEDOT))
             .andExpect(jsonPath("$.lukittu").value(DEFAULT_LUKITTU))
+            .andExpect(jsonPath("$.arviointiasteikko.id").value(opintooikeus.opintoopas?.arviointiasteikko?.id))
     }
 
     @Test
@@ -245,6 +248,8 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         updatedSuoritemerkinta.lisatiedot = UPDATED_LISATIEDOT
         updatedSuoritemerkinta.lukittu = UPDATED_LUKITTU
         val suoritemerkintaDTO = suoritemerkintaMapper.toDto(updatedSuoritemerkinta)
+        // Käytettyä arviointiasteikkoa ei voi päivittää.
+        suoritemerkintaDTO.arviointiasteikko = null
 
         restSuoritemerkintaMockMvc.perform(
             put("/api/erikoistuva-laakari/suoritemerkinnat")
@@ -253,6 +258,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
                 .with(csrf())
         ).andExpect(status().isOk)
 
+        val opintooikeus = em.findAll(Opintooikeus::class).get(0)
         val suoritemerkintaList = suoritemerkintaRepository.findAll()
         assertThat(suoritemerkintaList).hasSize(databaseSizeBeforeUpdate)
         val testSuoritemerkinta = suoritemerkintaList[suoritemerkintaList.size - 1]
@@ -261,6 +267,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         assertThat(testSuoritemerkinta.vaativuustaso).isEqualTo(UPDATED_VAATIVUUSTASO)
         assertThat(testSuoritemerkinta.lisatiedot).isEqualTo(UPDATED_LISATIEDOT)
         assertThat(testSuoritemerkinta.lukittu).isEqualTo(false) // Lukitseminen tehdään eri rajapinnan kautta
+        assertThat(testSuoritemerkinta.arviointiasteikko).isEqualTo(opintooikeus.opintoopas?.arviointiasteikko)
     }
 
     @Test
@@ -326,6 +333,8 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         updatedSuoritemerkinta.lisatiedot = UPDATED_LISATIEDOT
         updatedSuoritemerkinta.lukittu = UPDATED_LUKITTU
         val suoritemerkintaDTO = suoritemerkintaMapper.toDto(updatedSuoritemerkinta)
+        // Käytettyä arviointiasteikkoa ei voi päivittää.
+        suoritemerkintaDTO.arviointiasteikko = null
 
         restSuoritemerkintaMockMvc.perform(
             put("/api/erikoistuva-laakari/suoritemerkinnat")
@@ -534,6 +543,9 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             }
             suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
 
+            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            suoritemerkinta.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+
             return suoritemerkinta
         }
 
@@ -568,6 +580,10 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
                 tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class)[0]
             }
             suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
+
+            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            suoritemerkinta.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+
             return suoritemerkinta
         }
     }
