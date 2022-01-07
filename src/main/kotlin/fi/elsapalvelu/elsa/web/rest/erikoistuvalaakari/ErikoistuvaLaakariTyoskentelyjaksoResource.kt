@@ -169,7 +169,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         form.kunnat = kuntaService.findAll().toMutableSet()
 
-        form.erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+        form.erikoisalat = erikoisalaService.findAll().toMutableSet()
 
         form.reservedAsiakirjaNimet =
             asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map { it.nimi!! }
