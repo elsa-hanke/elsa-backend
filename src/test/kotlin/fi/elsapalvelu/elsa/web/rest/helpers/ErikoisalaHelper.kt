@@ -12,22 +12,6 @@ class ErikoisalaHelper {
 
         private val DEFAULT_TYYPPI: ErikoisalaTyyppi = ErikoisalaTyyppi.LAAKETIEDE
         private val UPDATED_TYYPPI: ErikoisalaTyyppi = ErikoisalaTyyppi.HAMMASLAAKETIEDE
-/*
-        private const val DEFAULT_KAYTANNON_KOULUTUKSEN_VAHIMMAISPITUUS: Double = 1.0
-        private const val UPDATED_KAYTANNON_KOULUTUKSEN_VAHIMMAISPITUUS: Double = 2.0
-
-        private const val DEFAULT_TERVEYSKESKUSKOULUTUSJAKSON_VAHIMMAISPITUUS: Double = 1.0
-        private const val UPDATED_TERVEYSKESKUSKOULUTUSJAKSON_VAHIMMAISPITUUS: Double = 2.0
-
-        private const val DEFAULT_YLIOPISTOSAIRAALAJAKSON_VAHIMMAISPITUUS: Double = 1.0
-        private const val UPDATED_YLIOPISTOSAIRAALAJAKSON_VAHIMMAISPITUUS: Double = 2.0
-
-        private const val DEFAULT_YLIOPISTOSAIRAALAN_ULKOPUOLISEN_TYOSKENTELYN_VAHIMMAISPITUUS: Double = 1.0
-        private const val UPDATED_YLIOPISTOSAIRAALAN_ULKOPUOLISEN_TYOSKENTELYN_VAHIMMAISPITUUS: Double = 2.0
-
-        const val DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA: Double = 100.0
-        const val UPDATED_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA: Double = 120.0
-*/
 
         @JvmStatic
         fun createEntity(): Erikoisala {
