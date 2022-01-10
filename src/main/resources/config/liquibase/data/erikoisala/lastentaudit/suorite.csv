@@ -1,0 +1,24 @@
+id;nimi;voimassaolon_alkamispaiva;kategoria_id
+2601;Laskimon kanylointi;2020-08-01;2601
+2602;Rakkopunktio;2020-08-01;2601
+2603;Lumbaalipunktio;2020-08-01;2601
+2604;Maskiventilaatio;2020-08-01;2602
+2605;Intubaatio;2020-08-01;2602
+2606;Surfaktantin annostelu;2020-08-01;2602
+2607;Noninvasiivisen hengitystukihoidon toteutus (HFNC, CPAP, NIV-NAVA);2020-08-01;2602
+2608;Konventionaalisen hengityskonehoidon toteutus;2020-08-01;2602
+2609;Osallistuminen korkeataajuusventilaation toteutukseen;2020-08-01;2602
+2610;Osallistuminen typpihoidon toteutukseen;2020-08-01;2602
+2611;Pleurapunktio;2020-08-01;2602
+2612;Pleuradreenin asettaminen;2020-08-01;2602
+2613;Valtimon kanylointi;2020-08-01;2603
+2614;Maskiventilaatio;2020-08-01;2603
+2615;Anestesiaintubaatio;2020-08-01;2603
+2616;Verenkierron tukihoidon toteutus;2020-08-01;2603
+2617;Hengitysvajauksen hoidon toteutus;2020-08-01;2603
+2618;Sepsispotilaan hoito;2020-08-01;2603
+2619;Alentuneen tajunnantason hoito;2020-08-01;2603
+2620;Kouristuspotilaan hoito;2020-08-01;2603
+2621;Palovammapotilaan hoito;2020-08-01;2603
+2622;Myrkytyspotilaan hoito;2020-08-01;2603
+2623;Ketoasidoosipotilaan hoito;2020-08-01;2603
