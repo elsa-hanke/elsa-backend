@@ -1,0 +1,18 @@
+﻿id;nimi;voimassaolon_alkamispaiva;kategoria_id;vaadittu_lkm
+3100;1.1. Asiakasyrityksen työterveyshuoltosopimuksen läpikäyminen;2020-08-01;3100;5
+3101;1.2. Asiakasyrityksen työterveyshuollon toimintasuunnitelman laatiminen, päivittäminen tai osallistuminen;2020-08-01;3100;5
+3102;2.1. Moniammatillisen perustyöpaikkaselvityksen tekeminen;2020-08-01;3101;10
+3103;2.2. Suunnatun työpaikkaselvityksen toteuttaminen;2020-08-01;3101;5
+3104;3.1. Työterveystarkastusten tarvearviointi ja suunnittelu asiakasyrityksessä;2020-08-01;3102;5
+3105;3.2. Altistelähtöinen (ESV) tai työn terveydellisistä erityisvaatimuksista johtuva työterveystarkastus;2020-08-01;3102;20
+3106;3.3. Työkyvyn arviointi;2020-08-01;3102;20
+3107;4.1. Työterveysneuvottelun toteuttaminen;2020-08-01;3103;10
+3108;4.2. Työkokeilun suunnittelu ja seuranta;2020-08-01;3103;5
+3109;4.3. Työyhteisön kehittämishankkeeseen tai interventioon osallistuminen ;2020-08-01;3103;2
+3110;4.4. Työkyvyn hallinnan, seurannan ja varhaisen tuen malleihin perehtyminen;2020-08-01;3103;5
+3111;4.5. Yrityksen työsuojelun toimintaohjelmaan perehtyminen;2020-08-01;3103;2
+3112;4.6. Työllistymiskyvyn tukemisen palvelujärjestelmään ja oman alueen verkostoon perehtyminen ;2020-08-01;3103;1
+3113;5.1. Työhön liittyvien sairauksien tunnistaminen potilastapauksessa;2020-08-01;3104;20
+3114;6.1. Asiantuntijataitojen ja hyvien ammattikäytäntöjen kehittämiseen liittyvä suorite;2020-08-01;3105;5
+3115;6.2. Luento tai yhteenveto ajankohtaisesta työterveys- tai työelämäaiheesta;2020-08-01;3105;5
+3116;6.3. Omassa työssä esiin tullut eettisjuridinen pohdinta;2020-08-01;3105;5
