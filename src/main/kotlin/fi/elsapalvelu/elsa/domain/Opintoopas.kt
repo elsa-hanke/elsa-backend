@@ -60,9 +60,6 @@ data class Opintoopas(
     var erikoisalanVaatimaJohtamisopintojenVahimmaismaara: Double? = null,
 
     @ManyToOne
-    var erikoisala: Erikoisala? = null,
-
-    @ManyToOne
     var arviointiasteikko: Arviointiasteikko? = null,
 
     @OneToMany(mappedBy = "opintoopas")
