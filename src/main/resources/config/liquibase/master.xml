@@ -116,6 +116,7 @@
     <include file="config/liquibase/changelog/20220104122811_modify_entity_Suoritemerkinta.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220104172911_modify_entity_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220111170325_add_erikoisala_data_lastenneurologia.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220112155954_add_erikoisala_data_tyoterveyshuolto.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20210421111507_added_entity_constraints_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
