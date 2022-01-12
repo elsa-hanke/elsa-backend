@@ -35,7 +35,7 @@ class ErikoisalaServiceImpl(
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
 
         return kirjautunutErikoistuvaLaakari?.opintooikeudet?.mapNotNull {
-            it.opintoopas?.erikoisala
+            it.erikoisala
         }?.map(erikoisalaMapper::toDto) ?: listOf()
     }
 

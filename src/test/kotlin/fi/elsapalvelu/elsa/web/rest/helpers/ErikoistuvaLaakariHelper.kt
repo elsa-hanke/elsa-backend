@@ -54,7 +54,6 @@ class ErikoistuvaLaakariHelper {
             } else {
                 opintoopas = em.findAll(Opintoopas::class).get(0)
             }
-            opintoopas.erikoisala = erikoisala
 
             // Lisätään pakollinen tieto
             val arviointiasteikko: Arviointiasteikko
