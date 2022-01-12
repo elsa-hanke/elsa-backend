@@ -7,12 +7,20 @@
     <changeSet id="20211214142622-2" author="jhipster">
         <addColumn tableName="opintooikeus">
             <column name="opintoopas_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
             <column name="asetus" type="varchar(255)">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
         </addColumn>
+
+        <update tableName="opintooikeus">
+            <column name="opintoopas_id" value="15"/>
+            <column name="asetus" value="55/2020"/>
+        </update>
+
+        <addNotNullConstraint tableName="opintooikeus" columnName="opintoopas_id"/>
+        <addNotNullConstraint tableName="opintooikeus" columnName="asetus"/>
 
         <renameColumn tableName="opintooikeus" oldColumnName="opintosuunnitelma_kaytossa_pvm"
                       newColumnName="osaamisen_arvioinnin_oppaan_pvm"/>
