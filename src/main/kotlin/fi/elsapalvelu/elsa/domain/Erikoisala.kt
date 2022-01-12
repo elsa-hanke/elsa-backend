@@ -34,9 +34,6 @@ data class Erikoisala(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var arvioitavatKokonaisuudet: MutableSet<ArvioitavaKokonaisuus> = mutableSetOf(),
 
-    @OneToMany(mappedBy = "erikoisala")
-    var opintooppaat: MutableSet<Opintoopas> = mutableSetOf(),
-
     @ManyToMany(mappedBy = "erikoisalat")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var yliopistot: MutableSet<Yliopisto> = mutableSetOf()

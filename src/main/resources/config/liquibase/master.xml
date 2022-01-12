@@ -154,5 +154,6 @@
     <include file="config/liquibase/changelog/20220104172911_modify_entity_constraints_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220105153858_modify_entity_Erikoisala.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220110164323_modify_entity_constraints_Opintooikeus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220112161321_modify_entity_Opintoopas.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
