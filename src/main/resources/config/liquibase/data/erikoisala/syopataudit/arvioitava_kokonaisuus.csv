@@ -1,0 +1,275 @@
+﻿id;nimi;kuvaus;voimassaolo_alkaa;erikoisala_id;kategoria_id
+3200;Sädehoidon tekninen suunnittelu;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Syöpätautien erikoislääkärikoulutukseen sisältyy vuosi sädehoitopalvelua. Sädehoidossa
+erikoistuvan lääkärin tavoitteena on oppia omatoimiseen sädehoitosuunnitelmien tekoon
+yleisempien sädehoidettavien syöpien osalta ja sädehoitoseniorin ohjauksessa tekemään
+harvinaisempia sädehoitosuunnitelmia.
+<br />
+<br />
+EPA arvioidaan sädehoitojakson loppupuolella, kun työskentelyä sädehoidossa on suoritettu
+6-12 kuukautta.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Johtamistaidot
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>
+3. Suoritusta koskevat odotukset
+<br />
+- tiedot
+<br />
+- taidot
+<br />
+- asenteet
+<br />
+</strong>
+</td>
+<td>
+<strong>Erikoistuva tarvitsee vielä harjoitusta</strong>
+<ul style=""list-style-type: '- '; padding-left: 0.7em; margin-top: 1em"">
+<li>Kohdealueen määrittely on virheellistä tai puutteellista</li>
+<li>Ei osaa hakea tai tulkita ko. kohdealueen määrittelyyn liittyviä piirto-ohjeita</li>
+<li>Sädehoitosuunnitelma ei vastaa klinikan hoitokäytäntöä</li>
+<li>
+Sädehoidon terminologia ei hallussa (esim. kohdealueen määrittely PTV, ITV, CTV, GTV),
+mikä aiheuttaa riskin väärinymmärryksille tai -tulkinnoille
+</li>
+<li>Sädehoitomarginaalien valinta ei ole asianmukaista ko. hoitoon</li>
+<li>
+Ei osaa arvioida sädehoitosuunnitelman annosjakaumaa tai tervekudoskriteerien
+toteutumista
+</li>
+<li>
+Kommunikaatio sädehoitosuunnitelman teknisistä ratkaisuista sairaalafyysikkojen ja
+röntgenhoitajien kanssa ei onnistu tai on puutteellista.
+</li>
+</ul>
+</td>
+<td>
+<strong>
+Erikoistuva voi suorittaa epäsuoran valvonnan alaisena/ raportoida jälkikäteen
+</strong>
+<ul style=""list-style-type: '- '; padding-left: 0.7em; margin-top: 1em"">
+<li>Osaa arvioida sädehoitoasennon soveltuvuuden ko. hoitoon</li>
+<li>
+Osaa huomioida tarvittavat toimenpiteet annosCT-kuvaukseen ja sädehoidon toteutukseen
+(fiksaatio, rakkotäyttö, DIBH, varjoaineen käyttö)
+</li>
+<li>
+Osaa suunnitella omatoimisesti kohdealueen marginaaleineen yleisimmin sädehoidossa
+hoidettavien syöpäsairauksien osalta (rintasyöpä, eturauhassyöpä, rektum,
+palliatiiviset sädehoidot)
+</li>
+<li>
+Osaa seniorituen ja teknisten piirto-ohjeiden avulla suunnitella sädehoidon
+harvinaisempien sädehoidettavien syöpien osalta
+</li>
+<li>
+Ymmärtää periaatteet sädehoitotekniikan valinnan suhteen (tangentiaaliset kentät,
+IMRT, VMAT, elektronihoito)
+</li>
+<li>Osaa arvioida tervekudosten annosrajoitteet</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td>
+<strong>
+4. Ehdotuksia arviointimenetelmiksi
+<br />
+- miten arvioit edistymistä
+</strong>
+</td>
+<td colspan=""2"">
+EPA arvioidaan sädehoitojakson aikana lähiohjaajan toimesta. Pohjana arvioinnille
+käytetään erikoistuvan sädehoitosuunnitelmien tarkastusta, toteutuneita
+potilaskonsultaatiota ja erikoistuvan itse tekemiä sädehoitosuunnitelmia. Tarpeen mukaan
+voidaan arviointi toteuttaa myös simuloitujen potilastapausten avulla.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>
+5. Päiväys, suositus ja allekirjoitus
+<br />
+- voimassaoloaika
+</strong>
+</td>
+<td>
+<strong>Hyväksyn opiskelijan suorituksen</strong>
+</td>
+<td>
+<strong>Opiskelija tarvitsee vielä harjoitusta</strong>
+</td>
+</tr>
+</tbody>
+</table>";2020-08-01;44;3200
+3201;Syöpälääkehoidon suunnittelu ja toteutus;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+EPA:n tavoitteena on, että erikoistuva osaa suunnitella ja toteuttaa asianmukaisen
+syöpälääkehoidon ajankohtaisten hoitosuositusten mukaisesti yksilöllisesti kullekin
+potilaalle. Erikoistuva toimii osana hoitotiimiä ja vastaa siitä, että kaikki potilaan
+hoitoon liittyvä tieto ja ohjeistus tulee selvästi ja ymmärrettävästi kirjattua potilaan
+sairauskertomukseen.
+<br />
+<br />
+EPA:n sisältö odotetaan hallittavan 1-2 vuoden sisään erikoistumisen aloituksesta
+toimipisteestä riippuen.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Ammatillisuus
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Johtamistaidot
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>
+3. Suoritusta koskevat odotukset
+<br />
+- tiedot
+<br />
+- taidot
+<br />
+- asenteet
+<br />
+</strong>
+</td>
+<td>
+<strong>Erikoistuva tarvitsee vielä harjoitusta</strong>
+<ul style=""list-style-type: '- '; padding-left: 0.7em; margin-top: 1em"">
+<li>Potilaan hoitokuntoisuuden arvio on puutteellista</li>
+<li>
+Ei ota huomioon iän ja muiden perussairauksien vaikutusta syöpälääkehoidon
+toteutukseen
+</li>
+<li>Ei osaa perustella lääkehoidon valintaa</li>
+<li>
+Ei osaa kertoa potilaalle lääkehoidosta ja sen mahdollisista haittavaikutuksista
+</li>
+<li>Syöpälääkehoidon tukilääkitys on puutteellista/riittämätöntä</li>
+<li>Ei ota huomioon potilaan mielipidettä hoidosta</li>
+<li>Ei vastaa potilaan tai omaisten esittämiin kysymyksiin asianmukaisesti</li>
+<li>Keskustelussa käytetään liikaa lääketieteellisiä termejä</li>
+<li>Jatkohoito-ohjeet eivät välity muille ammattiryhmille riittävän selkeinä</li>
+<li>
+Sairauskertomusmerkinnät lääkehoidosta, sen valinnasta ja perusteluista ovat
+puutteelliset
+</li>
+<li>Ajankäyttö ko. tehtävän suorittamiseen on epätarkoituksenmukaista</li>
+</ul>
+</td>
+<td>
+<strong>
+Erikoistuva voi suorittaa epäsuoran valvonnan alaisena/ raportoida jälkikäteen
+</strong>
+<ul style=""list-style-type: '- '; padding-left: 0.7em; margin-top: 1em"">
+<li>
+Hallitsee lääketieteelliset asiat osatakseen tulkita potilaan tutkimustulokset ja
+suunnitella asianmukaisen lääkehoidon
+</li>
+<li>Tietää ko. syöpälääkehoidon indikaatiot sekä sillä saavutettavat hyödyt</li>
+<li>Tunnistaa kiireellistä hoitoa vaativat tilanteet</li>
+<li>
+Osaa tehdä teknisesti ja turvallisesti syöpälääkehoitomääräyksen ko. klinikan
+toimintatavan mukaisesti erilaisille syöpälääkehoidoille
+</li>
+<li>
+Osaa kertoa potilaalle kyseisen ko. syöpäsairauden erityispiirteistä, todetuista
+tutkimustuloksista ja muista lääkehoidon valintaan liittyvistä asioista
+</li>
+<li>
+Osaa selittää potilaalle lääkehoidon hoitotavoitteen, annosteluun, toteutukseen ja
+haittavaikutuksiin liittyvät seikat
+</li>
+<li>Osaa tehdä asianmukaiset ja selkeät potilaskertomusmerkinnät</li>
+<li>Osaa antaa ohjeet lääkehoidon aikaisesta seurannasta</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td>
+<strong>
+4. Ehdotuksia arviointimenetelmiksi
+<br />
+- miten arvioit edistymistä
+</strong>
+</td>
+<td colspan=""2"">
+EPA arvioidaan lähiohjaajan seurannalla poliklinikkavastaanotolla tai vuodeosastotyössä,
+potilaskonsultaatioiden perusteella sekä tarvittaessa simuloiduilla potilastapauksilla.
+Myös potilaskertomusmerkintöjä voidaan käyttää arvion tukena.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>
+5. Päiväys, suositus ja allekirjoitus
+<br />
+- voimassaoloaika
+</strong>
+</td>
+<td>
+<strong>Hyväksyn opiskelijan suorituksen</strong>
+</td>
+<td>
+<strong>Opiskelija tarvitsee vielä harjoitusta</strong>
+</td>
+</tr>
+</tbody>
+</table>";2020-08-01;44;3201
