@@ -21,7 +21,7 @@
         </update>
 
         <delete tableName="arvioitava_kokonaisuus">
-            <where>id between 1 and 32</where>
+            <where>id between 1 and 33</where>
         </delete>
 
         <delete tableName="arvioitavan_kokonaisuuden_kategoria">
