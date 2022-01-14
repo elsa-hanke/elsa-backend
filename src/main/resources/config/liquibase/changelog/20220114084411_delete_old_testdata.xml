@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220114084411" author="jhipster" context="!test">
+        <delete tableName="arvioitava_kokonaisuus">
+            <where>id between 1 and 32</where>
+        </delete>
+
+        <delete tableName="arvioitavan_kokonaisuuden_kategoria">
+            <where>id between 1 and 6</where>
+        </delete>
+
+        <delete tableName="suorite">
+            <where>id between 1 and 24</where>
+        </delete>
+
+        <delete tableName="suoritteen_kategoria">
+            <where>id between 1 and 3</where>
+        </delete>
+    </changeSet>
+
+</databaseChangeLog>
