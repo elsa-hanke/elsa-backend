@@ -5,6 +5,11 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
     <changeSet id="20220114084411" author="jhipster" context="!test">
+        <update tableName="rel_koulutusjakso_osaamistavoitteet">
+            <column name="osaamistavoitteet_id" value="3100"/>
+            <where>osaamistavoitteet_id between 1 and 32</where>
+        </update>
+
         <update tableName="suoritusarviointi">
             <column name="arvioitava_kokonaisuus_id" value="3100"/>
             <where>arvioitava_kokonaisuus_id between 1 and 32</where>
