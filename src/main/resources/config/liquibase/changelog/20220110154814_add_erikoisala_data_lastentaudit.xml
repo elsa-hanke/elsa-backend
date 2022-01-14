@@ -4,7 +4,7 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
-    <changeSet id="20220110154814" author="jhipster">
+    <changeSet id="20220110154814" author="jhipster" context="!test">
         <loadData
             file="config/liquibase/data/erikoisala/lastentaudit/arvioitavan_kokonaisuuden_kategoria.csv"
             separator=";"
