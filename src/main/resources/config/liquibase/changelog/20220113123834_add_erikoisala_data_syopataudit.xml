@@ -45,13 +45,6 @@
         <dropPrimaryKey tableName="arvioitava_kokonaisuus"/>
         <addPrimaryKey tableName="arvioitava_kokonaisuus" columnNames="id"/>
 
-        <!-- Lisää foreign key takaisin -->
-        <addForeignKeyConstraint baseTableName="rel_koulutusjakso__osaamistavoitteet"
-                                 baseColumnNames="osaamistavoitteet_id"
-                                 constraintName="fk_rel_koulutusjakso__osaamistavoitteet__osaamistavoitteet_id"
-                                 referencedTableName="arvioitava_kokonaisuus"
-                                 referencedColumnNames="id"/>
-
         <dropPrimaryKey tableName="arvioitavan_kokonaisuuden_kategoria"/>
         <addPrimaryKey tableName="arvioitavan_kokonaisuuden_kategoria" columnNames="id"/>
 
@@ -86,7 +79,13 @@
             <column name="kategoria_id" type="numeric"/>
         </loadData>
 
-        <!-- Lisää foreign key takaisin -->
+        <!-- Lisää foreign keyt takaisin -->
+        <addForeignKeyConstraint baseTableName="rel_koulutusjakso__osaamistavoitteet"
+                                 baseColumnNames="osaamistavoitteet_id"
+                                 constraintName="fk_rel_koulutusjakso__osaamistavoitteet__osaamistavoitteet_id"
+                                 referencedTableName="arvioitava_kokonaisuus"
+                                 referencedColumnNames="id"/>
+
         <addForeignKeyConstraint baseTableName="suoritusarviointi" baseColumnNames="arvioitava_kokonaisuus_id"
                                  constraintName="fk_suoritusarviointi_arvioitava_kokonaisuus_id"
                                  referencedTableName="arvioitava_kokonaisuus"
