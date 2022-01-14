@@ -6,6 +6,7 @@
 
     <changeSet id="20220113123834" author="jhipster" context="!test">
 
+        <!-- Järjestysnumeroa ei kaikissa erikoisalojen toimittamissa datoissa, joten poistetaan not null constraint -->
         <dropNotNullConstraint tableName="arvioitavan_kokonaisuuden_kategoria" columnName="jarjestysnumero"/>
 
         <loadData
@@ -30,12 +31,48 @@
             <column name="kategoria_id" type="numeric"/>
         </loadData>
 
+        <!-- Poista constraintit, jotka edelleen vanhoilla nimillä -->
+        <dropAllForeignKeyConstraints baseTableName="arvioitava_kokonaisuus"/>
+
+        <!-- Poista foreign keyt datan poistamisen ajaksi -->
+        <dropForeignKeyConstraint baseTableName="suoritusarviointi"
+                                  constraintName="fk_suoritusarviointi_arvioitava_kokonaisuus_id"/>
+
+        <!-- Poista foreign key arvioitavan kokonaisuuden primary keyn uudelleennimeämisen ajaksi -->
+        <dropForeignKeyConstraint baseTableName="rel_koulutusjakso__osaamistavoitteet"
+                                  constraintName="fk_rel_koulutusjakso__osaamistavoitteet__osaamistavoitteet_id"/>
+
+        <dropPrimaryKey tableName="arvioitava_kokonaisuus"/>
+        <addPrimaryKey tableName="arvioitava_kokonaisuus" columnNames="id"/>
+
+        <!-- Lisää foreign key takaisin -->
+        <addForeignKeyConstraint baseTableName="rel_koulutusjakso__osaamistavoitteet"
+                                 baseColumnNames="osaamistavoitteet_id"
+                                 constraintName="fk_rel_koulutusjakso__osaamistavoitteet__osaamistavoitteet_id"
+                                 referencedTableName="arvioitava_kokonaisuus"
+                                 referencedColumnNames="id"/>
+
+        <dropPrimaryKey tableName="arvioitavan_kokonaisuuden_kategoria"/>
+        <addPrimaryKey tableName="arvioitavan_kokonaisuuden_kategoria" columnNames="id"/>
+
         <!-- Korjaa työterveyden arvioitavat kokonaisuudet -->
-        <delete tableName="arvioitava_kokonaisuus">
-            <where>id in
-                (3100, 3101, 3102, 3103, 3104, 3105)
-            </where>
+        <delete tableName="arvioitavan_kokonaisuuden_kategoria">
+            <where>id between 3100 and 3104</where>
         </delete>
+
+        <delete tableName="arvioitava_kokonaisuus">
+            <where>id between 3100 and 3105</where>
+        </delete>
+
+        <loadData
+            file="config/liquibase/data/erikoisala/tyoterveyshuolto/arvioitavan_kokonaisuuden_kategoria.csv"
+            separator=";"
+            tableName="arvioitavan_kokonaisuuden_kategoria">
+            <column name="id" type="numeric"/>
+            <column name="nimi" type="string"/>
+            <column name="jarjestysnumero" type="numeric"/>
+            <column name="voimassaolo_alkaa" type="date"/>
+        </loadData>
 
         <loadData
             file="config/liquibase/data/erikoisala/tyoterveyshuolto/arvioitava_kokonaisuus.csv"
@@ -48,6 +85,22 @@
             <column name="erikoisala_id" type="numeric"/>
             <column name="kategoria_id" type="numeric"/>
         </loadData>
+
+        <!-- Lisää foreign key takaisin -->
+        <addForeignKeyConstraint baseTableName="suoritusarviointi" baseColumnNames="arvioitava_kokonaisuus_id"
+                                 constraintName="fk_suoritusarviointi_arvioitava_kokonaisuus_id"
+                                 referencedTableName="arvioitava_kokonaisuus"
+                                 referencedColumnNames="id"/>
+
+        <!-- Lisää foreign keyt oikeilla nimillä -->
+        <addForeignKeyConstraint baseTableName="arvioitava_kokonaisuus" baseColumnNames="erikoisala_id"
+                                 constraintName="fk_arvioitava_kokonaisuus__erikoisala_id"
+                                 referencedTableName="erikoisala"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="arvioitava_kokonaisuus" baseColumnNames="kategoria_id"
+                                 constraintName="fk_arvioitava_kokonaisuus__kategoria_id"
+                                 referencedTableName="arvioitavan_kokonaisuuden_kategoria"
+                                 referencedColumnNames="id"/>
 
     </changeSet>
 

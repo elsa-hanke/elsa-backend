@@ -21,7 +21,6 @@ data class ArvioitavanKokonaisuudenKategoria(
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
 
-    @get: NotNull
     @Column(name = "jarjestysnumero", nullable = false)
     var jarjestysnumero: Int? = null,
 
