@@ -5,6 +5,16 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
     <changeSet id="20220114084411" author="jhipster" context="!test">
+        <update tableName="suoritusarviointi">
+            <column name="arvioitava_kokonaisuus_id" value="3100"/>
+            <where>arvioitava_kokonaisuus_id between 1 and 32</where>
+        </update>
+
+        <update tableName="suoritemerkinta">
+            <column name="suorite_id" value="3106"/>
+            <where>suorite_id between 1 and 24</where>
+        </update>
+
         <delete tableName="arvioitava_kokonaisuus">
             <where>id between 1 and 32</where>
         </delete>
