@@ -11,7 +11,6 @@ data class ArvioitavanKokonaisuudenKategoriaDTO(
     @get: NotNull
     var nimi: String? = null,
 
-    @get: NotNull
     var jarjestysnumero: Int? = null,
 
     @get: NotNull
