@@ -33,6 +33,7 @@ import org.springframework.security.saml2.provider.service.web.authentication.lo
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
+import org.springframework.security.web.util.matcher.AnyRequestMatcher
 import org.springframework.util.CollectionUtils
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
@@ -119,6 +120,13 @@ class SecurityConfiguration(
             .accessDeniedHandler(problemSupport)
             .and()
             .headers()
+            .httpStrictTransportSecurity()
+            // 12 months
+            .maxAgeInSeconds(31536000)
+            .includeSubDomains(true)
+            .preload(false)
+            .requestMatcher(AnyRequestMatcher.INSTANCE)
+            .and()
             .contentSecurityPolicy(
                 "default-src 'self'; frame-src 'self' data:; script-src 'self'" +
                     " 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; style-src 'self' 'unsafe-inline';" +
