@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
 import org.opensaml.saml.common.assertion.ValidationContext
 import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.convert.converter.Converter
@@ -67,6 +68,8 @@ class SecurityConfiguration(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val env: Environment
 ) : WebSecurityConfigurerAdapter() {
+
+    private val log = LoggerFactory.getLogger(SecurityConfiguration::class.java)
 
     override fun configure(web: WebSecurity?) {
         web!!.ignoring()
@@ -331,11 +334,19 @@ class SecurityConfiguration(
         }
 
         if (existingUser == null) {
+            log.error(
+                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
+                    "Käyttäjällä ei ole käyttöoikeutta."
+            )
             throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
         }
 
         // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus
         if (!onOikeus(existingUser)) {
+            log.error(
+                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " +
+                    "Käyttäjällä ei ole aktiivista opinto-oikeutta."
+            )
             throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
         }
 
