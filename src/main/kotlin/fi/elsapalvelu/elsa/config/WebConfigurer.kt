@@ -31,6 +31,8 @@ class WebConfigurer(
             )
         }
 
+        servletContext.sessionCookieConfig.isSecure = true
+
         log.info("Web application fully configured")
     }
 
