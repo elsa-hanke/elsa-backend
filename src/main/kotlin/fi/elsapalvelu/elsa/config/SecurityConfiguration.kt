@@ -234,7 +234,6 @@ class SecurityConfiguration(
         val principal = token.principal as Saml2AuthenticatedPrincipal
         val firstName = principal.attributes["urn:oid:2.5.4.42"]?.get(0) as String
         val lastName = principal.attributes["urn:oid:2.5.4.4"]?.get(0) as String
-        val mail = principal.attributes["urn:oid:0.9.2342.19200300.100.1.3"]?.get(0) as String?
 
         // Suomi.fi
         val hetu = principal.attributes["urn:oid:1.2.246.21"]?.get(0) as String?
@@ -246,12 +245,12 @@ class SecurityConfiguration(
 
         val response = responseToken.response
         val assertion = CollectionUtils.firstElement(response.assertions)
-        val nameID = assertion.subject.nameID
-        principal.attributes["nameID"] = mutableListOf(nameID.value) as List<*>?
-        principal.attributes["nameIDFormat"] = mutableListOf(nameID.format) as List<Any>?
-        principal.attributes["nameIDQualifier"] = mutableListOf(nameID.nameQualifier) as List<Any>?
+        val nameID = assertion?.subject?.nameID
+        principal.attributes["nameID"] = mutableListOf(nameID?.value) as List<*>?
+        principal.attributes["nameIDFormat"] = mutableListOf(nameID?.format) as List<*>?
+        principal.attributes["nameIDQualifier"] = mutableListOf(nameID?.nameQualifier) as List<*>?
         principal.attributes["nameIDSPQualifier"] =
-            mutableListOf(nameID.spNameQualifier) as List<Any>?
+            mutableListOf(nameID?.spNameQualifier) as List<*>?
 
         val decodedKey =
             Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
