@@ -1,0 +1,39 @@
+﻿id;nimi;voimassaolon_alkamispaiva;kategoria_id
+900;Ihokoepalan ottaminen PAD-ja IF-tutkimuksia varten (stanssibiopsia ja veneviiltopala);2021-11-24;900
+901;PAD-lausunnon tulkinta;2020-08-01;900
+902;IF-lausunnon tulkinta;2020-08-01;900
+903;Ihotautien paikallishoidot;2021-11-24;901
+904;Immunosuppressiviset lääkkeet;2020-08-01;901
+905;Biologiset lääkkeet;2020-08-01;901
+906;ABI-mittaus;2021-11-24;902
+907;Haavan revidointi;2020-08-01;902
+908;Haavatuotteen valinta kuhunkin haavatyyppiin;2020-08-01;902
+909;Kompressiohoidon valinta;2020-08-01;902
+910;Ihosiirto, kuten suikalesiirto;2020-08-01;902
+911;Kapeakaista-UVB;2020-08-01;903
+912;PUVA-hoito (voide, kylpy, tabletti);2020-08-01;903
+913;Ihopistokokeiden suoritus ja tulkinta;2020-08-01;904
+914;Allergeenispesifisten IgE-vasta-ainemittausten tulkinta;2020-08-01;904
+915;Epikutaaniotestien suoritus ja tulkinta;2020-08-01;904
+916;Avoaltistus;2020-08-01;904
+917;Lääkeainealtistus;2020-08-01;904
+918;Intrakutaanitestaus;2020-08-01;904
+919;Valotestien (UVA,UVB) käyttö ja tulkinta;2020-08-01;904
+920;Ammatti-ihotautilausunnon laadinta;2020-08-01;904
+921;Siedätyshoidon aloitus ja seuranta;2020-08-01;904
+922;Ihomuutoksen poisto (tehnyt):benignit ja malignit muutokset;2020-08-01;905
+923;Biopsia kynnestä (tietää toimintatavan, nähnyt tai tehnyt);2020-08-01;905
+924;Vapaa ihonsiirto (nähnyt tai tehnyt);2020-08-01;906
+925;Ihon plastiat (nähnyt tai tehnyt);2020-08-01;906
+926;Benignit muutokset (esim.syylät);2020-08-01;907
+927;Aktiinikeratoosit;2020-08-01;907
+928;Malignit muutokset (Mb Bowen, basalioma);2020-08-01;907
+929;CO2-laser;2020-08-01;908
+930;PDL (jos koulutuspaikassa käytössä);2020-08-01;908
+931;Konventionaalinen;2020-08-01;909
+932;Päivänvalo-PDT (jos koulutuspaikassa käytössä);2020-08-01;909
+933;Kainaloiden liikahikoilun hoito;2020-08-01;910
+934;Kämmenten ja/tai jalkapohjien liikahikoilun hoito (jos koulutupaikassa käytössä);2020-08-01;910
+935;Osaa diagnosoida, tutkia ja hoitaa tavallisimmat seksitaudit;2020-08-01;911
+936;On nähnyt tai tutustunut potilastapaukseen tai kirjallisuuteen Suomessa harvinaisempien seksitautien osalta (kuppa, HIV, ja muut, esim. sankkerit);2020-08-01;911
+937;Osaa huolehtia tartunnanjälityksestä;2020-08-01;911
