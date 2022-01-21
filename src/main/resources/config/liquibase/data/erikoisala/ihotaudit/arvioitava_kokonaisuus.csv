@@ -1,0 +1,2293 @@
+id;nimi;kuvaus;voimassaolo_alkaa;erikoisala_id;kategoria_id
+900;Allergiaepäilyn tutkiminen;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Ymmärtää ja hallitsee allergioiden immunologiset mekanismit
+ja niiden kliinisen merkityksen
+<br />
+<br />
+Erikoistuva tuntee allergisten ihotautien (välittömät
+allergiset reaktiot ja kosketusallergiat) ja
+lääkeainereaktioiden kliiniset taudinkuvat ja
+erotusdiagnostiikan.
+<br />
+<br />
+Hallitsee allergologian diagnostiset tutkimusmenetelmät
+(ihotestit, altistustutkimukset ja laboratoriotutkimukset)
+<br />
+<br />
+Hallitsee allergioiden hoidon ja ehkäisyn periaatteet
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Terveyden ja hyvinvoinnin edistäminen
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Tuntee allergisten mekanismien periaatteet.
+<br />
+<br />
+Osaa epäillä iho-oireiden taustalta allergiaa kun se on
+tarpeellista ja osaa tehdä suunnitelman riittävien ja
+tarpeellisten tutkimusten toteuttamiseksi.
+<br />
+<br />
+Tuntee ihotestien menetelmät ja laadukkaan suorittamisen
+<br />
+<br />
+Osaa tulkita yleisimpien pricktestien tulokset ja
+allergologian laboratoriotutkimukset.
+<br />
+<br />
+Osaa erottaa sisäsyntyiset iho-oireet allergisista ja osaa
+erotella merkitykselliset testitulokset kliinisesti
+merkityksettömistä.
+<br />
+<br />
+Tietää hengitysteiden keskeisen allergologian ja sen
+hoidon.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Osaa tulkita epikutaani- ja muiden ihotestien tulokset ja
+harvinaisemmatkin allergologian laboratoriotutkimukset.
+<br />
+<br />
+Tuntee IgE-välitteisen allergian immunologian, allergeenien
+keskeisen luokittelun ja ominaisuudet ja ristireaktioiden
+mekanismit ja merkityksen.
+<br />
+<br />
+Osaa atooppiseen ihottumaan liittyvän allergologian ja sen
+kliinisen merkityksen.
+<br />
+<br />
+Osaa tutkia ruoka-allergiapotilaan, suunnitella ja purkaa
+ruokaeliminaatiodieetit ja erottaa ruokaintoleranssit
+allergioista.
+<br />
+<br />
+Tietää siedätyshoitojen periaatteet ja käytännön
+toteutuksen.
+<br />
+<br />
+Osaa tutkia ja hoitaa anafylaksian.
+<br />
+<br />
+Tuntee soluvälitteisen allergologian immunologiset
+perusteet ja kliiniset kuvat.
+<br />
+<br />
+Ymmärtää syy-seuraussuhteet allergisten kosketusihottumien
+kehittymisessä ja osaa selvittää altistumisen
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Tuntee allergisen urtikarian, allergisen angioödeeman ja
+proteiinikosketusihottuman mekanismit, aiheuttajat ja
+taudinkuvat.
+<br />
+<br />
+Osaa tutkia lääkkeiden aiheuttamat yliherkkyysreaktiot.
+<br />
+<br />
+Tuntee ja hallitsee erotusdiagnostiikan allergisen
+urtikarian ja angiöodeeman osalta sisäsyntyisiin ja
+idiopaattisiin oireisiin (mm. HAE)
+<br />
+<br />
+Osaa neuvoa ja informoida potilasta allergioiden hoidosta,
+allergeenien välttämisestä.
+<br />
+<br />
+Osaa neuvoa potilasta allergioiden mahdollisesta
+vaikutuksesta ammatinvalintaan ja työkykyyn sekä
+allergiapotilaan sosiaaliturvasta
+<br />
+<br />
+Osaa ohjeistaa perusterveydenhuoltoa allergiapotilaan
+jatkoseurannasta.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Duodecimin Allergiset sairaudet ja astma (ilmestyy
+myöhemmin)
+<br />
+<br />
+Tenttilehtien aihetta käsittelevät artikkelit
+<br />
+<br />
+Käypä hoito -suositukset
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä.
+<br />
+<br />
+Hoidon arvioiminen sairauskertomusmerkintöjen perusteella.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä allergisiin
+sairauksiin pitämällä seminaariesitelmän tai esittelemällä
+potilastapauksia tai tieteellisen julkaisun klinikan
+meetingeissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+901;Autoimmuunitaudit;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva hallitsee tavallisimpien autoimmuunitautien
+(pemfigus ja pemfigoidiryhmän taudit, autoimmuuni
+sidekudostaudit) kliinisen taudinkuvan ja diagnostisten
+tutkimusmenetelmien käytön (ihobiopsia,
+immunofluoresenssitutkimus, laboratioriotutkimukset) sekä
+tuntee näiden sairauksien erotusdiagnostiikan.
+<br />
+<br />
+Osaa aloittaa ihon autoimmuunisairauden asianmukaisen
+paikallis- ja systeemilääkehoidon sekä järjestää hoidon
+seurannan.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Osaa tehdä suunnitelman riittävien ja tarpeellisten
+tutkimusten toteuttamiseksi
+<br />
+<br />
+Osaa pohtia olennaiset erotusdiagnostiset vaihtoehdot.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Osaa toteuttaa ja tulkita tarpeelliset diagnostiset
+tutkimusmenetelmät.
+<br />
+<br />
+Osaa aloittaa ensilinjan lääkityksen ihon
+autoimmuunisairauteen.
+<br />
+<br />
+Osaa asianmukaisesti informoida potilasta ja mahdollista
+jatkohoitopaikkaa sairaudesta, tutkimuksista ja hoidosta.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Hallitsee harvinaiset ja vaikeahoitoiset taudinkuvat sekä
+niiden hoidon.
+<br />
+<br />
+Osaa huomioida näiden sairauksien systeemimanifestaatiot ja
+liitännäissairaudet moniammatillisessa yhteistyössä.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Aiheeseen liittyvät EDF hoitosuositukset
+<br />
+<br />
+Terveyskylän Ihotautitalo
+<br />
+<br />
+Silyn autoimmuunijaoksen ohjeet
+<br />
+<br />
+Tenttilehtien aihetta käsittelevät artikkelit
+<br />
+<br />
+Bolognia JL ym. Dermatology – kirjan aihetta käsittelevät
+kappaleet
+<br />
+<br />
+Käypä hoito -suositukset
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä. Hoidon arvioiminen sairauskertomusmerkintöjen
+perusteella.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä
+autoimmuuni-ihotauteihin pitämällä seminaariesitelmän,
+esittelemällä potilastapauksia tai seksitauteja käsittävän
+tieteellisen julkaisun klinikan meetingeissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+902;Hyvänlaatuiset kasvaimet ja ihotoimenpiteet;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva tunnistaa yleisimmät hyvänlaatuiset
+ihokasvaimet ja muutokset. Hän osaa arvioida hoidon tarpeen
+ja hoitovaihtoehdot. Mikäli kasvain vaatii hoitoa, on
+osattava hoitaa ainakin yhdellä tekniikalla.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Terveyden ja hyvinvoinnin edistäminen
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Käyttää dermatoskooppia rutiininomaisesti apuna ihon
+tutkimisessa.
+<br />
+<br />
+Tunnistaa kliinisesti tyypilliset yleisimmät hyvänlaatuiset
+ihokasvaimet kuten rasvaluomet, kirsikkaluomet, fibroomat
+ja keloidit.
+<br />
+<br />
+Osaa erotusdiagnostiikassa epäillä hoitoa vaativia ja
+pahanlaatuisia muutoksia, osaa ottaa koepalan.
+<br />
+<br />
+Osaa tehdä yksinkertaisen ihomuutoksen poiston huomioiden
+komplikaatioriskin, sekä toiminnalliset ja kosmeettiset
+seikat.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Osaa hoitaa hypertrofisia arpia ja keloideja, tarvittaessa
+yhteistyönä toimintaterapeutin kanssa.
+<br />
+<br />
+Osaa botuliinitoksiinihoidon toteutuksen liikahikoilun
+hoidossa.
+<br />
+<br />
+Tunnistaa erilaiset pigmenttiluomien tyypit ja synnynnäiset
+luomet.
+<br />
+<br />
+Tietää osaamisensa rajat.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Tietää ainakin hiilidioksidilaserin ja pulssivärilaserin
+toiminnan perusteet pääpiirteittäin, sekä näiden tärkeimmät
+lääketieteelliset ja kosmeettiset käyttöindikaatiot.
+<br />
+<br />
+Osaa yleisemmät ihon verisuonianomaliat,
+erotusdiagnostiikan ja paikallisen hoitoketjun.
+<br />
+<br />
+Osaa tavallisimmat kynsitoimenpiteet.
+<br />
+<br />
+Osaa pidättäytyä toimenpiteistä kun hyödyt ovat mahdollisia
+haittoja pienemmät.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Bologna et al, uusin painos, aluetta käsittelevät
+kappaleet.
+<br />
+<br />
+Tenttilehtien uusimmat aihetta käsittelevät artikkelit ja
+SILY:n koulutukset.
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä. Hoidon arvioiminen sairauskertomusmerkintöjen
+perusteella. Itsearviointi potilaan kontrollikäynnillä.
+Toimenpiteen suorituksen arviointi.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä pitämällä
+seminaariesitelmän, esittelemällä potilastapauksia tai
+tieteellisen julkaisun klinikan meetingeissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+903;Ihon apuelinten sairaudet;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva hallitsee ihotautien päivystyksellistä hoitoa
+vaativien sairauksien (ihoinfektiot kuten erysipelas,
+vakavat lääkeainereaktiot, laaja-alaiset rakkulataudit,
+anafylaksia, akuutti angioödeema, erytrodermia)
+diagnostiikan ja ymmärtää keskeiset erotusdiagnostiset
+vaihtoehdot. Erikoistuva tunnistaa erikoisalan vastuulle
+kuuluvan päivystyspotilaan. Hän osaa aloittaa hoidon, sekä
+suunnitella ja toteuttaa tarvittavat tutkimukset.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Osaa erottaa päivystyksellistä hoitoa vaativan ihosairautta
+kiireettömästi hoidettavista.
+<br />
+<br />
+Tunnistaa, milloin päivystyspotilaan hoitovastuu kuuluu
+ihotautilääkärille, osaa valita potilaalle asianmukaisen
+hoitopaikan ja konsultoida tarvittaessa muita erikoisaloja
+<br />
+<br />
+Osaa ohjattuna aloittaa päivystyksellisen hoidon.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Osaa pohtia olennaiset erotusdiagnostiset vaihtoehdot.
+<br />
+<br />
+Osaa aloittaa tavanomaisen päivystyksellisen hoidon.
+<br />
+<br />
+Osaa valita ja toteuttaa tarpeelliset diagnostiset
+tutkimukset.
+<br />
+<br />
+Osaa asianmukaisesti informoida potilasta sairaudesta,
+tutkimuksista ja hoidosta.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Osaa tarvittaessa aloittaa tavanomaisesta poikkeavan
+päivystyksellisen hoidon.
+<br />
+<br />
+Osaa suunnitella tarvittavat jatkotutkimukset ja
+-seurannan.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Aiheeseen liittyvät Käypä hoito-suositukset
+<br />
+<br />
+Tenttilehtien aihetta käsittelevät artikkelit
+<br />
+<br />
+Bolognia JL ym. Dermatology – kirjan aihetta käsittelevät
+kappaleet
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä. Hoidon arvioiminen sairauskertomusmerkintöjen
+perusteella.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä päivystyksellistä
+hoitoa vaativiin ihosairauksiin pitämällä
+seminaariesitelmän, esittelemällä potilastapauksia tai
+päivystyksellisiä käsittävän tieteellisen julkaisun
+klinikan meetingissä
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+904;Iho-oireinen vastasyntynyt;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva tunnistaa vastasyntyneen yleiset vaarattomat
+iho-oireet, hoitoa tai jatkoselvittelyä vaativat ihotaudit
+ja tärkeimmät henkeä uhkaavat iho-oireiset sairaudet. Hän
+osaa pohtia erotusdiagnooseja ja aloittaa diagnostiset
+selvittelyt sekä ihoa koskevat hoidot.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Osaa kuvailla yleiset vaarattomat iho-oireet (mm. erytema
+toxicum neonatorum, miliat, miliariat).
+<br />
+<br />
+Tietää, mitkä ihotautiryhmät voivat aiheuttaa
+vastasyntyneelle vaikeita oireita, kuten bakteeri- ja
+virusinfektiot (stafylokokki ja herpesryhmän
+virusinfektiot), perinnölliset sairaudet (rakkuloita
+aiheuttavat taudit, iktyoosit ja immuunipuutostilat)
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Osaa aloittaa diagnostiset toimet ja konsultoida
+tarvittavia osaajia ja erikoisaloja.
+<br />
+<br />
+Osaa aloittaa päivystyksellisesti tarvittavat
+paikallishoidot.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Tuntee erikoisalojen välisen työnjaon
+työskentelypaikassaan.
+<br />
+<br />
+Osaa pohtia erotusdiagnostisia vaihtoehtoja tautiryhmien
+sisällä.
+<br />
+<br />
+Osaa tulkita saatuja diagnostisia tuloksia, informoida
+perhettä ja suunnitella jatkohoidon.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Aiheeseen liittyvät kappaleet Oppikirjasta Bolognia JL ym.
+Dermatology
+<br />
+<br />
+Aiheeseen liittyvät artikkelit tenttilehdissä.
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Osallistuminen aiheeseen liittyvään Silyn järjestämään
+erikoistuvien koulutukseen tai kongressin sessioon.
+<br />
+<br />
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä. Hoidon arvioiminen sairauskertomusmerkintöjen
+perusteella.
+<br />
+<br />
+Kirjallisuuden itsenäinen opiskelu todennettu
+keskustelussa.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä vastasyntyneellä
+esiintyviin iho-oireisiin ja –tauteihin pitämällä
+seminaariesitelmän, esittelemällä potilastapauksia tai
+kyseistä aihetta käsittävän tieteellisen julkaisun klinikan
+meetingissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+905;Ihotautinen päivystyspotilas;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva tunnistaa vastasyntyneen yleiset vaarattomat
+iho-oireet, hoitoa tai jatkoselvittelyä vaativat ihotaudit
+ja tärkeimmät henkeä uhkaavat iho-oireiset sairaudet. Hän
+osaa pohtia erotusdiagnooseja ja aloittaa diagnostiset
+selvittelyt sekä ihoa koskevat hoidot.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Osaa kuvailla yleiset vaarattomat iho-oireet (mm. erytema
+toxicum neonatorum, miliat, miliariat).
+<br />
+<br />
+Tietää, mitkä ihotautiryhmät voivat aiheuttaa
+vastasyntyneelle vaikeita oireita, kuten bakteeri- ja
+virusinfektiot (stafylokokki ja herpesryhmän
+virusinfektiot), perinnölliset sairaudet (rakkuloita
+aiheuttavat taudit, iktyoosit ja immuunipuutostilat)
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Osaa aloittaa diagnostiset toimet ja konsultoida
+tarvittavia osaajia ja erikoisaloja.
+<br />
+<br />
+Osaa aloittaa päivystyksellisesti tarvittavat
+paikallishoidot.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Tuntee erikoisalojen välisen työnjaon
+työskentelypaikassaan.
+<br />
+<br />
+Osaa pohtia erotusdiagnostisia vaihtoehtoja tautiryhmien
+sisällä.
+<br />
+<br />
+Osaa tulkita saatuja diagnostisia tuloksia, informoida
+perhettä ja suunnitella jatkohoidon.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Aiheeseen liittyvät kappaleet Oppikirjasta Bolognia JL ym.
+Dermatology
+<br />
+<br />
+Aiheeseen liittyvät artikkelit tenttilehdissä.
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Osallistuminen aiheeseen liittyvään Silyn järjestämään
+erikoistuvien koulutukseen tai kongressin sessioon.
+<br />
+<br />
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä. Hoidon arvioiminen sairauskertomusmerkintöjen
+perusteella.
+<br />
+<br />
+Kirjallisuuden itsenäinen opiskelu todennettu
+keskustelussa.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä vastasyntyneellä
+esiintyviin iho-oireisiin ja –tauteihin pitämällä
+seminaariesitelmän, esittelemällä potilastapauksia tai
+kyseistä aihetta käsittävän tieteellisen julkaisun klinikan
+meetingissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+906;Krooniset haavat;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva hallitsee kroonisten (alaraaja)haavojen
+diagnostiikan, erotusdiagnostiikan ja hoidon. Erikoistuva
+hahmottaa haavan paranemiseen vaikuttavat tekijät ja
+moniammatillisen näkökulman haavanhoidossa.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Johtamistaidot
+<br />
+Terveyden ja hyvinvoinnin edistäminen
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Ymmärtää haavan paranemisen teoreettisen taustan ja siihen
+vaikuttavat tekijät
+<br />
+<br />
+Osaa haastatella ja tutkia kroonista haavaa sairastavan
+potilaan
+<br />
+<br />
+Osaa arvioida haavan etiologiaa: tunnistaa laskimo- ja
+valtimoperäisen haavan ja osaa epäillä epätyypillistä
+haavaa.
+<br />
+<br />
+Tietää kompressiohoidon ja haavan paikallishoidon
+perusperiaatteet
+<br />
+<br />
+Osaa toimia moniammatillisen haavatiimin jäsenenä.
+<br />
+<br />
+On omaksunut kroonisen haavapotilaan hoitoketjun omassa
+yksikössään.
+<br />
+<br />
+Ymmärtää kroonisten haavojen aiheuttamat kustannukset ja
+haitan yhteiskunnalle ja potilaalle.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Hallitsee verenkiertoperäisen sekä epätyypillisen kroonisen
+haavan diagnostiikan ja hoidon perusteet.
+<br />
+<br />
+Tietää pääperiaatteet diabeettisen jalkahaavan ja
+painehaavan diagnostiikasta ja hoidosta.
+<br />
+<br />
+Tietää eri erikoisalojen välisen työnjaon kroonisen
+haavapotilaan diagnostiikassa ja hoidossa.
+<br />
+<br />
+Osaa huomioida kroonisen haavan paranemiseen vaikuttavia
+tekijöitä laaja-alaisesti (systeemisairaudet, ravitsemus
+ym.).
+<br />
+<br />
+Osaa motivoivan haastattelun ja potilaan osallistamisen
+hoitoon.
+<br />
+<br />
+Osaa informoida potilasta ja mahdollista jatkohoitopaikkaa
+sairauden luonteesta ja käytetyistä tutkimus- ja
+hoitomenetelmistä sekä omahoidon tärkeydestä.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Pystyy itsenäisesti tunnistamaan kroonisen haavan
+etiologian ja ohjelmoimaan tarvittavat tutkimukset.
+<br />
+<br />
+Pystyy suunnittelemaan haavapotilaan hoidon yksilöllisesti
+ja kokonaisvaltaisesti muut sairaudet huomioiden.
+<br />
+<br />
+Osaa toimia moniammatillisessa tiimissä oman erikoisalan
+edustajana.
+<br />
+<br />
+Osaa tarvittaessa ottaa kantaa haavapotilaan työkykyyn
+liittyvissä asioissa.
+<br />
+<br />
+Osaa ohjata haavapotilasta etuuksien (vammaistuki,
+hoitotuki, lääkekorvattavuudet, kuntoutus) hakemisessa.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Oppikirjat: Bologna JL ym Dermatology
+<br />
+<br />
+Käypä hoito -suositukset: Krooninen alaraajahaava,
+Alaraajojen laskimovajaatoiminta, Diabeetikon
+jalkaongelmat, Alaraajojen tukkiva valtimotauti
+<br />
+<br />
+Kansainväliset ja kotimaiset kroonisia haavoja koskevat
+julkaisut tenttilehdissä
+<br />
+<br />
+Osallistuminen kotimaiseen koulutukseen ja mahdollisuuksien
+mukaan kansainväliseen ihotautialan kongressiin.
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä. Hoidon arvioiminen sairauskertomusmerkintöjen
+perusteella. Hoitotiimin palaute, potilaspalaute.
+Potilastapauksen tai aiheeseen liittyvän tieteellisen
+artikkelin esittely meetingissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+907;Kroonista tulehduksellista ihotautia sairastava potilas;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva hallitsee kroonisia tulehduksellisia
+ihosairauksia aiheuttavat keskeiset tautiryhmät (mm.
+ekseemat, psoriaasi ja punajäkälä), niiden diagnostiikan,
+erotusdiagnostiikan ja hoidon myös erityisryhmissä (lapset,
+raskaana olevat).
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Terveyden ja hyvinvoinnin edistäminen
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+<br />
+Toiminnanohjauksen taidot/johtaminen
+</td>
+<td></td>
+</tr>
+<tr><td>
+<strong>3. Osaamistavoitteet</strong>
+</td>
+<td colspan=""2"">
+EPA voi olla osittain suoritettu ennen lopullista
+hyväksyntää
+</td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Tunnistaa yleisimmät krooniset tulehdukselliset
+ihosairaudet ja vaihtelevan taudinkuvan.
+<br />
+<br />
+Osaa suunnitella ja toteuttaa tavanomaiset kroonisten
+ihosairauksien diagnostiikkaan tarvittavat tutkimukset ja
+ensilinjan hoidot.
+<br />
+<br />
+Tuntee erityisesti paikallishoidot, osaa käyttää niitä sekä
+ohjata potilasta näiden käyttöön.
+<br />
+<br />
+Tietää roolinsa kroonisten tulehduksellisten ihotautien
+hoitoketjussa.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Osaa ottaa huomioon tavallisimmat erotusdiagnostiset
+vaihtoehdot
+<br />
+<br />
+Tietää kroonisten ihotautien tavallisimmat mittarit ja osaa
+hyödyntää niitä potilaan hoidon suunnittelussa ja
+seurannassa
+<br />
+<br />
+Tietää kroonisiin ihosairauksiin liittyvät
+liitännäissairaudet ja osaa ohjata potilaan tarvittaviin
+tutkimuksiin.
+<br />
+<br />
+Osaa aloittaa kroonista ihotautia sairastavalle
+asianmukaisen paikallis-, valo- ja/tai systeemilääkehoidon
+sekä järjestää hoidon seurannan, pystyy asettamaan
+realistisen hoitotavoitteen.
+<br />
+<br />
+Tietää hoidon porrastuksen. Pystyy huomioimaan hoidossa
+erityisryhmät (esim. lapset, raskaana olevat).
+<br />
+<br />
+Osaa asianmukaisesti informoida potilasta ja mahdollista
+jatkohoitopaikkaa sairauden luonteesta ja käytetyistä
+tutkimus- ja hoitomenetelmistä sekä omahoidon tärkeydestä.
+<br />
+<br />
+Osaa ohjata potilaan vertaistuen piiriin
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Osaa pohtia harvinaisempia erotusdiagnostisia vaihtoehtoja.
+<br />
+<br />
+Osaa itsenäisesti etsiä ja arvioida tietoa diagnostiikan ja
+hoidon tueksi ja osaa pohtia tarvetta tautikohtaiseen
+spesifiseen diagnostiikkaan.
+<br />
+<br />
+Osaa suunnitella potilaalle yksilöllisesti sopivimman
+hoidon potilaan liitännäissairaudet huomioiden.
+<br />
+<br />
+Osaa tarvittaessa ottaa kantaa kroonista ihosairautta
+sairastavan ammatinvalintaan ja työkykyyn liittyvissä
+asioissa ja tarvittaessa ohjata potilaan työkykyä
+selvittäviin tutkimuksiin
+<br />
+<br />
+Osaa ohjata potilasta kroonisiin ihosairauksiin liittyvien
+etuuksien (vammaistuki, hoitotuki, lääkekorvattavuudet,
+kuntoutus) hakemisessa
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Oppikirjat: Bologna JL ym Dermatology
+<br />
+<br />
+Oppikirjat: Bologna JL ym Dermatology
+<br />
+<br />
+Kansainväliset ja kotimaiset dermatologian alan julkaisut
+tieteellisissä lehdissä.
+<br />
+<br />
+Käypä hoito -suositukset: Atooppinen ekseema, Psoriaasi
+<br />
+<br />
+Alueelliset hoitoketjut
+<br />
+<br />
+Krooniset ihosairaudet Terveyskylässä
+<br />
+<br />
+Eurooppalaiset hoitosuositukset.
+<br />
+<br />
+Säännöllinen osallistuminen kotimaiseen koulutukseen ja
+mahdollisuuksien mukaan kansainväliseen ihotautialan
+kongressiin.
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä. Hoidon arvioiminen sairauskertomusmerkintöjen
+perusteella.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä kroonisiin
+ihosairauksiin pitämällä seminaariesitelmän, esittelemällä
+potilastapauksia tai kroonista ihosairautta käsittävän
+tieteellisen julkaisun klinikan meetingeissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+908;Kutinapotilaan tutkiminen ja hoito;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva osaa valita ja toteuttaa tarpeelliset
+diagnostiset tutkimusmenetelmät kroonista kutinaa
+sairastavalle potilaalle, osaa pohtia olennaiset
+erotusdiagnostiset vaihtoehdot,
+<br />
+<br />
+osaa aloittaa lääkityksen kutisevalle potilaalle ja osaa
+asianmukaisesti informoida potilasta sairaudesta,
+tutkimuksista ja hoidosta
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Tietää tavallisimmat kutinaa aiheuttavat sairaudet.
+<br />
+<br />
+Tunnistaa ei-dermatologisen kutinan sekundaariset
+ihomuutokset ja ns. kutinataudit kuten prurigo nodularis,
+neurodermatiitti.
+<br />
+<br />
+Hallitsee kutinapotilaan diagnostiikan ja tarvittavat
+tutkimukset (mm. dermografismuksen tutkiminen, ihobiopsia,
+IF-näyte sekä syyhydiagnoosiin tarvittavat tutkimukset).
+<br />
+<br />
+Osaa etsiä kutinan taustalla olevia systeemisairauksia.
+<br />
+<br />
+Osaa arvioida, onko kutinan taustalla dermatologinen vai
+muu syy.
+<br />
+<br />
+Osaa suunnitella tavallisimpia diagnostisia tutkimuksia
+kroonista kutinaa sairastavalle potilaalle.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Tietää kutinaa aiheuttavat lääkkeet ja osaa etsiä tietoa
+mahdollisista lääkkeiden sivuvaikutuksista
+<br />
+<br />
+Tietää kutinan mittarit.
+<br />
+<br />
+Osaa suunnitella kroonista kutinaa sairastavan diagnostiset
+tutkimukset, hoidon ja seurannan yksilöllisesti
+<br />
+<br />
+Tuntee kroonisen kutinan hoitovaihtoehdot ja osaa aloittaa
+kutinapotilaan asianmukaisen paikallis-, valo- ja
+systeemihoidon sekä järjestää seurannan.
+<br />
+<br />
+Osaa informoida potilasta ja mahdollista jatkohoitopaikkaa
+sairaudesta, tutkimuksista ja hoidosta.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Erikoistuva ymmärtää kutinan syntymekanismit, tietää
+tärkeimmät kutinan aiheuttaja- ja välittäjäaineet ja
+kutinatyypit.
+<br />
+<br />
+Osaa toteuttaa erotusdiagnostiikkaa ja hoidot myös
+erityisryhmissä (iäkkäät, raskaana olevat ja lapset).
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Aiheeseen liittyvät kappaleet oppikirjasta Bologna JL ym.
+<br />
+<br />
+Aiheeseen liittyvät eurooppalaiset guidelinet
+<br />
+<br />
+Tenttilehtien aiheeseen liittyvä artikkelit
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä. Hoidon arvioiminen sairauskertomusmerkintöjen
+perusteella.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä kutinapotilaan
+tutkimiseen ja hoitoon pitämällä seminaariesitelmän,
+esittelemällä potilastapauksia tai kroonista kutinaa
+käsittävän tieteellisen julkaisun klinikan meetingeissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+909;Pahanlaatuiset ihokasvaimet ja niiden hoito;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuvan lääkärin tulee osata hyvin yleisimpien
+pahanlaatuisten ihokasvaimien eli melanooman, basaliooman
+ja okasolusyövän sekä sen esiasteiden diagnostiikka ja
+hoito.
+<br />
+<br />
+Potilaan ohjeistaminen ja sitouttaminen ihon
+aurinkosuojaukseen. Dermatoskopia etenkin
+pigmenttimuutosten tutkimisessa. Koepalat ja kasvainten
+poistot.
+<br />
+<br />
+Kasvainten ja esiasteiden veitsettömät hoidot.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Terveyden ja hyvinvoinnin edistäminen
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Tuntee ihosyöpien riskitekijät ja osaa motivoida potilasta
+hyvään suojaukseen UV-säteilyltä.
+<br />
+<br />
+Osaa koepalan ottotekniikan.
+<br />
+<br />
+Käyttää rutiininomaisesti dermatoskooppia apuna
+tutkimisessa ja tietää miltä tyypilliset yleisimmät
+ihokasvaimet kliinisesti ja dermatoskoopilla näyttävät.
+<br />
+<br />
+Osaa epäillä yleisimpiä ihosyöpiä.
+<br />
+<br />
+Osaa aktiinisten keratoosien ensi linjan hoidot.
+<br />
+<br />
+Osaa fotodynaamisen terapian.
+<br />
+<br />
+Osaa poistaa pieniä ihomuutoksia, käyttää diatermiaa,
+hallitsee yleisimmät ommeltekniikat ja haavan suoran sulun.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Osaa runsasluomisen potilaan tutkimisen ja seurannan.
+<br />
+<br />
+Osaa epäillä melanoomaa kliinisesti ja osaa diagnostisen
+poiston.
+<br />
+<br />
+Osaa käyttää kryohoitoa eri tekniikoilla.
+<br />
+<br />
+Osaa suunnitella ja toteuttaa kasvaimen poiston huomioiden
+siihen liittyvät anatomiset, toiminnalliset ja kosmeettiset
+ongelmat sekä komplikaatioriskin. Tietää, milloin tarvitaan
+plastia tai siirre.
+<br />
+<br />
+Tuntee hyvin leikkausteknisen osaamisensa rajat.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Osaa kouluttaa muita terveydenhuollon ammattilaisia
+pahanlaatuisten ihokasvainten ja niiden esiasteiden
+diagnostiikasta ja hoidosta.
+<br />
+<br />
+Tuntee ihokasvainten, etenkin melanooman, paikallisen
+hoitoketjun ja työnjaon eri erikoisalojen välillä.
+<br />
+<br />
+Osaa epäillä harvinaisempia ihokasvaimia.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Duodecimin ihokasvainkirja, tulossa 2020. ( Ei kannata
+lukea Bolognaa tästä aiheesta. Käypä hoito on poistettu.)
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä. Hoidon arvioiminen sairauskertomusmerkintöjen
+perusteella.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä pitämällä
+seminaariesitelmän, esittelemällä potilastapauksia tai
+tieteellisen julkaisun klinikan meetingeissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+910;Perinnöllisen ihotaudin epäily;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva tuntee tärkeimmät perinnölliset iho-oireita
+aiheuttavat tautiryhmät ja osaa ryhtyä diagnostisiin ja
+hoidollisiin toimiin.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Tietää perinnöllisten ihotautien tärkeimmät pääryhmät ja
+näiden oireet.
+<br />
+<br />
+Rakkulataudit (mukaan lukien myöhemmin ilmenevät
+Hailey-Haileyn tauti ja Darierin tauti), iktyoosit,
+kasvainsydroomat (neurofibromatoosi, tuberoosi skleroosi,
+Gorlinin syndrooma), incontinentia pigmenti,
+palmoplantaariset keratodermat, tavallisimmat
+ektodermaaliset dysplasiat.
+<br />
+<br />
+Erikoistuva tunnistaa osaamisensa rajat ja osaa pyytää
+konsultaatioapua tarvittaessa.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Erikoistuva tuntee perinnöllisten sairauksien kliinisen
+taudinkuvan ja periytymistavat pääpiirteissään.
+<br />
+<br />
+Osaa päivittäisessä diagnostiikassa ottaa perinnölliset
+sairaudet huomioon tavallisten sairauksien
+erotusdiagnostisina vaihtoehtoina.
+<br />
+<br />
+Tuntee perinnöllisen sairauden diagnostiikan toimintamallit
+ja työnjaon työpaikallaan.
+<br />
+<br />
+Osaa aloittaa diagnostiset toimet ja konsultoida
+tarvittavia osaajia ja erikoisaloja.
+<br />
+<br />
+Osaa aloittaa päivystyksellisesti tarvittavat
+paikallishoidot.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Erikoistuva osaa pohtia erotusdiagnostisia vaihtoehtoja
+tautiryhmien sisällä.
+<br />
+<br />
+Osaa suunnitella diagnostiset toimet, tulkita saatuja
+tuloksia ja suunnitella jatkohoidon sekä tarvittavat
+konsultaatiot.
+<br />
+<br />
+Osaa informoida potilasta ja perhettä vertaistuesta ja
+Kelan etuuksista.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Osallistuminen aiheeseen liittyvään Silyn järjestämään
+erikoistuvien koulutukseen tai kongressin sessioon.
+<br />
+<br />
+Aiheeseen liittyvät kappaleet Oppikirjasta Bolognia JL ym.
+Dermatology
+<br />
+<br />
+Aiheeseen liittyvät artikkelit tenttilehdissä
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä. Hoidon arvioiminen sairauskertomusmerkintöjen
+perusteella.
+<br />
+<br />
+Kirjallisuuden itsenäinen opiskelu todennettu
+keskustelussa.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä perinnöllisiin
+iho-oireisiin ja –tauteihin pitämällä seminaariesitelmän,
+esittelemällä potilastapauksia tai kyseistä aihetta
+käsittävän tieteellisen julkaisun klinikan meetingissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+911;Seksitaudit;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva osaa epäillä seksitautia oireiden taustalla ja
+osaa haastatella potilaan asiaan kuuluvalla tavalla.
+Erikoistuva hallitsee tavanomaisten seksitautien (klamydia,
+tippuri, kuppa, HIV, herpes) diagnostiikan ja hoidon,
+tarvittaessa yhteistyössä infektiolääkärin (HIV) ja
+gynekologin (HPV) kanssa. Tuntee ja osaa hoitaa myös
+harvinaisemmat seksitaudit.
+<br />
+<br />
+Tuntee muiden ihosairauksien genitaalialueella aiheuttamat
+oireet ja pystyy huomioimaan nämä seksitautien
+erotusdiagnostiikassa.
+<br />
+<br />
+Osaa järjestää aloittamansa hoidon seurannan sekä tuntee
+seksitauteihin liittyvän tartuntatautilainsäädännön ja sen
+velvoitteet.
+<br />
+<br />
+Osaa informoida potilasta sairauden luonteesta,
+hoitomenetelmistä ja seksitautien ehkäisystä.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Terveyden ja hyvinvoinnin edistäminen
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Hallitsee seksitautia epäilevän potilaan kohtaamisen ja
+anamneesin erityspiirteet.
+<br />
+<br />
+Osaa pohtia tavallisimmat erotusdiagnostiset vaihtoehdot.
+<br />
+<br />
+Osaa valita ja toteuttaa tarpeelliset diagnostiset
+tutkimusmenetelmät
+<br />
+<br />
+Osaa toteuttaa seksitaudin hoidon (pl. HIV) ja huolehtia
+tartunnanjäljityksestä
+<br />
+<br />
+Osaa asianmukaisesti informoida potilasta sairaudesta,
+tutkimuksista ja hoidosta
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Hallitsee erotusdiagnostiikassa myös harvinaisemmat
+seksitaudit ja muiden ihosairauksien ilmentymät
+genitaalialueella.
+<br />
+<br />
+Osaa itsenäisesti valita, toteuttaa ja tulkita valitsemansa
+tutkimukset ja huolehtia hoidon seurannasta.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Osaa kouluttaa ja neuvoa muita terveydenhuollon
+ammattilaisia seksitaudeista
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Seksitautien Käypä hoito – suositus
+<br />
+<br />
+Tartuntatautilaki ja -asetus
+<br />
+<br />
+EDF/EADV hoitosuositus
+<br />
+<br />
+Tenttilehtien aihepiiriä koskevat artikkelit
+<br />
+<br />
+Osallistuminen SILYn aiheesta järjestämään koulutukseen
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä. Hoidon arvioiminen sairauskertomusmerkintöjen
+perusteella.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä seksitauteihin
+pitämällä seminaariesitelmän, esittelemällä
+potilastapauksia tai seksitauteja käsittävän tieteellisen
+julkaisun klinikan meetingissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+912;Systeemiset lääkehoidot;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva hallitsee ihotautien hoidossa käytettävien
+systeemilääkitysten käyttöindikaatiot ja niiden
+vaikutusmekanismit.
+<br />
+<br />
+Erikoistuva osaa valita sopivan systeemilääkityksen
+huomioiden potilaan kokonaistilanteen mukaan lukien muut
+perussairaudet ja lääkitykset.
+<br />
+<br />
+Erikoistuva hallitsee systeemilääkityksen aloitukseen ja
+lääkityksen seurantaan kuuluvat perustutkimukset, kuten
+laboratoriokokeet ja kuvantamistutkimukset sekä osaa
+tulkita niiden tulokset.
+<br />
+<br />
+Erikoistuva ymmärtää systeemilääkityksen käyttöön liittyvät
+periaatteet, kuten tehon ilmaantuminen, odotettavissa oleva
+teho, haittavaikutukset ja niiden ajallinen ilmaantuminen,
+lääkityksen vasta-aiheet.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Terveyden ja hyvinvoinnin edistäminen
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Tuntee keskeisten lääkkeiden vaikutusmekanismit,
+tavallisimmat haittavaikutukset ja lääkeaineinteraktiot.
+<br />
+<br />
+Tunnistaa systeemilääkityksen tarpeen potilaan tilanteessa.
+<br />
+<br />
+Osaa konsultoida erikoislääkäriä lääkityksen valinnasta.
+<br />
+<br />
+Osaa toteuttaa lääkityksen aloituksen ja seurannan
+erikoislääkärin ohjeiden mukaisesti.
+<br />
+<br />
+Tarvitsee tukea lääkekorvattavuuksia varten tarvittavien
+lausuntojen laatimisessa.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Osaa keskustella eri lääkitysvaihtoehdoista erikoislääkärin
+kanssa.
+<br />
+<br />
+Osaa aloittaa tavanomaiset systeemilääkitykset ja
+ohjelmoida lääkityksen seurannan.
+<br />
+<br />
+Ymmärtää potilaan kokonaistilanteen huomioimisen tärkeyden
+systeemilääkitystä valittaessa (mm. alkoholi,
+fertiliteetti, taloudelliset tekijät).
+<br />
+<br />
+Osaa itsenäisesti laatia tarvittavat lausunnot
+lääkekorvattavuuksia varten
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Osaa valita ja perustella sopivan systeemilääkityksen
+valinnan.
+<br />
+<br />
+Osaa aloittaa systeemilääkitykset ja ohjelmoida lääkityksen
+seurannan
+<br />
+<br />
+myös muissa kuin ensimmäisen linjan hoitovaihtoehdoissa.
+<br />
+<br />
+Hallitsee potilaan kokonaistilanteen huomioimisen
+systeemilääkitystä valittaessa (mm. alkoholi,
+fertiliteetti, taloudelliset tekijät).
+<br />
+<br />
+Osaa seurata lääkityksen tehoa ja mahdollisia
+haittavaikutuksia ja ymmärtää lopettaa lääkityksen, kun se
+on potilaan kokonaistilanne huomioiden perusteltua.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+SILYn koulutukset
+<br />
+<br />
+Erikoislääkärikoulutuksen opiskelumateriaali sisältäen
+ajankohtaiset oppikirjat ja tenttilehdet soveltuvilta osin
+<br />
+<br />
+Litt´s Drug Eruption and Reaction Database
+<a href=""https://www.drugeruptiondata.com/"">
+ https://www.drugeruptiondata.com/
+</a>
+tai uusin painos kirjasta.
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä.
+<br />
+<br />
+Hoidon arvioiminen sairauskertomusmerkintöjen perusteella.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä
+systeemilääkityksiin pitämällä seminaariesitelmän tai
+esittelemällä potilastapauksia käsittävän tieteellisen
+julkaisun klinikan meetingeissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+913;Valohoidot;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuvalla on perustiedot auringon sähkömagneettisesta
+spektristä, hän tietää UV-säteilyn biologiset vaikutukset
+ja ymmärtää erilaisten UV valohoitomuotojen perusteet,
+biologiset vaikutukset sekä annostelun. Erikoistuva osaa
+aloittaa ja käyttää valohoitoja ihosairauksien hoitoon.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Erikostuva tuntee valohoidot (UVB, SUP, PUVA)
+pääpiirteissään.
+<br />
+<br />
+Hän tietää mihin ihosairauksiin valohoitoja voi käyttää.
+<br />
+<br />
+Hän osaa arvioida potilaan soveltuvuuden valohoitoon
+<br />
+<br />
+ja tuntee tärkeimmät vasta-aiheet.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Erikoistuva osaa aloittaa ja käyttää valohoitoja
+tavallisimpien ihosairauksien (psoriasis, ekseemat,
+punajäkälä, urtikaria ja kutina, paikallinen skleroderma)
+hoitoon.
+<br />
+<br />
+Hän tuntee UV valohoidon lyhyt- ja pitkäaikaiset
+haittavaikutukset.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Erikoistuva osaa lisäksi arvioida valohoitojen käyttöä
+potilaille, joilla on valohoidon vasta-aiheita.
+<br />
+<br />
+Hallitsee valotestien ja valoepikutaanitestien käytön ja
+tulkinnan.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+Silyn järjestämä erikoistuvien koulutus.
+<br />
+<br />
+Silyn valojaoksen ohjeet <a href=""http://www.sily.fi/"">www.sily.fi</a> sivulla.
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä.
+<br />
+<br />
+Hoidon arvioiminen sairauskertomusmerkintöjen perusteella.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+914;Tieteellinen tutkimustyö;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva osaa tehdä ihotauteihin liittyvää
+tutkijalähtöistä tieteellistä tutkimustyötä, joka voi olla
+luonteeltaan perustutkimusta, translationaalista, kliinistä
+tai rekisteritutkimusta.
+<br />
+<br />
+Erikoistuva on osallistunut ja tuntee tieteellisen
+tutkimuksen eri vaiheet: hypoteesi laatimisen, menetelmän
+valinnan ja käytön, aineiston keräämisen, tutkimustulosten
+tuottamisen, analyysin, johtopäätösten tekemisen ja
+raportoinnin sekä osaa noudattaa tutkimuksen eettisiä
+periaatteita.
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Tieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Erikoistuva on osallistunut käynnissä olevaan tutkimukseen
+tutkimusryhmän jäsenenä.
+<br />
+<br />
+Hän on perehtynyt tutkimusalansa kirjallisuuteen.
+<br />
+<br />
+Hän tietää tutkimuksessa käytettävät menetelmät.
+<br />
+<br />
+Hän on kerännyt materiaalia tai tuottanut tutkimustuloksia
+ja osallistunut niiden analysoimiseen.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Erikoistuva on osallistunut tutkimuksen suunnitteluun ja
+näytteiden keräämiseen.
+<br />
+<br />
+Hän hallitsee tutkimusmenetelmät ja tuntee niiden
+heikkouksia.
+<br />
+<br />
+Hän osaa itsenäisesti tuottaa tutkimustuloksia ja
+analysoida niitä kriittisesti.
+<br />
+<br />
+Hän on osallistunut kongressiabstraktin tai julkaisun
+kirjoittamiseen.
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Erikoistuvalla on oma tutkimusprojekti tai hän kuuluu
+tutkijakouluun rekisteröityneenä tohtorikoulutettavana.
+<br />
+<br />
+Hän osaa tehdä tutkimussuunnitelman.
+<br />
+<br />
+Hän on neuvonut muita tutkimusmenetelmien käytössä.
+<br />
+<br />
+Hän on osallistunut kirjoittajana keskeisessä roolissa
+tieteellisen julkaisun laatimiseen.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Keskustelu erikoistuvan sekä tutkimuksen päätutkijan tai
+ohjaajan kanssa. Tutkimuksesta tuotetut julkaisut, ml
+kongressiabstrakti/posteri.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
+915;Työperäiseksi epäiltyjen iho-oireiden tutkiminen;"<table class=""table"">
+<colgroup>
+<col span=""1"" style=""width: 25%"" />
+<col span=""1"" style=""width: 37.5%"" />
+<col span=""1"" style=""width: 37.5%"" />
+</colgroup>
+<tbody>
+<tr>
+<td>
+<strong>1. Lyhyt kuvaus</strong>
+</td>
+<td colspan=""2"">
+Erikoistuva tuntee työperäisen iho-oireilun
+(ammatti-ihotaudit, työn pahentamat ihosairaudet) kliiniset
+taudinkuvat ja erotusdiagnostiikan
+<br />
+<br />
+Hallitsee diagnostiset tutkimusmenetelmät (ihopistokokeet,
+epikutaanitestit, ihon altistustutkimukset,
+laboratoriotutkimukset) ja osaa haastatella potilaan jolla
+epäillään työpräistä ihotautia
+<br />
+<br />
+Hallitsee altistumisen arvioinnin
+<br />
+<br />
+Tuntee keskeisen lainsäädännön ja ammatillisen kuntoutuksen
+periaatteet ja ymmärtää ammatti-ihotautien ehkäisyyn
+liittyvät periaatteet ja työsuojelulliset näkökohdat
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+<strong>2. Keskeiset CanMEDS-roolit</strong>
+</td>
+<td>
+Lääketieteellinen osaaminen
+<br />
+Vuorovaikutus
+<br />
+Yhteistyötaidot
+<br />
+Terveyden ja hyvinvoinnin edistäminen
+<br />
+Oma osaaminen ja tiedonhallinta
+<br />
+Ammatillisuus
+</td>
+<td></td>
+</tr>
+<tr><td colspan=""3""><strong>3. Osaamistavoitteet</strong></td></tr>
+<tr>
+<td>
+<strong>Noviisierikoistuva</strong>
+<br />
+<br />
+Osaa epäillä työperäisyyttä iho-oireiden taustalla.
+<br />
+<br />
+Osaa haastatella ammatti-ihotautipotilaan.
+<br />
+<br />
+Tuntee allergisten mekanismien periaatteet ja osaa tehdä
+suunnitelman riittävien ja tarpeellisten tutkimusten
+toteuttamiseksi.
+<br />
+<br />
+Ymmärtää altistumisen ja herkistymisen välisen suhteen ja
+sen milloin voi perustellusti epäillä edeltävän johtaneen
+jälkimmäiseen.
+<br />
+<br />
+Osaa erottaa kliinisesti merkitykselliset testi- ja
+tutkimustulokset merkityksettömistä.
+<br />
+<br />
+Osaa erottaa sisäsyntyiset iho-oireet todennäköisesti
+työperäisistä.
+</td>
+<td>
+<strong>Juniorierikoistuva</strong>
+<br />
+<br />
+Osaa suunnitella ja tulkita ihotestit myös testisarjoihin
+kuulumattomilla altisteilla.
+<br />
+<br />
+Ymmärtää syy-seuraussuhteet allergisen kosketusihottuman ja
+ärsytyskosketusihottuman kehittymisessä ja osaa selvittää
+työhön liittyvät altisteet
+<br />
+<br />
+Tuntee keskeiset allergeenit eri ammattialoilla ja niiden
+yleisyyden ja luonteet
+<br />
+<br />
+Tuntee kosketusihottumien yleisyyden ja ominaispiirteet eri
+ammateissa
+<br />
+<br />
+Tuntee ammattiurtikarian ja proteiinikosketusihottuman
+aiheuttajat ja taudinkuvan
+</td>
+<td>
+<strong>Seniorierikoistuva</strong>
+<br />
+<br />
+Osaa arvioida kliinisesti merkittävän altistumisen ihoa
+herkistäville ja ärsyttäville aineille.
+<br />
+<br />
+Tuntee ammattitautidiagnoosin asettamisen ehdot ja
+edellytykset ja työkyvyn arvioinnin periaatteet.
+<br />
+<br />
+Osaa laatia tarvittavat lausunnot asianmukaisine
+johtopäätöksineen.
+<br />
+<br />
+Osaa neuvoa ja informoida potilasta työperäisten
+altisteiden välttämisestä ja työn olosuhteiden
+parantamisesta.
+<br />
+<br />
+Osaa ohjeistaa työterveyshuoltoa jatkoseurannasta ja
+hoidosta.
+</td>
+</tr>
+<tr>
+<td>
+<strong>4. Opiskelumateriaalia</strong>
+</td>
+<td colspan=""2"">
+John SM, Johansen JD, Rustemeyer T, Elsner P, Maibach HI.
+Kanerva’s Occupational Dermatology. 3rd ed. Springer 2020
+soveltuvin osin
+<br />
+<br />
+Duodecimin Allergologia –kirjan allergisia ammattitauteja
+käsittävä osuus (ilmestyy myöhemmin)
+<br />
+<br />
+Tenttilehtien aihetta käsittelevät artikkelit
+</td>
+</tr>
+<tr>
+<td>
+<strong>5. Ehdotuksia arviointimenetelmiksi</strong>
+<br />
+<br />
+<strong>- miten arvioit edistymistä</strong>
+<br />
+<br />
+<td colspan=""3"">
+Suora arviointi potilaskontaktissa ja konsultaatioiden
+yhteydessä.
+<br />
+<br />
+Hoidon arvioiminen sairauskertomusmerkintöjen perusteella.
+<br />
+<br />
+Erikoistuva osoittaa perehtyneisyytensä työperäisiin
+iho-oireisiin pitämällä seminaariesitelmän tai
+esittelemällä potilastapauksia klinikan meetingeissä.
+</td>
+</tr>
+</tbody>
+</table>";2021-11-24;9;900
