@@ -118,7 +118,6 @@
     <include file="config/liquibase/changelog/20220110154814_add_erikoisala_data_lastentaudit.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220111170325_add_erikoisala_data_lastenneurologia.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220112155954_add_erikoisala_data_tyoterveyshuolto.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20220113123834_add_erikoisala_data_syopataudit.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220114084411_delete_old_testdata.xml" relativeToChangelogFile="false"/>
 
     <include file="config/liquibase/changelog/20210421110624_added_entity_constraints_KoejaksonValiarviointi.xml" relativeToChangelogFile="false"/>
@@ -159,5 +158,6 @@
     <include file="config/liquibase/changelog/20220110104959_added_entity_Asetus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220110164323_modify_entity_constraints_Opintooikeus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220112161321_modify_entity_Opintoopas.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220113123834_add_erikoisala_data_syopataudit.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
