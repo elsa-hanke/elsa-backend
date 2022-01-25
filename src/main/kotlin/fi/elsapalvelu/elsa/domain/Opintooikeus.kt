@@ -32,6 +32,10 @@ data class Opintooikeus(
     var osaamisenArvioinninOppaanPvm: LocalDate? = null,
 
     @NotNull
+    @Column(name = "kaytossa")
+    var kaytossa: Boolean = false,
+
+    @NotNull
     @ManyToOne(optional = false)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
