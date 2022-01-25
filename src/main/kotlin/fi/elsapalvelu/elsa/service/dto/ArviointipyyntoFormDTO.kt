@@ -4,15 +4,15 @@ import java.io.Serializable
 
 data class ArviointipyyntoFormDTO(
 
-    var tyoskentelyjaksot: MutableSet<TyoskentelyjaksoDTO> = mutableSetOf(),
+    var tyoskentelyjaksot: Set<TyoskentelyjaksoDTO> = setOf(),
 
-    var kunnat: MutableSet<KuntaDTO> = mutableSetOf(),
+    var kunnat: Set<KuntaDTO> = setOf(),
 
-    var erikoisalat: MutableSet<ErikoisalaDTO> = mutableSetOf(),
+    var erikoisalat: Set<ErikoisalaDTO> = setOf(),
 
-    var arvioitavanKokonaisuudenKategoriat: MutableSet<ArvioitavanKokonaisuudenKategoriaDTO> = mutableSetOf(),
+    var arvioitavanKokonaisuudenKategoriat: Set<ArvioitavanKokonaisuudenKategoriaDTO> = setOf(),
 
-    var kouluttajatAndVastuuhenkilot: MutableSet<KayttajaDTO> = mutableSetOf()
+    var kouluttajatAndVastuuhenkilot: Set<KayttajaDTO> = setOf()
 
 ) : Serializable {
     override fun toString() = "ArviointipyyntoFormDTO"

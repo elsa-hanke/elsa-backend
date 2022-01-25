@@ -4,18 +4,18 @@ import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 
 interface AsiakirjaService {
 
-    fun create(asiakirjat: List<AsiakirjaDTO>, userId: String, tyoskentelyJaksoId: Long? = null): List<AsiakirjaDTO>?
+    fun create(asiakirjat: List<AsiakirjaDTO>, opintooikeusId: Long, tyoskentelyJaksoId: Long? = null): List<AsiakirjaDTO>?
 
-    fun findAllByErikoistuvaLaakariUserId(userId: String): List<AsiakirjaDTO>
+    fun findAllByOpintooikeusId(opintooikeusId: Long): List<AsiakirjaDTO>
 
-    fun findAllByErikoistuvaLaakariUserIdAndTyoskentelyjaksoId(userId: String, tyoskentelyJaksoId: Long?): List<AsiakirjaDTO>
+    fun findAllByOpintooikeusIdAndTyoskentelyjaksoId(opintooikeusId: Long, tyoskentelyJaksoId: Long?): List<AsiakirjaDTO>
 
-    fun findOne(id: Long, userId: String): AsiakirjaDTO?
+    fun findOne(id: Long, opintooikeusId: Long): AsiakirjaDTO?
 
-    fun delete(id: Long, userId: String)
+    fun delete(id: Long, opintooikeusId: Long)
 
-    fun delete(ids: List<Long> , userId: String)
+    fun delete(ids: List<Long> , opintooikeusId: Long)
 
-    fun removeTyoskentelyjaksoReference(userId: String, tyoskentelyJaksoId: Long?)
+    fun removeTyoskentelyjaksoReference(opintooikeusId: Long, tyoskentelyJaksoId: Long?)
 
 }

@@ -6,7 +6,7 @@ interface SuoriteService {
 
     fun save(suoriteDTO: SuoriteDTO): SuoriteDTO
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<SuoriteDTO>
+    fun findAllOpintooikeusId(opintooikeusId: Long): List<SuoriteDTO>
 
     fun findOne(id: Long): Optional<SuoriteDTO>
 

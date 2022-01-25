@@ -28,7 +28,7 @@ interface SuoritusarviointiMapper :
         Mapping(source = "arvioinninAntaja.id", target = "arvioinninAntajaId"),
         Mapping(source = "arvioitavaKokonaisuus.id", target = "arvioitavaKokonaisuusId"),
         Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId"),
-        Mapping(source = "tyoskentelyjakso.erikoistuvaLaakari.kayttaja", target = "arvioinninSaaja"),
+        Mapping(source = "tyoskentelyjakso.opintooikeus.erikoistuvaLaakari.kayttaja", target = "arvioinninSaaja"),
         Mapping(source = "arviointiLiiteNimi", target = "arviointiAsiakirja.nimi"),
         Mapping(source = "arviointiLiiteTyyppi", target = "arviointiAsiakirja.tyyppi"),
         Mapping(source = "arviointiLiiteLisattyPvm", target = "arviointiAsiakirja.lisattypvm"),

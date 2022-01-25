@@ -21,18 +21,18 @@ import kotlin.math.max
 class OverlappingTyoskentelyjaksoValidationServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val keskeytysaikaRepository: KeskeytysaikaRepository,
-    private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService
+    private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
 ) : OverlappingTyoskentelyjaksoValidationService {
 
     override fun validateTyoskentelyjakso(
-        userId: String,
+        opintooikeusId: Long,
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO
     ): Boolean {
         val tyoskentelyjaksoEndDate =
             tyoskentelyjaksoDTO.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
         val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByErikoistuvaUntilDateEagerWithRelationships(
-                userId,
+            tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(
+                opintooikeusId,
                 tyoskentelyjaksoEndDate
             )
 
@@ -50,15 +50,14 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
     }
 
     override fun validateKeskeytysaika(
-        userId: String,
+        opintooikeusId: Long,
         keskeytysaikaDTO: KeskeytysaikaDTO
     ): Boolean {
         val tyoskentelyjaksoEndDate =
             keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
-
         val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByErikoistuvaUntilDateEagerWithRelationships(
-                userId,
+            tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(
+                opintooikeusId,
                 tyoskentelyjaksoEndDate
             )
 
@@ -75,21 +74,21 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
     }
 
     override fun validateKeskeytysaikaDelete(
-        userId: String,
+        opintooikeusId: Long,
         keskeytysaikaId: Long
     ): Boolean {
         val keskeytysaika =
-            keskeytysaikaRepository.findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+            keskeytysaikaRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(
                 keskeytysaikaId,
-                userId
+                opintooikeusId
             ) ?: return false
 
         val tyoskentelyjaksoId = keskeytysaika.tyoskentelyjakso?.id!!
         val tyoskentelyjaksoEndDate =
             keskeytysaika.tyoskentelyjakso?.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
         val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByErikoistuvaUntilDateEagerWithRelationships(
-                userId,
+            tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(
+                opintooikeusId,
                 tyoskentelyjaksoEndDate
             )
 

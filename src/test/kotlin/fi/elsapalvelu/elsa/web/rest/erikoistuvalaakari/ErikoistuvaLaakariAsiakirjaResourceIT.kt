@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.Asiakirja
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
@@ -50,6 +51,9 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
 
     @Autowired
     private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
+
+    @Autowired
+    private lateinit var opintooikeusRepository: OpintooikeusRepository
 
     private lateinit var asiakirja: Asiakirja
 

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.PoissaolonSyyRepository
 import fi.elsapalvelu.elsa.service.PoissaolonSyyService
 import fi.elsapalvelu.elsa.service.dto.PoissaolonSyyDTO
@@ -15,7 +15,7 @@ import java.time.LocalDate
 class PoissaolonSyyServiceImpl(
     private val poissaolonSyyRepository: PoissaolonSyyRepository,
     private val poissaolonSyyMapper: PoissaolonSyyMapper,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
+    private val opintooikeusRepository: OpintooikeusRepository
 ) : PoissaolonSyyService {
 
     override fun save(poissaolonSyyDTO: PoissaolonSyyDTO): PoissaolonSyyDTO {
@@ -25,17 +25,14 @@ class PoissaolonSyyServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<PoissaolonSyyDTO> {
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        val opintooikeus = kirjautunutErikoistuvaLaakari?.opintooikeudet?.firstOrNull()
-
-        // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää
-        // voimassaolon rajaamisessa
-        return poissaolonSyyRepository.findAllByValid(
-            opintooikeus?.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
-        )
-            .map(poissaolonSyyMapper::toDto)
+    override fun findAllByOpintooikeusId(opintooikeusId: Long): List<PoissaolonSyyDTO> {
+        return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää
+            // voimassaolon rajaamisessa
+            return poissaolonSyyRepository.findAllByValid(
+                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+            ).map(poissaolonSyyMapper::toDto)
+        } ?: listOf()
     }
 
     @Transactional(readOnly = true)

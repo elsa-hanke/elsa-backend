@@ -33,8 +33,8 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
             tyoskentelyjaksot.filter { it.alkamispaiva!! <= tyoskententelyjaksoDTO.paattymispaiva }
         val tyoskentelyjaksoRepositoryMock = mock(TyoskentelyjaksoRepository::class.java)
         `when`(
-            tyoskentelyjaksoRepositoryMock.findAllByErikoistuvaUntilDateEagerWithRelationships(
-                "",
+            tyoskentelyjaksoRepositoryMock.findAllByOpintooikeusUntilDateEagerWithRelationships(
+                DEFAULT_OPINTOOIKEUS_ID,
                 tyoskententelyjaksoDTO.paattymispaiva!!
             )
         ).thenReturn(tyoskentelyjaksotToReturn)
@@ -45,7 +45,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
             TyoskentelyjaksonPituusCounterServiceImpl()
         )
 
-        val validationResult = validator.validateTyoskentelyjakso("", tyoskententelyjaksoDTO)
+        val validationResult = validator.validateTyoskentelyjakso(DEFAULT_OPINTOOIKEUS_ID, tyoskententelyjaksoDTO)
         assertThat(validationResult).isEqualTo(expectedResult)
     }
 
@@ -58,8 +58,8 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
             tyoskentelyjaksot.filter { it.alkamispaiva!! <= keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva }
         val tyoskentelyjaksoRepositoryMock = mock(TyoskentelyjaksoRepository::class.java)
         `when`(
-            tyoskentelyjaksoRepositoryMock.findAllByErikoistuvaUntilDateEagerWithRelationships(
-                "",
+            tyoskentelyjaksoRepositoryMock.findAllByOpintooikeusUntilDateEagerWithRelationships(
+                DEFAULT_OPINTOOIKEUS_ID,
                 keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva!!
             )
         ).thenReturn(tyoskentelyjaksotToReturn)
@@ -70,7 +70,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
             TyoskentelyjaksonPituusCounterServiceImpl()
         )
 
-        val validationResult = validator.validateKeskeytysaika("", keskeytysaikaDTO)
+        val validationResult = validator.validateKeskeytysaika(DEFAULT_OPINTOOIKEUS_ID, keskeytysaikaDTO)
         assertThat(validationResult).isEqualTo(expectedResult)
     }
 
@@ -83,8 +83,8 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
             tyoskentelyjaksot.filter { it.alkamispaiva!! <= keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva }
         val tyoskentelyjaksoRepositoryMock = mock(TyoskentelyjaksoRepository::class.java)
         `when`(
-            tyoskentelyjaksoRepositoryMock.findAllByErikoistuvaUntilDateEagerWithRelationships(
-                "",
+            tyoskentelyjaksoRepositoryMock.findAllByOpintooikeusUntilDateEagerWithRelationships(
+                DEFAULT_OPINTOOIKEUS_ID,
                 keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva!!
             )
         ).thenReturn(tyoskentelyjaksotToReturn)
@@ -105,9 +105,9 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
         )
         val keskeytysaikaRepositoryMock = mock(KeskeytysaikaRepository::class.java)
         `when`(
-            keskeytysaikaRepositoryMock.findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+            keskeytysaikaRepositoryMock.findOneByIdAndTyoskentelyjaksoOpintooikeusId(
                 keskeytysaikaDTO.id!!,
-                ""
+                DEFAULT_OPINTOOIKEUS_ID
             )
         ).thenReturn(keskeytysaikaMock)
 
@@ -117,7 +117,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
             TyoskentelyjaksonPituusCounterServiceImpl()
         )
 
-        val validationResult = validator.validateKeskeytysaikaDelete("", keskeytysaikaDTO.id!!)
+        val validationResult = validator.validateKeskeytysaikaDelete(DEFAULT_OPINTOOIKEUS_ID, keskeytysaikaDTO.id!!)
         assertThat(validationResult).isEqualTo(expectedResult)
     }
 
@@ -1326,6 +1326,8 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
     }
 
     companion object {
+        const val DEFAULT_OPINTOOIKEUS_ID = 1L
+
         @JvmStatic
         private fun createKeskeytysaikaDTO(
             id: Long,

@@ -9,18 +9,18 @@ import java.time.LocalDate
 @Repository
 interface TyoskentelyjaksoRepository : JpaRepository<Tyoskentelyjakso, Long> {
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(id: String): List<Tyoskentelyjakso>
+    fun findAllByOpintooikeusId(id: Long): List<Tyoskentelyjakso>
 
     @Query(
         "select distinct t from Tyoskentelyjakso t " +
             "left join fetch t.keskeytykset " +
             "left join fetch t.suoritusarvioinnit " +
             "left join fetch t.suoritemerkinnat " +
-            "where t.erikoistuvaLaakari.kayttaja.user.id = :id " +
+            "where t.opintooikeus.id = :id " +
             "and t.alkamispaiva <= :untilDate"
     )
-    fun findAllByErikoistuvaUntilDateEagerWithRelationships(
-        id: String,
+    fun findAllByOpintooikeusUntilDateEagerWithRelationships(
+        id: Long,
         untilDate: LocalDate
     ): List<Tyoskentelyjakso>
 
@@ -28,15 +28,15 @@ interface TyoskentelyjaksoRepository : JpaRepository<Tyoskentelyjakso, Long> {
         "select t from Tyoskentelyjakso t " +
             "left join fetch t.keskeytykset " +
             "where t.id = :id " +
-            "and t.erikoistuvaLaakari.kayttaja.user.id = :userId"
+            "and t.opintooikeus.id = :opintooikeusId"
     )
-    fun findOneByIdAndErikoistuvaLaakariKayttajaUserIdEagerWithKeskeytykset(
+    fun findOneByIdAndOpintooikeusIdEagerWithKeskeytykset(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     ): Tyoskentelyjakso?
 
-    fun findOneByIdAndErikoistuvaLaakariKayttajaUserId(id: Long, userId: String): Tyoskentelyjakso?
+    fun findOneByIdAndOpintooikeusId(id: Long, opintooikeusId: Long): Tyoskentelyjakso?
 
-    fun findAllByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId: String): List<Tyoskentelyjakso>
+    fun findAllByOpintooikeusIdAndLiitettyKoejaksoonTrue(opintooikeusId: Long): List<Tyoskentelyjakso>
 
 }

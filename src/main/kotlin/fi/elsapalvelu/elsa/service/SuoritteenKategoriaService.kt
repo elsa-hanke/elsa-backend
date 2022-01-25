@@ -6,7 +6,7 @@ interface SuoritteenKategoriaService {
 
     fun save(suoritteenKategoriaDTO: SuoritteenKategoriaDTO): SuoritteenKategoriaDTO
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<SuoritteenKategoriaDTO>
+    fun findAllByOpintooikeusId(opintooikeusId: Long): List<SuoritteenKategoriaDTO>
 
     fun findOne(id: Long): Optional<SuoritteenKategoriaDTO>
 

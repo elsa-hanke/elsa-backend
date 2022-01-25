@@ -29,8 +29,7 @@ interface ErikoistuvaLaakariMapper :
     override fun toDto(entity: ErikoistuvaLaakari): ErikoistuvaLaakariDTO
 
     @Mappings(
-        Mapping(source = "kayttajaId", target = "kayttaja"),
-        Mapping(target = "tyoskentelyjaksot", ignore = true),
+        Mapping(source = "kayttajaId", target = "kayttaja")
     )
     override fun toEntity(dto: ErikoistuvaLaakariDTO): ErikoistuvaLaakari
 

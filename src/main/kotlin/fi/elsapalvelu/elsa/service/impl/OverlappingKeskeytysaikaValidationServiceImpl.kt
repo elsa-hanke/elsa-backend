@@ -10,13 +10,13 @@ import org.springframework.stereotype.Service
 @Service
 class OverlappingKeskeytysaikaValidationServiceImpl(
     private val keskeytysaikaMapper: KeskeytysaikaMapper,
-    private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository
+    private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
 ) : OverlappingKeskeytysaikaValidationService {
 
-    override fun validateKeskeytysaika(userId: String, keskeytysaikaDTO: KeskeytysaikaDTO): Boolean {
-        tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserIdEagerWithKeskeytykset(
+    override fun validateKeskeytysaika(opintooikeusId: Long, keskeytysaikaDTO: KeskeytysaikaDTO): Boolean {
+        tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusIdEagerWithKeskeytykset(
             keskeytysaikaDTO.tyoskentelyjaksoId!!,
-            userId
+            opintooikeusId
         )?.let {
             val keskeytykset =
                 it.keskeytykset.filter { k -> k.id != keskeytysaikaDTO.id }.toList() + keskeytysaikaMapper.toEntity(

@@ -69,7 +69,7 @@ data class Tyoskentelyjakso(
     @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
+    var opintooikeus: Opintooikeus? = null,
 
     @Column(name = "liitetty_koejaksoon")
     var liitettyKoejaksoon: Boolean = false,

@@ -14,7 +14,6 @@ import java.util.*
 class ErikoisalaServiceImpl(
     private val erikoisalaRepository: ErikoisalaRepository,
     private val erikoisalaMapper: ErikoisalaMapper,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 ) : ErikoisalaService {
 
     override fun save(erikoisalaDTO: ErikoisalaDTO): ErikoisalaDTO {
@@ -27,16 +26,6 @@ class ErikoisalaServiceImpl(
     override fun findAll(): List<ErikoisalaDTO> {
         return erikoisalaRepository.findAll()
             .map(erikoisalaMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<ErikoisalaDTO> {
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-
-        return kirjautunutErikoistuvaLaakari?.opintooikeudet?.mapNotNull {
-            it.erikoisala
-        }?.map(erikoisalaMapper::toDto) ?: listOf()
     }
 
     @Transactional(readOnly = true)

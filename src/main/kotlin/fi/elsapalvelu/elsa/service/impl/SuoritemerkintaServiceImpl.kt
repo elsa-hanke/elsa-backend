@@ -26,7 +26,7 @@ class SuoritemerkintaServiceImpl(
                 val kirjautunutErikoistuvaLaakari =
                     erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
                 if (kirjautunutErikoistuvaLaakari != null
-                    && kirjautunutErikoistuvaLaakari == tyoskentelyjakso.erikoistuvaLaakari
+                    && kirjautunutErikoistuvaLaakari == tyoskentelyjakso.opintooikeus?.erikoistuvaLaakari
                 ) {
                     val suoritemerkinta = suoritemerkintaMapper.toEntity(suoritemerkintaDTO)
                     // Jos päivitetään olemassa olevaa, tarkistetaan että suoritemerkintä ei ole lukittu
@@ -54,12 +54,10 @@ class SuoritemerkintaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    override fun findAllByTyoskentelyjaksoOpintooikeusId(
+        opintooikeusId: Long
     ): List<SuoritemerkintaDTO> {
-        return suoritemerkintaRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-            userId
-        )
+        return suoritemerkintaRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
             .map(suoritemerkintaMapper::toDto)
     }
 
@@ -75,7 +73,7 @@ class SuoritemerkintaServiceImpl(
     @Transactional(readOnly = true)
     override fun findOne(id: Long, userId: String): SuoritemerkintaDTO? {
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
-            suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
+            suoritemerkinta.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari.let {
                 erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
                     ?.let { kirjautunutErikoistuvaLaakari ->
                         if (kirjautunutErikoistuvaLaakari == it) {
@@ -90,7 +88,7 @@ class SuoritemerkintaServiceImpl(
 
     override fun delete(id: Long, userId: String) {
         suoritemerkintaRepository.findByIdOrNull(id)?.let { suoritemerkinta ->
-            suoritemerkinta.tyoskentelyjakso?.erikoistuvaLaakari.let {
+            suoritemerkinta.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari.let {
                 erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
                     ?.let { kirjautunutErikoistuvaLaakari ->
                         if (kirjautunutErikoistuvaLaakari == it &&

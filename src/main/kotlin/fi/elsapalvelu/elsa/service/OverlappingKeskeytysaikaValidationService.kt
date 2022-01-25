@@ -4,6 +4,6 @@ import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 
 interface OverlappingKeskeytysaikaValidationService {
 
-    fun validateKeskeytysaika(userId: String, keskeytysaikaDTO: KeskeytysaikaDTO): Boolean
+    fun validateKeskeytysaika(opintooikeusId: Long, keskeytysaikaDTO: KeskeytysaikaDTO): Boolean
 
 }
