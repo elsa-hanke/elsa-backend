@@ -96,6 +96,10 @@ class UserService(
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
         // TODO: opinto-oikeus opintotietojärjestelmstä
+        val validOpintooikeusExists = opintooikeusRepository.existsByErikoistuvaLaakariKayttajaUserId(
+            user.id!!,
+            LocalDate.now()
+        )
         val yliopisto = yliopistoRepository.findByIdOrNull(kayttooikeusHakemusDTO.yliopisto)
         val erikoisala = erikoisalaRepository.findByIdOrNull(15)
         val opintoopas = opintoopasRepository.findByIdOrNull(15)
@@ -109,7 +113,8 @@ class UserService(
             erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = yliopisto,
             erikoisala = erikoisala,
-            opintoopas = opintoopas
+            opintoopas = opintoopas,
+            kaytossa = !validOpintooikeusExists
         )
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 

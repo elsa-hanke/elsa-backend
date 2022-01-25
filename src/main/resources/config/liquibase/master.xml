@@ -165,5 +165,7 @@
     <include file="config/liquibase/changelog/20220119102510_add_erikoisala_data_yleislaaketiede.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220119154329_add_erikoisala_data_ihotaudit.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220113123834_add_erikoisala_data_syopataudit.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220120125312_modify_entity_Opintooikeus.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>
 <!-- @formatter:on -->

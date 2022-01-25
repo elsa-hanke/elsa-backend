@@ -24,6 +24,7 @@ interface ErikoistuvaLaakariMapper :
         Mapping(source = "yliopistoNimi", target = "yliopisto"),
         Mapping(source = "opiskelijatunnus", target = "opiskelijatunnus"),
         Mapping(source = "erikoisalaNimi", target = "erikoisalaNimi"),
+        Mapping(source = "opintooikeusKaytossa.id", target = "opintooikeusKaytossaId")
     )
     override fun toDto(entity: ErikoistuvaLaakari): ErikoistuvaLaakariDTO
 

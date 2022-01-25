@@ -76,24 +76,22 @@ class ErikoistuvaLaakariHelper {
                 asetus = em.findAll(Asetus::class).get(0)
             }
 
-            val opintooikeus: Opintooikeus
-            if (em.findAll(Opintooikeus::class).isEmpty()) {
-                opintooikeus = Opintooikeus(
-                    opintooikeudenMyontamispaiva = LocalDate.ofEpochDay(0L),
-                    opintooikeudenPaattymispaiva = LocalDate.ofEpochDay(10L),
-                    opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
-                    osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA,
-                    erikoistuvaLaakari = erikoistuvaLaakari,
-                    yliopisto = yliopisto,
-                    erikoisala = erikoisala,
-                    opintoopas = opintoopas,
-                    asetus = asetus
-                )
-                em.persist(opintooikeus)
-                em.flush()
-            } else {
-                opintooikeus = em.findAll(Opintooikeus::class).get(0)
-            }
+            // Lisätään pakollinen tieto
+            val opintooikeus = Opintooikeus(
+                opintooikeudenMyontamispaiva = LocalDate.ofEpochDay(0L),
+                opintooikeudenPaattymispaiva = LocalDate.ofEpochDay(20L),
+                opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
+                osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA,
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                yliopisto = yliopisto,
+                erikoisala = erikoisala,
+                opintoopas = opintoopas,
+                asetus = asetus,
+                kaytossa = true
+            )
+            em.persist(opintooikeus)
+            em.flush()
+
             erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
 
             return erikoistuvaLaakari

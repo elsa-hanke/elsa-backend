@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220120125312" author="jhipster">
+
+        <addColumn tableName="opintooikeus">
+            <column name="kaytossa" type="boolean"/>
+        </addColumn>
+
+        <update tableName="opintooikeus">
+            <column name="kaytossa" value="true"/>
+        </update>
+
+        <addNotNullConstraint tableName="opintooikeus" columnName="kaytossa"/>
+
+    </changeSet>
+
+</databaseChangeLog>
