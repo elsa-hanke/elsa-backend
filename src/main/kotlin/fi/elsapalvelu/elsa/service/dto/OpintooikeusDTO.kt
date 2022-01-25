@@ -25,7 +25,10 @@ data class OpintooikeusDTO(
 
     var opintoopasNimi: String? = null,
 
-    var asetus: AsetusDTO
+    var asetus: AsetusDTO,
+
+    @get: NotNull
+    var kaytossa: Boolean = false
 
 ) : Serializable {
 

@@ -25,7 +25,9 @@ data class ErikoistuvaLaakariDTO(
 
     var erikoisalaNimi: String? = null,
 
-    var opintooikeudet: MutableSet<OpintooikeusDTO>? = null
+    var opintooikeudet: MutableSet<OpintooikeusDTO>? = null,
+
+    var opintooikeusKaytossaId: Long? = null
 
 ) : Serializable {
 
