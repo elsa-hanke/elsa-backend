@@ -62,7 +62,7 @@ class TyoskentelyjaksoHelper {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
 
-            tyoskentelyjakso.erikoistuvaLaakari = erikoistuvaLaakari
+            tyoskentelyjakso.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return tyoskentelyjakso
         }
@@ -96,7 +96,7 @@ class TyoskentelyjaksoHelper {
             } else {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
-            tyoskentelyjakso.erikoistuvaLaakari = erikoistuvaLaakari
+            tyoskentelyjakso.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return tyoskentelyjakso
         }
     }

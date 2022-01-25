@@ -130,7 +130,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
     @Test
     @Transactional
     @Throws(Exception::class)
-    fun createTeoriakoulutusWithoutErikoistuvaLaakari() {
+    fun createTeoriakoulutusWithoutOpintooikeus() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -160,7 +160,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
                 )
                 .with { it.method = "POST"; it }
                 .with(csrf())
-        ).andExpect(status().isBadRequest)
+        ).andExpect(status().is5xxServerError)
 
         val teoriakoulutusList = teoriakoulutusRepository.findAll()
         assertThat(teoriakoulutusList).hasSize(databaseSizeBeforeCreate)

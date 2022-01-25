@@ -3,14 +3,17 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.FileValidationService
+import fi.elsapalvelu.elsa.service.OpintooikeusService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
 import javax.validation.Valid
@@ -22,7 +25,8 @@ private const val ENTITY_NAME = "asiakirja"
 class ErikoistuvaLaakariAsiakirjaResource(
     private val userService: UserService,
     private val asiakirjaService: AsiakirjaService,
-    private val fileValidationService: FileValidationService
+    private val fileValidationService: FileValidationService,
+    private val opintooikeusService: OpintooikeusService
 ) {
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
@@ -33,8 +37,9 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
-        if (!fileValidationService.validate(files, user.id!!)) {
+        if (!fileValidationService.validate(files, opintooikeusId)) {
             throw BadRequestAlertException(
                 "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
                 ENTITY_NAME,
@@ -43,10 +48,11 @@ class ErikoistuvaLaakariAsiakirjaResource(
         }
 
         val asiakirjat = files.map { it.mapAsiakirja() }
-        val result = asiakirjaService.create(asiakirjat, user.id!!)
-        return ResponseEntity
-            .created(URI("/api/asiakirjat"))
-            .body(result)
+        asiakirjaService.create(asiakirjat, opintooikeusId)?.let {
+            return ResponseEntity
+                .created(URI("/api/asiakirjat"))
+                .body(it)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @GetMapping("/asiakirjat")
@@ -54,7 +60,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId)
 
         return ResponseEntity.ok(asiakirjat)
     }
@@ -64,7 +71,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<List<String>> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirjat = asiakirjaService.findAllByErikoistuvaLaakariUserId(user.id!!).map {
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map {
             it.nimi!!
         }
 
@@ -77,7 +85,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirja = asiakirjaService.findOne(id, user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val asiakirja = asiakirjaService.findOne(id, opintooikeusId)
 
         if (asiakirja != null) {
             return ResponseEntity.ok()
@@ -94,7 +103,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
-        asiakirjaService.delete(id, user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        asiakirjaService.delete(id, opintooikeusId)
         return ResponseEntity
             .noContent()
             .build()

@@ -3,11 +3,11 @@ import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 
 interface KeskeytysaikaService {
 
-    fun save(keskeytysaikaDTO: KeskeytysaikaDTO, userId: String): KeskeytysaikaDTO?
+    fun save(keskeytysaikaDTO: KeskeytysaikaDTO, opintooikeusId: Long): KeskeytysaikaDTO?
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(userId: String): List<KeskeytysaikaDTO>
+    fun findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId: Long): List<KeskeytysaikaDTO>
 
-    fun findOne(id: Long, userId: String): KeskeytysaikaDTO?
+    fun findOne(id: Long, opintooikeusId: Long): KeskeytysaikaDTO?
 
-    fun delete(id: Long, userId: String)
+    fun delete(id: Long, opintooikeusId: Long)
 }

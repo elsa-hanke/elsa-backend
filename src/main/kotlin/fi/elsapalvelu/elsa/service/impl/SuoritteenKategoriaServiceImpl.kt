@@ -1,10 +1,11 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.SuoritteenKategoriaRepository
 import fi.elsapalvelu.elsa.service.SuoritteenKategoriaService
 import fi.elsapalvelu.elsa.service.dto.SuoritteenKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritteenKategoriaMapper
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -15,7 +16,7 @@ import java.util.*
 class SuoritteenKategoriaServiceImpl(
     private val suoritteenKategoriaRepository: SuoritteenKategoriaRepository,
     private val suoritteenKategoriaMapper: SuoritteenKategoriaMapper,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
+    private val opintooikeusRepository: OpintooikeusRepository
 ) : SuoritteenKategoriaService {
 
     override fun save(
@@ -27,16 +28,13 @@ class SuoritteenKategoriaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<SuoritteenKategoriaDTO> {
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        val opintooikeus = kirjautunutErikoistuvaLaakari?.opintooikeudet?.firstOrNull()
-
-        return suoritteenKategoriaRepository.findAllByErikoisalaIdAndValid(
-            opintooikeus?.erikoisala?.id,
-            opintooikeus?.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
-        )
-            .map(suoritteenKategoriaMapper::toDto)
+    override fun findAllByOpintooikeusId(opintooikeusId: Long): List<SuoritteenKategoriaDTO> {
+        return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            suoritteenKategoriaRepository.findAllByErikoisalaIdAndValid(
+                it.erikoisala?.id,
+                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+            ).map(suoritteenKategoriaMapper::toDto)
+        } ?: listOf()
     }
 
     @Transactional(readOnly = true)

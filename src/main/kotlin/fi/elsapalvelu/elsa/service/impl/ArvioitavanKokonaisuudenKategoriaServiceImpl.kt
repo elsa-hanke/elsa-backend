@@ -1,10 +1,11 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.ArvioitavanKokonaisuudenKategoriaRepository
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.ArvioitavanKokonaisuudenKategoriaService
 import fi.elsapalvelu.elsa.service.dto.ArvioitavanKokonaisuudenKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavanKokonaisuudenKategoriaMapper
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -14,8 +15,8 @@ import java.util.*
 @Transactional
 class ArvioitavanKokonaisuudenKategoriaServiceImpl(
     private val arvioitavanKokonaisuudenKategoriaRepository: ArvioitavanKokonaisuudenKategoriaRepository,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val arvioitavanKokonaisuudenKategoriaMapper: ArvioitavanKokonaisuudenKategoriaMapper,
+    private val opintooikeusRepository: OpintooikeusRepository
 ) : ArvioitavanKokonaisuudenKategoriaService {
 
     override fun save(
@@ -35,18 +36,15 @@ class ArvioitavanKokonaisuudenKategoriaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    override fun findAllByOpintooikeusId(
+        opintooikeusId: Long
     ): List<ArvioitavanKokonaisuudenKategoriaDTO> {
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        val opintooikeus = kirjautunutErikoistuvaLaakari?.opintooikeudet?.firstOrNull()
-
-        return arvioitavanKokonaisuudenKategoriaRepository.findAllByErikoisalaIdAndValid(
-            opintooikeus?.erikoisala?.id,
-            opintooikeus?.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
-        )
-            .map(arvioitavanKokonaisuudenKategoriaMapper::toDto)
+        return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            arvioitavanKokonaisuudenKategoriaRepository.findAllByErikoisalaIdAndValid(
+                it.erikoisala?.id,
+                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+            ).map(arvioitavanKokonaisuudenKategoriaMapper::toDto)
+        } ?: listOf()
     }
 
     @Transactional(readOnly = true)

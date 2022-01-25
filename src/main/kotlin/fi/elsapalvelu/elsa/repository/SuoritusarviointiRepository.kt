@@ -19,23 +19,18 @@ interface SuoritusarviointiRepository :
 
     fun findOneById(id: Long): Optional<Suoritusarviointi>
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariId(
-        id: Long,
+    fun findAllByTyoskentelyjaksoOpintooikeusId(
+        opintooikeusId: Long,
         pageable: Pageable
     ): Page<Suoritusarviointi>
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String,
-        pageable: Pageable
-    ): Page<Suoritusarviointi>
-
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    fun findAllByTyoskentelyjaksoOpintooikeusId(
+        opintooikeusId: Long
     ): List<Suoritusarviointi>
 
-    fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+    fun findOneByIdAndTyoskentelyjaksoOpintooikeusId(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     ): Optional<Suoritusarviointi>
 
     fun findOneByIdAndArvioinninAntajaUserId(
@@ -47,7 +42,8 @@ interface SuoritusarviointiRepository :
         """
         select a from Suoritusarviointi a
         join a.tyoskentelyjakso t
-        join t.erikoistuvaLaakari e
+        join t.opintooikeus o
+        join o.erikoistuvaLaakari e
         join e.kayttaja k
         join k.user u
         where a.tapahtumanAjankohta between :alkamispaiva and :paattymispaiva and u.id = :userId and a.arviointiAika is not null

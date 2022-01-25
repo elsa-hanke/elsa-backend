@@ -11,9 +11,7 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
 
     fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<Opintooikeus>
 
-    fun existsByErikoistuvaLaakariKayttajaUserId(userId: String): Boolean
-
-    fun findOneByErikoistuvaLaakariKayttajaUserId(userId: String): Opintooikeus?
+    fun findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId: String): Opintooikeus?
 
     @Query(
         """

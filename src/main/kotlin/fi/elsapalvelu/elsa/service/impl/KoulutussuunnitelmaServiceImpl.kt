@@ -36,7 +36,8 @@ class KoulutussuunnitelmaServiceImpl(
 
                         // Päivitetään koulutussuunnitelma jos asiakirja muuttunut
                         if (koulutussuunnitelmaDTO.koulutussuunnitelmaAsiakirjaUpdated) {
-                            koulutussuunnitelma.koulutussuunnitelmaAsiakirja?.erikoistuvaLaakari = erikoistuvaLaakari
+                            koulutussuunnitelma.koulutussuunnitelmaAsiakirja?.opintooikeus =
+                                erikoistuvaLaakari.getOpintooikeusKaytossa()
                             koulutussuunnitelma.koulutussuunnitelmaAsiakirja?.asiakirjaData?.data =
                                 BlobProxy.generateProxy(
                                     koulutussuunnitelmaDTO.koulutussuunnitelmaAsiakirja?.asiakirjaData?.fileInputStream,
@@ -50,7 +51,8 @@ class KoulutussuunnitelmaServiceImpl(
 
                         // Päivitetään motivaatiokirje jos asiakirja muuttunut
                         if (koulutussuunnitelmaDTO.motivaatiokirjeAsiakirjaUpdated) {
-                            koulutussuunnitelma.motivaatiokirjeAsiakirja?.erikoistuvaLaakari = erikoistuvaLaakari
+                            koulutussuunnitelma.motivaatiokirjeAsiakirja?.opintooikeus =
+                                erikoistuvaLaakari.getOpintooikeusKaytossa()
                             koulutussuunnitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data =
                                 BlobProxy.generateProxy(
                                     koulutussuunnitelmaDTO.motivaatiokirjeAsiakirja?.asiakirjaData?.fileInputStream,

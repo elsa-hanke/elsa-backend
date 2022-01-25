@@ -5,7 +5,7 @@ interface PoissaolonSyyService {
 
     fun save(poissaolonSyyDTO: PoissaolonSyyDTO): PoissaolonSyyDTO
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<PoissaolonSyyDTO>
+    fun findAllByOpintooikeusId(opintooikeusId: Long): List<PoissaolonSyyDTO>
 
     fun findOne(id: Long): PoissaolonSyyDTO?
 

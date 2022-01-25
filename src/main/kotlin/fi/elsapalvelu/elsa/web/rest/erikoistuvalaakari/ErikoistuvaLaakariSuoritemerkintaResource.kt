@@ -27,7 +27,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     private val erikoisalaService: ErikoisalaService,
     private val suoritteenKategoriaService: SuoritteenKategoriaService,
     private val suoritemerkintaService: SuoritemerkintaService,
-    private val arviointiasteikkoService: ArviointiasteikkoService
+    private val arviointiasteikkoService: ArviointiasteikkoService,
+    private val opintooikeusService: OpintooikeusService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -50,11 +51,9 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         suoritemerkintaDTO.lukittu = false
 
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
-        suoritemerkintaDTO.arviointiasteikko = arviointiasteikkoService.findByErikoistuvaLaakariKayttajaUserId(
-            user.id!!
-        )
-
+        suoritemerkintaDTO.arviointiasteikko = arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
         suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
             return ResponseEntity
                 .created(URI("/api/suoritemerkinnat/${it.id}"))
@@ -119,16 +118,17 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         principal: Principal?
     ): ResponseEntity<SuoritteetTableDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val table = SuoritteetTableDTO()
 
         table.suoritteenKategoriat = suoritteenKategoriaService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).let {
+            .findAllByOpintooikeusId(opintooikeusId).let {
                 toSortedSuoritteenKategoriat(it)
             }
         table.suoritemerkinnat = suoritemerkintaService
-            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(user.id!!).toSet()
+            .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toSet()
 
-        table.arviointiasteikko = arviointiasteikkoService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        table.arviointiasteikko = arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
 
         return ResponseEntity.ok(table)
     }
@@ -138,17 +138,18 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val form = SuoritemerkintaFormDTO()
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toSet()
+            .findAllByOpintooikeusId(opintooikeusId).toSet()
         form.kunnat = kuntaService.findAll().toSet()
-        form.erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toSet()
+        form.erikoisalat = erikoisalaService.findAll().toSet()
         form.suoritteenKategoriat = suoritteenKategoriaService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).let {
+            .findAllByOpintooikeusId(opintooikeusId).let {
                 toSortedSuoritteenKategoriat(it)
             }
-        form.arviointiasteikko = arviointiasteikkoService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        form.arviointiasteikko = arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
 
         return ResponseEntity.ok(form)
     }

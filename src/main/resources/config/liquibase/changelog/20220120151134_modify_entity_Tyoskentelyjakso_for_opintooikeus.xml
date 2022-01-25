@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220120151134" author="jhipster">
+
+        <!-- Poistetaan kaikki data, jossa viittaus erikoistuvaaan -->
+        <delete tableName="keskeytysaika"/>
+        <delete tableName="keskeytysaika_audit"/>
+        <delete tableName="suoritusarvioinnin_kommentti"/>
+        <delete tableName="suoritusarvioinnin_kommentti_audit"/>
+        <delete tableName="suoritusarviointi"/>
+        <delete tableName="suoritusarviointi_audit"/>
+        <delete tableName="suoritemerkinta"/>
+        <delete tableName="suoritemerkinta_audit"/>
+        <delete tableName="rel_koulutusjakso__osaamistavoitteet"/>
+        <delete tableName="rel_koulutusjakso__osaamistavoitteet_audit"/>
+        <delete tableName="rel_koulutusjakso__tyoskentelyjakso"/>
+        <delete tableName="rel_koulutusjakso__tyoskentelyjakso_audit"/>
+        <delete tableName="koulutusjakso"/>
+        <delete tableName="koulutusjakso_audit"/>
+        <delete tableName="tyoskentelyjakso"/>
+        <delete tableName="tyoskentelyjakso_audit"/>
+        <delete tableName="tyoskentelypaikka"/>
+        <delete tableName="tyoskentelypaikka_audit"/>
+        <delete tableName="koulutussuunnitelma"/>
+        <delete tableName="koulutussuunnitelma_audit"/>
+        <delete tableName="asiakirja"/>
+        <delete tableName="asiakirja_audit"/>
+        <delete tableName="asiakirja_data"/>
+        <delete tableName="rel_paivakirjamerkinta__aihekategoria"/>
+        <delete tableName="rel_paivakirjamerkinta__aihekategoria_audit"/>
+        <delete tableName="paivakirjamerkinta"/>
+        <delete tableName="paivakirjamerkinta_audit"/>
+        <delete tableName="teoriakoulutus"/>
+        <delete tableName="teoriakoulutus_audit"/>
+        <delete tableName="seurantajakso_koulutusjakso"/>
+        <delete tableName="seurantajakso_koulutusjakso_audit"/>
+        <delete tableName="seurantajakso"/>
+        <delete tableName="seurantajakso_audit"/>
+        <delete tableName="koulutussopimuksen_koulutuspaikka"/>
+        <delete tableName="koulutussopimuksen_koulutuspaikka_audit"/>
+        <delete tableName="koulutussopimuksen_kouluttaja"/>
+        <delete tableName="koulutussopimuksen_kouluttaja_audit"/>
+        <delete tableName="koejakson_koulutussopimus"/>
+        <delete tableName="koejakson_koulutussopimus_audit"/>
+        <delete tableName="koejakson_aloituskeskustelu"/>
+        <delete tableName="koejakson_aloituskeskustelu_audit"/>
+        <delete tableName="koejakson_valiarviointi"/>
+        <delete tableName="koejakson_valiarviointi_audit"/>
+        <delete tableName="koejakson_kehittamistoimenpiteet"/>
+        <delete tableName="koejakson_kehittamistoimenpiteet_audit"/>
+        <delete tableName="koejakson_loppukeskustelu"/>
+        <delete tableName="koejakson_loppukeskustelu_audit"/>
+        <delete tableName="koejakson_vastuuhenkilon_arvio"/>
+        <delete tableName="koejakson_vastuuhenkilon_arvio_audit"/>
+
+        <dropForeignKeyConstraint baseTableName="tyoskentelyjakso"
+                                  constraintName="fk_tyoskentelyjakso_erikoistuva_laakari_id"/>
+        <dropColumn tableName="tyoskentelyjakso" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="tyoskentelyjakso">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="tyoskentelyjakso" baseColumnNames="opintooikeus_id"
+                                 constraintName="fk_tyoskentelyjakso_opintooikeus_id" referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn tableName="tyoskentelyjakso_audit" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="tyoskentelyjakso_audit">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <dropForeignKeyConstraint baseTableName="asiakirja" constraintName="fk_asiakirja_erikoistuva_laakari_id"/>
+        <dropColumn tableName="asiakirja" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="asiakirja">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="asiakirja" baseColumnNames="opintooikeus_id"
+                                 constraintName="fk_asiakirja_opintooikeus_id" referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn tableName="asiakirja_audit" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="asiakirja_audit">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+    </changeSet>
+
+</databaseChangeLog>

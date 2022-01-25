@@ -19,10 +19,10 @@ data class Asiakirja(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
+    @NotNull
     @ManyToOne(optional = false)
-    @JoinColumn(unique = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
+    var opintooikeus: Opintooikeus? = null,
 
     @ManyToOne(optional = true)
     var tyoskentelyjakso: Tyoskentelyjakso? = null,

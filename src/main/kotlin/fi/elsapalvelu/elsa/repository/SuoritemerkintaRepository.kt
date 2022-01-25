@@ -10,13 +10,14 @@ import java.util.*
 
 @Repository
 interface SuoritemerkintaRepository : JpaRepository<Suoritemerkinta, Long> {
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id: String): List<Suoritemerkinta>
+    fun findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId: Long): List<Suoritemerkinta>
 
     @Query(
         """
         select m from Suoritemerkinta m
         join m.tyoskentelyjakso t
-        join t.erikoistuvaLaakari e
+        join t.opintooikeus o
+        join o.erikoistuvaLaakari e
         join e.kayttaja k
         join k.user u
         where m.suorituspaiva between :alkamispaiva and :paattymispaiva and u.id = :userId

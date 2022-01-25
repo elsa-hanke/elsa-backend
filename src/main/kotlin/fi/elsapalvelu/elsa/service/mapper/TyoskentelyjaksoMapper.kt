@@ -9,7 +9,7 @@ import org.mapstruct.*
     uses = [
         TyoskentelypaikkaMapper::class,
         ErikoisalaMapper::class,
-        ErikoistuvaLaakariMapper::class
+        OpintooikeusMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
@@ -18,7 +18,6 @@ interface TyoskentelyjaksoMapper :
 
     @Mappings(
         Mapping(source = "omaaErikoisalaaTukeva.id", target = "omaaErikoisalaaTukevaId"),
-        Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId"),
         Mapping(
             expression = "java(entity.hasTapahtumia())",
             target = "tapahtumia"
@@ -30,8 +29,7 @@ interface TyoskentelyjaksoMapper :
         Mapping(target = "suoritusarvioinnit", ignore = true),
         Mapping(target = "suoritemerkinnat", ignore = true),
         Mapping(target = "keskeytykset", ignore = true),
-        Mapping(source = "omaaErikoisalaaTukevaId", target = "omaaErikoisalaaTukeva"),
-        Mapping(source = "erikoistuvaLaakariId", target = "erikoistuvaLaakari")
+        Mapping(source = "omaaErikoisalaaTukevaId", target = "omaaErikoisalaaTukeva")
     )
     override fun toEntity(dto: TyoskentelyjaksoDTO): Tyoskentelyjakso
 

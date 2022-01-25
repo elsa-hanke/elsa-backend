@@ -49,13 +49,13 @@ class SuoritusarvioinninKommenttiServiceImpl(
         val suoritusarviointi = suoritusarviointiRepository
             .findOneById(suoritusarvioinninKommentti.suoritusarviointi?.id!!).get()
         if (kayttaja == suoritusarviointi.arvioinninAntaja ||
-            kayttaja == suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja
+            kayttaja == suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja
         ) {
             suoritusarvioinninKommentti =
                 suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
             val user =
                 if (kayttaja == suoritusarviointi.arvioinninAntaja) kayttajaRepository.findById(
-                    suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.id!!
+                    suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!
                 ).get().user!!
                 else kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!)
                     .get().user!!

@@ -1,13 +1,13 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi.*
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi.*
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KuntaRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
@@ -27,106 +27,98 @@ import kotlin.math.round
 @Transactional
 class TyoskentelyjaksoServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val kuntaRepository: KuntaRepository,
     private val erikoisalaRepository: ErikoisalaRepository,
     private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper,
     private val asiakirjaMapper: AsiakirjaMapper,
-    private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService
+    private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
+    private val opintooikeusRepository: OpintooikeusRepository
+
 ) : TyoskentelyjaksoService {
 
     override fun create(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
-        userId: String,
+        opintooikeusId: Long,
         newAsiakirjat: MutableSet<AsiakirjaDTO>
     ): TyoskentelyjaksoDTO? {
-        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-            ?.let { kirjautunutErikoistuvaLaakari ->
-                tyoskentelyjaksoDTO.apply {
-                    erikoistuvaLaakariId = erikoistuvaLaakariId ?: kirjautunutErikoistuvaLaakari.id
-                }
-                kirjautunutErikoistuvaLaakari.takeIf { it.id == tyoskentelyjaksoDTO.erikoistuvaLaakariId }
-                    ?.let {
-                        tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO).apply {
-                            this.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
-                            tyoskentelypaikka?.kunta =
-                                kuntaRepository.findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
-                            omaaErikoisalaaTukeva =
-                                tyoskentelyjaksoDTO.omaaErikoisalaaTukeva.takeIf {
-                                    kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
-                                }
-                                    ?.let {
-                                        erikoisalaRepository.findByIdOrNull(it.id)
-                                    }
-                        }.takeIf { isValidTyoskentelyjakso(it) }?.let { tyoskentelyjakso ->
-                            mapAsiakirjat(
-                                tyoskentelyjakso,
-                                newAsiakirjat,
-                                null,
-                                kirjautunutErikoistuvaLaakari
-                            )
-                        }
+        opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO).apply {
+                opintooikeus = it
+                tyoskentelypaikka?.kunta =
+                    kuntaRepository.findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
+                omaaErikoisalaaTukeva =
+                    tyoskentelyjaksoDTO.omaaErikoisalaaTukeva.takeIf {
+                        kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
+                    }?.let {
+                        erikoisalaRepository.findByIdOrNull(it.id)
                     }
+            }.takeIf { isValidTyoskentelyjakso(it) }?.let { tyoskentelyjakso ->
+                mapAsiakirjat(
+                    tyoskentelyjakso,
+                    newAsiakirjat,
+                    null,
+                    it
+                )
             }?.let {
                 tyoskentelyjaksoRepository.save(it).let { saved ->
                     return tyoskentelyjaksoMapper.toDto(saved)
                 }
             }
+        }
 
         return null
     }
 
     override fun update(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
-        userId: String,
+        opintooikeusId: Long,
         newAsiakirjat: MutableSet<AsiakirjaDTO>,
         deletedAsiakirjaIds: MutableSet<Int>?
     ): TyoskentelyjaksoDTO? {
-        tyoskentelyjaksoDTO.id?.let { id ->
-            tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)
-                ?.takeIf { tyoskentelyjaksoDTO.erikoistuvaLaakariId == it.erikoistuvaLaakari?.id }
-                ?.let { tyoskentelyjakso ->
-                    // Jos työskentelyjaksolle on lisätty arviointeja tai arviointipyyntöjä, sallitaan vain
-                    // päättymispäivän muokkaus.
-                    tyoskentelyjakso.takeIf { it.hasTapahtumia() }
-                        ?.apply {
-                            paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
-                        } ?: tyoskentelyjakso.let {
-                        val updatedTyoskentelyjakso =
-                            tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
-                        tyoskentelyjakso.apply {
-                            tyoskentelypaikka?.apply {
-                                kunta =
-                                    tyoskentelyjaksoDTO.tyoskentelypaikka?.kuntaId?.let { id ->
-                                        kuntaRepository.findByIdOrNull(id)
-                                    }
-                                nimi = tyoskentelyjaksoDTO.tyoskentelypaikka?.nimi
-                                tyyppi = updatedTyoskentelyjakso.tyoskentelypaikka?.tyyppi
-                                muuTyyppi =
-                                    if (tyyppi == MUU) updatedTyoskentelyjakso.tyoskentelypaikka?.muuTyyppi else null
+        tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(
+            tyoskentelyjaksoDTO.id!!,
+            opintooikeusId
+        )?.let { tyoskentelyjakso ->
+            // Jos työskentelyjaksolle on lisätty arviointeja tai arviointipyyntöjä, sallitaan vain
+            // päättymispäivän muokkaus.
+            tyoskentelyjakso.takeIf { it.hasTapahtumia() }
+                ?.apply {
+                    paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
+                } ?: tyoskentelyjakso.let {
+                val updatedTyoskentelyjakso =
+                    tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
+                tyoskentelyjakso.apply {
+                    tyoskentelypaikka?.apply {
+                        kunta =
+                            tyoskentelyjaksoDTO.tyoskentelypaikka?.kuntaId?.let { id ->
+                                kuntaRepository.findByIdOrNull(id)
                             }
-                            osaaikaprosentti = updatedTyoskentelyjakso.osaaikaprosentti
-                            alkamispaiva = updatedTyoskentelyjakso.alkamispaiva
-                            paattymispaiva = updatedTyoskentelyjakso.paattymispaiva
-                            osaaikaprosentti = updatedTyoskentelyjakso.osaaikaprosentti
-                            hyvaksyttyAiempaanErikoisalaan =
-                                updatedTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan
-                            kaytannonKoulutus = updatedTyoskentelyjakso.kaytannonKoulutus
-                            omaaErikoisalaaTukeva =
-                                updatedTyoskentelyjakso.omaaErikoisalaaTukeva.takeIf { kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS }
-                                    ?.let {
-                                        erikoisalaRepository.findByIdOrNull(it.id)
-                                    }
-                        }
+                        nimi = tyoskentelyjaksoDTO.tyoskentelypaikka?.nimi
+                        tyyppi = updatedTyoskentelyjakso.tyoskentelypaikka?.tyyppi
+                        muuTyyppi =
+                            if (tyyppi == MUU) updatedTyoskentelyjakso.tyoskentelypaikka?.muuTyyppi else null
                     }
-
-                    mapAsiakirjat(
-                        tyoskentelyjakso,
-                        newAsiakirjat,
-                        deletedAsiakirjaIds,
-                        tyoskentelyjakso.erikoistuvaLaakari!!
-                    )
+                    osaaikaprosentti = updatedTyoskentelyjakso.osaaikaprosentti
+                    alkamispaiva = updatedTyoskentelyjakso.alkamispaiva
+                    paattymispaiva = updatedTyoskentelyjakso.paattymispaiva
+                    osaaikaprosentti = updatedTyoskentelyjakso.osaaikaprosentti
+                    hyvaksyttyAiempaanErikoisalaan =
+                        updatedTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan
+                    kaytannonKoulutus = updatedTyoskentelyjakso.kaytannonKoulutus
+                    omaaErikoisalaaTukeva =
+                        updatedTyoskentelyjakso.omaaErikoisalaaTukeva.takeIf { kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS }
+                            ?.let {
+                                erikoisalaRepository.findByIdOrNull(it.id)
+                            }
                 }
+            }
+
+            mapAsiakirjat(
+                tyoskentelyjakso,
+                newAsiakirjat,
+                deletedAsiakirjaIds,
+                tyoskentelyjakso.opintooikeus!!
+            )
         }?.let { updated ->
             return tyoskentelyjaksoMapper.toDto(updated)
         }
@@ -138,15 +130,13 @@ class TyoskentelyjaksoServiceImpl(
         tyoskentelyjakso: Tyoskentelyjakso,
         newAsiakirjat: MutableSet<AsiakirjaDTO>,
         deletedAsiakirjaIds: MutableSet<Int>?,
-        kirjautunutErikoistuvaLaakari: ErikoistuvaLaakari
+        opintooikeus: Opintooikeus
     ): Tyoskentelyjakso {
-
         newAsiakirjat.let {
             val asiakirjaEntities = it.map { asiakirjaDTO ->
-                asiakirjaDTO.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.id
-                asiakirjaDTO.lisattypvm = LocalDateTime.now()
-
                 asiakirjaMapper.toEntity(asiakirjaDTO).apply {
+                    this.lisattypvm = LocalDateTime.now()
+                    this.opintooikeus = opintooikeus
                     this.tyoskentelyjakso = tyoskentelyjakso
                     this.asiakirjaData?.data =
                         BlobProxy.generateProxy(
@@ -194,32 +184,26 @@ class TyoskentelyjaksoServiceImpl(
         return true
     }
 
+
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<TyoskentelyjaksoDTO> {
-        return tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+    override fun findAllByOpintooikeusId(opintooikeusId: Long): List<TyoskentelyjaksoDTO> {
+        return tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeusId)
             .map(tyoskentelyjaksoMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOne(id: Long, userId: String): TyoskentelyjaksoDTO? {
-        tyoskentelyjaksoRepository.findByIdOrNull(id)?.let { tyoskentelyjakso ->
-            tyoskentelyjakso.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-                    ?.let { kirjautunutErikoistuvaLaakari ->
-                        if (kirjautunutErikoistuvaLaakari == it) {
-                            return tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
-                        }
-                    }
-            }
+    override fun findOne(id: Long, opintooikeusId: Long): TyoskentelyjaksoDTO? {
+        tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
+            return tyoskentelyjaksoMapper.toDto(it)
         }
 
         return null
     }
 
     @Transactional(readOnly = true)
-    override fun validateByLiitettyKoejaksoon(userId: String): Triple<Boolean, Boolean, Boolean> {
+    override fun validateByLiitettyKoejaksoon(opintooikeusId: Long): Triple<Boolean, Boolean, Boolean> {
         val tyoskentelyjaksotLiitetty =
-            tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserIdAndLiitettyKoejaksoonTrue(userId)
+            tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndLiitettyKoejaksoonTrue(opintooikeusId)
         val tyoskentelyJaksoLiitetty = tyoskentelyjaksotLiitetty.any()
         val tyoskentelyjaksonPituusRiittava =
             validateTyoskentelyjaksonPituusKoejaksolleRiittava(tyoskentelyjaksotLiitetty)
@@ -248,37 +232,30 @@ class TyoskentelyjaksoServiceImpl(
         return months >= 6
     }
 
-    override fun delete(id: Long, userId: String): Boolean {
-        tyoskentelyjaksoRepository.findByIdOrNull(id)?.let { tyoskentelyjakso ->
-            tyoskentelyjakso.erikoistuvaLaakari.let {
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-                    ?.let { kirjautunutErikoistuvaLaakari ->
-                        if (
-                            kirjautunutErikoistuvaLaakari == it &&
-                            !tyoskentelyjakso.hasTapahtumia()
-                        ) {
-                            tyoskentelyjaksoRepository.deleteById(id)
-                            return true
-                        }
-                    }
+    override fun delete(id: Long, opintooikeusId: Long): Boolean {
+        tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
+            if (!it.hasTapahtumia()) {
+                tyoskentelyjaksoRepository.deleteById(it.id!!)
+                return true
             }
         }
         return false
     }
 
     @Transactional(readOnly = true)
-    override fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO {
+    override fun getTilastot(opintooikeusId: Long): TyoskentelyjaksotTilastotDTO {
         val tilastotCounter = TilastotCounter()
         val kaytannonKoulutusSuoritettuMap =
             KaytannonKoulutusTyyppi.values().map { it to 0.0 }.toMap().toMutableMap()
         val tyoskentelyjaksotSuoritettu =
             mutableSetOf<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>()
         val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+            tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeusId)
         val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
             hyvaksiluettavatPerYearMap =
                 tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(tyoskentelyjaksot)
         }
+        val opintooikeus = opintooikeusRepository.findById(opintooikeusId).get()
 
         tyoskentelyjaksot.map {
             getTyoskentelyjaksoTilastot(
@@ -289,9 +266,8 @@ class TyoskentelyjaksoServiceImpl(
                 tyoskentelyjaksotSuoritettu
             )
         }
-        
-        val opintooikeus = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.opintooikeudet?.firstOrNull()
-        val yhteensaVaadittuVahintaan = opintooikeus?.opintoopas?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
+
+        val yhteensaVaadittuVahintaan = opintooikeus.opintoopas?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
         val arvioErikoistumiseenHyvaksyttavista =
             min(yhteensaVaadittuVahintaan / 2, tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu) +
                 tilastotCounter.nykyiselleErikoisalalleSuoritettu
@@ -306,14 +282,14 @@ class TyoskentelyjaksoServiceImpl(
                 yhteensaVaadittuVahintaan - arvioErikoistumiseenHyvaksyttavista
             ),
             koulutustyypit = TyoskentelyjaksotTilastotKoulutustyypitDTO(
-                terveyskeskusVaadittuVahintaan = opintooikeus?.opintoopas?.terveyskeskuskoulutusjaksonVahimmaispituus
+                terveyskeskusVaadittuVahintaan = opintooikeus.opintoopas?.terveyskeskuskoulutusjaksonVahimmaispituus
                     ?: 0.0,
                 terveyskeskusSuoritettu = tilastotCounter.terveyskeskusSuoritettu,
-                yliopistosairaalaVaadittuVahintaan = opintooikeus?.opintoopas?.yliopistosairaalajaksonVahimmaispituus
+                yliopistosairaalaVaadittuVahintaan = opintooikeus.opintoopas?.yliopistosairaalajaksonVahimmaispituus
                     ?: 0.0,
                 yliopistosairaalaSuoritettu = tilastotCounter.yliopistosairaalaSuoritettu,
                 yliopistosairaaloidenUlkopuolinenVaadittuVahintaan =
-                opintooikeus?.opintoopas?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus ?: 0.0,
+                opintooikeus.opintoopas?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus ?: 0.0,
                 yliopistosairaaloidenUlkopuolinenSuoritettu = tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu,
                 yhteensaVaadittuVahintaan = yhteensaVaadittuVahintaan,
                 yhteensaSuoritettu = arvioErikoistumiseenHyvaksyttavista
@@ -331,10 +307,10 @@ class TyoskentelyjaksoServiceImpl(
 
     override fun updateLiitettyKoejaksoon(
         id: Long,
-        userId: String,
+        opintooikeusId: Long,
         liitettyKoejaksoon: Boolean
     ): TyoskentelyjaksoDTO? {
-        tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)?.let {
+        tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
             it.liitettyKoejaksoon = liitettyKoejaksoon
             tyoskentelyjaksoRepository.save(it)
             return tyoskentelyjaksoMapper.toDto(it)
@@ -398,12 +374,12 @@ class TyoskentelyjaksoServiceImpl(
 
     override fun validatePaattymispaiva(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
-        userId: String,
+        opintooikeusId: Long
     ): Boolean {
         return tyoskentelyjaksoDTO.id?.let { tyoskentelyjaksoId ->
-            tyoskentelyjaksoRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(
+            tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(
                 tyoskentelyjaksoId,
-                userId
+                opintooikeusId
             )
         }?.let { tyoskentelyjakso ->
             val paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva ?: return true

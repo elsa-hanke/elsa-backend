@@ -2,10 +2,7 @@ package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.service.dto.OpintooikeusDTO
-import org.mapstruct.Mapper
-import org.mapstruct.Mapping
-import org.mapstruct.Mappings
-import org.mapstruct.ReportingPolicy
+import org.mapstruct.*
 
 @Mapper(
     componentModel = "spring",
@@ -32,7 +29,21 @@ interface OpintooikeusMapper :
     override fun toDto(entity: Opintooikeus): OpintooikeusDTO
 
     @Mappings(
-        Mapping(source = "erikoisalaId", target = "erikoisala")
+        Mapping(source = "erikoisalaId", target = "erikoisala"),
+        Mapping(target = "tyoskentelyjaksot", ignore = true)
     )
     override fun toEntity(dto: OpintooikeusDTO): Opintooikeus
+
+    @Named("id")
+    @BeanMapping(ignoreByDefault = true)
+    @Mappings(
+        Mapping(target = "id", source = "id")
+    )
+    fun toDtoId(opintooikeus: Opintooikeus): OpintooikeusDTO
+
+    fun fromId(id: Long?) = id?.let {
+        val opintooikeus = Opintooikeus()
+        opintooikeus.id = id
+        opintooikeus
+    }
 }

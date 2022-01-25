@@ -47,14 +47,14 @@ class OverlappingKeskeytysaikaValidationServiceTest {
     ) {
         `when`(tyoskentelyjaksoMock.keskeytykset).thenReturn(keskeytykset)
         `when`(
-            tyoskentelyjaksoRepositoryMock.findOneByIdAndErikoistuvaLaakariKayttajaUserIdEagerWithKeskeytykset(1, "")
+            tyoskentelyjaksoRepositoryMock.findOneByIdAndOpintooikeusIdEagerWithKeskeytykset(1, 1L)
         ).thenReturn(tyoskentelyjaksoMock)
 
         val validator = OverlappingKeskeytysaikaValidationServiceImpl(
             keskeytysaikaMapper, tyoskentelyjaksoRepositoryMock
         )
 
-        val validationResult = validator.validateKeskeytysaika("", keskeytysaikaDTO)
+        val validationResult = validator.validateKeskeytysaika(1L, keskeytysaikaDTO)
         assertThat(validationResult).isEqualTo(expectedResult)
     }
 

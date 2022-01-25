@@ -36,10 +36,6 @@ data class ErikoistuvaLaakari(
 
     @OneToMany(mappedBy = "erikoistuvaLaakari")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf(),
-
-    @OneToMany(mappedBy = "erikoistuvaLaakari")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var teoriakoulutukset: MutableSet<Teoriakoulutus>? = mutableSetOf(),
 
     @NotNull

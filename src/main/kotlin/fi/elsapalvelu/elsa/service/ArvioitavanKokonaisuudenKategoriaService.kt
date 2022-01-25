@@ -11,7 +11,7 @@ interface ArvioitavanKokonaisuudenKategoriaService {
 
     fun findAll(): List<ArvioitavanKokonaisuudenKategoriaDTO>
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<ArvioitavanKokonaisuudenKategoriaDTO>
+    fun findAllByOpintooikeusId(opintooikeusId: Long): List<ArvioitavanKokonaisuudenKategoriaDTO>
 
     fun findOne(id: Long): Optional<ArvioitavanKokonaisuudenKategoriaDTO>
 

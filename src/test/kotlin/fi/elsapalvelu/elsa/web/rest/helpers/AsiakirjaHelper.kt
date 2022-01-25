@@ -42,7 +42,7 @@ class AsiakirjaHelper {
                 em.persist(erikoistuvaLaakari)
                 em.flush()
             }
-            asiakirja.erikoistuvaLaakari = erikoistuvaLaakari
+            asiakirja.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return asiakirja
         }

@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.service.TeoriakoulutusService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.KoulutusjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.TeoriakoulutusMapper
@@ -104,10 +103,9 @@ class TeoriakoulutusServiceImpl(
 
         asiakirjat?.let {
             val asiakirjaEntities = it.map { asiakirjaDTO ->
-                asiakirjaDTO.erikoistuvaLaakariId = kirjautunutErikoistuvaLaakari.id
-                asiakirjaDTO.lisattypvm = LocalDateTime.now()
-
                 asiakirjaMapper.toEntity(asiakirjaDTO).apply {
+                    this.lisattypvm = LocalDateTime.now()
+                    this.opintooikeus = kirjautunutErikoistuvaLaakari.getOpintooikeusKaytossa()
                     this.teoriakoulutus = teoriakoulutus
                     this.asiakirjaData?.data =
                         BlobProxy.generateProxy(

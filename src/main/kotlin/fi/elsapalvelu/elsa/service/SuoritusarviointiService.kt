@@ -10,13 +10,13 @@ interface SuoritusarviointiService {
 
     fun save(suoritusarviointiDTO: SuoritusarviointiDTO, userId: String): SuoritusarviointiDTO
 
-    fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    fun findAllByTyoskentelyjaksoOpintooikeusId(
+        opintooikeusId: Long
     ): List<SuoritusarviointiDTO>
 
-    fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+    fun findOneByIdAndTyoskentelyjaksoOpintooikeusId(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     ): Optional<SuoritusarviointiDTO>
 
     fun findOneByIdAndArvioinninAntajauserId(
@@ -24,9 +24,9 @@ interface SuoritusarviointiService {
         userId: String
     ): Optional<SuoritusarviointiDTO>
 
-    fun findAsiakirjaBySuoritusarviointiIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+    fun findAsiakirjaBySuoritusarviointiIdAndTyoskentelyjaksoOpintooikeusId(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     ): AsiakirjaDTO?
 
     fun findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(
@@ -40,5 +40,5 @@ interface SuoritusarviointiService {
         paattymispaiva: LocalDate
     ): List<SuoritusarviointiDTO>
 
-    fun delete(id: Long, userId: String)
+    fun delete(id: Long, opintooikeusId: Long)
 }

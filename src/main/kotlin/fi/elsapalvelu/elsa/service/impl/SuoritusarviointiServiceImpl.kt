@@ -56,7 +56,7 @@ class SuoritusarviointiServiceImpl(
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         if (kirjautunutErikoistuvaLaakari != null
-            && kirjautunutErikoistuvaLaakari == suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari
+            && kirjautunutErikoistuvaLaakari == suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari
         ) {
             suoritusarviointi = handleErikoistuva(suoritusarviointiDTO, suoritusarviointi)
         }
@@ -151,7 +151,7 @@ class SuoritusarviointiServiceImpl(
         }
 
         mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.erikoistuvaLaakari?.kayttaja?.id!!)
+            kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                 .get().user!!,
             templateName,
             titleKey,
@@ -162,32 +162,32 @@ class SuoritusarviointiServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    override fun findAllByTyoskentelyjaksoOpintooikeusId(
+        opintooikeusId: Long
     ): List<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
-            userId
+        return suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(
+            opintooikeusId
         ).map(suoritusarviointiMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+    override fun findOneByIdAndTyoskentelyjaksoOpintooikeusId(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     ): Optional<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+        return suoritusarviointiRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(
             id,
-            userId
+            opintooikeusId
         ).map(suoritusarviointiMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findAsiakirjaBySuoritusarviointiIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+    override fun findAsiakirjaBySuoritusarviointiIdAndTyoskentelyjaksoOpintooikeusId(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     ): AsiakirjaDTO? {
         var asiakirjaDTO: AsiakirjaDTO? = null
-        suoritusarviointiRepository.findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id, userId)
+        suoritusarviointiRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId)
             .ifPresent {
                 asiakirjaDTO = mapAsiakirjaDTOIfExists(it)
             }
@@ -245,15 +245,9 @@ class SuoritusarviointiServiceImpl(
         ).map(suoritusarviointiMapper::toDto)
     }
 
-    override fun delete(id: Long, userId: String) {
-        suoritusarviointiRepository.findOneById(id).ifPresent {
-            val kirjautunutErikoistuvaLaakari =
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-            val canDelete = it.arviointiAika == null && !it.lukittu
-            if (kirjautunutErikoistuvaLaakari != null
-                && kirjautunutErikoistuvaLaakari == it.tyoskentelyjakso?.erikoistuvaLaakari
-                && canDelete
-            ) {
+    override fun delete(id: Long, opintooikeusId: Long) {
+        suoritusarviointiRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId).ifPresent {
+            if (it.arviointiAika == null && !it.lukittu) {
                 suoritusarviointiRepository.deleteById(id)
             }
         }

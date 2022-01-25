@@ -5,10 +5,7 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KeskeytysaikaRepository
-import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
-import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
@@ -61,6 +58,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 
     @Autowired
+    private lateinit var opintooikeusRepository: OpintooikeusRepository
+
+    @Autowired
     private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
 
     @Autowired
@@ -98,8 +98,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
     private lateinit var user: User
 
-    private lateinit var erikoisala: Erikoisala
-
     @BeforeEach
     fun setup() {
         MockitoAnnotations.openMocks(this)
@@ -133,14 +131,18 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
                 .with(csrf())
         ).andExpect(status().isCreated)
 
-        val kirjautunutErikoistuvaLaakariId =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)?.id
+        val kirjautunutErikoistuvaLaakari =
+            erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        val opintooikeusKaytossa =
+            opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(user.id!!)
+        assertThat(kirjautunutErikoistuvaLaakari?.getOpintooikeusKaytossa()).isNotNull
+        assertThat(kirjautunutErikoistuvaLaakari?.getOpintooikeusKaytossa()).isEqualTo(opintooikeusKaytossa)
         val defaultTyoskentelypaikka = TyoskentelypaikkaHelper.createEntity(em)
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate + 1)
         val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
-        assertThat(testTyoskentelyjakso.erikoistuvaLaakari?.id).isEqualTo(
-            kirjautunutErikoistuvaLaakariId
+        assertThat(testTyoskentelyjakso.opintooikeus?.id).isEqualTo(
+            kirjautunutErikoistuvaLaakari?.getOpintooikeusKaytossa()?.id
         )
         assertThat(testTyoskentelyjakso.tyoskentelypaikka?.nimi).isEqualTo(defaultTyoskentelypaikka.nimi)
         assertThat(testTyoskentelyjakso.tyoskentelypaikka?.tyyppi).isEqualTo(
@@ -176,28 +178,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         assertThat(testAsiakirja2.asiakirjaData?.data?.binaryStream?.readBytes()).isEqualTo(
             AsiakirjaHelper.ASIAKIRJA_PNG_DATA
         )
-    }
-
-    @Test
-    @Transactional
-    fun createTyoskentelyjaksoForAnotherUser() {
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
-        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
-
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
-
-        val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
-        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
-        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
-
-        restTyoskentelyjaksoMockMvc.perform(
-            multipart("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson)
-                .with(csrf())
-        ).andExpect(status().isBadRequest)
-
-        val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
-        assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
@@ -1208,7 +1188,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
                 em.persist(erikoistuvaLaakari)
                 em.flush()
             }
-            tyoskentelyjakso.erikoistuvaLaakari = erikoistuvaLaakari
+            tyoskentelyjakso.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return tyoskentelyjakso
         }
@@ -1243,7 +1223,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             } else {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
-            tyoskentelyjakso.erikoistuvaLaakari = erikoistuvaLaakari
+            tyoskentelyjakso.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return tyoskentelyjakso
         }

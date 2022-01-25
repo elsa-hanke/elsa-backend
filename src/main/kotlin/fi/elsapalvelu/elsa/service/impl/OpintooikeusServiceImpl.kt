@@ -6,6 +6,9 @@ import fi.elsapalvelu.elsa.service.dto.OpintooikeusDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintooikeusMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import javax.persistence.EntityNotFoundException
+
+private const val ENTITY_NOT_FOUND_ERROR_MSG = "Opinto-oikeutta ei löydy"
 
 @Service
 @Transactional
@@ -15,5 +18,21 @@ class OpintooikeusServiceImpl(
 ) : OpintooikeusService {
     override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<OpintooikeusDTO> {
         return opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId).map(opintooikeusMapper::toDto)
+    }
+
+    override fun findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId: String): OpintooikeusDTO {
+        opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId)?.let {
+            return opintooikeusMapper.toDto(it)
+        }
+
+        throw EntityNotFoundException(ENTITY_NOT_FOUND_ERROR_MSG)
+    }
+
+    override fun findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId: String): Long {
+        opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId)?.let {
+            return it.id!!
+        }
+
+        throw EntityNotFoundException(ENTITY_NOT_FOUND_ERROR_MSG)
     }
 }

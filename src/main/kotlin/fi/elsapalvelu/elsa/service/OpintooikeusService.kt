@@ -4,4 +4,8 @@ import fi.elsapalvelu.elsa.service.dto.OpintooikeusDTO
 
 interface OpintooikeusService {
     fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String) : List<OpintooikeusDTO>
+
+    fun findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId: String): OpintooikeusDTO
+
+    fun findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId: String): Long
 }

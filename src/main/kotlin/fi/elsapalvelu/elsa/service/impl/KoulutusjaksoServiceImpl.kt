@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.KoulutusjaksoRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.ArvioitavaKokonaisuusService
 import fi.elsapalvelu.elsa.service.KoulutusjaksoService
 import fi.elsapalvelu.elsa.service.KoulutussuunnitelmaService
@@ -18,18 +19,20 @@ class KoulutusjaksoServiceImpl(
     private val koulutussuunnitelmaService: KoulutussuunnitelmaService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val arvioitavaKokonaisuusService: ArvioitavaKokonaisuusService,
+    private val opintooikeusRepository: OpintooikeusRepository
 ) : KoulutusjaksoService {
 
     override fun save(
         koulutusjaksoDTO: KoulutusjaksoDTO,
         userId: String
     ): KoulutusjaksoDTO? {
-        return koulutussuunnitelmaService.findOneByErikoistuvaLaakariKayttajaUserId(userId)?.let {
-            koulutusjaksoDTO.koulutussuunnitelma = it
+        return koulutussuunnitelmaService.findOneByErikoistuvaLaakariKayttajaUserId(userId)?.let { koulutussuunnitelmaDTO ->
+            koulutusjaksoDTO.koulutussuunnitelma = koulutussuunnitelmaDTO
+            val opintooikeus = opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId)
 
             koulutusjaksoDTO.tyoskentelyjaksot.filter {
                 it.id?.let { tyoskentelyjaksoId ->
-                    tyoskentelyjaksoService.findOne(tyoskentelyjaksoId, userId)
+                    tyoskentelyjaksoService.findOne(tyoskentelyjaksoId, opintooikeus?.id!!)
                 }
                     ?.let { true } ?: false
             }

@@ -33,8 +33,6 @@ data class TyoskentelyjaksoDTO(
 
     var omaaErikoisalaaTukevaId: Long? = null,
 
-    var erikoistuvaLaakariId: Long? = null,
-
     var omaaErikoisalaaTukeva: ErikoisalaDTO? = null,
 
     var tapahtumia: Boolean? = null,

@@ -53,7 +53,11 @@ data class Opintooikeus(
 
     @NotNull
     @ManyToOne(optional = false)
-    var asetus: Asetus? = null
+    var asetus: Asetus? = null,
+
+    @OneToMany(mappedBy = "opintooikeus")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf()
 
 ) : Serializable {
 

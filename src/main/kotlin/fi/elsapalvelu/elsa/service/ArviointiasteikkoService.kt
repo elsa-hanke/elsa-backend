@@ -4,5 +4,5 @@ import fi.elsapalvelu.elsa.service.dto.ArviointiasteikkoDTO
 
 interface ArviointiasteikkoService {
 
-    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): ArviointiasteikkoDTO?
+    fun findByOpintooikeusId(opintooikeusId: Long): ArviointiasteikkoDTO?
 }

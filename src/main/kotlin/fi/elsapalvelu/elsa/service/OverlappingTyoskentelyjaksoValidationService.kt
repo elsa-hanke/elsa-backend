@@ -5,15 +5,15 @@ import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 
 interface OverlappingTyoskentelyjaksoValidationService {
 
-    fun validateTyoskentelyjakso(userId: String, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO): Boolean
+    fun validateTyoskentelyjakso(opintooikeusId: Long, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO): Boolean
 
     fun validateKeskeytysaika(
-        userId: String,
+        opintooikeusId: Long,
         keskeytysaikaDTO: KeskeytysaikaDTO
     ): Boolean
 
     fun validateKeskeytysaikaDelete(
-        userId: String,
+        opintooikeusId: Long,
         keskeytysaikaId: Long
     ): Boolean
 
