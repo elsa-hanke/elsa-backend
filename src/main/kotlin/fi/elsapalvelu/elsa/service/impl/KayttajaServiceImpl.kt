@@ -51,7 +51,11 @@ class KayttajaServiceImpl(
             var kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
             kayttaja.user = user
             val opintooikeus =
-                requireNotNull(opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserId(erikoistuvaUserId))
+                requireNotNull(
+                    opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(
+                        erikoistuvaUserId
+                    )
+                )
             val erikoistuvanYliopisto = requireNotNull(opintooikeus.yliopisto)
             val erikoistuvanErikoisala = requireNotNull(opintooikeus.erikoisala)
             val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
@@ -87,7 +91,7 @@ class KayttajaServiceImpl(
     @Transactional(readOnly = true)
     override fun findKouluttajat(userId: String): List<KayttajaDTO> {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
-            val opintooikeus = it.opintooikeudet.firstOrNull()
+            val opintooikeus = it.getOpintooikeusKaytossa()
             return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
                 listOf(KOULUTTAJA),
                 opintooikeus?.yliopisto?.id,
@@ -99,7 +103,7 @@ class KayttajaServiceImpl(
     @Transactional(readOnly = true)
     override fun findVastuuhenkilot(userId: String): List<KayttajaDTO> {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
-            val opintooikeus = it.opintooikeudet.firstOrNull()
+            val opintooikeus = it.getOpintooikeusKaytossa()
             return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
                 listOf(VASTUUHENKILO),
                 opintooikeus?.yliopisto?.id,
@@ -111,7 +115,7 @@ class KayttajaServiceImpl(
     @Transactional(readOnly = true)
     override fun findKouluttajatAndVastuuhenkilot(userId: String): List<KayttajaDTO> {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
-            val opintooikeus = it.opintooikeudet.firstOrNull()
+            val opintooikeus = it.getOpintooikeusKaytossa()
             return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
                 listOf(KOULUTTAJA, VASTUUHENKILO),
                 opintooikeus?.yliopisto?.id,
@@ -136,7 +140,11 @@ class KayttajaServiceImpl(
     ): KayttajaDTO? {
         return kayttajaRepository.findOneByUserEmail(kouluttajaEmail).orElse(null)?.let {
             val opintooikeus =
-                requireNotNull(opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserId(erikoistuvaUserId))
+                requireNotNull(
+                    opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(
+                        erikoistuvaUserId
+                    )
+                )
             val erikoistuvanYliopisto = requireNotNull(opintooikeus.yliopisto)
             val erikoistuvanErikoisala = requireNotNull(opintooikeus.erikoisala)
 

@@ -32,7 +32,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val arvioitavaKokonaisuusService: ArvioitavaKokonaisuusService,
     private val kayttajaService: KayttajaService,
-    private val arviointiasteikkoService: ArviointiasteikkoService
+    private val arviointiasteikkoService: ArviointiasteikkoService,
+    private val opintooikeusService: OpintooikeusService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -43,16 +44,16 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<SuoritusarvioinnitOptionsDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val id = user.id!!
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val options = SuoritusarvioinnitOptionsDTO()
         options.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+            .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
         options.arvioitavatKokonaisuudet =
-            arvioitavaKokonaisuusService.findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+            arvioitavaKokonaisuusService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
         options.tapahtumat = suoritusarviointiService
-            .findAllByTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
+            .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
         options.kouluttajatAndVastuuhenkilot =
-            kayttajaService.findKouluttajatAndVastuuhenkilot(id).toMutableSet()
+            kayttajaService.findKouluttajatAndVastuuhenkilot(user.id!!).toMutableSet()
 
         return ResponseEntity.ok(options)
     }
@@ -63,11 +64,11 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<List<SuoritusarviointiDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val id = user.id!!
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         return ResponseEntity.ok(
             suoritusarviointiQueryService
-                .findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(criteria, id)
+                .findByCriteriaAndTyoskentelyjaksoOpintooikeusId(criteria, opintooikeusId)
         )
     }
 
@@ -76,15 +77,15 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<ArviointipyyntoFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val id = user.id!!
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val form = ArviointipyyntoFormDTO()
         form.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(id).toMutableSet()
-        form.kunnat = kuntaService.findAll().toMutableSet()
+            .findAllByOpintooikeusId(opintooikeusId).toSet()
+        form.kunnat = kuntaService.findAll().toSet()
         form.erikoisalat =
-            erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            erikoisalaService.findAll().toSet()
         form.arvioitavanKokonaisuudenKategoriat =
-            arvioitavaKokonaisuusService.findAllByErikoistuvaLaakariKayttajaUserId(id)
+            arvioitavaKokonaisuusService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
                 .groupBy { it.kategoria }.map {
                     ArvioitavanKokonaisuudenKategoriaDTO(
                         it.key?.id,
@@ -92,12 +93,12 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                         it.key?.jarjestysnumero,
                         it.key?.voimassaoloAlkaa,
                         it.key?.voimassaoloLoppuu,
-                        it.value.toMutableSet()
+                        it.value.toSet()
                     )
-                }.toMutableSet()
+                }.toSet()
 
         form.kouluttajatAndVastuuhenkilot =
-            kayttajaService.findKouluttajatAndVastuuhenkilot(id).toMutableSet()
+            kayttajaService.findKouluttajatAndVastuuhenkilot(user.id!!).toSet()
         return ResponseEntity.ok(form)
     }
 
@@ -107,10 +108,11 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         validateSuoritusarviointiDTO(suoritusarviointiDTO)
 
         val tyoskentelyjakso = tyoskentelyjaksoService
-            .findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!, user.id!!)
+            .findOne(suoritusarviointiDTO.tyoskentelyjaksoId!!, opintooikeusId)
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
 
@@ -119,14 +121,6 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
                 ENTITY_NAME,
                 "dataillegal.uuden-arviointipyynnon-pitaa-kohdistua-johonkin-erikoistuvan-tyoskentelyjaksoon"
-            )
-        }
-
-        if (tyoskentelyjakso.erikoistuvaLaakariId != kirjautunutErikoistuvaLaakari.id) {
-            throw BadRequestAlertException(
-                "Uuden arviointipyynnön pitää kohdistua johonkin erikoistuvan työskentelyjaksoon.",
-                ENTITY_NAME,
-                "dataillegal-uuden-arviointipyynnon-pitaa-kohdistua-johonkin-erikoistuvan-tyoskentelyjaksoon"
             )
         }
         if (tyoskentelyjakso.alkamispaiva!! > suoritusarviointiDTO.tapahtumanAjankohta!! ||
@@ -142,9 +136,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
             )
         }
 
-        suoritusarviointiDTO.arviointiasteikko = arviointiasteikkoService.findByErikoistuvaLaakariKayttajaUserId(
-            user.id!!
-        )
+        suoritusarviointiDTO.arviointiasteikko = arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
         suoritusarviointiDTO.pyynnonAika = LocalDate.now(ZoneId.systemDefault())
 
         val result = suoritusarviointiService.save(suoritusarviointiDTO)
@@ -222,8 +214,9 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val suoritusarviointiDTO = suoritusarviointiService
-            .findOneByIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(id, user.id!!)
+            .findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId)
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
     }
 
@@ -233,10 +226,11 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val asiakirja =
-            suoritusarviointiService.findAsiakirjaBySuoritusarviointiIdAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+            suoritusarviointiService.findAsiakirjaBySuoritusarviointiIdAndTyoskentelyjaksoOpintooikeusId(
                 id,
-                user.id!!
+                opintooikeusId
             )
 
         if (asiakirja != null) {
@@ -254,7 +248,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
-        suoritusarviointiService.delete(id, user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        suoritusarviointiService.delete(id, opintooikeusId)
         return ResponseEntity
             .noContent()
             .build()

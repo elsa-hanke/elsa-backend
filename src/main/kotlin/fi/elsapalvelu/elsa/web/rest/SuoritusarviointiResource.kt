@@ -2,14 +2,12 @@ package fi.elsapalvelu.elsa.web.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
-import fi.elsapalvelu.elsa.service.FileValidationService
-import fi.elsapalvelu.elsa.service.SuoritusarviointiQueryService
-import fi.elsapalvelu.elsa.service.SuoritusarviointiService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -17,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
 import java.security.Principal
 import javax.validation.Valid
@@ -28,7 +27,8 @@ open class SuoritusarviointiResource(
     private val suoritusarviointiQueryService: SuoritusarviointiQueryService,
     private val userService: UserService,
     private val objectMapper: ObjectMapper,
-    private val fileValidationService: FileValidationService
+    private val fileValidationService: FileValidationService,
+    private val opintooikeusService: OpintooikeusService
 ) {
 
     @GetMapping("/suoritusarvioinnit")
@@ -86,19 +86,15 @@ open class SuoritusarviointiResource(
             objectMapper.readValue(it, SuoritusarviointiDTO::class.java)
         }?.let { suoritusarviointiDTO ->
             validateDTO(suoritusarviointiDTO)
-            suoritusarviointiDTO.arviointiAsiakirja = getMappedFile(arviointiFile, user.id!!)
+            suoritusarviointiDTO.arviointiAsiakirja = getMappedFile(arviointiFile)
             val result = suoritusarviointiService.save(suoritusarviointiDTO, user.id!!)
             return ResponseEntity.ok(result)
-        } ?: throw BadRequestAlertException(
-            "Arvioinnin tallentaminen epäonnistui.",
-            ENTITY_NAME,
-            "dataillegal.arvioinnin-tallentaminen-epaonnistui"
-        )
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
-    private fun getMappedFile(arviointiFile: MultipartFile?, userId: String): AsiakirjaDTO? {
+    private fun getMappedFile(arviointiFile: MultipartFile?): AsiakirjaDTO? {
         return arviointiFile?.let {
-            if (!fileValidationService.validate(listOf(it), userId, listOf(MediaType.APPLICATION_PDF_VALUE))) {
+            if (!fileValidationService.validate(listOf(it), listOf(MediaType.APPLICATION_PDF_VALUE))) {
                 throw BadRequestAlertException(
                     "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
                     ENTITY_NAME,

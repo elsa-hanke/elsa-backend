@@ -19,16 +19,14 @@ class SuoritusarviointiQueryService(
 ) : QueryService<Suoritusarviointi>() {
 
     @Transactional(readOnly = true)
-    fun findByCriteriaAndTyoskentelyjaksoErikoistuvaLaakariKayttajaUserId(
+    fun findByCriteriaAndTyoskentelyjaksoOpintooikeusId(
         criteria: SuoritusarviointiCriteria?,
-        userId: String,
+        opintooikeusId: Long,
     ): List<SuoritusarviointiDTO> {
         val specification = createSpecification(criteria) { root, _, cb ->
-            val user: Join<Kayttaja, User> = root.join(Suoritusarviointi_.tyoskentelyjakso)
-                .join(Tyoskentelyjakso_.erikoistuvaLaakari)
-                .join(ErikoistuvaLaakari_.kayttaja)
-                .join(Kayttaja_.user)
-            cb.equal(user.get(User_.id), userId)
+            val opintooikeus: Join<Tyoskentelyjakso, Opintooikeus> = root.join(Suoritusarviointi_.tyoskentelyjakso)
+                .join(Tyoskentelyjakso_.opintooikeus)
+            cb.equal(opintooikeus.get(Opintooikeus_.id), opintooikeusId)
         }
 
         return suoritusarviointiRepository.findAll(specification)

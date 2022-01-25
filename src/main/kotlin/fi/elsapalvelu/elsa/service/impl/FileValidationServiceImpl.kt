@@ -18,14 +18,26 @@ class FileValidationServiceImpl(
 
     override fun validate(
         files: List<MultipartFile>,
-        userId: String,
+        opintooikeusId: Long,
         allowedContentTypes: List<String>?
     ): Boolean {
         val allowedContentTypesOrDefault = allowedContentTypes ?: defaultAllowedContentTypes
-        val existingFileNames = asiakirjaService.findAllByErikoistuvaLaakariUserId(userId).map { it.nimi }
+        val existingFileNames = asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map { it.nimi }
         if (files.any {
                 it.originalFilename?.toString() in existingFileNames ||
                     it.contentType?.toString() !in allowedContentTypesOrDefault ||
+                    it.name.length > MAXIMUM_FILE_NAME_LENGTH
+            }) {
+            return false
+        }
+
+        return true
+    }
+
+    override fun validate(files: List<MultipartFile>, allowedContentTypes: List<String>?): Boolean {
+        val allowedContentTypesOrDefault = allowedContentTypes ?: defaultAllowedContentTypes
+        if (files.any {
+                it.contentType?.toString() !in allowedContentTypesOrDefault ||
                     it.name.length > MAXIMUM_FILE_NAME_LENGTH
             }) {
             return false

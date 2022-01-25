@@ -4,10 +4,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
-import fi.elsapalvelu.elsa.service.FileValidationService
-import fi.elsapalvelu.elsa.service.OpintoopasService
-import fi.elsapalvelu.elsa.service.TeoriakoulutusService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutuksetDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
@@ -30,7 +27,8 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     private val userService: UserService,
     private val fileValidationService: FileValidationService,
     private val objectMapper: ObjectMapper,
-    private val opintoopasService: OpintoopasService
+    private val opintoopasService: OpintoopasService,
+    private val opintooikeusService: OpintooikeusService
 ) {
 
     companion object {
@@ -45,6 +43,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         if (teoriakoulutusDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi teoriakoulutus ei saa sisältää ID:tä",
@@ -53,7 +52,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
             )
         }
 
-        val todistukset = getMappedFiles(todistusFiles, user.id!!) ?: mutableSetOf()
+        val todistukset = getMappedFiles(todistusFiles, opintooikeusId) ?: mutableSetOf()
         return teoriakoulutusService.save(teoriakoulutusDTO, todistukset, null, user.id!!)?.let {
             ResponseEntity
                 .created(URI("/api/erikoistuva-laakari/teoriakoulutukset/${it.id}"))
@@ -70,6 +69,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         if (teoriakoulutusDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
         }
@@ -82,7 +82,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
             throw BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound")
         }
 
-        val todistukset = getMappedFiles(todistusFiles, user.id!!) ?: mutableSetOf()
+        val todistukset = getMappedFiles(todistusFiles, opintooikeusId) ?: mutableSetOf()
         val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let {
             objectMapper.readValue(it, mutableSetOf<Int>()::class.java)
         }
@@ -131,10 +131,10 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
 
     private fun getMappedFiles(
         files: List<MultipartFile>?,
-        userId: String
+        opintooikeusId: Long
     ): MutableSet<AsiakirjaDTO>? {
         files?.let {
-            if (!fileValidationService.validate(it, userId)) {
+            if (!fileValidationService.validate(it, opintooikeusId)) {
                 throw BadRequestAlertException(
                     "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
                     ASIAKIRJA_ENTITY_NAME,

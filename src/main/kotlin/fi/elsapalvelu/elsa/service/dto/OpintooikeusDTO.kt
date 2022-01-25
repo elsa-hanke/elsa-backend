@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import com.sun.istack.NotNull
 import java.io.Serializable
 import java.time.LocalDate
 

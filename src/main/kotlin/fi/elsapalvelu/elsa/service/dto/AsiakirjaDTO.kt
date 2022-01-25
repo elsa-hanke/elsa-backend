@@ -7,8 +7,6 @@ import javax.validation.constraints.NotNull
 data class AsiakirjaDTO (
     var id: Long? = null,
 
-    var erikoistuvaLaakariId: Long? = null,
-
     var tyoskentelyjaksoId: Long? = null,
 
     @get: NotNull

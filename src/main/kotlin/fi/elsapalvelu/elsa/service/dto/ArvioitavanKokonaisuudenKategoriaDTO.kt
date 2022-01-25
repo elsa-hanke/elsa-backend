@@ -18,7 +18,7 @@ data class ArvioitavanKokonaisuudenKategoriaDTO(
 
     var voimassaoloLoppuu: LocalDate? = null,
 
-    var arvioitavatKokonaisuudet: MutableSet<ArvioitavaKokonaisuusDTO>? = null
+    var arvioitavatKokonaisuudet: Set<ArvioitavaKokonaisuusDTO>? = null
 
 ) : Serializable {
 

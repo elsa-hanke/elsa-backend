@@ -170,7 +170,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(suoritemerkintaDTO))
                 .with(csrf())
-        ).andExpect(status().isBadRequest)
+        ).andExpect(status().is5xxServerError)
 
         val suoritemerkintaList = suoritemerkintaRepository.findAll()
         assertThat(suoritemerkintaList).hasSize(databaseSizeBeforeCreate)
@@ -305,7 +305,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(suoritemerkintaDTO))
                 .with(csrf())
-        ).andExpect(status().isBadRequest)
+        ).andExpect(status().is5xxServerError)
 
         val suoritemerkintaList = suoritemerkintaRepository.findAll()
         assertThat(suoritemerkintaList).hasSize(databaseSizeBeforeCreate)
@@ -425,7 +425,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         assertNotNull(id)
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
-        erikoistuvaLaakari.opintooikeudet.firstOrNull()?.erikoisala =
+        erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala =
             suoritemerkinta.suorite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
@@ -453,7 +453,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         assertNotNull(id)
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
-        erikoistuvaLaakari.opintooikeudet.firstOrNull()?.erikoisala =
+        erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala =
             suoritemerkinta.suorite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
@@ -541,10 +541,9 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             } else {
                 tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class)[0]
             }
-            suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
 
-            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
-            suoritemerkinta.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+            suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
+            suoritemerkinta.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
 
             return suoritemerkinta
         }
@@ -579,10 +578,9 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             } else {
                 tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class)[0]
             }
-            suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
 
-            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
-            suoritemerkinta.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+            suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
+            suoritemerkinta.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
 
             return suoritemerkinta
         }

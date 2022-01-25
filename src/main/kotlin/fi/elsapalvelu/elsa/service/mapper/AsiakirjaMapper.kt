@@ -8,7 +8,7 @@ import org.mapstruct.*
     componentModel = "spring",
     uses = [
         TyoskentelyjaksoMapper::class,
-        ErikoistuvaLaakariMapper::class,
+        OpintooikeusMapper::class,
         AsiakirjaDataMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
@@ -16,14 +16,12 @@ import org.mapstruct.*
 interface AsiakirjaMapper : EntityMapper<AsiakirjaDTO, Asiakirja> {
 
     @Mappings(
-        Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId"),
         Mapping(source = "tyoskentelyjakso.id", target = "tyoskentelyjaksoId"),
     )
     override fun toDto(entity: Asiakirja): AsiakirjaDTO
 
     @Mappings(
-        Mapping(source = "tyoskentelyjaksoId", target = "tyoskentelyjakso"),
-        Mapping(source = "erikoistuvaLaakariId", target = "erikoistuvaLaakari")
+        Mapping(source = "tyoskentelyjaksoId", target = "tyoskentelyjakso")
     )
     override fun toEntity(dto: AsiakirjaDTO): Asiakirja
 

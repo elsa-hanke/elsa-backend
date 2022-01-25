@@ -24,6 +24,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
     private val kuntaService: KuntaService,
     private val userService: UserService,
     private val arvioitavanKokonaisuudenKategoriaService: ArvioitavanKokonaisuudenKategoriaService,
+    private val opintooikeusService: OpintooikeusService
 ) {
 
     companion object {
@@ -136,10 +137,11 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val form = KoulutusjaksoFormDTO()
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
         form.kunnat = kuntaService.findAll().toMutableSet()
         form.arvioitavanKokonaisuudenKategoriat = arvioitavanKokonaisuudenKategoriaService
             .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()

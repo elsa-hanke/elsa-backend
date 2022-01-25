@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.helpers
 
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Keskeytysaika
+import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.Tyoskentelypaikka
 import org.mockito.Mockito.`when`
@@ -27,7 +27,7 @@ class TyoskentelyjaksoMockHelper {
             `when`(tyoskentelyjaksoMock.osaaikaprosentti).thenReturn(osaaikaprosentti)
             `when`(tyoskentelyjaksoMock.keskeytykset).thenReturn(keskeytykset)
             `when`(tyoskentelyjaksoMock.tyoskentelypaikka).thenReturn(mock(Tyoskentelypaikka::class.java))
-            `when`(tyoskentelyjaksoMock.erikoistuvaLaakari).thenReturn(mock(ErikoistuvaLaakari::class.java))
+            `when`(tyoskentelyjaksoMock.opintooikeus).thenReturn(mock(Opintooikeus::class.java))
 
             return tyoskentelyjaksoMock
         }
@@ -48,7 +48,7 @@ class TyoskentelyjaksoMockHelper {
                 keskeytykset = keskeytykset
             )
             tyoskentelyjakso.tyoskentelypaikka = mock(Tyoskentelypaikka::class.java)
-            tyoskentelyjakso.erikoistuvaLaakari = mock(ErikoistuvaLaakari::class.java)
+            tyoskentelyjakso.opintooikeus = mock(Opintooikeus::class.java)
 
             return tyoskentelyjakso
         }

@@ -8,31 +8,31 @@ interface TyoskentelyjaksoService {
 
     fun create(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
-        userId: String,
+        opintooikeusId: Long,
         newAsiakirjat: MutableSet<AsiakirjaDTO>
     ): TyoskentelyjaksoDTO?
 
     fun update(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
-        userId: String,
+        opintooikeusId: Long,
         newAsiakirjat: MutableSet<AsiakirjaDTO>,
         deletedAsiakirjaIds: MutableSet<Int>?
     ): TyoskentelyjaksoDTO?
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<TyoskentelyjaksoDTO>
+    fun findAllByOpintooikeusId(opintooikeusId: Long): List<TyoskentelyjaksoDTO>
 
-    fun validateByLiitettyKoejaksoon(userId: String): Triple<Boolean, Boolean, Boolean>
+    fun validateByLiitettyKoejaksoon(opintooikeusId: Long): Triple<Boolean, Boolean, Boolean>
 
-    fun findOne(id: Long, userId: String): TyoskentelyjaksoDTO?
+    fun findOne(id: Long, opintooikeusId: Long): TyoskentelyjaksoDTO?
 
-    fun delete(id: Long, userId: String): Boolean
+    fun delete(id: Long, opintooikeusId: Long): Boolean
 
-    fun getTilastot(userId: String): TyoskentelyjaksotTilastotDTO
+    fun getTilastot(opintooikeusId: Long): TyoskentelyjaksotTilastotDTO
 
-    fun updateLiitettyKoejaksoon(id: Long, userId: String, liitettyKoejaksoon: Boolean): TyoskentelyjaksoDTO?
+    fun updateLiitettyKoejaksoon(id: Long, opintooikeusId: Long, liitettyKoejaksoon: Boolean): TyoskentelyjaksoDTO?
 
     fun validatePaattymispaiva(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
-        userId: String,
+        opintooikeusId: Long,
     ): Boolean
 }

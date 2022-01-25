@@ -32,7 +32,8 @@ class ErikoistuvaLaakariKoejaksoResource(
     private val kuntaService: KuntaService,
     private val erikoisalaService: ErikoisalaService,
     private val kayttajaService: KayttajaService,
-    private val yliopistoService: YliopistoService
+    private val yliopistoService: YliopistoService,
+    private val opintooikeusService: OpintooikeusService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -41,6 +42,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     @GetMapping("/koejakso")
     fun getKoejakso(principal: Principal?): ResponseEntity<KoejaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val result = KoejaksoDTO()
 
         koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
@@ -102,7 +104,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         result.kunnat = kuntaService.findAll()
         result.erikoisalat = erikoisalaService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
         result.tyoskentelyjaksot =
-            tyoskentelyjaksoService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            tyoskentelyjaksoService.findAllByOpintooikeusId(opintooikeusId)
 
         return ResponseEntity.ok(result)
     }
@@ -494,9 +496,10 @@ class ErikoistuvaLaakariKoejaksoResource(
     fun getVastuuhenkilonArvioForm(principal: Principal?): ResponseEntity<VastuuhenkilonArvioFormDTO> {
         val form = VastuuhenkilonArvioFormDTO().apply {
             val user = userService.getAuthenticatedUser(principal)
+            val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
             vastuuhenkilot = kayttajaService.findVastuuhenkilot(user.id!!)
             val (tyoskentelyJaksoLiitetty, tyoskentelyjaksonPituusRiittava, tyotodistusLiitetty) =
-                tyoskentelyjaksoService.validateByLiitettyKoejaksoon(user.id!!)
+                tyoskentelyjaksoService.validateByLiitettyKoejaksoon(opintooikeusId)
             this.tyoskentelyjaksoLiitetty = tyoskentelyJaksoLiitetty
             this.tyoskentelyjaksonPituusRiittava = tyoskentelyjaksonPituusRiittava
             this.tyotodistusLiitetty = tyotodistusLiitetty

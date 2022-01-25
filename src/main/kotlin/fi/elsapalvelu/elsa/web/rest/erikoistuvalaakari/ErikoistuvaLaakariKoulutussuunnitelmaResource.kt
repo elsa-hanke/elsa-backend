@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.FileValidationService
 import fi.elsapalvelu.elsa.service.KoulutussuunnitelmaService
+import fi.elsapalvelu.elsa.service.OpintooikeusService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.KoulutussuunnitelmaDTO
@@ -23,6 +24,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
     private val koulutussuunnitelmaService: KoulutussuunnitelmaService,
     private val userService: UserService,
     private val fileValidationService: FileValidationService,
+    private val opintooikeusService: OpintooikeusService
 ) {
     companion object {
         const val ENTITY_NAME = "koulutussuunnitelma"
@@ -39,6 +41,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
         principal: Principal?
     ): ResponseEntity<KoulutussuunnitelmaDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         if (koulutussuunnitelmaDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
@@ -51,8 +54,8 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
             )
         }
 
-        koulutussuunnitelmaDTO.koulutussuunnitelmaAsiakirja = getMappedFile(koulutussuunnitelmaFile, user.id!!)
-        koulutussuunnitelmaDTO.motivaatiokirjeAsiakirja = getMappedFile(motivaatiokirjeFile, user.id!!)
+        koulutussuunnitelmaDTO.koulutussuunnitelmaAsiakirja = getMappedFile(koulutussuunnitelmaFile, opintooikeusId)
+        koulutussuunnitelmaDTO.motivaatiokirjeAsiakirja = getMappedFile(motivaatiokirjeFile, opintooikeusId)
 
         koulutussuunnitelmaService.save(koulutussuunnitelmaDTO, user.id!!)
             ?.let {
@@ -74,10 +77,10 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
 
     private fun getMappedFile(
         file: MultipartFile?,
-        userId: String
+        opintooikeusId: Long
     ): AsiakirjaDTO? {
         file?.let {
-            if (!fileValidationService.validate(listOf(it), userId, listOf(MediaType.APPLICATION_PDF_VALUE))) {
+            if (!fileValidationService.validate(listOf(it), opintooikeusId, listOf(MediaType.APPLICATION_PDF_VALUE))) {
                 throw BadRequestAlertException(
                     "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
                     ENTITY_NAME,
