@@ -7,7 +7,7 @@ import org.mapstruct.*
 @Mapper(
     componentModel = "spring",
     uses = [
-        ErikoistuvaLaakariMapper::class,
+        OpintooikeusMapper::class,
         AsiakirjaMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
@@ -16,19 +16,16 @@ interface KoulutussuunnitelmaMapper :
     EntityMapper<KoulutussuunnitelmaDTO, Koulutussuunnitelma> {
 
     @Mappings(
-        Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId"),
         Mapping(
             source = "koulutussuunnitelmaAsiakirja",
             target = "koulutussuunnitelmaAsiakirja"
         ),
-        Mapping(source = "motivaatiokirjeAsiakirja", target = "motivaatiokirjeAsiakirja"),
-
-        )
+        Mapping(source = "motivaatiokirjeAsiakirja", target = "motivaatiokirjeAsiakirja")
+    )
     override fun toDto(entity: Koulutussuunnitelma): KoulutussuunnitelmaDTO
 
     @Mappings(
-        Mapping(source = "erikoistuvaLaakariId", target = "erikoistuvaLaakari"),
-        Mapping(target = "koulutusjaksot", ignore = true),
+        Mapping(target = "koulutusjaksot", ignore = true)
     )
     override fun toEntity(dto: KoulutussuunnitelmaDTO): Koulutussuunnitelma
 

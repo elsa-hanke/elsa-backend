@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository
 @Repository
 interface KoulutussuunnitelmaRepository : JpaRepository<Koulutussuunnitelma, Long> {
 
-    fun findOneByErikoistuvaLaakariId(erikoistuvaLaakariId: Long): Koulutussuunnitelma?
+    fun findOneByOpintooikeusId(opintooikeusId: Long): Koulutussuunnitelma?
 
     @Query("select k from Koulutussuunnitelma k where k.koulutussuunnitelmaAsiakirja.id = :id or " +
         "k.motivaatiokirjeAsiakirja.id = :id")
