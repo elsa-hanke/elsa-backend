@@ -46,21 +46,14 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
         if (koulutussuunnitelmaDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
-        if (koulutussuunnitelmaDTO.erikoistuvaLaakariId == null) {
-            throw BadRequestAlertException(
-                "Erikoistuva lääkäri puuttuu",
-                ENTITY_NAME,
-                "dataillegal.erikoistuva-laakari-puuttuu"
-            )
-        }
 
         koulutussuunnitelmaDTO.koulutussuunnitelmaAsiakirja = getMappedFile(koulutussuunnitelmaFile, opintooikeusId)
         koulutussuunnitelmaDTO.motivaatiokirjeAsiakirja = getMappedFile(motivaatiokirjeFile, opintooikeusId)
 
-        koulutussuunnitelmaService.save(koulutussuunnitelmaDTO, user.id!!)
+        koulutussuunnitelmaService.save(koulutussuunnitelmaDTO, opintooikeusId)
             ?.let {
                 return ResponseEntity.ok(it)
-            } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @GetMapping("/koulutussuunnitelma")
@@ -68,9 +61,10 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
         principal: Principal?
     ): ResponseEntity<KoulutussuunnitelmaDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         return koulutussuunnitelmaService
-            .findOneByErikoistuvaLaakariKayttajaUserId(user.id!!)?.let {
+            .findOneByOpintooikeusId(opintooikeusId)?.let {
                 ResponseEntity.ok(it)
             } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }

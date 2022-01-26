@@ -37,25 +37,23 @@ interface KoulutusjaksoRepository : JpaRepository<Koulutusjakso, Long> {
     )
     fun findOneWithEagerRelationships(@Param("id") id: Long): Koulutusjakso?
 
-    fun findAllByKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<Koulutusjakso>
+    fun findAllByKoulutussuunnitelmaOpintooikeusId(opintooikeusId: Long): MutableList<Koulutusjakso>
 
-    fun findOneByIdAndKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(
+    fun findOneByIdAndKoulutussuunnitelmaOpintooikeusId(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     ): Koulutusjakso?
 
-    fun deleteByIdAndKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(id: Long, userId: String)
+    fun deleteByIdAndKoulutussuunnitelmaOpintooikeusId(id: Long, opintooikeusId: Long)
 
     @Query(
         """
         select kj
         from Koulutusjakso kj
         join kj.koulutussuunnitelma s
-        join s.erikoistuvaLaakari e
-        join e.kayttaja k
-        join k.user u
-        where kj.id in :ids and u.id = :userId
+        join s.opintooikeus o
+        where kj.id in :ids and o.id = :opintooikeusId
         """
     )
-    fun findForSeurantajakso(ids: List<Long>, userId: String): List<Koulutusjakso>
+    fun findForSeurantajakso(ids: List<Long>, opintooikeusId: Long): List<Koulutusjakso>
 }

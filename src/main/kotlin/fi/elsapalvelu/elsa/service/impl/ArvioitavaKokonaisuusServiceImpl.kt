@@ -1,10 +1,11 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.ArvioitavaKokonaisuusRepository
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.ArvioitavaKokonaisuusService
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusDTO
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusMapper
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -15,7 +16,7 @@ import java.util.*
 class ArvioitavaKokonaisuusServiceImpl(
     private val arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository,
     private val arvioitavaKokonaisuusMapper: ArvioitavaKokonaisuusMapper,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
+    private val opintooikeusRepository: OpintooikeusRepository
 ) : ArvioitavaKokonaisuusService {
 
     override fun save(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO {
@@ -25,17 +26,14 @@ class ArvioitavaKokonaisuusServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<ArvioitavaKokonaisuusDTO> {
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        val opintooikeus = kirjautunutErikoistuvaLaakari?.opintooikeudet?.firstOrNull()
-
-        // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä, ei ole määritetty, käytetään nykyistä päivää
-        // voimassaolon rajaamisessa
-        return arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
-            opintooikeus?.erikoisala?.id, opintooikeus?.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
-        )
-            .map(arvioitavaKokonaisuusMapper::toDto)
+    override fun findAllByOpintooikeusId(opintooikeusId: Long): List<ArvioitavaKokonaisuusDTO> {
+        return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä, ei ole määritetty, käytetään nykyistä päivää
+            // voimassaolon rajaamisessa
+            arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
+                it.erikoisala?.id, it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+            ).map(arvioitavaKokonaisuusMapper::toDto)
+        } ?: listOf()
     }
 
     @Transactional(readOnly = true)

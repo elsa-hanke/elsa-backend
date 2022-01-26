@@ -7,7 +7,7 @@ interface ArvioitavaKokonaisuusService {
 
     fun save(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<ArvioitavaKokonaisuusDTO>
+    fun findAllByOpintooikeusId(opintooikeusId: Long): List<ArvioitavaKokonaisuusDTO>
 
     fun findOne(id: Long): Optional<ArvioitavaKokonaisuusDTO>
 

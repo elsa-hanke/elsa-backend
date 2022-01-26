@@ -57,7 +57,10 @@ data class Opintooikeus(
 
     @OneToMany(mappedBy = "opintooikeus")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf()
+    var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf(),
+
+    @OneToOne(mappedBy = "opintooikeus")
+    var koulutussuunnitelma: Koulutussuunnitelma? = null
 
 ) : Serializable {
 

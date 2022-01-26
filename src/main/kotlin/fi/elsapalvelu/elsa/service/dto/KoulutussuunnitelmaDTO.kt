@@ -38,15 +38,12 @@ data class KoulutussuunnitelmaDTO(
     @get: NotNull
     var elamankenttaYksityinen: Boolean? = null,
 
-    @get: NotNull
-    var erikoistuvaLaakariId: Long? = null,
-
     var koulutussuunnitelmaAsiakirja: AsiakirjaDTO? = null,
 
     var koulutussuunnitelmaAsiakirjaUpdated: Boolean = false,
 
     var motivaatiokirjeAsiakirja: AsiakirjaDTO? = null,
-    
+
     var motivaatiokirjeAsiakirjaUpdated: Boolean = false
 ) : Serializable {
 

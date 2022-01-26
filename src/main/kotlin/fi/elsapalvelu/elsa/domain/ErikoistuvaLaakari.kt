@@ -44,10 +44,7 @@ data class ErikoistuvaLaakari(
 
     @NotNull
     @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu? = null,
-
-    @OneToOne(mappedBy = "erikoistuvaLaakari")
-    var koulutussuunnitelma: Koulutussuunnitelma? = null
+    var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu? = null
 
 ) : Serializable {
 

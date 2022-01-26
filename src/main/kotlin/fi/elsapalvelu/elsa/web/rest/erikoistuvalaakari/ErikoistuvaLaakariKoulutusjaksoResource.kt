@@ -40,6 +40,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         if (koulutusjaksoDTO.id != null) {
             throw BadRequestAlertException(
@@ -48,7 +49,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
                 "idexists"
             )
         }
-        koulutusjaksoService.save(koulutusjaksoDTO, user.id!!)?.let {
+        koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
             return ResponseEntity
                 .created(URI("/api/koulutusjaksot/${it.id}"))
                 .body(it)
@@ -62,6 +63,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         if (koulutusjaksoDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
@@ -75,7 +77,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
             throw BadRequestAlertException("Entiteetti ei löydy", ENTITY_NAME, "idnotfound")
         }
 
-        if (koulutusjaksoService.findOne(id, user.id!!)?.lukittu == true) {
+        if (koulutusjaksoService.findOne(id, opintooikeusId)?.lukittu == true) {
             throw BadRequestAlertException(
                 "Lukittua koulutusjaksoa ei voi muokata",
                 ENTITY_NAME,
@@ -83,8 +85,9 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
             )
         }
 
-        val result = koulutusjaksoService.save(koulutusjaksoDTO, user.id!!)
-        return ResponseEntity.ok(result)
+        koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
+            return ResponseEntity.ok(it)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @GetMapping("/koulutusjaksot")
@@ -92,10 +95,11 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<List<KoulutusjaksoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         return ResponseEntity.ok(
             koulutusjaksoService
-                .findAllByKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(user.id!!)
+                .findAllByKoulutussuunnitelmaOpintooikeusId(opintooikeusId)
         )
     }
 
@@ -105,8 +109,9 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
-        return koulutusjaksoService.findOne(id, user.id!!)?.let {
+        return koulutusjaksoService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -117,8 +122,9 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
-        if (koulutusjaksoService.findOne(id, user.id!!)?.lukittu == true) {
+        if (koulutusjaksoService.findOne(id, opintooikeusId)?.lukittu == true) {
             throw BadRequestAlertException(
                 "Lukittua koulutusjaksoa ei voi poistaa",
                 ENTITY_NAME,
@@ -126,7 +132,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
             )
         }
 
-        koulutusjaksoService.delete(id, user.id!!)
+        koulutusjaksoService.delete(id, opintooikeusId)
         return ResponseEntity
             .noContent()
             .build()

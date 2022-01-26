@@ -4,13 +4,13 @@ import fi.elsapalvelu.elsa.service.dto.KoulutusjaksoDTO
 
 interface KoulutusjaksoService {
 
-    fun save(koulutusjaksoDTO: KoulutusjaksoDTO, userId: String): KoulutusjaksoDTO?
+    fun save(koulutusjaksoDTO: KoulutusjaksoDTO, opintooikeusId: Long): KoulutusjaksoDTO?
 
-    fun findAllByKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(userId: String): List<KoulutusjaksoDTO>
+    fun findAllByKoulutussuunnitelmaOpintooikeusId(opintooikeusId: Long): List<KoulutusjaksoDTO>
 
-    fun findOne(id: Long, userId: String): KoulutusjaksoDTO?
+    fun findOne(id: Long, opintooikeusId: Long): KoulutusjaksoDTO?
 
-    fun findForSeurantajakso(ids: List<Long>, userId: String): List<KoulutusjaksoDTO>
+    fun findForSeurantajakso(ids: List<Long>, opintooikeusId: Long): List<KoulutusjaksoDTO>
 
-    fun delete(id: Long, userId: String)
+    fun delete(id: Long, opintooikeusId: Long)
 }

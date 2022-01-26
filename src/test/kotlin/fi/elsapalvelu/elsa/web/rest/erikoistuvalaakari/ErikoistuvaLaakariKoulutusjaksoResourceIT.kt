@@ -119,7 +119,7 @@ class ErikoistuvaLaakariKoulutusjaksoResourceIT {
             post(ENTITY_API_URL).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koulutusjaksoDTO))
-        ).andExpect(status().isBadRequest)
+        ).andExpect(status().is5xxServerError)
 
         val koulutusjaksoList = koulutusjaksoRepository.findAll()
         assertThat(koulutusjaksoList).hasSize(databaseSizeBeforeCreate)

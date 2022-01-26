@@ -26,7 +26,8 @@ class SeurantajaksoServiceImpl(
     private val suoritusarviointiService: SuoritusarviointiService,
     private val suoritemerkintaService: SuoritemerkintaService,
     private val koulutusjaksoService: KoulutusjaksoService,
-    private val teoriakoulutusService: TeoriakoulutusService
+    private val teoriakoulutusService: TeoriakoulutusService,
+    private val opintooikeusService: OpintooikeusService
 ) : SeurantajaksoService {
 
     override fun create(
@@ -236,7 +237,8 @@ class SeurantajaksoServiceImpl(
             SeurantajaksonSuoritemerkintaDTO(tavoite?.nimi, suoritemerkinnat)
         }
 
-        val koulutusjaksotDTO = koulutusjaksoService.findForSeurantajakso(koulutusjaksot, userId)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+        val koulutusjaksotDTO = koulutusjaksoService.findForSeurantajakso(koulutusjaksot, opintooikeusId)
         val osaamistavoitteet =
             koulutusjaksotDTO.map { jakso -> jakso.osaamistavoitteet.map { it.nimi } }.flatten()
                 .distinct()

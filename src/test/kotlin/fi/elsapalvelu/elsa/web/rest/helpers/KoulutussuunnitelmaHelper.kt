@@ -75,7 +75,7 @@ class KoulutussuunnitelmaHelper {
                 em.persist(erikoistuvaLaakari)
                 em.flush()
             }
-            koulutussuunnitelma.erikoistuvaLaakari = erikoistuvaLaakari
+            koulutussuunnitelma.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return koulutussuunnitelma
         }
@@ -106,7 +106,7 @@ class KoulutussuunnitelmaHelper {
             } else {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
-            koulutussuunnitelma.erikoistuvaLaakari = erikoistuvaLaakari
+            koulutussuunnitelma.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return koulutussuunnitelma
         }

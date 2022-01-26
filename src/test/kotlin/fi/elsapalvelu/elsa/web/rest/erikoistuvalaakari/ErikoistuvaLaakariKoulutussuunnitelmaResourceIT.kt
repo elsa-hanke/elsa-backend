@@ -208,7 +208,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
 
     @Test
     @Transactional
-    fun getKoulutussuunnitelmaWithoutErikoistuvaLaakari() {
+    fun getKoulutussuunnitelmaWithoutOpintooikeus() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -234,14 +234,14 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
             osaamisenKartuttaminen = DEFAULT_OSAAMISEN_KARTUTTAMINEN,
             osaamisenKartuttaminenYksityinen = DEFAULT_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN,
             elamankentta = DEFAULT_ELAMANKENTTA,
-            elamankenttaYksityinen = DEFAULT_ELAMANKENTTA_YKSITYINEN
+            elamankenttaYksityinen = DEFAULT_ELAMANKENTTA_YKSITYINEN,
         )
 
-        // Koulutussuunnitelma kuuluu toiselle erikoistuvalle lääkärille
+        // Koulutussuunnitelma kuuluu toiselle opinto-oikeudelle
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         em.persist(erikoistuvaLaakari)
         em.flush()
-        koulutussuunnitelma.erikoistuvaLaakari = erikoistuvaLaakari
+        koulutussuunnitelma.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
         koulutussuunnitelmaRepository.saveAndFlush(koulutussuunnitelma)
 
@@ -249,7 +249,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
         assertNotNull(id)
 
         restKoulutussuunnitelmaMockMvc.perform(get("/api/erikoistuva-laakari/koulutussuunnitelma"))
-            .andExpect(status().isNotFound)
+            .andExpect(status().is5xxServerError)
     }
 
     @Test
@@ -304,10 +304,6 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
                 )
                 .param("elamankentta", UPDATED_ELAMANKENTTA)
                 .param("elamankenttaYksityinen", UPDATED_ELAMANKENTTA_YKSITYINEN.toString())
-                .param(
-                    "erikoistuvaLaakariId",
-                    koulutussuunnitelma.erikoistuvaLaakari!!.id.toString()
-                )
                 .param("koulutussuunnitelmaAsiakirjaUpdated", true.toString())
                 .param("motivaatiokirjeAsiakirjaUpdated", true.toString())
                 .with { it.method = "PUT"; it }
@@ -347,8 +343,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
                 1,
                 koulutussuunnitelmaBlob.length().toInt()
             )
-        )
-            .isEqualTo(DEFAULT_FILE)
+        ).isEqualTo(DEFAULT_FILE)
         Assertions.assertThat(testKoulutussuunnitelma.motivaatiokirjeAsiakirja).isNotNull
         val motivaatiokirjeBlob =
             testKoulutussuunnitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data
@@ -357,8 +352,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
                 1,
                 motivaatiokirjeBlob.length().toInt()
             )
-        )
-            .isEqualTo(DEFAULT_FILE)
+        ).isEqualTo(DEFAULT_FILE)
     }
 
     fun initTest(userId: String? = null) {
