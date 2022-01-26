@@ -49,7 +49,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         options.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
         options.arvioitavatKokonaisuudet =
-            arvioitavaKokonaisuusService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            arvioitavaKokonaisuusService.findAllByOpintooikeusId(opintooikeusId).toMutableSet()
         options.tapahtumat = suoritusarviointiService
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
         options.kouluttajatAndVastuuhenkilot =
@@ -85,7 +85,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         form.erikoisalat =
             erikoisalaService.findAll().toSet()
         form.arvioitavanKokonaisuudenKategoriat =
-            arvioitavaKokonaisuusService.findAllByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            arvioitavaKokonaisuusService.findAllByOpintooikeusId(opintooikeusId)
                 .groupBy { it.kategoria }.map {
                     ArvioitavanKokonaisuudenKategoriaDTO(
                         it.key?.id,

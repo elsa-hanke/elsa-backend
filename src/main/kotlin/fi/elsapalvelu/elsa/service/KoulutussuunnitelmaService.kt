@@ -5,8 +5,8 @@ import fi.elsapalvelu.elsa.service.dto.KoulutussuunnitelmaDTO
 interface KoulutussuunnitelmaService {
     fun save(
         koulutussuunnitelmaDTO: KoulutussuunnitelmaDTO,
-        userId: String
+        opintooikeusId: Long
     ): KoulutussuunnitelmaDTO?
 
-    fun findOneByErikoistuvaLaakariKayttajaUserId(userId: String): KoulutussuunnitelmaDTO?
+    fun findOneByOpintooikeusId(opintooikeusId: Long): KoulutussuunnitelmaDTO?
 }

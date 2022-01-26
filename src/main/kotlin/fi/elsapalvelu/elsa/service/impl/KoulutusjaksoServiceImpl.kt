@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.KoulutusjaksoRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.ArvioitavaKokonaisuusService
 import fi.elsapalvelu.elsa.service.KoulutusjaksoService
 import fi.elsapalvelu.elsa.service.KoulutussuunnitelmaService
@@ -19,26 +18,23 @@ class KoulutusjaksoServiceImpl(
     private val koulutussuunnitelmaService: KoulutussuunnitelmaService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val arvioitavaKokonaisuusService: ArvioitavaKokonaisuusService,
-    private val opintooikeusRepository: OpintooikeusRepository
 ) : KoulutusjaksoService {
 
     override fun save(
         koulutusjaksoDTO: KoulutusjaksoDTO,
-        userId: String
+        opintooikeusId: Long
     ): KoulutusjaksoDTO? {
-        return koulutussuunnitelmaService.findOneByErikoistuvaLaakariKayttajaUserId(userId)?.let { koulutussuunnitelmaDTO ->
+        return koulutussuunnitelmaService.findOneByOpintooikeusId(opintooikeusId)?.let { koulutussuunnitelmaDTO ->
             koulutusjaksoDTO.koulutussuunnitelma = koulutussuunnitelmaDTO
-            val opintooikeus = opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId)
 
             koulutusjaksoDTO.tyoskentelyjaksot.filter {
                 it.id?.let { tyoskentelyjaksoId ->
-                    tyoskentelyjaksoService.findOne(tyoskentelyjaksoId, opintooikeus?.id!!)
-                }
-                    ?.let { true } ?: false
+                    tyoskentelyjaksoService.findOne(tyoskentelyjaksoId, opintooikeusId)
+                }?.let { true } ?: false
             }
 
             val osaamistavoitteetErikoisalalla =
-                arvioitavaKokonaisuusService.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+                arvioitavaKokonaisuusService.findAllByOpintooikeusId(opintooikeusId)
             koulutusjaksoDTO.osaamistavoitteet.filter {
                 osaamistavoitteetErikoisalalla.find { osaamistavoiteId ->
                     osaamistavoiteId.id === it.id
@@ -52,38 +48,37 @@ class KoulutusjaksoServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllByKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    override fun findAllByKoulutussuunnitelmaOpintooikeusId(
+        opintooikeusId: Long
     ): List<KoulutusjaksoDTO> {
-        return koulutusjaksoRepository.findAllByKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(
-            userId
-        )
-            .map(koulutusjaksoMapper::toDto)
+        return koulutusjaksoRepository.findAllByKoulutussuunnitelmaOpintooikeusId(
+            opintooikeusId
+        ).map(koulutusjaksoMapper::toDto)
     }
 
     @Transactional(readOnly = true)
     override fun findOne(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     ): KoulutusjaksoDTO? {
         return koulutusjaksoRepository
-            .findOneByIdAndKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(id, userId)?.let {
+            .findOneByIdAndKoulutussuunnitelmaOpintooikeusId(id, opintooikeusId)?.let {
                 koulutusjaksoMapper.toDto(it)
             }
     }
 
-    override fun findForSeurantajakso(ids: List<Long>, userId: String): List<KoulutusjaksoDTO> {
-        return koulutusjaksoRepository.findForSeurantajakso(ids, userId)
+    override fun findForSeurantajakso(ids: List<Long>, opintooikeusId: Long): List<KoulutusjaksoDTO> {
+        return koulutusjaksoRepository.findForSeurantajakso(ids, opintooikeusId)
             .map(koulutusjaksoMapper::toDto)
     }
 
     override fun delete(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     ) {
-        koulutusjaksoRepository.deleteByIdAndKoulutussuunnitelmaErikoistuvaLaakariKayttajaUserId(
+        koulutusjaksoRepository.deleteByIdAndKoulutussuunnitelmaOpintooikeusId(
             id,
-            userId
+            opintooikeusId
         )
     }
 }
