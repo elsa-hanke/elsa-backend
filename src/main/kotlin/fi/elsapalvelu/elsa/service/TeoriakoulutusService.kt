@@ -23,7 +23,7 @@ interface TeoriakoulutusService {
     ): TeoriakoulutusDTO?
 
     fun findForSeurantajakso(
-        userId: String,
+        opintooikeusId: Long,
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate
     ): List<TeoriakoulutusDTO>

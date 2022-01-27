@@ -150,7 +150,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
             .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
         form.kunnat = kuntaService.findAll().toMutableSet()
         form.arvioitavanKokonaisuudenKategoriat = arvioitavanKokonaisuudenKategoriaService
-            .findAllByErikoistuvaLaakariKayttajaUserId(user.id!!).toMutableSet()
+            .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
 
         return ResponseEntity.ok(form)
     }

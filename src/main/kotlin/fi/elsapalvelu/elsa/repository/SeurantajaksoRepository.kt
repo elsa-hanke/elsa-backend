@@ -7,9 +7,9 @@ import org.springframework.stereotype.Repository
 @Repository
 interface SeurantajaksoRepository : JpaRepository<Seurantajakso, Long> {
 
-    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): List<Seurantajakso>
+    fun findByOpintooikeusId(opintooikeusId: Long): List<Seurantajakso>
 
-    fun findByIdAndErikoistuvaLaakariKayttajaUserId(id: Long, userId: String): Seurantajakso?
+    fun findByIdAndOpintooikeusId(id: Long, opintooikeusId: Long): Seurantajakso?
 
     fun findByKouluttajaUserId(userId: String): List<Seurantajakso>
 

@@ -234,12 +234,12 @@ class SuoritusarviointiServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findForSeurantajakso(
-        userId: String,
+        opintooikeusId: Long,
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate
     ): List<SuoritusarviointiDTO> {
         return suoritusarviointiRepository.findForSeurantajakso(
-            userId,
+            opintooikeusId,
             alkamispaiva,
             paattymispaiva
         ).map(suoritusarviointiMapper::toDto)

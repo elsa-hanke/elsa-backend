@@ -110,7 +110,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
 
         assertThat(testSeurantajakso.alkamispaiva).isEqualTo(DEFAULT_ALKAMISPAIVA)
         assertThat(testSeurantajakso.paattymispaiva).isEqualTo(DEFAULT_PAATTYMISPAIVA)
-        assertThat(testSeurantajakso.erikoistuvaLaakari).isEqualTo(erikoistuvaLaakari)
+        assertThat(testSeurantajakso.opintooikeus).isEqualTo(erikoistuvaLaakari.getOpintooikeusKaytossa())
         assertThat(testSeurantajakso.kouluttaja).isEqualTo(kouluttaja)
         assertThat(testSeurantajakso.omaArviointi).isEqualTo(DEFAULT_OMA_ARVIOINTI)
         assertThat(testSeurantajakso.lisahuomioita).isEqualTo(DEFAULT_LISAHUOMIOITA)
@@ -501,7 +501,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
             return Seurantajakso(
                 alkamispaiva = DEFAULT_ALKAMISPAIVA,
                 paattymispaiva = DEFAULT_PAATTYMISPAIVA,
-                erikoistuvaLaakari = erikoistuvaLaakari,
+                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 omaArviointi = DEFAULT_OMA_ARVIOINTI,
                 lisahuomioita = DEFAULT_LISAHUOMIOITA,
                 seuraavanJaksonTavoitteet = DEFAULT_TAVOITTEET,
@@ -517,7 +517,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
             return Seurantajakso(
                 alkamispaiva = DEFAULT_ALKAMISPAIVA,
                 paattymispaiva = DEFAULT_PAATTYMISPAIVA,
-                erikoistuvaLaakari = erikoistuvaLaakari,
+                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 omaArviointi = UPDATED_OMA_ARVIOINTI,
                 lisahuomioita = UPDATED_LISAHUOMIOITA,
                 seuraavanJaksonTavoitteet = UPDATED_TAVOITTEET,
