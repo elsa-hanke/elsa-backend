@@ -10,7 +10,7 @@ interface SuoritemerkintaService {
     fun findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId: Long): List<SuoritemerkintaDTO>
 
     fun findForSeurantajakso(
-        userId: String,
+        opintooikeusId: Long,
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate
     ): List<SuoritemerkintaDTO>

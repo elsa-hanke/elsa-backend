@@ -35,7 +35,7 @@ interface SuoritusarviointiService {
     ): AsiakirjaDTO?
 
     fun findForSeurantajakso(
-        userId: String,
+        opintooikeusId: Long,
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate
     ): List<SuoritusarviointiDTO>

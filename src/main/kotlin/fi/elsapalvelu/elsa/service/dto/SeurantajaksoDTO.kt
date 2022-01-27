@@ -38,7 +38,15 @@ data class SeurantajaksoDTO(
 
     var seuraavanKeskustelunAjankohta: LocalDate? = null,
 
-    var erikoistuvaLaakari: ErikoistuvaLaakariDTO? = null,
+    var opintooikeusId: Long? = null,
+
+    var erikoistuvanNimi: String? = null,
+
+    var erikoistuvanErikoisalaNimi: String? = null,
+
+    var erikoistuvanOpiskelijatunnus: String? = null,
+
+    var erikoistuvanYliopistoNimi: String? = null,
 
     var kouluttaja: KayttajaDTO? = null,
 

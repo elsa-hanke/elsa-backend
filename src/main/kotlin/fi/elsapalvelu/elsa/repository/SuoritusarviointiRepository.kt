@@ -43,14 +43,11 @@ interface SuoritusarviointiRepository :
         select a from Suoritusarviointi a
         join a.tyoskentelyjakso t
         join t.opintooikeus o
-        join o.erikoistuvaLaakari e
-        join e.kayttaja k
-        join k.user u
-        where a.tapahtumanAjankohta between :alkamispaiva and :paattymispaiva and u.id = :userId and a.arviointiAika is not null
+        where a.tapahtumanAjankohta between :alkamispaiva and :paattymispaiva and o.id = :opintooikeusId and a.arviointiAika is not null
         """
     )
     fun findForSeurantajakso(
-        userId: String,
+        opintooikeusId: Long,
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate
     ): List<Suoritusarviointi>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220127110522" author="jhipster">
+
+        <dropForeignKeyConstraint baseTableName="seurantajakso"
+                                  constraintName="fk_seurantajakso_erikoistuva_laakari_id"/>
+        <dropColumn tableName="seurantajakso" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="seurantajakso">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="seurantajakso" baseColumnNames="opintooikeus_id"
+                                 constraintName="fk_seurantajakso_opintooikeus_id" referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn tableName="seurantajakso_audit" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="seurantajakso_audit">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+    </changeSet>
+
+</databaseChangeLog>

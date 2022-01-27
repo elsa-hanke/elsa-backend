@@ -62,11 +62,11 @@ class SuoritemerkintaServiceImpl(
     }
 
     override fun findForSeurantajakso(
-        userId: String,
+        opintooikeusId: Long,
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate
     ): List<SuoritemerkintaDTO> {
-        return suoritemerkintaRepository.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
+        return suoritemerkintaRepository.findForSeurantajakso(opintooikeusId, alkamispaiva, paattymispaiva)
             .map(suoritemerkintaMapper::toDto)
     }
 

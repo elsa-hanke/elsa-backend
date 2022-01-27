@@ -81,11 +81,11 @@ class TeoriakoulutusServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findForSeurantajakso(
-        userId: String,
+        opintooikeusId: Long,
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate
     ): List<TeoriakoulutusDTO> {
-        return teoriakoulutusRepository.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
+        return teoriakoulutusRepository.findForSeurantajakso(opintooikeusId, alkamispaiva, paattymispaiva)
             .map(teoriakoulutusMapper::toDto)
     }
 
