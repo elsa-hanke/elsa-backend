@@ -24,8 +24,6 @@ data class TeoriakoulutusDTO(
     @get: Min(value = 0)
     var erikoistumiseenHyvaksyttavaTuntimaara: Int? = null,
 
-    var erikoistuvaLaakariId: Long? = null,
-
     var todistukset: MutableSet<AsiakirjaDTO>? = mutableSetOf()
 
 ) : Serializable {

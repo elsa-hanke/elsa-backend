@@ -10,16 +10,16 @@ interface TeoriakoulutusService {
         teoriakoulutusDTO: TeoriakoulutusDTO,
         todistukset: Set<AsiakirjaDTO>?,
         deletedAsiakirjaIds: Set<Int>?,
-        userId: String
+        opintooikeusId: Long
     ): TeoriakoulutusDTO?
 
     fun findAll(
-        userId: String
+        opintooikeusId: Long
     ): List<TeoriakoulutusDTO>
 
     fun findOne(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     ): TeoriakoulutusDTO?
 
     fun findForSeurantajakso(
@@ -30,6 +30,6 @@ interface TeoriakoulutusService {
 
     fun delete(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     )
 }

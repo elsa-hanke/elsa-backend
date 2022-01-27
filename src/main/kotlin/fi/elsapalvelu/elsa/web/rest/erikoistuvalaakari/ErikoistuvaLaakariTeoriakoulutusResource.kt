@@ -53,7 +53,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         }
 
         val todistukset = getMappedFiles(todistusFiles, opintooikeusId) ?: mutableSetOf()
-        return teoriakoulutusService.save(teoriakoulutusDTO, todistukset, null, user.id!!)?.let {
+        return teoriakoulutusService.save(teoriakoulutusDTO, todistukset, null, opintooikeusId)?.let {
             ResponseEntity
                 .created(URI("/api/erikoistuva-laakari/teoriakoulutukset/${it.id}"))
                 .body(it)
@@ -86,7 +86,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let {
             objectMapper.readValue(it, mutableSetOf<Int>()::class.java)
         }
-        val result = teoriakoulutusService.save(teoriakoulutusDTO, todistukset, deletedAsiakirjaIds, user.id!!)
+        val result = teoriakoulutusService.save(teoriakoulutusDTO, todistukset, deletedAsiakirjaIds, opintooikeusId)
         return ResponseEntity.ok(result)
     }
 
@@ -95,7 +95,8 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<TeoriakoulutuksetDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val teoriakoulutukset = teoriakoulutusService.findAll(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val teoriakoulutukset = teoriakoulutusService.findAll(opintooikeusId)
         val opintoopas =
             opintoopasService.findAllByOpintooikeudetErikoistuvaLaakariKayttajaUserId(user.id!!).firstOrNull()
 
@@ -114,7 +115,8 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return teoriakoulutusService.findOne(id, user.id!!)?.let {
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        return teoriakoulutusService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -125,7 +127,8 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
-        teoriakoulutusService.delete(id, user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        teoriakoulutusService.delete(id, opintooikeusId)
         return ResponseEntity.noContent().build()
     }
 

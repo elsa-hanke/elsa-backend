@@ -49,7 +49,7 @@ data class Teoriakoulutus(
     @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var erikoistuvaLaakari: ErikoistuvaLaakari? = null
+    var opintooikeus: Opintooikeus? = null
 
 ) : Serializable {
 

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220126162833" author="jhipster">
+
+        <dropForeignKeyConstraint baseTableName="teoriakoulutus"
+                                  constraintName="fk_teoriakoulutus__erikoistuva_laakari_id"/>
+        <dropColumn tableName="teoriakoulutus" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="teoriakoulutus">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="teoriakoulutus" baseColumnNames="opintooikeus_id"
+                                 constraintName="fk_teoriakoulutus_opintooikeus_id" referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn tableName="teoriakoulutus_audit" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="teoriakoulutus_audit">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+    </changeSet>
+
+</databaseChangeLog>
