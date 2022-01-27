@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220127094950" author="jhipster" context="!test">
+
+        <loadData
+            file="config/liquibase/data/erikoisala/ortopedia/arvioitavan_kokonaisuuden_kategoria.csv"
+            separator=";"
+            tableName="arvioitavan_kokonaisuuden_kategoria">
+            <column name="id" type="numeric"/>
+            <column name="nimi" type="string"/>
+            <column name="jarjestysnumero" type="numeric"/>
+            <column name="voimassaolo_alkaa" type="date"/>
+            <column name="erikoisala_id" type="numeric"/>
+        </loadData>
+
+        <dropForeignKeyConstraint baseTableName="arvioitava_kokonaisuus"
+            constraintName="fk_arvioitava_kokonaisuus__kategoria_id"/>
+        <dropNotNullConstraint tableName="arvioitava_kokonaisuus" columnName="kategoria_id"/>
+
+        <loadData
+            file="config/liquibase/data/erikoisala/ortopedia/arvioitava_kokonaisuus.csv"
+            separator=";"
+            tableName="arvioitava_kokonaisuus">
+            <column name="id" type="numeric"/>
+            <column name="nimi" type="string"/>
+            <column name="kuvaus" type="string"/>
+            <column name="voimassaolo_alkaa" type="date"/>
+        </loadData>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '1. Ensiaputyöskentely' and erikoisala_id = 33)"/>
+            <where>kategoria_id is null and nimi in (
+                '1.1 Monivammapotilas ensiapupoliklinikalla',
+                '1.2 Rannemurtumapotilas ensiapupoliklinikalla',
+                '1.3 Nilkkamurtumapotilas ensiapupoliklinikalla',
+                '1.4 Lonkkamurtumapotilas ensiapupoliklinikalla',
+                '1.5 Cauda equina -potilas ensiapupoliklinikalla',
+                '1.6 Ortopedisen toimenpiteen jälkeinen infektiopotilas osastolla/ ensiapupoliklinikalla')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '2. Poliklinikka-/ osastotyöskentely' and erikoisala_id = 33)"/>
+            <where>kategoria_id is null and nimi in (
+                '2.1 Nivelrikkopotilas poliklinikalla',
+                '2.2 Selkäkipupotilas poliklinikalla/ osastolla',
+                '2.3 Olkakipupotilas poliklinikalla/ osastolla')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '3. Leikkaustyöskentely' and erikoisala_id = 33)"/>
+            <where>kategoria_id is null and nimi in (
+                '3.1 Rannemurtumaleikkaus',
+                '3.2 Nilkkamurtumaleikkaus',
+                '3.3 Lonkkamurtumaleikkaus')
+            </where>
+        </update>
+
+        <addForeignKeyConstraint baseColumnNames="kategoria_id"
+            baseTableName="arvioitava_kokonaisuus"
+            constraintName="fk_arvioitava_kokonaisuus__kategoria_id"
+            referencedColumnNames="id"
+            referencedTableName="arvioitavan_kokonaisuuden_kategoria"/>
+        <addNotNullConstraint tableName="arvioitava_kokonaisuus" columnName="kategoria_id"/>
+
+    </changeSet>
+
+</databaseChangeLog>
