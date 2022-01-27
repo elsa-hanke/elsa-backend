@@ -8,26 +8,26 @@ interface SeurantajaksoService {
 
     fun create(
         seurantajaksoDTO: SeurantajaksoDTO,
-        userId: String
-    ): SeurantajaksoDTO
+        opintooikeusId: Long
+    ): SeurantajaksoDTO?
 
     fun update(
         seurantajaksoDTO: SeurantajaksoDTO,
         userId: String
     ): SeurantajaksoDTO
 
-    fun findByErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    fun findByOpintooikeusId(
+        opintooikeusId: Long
     ): List<SeurantajaksoDTO>
 
     fun findByKouluttajaUserId(userId: String): List<SeurantajaksoDTO>
 
     fun findByIdAndKouluttajaUserId(id: Long, userId: String): SeurantajaksoDTO?
 
-    fun findOne(id: Long, userId: String): SeurantajaksoDTO?
+    fun findOne(id: Long, opintooikeusId: Long): SeurantajaksoDTO?
 
     fun findSeurantajaksonTiedot(
-        userId: String,
+        opintooikeusId: Long,
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate,
         koulutusjaksot: List<Long>
@@ -35,5 +35,5 @@ interface SeurantajaksoService {
 
     fun findSeurantajaksonTiedot(id: Long, userId: String): SeurantajaksonTiedotDTO
 
-    fun delete(id: Long, userId: String)
+    fun delete(id: Long, opintooikeusId: Long)
 }

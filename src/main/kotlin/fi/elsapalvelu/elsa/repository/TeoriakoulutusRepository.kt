@@ -21,14 +21,11 @@ interface TeoriakoulutusRepository : JpaRepository<Teoriakoulutus, Long> {
         select tk
         from Teoriakoulutus tk
         join tk.opintooikeus o
-        join o.erikoistuvaLaakari e
-        join e.kayttaja k
-        join k.user u
-        where tk.alkamispaiva between :alkamispaiva and :paattymispaiva and u.id = :userId
+        where tk.alkamispaiva between :alkamispaiva and :paattymispaiva and o.id = :opintooikeusId
         """
     )
     fun findForSeurantajakso(
-        userId: String,
+        opintooikeusId: Long,
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate
     ): List<Teoriakoulutus>

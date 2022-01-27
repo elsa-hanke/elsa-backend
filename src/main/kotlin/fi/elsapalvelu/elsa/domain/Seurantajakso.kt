@@ -79,7 +79,7 @@ data class Seurantajakso(
     @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
+    var opintooikeus: Opintooikeus? = null,
 
     @NotNull
     @ManyToOne(optional = false)
@@ -123,7 +123,6 @@ data class Seurantajakso(
             "seuraavanKeskustelunAjankohta=$seuraavanKeskustelunAjankohta, " +
             "luotu=$luotu, " +
             "tallennettu=$tallennettu, " +
-            "erikoistuvaLaakari=$erikoistuvaLaakari, " +
             "kouluttaja=$kouluttaja, " +
             "koulutusjaksot=$koulutusjaksot)"
     }

@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.SeurantajaksoTila
 import fi.elsapalvelu.elsa.service.mapper.SeurantajaksoMapper
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -27,53 +28,54 @@ class SeurantajaksoServiceImpl(
     private val suoritemerkintaService: SuoritemerkintaService,
     private val koulutusjaksoService: KoulutusjaksoService,
     private val teoriakoulutusService: TeoriakoulutusService,
-    private val opintooikeusService: OpintooikeusService
+    private val opintooikeusRepository: OpintooikeusRepository
 ) : SeurantajaksoService {
 
     override fun create(
         seurantajaksoDTO: SeurantajaksoDTO,
-        userId: String
-    ): SeurantajaksoDTO {
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-                ?: throw EntityNotFoundException("Vain erikoistuva lääkäri saa lisätä seurantajakson")
-        var seurantajakso = seurantajaksoMapper.toEntity(seurantajaksoDTO)
-        seurantajakso.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
-        seurantajakso = seurantajaksoRepository.save(seurantajakso)
+        opintooikeusId: Long
+    ): SeurantajaksoDTO? {
+        opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let { opintooikeus ->
+            var seurantajakso = seurantajaksoMapper.toEntity(seurantajaksoDTO)
+            seurantajakso.opintooikeus = opintooikeus
+            seurantajakso = seurantajaksoRepository.save(seurantajakso)
 
-        // Lukitaan seurantajaksoon liittyvät tiedot
-        val arvioinnit =
-            suoritusarviointiRepository.findForSeurantajakso(
-                userId,
-                seurantajakso.alkamispaiva!!,
-                seurantajakso.paattymispaiva!!
+            // Lukitaan seurantajaksoon liittyvät tiedot
+            val arvioinnit =
+                suoritusarviointiRepository.findForSeurantajakso(
+                    opintooikeusId,
+                    seurantajakso.alkamispaiva!!,
+                    seurantajakso.paattymispaiva!!
+                )
+            arvioinnit.forEach { it.lukittu = true }
+            suoritusarviointiRepository.saveAll(arvioinnit)
+
+            val suoritemerkinnat =
+                suoritemerkintaRepository.findForSeurantajakso(
+                    opintooikeusId,
+                    seurantajakso.alkamispaiva!!,
+                    seurantajakso.paattymispaiva!!
+                )
+            suoritemerkinnat.forEach { it.lukittu = true }
+            suoritemerkintaRepository.saveAll(suoritemerkinnat)
+
+            val koulutusjaksot = seurantajakso.koulutusjaksot
+            if (koulutusjaksot != null && koulutusjaksot.size > 0) {
+                koulutusjaksot.forEach { it.lukittu = true }
+                koulutusjaksoRepository.saveAll(koulutusjaksot)
+            }
+
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
+                "uusiSeurantajakso.html",
+                "email.uusiseurantajakso.title",
+                properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
             )
-        arvioinnit.forEach { it.lukittu = true }
-        suoritusarviointiRepository.saveAll(arvioinnit)
 
-        val suoritemerkinnat =
-            suoritemerkintaRepository.findForSeurantajakso(
-                userId,
-                seurantajakso.alkamispaiva!!,
-                seurantajakso.paattymispaiva!!
-            )
-        suoritemerkinnat.forEach { it.lukittu = true }
-        suoritemerkintaRepository.saveAll(suoritemerkinnat)
-
-        val koulutusjaksot = seurantajakso.koulutusjaksot
-        if (koulutusjaksot != null && koulutusjaksot.size > 0) {
-            koulutusjaksot.forEach { it.lukittu = true }
-            koulutusjaksoRepository.saveAll(koulutusjaksot)
+            return seurantajaksoMapper.toDto(seurantajakso)
         }
 
-        mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
-            "uusiSeurantajakso.html",
-            "email.uusiseurantajakso.title",
-            properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
-        )
-
-        return seurantajaksoMapper.toDto(seurantajakso)
+        return null
     }
 
     override fun update(
@@ -81,35 +83,33 @@ class SeurantajaksoServiceImpl(
         userId: String
     ): SeurantajaksoDTO {
         var seurantajakso =
-            seurantajaksoRepository.findById(seurantajaksoDTO.id!!)
+            seurantajaksoRepository. findById(seurantajaksoDTO.id!!)
                 .orElseThrow { EntityNotFoundException("Seurantajaksoa ei löydy") }
 
         val updatedSeurantajakso =
             seurantajaksoMapper.toEntity(seurantajaksoDTO)
 
-        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId).let {
-            if (it == seurantajakso.erikoistuvaLaakari
-                && (seurantajakso.seurantakeskustelunYhteisetMerkinnat == null
-                    || seurantajakso.korjausehdotus != null)
-            ) {
-                seurantajakso.omaArviointi = updatedSeurantajakso.omaArviointi
-                seurantajakso.lisahuomioita = updatedSeurantajakso.lisahuomioita
-                seurantajakso.seuraavanJaksonTavoitteet =
-                    updatedSeurantajakso.seuraavanJaksonTavoitteet
-                seurantajakso.seurantakeskustelunYhteisetMerkinnat =
-                    updatedSeurantajakso.seurantakeskustelunYhteisetMerkinnat
-                seurantajakso.seuraavanKeskustelunAjankohta =
-                    updatedSeurantajakso.seuraavanKeskustelunAjankohta
-                seurantajakso.korjausehdotus = null
-                seurantajakso = seurantajaksoRepository.save(seurantajakso)
+        if (seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId
+            && (seurantajakso.seurantakeskustelunYhteisetMerkinnat == null
+                || seurantajakso.korjausehdotus != null)
+        ) {
+            seurantajakso.omaArviointi = updatedSeurantajakso.omaArviointi
+            seurantajakso.lisahuomioita = updatedSeurantajakso.lisahuomioita
+            seurantajakso.seuraavanJaksonTavoitteet =
+                updatedSeurantajakso.seuraavanJaksonTavoitteet
+            seurantajakso.seurantakeskustelunYhteisetMerkinnat =
+                updatedSeurantajakso.seurantakeskustelunYhteisetMerkinnat
+            seurantajakso.seuraavanKeskustelunAjankohta =
+                updatedSeurantajakso.seuraavanKeskustelunAjankohta
+            seurantajakso.korjausehdotus = null
+            seurantajakso = seurantajaksoRepository.save(seurantajakso)
 
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
-                    "seurantajaksonYhteisetMerkinnat.html",
-                    "email.seurantajaksonyhteisetmerkinnat.title",
-                    properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
-                )
-            }
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
+                "seurantajaksonYhteisetMerkinnat.html",
+                "email.seurantajaksonyhteisetmerkinnat.title",
+                properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
+            )
         }
 
         if (seurantajakso.kouluttaja?.user?.id == userId && seurantajakso.hyvaksytty != true) {
@@ -135,30 +135,34 @@ class SeurantajaksoServiceImpl(
 
             seurantajakso = seurantajaksoRepository.save(seurantajakso)
 
-            if (seurantajakso.korjausehdotus != null) {
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(seurantajakso.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    "seurantajaksoPalautettu.html",
-                    "email.seurantajaksopalautettu.title",
-                    properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
-                )
-            } else if (seurantajakso.hyvaksytty == true) {
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(seurantajakso.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    "seurantajaksoHyvaksytty.html",
-                    "email.seurantajaksohyvaksytty.title",
-                    properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
-                )
-            } else {
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(seurantajakso.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    "seurantajaksoArvioitu.html",
-                    "email.seurantajaksoarvioitu.title",
-                    properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
-                )
+            when {
+                seurantajakso.korjausehdotus != null -> {
+                    mailService.sendEmailFromTemplate(
+                        kayttajaRepository.findById(seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
+                            .get().user!!,
+                        "seurantajaksoPalautettu.html",
+                        "email.seurantajaksopalautettu.title",
+                        properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
+                    )
+                }
+                seurantajakso.hyvaksytty == true -> {
+                    mailService.sendEmailFromTemplate(
+                        kayttajaRepository.findById(seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
+                            .get().user!!,
+                        "seurantajaksoHyvaksytty.html",
+                        "email.seurantajaksohyvaksytty.title",
+                        properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
+                    )
+                }
+                else -> {
+                    mailService.sendEmailFromTemplate(
+                        kayttajaRepository.findById(seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
+                            .get().user!!,
+                        "seurantajaksoArvioitu.html",
+                        "email.seurantajaksoarvioitu.title",
+                        properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
+                    )
+                }
             }
         }
 
@@ -166,8 +170,8 @@ class SeurantajaksoServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): List<SeurantajaksoDTO> {
-        val result = seurantajaksoRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
+    override fun findByOpintooikeusId(opintooikeusId: Long): List<SeurantajaksoDTO> {
+        val result = seurantajaksoRepository.findByOpintooikeusId(opintooikeusId)
             .map(seurantajaksoMapper::toDto)
         result.forEach { it.tila = SeurantajaksoTila.fromSeurantajakso(it) }
         return result
@@ -196,10 +200,10 @@ class SeurantajaksoServiceImpl(
     @Transactional(readOnly = true)
     override fun findOne(
         id: Long,
-        userId: String
+        opintooikeusId: Long
     ): SeurantajaksoDTO? {
         val result = seurantajaksoRepository
-            .findByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)?.let {
+            .findByIdAndOpintooikeusId(id, opintooikeusId)?.let {
                 seurantajaksoMapper.toDto(it)
             }
         if (result != null) {
@@ -209,13 +213,13 @@ class SeurantajaksoServiceImpl(
     }
 
     override fun findSeurantajaksonTiedot(
-        userId: String,
+        opintooikeusId: Long,
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate,
         koulutusjaksot: List<Long>
     ): SeurantajaksonTiedotDTO {
         val arvioinnit =
-            suoritusarviointiService.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
+            suoritusarviointiService.findForSeurantajakso(opintooikeusId, alkamispaiva, paattymispaiva)
         val arvioitavatKokonaisuudetMap = arvioinnit.groupBy { it.arvioitavaKokonaisuus }
         val arvioitavatKategoriatMap = arvioitavatKokonaisuudetMap.keys.groupBy { it?.kategoria }
         val kategoriat = arvioitavatKategoriatMap.map { (kategoria, kokonaisuudet) ->
@@ -231,13 +235,12 @@ class SeurantajaksoServiceImpl(
         }.sortedBy { it.jarjestysnumero }
 
         val suoritemerkinnat =
-            suoritemerkintaService.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
+            suoritemerkintaService.findForSeurantajakso(opintooikeusId, alkamispaiva, paattymispaiva)
         val suoritteetMap = suoritemerkinnat.groupBy { it.suorite }
         val suoritteet = suoritteetMap.map { (tavoite, suoritemerkinnat) ->
             SeurantajaksonSuoritemerkintaDTO(tavoite?.nimi, suoritemerkinnat)
         }
 
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
         val koulutusjaksotDTO = koulutusjaksoService.findForSeurantajakso(koulutusjaksot, opintooikeusId)
         val osaamistavoitteet =
             koulutusjaksotDTO.map { jakso -> jakso.osaamistavoitteet.map { it.nimi } }.flatten()
@@ -246,7 +249,7 @@ class SeurantajaksoServiceImpl(
             koulutusjaksotDTO.mapNotNull { jakso -> jakso.muutOsaamistavoitteet }
                 .distinct()
         val teoriakoulutukset =
-            teoriakoulutusService.findForSeurantajakso(userId, alkamispaiva, paattymispaiva)
+            teoriakoulutusService.findForSeurantajakso(opintooikeusId, alkamispaiva, paattymispaiva)
         return SeurantajaksonTiedotDTO(
             osaamistavoitteet = osaamistavoitteet,
             muutOsaamistavoitteet = muutTavoitteet,
@@ -262,16 +265,16 @@ class SeurantajaksoServiceImpl(
         val seurantajakso = seurantajaksoRepository.findByIdAndKouluttajaUserId(id, userId)
 
         return findSeurantajaksonTiedot(
-            seurantajakso?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+            seurantajakso?.opintooikeus?.id!!,
             seurantajakso.alkamispaiva!!,
             seurantajakso.paattymispaiva!!,
             seurantajakso.koulutusjaksot?.map { it.id!! }.orEmpty()
         )
     }
 
-    override fun delete(id: Long, userId: String) {
+    override fun delete(id: Long, opintooikeusId: Long) {
         val seurantajakso =
-            seurantajaksoRepository.findByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)
+            seurantajaksoRepository.findByIdAndOpintooikeusId(id, opintooikeusId)
 
         if (seurantajakso != null) {
             mailService.sendEmailFromTemplate(
@@ -281,18 +284,18 @@ class SeurantajaksoServiceImpl(
                 properties = mapOf(
                     Pair(
                         MailProperty.NAME,
-                        seurantajakso.erikoistuvaLaakari?.kayttaja?.user?.getName().toString()
+                        seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName().toString()
                     )
                 )
             )
 
             // Poistetaan lukot jos ei päällekkäisiä seurantajaksoja
             val seurantajaksot =
-                seurantajaksoRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
+                seurantajaksoRepository.findByOpintooikeusId(opintooikeusId)
                     .filter { it.id != seurantajakso.id }
             val arvioinnit =
                 suoritusarviointiRepository.findForSeurantajakso(
-                    userId,
+                    opintooikeusId,
                     seurantajakso.alkamispaiva!!,
                     seurantajakso.paattymispaiva!!
                 )
@@ -304,7 +307,7 @@ class SeurantajaksoServiceImpl(
             suoritusarviointiRepository.saveAll(arvioinnit)
 
             val suoritemerkinnat = suoritemerkintaRepository.findForSeurantajakso(
-                userId, seurantajakso.alkamispaiva!!, seurantajakso.paattymispaiva!!
+                opintooikeusId, seurantajakso.alkamispaiva!!, seurantajakso.paattymispaiva!!
             )
             suoritemerkinnat.forEach { suoritemerkinta ->
                 if (!onkoSeurantajaksolla(seurantajaksot, suoritemerkinta.suorituspaiva!!)) {

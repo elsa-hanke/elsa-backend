@@ -27,7 +27,7 @@ class KouluttajaSeurantakeskustelutResource(
     fun getSeurantajaksot(principal: Principal?): ResponseEntity<List<SeurantajaksoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val seurantajaksot =
-            seurantajaksoService.findByKouluttajaUserId(user.id!!).groupBy { it.erikoistuvaLaakari }
+            seurantajaksoService.findByKouluttajaUserId(user.id!!).groupBy { it.opintooikeusId }
         val result = mutableListOf<SeurantajaksoDTO>()
         seurantajaksot.forEach { (_, erikoistuvanJaksot) ->
             val sortedJaksot = sortSeurantajaksot(erikoistuvanJaksot)

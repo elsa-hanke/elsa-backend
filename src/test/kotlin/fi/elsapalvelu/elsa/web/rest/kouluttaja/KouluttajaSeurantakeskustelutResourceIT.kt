@@ -27,7 +27,8 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -89,6 +90,7 @@ class KouluttajaSeurantakeskustelutResourceIT {
         val seurantajakso2 = createEntity(erikoistuvaLaakari2, kouluttaja)
         seurantajakso2.kouluttajanArvio = DEFAULT_KOULUTTAJAN_ARVIO
         seurantajakso2.edistyminenTavoitteidenMukaista = true
+        seurantajakso2.tallennettu = LocalDate.ofEpochDay(1L)
         seurantajaksoRepository.saveAndFlush(seurantajakso2)
 
         restSeurantajaksoMockMvc.perform(get("$ENTITY_API_URL/seurantajaksot"))
@@ -401,7 +403,7 @@ class KouluttajaSeurantakeskustelutResourceIT {
             return Seurantajakso(
                 alkamispaiva = DEFAULT_ALKAMISPAIVA,
                 paattymispaiva = DEFAULT_PAATTYMISPAIVA,
-                erikoistuvaLaakari = erikoistuvaLaakari,
+                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 omaArviointi = DEFAULT_OMA_ARVIOINTI,
                 lisahuomioita = DEFAULT_LISAHUOMIOITA,
                 seuraavanJaksonTavoitteet = DEFAULT_TAVOITTEET,
@@ -417,7 +419,7 @@ class KouluttajaSeurantakeskustelutResourceIT {
             return Seurantajakso(
                 alkamispaiva = DEFAULT_ALKAMISPAIVA,
                 paattymispaiva = DEFAULT_PAATTYMISPAIVA,
-                erikoistuvaLaakari = erikoistuvaLaakari,
+                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 omaArviointi = UPDATED_OMA_ARVIOINTI,
                 lisahuomioita = UPDATED_LISAHUOMIOITA,
                 seuraavanJaksonTavoitteet = UPDATED_TAVOITTEET,

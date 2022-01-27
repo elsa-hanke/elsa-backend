@@ -1,7 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.SeurantajaksoDTO
+import fi.elsapalvelu.elsa.service.dto.SeurantajaksonTiedotDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -23,14 +24,16 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
     private val suoritusarviointiService: SuoritusarviointiService,
     private val suoritemerkintaService: SuoritemerkintaService,
     private val koulutusjaksoService: KoulutusjaksoService,
-    private val teoriakoulutusService: TeoriakoulutusService
+    private val teoriakoulutusService: TeoriakoulutusService,
+    private val opintooikeusService: OpintooikeusService
 ) {
 
     @GetMapping("/seurantajaksot")
     fun getSeurantajaksot(principal: Principal?): ResponseEntity<List<SeurantajaksoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         return ResponseEntity.ok(
-            seurantajaksoService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            seurantajaksoService.findByOpintooikeusId(opintooikeusId)
         )
     }
 
@@ -40,7 +43,8 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
         principal: Principal?
     ): ResponseEntity<SeurantajaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return seurantajaksoService.findOne(id, user.id!!)?.let {
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        return seurantajaksoService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -53,9 +57,10 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
         @RequestParam koulutusjaksot: List<Long>
     ): ResponseEntity<SeurantajaksonTiedotDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         return ResponseEntity.ok(
             seurantajaksoService.findSeurantajaksonTiedot(
-                user.id!!,
+                opintooikeusId,
                 alkamispaiva,
                 paattymispaiva,
                 koulutusjaksot
@@ -69,6 +74,87 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
         principal: Principal?
     ): ResponseEntity<SeurantajaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        validateNewSeurantajaksoDTO(seurantajaksoDTO)
+
+        seurantajaksoService.create(seurantajaksoDTO, opintooikeusId)?.let {
+            return ResponseEntity
+            .created(URI("/api/seurantakeskustelut/seurantajakso/${it.id}"))
+            .body(it)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+    }
+
+    @PutMapping("/seurantajakso/{id}")
+    fun updateSeurantajakso(
+        @PathVariable(value = "id", required = false) id: Long,
+        @Valid @RequestBody seurantajaksoDTO: SeurantajaksoDTO,
+        principal: Principal?
+    ): ResponseEntity<SeurantajaksoDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        if (seurantajaksoDTO.id == null) {
+            throw BadRequestAlertException(
+                "Virheellinen id",
+                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME, "idnull"
+            )
+        }
+
+        if (!Objects.equals(id, seurantajaksoDTO.id)) {
+            throw BadRequestAlertException(
+                "Virheellinen id",
+                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME, "idinvalid"
+            )
+        }
+
+        val seurantajakso = seurantajaksoService.findOne(id, opintooikeusId)
+            ?: throw BadRequestAlertException(
+                "Seurantajaksoa ei löydy",
+                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME, "idnotfound"
+            )
+
+        if (seurantajakso.hyvaksytty == true) {
+            throw BadRequestAlertException(
+                "Hyväksyttyä seurantajaksoa ei saa päivittää",
+                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME,
+                "dataillegal.hyvaksyttya-seurantajaksoa-ei-saa-paivittaa"
+            )
+        }
+
+        if (seurantajakso.seurantakeskustelunYhteisetMerkinnat != null && seurantajakso.korjausehdotus == null) {
+            throw BadRequestAlertException(
+                "Yhteiset merkinnät kirjattua seurantajaksoa ei saa päivittää, ellei seurantajakso ole palautettu",
+                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME,
+                "dataillegal.yhteiset-merkinnat-kirjattua-seurantajaksoa-ei-saa-paivittaa"
+            )
+        }
+
+        val result = seurantajaksoService.update(seurantajaksoDTO, user.id!!)
+        return ResponseEntity.ok(result)
+    }
+
+    @DeleteMapping("/seurantajakso/{id}")
+    fun deleteSeurantajakso(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        val seurantajakso = seurantajaksoService.findOne(id, opintooikeusId)
+
+        if (seurantajakso?.seurantakeskustelunYhteisetMerkinnat != null) {
+            throw BadRequestAlertException(
+                "Keskustelut käytyä seurantajaksoa ei saa poistaa",
+                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME,
+                "dataillegal.arvioitua-tai-keskustelut-merkittya-seurantajaksoa-ei-saa-poistaa"
+            )
+        }
+        seurantajaksoService.delete(id, opintooikeusId)
+        return ResponseEntity.noContent().build()
+    }
+
+    private fun validateNewSeurantajaksoDTO(seurantajaksoDTO: SeurantajaksoDTO) {
         if (seurantajaksoDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi seurantajakso ei saa sisältää ID:tä",
@@ -118,78 +204,5 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
                 "dataillegal.uusi-seurantajakso-ei-saa-sisaltaa-hyvaksyntaa"
             )
         }
-
-        val result = seurantajaksoService.create(seurantajaksoDTO, user.id!!)
-        return ResponseEntity
-            .created(URI("/api/seurantakeskustelut/seurantajakso/${result.id}"))
-            .body(result)
-    }
-
-    @PutMapping("/seurantajakso/{id}")
-    fun updateSeurantajakso(
-        @PathVariable(value = "id", required = false) id: Long,
-        @Valid @RequestBody seurantajaksoDTO: SeurantajaksoDTO,
-        principal: Principal?
-    ): ResponseEntity<SeurantajaksoDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-
-        if (seurantajaksoDTO.id == null) {
-            throw BadRequestAlertException(
-                "Virheellinen id",
-                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME, "idnull"
-            )
-        }
-
-        if (!Objects.equals(id, seurantajaksoDTO.id)) {
-            throw BadRequestAlertException(
-                "Virheellinen id",
-                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME, "idinvalid"
-            )
-        }
-
-        val seurantajakso = seurantajaksoService.findOne(id, user.id!!)
-            ?: throw BadRequestAlertException(
-                "Seurantajaksoa ei löydy",
-                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME, "idnotfound"
-            )
-
-        if (seurantajakso.hyvaksytty == true) {
-            throw BadRequestAlertException(
-                "Hyväksyttyä seurantajaksoa ei saa päivittää",
-                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME,
-                "dataillegal.hyvaksyttya-seurantajaksoa-ei-saa-paivittaa"
-            )
-        }
-
-        if (seurantajakso.seurantakeskustelunYhteisetMerkinnat != null && seurantajakso.korjausehdotus == null) {
-            throw BadRequestAlertException(
-                "Yhteiset merkinnät kirjattua seurantajaksoa ei saa päivittää, ellei seurantajakso ole palautettu",
-                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME,
-                "dataillegal.yhteiset-merkinnat-kirjattua-seurantajaksoa-ei-saa-paivittaa"
-            )
-        }
-
-        val result = seurantajaksoService.update(seurantajaksoDTO, user.id!!)
-        return ResponseEntity.ok(result)
-    }
-
-    @DeleteMapping("/seurantajakso/{id}")
-    fun deleteSeurantajakso(
-        @PathVariable id: Long,
-        principal: Principal?
-    ): ResponseEntity<Void> {
-        val user = userService.getAuthenticatedUser(principal)
-
-        val seurantajakso = seurantajaksoService.findOne(id, user.id!!)
-
-        if (seurantajakso?.seurantakeskustelunYhteisetMerkinnat != null) {
-            throw BadRequestAlertException(
-                "Keskustelut käytyä seurantajaksoa ei saa poistaa",
-                ErikoistuvaLaakariKoulutusjaksoResource.ENTITY_NAME,
-                "dataillegal.arvioitua-tai-keskustelut-merkittya-seurantajaksoa-ei-saa-poistaa"
-            )
-        }
-        seurantajaksoService.delete(id, user.id!!)
-        return ResponseEntity.noContent().build()
     }
 }
