@@ -10,17 +10,18 @@ import java.time.LocalDate
 @Repository
 interface TeoriakoulutusRepository : JpaRepository<Teoriakoulutus, Long> {
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): MutableList<Teoriakoulutus>
+    fun findAllByOpintooikeusId(opintooikeusId: Long): MutableList<Teoriakoulutus>
 
-    fun findOneByIdAndErikoistuvaLaakariKayttajaUserId(id: Long, userId: String): Teoriakoulutus?
+    fun findOneByIdAndOpintooikeusId(id: Long, opintooikeusId: Long): Teoriakoulutus?
 
-    fun deleteByIdAndErikoistuvaLaakariKayttajaUserId(id: Long, userId: String)
+    fun deleteByIdAndOpintooikeusId(id: Long, opintooikeusId: Long)
 
     @Query(
         """
         select tk
         from Teoriakoulutus tk
-        join tk.erikoistuvaLaakari e
+        join tk.opintooikeus o
+        join o.erikoistuvaLaakari e
         join e.kayttaja k
         join k.user u
         where tk.alkamispaiva between :alkamispaiva and :paattymispaiva and u.id = :userId

@@ -27,7 +27,8 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository,
     private val paivakirjamerkintaQueryService: PaivakirjamerkintaQueryService,
     private val teoriakoulutusService: TeoriakoulutusService,
-    private val paivakirjaAihekategoriaService: PaivakirjaAihekategoriaService
+    private val paivakirjaAihekategoriaService: PaivakirjaAihekategoriaService,
+    private val opintooikeusService: OpintooikeusService
 ) {
 
     companion object {
@@ -126,9 +127,10 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
         principal: Principal?
     ): ResponseEntity<PaivakirjamerkintaFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val form = PaivakirjamerkintaFormDTO()
         form.aihekategoriat = paivakirjaAihekategoriaService.findAll().toMutableSet()
-        form.teoriakoulutukset = teoriakoulutusService.findAll(user.id!!).toMutableSet()
+        form.teoriakoulutukset = teoriakoulutusService.findAll(opintooikeusId).toMutableSet()
 
         return ResponseEntity.ok(form)
     }

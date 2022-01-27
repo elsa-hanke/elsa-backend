@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Teoriakoulutus
 import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.web.rest.createByteArray
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
@@ -50,7 +49,7 @@ class TeoriakoulutusHelper {
                 em.persist(erikoistuvaLaakari)
                 em.flush()
             }
-            teoriakoulutus.erikoistuvaLaakari = erikoistuvaLaakari
+            teoriakoulutus.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return teoriakoulutus
         }
@@ -75,7 +74,7 @@ class TeoriakoulutusHelper {
             } else {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
-            teoriakoulutus.erikoistuvaLaakari = erikoistuvaLaakari
+            teoriakoulutus.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return teoriakoulutus
         }

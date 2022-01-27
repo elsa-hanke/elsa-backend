@@ -34,10 +34,6 @@ data class ErikoistuvaLaakari(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var annetutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf(),
 
-    @OneToMany(mappedBy = "erikoistuvaLaakari")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var teoriakoulutukset: MutableSet<Teoriakoulutus>? = mutableSetOf(),
-
     @NotNull
     @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
     var koejaksonKoulutussopimus: KoejaksonKoulutussopimus? = null,

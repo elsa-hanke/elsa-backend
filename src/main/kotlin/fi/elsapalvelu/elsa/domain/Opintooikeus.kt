@@ -60,7 +60,11 @@ data class Opintooikeus(
     var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf(),
 
     @OneToOne(mappedBy = "opintooikeus")
-    var koulutussuunnitelma: Koulutussuunnitelma? = null
+    var koulutussuunnitelma: Koulutussuunnitelma? = null,
+
+    @OneToMany(mappedBy = "opintooikeus")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    var teoriakoulutukset: MutableSet<Teoriakoulutus>? = mutableSetOf()
 
 ) : Serializable {
 

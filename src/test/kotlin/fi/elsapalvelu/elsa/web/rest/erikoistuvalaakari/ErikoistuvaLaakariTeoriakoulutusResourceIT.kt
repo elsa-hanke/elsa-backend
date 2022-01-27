@@ -287,7 +287,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         val erikoisala = ErikoisalaHelper.createEntity()
         em.persist(erikoisala)
         em.flush()
-        teoriakoulutus.erikoistuvaLaakari?.opintooikeudet?.firstOrNull()?.erikoisala = erikoisala
+        teoriakoulutus.opintooikeus?.erikoisala = erikoisala
         teoriakoulutusRepository.saveAndFlush(teoriakoulutus)
 
         restTeoriakoulutusMockMvc.perform(get(ENTITY_API_URL))
@@ -657,7 +657,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
                 em.persist(erikoistuvaLaakari)
                 em.flush()
             }
-            teoriakoulutus.erikoistuvaLaakari = erikoistuvaLaakari
+            teoriakoulutus.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return teoriakoulutus
         }
@@ -672,7 +672,6 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
                 erikoistumiseenHyvaksyttavaTuntimaara = UPDATED_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA
             )
 
-
             // Lisätään pakollinen tieto
             val erikoistuvaLaakari: ErikoistuvaLaakari
             if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
@@ -682,7 +681,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
             } else {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
-            teoriakoulutus.erikoistuvaLaakari = erikoistuvaLaakari
+            teoriakoulutus.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return teoriakoulutus
         }
