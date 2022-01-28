@@ -44,6 +44,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
         principal: Principal?
     ): ResponseEntity<PaivakirjamerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         if (paivakirjamerkintaDTO.id != null) {
             throw BadRequestAlertException(
                 "A new paivakirjamerkinta cannot already have an ID",
@@ -52,7 +53,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
             )
         }
 
-        return paivakirjamerkintaService.save(paivakirjamerkintaDTO, user.id!!)?.let {
+        return paivakirjamerkintaService.save(paivakirjamerkintaDTO, opintooikeusId)?.let {
             ResponseEntity
                 .created(URI("/api/erikoistuva-laakari/paivakirjamerkinnat/${it.id}"))
                 .body(it)
@@ -66,6 +67,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
         principal: Principal?
     ): ResponseEntity<PaivakirjamerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         if (paivakirjamerkintaDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
         }
@@ -78,7 +80,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
             throw BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound")
         }
 
-        val result = paivakirjamerkintaService.save(paivakirjamerkintaDTO, user.id!!)
+        val result = paivakirjamerkintaService.save(paivakirjamerkintaDTO, opintooikeusId)
 
         return ResponseEntity.ok(result)
     }
@@ -90,12 +92,13 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
         principal: Principal?
     ): ResponseEntity<Page<PaivakirjamerkintaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         return ResponseEntity.ok(
-            paivakirjamerkintaQueryService.findByCriteriaAndErikoistuvaLaakariKayttajaUserId(
+            paivakirjamerkintaQueryService.findByCriteriaAndOpintooikeusId(
                 criteria,
                 pageable,
-                user.id!!
+                opintooikeusId
             )
         )
     }
@@ -106,7 +109,8 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
         principal: Principal?
     ): ResponseEntity<PaivakirjamerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return paivakirjamerkintaService.findOne(id, user.id!!)?.let {
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        return paivakirjamerkintaService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -117,7 +121,8 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
-        paivakirjamerkintaService.delete(id, user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        paivakirjamerkintaService.delete(id, opintooikeusId)
 
         return ResponseEntity.noContent().build()
     }

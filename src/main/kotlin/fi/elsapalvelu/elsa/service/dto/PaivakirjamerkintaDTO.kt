@@ -25,8 +25,6 @@ data class PaivakirjamerkintaDTO(
 
     var aihekategoriat: MutableSet<PaivakirjaAihekategoriaDTO> = mutableSetOf(),
 
-    var erikoistuvaLaakariId: Long? = null,
-
     var teoriakoulutus: TeoriakoulutusDTO? = null
 
 ) : Serializable {

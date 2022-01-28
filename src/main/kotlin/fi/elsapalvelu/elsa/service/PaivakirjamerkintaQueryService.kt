@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tech.jhipster.service.QueryService
 import tech.jhipster.service.filter.Filter
-import javax.persistence.criteria.Join
 import javax.persistence.criteria.JoinType
+import javax.persistence.criteria.Path
 
 @Service
 @Transactional(readOnly = true)
@@ -23,16 +23,14 @@ class PaivakirjamerkintaQueryService(
 ) : QueryService<Paivakirjamerkinta>() {
 
     @Transactional(readOnly = true)
-    fun findByCriteriaAndErikoistuvaLaakariKayttajaUserId(
+    fun findByCriteriaAndOpintooikeusId(
         criteria: PaivakirjamerkintaCriteria?,
         page: Pageable,
-        userId: String
+        opintooikeusId: Long
     ): Page<PaivakirjamerkintaDTO> {
         val specification = createSpecification(criteria) { root, _, cb ->
-            val user: Join<Kayttaja, User> = root.join(Paivakirjamerkinta_.erikoistuvaLaakari)
-                .join(ErikoistuvaLaakari_.kayttaja)
-                .join(Kayttaja_.user)
-            cb.equal(user.get(User_.id), userId)
+            val opintooikeus: Path<Opintooikeus> = root.get(Paivakirjamerkinta_.opintooikeus)
+            cb.equal(opintooikeus.get(Opintooikeus_.id), opintooikeusId)
         }
 
         return paivakirjamerkintaRepository.findAll(specification, page)
@@ -77,13 +75,6 @@ class PaivakirjamerkintaQueryService(
                 specification = specification.and(
                     buildSpecification(criteria.aihekategoriaId as Filter<Long>) {
                         it.join(Paivakirjamerkinta_.aihekategoriat, JoinType.LEFT).get(PaivakirjaAihekategoria_.id)
-                    }
-                )
-            }
-            if (criteria.erikoistuvaLaakariId != null) {
-                specification = specification.and(
-                    buildSpecification(criteria.erikoistuvaLaakariId as Filter<Long>) {
-                        it.join(Paivakirjamerkinta_.erikoistuvaLaakari, JoinType.LEFT).get(ErikoistuvaLaakari_.id)
                     }
                 )
             }

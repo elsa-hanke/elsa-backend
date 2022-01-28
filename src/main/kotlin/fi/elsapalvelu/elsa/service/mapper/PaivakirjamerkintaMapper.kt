@@ -11,7 +11,6 @@ import org.mapstruct.ReportingPolicy
     componentModel = "spring",
     uses = [
         PaivakirjaAihekategoriaMapper::class,
-        ErikoistuvaLaakariMapper::class,
         TeoriakoulutusMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
@@ -19,13 +18,9 @@ import org.mapstruct.ReportingPolicy
 interface PaivakirjamerkintaMapper : EntityMapper<PaivakirjamerkintaDTO, Paivakirjamerkinta> {
 
     @Mappings(
-        Mapping(target = "aihekategoriat", source = "aihekategoriat", qualifiedByName = ["idSet"]),
-        Mapping(source = "erikoistuvaLaakari.id", target = "erikoistuvaLaakariId"),
+        Mapping(target = "aihekategoriat", source = "aihekategoriat", qualifiedByName = ["idSet"])
     )
     override fun toDto(entity: Paivakirjamerkinta): PaivakirjamerkintaDTO
 
-    @Mappings(
-        Mapping(source = "erikoistuvaLaakariId", target = "erikoistuvaLaakari"),
-    )
     override fun toEntity(dto: PaivakirjamerkintaDTO): Paivakirjamerkinta
 }
