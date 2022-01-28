@@ -114,7 +114,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
     @Test
     @Transactional
     @Throws(Exception::class)
-    fun createPaivakirjamerkintaWithoutErikoistuvaLaakari() {
+    fun createPaivakirjamerkintaWithoutOpintooikeus() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -135,7 +135,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
             post(ENTITY_API_URL).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(paivakirjamerkintaDTO))
-        ).andExpect(status().isBadRequest)
+        ).andExpect(status().is5xxServerError)
     }
 
     @Test
@@ -531,17 +531,11 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
         @JvmStatic
         fun createEntity(em: EntityManager, user: User? = null): Paivakirjamerkinta {
             val paivakirjamerkinta = Paivakirjamerkinta(
-
                 paivamaara = DEFAULT_PAIVAMAARA,
-
                 oppimistapahtumanNimi = DEFAULT_OPPIMISTAPAHTUMAN_NIMI,
-
                 muunAiheenNimi = DEFAULT_MUUN_AIHEEN_NIMI,
-
                 reflektio = DEFAULT_REFLEKTIO,
-
                 yksityinen = DEFAULT_YKSITYINEN
-
             )
 
             var erikoistuvaLaakari =
@@ -551,7 +545,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
                 em.persist(erikoistuvaLaakari)
                 em.flush()
             }
-            paivakirjamerkinta.erikoistuvaLaakari = erikoistuvaLaakari
+            paivakirjamerkinta.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return paivakirjamerkinta
         }
@@ -580,7 +574,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
             } else {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class)[0]
             }
-            paivakirjamerkinta.erikoistuvaLaakari = erikoistuvaLaakari
+            paivakirjamerkinta.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             return paivakirjamerkinta
         }

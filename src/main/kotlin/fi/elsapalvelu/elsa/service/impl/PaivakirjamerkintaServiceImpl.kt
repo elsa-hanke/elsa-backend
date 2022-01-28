@@ -1,10 +1,11 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.service.PaivakirjamerkintaService
 import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.PaivakirjamerkintaMapper
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,27 +13,28 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class PaivakirjamerkintaServiceImpl(
     private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
-    private val paivakirjamerkintaMapper: PaivakirjamerkintaMapper
+    private val paivakirjamerkintaMapper: PaivakirjamerkintaMapper,
+    private val opintooikeusRepository: OpintooikeusRepository
 ) : PaivakirjamerkintaService {
 
-    override fun save(paivakirjamerkintaDTO: PaivakirjamerkintaDTO, userId: String): PaivakirjamerkintaDTO? {
-        return erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { erikoistuvaLaakari ->
-            paivakirjamerkintaDTO.erikoistuvaLaakariId = erikoistuvaLaakari.id
-            var paivakirjamerkinta = paivakirjamerkintaMapper.toEntity(paivakirjamerkintaDTO)
+    override fun save(paivakirjamerkintaDTO: PaivakirjamerkintaDTO, opintooikeusId: Long): PaivakirjamerkintaDTO? {
+        return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            var paivakirjamerkinta = paivakirjamerkintaMapper.toEntity(paivakirjamerkintaDTO).apply {
+                opintooikeus = it
+            }
             paivakirjamerkinta = paivakirjamerkintaRepository.save(paivakirjamerkinta)
             paivakirjamerkintaMapper.toDto(paivakirjamerkinta)
         }
     }
 
     @Transactional(readOnly = true)
-    override fun findOne(id: Long, userId: String): PaivakirjamerkintaDTO? {
-        return paivakirjamerkintaRepository.findOneByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)?.let {
+    override fun findOne(id: Long, opintooikeusId: Long): PaivakirjamerkintaDTO? {
+        return paivakirjamerkintaRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
             paivakirjamerkintaMapper.toDto(it)
         }
     }
 
-    override fun delete(id: Long, userId: String) {
-        paivakirjamerkintaRepository.deleteByIdAndErikoistuvaLaakariKayttajaUserId(id, userId)
+    override fun delete(id: Long, opintooikeusId: Long) {
+        paivakirjamerkintaRepository.deleteByIdAndOpintooikeusId(id, opintooikeusId)
     }
 }

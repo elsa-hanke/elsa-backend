@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220127165512" author="jhipster">
+
+        <dropForeignKeyConstraint baseTableName="paivakirjamerkinta"
+                                  constraintName="fk_paivakirjamerkinta__erikoistuva_laakari_id"/>
+        <dropColumn tableName="paivakirjamerkinta" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="paivakirjamerkinta">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="paivakirjamerkinta" baseColumnNames="opintooikeus_id"
+                                 constraintName="fk_paivakirjamerkinta_opintooikeus_id" referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn tableName="paivakirjamerkinta_audit" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="paivakirjamerkinta_audit">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+    </changeSet>
+
+</databaseChangeLog>

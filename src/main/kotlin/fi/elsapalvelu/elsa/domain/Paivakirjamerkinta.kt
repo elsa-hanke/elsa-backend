@@ -56,7 +56,7 @@ data class Paivakirjamerkinta(
     @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
+    var opintooikeus: Opintooikeus? = null,
 
     @ManyToOne
     var teoriakoulutus: Teoriakoulutus? = null

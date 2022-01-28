@@ -11,10 +11,10 @@ import org.springframework.stereotype.Repository
 interface PaivakirjamerkintaRepository : JpaRepository<Paivakirjamerkinta, Long>,
     JpaSpecificationExecutor<Paivakirjamerkinta> {
 
-    fun findAllByErikoistuvaLaakariKayttajaUserId(pageable: Pageable, userId: String): Page<Paivakirjamerkinta>
+    fun findAllByOpintooikeusId(pageable: Pageable, opintooikeusId: Long): Page<Paivakirjamerkinta>
 
-    fun findOneByIdAndErikoistuvaLaakariKayttajaUserId(id: Long, userId: String): Paivakirjamerkinta?
+    fun findOneByIdAndOpintooikeusId(id: Long, opintooikeusId: Long): Paivakirjamerkinta?
 
-    fun deleteByIdAndErikoistuvaLaakariKayttajaUserId(id: Long, userId: String)
+    fun deleteByIdAndOpintooikeusId(id: Long, opintooikeusId: Long)
 
 }
