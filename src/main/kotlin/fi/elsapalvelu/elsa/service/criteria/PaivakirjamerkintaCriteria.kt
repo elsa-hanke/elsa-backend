@@ -21,8 +21,6 @@ data class PaivakirjamerkintaCriteria(
 
     var aihekategoriaId: LongFilter? = null,
 
-    var erikoistuvaLaakariId: LongFilter? = null,
-
     var teoriakoulutusId: LongFilter? = null
 
 ) : Serializable, Criteria {
@@ -35,7 +33,6 @@ data class PaivakirjamerkintaCriteria(
             other.muunAiheenNimi?.copy(),
             other.yksityinen?.copy(),
             other.aihekategoriaId?.copy(),
-            other.erikoistuvaLaakariId?.copy(),
             other.teoriakoulutusId?.copy()
         )
 
