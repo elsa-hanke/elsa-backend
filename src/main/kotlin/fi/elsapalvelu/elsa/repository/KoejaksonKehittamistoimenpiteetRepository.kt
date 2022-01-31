@@ -25,7 +25,7 @@ interface KoejaksonKehittamistoimenpiteetRepository :
     @Query(
         "select kt from KoejaksonKehittamistoimenpiteet kt " +
             "where kt.id = :id and kt.lahikouluttajaHyvaksynyt = true and kt.lahiesimiesHyvaksynyt = true " +
-            "and kt.opintooikeus.erikoistuvaLaakari.id in (select va.opintooikeus.erikoistuvaLaakari.id from KoejaksonVastuuhenkilonArvio va " +
+            "and kt.opintooikeus.id in (select va.opintooikeus.id from KoejaksonVastuuhenkilonArvio va " +
             "where va.vastuuhenkilo.user.id = :vastuuhenkiloUserId)"
     )
     fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
