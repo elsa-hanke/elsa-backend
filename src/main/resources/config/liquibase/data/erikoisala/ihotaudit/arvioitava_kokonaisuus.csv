@@ -1,5 +1,5 @@
-id;nimi;kuvaus;voimassaolo_alkaa;erikoisala_id;kategoria_id
-900;Allergiaepäilyn tutkiminen;"<table class=""table"">
+nimi;kuvaus;voimassaolo_alkaa
+Allergiaepäilyn tutkiminen;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -181,8 +181,8 @@ meetingeissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-901;Autoimmuunitaudit;"<table class=""table"">
+</table>";2021-11-24
+Autoimmuunitaudit;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -309,8 +309,8 @@ tieteellisen julkaisun klinikan meetingeissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-902;Hyvänlaatuiset kasvaimet ja ihotoimenpiteet;"<table class=""table"">
+</table>";2021-11-24
+Hyvänlaatuiset kasvaimet ja ihotoimenpiteet;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -443,8 +443,8 @@ tieteellisen julkaisun klinikan meetingeissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-903;Ihon apuelinten sairaudet;"<table class=""table"">
+</table>";2021-11-24
+Ihon apuelinten sairaudet;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -567,8 +567,8 @@ klinikan meetingissä
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-904;Iho-oireinen vastasyntynyt;"<table class=""table"">
+</table>";2021-11-24
+Iho-oireinen vastasyntynyt;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -690,8 +690,8 @@ meetingissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-905;Ihotautinen päivystyspotilas;"<table class=""table"">
+</table>";2021-11-24
+Ihotautinen päivystyspotilas;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -813,8 +813,8 @@ meetingissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-906;Krooniset haavat;"<table class=""table"">
+</table>";2021-11-24
+Krooniset haavat;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -978,8 +978,8 @@ artikkelin esittely meetingissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-907;Kroonista tulehduksellista ihotautia sairastava potilas;"<table class=""table"">
+</table>";2021-11-24
+Kroonista tulehduksellista ihotautia sairastava potilas;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -1163,8 +1163,8 @@ tieteellisen julkaisun klinikan meetingeissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-908;Kutinapotilaan tutkiminen ja hoito;"<table class=""table"">
+</table>";2021-11-24
+Kutinapotilaan tutkiminen ja hoito;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -1305,8 +1305,8 @@ käsittävän tieteellisen julkaisun klinikan meetingeissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-909;Pahanlaatuiset ihokasvaimet ja niiden hoito;"<table class=""table"">
+</table>";2021-11-24
+Pahanlaatuiset ihokasvaimet ja niiden hoito;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -1450,8 +1450,8 @@ tieteellisen julkaisun klinikan meetingeissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-910;Perinnöllisen ihotaudin epäily;"<table class=""table"">
+</table>";2021-11-24
+Perinnöllisen ihotaudin epäily;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -1589,8 +1589,8 @@ käsittävän tieteellisen julkaisun klinikan meetingissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-911;Seksitaudit;"<table class=""table"">
+</table>";2021-11-24
+Seksitaudit;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -1726,8 +1726,8 @@ julkaisun klinikan meetingissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-912;Systeemiset lääkehoidot;"<table class=""table"">
+</table>";2021-11-24
+Systeemiset lääkehoidot;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -1891,8 +1891,8 @@ julkaisun klinikan meetingeissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-913;Valohoidot;"<table class=""table"">
+</table>";2021-11-24
+Valohoidot;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -1998,8 +1998,8 @@ Hoidon arvioiminen sairauskertomusmerkintöjen perusteella.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-914;Tieteellinen tutkimustyö;"<table class=""table"">
+</table>";2021-11-24
+Tieteellinen tutkimustyö;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -2121,8 +2121,8 @@ kongressiabstrakti/posteri.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
-915;Työperäiseksi epäiltyjen iho-oireiden tutkiminen;"<table class=""table"">
+</table>";2021-11-24
+Työperäiseksi epäiltyjen iho-oireiden tutkiminen;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -2290,4 +2290,4 @@ esittelemällä potilastapauksia klinikan meetingeissä.
 </td>
 </tr>
 </tbody>
-</table>";2021-11-24;9;900
+</table>";2021-11-24

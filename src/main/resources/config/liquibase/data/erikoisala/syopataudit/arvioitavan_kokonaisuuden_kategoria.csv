@@ -1,3 +1,3 @@
-﻿id;nimi;jarjestysnumero;voimassaolo_alkaa
-3200;Sädehoito;1;2020-08-01
-3201;Sädehoito;2;2020-08-01
+﻿nimi;jarjestysnumero;voimassaolo_alkaa;erikoisala_id
+Sädehoito;1;2020-08-01;44
+Syöpään kohdistuva lääkehoito;2;2020-08-01;44

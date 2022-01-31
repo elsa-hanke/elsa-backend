@@ -13,8 +13,7 @@ import javax.validation.constraints.NotNull
 data class ArvioitavaKokonaisuus(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @get: NotNull
@@ -30,10 +29,6 @@ data class ArvioitavaKokonaisuus(
 
     @Column(name = "voimassaolo_loppuu")
     var voimassaoloLoppuu: LocalDate? = null,
-
-    @NotNull
-    @ManyToOne(optional = false)
-    var erikoisala: Erikoisala? = null,
 
     @NotNull
     @ManyToOne(optional = false)

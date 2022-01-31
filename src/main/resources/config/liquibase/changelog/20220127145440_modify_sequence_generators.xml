@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220127145440" author="jhipster">
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="arviointiasteikko"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="arviointiasteikon_taso"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="arviointityokalu"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="arvioitava_kokonaisuus"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="arvioitavan_kokonaisuuden_kategoria"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="asetus"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="asiakirja"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="asiakirja_data"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="erikoisala"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="erikoistuva_laakari"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="kayttaja"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="kayttaja_yliopisto_erikoisala"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="keskeytysaika"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="koejakson_aloituskeskustelu"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="koejakson_kehittamistoimenpiteet"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="koejakson_koulutussopimus"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="koejakson_loppukeskustelu"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="koejakson_valiarviointi"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="koejakson_vastuuhenkilon_arvio"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="kouluttajavaltuutus"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="koulutusjakso"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="koulutussopimuksen_kouluttaja"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="koulutussopimuksen_koulutuspaikka"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="koulutussuunnitelma"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="opintooikeus"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="opintoopas"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="paivakirja_aihekategoria"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="paivakirjamerkinta"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="poissaolon_syy"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="seurantajakso"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="suorite"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="suoritemerkinta"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="suoritteen_kategoria"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="suoritusarvioinnin_kommentti"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="suoritusarviointi"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="teoriakoulutus"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="tyoskentelyjakso"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="tyoskentelypaikka"/>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="yliopisto"/>
+
+    </changeSet>
+
+</databaseChangeLog>

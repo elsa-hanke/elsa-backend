@@ -1,6 +1,6 @@
-﻿id;nimi;jarjestysnumero;voimassaolo_alkaa
-3100;1. Työterveyshuoltotoiminnan suunnittelu;1;2020-08-01
-3101;2. Työpaikkaselvitys;2;2020-08-01
-3102;3. Työterveystarkastukset;3;2020-08-01
-3103;4. Neuvonta ja ohjaus sekä erilaiset yhteistyö- ja asiantuntijatoiminnot;4;2020-08-01
-3104;5. Työterveyspainotteinen sairaanhoito;5;2020-08-01
+﻿nimi;jarjestysnumero;voimassaolo_alkaa;erikoisala_id
+1. Työterveyshuoltotoiminnan suunnittelu;1;2020-08-01;46
+2. Työpaikkaselvitys;2;2020-08-01;46
+3. Työterveystarkastukset;3;2020-08-01;46
+4. Neuvonta ja ohjaus sekä erilaiset yhteistyö- ja asiantuntijatoiminnot;4;2020-08-01;46
+5. Työterveyspainotteinen sairaanhoito;5;2020-08-01;46

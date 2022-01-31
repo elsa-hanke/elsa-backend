@@ -13,8 +13,7 @@ import javax.validation.constraints.NotNull
 data class Erikoisala(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @get: NotNull
@@ -28,11 +27,11 @@ data class Erikoisala(
 
     @OneToMany(mappedBy = "erikoisala")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var kategoriat: MutableSet<SuoritteenKategoria> = mutableSetOf(),
+    var suoritteenKategoriat: MutableSet<SuoritteenKategoria> = mutableSetOf(),
 
     @OneToMany(mappedBy = "erikoisala")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var arvioitavatKokonaisuudet: MutableSet<ArvioitavaKokonaisuus> = mutableSetOf(),
+    var arvioitavanKokonaisuudenKategoriat: MutableSet<ArvioitavanKokonaisuudenKategoria> = mutableSetOf(),
 
     @ManyToMany(mappedBy = "erikoisalat")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
