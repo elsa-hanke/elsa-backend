@@ -21,7 +21,7 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
         userId: String
     ): Optional<KoejaksonKoulutussopimus>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonKoulutussopimus>
+    fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonKoulutussopimus>
 
     @Query(
         "select ks " +

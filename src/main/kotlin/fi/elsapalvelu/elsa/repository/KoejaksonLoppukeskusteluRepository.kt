@@ -21,12 +21,12 @@ interface KoejaksonLoppukeskusteluRepository : JpaRepository<KoejaksonLoppukesku
         userId: String
     ): Optional<KoejaksonLoppukeskustelu>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonLoppukeskustelu>
+    fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonLoppukeskustelu>
 
     @Query(
         "select lk from KoejaksonLoppukeskustelu lk " +
             "where lk.id = :id and lk.lahikouluttajaHyvaksynyt = true and lk.lahiesimiesHyvaksynyt = true " +
-            "and lk.erikoistuvaLaakari.id in (select va.erikoistuvaLaakari.id from KoejaksonVastuuhenkilonArvio va " +
+            "and lk.opintooikeus.erikoistuvaLaakari.id in (select va.opintooikeus.erikoistuvaLaakari.id from KoejaksonVastuuhenkilonArvio va " +
             "where va.vastuuhenkilo.user.id = :vastuuhenkiloUserId)"
     )
     fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(

@@ -171,5 +171,6 @@
     <include file="config/liquibase/changelog/20220126162833_modify_entity_Teoriakoulutus_for_opintooikeus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220127110522_modify_entity_Seurantajakso_for_opintooikeus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220127165512_modify_entity_Paivakirjamerkinta_for_opintooikeus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220128142458_modify_koejakson_vaiheet_for_opintooikeus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

@@ -5,8 +5,10 @@ import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
 import javax.validation.Valid
@@ -45,20 +47,20 @@ class ErikoistuvaLaakariKoejaksoResource(
         val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val result = KoejaksoDTO()
 
-        koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonKoulutussopimusService.findByOpintooikeusId(opintooikeusId)
             .ifPresent {
                 result.koulutussopimus = it
             }
         result.koulutusSopimuksenTila = KoejaksoTila.fromSopimus(result.koulutussopimus)
 
-        koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonAloituskeskusteluService.findByOpintooikeusId(opintooikeusId)
             .ifPresent {
                 result.aloituskeskustelu = it
             }
         result.aloituskeskustelunTila =
             KoejaksoTila.fromAloituskeskustelu(result.aloituskeskustelu)
 
-        koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonValiarviointiService.findByOpintooikeusId(opintooikeusId)
             .ifPresent {
                 result.valiarviointi = it
             }
@@ -70,7 +72,7 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         val valiarviointiHyvaksytty = result.valiarvioinninTila == KoejaksoTila.HYVAKSYTTY
 
-        koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonKehittamistoimenpiteetService.findByOpintooikeusId(opintooikeusId)
             .ifPresent {
                 result.kehittamistoimenpiteet = it
             }
@@ -80,7 +82,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 result.kehittamistoimenpiteet
             )
 
-        koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonLoppukeskusteluService.findByOpintooikeusId(opintooikeusId)
             .ifPresent {
                 result.loppukeskustelu = it
             }
@@ -91,7 +93,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 result.loppukeskustelu
             )
 
-        koejaksonVastuuhenkilonArvioService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        koejaksonVastuuhenkilonArvioService.findByOpintooikeusId(opintooikeusId)
             .ifPresent {
                 result.vastuuhenkilonArvio = it
             }
@@ -126,6 +128,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKoulutussopimusDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+
         if (koulutussopimusDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi koulutussopimus ei saa sisältää ID:tä",
@@ -136,7 +140,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         validateKoulutussopimus(koulutussopimusDTO)
 
         val koulutussopimus =
-            koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonKoulutussopimusService.findByOpintooikeusId(opintooikeusId)
 
         if (koulutussopimus.isPresent) {
             throw BadRequestAlertException(
@@ -146,11 +150,11 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        val result =
-            koejaksonKoulutussopimusService.create(koulutussopimusDTO, user.id!!)
-        return ResponseEntity
-            .created(URI("/api/koejakso/koulutussopimus/${result.id}"))
-            .body(result)
+        koejaksonKoulutussopimusService.create(koulutussopimusDTO, opintooikeusId)?.let {
+            return ResponseEntity
+                .created(URI("/api/koejakso/koulutussopimus/${it.id}"))
+                .body(it)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @PutMapping("/koejakso/koulutussopimus")
@@ -165,9 +169,9 @@ class ErikoistuvaLaakariKoejaksoResource(
         validateKoulutussopimus(koulutussopimusDTO)
 
         val user = userService.getAuthenticatedUser(principal)
-
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val koulutussopimus =
-            koejaksonKoulutussopimusService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonKoulutussopimusService.findByOpintooikeusId(opintooikeusId)
 
         if (!koulutussopimus.isPresent) {
             throw BadRequestAlertException(
@@ -195,9 +199,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val aloituskeskustelu =
-            koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonAloituskeskusteluService.findByOpintooikeusId(opintooikeusId)
 
         if (aloituskeskustelu.isPresent) {
             throw BadRequestAlertException(
@@ -215,11 +220,11 @@ class ErikoistuvaLaakariKoejaksoResource(
             ENTITY_KOEJAKSON_ALOITUSKESKUSTELU
         )
 
-        val result =
-            koejaksonAloituskeskusteluService.create(aloituskeskusteluDTO, user.id!!)
-        return ResponseEntity
-            .created(URI("/api/koejakso/aloituskeskustelu/${result.id}"))
-            .body(result)
+        koejaksonAloituskeskusteluService.create(aloituskeskusteluDTO, opintooikeusId)?.let {
+            return ResponseEntity
+                .created(URI("/api/koejakso/aloituskeskustelu/${it.id}"))
+                .body(it)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @PutMapping("/koejakso/aloituskeskustelu")
@@ -228,9 +233,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val aloituskeskustelu =
-            koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonAloituskeskusteluService.findByOpintooikeusId(opintooikeusId)
 
         if (!aloituskeskustelu.isPresent) {
             throw BadRequestAlertException(
@@ -279,9 +285,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val valiarviointi =
-            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonValiarviointiService.findByOpintooikeusId(opintooikeusId)
 
         if (valiarviointi.isPresent) {
             throw BadRequestAlertException(
@@ -300,7 +307,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         )
 
         val aloituskeskustelu =
-            koejaksonAloituskeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonAloituskeskusteluService.findByOpintooikeusId(opintooikeusId)
         if (!aloituskeskustelu.isPresent || aloituskeskustelu.get().lahiesimies?.sopimusHyvaksytty != true) {
             throw BadRequestAlertException(
                 "Aloituskeskustelu täytyy hyväksyä ennen väliarviointia.",
@@ -309,10 +316,11 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        val result = koejaksonValiarviointiService.create(valiarviointiDTO, user.id!!)
-        return ResponseEntity
-            .created(URI("/api/koejakso/valiarviointi/${result.id}"))
-            .body(result)
+        koejaksonValiarviointiService.create(valiarviointiDTO, opintooikeusId)?.let {
+            return ResponseEntity
+                .created(URI("/api/koejakso/valiarviointi/${it.id}"))
+                .body(it)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @PutMapping("/koejakso/valiarviointi")
@@ -321,9 +329,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val valiarviointi =
-            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonValiarviointiService.findByOpintooikeusId(opintooikeusId)
 
         if (!valiarviointi.isPresent) {
             throw BadRequestAlertException(
@@ -348,9 +357,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonKehittamistoimenpiteetService.findByOpintooikeusId(opintooikeusId)
 
         if (kehittamistoimenpiteet.isPresent) {
             throw BadRequestAlertException(
@@ -369,7 +379,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         )
 
         val valiarviointi =
-            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonValiarviointiService.findByOpintooikeusId(opintooikeusId)
         if (!valiarviointi.isPresent || valiarviointi.get().erikoistuvaAllekirjoittanut != true
             || valiarviointi.get().edistyminenTavoitteidenMukaista == true
         ) {
@@ -380,11 +390,11 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        val result =
-            koejaksonKehittamistoimenpiteetService.create(kehittamistoimenpiteetDTO, user.id!!)
-        return ResponseEntity
-            .created(URI("/api/koejakso/kehittamistoimenpiteet/${result.id}"))
-            .body(result)
+        koejaksonKehittamistoimenpiteetService.create(kehittamistoimenpiteetDTO, opintooikeusId)?.let {
+            return ResponseEntity
+                .created(URI("/api/koejakso/kehittamistoimenpiteet/${it.id}"))
+                .body(it)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @PutMapping("/koejakso/kehittamistoimenpiteet")
@@ -393,9 +403,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonKehittamistoimenpiteetService.findByOpintooikeusId(opintooikeusId)
 
         if (!kehittamistoimenpiteet.isPresent) {
             throw BadRequestAlertException(
@@ -420,9 +431,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val loppukeskustelu =
-            koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonLoppukeskusteluService.findByOpintooikeusId(opintooikeusId)
 
         if (loppukeskustelu.isPresent) {
             throw BadRequestAlertException(
@@ -441,9 +453,9 @@ class ErikoistuvaLaakariKoejaksoResource(
         )
 
         val valiarviointi =
-            koejaksonValiarviointiService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonValiarviointiService.findByOpintooikeusId(opintooikeusId)
         val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonKehittamistoimenpiteetService.findByOpintooikeusId(opintooikeusId)
         val validValiarviointi =
             valiarviointi.isPresent && valiarviointi.get().erikoistuvaAllekirjoittanut == true
                 && valiarviointi.get().edistyminenTavoitteidenMukaista == true
@@ -458,11 +470,11 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        val result =
-            koejaksonLoppukeskusteluService.create(loppukeskusteluDTO, user.id!!)
-        return ResponseEntity
-            .created(URI("/api/koejakso/loppukeskustelu/${result.id}"))
-            .body(result)
+        koejaksonLoppukeskusteluService.create(loppukeskusteluDTO, opintooikeusId)?.let {
+            return ResponseEntity
+                .created(URI("/api/koejakso/loppukeskustelu/${it.id}"))
+                .body(it)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @PutMapping("/koejakso/loppukeskustelu")
@@ -471,9 +483,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val loppukeskustelu =
-            koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonLoppukeskusteluService.findByOpintooikeusId(opintooikeusId)
 
         if (!loppukeskustelu.isPresent) {
             throw BadRequestAlertException(
@@ -514,9 +527,9 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
         val user = userService.getAuthenticatedUser(principal)
-
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val vastuuhenkilonArvio =
-            koejaksonVastuuhenkilonArvioService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonVastuuhenkilonArvioService.findByOpintooikeusId(opintooikeusId)
 
         if (vastuuhenkilonArvio.isPresent) {
             throw BadRequestAlertException(
@@ -546,7 +559,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
 
         val loppukeskustelu =
-            koejaksonLoppukeskusteluService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonLoppukeskusteluService.findByOpintooikeusId(opintooikeusId)
         if (!loppukeskustelu.isPresent || loppukeskustelu.get().erikoistuvaAllekirjoittanut != true) {
             throw BadRequestAlertException(
                 "Loppukeskustelu täytyy hyväksyä ennen vastuuhenkilön arviota.",
@@ -555,11 +568,11 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        val result =
-            koejaksonVastuuhenkilonArvioService.create(vastuuhenkilonArvioDTO, user.id!!)
-        return ResponseEntity
-            .created(URI("/api/koejakso/vastuuhenkilonarvio/${result.id}"))
-            .body(result)
+        koejaksonVastuuhenkilonArvioService.create(vastuuhenkilonArvioDTO, opintooikeusId)?.let {
+            return ResponseEntity
+                .created(URI("/api/koejakso/vastuuhenkilonarvio/${it.id}"))
+                .body(it)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @PutMapping("/koejakso/vastuuhenkilonarvio")
@@ -568,9 +581,10 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
         val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val vastuuhenkilonArvio =
-            koejaksonVastuuhenkilonArvioService.findByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            koejaksonVastuuhenkilonArvioService.findByOpintooikeusId(opintooikeusId)
 
         if (!vastuuhenkilonArvio.isPresent) {
             throw BadRequestAlertException(
