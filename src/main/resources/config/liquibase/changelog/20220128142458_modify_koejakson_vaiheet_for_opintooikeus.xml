@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220128142458" author="jhipster">
+
+        <dropForeignKeyConstraint baseTableName="koejakson_koulutussopimus"
+                                  constraintName="fk_koejakson_koulutussopimus_erikoistuva_laakari_id"/>
+        <dropColumn tableName="koejakson_koulutussopimus" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_koulutussopimus">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="koejakson_koulutussopimus" baseColumnNames="opintooikeus_id"
+                                 constraintName="fk_koejakson_koulutussopimus_opintooikeus_id" referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn tableName="koejakson_koulutussopimus_audit" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_koulutussopimus_audit">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <dropForeignKeyConstraint baseTableName="koejakson_aloituskeskustelu"
+                                  constraintName="fk_koejakson_aloituskeskustelu_erikoistuva_laakari_id"/>
+        <dropColumn tableName="koejakson_aloituskeskustelu" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_aloituskeskustelu">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="koejakson_aloituskeskustelu" baseColumnNames="opintooikeus_id"
+                                 constraintName="fk_koejakson_aloituskeskustelu_opintooikeus_id" referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn tableName="koejakson_aloituskeskustelu_audit" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_aloituskeskustelu_audit">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <dropForeignKeyConstraint baseTableName="koejakson_valiarviointi"
+                                  constraintName="fk_koejakson_valiarvointi_erikoistuva_laakari_id"/>
+        <dropColumn tableName="koejakson_valiarviointi" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_valiarviointi">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="koejakson_valiarviointi" baseColumnNames="opintooikeus_id"
+                                 constraintName="fk_koejakson_valiarviointi_opintooikeus_id" referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn tableName="koejakson_valiarviointi_audit" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_valiarviointi_audit">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <dropForeignKeyConstraint baseTableName="koejakson_kehittamistoimenpiteet"
+                                  constraintName="fk_koejakson_kehittamistoimenpiteet_erikoistuva_laakari_id"/>
+        <dropColumn tableName="koejakson_kehittamistoimenpiteet" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_kehittamistoimenpiteet">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="koejakson_kehittamistoimenpiteet" baseColumnNames="opintooikeus_id"
+                                 constraintName="fk_koejakson_kehittamistoimenpiteet_opintooikeus_id" referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn tableName="koejakson_kehittamistoimenpiteet_audit" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_kehittamistoimenpiteet_audit">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <dropForeignKeyConstraint baseTableName="koejakson_loppukeskustelu"
+                                  constraintName="fk_koejakson_loppukeskustelu_erikoistuva_laakari_id"/>
+        <dropColumn tableName="koejakson_loppukeskustelu" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_loppukeskustelu">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="koejakson_loppukeskustelu" baseColumnNames="opintooikeus_id"
+                                 constraintName="fk_koejakson_loppukeskustelu_opintooikeus_id" referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn tableName="koejakson_loppukeskustelu_audit" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_loppukeskustelu_audit">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <dropForeignKeyConstraint baseTableName="koejakson_vastuuhenkilon_arvio"
+                                  constraintName="fk_koejakson_vastuuhenkilon_arvio_erikoistuva_laakari_id"/>
+        <dropColumn tableName="koejakson_vastuuhenkilon_arvio" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="koejakson_vastuuhenkilon_arvio" baseColumnNames="opintooikeus_id"
+                                 constraintName="fk_koejakson_vastuuhenkilon_arvio_opintooikeus_id" referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn tableName="koejakson_vastuuhenkilon_arvio_audit" columnName="erikoistuva_laakari_id"/>
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio_audit">
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,16 +1,15 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KoejaksonValiarviointi
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.KoejaksonValiarviointiService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
-import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonValiarviointiDTO
-import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonValiarviointiMapper
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -22,48 +21,46 @@ import javax.persistence.EntityNotFoundException
 @Service
 @Transactional
 class KoejaksonValiarviointiServiceImpl(
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
     private val koejaksonValiarviointiMapper: KoejaksonValiarviointiMapper,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
-    private val kayttajaMapper: KayttajaMapper
+    private val opintooikeusRepository: OpintooikeusRepository
 ) : KoejaksonValiarviointiService {
 
     override fun create(
         koejaksonValiarviointiDTO: KoejaksonValiarviointiDTO,
-        userId: String
-    ): KoejaksonValiarviointiDTO {
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        var valiarvointi =
-            koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
-        valiarvointi.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
-        valiarvointi = koejaksonValiarviointiRepository.save(valiarvointi)
+        opintooikeusId: Long
+    ): KoejaksonValiarviointiDTO? {
+        return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            var valiarvointi =
+                koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
+            valiarvointi.opintooikeus = it
+            valiarvointi = koejaksonValiarviointiRepository.save(valiarvointi)
 
-        // Sähköposti kouluttajalle
-        mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(valiarvointi.lahikouluttaja?.id!!).get().user!!,
-            "valiarviointiKouluttajalle.html",
-            "email.valiarviointikouluttajalle.title",
-            properties = mapOf(Pair(MailProperty.ID, valiarvointi.id!!.toString()))
-        )
+            // Sähköposti kouluttajalle
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(valiarvointi.lahikouluttaja?.id!!).get().user!!,
+                "valiarviointiKouluttajalle.html",
+                "email.valiarviointikouluttajalle.title",
+                properties = mapOf(Pair(MailProperty.ID, valiarvointi.id!!.toString()))
+            )
 
-        return koejaksonValiarviointiMapper.toDto(valiarvointi)
+            koejaksonValiarviointiMapper.toDto(valiarvointi)
+        }
     }
 
     override fun update(
         koejaksonValiarviointiDTO: KoejaksonValiarviointiDTO,
         userId: String
     ): KoejaksonValiarviointiDTO {
-
         var valiarviointi =
             koejaksonValiarviointiRepository.findById(koejaksonValiarviointiDTO.id!!)
                 .orElseThrow { EntityNotFoundException("Väliarviointia ei löydy") }
 
         val updatedValiarviointi = koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
 
-        if (valiarviointi.erikoistuvaLaakari?.kayttaja?.user?.id == userId && valiarviointi.lahiesimiesHyvaksynyt) {
+        if (valiarviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId && valiarviointi.lahiesimiesHyvaksynyt) {
             valiarviointi = handleErikoistuva(valiarviointi)
         }
 
@@ -87,7 +84,7 @@ class KoejaksonValiarviointiServiceImpl(
         // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
         if (result.erikoistuvaAllekirjoittanut) {
             val erikoistuvaLaakari =
-                kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.lahikouluttaja?.id!!).get().user!!,
@@ -162,7 +159,7 @@ class KoejaksonValiarviointiServiceImpl(
         // Sähköposti erikoistuvalle esimiehen hyväksymästä väliarvioinnista
         if (result.lahikouluttajaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!,
                 "valiarviointiKuitattava.html",
                 "email.valiarviointikuitattava.title",
@@ -190,8 +187,8 @@ class KoejaksonValiarviointiServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonValiarviointiDTO> {
-        return koejaksonValiarviointiRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
+    override fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonValiarviointiDTO> {
+        return koejaksonValiarviointiRepository.findByOpintooikeusId(opintooikeusId)
             .map(koejaksonValiarviointiMapper::toDto)
     }
 
@@ -224,17 +221,6 @@ class KoejaksonValiarviointiServiceImpl(
     ): Optional<KoejaksonValiarviointiDTO> {
         return koejaksonValiarviointiRepository.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(id, vastuuhenkiloUserId)
             .map(koejaksonValiarviointiMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
-    override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonValiarviointiDTO> {
-        val valiarvioinnit =
-            koejaksonValiarviointiRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
-        return valiarvioinnit.associate {
-            kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonValiarviointiMapper.toDto(
-                it
-            )
-        }
     }
 
     override fun delete(id: Long) {

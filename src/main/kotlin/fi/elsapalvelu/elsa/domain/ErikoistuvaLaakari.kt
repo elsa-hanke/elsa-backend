@@ -32,15 +32,7 @@ data class ErikoistuvaLaakari(
 
     @OneToMany(mappedBy = "valtuuttaja")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var annetutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf(),
-
-    @NotNull
-    @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var koejaksonKoulutussopimus: KoejaksonKoulutussopimus? = null,
-
-    @NotNull
-    @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu? = null
+    var annetutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf()
 
 ) : Serializable {
 

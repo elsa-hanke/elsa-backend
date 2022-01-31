@@ -227,7 +227,7 @@ class VastuuhenkiloKoejaksoResourceIT {
 
     @Test
     @Transactional
-    fun getAloituskeskustelu_VastuuhenkilonArvioForSameErikoistuvaDoesNotExist_ExpectNotFound() {
+    fun getAloituskeskustelu_VastuuhenkilonArvioForSameOpintooikeusDoesNotExist_ExpectNotFound() {
         initTest(false)
 
         val newUser = KayttajaResourceWithMockUserIT.createEntity()
@@ -335,7 +335,7 @@ class VastuuhenkiloKoejaksoResourceIT {
 
     @Test
     @Transactional
-    fun getValiarviointi_VastuuhenkilonArvioForSameErikoistuvaDoesNotExist_ExpectNotFound() {
+    fun getValiarviointi_VastuuhenkilonArvioForSameOpintooikeusDoesNotExist_ExpectNotFound() {
         initTest(false)
 
         val newUser = KayttajaResourceWithMockUserIT.createEntity()
@@ -447,7 +447,7 @@ class VastuuhenkiloKoejaksoResourceIT {
 
     @Test
     @Transactional
-    fun getKehittamistoimenpiteet_VastuuhenkilonArvioForSameErikoistuvaDoesNotExist_ExpectNotFound() {
+    fun getKehittamistoimenpiteet_VastuuhenkilonArvioForSameOpintooikeusDoesNotExist_ExpectNotFound() {
         initTest(false)
 
         val newUser = KayttajaResourceWithMockUserIT.createEntity()
@@ -555,7 +555,7 @@ class VastuuhenkiloKoejaksoResourceIT {
 
     @Test
     @Transactional
-    fun getLoppukeskustelu_VastuuhenkilonArvioForSameErikoistuvaDoesNotExist_ExpectNotFound() {
+    fun getLoppukeskustelu_VastuuhenkilonArvioForSameOpintooikeusDoesNotExist_ExpectNotFound() {
         initTest(false)
 
         val newUser = KayttajaResourceWithMockUserIT.createEntity()
@@ -881,11 +881,12 @@ class VastuuhenkiloKoejaksoResourceIT {
             erikoistuvaLaakari: ErikoistuvaLaakari,
             vastuuhenkilo: Kayttaja
         ): KoejaksonVastuuhenkilonArvio {
+            val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonVastuuhenkilonArvio(
-                erikoistuvaLaakari = erikoistuvaLaakari,
+                opintooikeus = opintooikeus,
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.opiskelijatunnus,
-                erikoistuvanYliopisto = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.yliopisto?.nimi,
+                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
                 erikoistuvanErikoisala = KoejaksonVaiheetHelper.DEFAULT_ERIKOISALA,
                 muokkauspaiva = KoejaksonVaiheetHelper.DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,

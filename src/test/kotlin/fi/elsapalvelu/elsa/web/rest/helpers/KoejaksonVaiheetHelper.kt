@@ -39,12 +39,13 @@ class KoejaksonVaiheetHelper {
             erikoistuvaLaakari: ErikoistuvaLaakari,
             vastuuhenkilo: Kayttaja
         ): KoejaksonKoulutussopimus {
+            val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonKoulutussopimus(
-                erikoistuvaLaakari = erikoistuvaLaakari,
+                opintooikeus = opintooikeus,
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.opiskelijatunnus,
+                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
                 erikoistuvanSyntymaaika = DEFAULT_SYNTYMAAIKA,
-                erikoistuvanYliopisto = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.yliopisto?.nimi,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
                 opintooikeudenMyontamispaiva = DEFAULT_MYONTAMISPAIVA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
                 erikoistuvanPuhelinnumero = erikoistuvaLaakari.kayttaja?.user?.phoneNumber,
@@ -63,12 +64,13 @@ class KoejaksonVaiheetHelper {
             lahikouluttaja: Kayttaja,
             lahiesimies: Kayttaja
         ): KoejaksonAloituskeskustelu {
+            val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonAloituskeskustelu(
-                erikoistuvaLaakari = erikoistuvaLaakari,
+                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanErikoisala = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.erikoisala?.nimi,
-                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.opiskelijatunnus,
-                erikoistuvanYliopisto = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.yliopisto?.nimi,
+                erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
                 erikoistuvanSahkoposti = erikoistuvaLaakari.kayttaja?.user?.email,
                 koejaksonSuorituspaikka = DEFAULT_KOULUTUSPAIKKA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
@@ -90,12 +92,13 @@ class KoejaksonVaiheetHelper {
             lahikouluttaja: Kayttaja,
             lahiesimies: Kayttaja
         ): KoejaksonValiarviointi {
+            val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonValiarviointi(
-                erikoistuvaLaakari = erikoistuvaLaakari,
+                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanErikoisala = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.erikoisala?.nimi,
-                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.opiskelijatunnus,
-                erikoistuvanYliopisto = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.yliopisto?.nimi,
+                erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
                 lahikouluttaja = lahikouluttaja,
                 lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
@@ -110,12 +113,13 @@ class KoejaksonVaiheetHelper {
             lahikouluttaja: Kayttaja,
             lahiesimies: Kayttaja
         ): KoejaksonKehittamistoimenpiteet {
+            val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonKehittamistoimenpiteet(
-                erikoistuvaLaakari = erikoistuvaLaakari,
+                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanErikoisala = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.erikoisala?.nimi,
-                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.opiskelijatunnus,
-                erikoistuvanYliopisto = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.yliopisto?.nimi,
+                erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
                 lahikouluttaja = lahikouluttaja,
                 lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
@@ -130,12 +134,13 @@ class KoejaksonVaiheetHelper {
             lahikouluttaja: Kayttaja,
             lahiesimies: Kayttaja
         ): KoejaksonLoppukeskustelu {
+            val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonLoppukeskustelu(
-                erikoistuvaLaakari = erikoistuvaLaakari,
+                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanErikoisala = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.erikoisala?.nimi,
-                erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.opiskelijatunnus,
-                erikoistuvanYliopisto = erikoistuvaLaakari.opintooikeudet.firstOrNull()?.yliopisto?.nimi,
+                erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
+                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
                 lahikouluttaja = lahikouluttaja,
                 lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,

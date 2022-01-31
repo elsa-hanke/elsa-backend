@@ -4,13 +4,14 @@ import fi.elsapalvelu.elsa.domain.KoejaksonAloituskeskustelu
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
-import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -27,40 +28,40 @@ class KoejaksonAloituskeskusteluServiceImpl(
     private val koejaksonAloituskeskusteluMapper: KoejaksonAloituskeskusteluMapper,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
-    private val kayttajaMapper: KayttajaMapper
+    private val kayttajaMapper: KayttajaMapper,
+    private val opintooikeusRepository: OpintooikeusRepository
 ) : KoejaksonAloituskeskusteluService {
 
     override fun create(
         koejaksonAloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO,
-        userId: String
-    ): KoejaksonAloituskeskusteluDTO {
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-        var aloituskeskustelu =
-            koejaksonAloituskeskusteluMapper.toEntity(koejaksonAloituskeskusteluDTO)
-        aloituskeskustelu.erikoistuvaLaakari = kirjautunutErikoistuvaLaakari
-        if (koejaksonAloituskeskusteluDTO.lahetetty == true) aloituskeskustelu.erikoistuvanAllekirjoitusaika =
-            LocalDate.now()
-        aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
+        opintooikeusId: Long
+    ): KoejaksonAloituskeskusteluDTO? {
+        return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            var aloituskeskustelu =
+                koejaksonAloituskeskusteluMapper.toEntity(koejaksonAloituskeskusteluDTO)
+            aloituskeskustelu.opintooikeus = it
+            if (koejaksonAloituskeskusteluDTO.lahetetty == true) aloituskeskustelu.erikoistuvanAllekirjoitusaika =
+                LocalDate.now()
+            aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
 
-        if (aloituskeskustelu.lahetetty) {
-            // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!).get().user!!,
-                "aloituskeskusteluKouluttajalle.html",
-                "email.aloituskeskustelukouluttajalle.title",
-                properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
-            )
+            if (aloituskeskustelu.lahetetty) {
+                // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
+                mailService.sendEmailFromTemplate(
+                    kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!).get().user!!,
+                    "aloituskeskusteluKouluttajalle.html",
+                    "email.aloituskeskustelukouluttajalle.title",
+                    properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
+                )
+            }
+
+            koejaksonAloituskeskusteluMapper.toDto(aloituskeskustelu)
         }
-
-        return koejaksonAloituskeskusteluMapper.toDto(aloituskeskustelu)
     }
 
     override fun update(
         koejaksonAloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO,
         userId: String
     ): KoejaksonAloituskeskusteluDTO {
-
         var aloituskeskustelu =
             koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskusteluDTO.id!!)
                 .orElseThrow { EntityNotFoundException("Aloituskeskustelua ei löydy") }
@@ -72,7 +73,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
             koejaksonAloituskeskusteluMapper.toEntity(koejaksonAloituskeskusteluDTO)
 
         if (kirjautunutErikoistuvaLaakari != null
-            && kirjautunutErikoistuvaLaakari == aloituskeskustelu.erikoistuvaLaakari
+            && kirjautunutErikoistuvaLaakari == aloituskeskustelu.opintooikeus?.erikoistuvaLaakari
         ) {
             aloituskeskustelu = handleErikoistuva(aloituskeskustelu, updatedAloituskeskustelu)
         }
@@ -160,7 +161,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         // Sähköposti erikoistuvalle korjattavasta aloituskeskustelusta
         else {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!,
                 "aloituskeskusteluPalautettu.html",
                 "email.aloituskeskustelupalautettu.title",
@@ -194,7 +195,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         // Sähköposti erikoistuvalle ja kouluttajalle esimiehen hyväksymästä aloituskeskustelusta
         if (result.lahikouluttajaHyvaksynyt) {
             val erikoistuvaLaakari =
-                kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
@@ -216,7 +217,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         // Sähköposti erikoistuvalle ja kouluttajalle korjattavasta aloituskeskustelusta
         else {
             val erikoistuvaLaakari =
-                kayttajaRepository.findById(result.erikoistuvaLaakari?.kayttaja?.id!!)
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
@@ -246,8 +247,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonAloituskeskusteluDTO> {
-        return koejaksonAloituskeskusteluRepository.findByErikoistuvaLaakariKayttajaUserId(userId)
+    override fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonAloituskeskusteluDTO> {
+        return koejaksonAloituskeskusteluRepository.findByOpintooikeusId(opintooikeusId)
             .map(koejaksonAloituskeskusteluMapper::toDto)
     }
 
@@ -283,17 +284,6 @@ class KoejaksonAloituskeskusteluServiceImpl(
             vastuuhenkiloUserId
         )
             .map(koejaksonAloituskeskusteluMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
-    override fun findAllByKouluttajaUserId(userId: String): Map<KayttajaDTO, KoejaksonAloituskeskusteluDTO> {
-        val aloituskeskustelut =
-            koejaksonAloituskeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
-        return aloituskeskustelut.associate {
-            kayttajaMapper.toDto(it.erikoistuvaLaakari?.kayttaja!!) to koejaksonAloituskeskusteluMapper.toDto(
-                it
-            )
-        }
     }
 
     override fun delete(id: Long) {

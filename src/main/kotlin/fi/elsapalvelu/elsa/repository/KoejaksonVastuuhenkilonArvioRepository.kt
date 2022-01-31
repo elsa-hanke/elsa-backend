@@ -14,7 +14,7 @@ interface KoejaksonVastuuhenkilonArvioRepository :
         userId: String
     ): Optional<KoejaksonVastuuhenkilonArvio>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonVastuuhenkilonArvio>
+    fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonVastuuhenkilonArvio>
 
     fun findAllByVastuuhenkiloUserId(
         userId: String
