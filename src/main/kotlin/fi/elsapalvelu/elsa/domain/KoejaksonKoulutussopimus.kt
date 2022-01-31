@@ -24,7 +24,7 @@ data class KoejaksonKoulutussopimus(
     @OneToOne(optional = false)
     @JoinColumn(unique = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
+    var opintooikeus: Opintooikeus? = null,
 
     @NotNull
     @Column(name = "erikoistuvan_nimi", nullable = false)
@@ -119,7 +119,7 @@ data class KoejaksonKoulutussopimus(
     override fun toString(): String {
         return "KoejaksonKoulutussopimus(" +
             "id=$id, " +
-            "erikoistuvaLaakari=$erikoistuvaLaakari, " +
+            "opintooikeus=$opintooikeus, " +
             "erikoistuvanNimi=$erikoistuvanNimi, " +
             "erikoistuvanOpiskelijatunnus=$erikoistuvanOpiskelijatunnus, " +
             "erikoistuvanSyntymaaika=$erikoistuvanSyntymaaika, " +

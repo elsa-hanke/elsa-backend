@@ -24,7 +24,7 @@ interface KoejaksonAloituskeskusteluRepository : JpaRepository<KoejaksonAloitusk
     @Query(
         "select ak from KoejaksonAloituskeskustelu ak " +
             "where ak.id = :id and ak.lahikouluttajaHyvaksynyt = true and ak.lahiesimiesHyvaksynyt = true " +
-            "and ak.erikoistuvaLaakari.id in (select va.erikoistuvaLaakari.id from KoejaksonVastuuhenkilonArvio va " +
+            "and ak.opintooikeus.erikoistuvaLaakari.id in (select va.opintooikeus.erikoistuvaLaakari.id from KoejaksonVastuuhenkilonArvio va " +
             "where va.vastuuhenkilo.user.id = :vastuuhenkiloUserId)"
     )
     fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
@@ -32,7 +32,7 @@ interface KoejaksonAloituskeskusteluRepository : JpaRepository<KoejaksonAloitusk
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonAloituskeskustelu>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonAloituskeskustelu>
+    fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonAloituskeskustelu>
 
     @Query(
         "select a from KoejaksonAloituskeskustelu a left join a.lahikouluttaja lk left join a.lahiesimies le " +

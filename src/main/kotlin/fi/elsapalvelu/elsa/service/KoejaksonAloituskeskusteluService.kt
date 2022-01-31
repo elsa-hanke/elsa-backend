@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
 import java.util.*
 
@@ -8,8 +7,8 @@ interface KoejaksonAloituskeskusteluService {
 
     fun create(
         koejaksonAloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO,
-        userId: String
-    ): KoejaksonAloituskeskusteluDTO
+        opintooikeusId: Long
+    ): KoejaksonAloituskeskusteluDTO?
 
     fun update(
         koejaksonAloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO,
@@ -18,8 +17,8 @@ interface KoejaksonAloituskeskusteluService {
 
     fun findOne(id: Long): Optional<KoejaksonAloituskeskusteluDTO>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(
-        userId: String
+    fun findByOpintooikeusId(
+        opintooikeusId: Long
     ): Optional<KoejaksonAloituskeskusteluDTO>
 
     fun findOneByIdAndLahikouluttajaUserId(
@@ -31,10 +30,6 @@ interface KoejaksonAloituskeskusteluService {
         id: Long,
         userId: String
     ): Optional<KoejaksonAloituskeskusteluDTO>
-
-    fun findAllByKouluttajaUserId(
-        userId: String
-    ): Map<KayttajaDTO, KoejaksonAloituskeskusteluDTO>
 
     fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
         id: Long,

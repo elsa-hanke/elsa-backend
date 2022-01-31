@@ -17,7 +17,7 @@ interface KoejaksonValiarviointiMapper :
     EntityMapper<KoejaksonValiarviointiDTO, KoejaksonValiarviointi> {
 
     @Mappings(
-        Mapping(source = "erikoistuvaLaakari.kayttaja.user.avatar", target = "erikoistuvanAvatar"),
+        Mapping(source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar", target = "erikoistuvanAvatar"),
         Mapping(source = "lahikouluttaja.id", target = "lahikouluttaja.id"),
         Mapping(source = "lahikouluttaja.user.id", target = "lahikouluttaja.kayttajaUserId"),
         Mapping(source = "lahikouluttajanNimi", target = "lahikouluttaja.nimi"),

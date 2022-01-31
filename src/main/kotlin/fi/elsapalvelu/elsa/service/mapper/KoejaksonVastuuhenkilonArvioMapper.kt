@@ -18,7 +18,7 @@ interface KoejaksonVastuuhenkilonArvioMapper :
     EntityMapper<KoejaksonVastuuhenkilonArvioDTO, KoejaksonVastuuhenkilonArvio> {
 
     @Mappings(
-        Mapping(source = "erikoistuvaLaakari.kayttaja.user.avatar", target = "erikoistuvanAvatar"),
+        Mapping(source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar", target = "erikoistuvanAvatar"),
         Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo.id"),
         Mapping(source = "vastuuhenkilonNimi", target = "vastuuhenkilo.nimi"),
         Mapping(source = "vastuuhenkilonNimike", target = "vastuuhenkilo.nimike"),

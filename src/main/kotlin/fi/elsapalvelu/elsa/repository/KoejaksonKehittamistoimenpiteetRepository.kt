@@ -25,7 +25,7 @@ interface KoejaksonKehittamistoimenpiteetRepository :
     @Query(
         "select kt from KoejaksonKehittamistoimenpiteet kt " +
             "where kt.id = :id and kt.lahikouluttajaHyvaksynyt = true and kt.lahiesimiesHyvaksynyt = true " +
-            "and kt.erikoistuvaLaakari.id in (select va.erikoistuvaLaakari.id from KoejaksonVastuuhenkilonArvio va " +
+            "and kt.opintooikeus.erikoistuvaLaakari.id in (select va.opintooikeus.erikoistuvaLaakari.id from KoejaksonVastuuhenkilonArvio va " +
             "where va.vastuuhenkilo.user.id = :vastuuhenkiloUserId)"
     )
     fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
@@ -33,7 +33,7 @@ interface KoejaksonKehittamistoimenpiteetRepository :
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonKehittamistoimenpiteet>
 
-    fun findByErikoistuvaLaakariKayttajaUserId(userId: String): Optional<KoejaksonKehittamistoimenpiteet>
+    fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonKehittamistoimenpiteet>
 
     @Query(
         "select k from KoejaksonKehittamistoimenpiteet k left join k.lahikouluttaja lk left join k.lahiesimies le " +
