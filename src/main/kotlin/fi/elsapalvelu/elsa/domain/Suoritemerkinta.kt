@@ -19,8 +19,7 @@ import javax.validation.constraints.NotNull
 data class Suoritemerkinta(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @get: NotNull
@@ -54,7 +53,7 @@ data class Suoritemerkinta(
     @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var tyoskentelyjakso: Tyoskentelyjakso?  = null,
+    var tyoskentelyjakso: Tyoskentelyjakso? = null,
 
     @NotNull
     @ManyToOne(optional = false)

@@ -22,8 +22,7 @@ import javax.validation.constraints.NotNull
 data class Suoritusarviointi(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @get: NotNull
@@ -131,7 +130,12 @@ data class Suoritusarviointi(
     @Column(name = "arviointi_liite_lisattypvm")
     var arviointiLiiteLisattyPvm: LocalDateTime? = null,
 
-    @OneToOne(optional = false, cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(
+        optional = false,
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
     @JoinColumn(unique = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var asiakirjaData: AsiakirjaData? = null

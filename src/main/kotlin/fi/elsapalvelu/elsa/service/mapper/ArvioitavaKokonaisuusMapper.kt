@@ -16,12 +16,12 @@ interface ArvioitavaKokonaisuusMapper :
     EntityMapper<ArvioitavaKokonaisuusDTO, ArvioitavaKokonaisuus> {
 
     @Mappings(
-        Mapping(source = "erikoisala.id", target = "erikoisalaId"),
+        Mapping(source = "kategoria.erikoisala.id", target = "erikoisalaId"),
     )
     override fun toDto(entity: ArvioitavaKokonaisuus): ArvioitavaKokonaisuusDTO
 
     @Mappings(
-        Mapping(source = "erikoisalaId", target = "erikoisala")
+        Mapping(source = "erikoisalaId", target = "kategoria.erikoisala")
     )
     override fun toEntity(dto: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuus
 

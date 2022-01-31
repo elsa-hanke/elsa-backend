@@ -16,8 +16,7 @@ import javax.persistence.*
 data class Asiakirja(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @ManyToOne(optional = false)
@@ -44,7 +43,12 @@ data class Asiakirja(
     var lisattypvm: LocalDateTime? = null,
 
     @NotNull
-    @OneToOne(optional = false, cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(
+        optional = false,
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
     @JoinColumn(unique = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var asiakirjaData: AsiakirjaData? = null

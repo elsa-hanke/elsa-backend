@@ -1,5 +1,5 @@
-id;nimi;kuvaus;voimassaolo_alkaa;erikoisala_id;kategoria_id
-3000;Lastenneurologinen kliininen tutkimus;"<h3>Lastenneurologinen kliininen tutkimus</h3>
+nimi;kuvaus;voimassaolo_alkaa
+Lastenneurologinen kliininen tutkimus;"<h3>Lastenneurologinen kliininen tutkimus</h3>
 <h4>Kuvaus</h4>
 Lapselle tehdään lastenneurologinen kliininen tutkimus yhdistäen esitiedot ja systemaattinen lapsen ikä sekä kehitykselliset taidot huomioiva neurologinen kliininen tutkimus.
 <h4>CanMEDS osa-alueet</h4>
@@ -33,8 +33,8 @@ Lapselle tehdään lastenneurologinen kliininen tutkimus yhdistäen esitiedot ja
 <li>Suorittaa kliinisen tutkimuksen loogisessa järjestyksessä ja sujuvasti kohdentaen, sillä laajuudella, kun tilanteeseen ja potilaan käynnin syyn mukaan on tarkoituksenmukaista</li>
 <li>Erikoistuva osaa yksilöidä normaalit ja poikkeavat statuslöydökset sekä arvioida poikkeavien löydösten neuroanatomisen perustan</li>
 <li>Osaa jäsentää ja laatia sairauskertomusmerkinnät strukturoidulla tavalla</li>
-</ol>";2020-08-01;22;3000
-3001;Lastenneurologinen vastasyntyneen konsultaatio (alle 1 kk);"<h3>Lastenneurologinen vastasyntyneen konsultaatio (alle 1 kk)</h3>
+</ol>";2020-08-01
+Lastenneurologinen vastasyntyneen konsultaatio (alle 1 kk);"<h3>Lastenneurologinen vastasyntyneen konsultaatio (alle 1 kk)</h3>
 
 <h4>Kuvaus</h4>
 Vastasyntyneen neurologisen tutkimuksen tekeminen sekä sairauksien hoito ja tutkimukset. Tutkimusten ja hoidon järjestäminen tapahtuu useimmiten vastasyntyneiden teho-osastolla yhteistyönä potilaan hoidosta vastaavien neonatologien ja muun hoitohenkilökunnan kanssa. Keskeistä on vuorovaikutustaidot vastasyntyneen vanhempien kanssa.
@@ -84,8 +84,8 @@ Vastasyntyneen neurologisen tutkimuksen tekeminen sekä sairauksien hoito ja tut
 <li>Osaa kertoa vanhemmille ymmärrettävästi vastasyntyneen neurologisesta ennusteesta yhdistäen esitietoja, lapsen nykytilan ja etiologisilla lisätutkimuksilla saatuja tietoja</li>
 <li>Osaa huomioida vanhempien tuentarpeen yhdessä osaston muun henkilökunnan kanssa</li>
 <li>Osaa suunnitella jatko- ja kehitysseurannan</li>
-</ol>";2020-08-01;22;3000
-3002;Sikiötutkimusyksikön konsulaatio;"<h3>Sikiötutkimusyksikön konsultaatio</h3>
+</ol>";2020-08-01
+Sikiötutkimusyksikön konsulaatio;"<h3>Sikiötutkimusyksikön konsultaatio</h3>
 
 <h4>Kuvaus</h4>
 Sikiöiden rakenne-, kromosomi- ja geneettisten sairauksien seulonta ja diagnostiikka tapahtuu perinatologin ja perinnöllisyyslääkärin yhteistyönä. Lastenneurologista konsultaatiota tarvitaan, kun vanhemmat tarvitsevat tietoa löydöksen merkityksen arvioinnissa lapsen kehitykseen, oppimiseen ja toimintakykyyn.
@@ -125,8 +125,8 @@ Sikiöiden rakenne-, kromosomi- ja geneettisten sairauksien seulonta ja diagnost
 <li>Erikoistuva osaa muodostaa todetun seulontapoikkeavuuden pohjalta käsityksen lapsen kehitysennusteesta moniammatillisena yhteistyönä hyödyntämällä myös ajantasaista tutkimustietoa
 <li>Erikoistuva osaa ymmärrettävällä, konkreettisella tavalla tutkimustiedon rajoissa kertoa vanhemmille, miten löydös voi ilmetä eri kehityksen osa-alueilla ja siten vaikuttaa lapsen oppimis- ja toimintakykyyn, osallisuuteen sekä itsenäiseen selviytymiseen (esim. kehitysvammaisuuden eri asteet)
 <li>Hallitsee EPA:n - 24 Haasteellisissa vuorovaikutustilanteissa toimiminen
-</ol>";2020-08-01;22;3000
-3003;Akuuttineurologisen potilaan hoito ja konsultointi (yli 1 kk);"<h3>Akuuttineurologisen potilaan hoito ja konsultointi (yli 1 kk)</h3>
+</ol>";2020-08-01
+Akuuttineurologisen potilaan hoito ja konsultointi (yli 1 kk);"<h3>Akuuttineurologisen potilaan hoito ja konsultointi (yli 1 kk)</h3>
 
 <h4>Kuvaus</h4>
 Akuuttineurologisen potilaan oireiden erotusdiagnostiikka ja hoidon suunnittelu. Toiminta tapahtuu usein osana moniammatillista työryhmää päivystyspoliklinikalla, vuode- tai teho-osastolla. Keskitytään neurologisiin tutkimuksiin ja hoitoon. Keskeistä yhteistyötaidot moniammatillisessa työryhmässä ja vuorovaikutus vanhempien kanssa. Toiminta moniammatillisessa akuuttityöryhmässä lastenneurologian asiantuntijana.
@@ -179,8 +179,8 @@ Akuuttineurologisen potilaan oireiden erotusdiagnostiikka ja hoidon suunnittelu.
 <li>Kykenee hyvässä yhteistyössä suunnittelemaan tarvittavat diagnostiset tutkimukset ja hoidon muun työryhmän kanssa (esimerkiksi sairaanhoitajat, anestesialääkärit, lastenlääkärit, diagnostisten alojen lääkärit)</li>
 <li>Kykenee tarvittaessa johtamaan hoitotiimiä</li>
 <li>Huomio lapsen vanhemmat ja tunnistaa mahdollisen psyykkisen tuen tarpeen, osaa kertoa vanhemmille ymmärrettävästi lapsen tilan, diagnostisten tutkimusten merkityksen ja sairauden ennusteen</li>
-</ol>";2020-08-01;22;3001
-3004;Akuutin vaikean aivo-ja selkäydinvamman hoito ja kuntoutus;"<h3>Akuutin vaikean aivo- ja selkäydinvamman hoito ja kuntoutus</h3>
+</ol>";2020-08-01
+Akuutin vaikean aivo-ja selkäydinvamman hoito ja kuntoutus;"<h3>Akuutin vaikean aivo- ja selkäydinvamman hoito ja kuntoutus</h3>
 
 <h4>Kuvaus</h4>
 Vaikeat aivo- ja selkäydinvammapotilaat tarvitsevat tyypillisesti aluksi moniammatillista tehohoitoa (mm. anestesiologia, neuro- ja lastenkirurgia, lastentaudit) ja heille tehdään usein neurokirurgisia toimenpiteitä (mm. ventrikulostomia, hemikraniektomia). Teho-hoitovaiheen jälkeen osasto- tai kuntoutusjakso lasten osastolla voi kestää viikkoja ennen kotiutumista. Hoito edellyttää moniammatillista tiimiä kaikissa sairaalahoidon vaiheissa
@@ -227,8 +227,8 @@ Vaikeat aivo- ja selkäydinvammapotilaat tarvitsevat tyypillisesti aluksi moniam
 <li>Osaa järjestää vanhemmille tarvittavan psykososiaalisen tuen hoidon eri vaiheissa</li>
 <li>Osaa järjestää siirtymävaiheen avo- tai kotihoitoon sekä jatkoseurannan</li>
 <li>Hallitsee EPA:n - 7 Kuntoutussuunnitelman laatiminen moniammatillisessa kuntoutustyöryhmässä</li>
-</ol>";2020-08-01;22;3001
-3005;Kohtausoireiden diagnostiikka;"<h3>Kohtausoireiden diagnostiikka</h3>
+</ol>";2020-08-01
+Kohtausoireiden diagnostiikka;"<h3>Kohtausoireiden diagnostiikka</h3>
 
 <h4>Kuvaus</h4>
 Kohtauksellisen oireiden selvittely, erotusdiagnostiikka, tutkimusten ja hoidon suunnittelu.
@@ -269,8 +269,8 @@ Kohtauksellisen oireiden selvittely, erotusdiagnostiikka, tutkimusten ja hoidon 
 <li>Erikoistuva osaa suunnitella diagnostiset tutkimukset tarkoituksenmukaisella kiireellisyydellä</li>
 <li>Erikoistuva osaa tarvittaessa muuttaa työdiagnoosia lisätiedon perusteella</li>
 <li>Erikoistuva osaa laatia sairauskertomuksen, jossa on kuvattu kliininen päätöksenteko johdonmukaisesti</li>
-</ol>";2020-08-01;22;3001
-3006;Pitkittyneen epileptisen kohtauksen hoito;"<h3>Pitkittyneen epileptisen kohtauksen hoito</h3>
+</ol>";2020-08-01
+Pitkittyneen epileptisen kohtauksen hoito;"<h3>Pitkittyneen epileptisen kohtauksen hoito</h3>
 
 <h4>Kuvaus</h4>
 Neurologisen hätätilanteen nopea tunnistaminen, diagnostiikka ja hoito. Status epilepticuksen hoito tapahtuu osana moniammatillista hoitotiimiä. Erityisesti kiinnitetään huomioita akuuttitilanteen hoitosuositusten tuntemiseen, lääkehoidon toteuttamiseen ja etiologisten syiden selvittämiseen. Huomioitava myös yhteistyön sujuvuus moniammatillisessa hoitotiimissä akuuttitilanteessa päivystyksessä, vuode – tai teho-osastolla.
@@ -314,8 +314,8 @@ Neurologisen hätätilanteen nopea tunnistaminen, diagnostiikka ja hoito. Status
 <li>Osaa toimia osana hoitotiimiä – pyrkii aktiivisesti integroitumaan tiimiin, keskustelee selkeästi tiimin muiden jäsenten kanssa hoidosta ja tutkimustuloksista, kirjaa yksiselitteiset hoito-ohjeet omalta osaltaan ja varmistaa niiden toteutuksen</li>
 <li>Huomio vuorovaikutuksen vanhempien tai saattajien kanssa</li>
 <li>Hallitsee EPA:n - 24 Haasteellisissa vuorovaikutustilanteissa toimiminen</li>
-</ol>";2020-08-01;22;3001
-3007;Lasten ja nuorten päänsärky;"<h3>Lasten ja nuorten päänsärky</h3>
+</ol>";2020-08-01
+Lasten ja nuorten päänsärky;"<h3>Lasten ja nuorten päänsärky</h3>
 
 <h4>Kuvaus</h4>
 Toistuvista päänsäryistä kärsivän lapsen ja nuoren etiologisten tutkimusten ja hoidon suunnittelun päävastuu on usein perusterveydenhuollossa. Erikoissairaanhoidon rooli on yleensä konsultoiva ja kohdentuu vakavien tai harvinaisten syiden selvittämiseen ja hoitoon. Lastenneurologin tietämystä tarvitaan diagnostiseen tarkkuuteen, kuvantamistutkimusten tarkoituksenmukaiseen käyttöön ja hoidonohjaukseen
@@ -360,8 +360,8 @@ Toistuvista päänsäryistä kärsivän lapsen ja nuoren etiologisten tutkimuste
 <li>Osaa pyytää tarkoituksenmukaisia etiologisia tutkimuksia</li>
 <li>Osaa ohjata ja kannustaa lasta, nuorta ja perhettä itsehoitoon sekä hyvinvointia edistävään elämäntapaan</li>
 <li>Osaa tehdä päänsärkypotilaan hoitosuunnitelman tarvittaessa moniammatillisena yhteistyönä erikois- ja perusterveyden huollon toimijoiden kanssa</li>
-</ol>";2020-08-01;22;3001
-3008;Autoimmuunienkefaliitti ja muut keskushermoston neuroinflammatoriset ja demyelinoivat sairaudet;"<h3>Autoimmuunienkefaliitti ja muut keskushermoston neuroinflammatoriset sekä demyelinoivat sairaudet</h3>
+</ol>";2020-08-01
+Autoimmuunienkefaliitti ja muut keskushermoston neuroinflammatoriset ja demyelinoivat sairaudet;"<h3>Autoimmuunienkefaliitti ja muut keskushermoston neuroinflammatoriset sekä demyelinoivat sairaudet</h3>
 
 <h4>Kuvaus</h4>
 Autoimmuunienkefaliitti ja muut neuroinflammatoriset aivosairaudet ilmenevät lapsuusiässä usein melko akuutteina ja vaikeina oireina. Diagnoosi perustuu esitietoihin, neurologisiin löydöksiin ja merkittäviltä osin pään-MRI löydökseen sekä likvor – ja laboratoriotutkimuksiin.
@@ -400,8 +400,8 @@ Autoimmuunienkefaliitti ja muut neuroinflammatoriset aivosairaudet ilmenevät la
 <ol>
 <li>Erikoistuva osaa tunnistaa autoimmuunienkefaliitin tai tulehduksellisen aivosairauden potilaan kliinisten oireiden ja löydösten perusteella sekä määrätä tarkoituksenmukaiset kuvantamis- ja laboratoriotutkimukset</li>
 <li>Erikoistuva osaa aloittaa alkuhoidon ja suunnitella tarvittavan jatkoseurannan</li>
-</ol>";2020-08-01;22;3001
-3009;Kehitysneurologisen diagnoosin asettaminen ja neurologisen kehityksen poikkeavuuden etiologinen selvittely;"<h3>Kehitysneurologisen diagnoosin asettaminen ja neurologisen kehityksen poikkeavuuden etiologinen selvittely</h3>
+</ol>";2020-08-01
+Kehitysneurologisen diagnoosin asettaminen ja neurologisen kehityksen poikkeavuuden etiologinen selvittely;"<h3>Kehitysneurologisen diagnoosin asettaminen ja neurologisen kehityksen poikkeavuuden etiologinen selvittely</h3>
 
 <h4>Kuvaus</h4>
 Lapselle tehdään kehitysneurologinen diagnoosi yhdistäen esitietoja, kehitysneurologisen kliinisen tutkimuksen ja tarvittavien erityistyöntekijöiden standardoitujen testien tulokset. Lisäksi suunnitellaan tarvittavat etiologiset tutkimukset. Kerrotaan vanhemmille diagnoosi ja tutkimusten merkitys. Käsittää kaikki diagnoosit ICD-10 F80 - F89.
@@ -448,8 +448,8 @@ Lapselle tehdään kehitysneurologinen diagnoosi yhdistäen esitietoja, kehitysn
 <li>Osaa suunnitella yhdessä moniammatillisen kuntoutustyöryhmän kanssa tarvittavat erityistyöntekijöiden tutkimukset ja tukitoimet</li>
 <li>Osaa kertoa diagnoosin ja merkityksen lapselle ja vanhemmille ymmärrettävällä tavalla</li>
 <li>Osaa tarvittaessa konsultoida muita erikoisaloja, pyytää tarkoituksenmukaiset etiologiset tutkimukset, ja selittää vanhemmille niiden merkityksen.</li>
-</ol>";2020-08-01;22;3002
-3010;Kehitysvammaisuuden diagnosointi ja etiologinen selvittely;"<h3>Kehitysvammaisuuden diagnosointi ja etiologinen selvittely</h3>
+</ol>";2020-08-01
+Kehitysvammaisuuden diagnosointi ja etiologinen selvittely;"<h3>Kehitysvammaisuuden diagnosointi ja etiologinen selvittely</h3>
 
 <h4>Kuvaus</h4>
 Lasten ja nuorten kehitysvammaisuuden diagnostiikka, etiologiset tutkimukset sekä varhaisvaiheen kuntoutuksen suunnittelu. Kehitysvammadiagnoosin saavat lapset ovat usein lastenneurologisessa kehitys- ja kuntoutusseurannassa diagnoosia edeltävästi ja diagnoosin jälkeen kuntoutusseuranta tyypillisesti siirtyy vammaispalvelujen piiriin.
@@ -493,8 +493,8 @@ Lasten ja nuorten kehitysvammaisuuden diagnostiikka, etiologiset tutkimukset sek
 <li>Osaa määrätä tarvittavat etiologiset tutkimukset tarkoituksen mukaisella laajuudella ja oikea aikaisesti</li>
 <li>Osaa EPA:n - 7 Kuntoutussuunnitelman laatiminen moniammatillisessa kuntoutustyöryhmässä</li>
 <li>Hallitsee EPA:n - 24 Haasteellisissa vuorovaikutustilanteissa toimiminen</li>
-</ol>";2020-08-01;22;3002
-3011;Lapsuusiän autismi;"<h3>Lapsuusiän autismi</h3>
+</ol>";2020-08-01
+Lapsuusiän autismi;"<h3>Lapsuusiän autismi</h3>
 
 <h4>Kuvaus</h4>
 Lapsuusiän autismin diagnostiikka ja kuntoutuksen suunnittelu tapahtuvat erikoissairaanhoidossa moniammatillisena yhteistyönä. Tässä lapsuusiän autismilla tarkoitetaan autismikirjon vaikeaa ääripäätä, missä autismin oireet ilmenevät yleensä jo ennen kolmea ikävuotta ja erotusdiagnostiset ongelmat painottuvat kehitysvammaisuuteen tai vaikeaan kielihäiriöön. Hoito keskittyy lapsen kehityksen tukemiseen autismikuntoutuksen periaatteiden mukaisesti, vanhempien ja ympäristön sopeutumiseen ja ohjaukseen sekä etiologian selvittämiseen. Yhteistyö moniammatillisessa työryhmässä ja vuorovaikutustaidot vanhempien kanssa keskeisiä.
@@ -536,8 +536,8 @@ Lapsuusiän autismin diagnostiikka ja kuntoutuksen suunnittelu tapahtuvat erikoi
 <li>Erikoistuva osaa tehdä autismidiagnoosin yhdessä moniammatillisen kuntoutustyöryhmän kanssa ja kertoa vanhemmille ymmärrettävästi diagnoosin merkityksestä ja ennusteesta</li>
 <li>Erikoistuva osaa pyytää etiologiset tutkimukset tarkoituksenmukaisella laajuudella ja kertoa vanhemmille tutkimusten merkityksestä</li>
 <li>Hallitsee EPA:n - 7 Kuntoutussuunnitelman laatiminen moniammatillisessa kuntoutustyöryhmässä</li>
-</ol>";2020-08-01;22;3002
-3012;CP-vamman diagnosointi, lapsen ja nuoren hoidon sekä kuntoutuksen suunnittelu;"<h3>CP-vamman diagnosointi, lapsen ja nuoren hoidon sekä kuntoutuksen suunnittelu</h3>
+</ol>";2020-08-01
+CP-vamman diagnosointi, lapsen ja nuoren hoidon sekä kuntoutuksen suunnittelu;"<h3>CP-vamman diagnosointi, lapsen ja nuoren hoidon sekä kuntoutuksen suunnittelu</h3>
 
 <h4>Kuvaus</h4>
 CP-vamman tunnistaminen, diagnosoiminen sekä hoidon, seurannan sekä kuntoutuksen suunnittelu yhteistyössä moniammatillisen kuntoutustyöryhmän kanssa
@@ -588,8 +588,8 @@ CP-vamman tunnistaminen, diagnosoiminen sekä hoidon, seurannan sekä kuntoutuks
 <li>Osaa huomioida mahdolliset liitännäissairaudet ja niiden seurannan
 <li>Tuntee lääkinnällisten apuvälineiden myöntämisperusteet
 <li>Osaa ohjata lapsen oikea-aikaisesti konsultaation spastisuuden hoitojen arvioimiseksi (esimerkiksi botuliinitoksiinihoito, CP-kirurgia, neuromodulaatio
-</ol>";2020-08-01;22;3002
-3013;Lasten ja nuorten epilepsia;"<h3>Lasten ja nuorten epilepsia</h3>
+</ol>";2020-08-01
+Lasten ja nuorten epilepsia;"<h3>Lasten ja nuorten epilepsia</h3>
 
 <h4>Kuvaus</h4>
 Epilepsiaepäilyssä tutkimusten suunnittelu, epilepsian diagnostiikka ja erotusdiagnostiikka, liitännäissairauksien tunnistaminen, hoidon aloitus ja seurannan järjestäminen. Diagnoosin kertominen lapselle ja vanhemmille. Vaikean epilepsian tunnistaminen.
@@ -641,8 +641,8 @@ Epilepsiaepäilyssä tutkimusten suunnittelu, epilepsian diagnostiikka ja erotus
 <li>Tunnistaa vaikean epilepsian ja osaa ohjata potilaan konsultaatioon hoitosuositusten mukaisesti</li>
 <li>Osaa arvioida mahdolliset liitännäissairaudet ja -tilat sekä järjestää niiden hoidon ja tarvittavan tuen</li>
 <li>Osaa ottaa kantaa ajokykyyn sekä jatko- ja ammatinvalinnan mahdollisuuksiin</li>
-</ol>";2020-08-01;22;3002
-3014;Neuromuskulaaritautien diagnosoiminen, hoito ja sen järjestäminen;"<h3>Neuromuskulaaritautien diagnosoiminen, hoito ja sen järjestäminen</h3>
+</ol>";2020-08-01
+Neuromuskulaaritautien diagnosoiminen, hoito ja sen järjestäminen;"<h3>Neuromuskulaaritautien diagnosoiminen, hoito ja sen järjestäminen</h3>
 
 <h4>Kuvaus</h4>
 Neuromuskulaarisairaudet ovat harvinaisia, minkä vuoksi erityisesti niiden diagnostiikkaan on kiinnitettävä huomiota. Huolimatta spesifistä diagnoosista kuitenkin kaikilla lihastautipotilailla on saman tyyppisiä tarpeita tukihoitojen sekä kuntoutuksen järjestämisen suhteen. Diagnostiikka ja hoito järjestetään moniammatillisena yhteistyönä, vaikka hoidon koordinointi on pääsääntöisesti lastenneurologialla. Useat neuromuskulaaritaudit ovat eteneviä sairauksia, minkä vuoksi keskeistä on myös lapsen ja perheen psykososiaalisen tuen huomioiminen ja järjestäminen sairauden eri vaiheissa
@@ -695,8 +695,8 @@ Neuromuskulaarisairaudet ovat harvinaisia, minkä vuoksi erityisesti niiden diag
 <li>Erikoistuvaa osaa tunnistaa neuromuskulaaritautien yleiset oireet ja ohjelmoida tarvittavat diagnostiset tutkimukset tarkoituksenmukaisella laajuudella ja aikataululla</li>
 <li>Erikoistuva osaa laatia moniammatillisen hoitosuunnitelman ja huomioida kaikkien tarvittavien tahojen konsultaatioiden ja seurannan järjestämisen</li>
 <li>Erikoistuva osaa huomioida lapsen ja nuoren sekä vanhempien tarvitseman psyykkisen tuen kaikissa sairauden eri vaiheissa – diagnostisen selvittely prosessin aikana, diagnoosin teon yhteydessä ja myöhemmin sairauden eri vaiheissa</li>
-</ol>";2020-08-01;22;3002
-3015;Lastenneurologisten harvinaissairauksien tunnistaminen, diagnosointi ja hoidon pääpiirteiden tunteminen;"<h3>Lastenneurologisten harvinaissairauksien tunnistaminen, diagnosointi ja hoidon pääpiirteiden tunteminen</h3>
+</ol>";2020-08-01
+Lastenneurologisten harvinaissairauksien tunnistaminen, diagnosointi ja hoidon pääpiirteiden tunteminen;"<h3>Lastenneurologisten harvinaissairauksien tunnistaminen, diagnosointi ja hoidon pääpiirteiden tunteminen</h3>
 
 <h4>Kuvaus</h4>
 Sairauden diagnosointi sekä hoidon ja kuntoutuksen järjestäminen neurologisia harvinaissairauksia sairastaville potilaille sekä niille potilaille, joiden sairauden etiologia jää tuntemattomaksi yhteistyössä eri erikoisalojen kanssa. Keskeistä tuntea neurologisen diagnostiikan ja erotusdiagnostiikan periaatteet, tiedon hallinta, tiedon etsimen, tiedon luotettavuuden arviointi ja konsultointi, vuorovaikutus ja yhteistyötaidot perheen ja moniammatillisen työryhmän kanssa.
@@ -739,8 +739,8 @@ Sairauden diagnosointi sekä hoidon ja kuntoutuksen järjestäminen neurologisia
 <li>Osaa suunnitella sairauden hoidon ja muut tukitoimenpiteet sekä kuntoutuksen myös etiologialtaan avoimissa tapauksissa</li>
 <li>Osaa kertoa ja perustella vanhemmille tehtävien tutkimusten tarpeellisuuden ja vastata vanhempien esittämiin kysymyksiin</li>
 <li>Kykenee saavuttamaan vanhempien luottamuksen</li>
-</ol>";2020-08-01;22;3002
-3016;Neuro-onkologisten sairauksien hoidon konsultointi ja neurologinen seuranta;"<h3>Neuro-onkologisten sairauksien hoidon konsultointi ja neurologinen seuranta</h3>
+</ol>";2020-08-01
+Neuro-onkologisten sairauksien hoidon konsultointi ja neurologinen seuranta;"<h3>Neuro-onkologisten sairauksien hoidon konsultointi ja neurologinen seuranta</h3>
 
 <h4>Kuvaus</h4>
 Lastenneurologin rooli lasten aivokasvainten diagnostiikassa ja hoidossa on usein konsultoiva. Hoitojen päätyttyä lastenneurologi vastaa neurologisen oireiden jälkiseurannasta ja kuntoutuksesta.
@@ -786,8 +786,8 @@ Lastenneurologin rooli lasten aivokasvainten diagnostiikassa ja hoidossa on usei
 <li>Osaa diagnosoida sairauden ja hoitojen neurologiset myöhäiskomplikaatiot</li>
 <li>Hallitsee EPA:n - 7 Kuntoutussuunnitelman laatiminen moniammatillisessa kuntoutustyöryhmässä</li>
 <li>Hallitsee EPA:n - 24 Haasteellisissa vuorovaikutustilanteissa toimiminen</li>
-</ol>";2020-08-01;22;3002
-3017;Lasten ja nuorten unihäiriöt;"<h3>Lasten ja nuorten unihäiriöt</h3>
+</ol>";2020-08-01
+Lasten ja nuorten unihäiriöt;"<h3>Lasten ja nuorten unihäiriöt</h3>
 
 <h4>Kuvaus</h4>
 Lasten ja nuorten unihäiriöt ovat yleisiä. Unihäiriöpotilaita hoidetaan erikoissairaanhoidossa usealla eri erikoisalalla – lastentaudit, lasten- ja nuorisopsykiatria, korva-, nenä-, ja kurkkutaudit sekä perusterveyden huollossa erityisesti neuvola- ja kouluterveydenhuollossa. Lastenneurologin toiminta on pääasiassa erikoissairaanhoidon konsultaatioiden tarjoaminen ja elimellisten syiden selvittely sekä erityisestä neurologisestä syystä johtuvien vaikeiden, moniongelmaisten potilaiden hoidon koordinointi.
@@ -826,8 +826,8 @@ Lasten ja nuorten unihäiriöt ovat yleisiä. Unihäiriöpotilaita hoidetaan eri
 <li>Erikoistuva osaa huomioida unihäiriöt liitännäissairautena neurologisissa sairaustiloissa ja ohjata jatkotutkimuksiin oikeaan hoitopaikkaan esimerkiksi unenaikaista hengityshäiriötä epäiltäessä.</li>
 <li>Erikoistuva osaa eritellä unihäiriöpotilaan tai vireystilan häiriön vuoksi konsultaatioon tulleen potilaan erotusdiagnostiset etiologiset vaihtoehdot, ja suunnitella tarvittavat diagnostiset tutkimukset, luokitella unihäiriön sekä tietää hoitovaihtoehdot ja tukitoimet.</li>
 <li>Erikoistuva tuntee unihäiriöissä lapsilla ja nuorilla käytettävät lääkkeet ja niiden indikaatiot</li>
-</ol>";2020-08-01;22;3003
-3018;Neuropsykiatrisen oirekirjon lastenneurologiset ongelmat;"<h3>Neuropsykiatrisen oirekirjon lastenneurologiset ongelmat</h3>
+</ol>";2020-08-01
+Neuropsykiatrisen oirekirjon lastenneurologiset ongelmat;"<h3>Neuropsykiatrisen oirekirjon lastenneurologiset ongelmat</h3>
 
 <h4>Kuvaus</h4>
 Neuropsykiatrisille oireille on tavanomaista sosiaalisissa tilanteissa esiintyvät käyttäytymisen ongelmat. Lastenneurologin osuus painottuu tilanteisiin, jossa oireita esiintyy potilailla, jotka ovat ensisijaisesti jostain muusta syystä lastenneurologilla hoidossa sekä perusterveydenhuollon konsultaatioihin.
@@ -866,8 +866,8 @@ Neuropsykiatrisille oireille on tavanomaista sosiaalisissa tilanteissa esiintyv�
 <li>Erikoistuva tuntee neuropsykiatristen potilaiden hoitopolun ja tukimuotojen paikallisen saatavuuden</li>
 <li>Osaa tarvittaessa aloittaa neuropsykiatristen oireiden lääkehoidon</li>
 <li>Erikoistuva osaa järjestää tarvittavan jatkoseurannan mukaan luettuna mahdollinen lääkehoito</li>
-</ol>";2020-08-01;22;3003
-3019;Neurologisin oirein ilmenevät toiminnalliset häiriöt;"<h3>Neurologisin oirein ilmenevät toiminnalliset häiriöt</h3>
+</ol>";2020-08-01
+Neurologisin oirein ilmenevät toiminnalliset häiriöt;"<h3>Neurologisin oirein ilmenevät toiminnalliset häiriöt</h3>
 
 <h4>Kuvaus</h4>
 Toiminnallisilla häiriöillä̈ tarkoitetaan potilaiden toimintakykyä ja elämänlaatua haittaavia oireita ja oireyhtymiä̈, joiden syy ei perusteellisissakaan somaattisissa tai psykiatrisissa tutkimuksissa selviä̈. Lastenneurologiassa tyypillisimmin toiminnalliset oireet ilmenevät erilaisina kohtauksina, motoriikan häiriöinä (esimerkiksi kävelemättömyys), päänsärkynä tai jaksamattomuutena ja väsyneisyytenä. Keskeistä osaamista on toiminnallisen häiriön mahdollisuuden tunnistaminen ja toimiminen hyvässä yhteisymmärryksessä lapsen tai nuoren ja hänen huoltajiensa kanssa tukien toimintakyvyn palautumista. Samanaikaisesti vältetään liiallista oireen etiologian selvittämiseksi tähtäävää tutkimuskierrettä sekä hoidon hajaantumista useaan eri hoitopaikkaan. Tärkeä osa-alue on hoidon järjestäminen hyvässä moniammatillisessa yhteistyössä.
@@ -906,8 +906,8 @@ Toiminnallisilla häiriöillä̈ tarkoitetaan potilaiden toimintakykyä ja eläm
 <li>Osaa pyytää tarkoituksenmukaisia etiologisia tutkimuksia</li>
 <li>Osaa kertoa lapselle tai nuorelle sekä hänen huoltajilleen ymmärrettävästi vallitsevan käsityksen toiminnallisen oireen syistä ja sen hoidosta</li>
 <li>Osaa tehdä hoitosuunnitelman ja järjestää potilaan seurannan tarvittaessa moniammatillisena yhteistyönä erikois- ja perusterveyden huollon toimijoiden kanssa</li>
-</ol>";2020-08-01;22;3003
-3020;Lumbaalipunktio ja likvorin avauspaineen mittaus;"<h3>Lastenneurologiset toimenpiteet - Lumbaalipunktio ja likvorin avauspaineen mittaus</h3>
+</ol>";2020-08-01
+Lumbaalipunktio ja likvorin avauspaineen mittaus;"<h3>Lastenneurologiset toimenpiteet - Lumbaalipunktio ja likvorin avauspaineen mittaus</h3>
 
 <h4>Kuvaus</h4>
 Aivoselkäydin nesteen (likvor) näytteen otto lumbaalipunktiolla lapsipotilaalta ja samassa yhteydessä tehtävä avauspaineen mittaus. Likvor-näytettä tarvitaan keskushermoston infektion yhteydessä, tutkittaessa neurometabolisia ja neurotransmitteritauteja sekä autoimmuunienkefaliittejä ja demyelisoivia tauteja. Likvorin avauspaineen mittausta käytettään idiopaattista intrakraniaalista hypertensiota epäiltäessä ja hoidon seurannassa
@@ -950,8 +950,8 @@ Aivoselkäydin nesteen (likvor) näytteen otto lumbaalipunktiolla lapsipotilaalt
 <li>Osaa perustella likvor- näytteen tarpeen ja näytteenottoon liittyvät riskit</li>
 <li>Osaa mitata likvorin avauspaineen</li>
 <li>Osaa selittää toimenpiteen potilaalle ja vanhemmille</li>
-</ol>";2020-08-01;22;3004
-3021;Aivokuoleman toteaminen;"<h3>Lastenneurologiset toimenpiteet - Aivokuoleman toteaminen</h3>
+</ol>";2020-08-01
+Aivokuoleman toteaminen;"<h3>Lastenneurologiset toimenpiteet - Aivokuoleman toteaminen</h3>
 
 <h4>Kuvaus</h4>
 Aivokuoleman toteaminen tapahtuu moniammatillisena yhteistyönä usein teho-osasto-olosuhteissa hoitojen lopettamispäätöksen tukena ja mahdollista elinsiirron valmistelun aloittamiseksi. Tilanteessa huomioitavaa toimiminen yhteistyössä muun hoitohenkilökunnan kanssa, toimenpiteen tekninen suorittaminen ja vuorovaikutus omaisten kanssa.
@@ -1010,8 +1010,8 @@ Aivokuoleman toteaminen tapahtuu moniammatillisena yhteistyönä usein teho-osas
 <li>Kykenee toimimaan yhteistyössä moniammatillisessa hoitotiimissä</li>
 <li>Osaa kommunikoida omaisten kanssa selkeästi ja huomioida heidän tarvitsemansa tuen</li>
 <li>Hallitsee EPA:n - 24 Haasteellisissa vuorovaikutustilanteissa toimiminen</li>
-</ol>";2020-08-01;22;3004
-3022;Kuntoutussuunnitelman laatiminen moniammatillisessa kuntoutustyöryhmässä;"<h3>Kuntoutussuunnitelman laatiminen moniammatillisessa kuntoutustyöryhmässä</h3>
+</ol>";2020-08-01
+Kuntoutussuunnitelman laatiminen moniammatillisessa kuntoutustyöryhmässä;"<h3>Kuntoutussuunnitelman laatiminen moniammatillisessa kuntoutustyöryhmässä</h3>
 
 <h4>Kuvaus</h4>
 Keskeinen osa lastenneurologin osaamista on lapsen kehitysneurologinen arviointi ja kuntoutussuunnitelman laadinta osana moniammatillista kuntoutustyöryhmää. Lääkäri toimii kuntoutustyöryhmän puheenjohtajana, laatii kirjallisesta kuntoutussuunnitelmasta lääkärin osuuden ja vahvistaa kuntoutussuunnitelman.
@@ -1058,8 +1058,8 @@ Keskeinen osa lastenneurologin osaamista on lapsen kehitysneurologinen arviointi
 <li>Erikoistuva osaa laatia vuorovaikutteisesti yhdessä lapsen tai nuoren, vanhempien ja kuntoutustyöryhmän sekä muiden läheisten yhteistyötahojen kanssa kuntoutussuunnitelman</li>
 <li>Erikoistuva osaa laatia kirjallisen, jäsentyneen ja ohjeistuksen mukaisen kuntoutussuunnitelman, joka sisältää kehitystasoa kuvaavan diagnoosin sekä kuntoutuksen tavoitteiden ja toteutuksen kannalta tarvittavat tiedot.</li>
 <li>Osaa huomioida reflektiivisesti lapsen tai nuoren, vanhemman</li>
-</ol>";2020-08-01;22;3004
-3023;Haasteellisessa vuorovaikutustilanteessa toimiminen;"<h3>Haasteellisissa vuorovaikutustilanteissa toimiminen</h3>
+</ol>";2020-08-01
+Haasteellisessa vuorovaikutustilanteessa toimiminen;"<h3>Haasteellisissa vuorovaikutustilanteissa toimiminen</h3>
 
 <h4>Kuvaus</h4>
 Erikoistuva osaa toimia hankalissa vuorovaikutustilanteissa (esimerkiksi huonon uutisen kertominen tai tyytymättömän potilaan ja/tai omaisen kohtaaminen), joissa hän itse on aloitteen tekijä ja pääasiallinen toimija.
@@ -1094,8 +1094,8 @@ Erikoistuva osaa toimia hankalissa vuorovaikutustilanteissa (esimerkiksi huonon 
 <li>Simuloidut potilastapaukset</li>
 <li>Potilastilanteiden seuranta</li>
 <li>Potilastapauskeskustelut</li>
-</ol>";2020-08-01;22;3005
-3024;Konsultaatioiden tarjoaminen oman yksikön ulkopuolelle;"<h3>Konsultaatioiden tarjoaminen oman yksikön ulkopuolelle</h3>
+</ol>";2020-08-01
+Konsultaatioiden tarjoaminen oman yksikön ulkopuolelle;"<h3>Konsultaatioiden tarjoaminen oman yksikön ulkopuolelle</h3>
 
 <h4>Kuvaus</h4>
 Erikoissairaanhoidossa konsultaatioiden tarjoaminen oman yksikön ulkopuolelle kuuluu sekä erikoislääkärin että erikoistuvan lääkärin toimenkuvaan. Tämä EPA koskee sekä virka-aikaa että päivystysaikaa kuitenkin siten, että erikoistuvan tulee kyetä suoriutumaan asianmukaisesti virka-aikaisista konsultaatioista ennen päivystysvastuun saamista.
@@ -1128,8 +1128,8 @@ Erikoissairaanhoidossa konsultaatioiden tarjoaminen oman yksikön ulkopuolelle k
 <li>Simulaatioharjoitus</li>
 <li>Potilastapauskeskustelut</li>
 <li>Potilasasiakirjamerkinnät</li>
-</ol>";2020-08-01;22;3005
-3025;Hoitovastuun siirtäminen;"<h3>Hoitovastuun siirtäminen</h3>
+</ol>";2020-08-01
+Hoitovastuun siirtäminen;"<h3>Hoitovastuun siirtäminen</h3>
 
 <h4>Kuvaus</h4>
 Erikoistuva osaa antaa ja ottaa vastaan potilaan hoitovastuun siirtävän raportin. Erikoistuva toimii osana terveydenhuollon tiimiä. Hän vastaa siitä, että kaikki potilaan hoitoon liittyvä tieto siirtyy potilaan mukana, selvästi ja ymmärrettävästi. Tähän sisältyy suullinen raportointi, lähetteen kirjoittaminen ja potilaan statuksen kirjaaminen.
@@ -1170,8 +1170,8 @@ Raportin vastaanottaja:
 <li>Useiden erilaisten potilastilanteiden seuranta</li>
 <li>Potilastapauskeskustelut</li>
 <li>Lähetteet ja muut potilasasiakirjoihin tehdyt merkinnät</li>
-</ul>";2020-08-01;22;3005
-3026;Elämän loppuvaiheen hoidon järjestäminen;"<h3>Elämän loppuvaiheen hoidon järjestäminen</h3>
+</ul>";2020-08-01
+Elämän loppuvaiheen hoidon järjestäminen;"<h3>Elämän loppuvaiheen hoidon järjestäminen</h3>
 
 <h4>Kuvaus</h4>
 Lääkäri laatii elämän loppuvaiheen ennakoivan hoitosuunnitelman yhteistyössä potilaan ja hänen läheistensä kanssa. Tähän kuuluu keskustelu potilaan toiveiden ja tarpeiden selvittäminen sekä päätökset hoidon linjauksista ja rajauksista sekä sovittuja asioita koskevan suunnitelman tekeminen
@@ -1205,4 +1205,4 @@ Lääkäri laatii elämän loppuvaiheen ennakoivan hoitosuunnitelman yhteistyös
 <li>Vastaanottotapahtuman arviointi</li>
 <li>Potilastapauskeskustelut</li>
 <li>Potilasasiakirjamerkinnät</li>
-</ol>";2020-08-01;22;3005
+</ol>";2020-08-01

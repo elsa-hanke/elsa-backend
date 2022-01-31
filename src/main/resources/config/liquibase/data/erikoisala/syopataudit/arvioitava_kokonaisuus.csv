@@ -1,5 +1,5 @@
-﻿id;nimi;kuvaus;voimassaolo_alkaa;erikoisala_id;kategoria_id
-3200;Sädehoidon tekninen suunnittelu;"<table class=""table"">
+﻿nimi;kuvaus;voimassaolo_alkaa
+Sädehoidon tekninen suunnittelu;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -134,8 +134,8 @@ voidaan arviointi toteuttaa myös simuloitujen potilastapausten avulla.
 </td>
 </tr>
 </tbody>
-</table>";2020-08-01;44;3200
-3201;Syöpälääkehoidon suunnittelu ja toteutus;"<table class=""table"">
+</table>";2020-08-01
+Syöpälääkehoidon suunnittelu ja toteutus;"<table class=""table"">
 <colgroup>
 <col span=""1"" style=""width: 25%"" />
 <col span=""1"" style=""width: 37.5%"" />
@@ -272,4 +272,4 @@ Myös potilaskertomusmerkintöjä voidaan käyttää arvion tukena.
 </td>
 </tr>
 </tbody>
-</table>";2020-08-01;44;3201
+</table>";2020-08-01

@@ -7,7 +7,8 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 @Repository
-interface ArvioitavanKokonaisuudenKategoriaRepository : JpaRepository<ArvioitavanKokonaisuudenKategoria, Long> {
+interface ArvioitavanKokonaisuudenKategoriaRepository :
+    JpaRepository<ArvioitavanKokonaisuudenKategoria, Long> {
 
     @Query(
         "select k from ArvioitavanKokonaisuudenKategoria k " +
@@ -18,7 +19,7 @@ interface ArvioitavanKokonaisuudenKategoriaRepository : JpaRepository<Arvioitava
     @Query(
         "select akk from ArvioitavanKokonaisuudenKategoria akk " +
             "left join fetch akk.arvioitavatKokonaisuudet ak " +
-            "left join ak.erikoisala e " +
+            "left join akk.erikoisala e " +
             "where e.id = ?1 " +
             "and ak.kategoria.id = akk.id " +
             "and ak.voimassaoloAlkaa <= ?2 " +
@@ -26,5 +27,8 @@ interface ArvioitavanKokonaisuudenKategoriaRepository : JpaRepository<Arvioitava
             "and akk.voimassaoloAlkaa <= ?2 " +
             "and (akk.voimassaoloLoppuu is null or akk.voimassaoloLoppuu >= ?2)"
     )
-    fun findAllByErikoisalaIdAndValid(id: Long?, valid: LocalDate): List<ArvioitavanKokonaisuudenKategoria>
+    fun findAllByErikoisalaIdAndValid(
+        id: Long?,
+        valid: LocalDate
+    ): List<ArvioitavanKokonaisuudenKategoria>
 }

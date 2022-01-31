@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220128131118" author="jhipster">
+
+        <!-- Järjestysnumeroa ei kaikissa erikoisalojen toimittamissa datoissa, joten poistetaan not null constraint -->
+        <dropNotNullConstraint tableName="arvioitavan_kokonaisuuden_kategoria"
+            columnName="jarjestysnumero"/>
+
+        <!-- Poista constraintit, jotka edelleen vanhoilla nimillä -->
+        <dropAllForeignKeyConstraints baseTableName="arvioitava_kokonaisuus"/>
+
+        <!-- Lisää foreign keyt oikeilla nimillä -->
+        <addForeignKeyConstraint baseTableName="arvioitava_kokonaisuus"
+            baseColumnNames="kategoria_id"
+            constraintName="fk_arvioitava_kokonaisuus__kategoria_id"
+            referencedTableName="arvioitavan_kokonaisuuden_kategoria"
+            referencedColumnNames="id"/>
+
+        <addColumn tableName="arvioitavan_kokonaisuuden_kategoria">
+            <column name="erikoisala_id" type="bigint"
+                valueComputed="(select distinct a.erikoisala_id from arvioitava_kokonaisuus a where a.kategoria_id = arvioitavan_kokonaisuuden_kategoria.id)"/>
+        </addColumn>
+
+        <addForeignKeyConstraint baseColumnNames="erikoisala_id"
+            baseTableName="arvioitavan_kokonaisuuden_kategoria"
+            constraintName="fk_arvioitavan_kokonaisuuden_kategoria_erikoisala_id"
+            referencedColumnNames="id"
+            referencedTableName="erikoisala"/>
+        <addNotNullConstraint tableName="arvioitavan_kokonaisuuden_kategoria"
+            columnName="erikoisala_id"/>
+
+        <dropColumn tableName="arvioitava_kokonaisuus" columnName="erikoisala_id"/>
+
+    </changeSet>
+
+</databaseChangeLog>

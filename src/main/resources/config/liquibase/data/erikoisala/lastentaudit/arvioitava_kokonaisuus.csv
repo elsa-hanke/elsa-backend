@@ -1,5 +1,5 @@
-id;nimi;kuvaus;voimassaolo_alkaa;erikoisala_id;kategoria_id
-2601;Huonojen uutisten kertominen;"<h3> Huonojen uutisten kertominen </h3>
+nimi;kuvaus;voimassaolo_alkaa
+Huonojen uutisten kertominen;"<h3> Huonojen uutisten kertominen </h3>
 <h4>Määritelmät ja rajoitukset</h4>
 <p>Erikoistuva kertoo perheelle/potilaalle huonon uutisen. Esimerkkejä huonoista uutisista ovat vaikea diagnoosi, sairauden paheneminen,
 hoidon tavoitteen muuttuminen parantavasta oireita lievittäväksi, vaikeat diagnostiset tutkimukset, monimutkaiset hoitovaihtoehdot ja
@@ -47,8 +47,8 @@ saattaa seurata pitkällisiä selvittelyitä ja väärinymmärryksiä.</p>
 <h4>Koulutuksen vaihe, jossa yleensä saavutetaan</h4>
 <p>Koulutuksen loppuvaihe/ viimeiset vuodet</p>
 <h4>Kouluttajan arvio arvioitavasta tilanteesta </h4>
-<p>Helppo/Keskivaikea/Vaikea</p>";2020-08-01;26;2601
-2602;Konsultaatioiden tarjoaminen oman yksikön ulkopuolelle;"<h3> Konsultaatioiden tarjoaminen oman yksikön ulkopuolelle </h3>
+<p>Helppo/Keskivaikea/Vaikea</p>";2020-08-01
+Konsultaatioiden tarjoaminen oman yksikön ulkopuolelle;"<h3> Konsultaatioiden tarjoaminen oman yksikön ulkopuolelle </h3>
 <h4>Määritelmät ja rajoitukset</h4>
 <p>Erikoissairaanhoidossa konsultaatioiden tarjoaminen oman yksikön ulkopuolelle kuuluu sekä erikoislääkärin että erikoistuvan lääkärin toimenkuvaan. Tämä EPA koskee sekä virka- että päivystysaikaa.</p>
 <h4>Mahdolliset riskit ja komplikaatiot</h4>
@@ -87,8 +87,8 @@ saattaa seurata pitkällisiä selvittelyitä ja väärinymmärryksiä.</p>
 <h4>Osaamisen arvioinnissa käytetyt menetelmät ja päätöksen perusteet</h4>
 <p>Lääketieteellisen substanssiosaaminen, kommunikaatiotaidot, oman tietämyksen rajojen hahmottaminen, jatkotoimien organisointi paikalliset resurssit huomioiden. Konsultaation pohjalta erikoissairaanhoitoon tulleiden potilaiden potilaskertomusmerkintöjen läpikäynti ja keskustelu erikoistuvan kanssa esim. Mini-CEX-menetelmää soveltaen.</p>
 <h4>Koulutuksen vaihe, jossa yleensä saavutetaan</h4>
-<p>Ensimmäinen vuosi erikoistumisesta, jolloin kohdataan ja omaksutaan lastentautien yleisimmät asiat pitkäaikaissairauksista ja akuuteista ongelmista</p>";2020-08-01;26;2601
-2603;Näyttöön perustuva lääketiede;"<h3> Potilaan ongelman ratkaisu tietohaun avulla </h3>
+<p>Ensimmäinen vuosi erikoistumisesta, jolloin kohdataan ja omaksutaan lastentautien yleisimmät asiat pitkäaikaissairauksista ja akuuteista ongelmista</p>";2020-08-01
+Näyttöön perustuva lääketiede;"<h3> Potilaan ongelman ratkaisu tietohaun avulla </h3>
 
 <h4>Määritelmät ja rajoitukset</h4>
 <p>Tehtävässä käsitellään kliinistä ongelmaa, jonka ratkaisuun tarvitaan tietohakua, joko siksi, että tilanne on harvinainen tai muuttunut tai muuten halutaan varmistaa oikea toimintalinja. Ongelma voi olla erikoistumisen alkuvaiheessa yksinkertainen ja tietohaun kohde selkeä ja helposti löydettävissä ja näytön aste valmiiksi arvioitu (esim. Käypä hoito -suositus). Erikoistumisen edetessä käsitellään ongelmia, joiden ratkaisussa tarvitaan vaativampaa kirjallisuuden hakemista ja löytyneen tiedon arviointia.</p>
@@ -133,8 +133,8 @@ saattaa seurata pitkällisiä selvittelyitä ja väärinymmärryksiä.</p>
 <p>Helppo/Keskivaikea/Vaikea</p>
 
 <h4>Osaamisen arvioinnissa käytetyt menetelmät ja päätöksen perusteet</h4>
-<p>Ohjaaja voi havainnoida prosessia. Itsenäisesti suoritetun ongelmanratkaisun tulos ja perusteet käydään yhdessä läpi.</p>";2020-08-01;26;2601
-2604;Pitkäaikaissairaan lapsen poliklinikkakäynti;"<h3>Pitkäaikaissairaan lapsen poliklinikkakäynti</h3>
+<p>Ohjaaja voi havainnoida prosessia. Itsenäisesti suoritetun ongelmanratkaisun tulos ja perusteet käydään yhdessä läpi.</p>";2020-08-01
+Pitkäaikaissairaan lapsen poliklinikkakäynti;"<h3>Pitkäaikaissairaan lapsen poliklinikkakäynti</h3>
 <h4>Määritelmät ja rajoitukset</h4>
 <ul>
 <li>Erikoistuva osaa ydinasiat hoidettavasta sairaudesta ja sen hoidosta ja osaa soveltaa näitä tietoja yksilöllisesti potilaan hoitoon.</li>
@@ -191,8 +191,8 @@ saattaa seurata pitkällisiä selvittelyitä ja väärinymmärryksiä.</p>
     <li>Potilastapauskeskustelu</li>
 </ul>
 <h4>Koulutuksen vaihe, jossa yleensä saavutetaan</h4>
-<p>Erikoistumiskoulutuksen loppuvaiheessa, jolloin erikoistuvalle on jo kertynyt osaamista ja kokemusta erikoispoliklinikoiden työskentelystä.</p>";2020-08-01;26;2601
-2605;Vastasyntyneen elvytys;"<h3>Huonokuntoisen vastasyntyneen alkuhoito</h3>
+<p>Erikoistumiskoulutuksen loppuvaiheessa, jolloin erikoistuvalle on jo kertynyt osaamista ja kokemusta erikoispoliklinikoiden työskentelystä.</p>";2020-08-01
+Vastasyntyneen elvytys;"<h3>Huonokuntoisen vastasyntyneen alkuhoito</h3>
 
 <h4>Määritelmät ja rajoitukset</h4>
 <ul>
@@ -248,4 +248,4 @@ saattaa seurata pitkällisiä selvittelyitä ja väärinymmärryksiä.</p>
 <p>Helppo/Keskivaikea/Vaikea</p>
 
 <h4>Osaamisen arvioinnissa käytetyt menetelmät ja päätöksen perusteet</h4>
-<p>Ohjaaja havainnoi prosessia. Simulaation jälkeiset keskustelut (ks. tarkistuslista)</p>";2020-08-01;26;2601
+<p>Ohjaaja havainnoi prosessia. Simulaation jälkeiset keskustelut (ks. tarkistuslista)</p>";2020-08-01

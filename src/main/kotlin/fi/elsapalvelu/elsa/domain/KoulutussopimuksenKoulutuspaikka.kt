@@ -14,8 +14,7 @@ import javax.persistence.*
 data class KoulutussopimuksenKoulutuspaikka(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @Column(name = "nimi", nullable = false)

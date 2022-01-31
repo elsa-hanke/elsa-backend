@@ -14,8 +14,7 @@ import javax.validation.constraints.NotNull
 data class ErikoistuvaLaakari(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @Column(name = "syntymaaika")
@@ -50,7 +49,7 @@ data class ErikoistuvaLaakari(
     @NotNull
     @OneToOne(mappedBy = "erikoistuvaLaakari", cascade = [CascadeType.ALL], orphanRemoval = true)
     var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu? = null,
-    
+
     @OneToOne(mappedBy = "erikoistuvaLaakari")
     var koulutussuunnitelma: Koulutussuunnitelma? = null
 
