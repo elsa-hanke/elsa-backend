@@ -12,8 +12,7 @@ import javax.validation.constraints.NotNull
 data class Kayttaja(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @Column(name = "nimike", nullable = true)
@@ -32,7 +31,7 @@ data class Kayttaja(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisala> = mutableSetOf()
 
-    ) : Serializable {
+) : Serializable {
 
     fun getNimi(): String {
         return this.user?.firstName + " " + this.user?.lastName

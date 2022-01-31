@@ -1,5 +1,5 @@
-﻿id;nimi;kuvaus;voimassaolo_alkaa;erikoisala_id;kategoria_id
-3300;1.1 Tunnen ammattieettiset periaatteet ja toimin työssäni niiden mukaisesti;"<b>Alkuvaiheen erikoistuva</b>
+﻿nimi;kuvaus;voimassaolo_alkaa
+1.1 Tunnen ammattieettiset periaatteet ja toimin työssäni niiden mukaisesti;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Olen tutustunut pohjoismaisiin yleislääketieteen arvoihin ja Lääkäriliiton eettisiin ohjeisiin, ja pystyn ohjaustilanteessa keskustelemaan niistä.
 <br />
@@ -16,8 +16,8 @@ Toimin ammatillisesti, vaikka ammattieettiset periaatteet menevät mahdollisessa
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän ja huolehdin siitä, että työyhteisön toiminta nojautuu pohjoismaisiin yleislääketieteen arvioihin ja Lääkäriliiton eettisiin ohjeisiin.";2020-08-01;50;3300
-3301;1.2 Kunnioitan potilaan itsemääräämisoikeutta ;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän ja huolehdin siitä, että työyhteisön toiminta nojautuu pohjoismaisiin yleislääketieteen arvioihin ja Lääkäriliiton eettisiin ohjeisiin.";2020-08-01
+1.2 Kunnioitan potilaan itsemääräämisoikeutta;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Osaan soveltaa potilaan itsemääräämisoikeuksia koskevaa lainsäädäntöä tavanomaisissa käytännön tilanteissa.
 <br />
@@ -34,8 +34,8 @@ Etsin potilaan kanssa yhteistä näkemystä hoitolinjoista myös haastavissa til
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän työyhteisön prosesseja potilaan itsemääräämisoikeutta kunnioittavaksi.";2020-08-01;50;3300
-3302;1.3 Olen tietoinen omista asenteistani ja arvoistani ;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän työyhteisön prosesseja potilaan itsemääräämisoikeutta kunnioittavaksi.";2020-08-01
+1.3 Olen tietoinen omista asenteistani ja arvoistani;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Olen valmis pohtimaan omia arvojani ja asenteitani ja miten ne vaikuttavat työhöni.
 <br />
@@ -53,8 +53,8 @@ Pystyn itsereflektioon ja osaan korjata toimintaani, jos huomaan toimineeni tunt
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Hyödynnän reflektiotaitoa työyhteisössä ja osana koulutusta";2020-08-01;50;3300
-3303;1.4 Tunnistan työkykyni rajat ja huolehdin työkyvystäni ja hyvinvoinnistani;"<b>Alkuvaiheen erikoistuva</b>
+Hyödynnän reflektiotaitoa työyhteisössä ja osana koulutusta";2020-08-01
+1.4 Tunnistan työkykyni rajat ja huolehdin työkyvystäni ja hyvinvoinnistani;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Tunnistan työnhallintaan liittyviä osa-alueita, kuten esimerkiksi riittävä palautuminen ja tuen pyytäminen tarvittaessa
 <br />
@@ -71,8 +71,8 @@ Sovellan itselleni sopivia työnhallinnan menetelmiä suoriutuakseni työstäni 
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän työyhteisöäni siten, että se mahdollistaa terveydenhuollon ammattilaisten vahvuuksien hyödyntämisen työhyvinvoinnin huomioiden.";2020-08-01;50;3300
-3304;1.5 Vastaan potilaan tarpeisiin yhdenvertaisesti käytettävissä olevien voimavarojen puitteissa;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän työyhteisöäni siten, että se mahdollistaa terveydenhuollon ammattilaisten vahvuuksien hyödyntämisen työhyvinvoinnin huomioiden.";2020-08-01
+1.5 Vastaan potilaan tarpeisiin yhdenvertaisesti käytettävissä olevien voimavarojen puitteissa;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Osaan soveltaa lainsäädäntöä sekä ammattieettisiä periaatteita yhdenvertaisesta kohtelusta.
 <br />
@@ -89,8 +89,8 @@ Ohjaan rajallisten resurssien käyttöä hyödyntäen näyttöön perustuvia men
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän palvelujärjestelmää tunnistamaan ja huomioimaan väestötasolla erilaisten potilasryhmien tarpeet";2020-08-01;50;3300
-3305;2.1 Otan huomioon sairauksien ennaltaehkäisyn sekä terveyden ja hyvinvoinnin edistämisen potilaskontakteissa ;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän palvelujärjestelmää tunnistamaan ja huomioimaan väestötasolla erilaisten potilasryhmien tarpeet";2020-08-01
+2.1 Otan huomioon sairauksien ennaltaehkäisyn sekä terveyden ja hyvinvoinnin edistämisen potilaskontakteissa;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Kysyn potilaalta elintavoista ja käsillä olevan terveysongelman riskitekijöistä.
 <br />
@@ -107,8 +107,8 @@ Osaan aktiivisesti auttaa potilasta etenemään sairauksien ehkäisyssä ja terv
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Pidän huolta siitä, että terveyden ja hyvinvoinnin edistämisen näkökulma on mukana   hoitoketjuissa. Koulutan lääkäreitä ja muita ammattilaisia terveyden ja hyvinvoinnin edistämissä.";2020-08-01;50;3301
-3306;2.2. Osaan toimia ennaltaehkäisevässä terveydenhuollossa kuten neuvoloissa sekä koulu- ja opiskelijaterveydenhuollossa;"<b>Alkuvaiheen erikoistuva</b>
+Pidän huolta siitä, että terveyden ja hyvinvoinnin edistämisen näkökulma on mukana   hoitoketjuissa. Koulutan lääkäreitä ja muita ammattilaisia terveyden ja hyvinvoinnin edistämissä.";2020-08-01
+2.2. Osaan toimia ennaltaehkäisevässä terveydenhuollossa kuten neuvoloissa sekä koulu- ja opiskelijaterveydenhuollossa;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Teen terveystarkastuksia yhdessä muiden ammattilaisten kanssa tukeutuen kansallisiin ohjeisiin
 <br />
@@ -125,8 +125,8 @@ Kokoan tarvittaessa moniammatillisen työryhmän koordinoiden potilaan hoitoa ja
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Olen mukana ennaltaehkäisevien toimien suunnittelussa ja kehittämisessä.";2020-08-01;50;3301
-3307;2.3. Osaan hakea väestön terveyttä koskevaa tietoa ja soveltaa sitä väestön terveyden ja hyvinvoinnin edistämiseksi ;"<b>Alkuvaiheen erikoistuva</b>
+Olen mukana ennaltaehkäisevien toimien suunnittelussa ja kehittämisessä.";2020-08-01
+2.3. Osaan hakea väestön terveyttä koskevaa tietoa ja soveltaa sitä väestön terveyden ja hyvinvoinnin edistämiseksi;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Tunnistan alueen sosioekonomisen väestörakenteen merkityksen terveyspalvelujen tarpeessa.
 <br />
@@ -143,8 +143,8 @@ Osallistun terveyden edistämisen ja hyvinvoinnin verkostotyöhön.
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Haen aktiivisesti oikea-aikaista tietoa sairastavuudesta ja hyvinvoinnista käyttäen niitä toiminnan suunnitteluun ja kehittämiseen. ";2020-08-01;50;3301
-3308;3.1. Tunnen omaan työhöni liittyvän keskeisen lainsäädännön ja osaan soveltaa sitä työn edellyttämällä tavalla;"<b>Alkuvaiheen erikoistuva</b>
+Haen aktiivisesti oikea-aikaista tietoa sairastavuudesta ja hyvinvoinnista käyttäen niitä toiminnan suunnitteluun ja kehittämiseen. ";2020-08-01
+3.1. Tunnen omaan työhöni liittyvän keskeisen lainsäädännön ja osaan soveltaa sitä työn edellyttämällä tavalla;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Teen työtäni voimassa olevan lainsäädännön (laki potilaan asemasta ja oikeuksista ja laki terveydenhuollon ammattihenkilöistä) ja ammattikunnan eettisten periaatteiden ohjaamana.
 <br />
@@ -161,8 +161,8 @@ Osaan soveltaa keskeistä lainsäädäntöä eettisin perustein tehdessäni hoit
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän toimipaikkani työkäytänteitä muuttuvien säädösten mukaisiksi.";2020-08-01;50;3302
-3309;3.2. Käytän rajallisia voimavaroja siten, että väestö ja potilaat saavat terveyshyötyä;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän toimipaikkani työkäytänteitä muuttuvien säädösten mukaisiksi.";2020-08-01
+3.2. Käytän rajallisia voimavaroja siten, että väestö ja potilaat saavat terveyshyötyä;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Otan huomioon Vältä viisaasti -suositukset hoitopäätöksiä tehtäessä.
 <br />
@@ -179,8 +179,8 @@ Osaan hakea tietoa diagnostiikkaan ja hoitoon liittyvien vaikutusten ja kustannu
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Käytän saatavilla olevaa tietoa toiminnan vaikutuksista ja kustannuksista käytänteiden kehittämisessä.";2020-08-01;50;3302
-3310;3.3. Osaan toimia lähijohtajana ja kykenen ottamaan lääketieteellisen vastuun ;"<b>Alkuvaiheen erikoistuva</b>
+Käytän saatavilla olevaa tietoa toiminnan vaikutuksista ja kustannuksista käytänteiden kehittämisessä.";2020-08-01
+3.3. Osaan toimia lähijohtajana ja kykenen ottamaan lääketieteellisen vastuun;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Otan vastuuta omasta työstäni ja ymmärrän päätösteni seurauksia.
 <br />
@@ -197,8 +197,8 @@ Vastuullani on jokin työpaikkani toimintasektoreista tai toiminnoista.
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Organisoin ja johdan toimintaa käytettävissä olevien voimavarojen puitteissa. ";2020-08-01;50;3302
-3311;3.4. Kykenen oman sekä työyhteisöni toiminnan kehittämiseen laadun ja potilasturvallisuuden edistämiseksi ;"<b>Alkuvaiheen erikoistuva</b>
+Organisoin ja johdan toimintaa käytettävissä olevien voimavarojen puitteissa. ";2020-08-01
+3.4. Kykenen oman sekä työyhteisöni toiminnan kehittämiseen laadun ja potilasturvallisuuden edistämiseksi;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Osaan raportoida potilasturvallisuutta heikentävistä tekijöistä asianmukaisia kanavia pitkin.
 <br />
@@ -215,8 +215,8 @@ Käytän moniammatillista yhteistyötä potilastyössäni ja luon hoidon jatkuvu
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Toteutan hoidon jatkuvuutta ja moniammatillista yhteistyötä tuntien roolini moniammatillisessa tiimissä omassa organisaatiossa ja oman organisaation ulkopuolella. ";2020-08-01;50;3302
-3312;3.5. Osaan ottaa koordinoivan hoitovastuun potilaasta hänen terveysongelmissaan;"<b>Alkuvaiheen erikoistuva</b>
+Toteutan hoidon jatkuvuutta ja moniammatillista yhteistyötä tuntien roolini moniammatillisessa tiimissä omassa organisaatiossa ja oman organisaation ulkopuolella. ";2020-08-01
+3.5. Osaan ottaa koordinoivan hoitovastuun potilaasta hänen terveysongelmissaan;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Osaan määritellä yleislääkärin roolin koordinaattorina potilaan terveysongelmissa, esimerkiksi hoidon jatkuvuuden ja hoitoketjujen avulla.
 <br />
@@ -233,8 +233,8 @@ Käytän moniammatillista yhteistyötä potilastyössäni ja luon hoidon jatkuvu
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Toteutan hoidon jatkuvuutta ja moniammatillista yhteistyötä tuntien roolini moniammatillisessa tiimissä omassa organisaatiossa ja oman organisaation ulkopuolella. ";2020-08-01;50;3302
-3313;3.6. Ohjaan potilaan tarkoituksenmukaisesti muihin sosiaali- ja terveyspalveluihin;"<b>Alkuvaiheen erikoistuva</b>
+Toteutan hoidon jatkuvuutta ja moniammatillista yhteistyötä tuntien roolini moniammatillisessa tiimissä omassa organisaatiossa ja oman organisaation ulkopuolella. ";2020-08-01
+3.6. Ohjaan potilaan tarkoituksenmukaisesti muihin sosiaali- ja terveyspalveluihin;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Tunnen toimintaympäristöni oman toimintayksikön sote-palveluiden valikoiman.
 <br />
@@ -251,8 +251,8 @@ Osaan ohjata potilaani oikea-aikaisesti hänen tarvitsemiinsa palveluihin.
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Osaan ohjata potilaani oikea-aikaisesti hänen tarvitsemiinsa palveluihin saatava terveyshyöty ja kustannusvaikuttavuus huomioiden.";2020-08-01;50;3302
-3314;4.1. Diagnosoin ja hoidan potilaitteni pitkäaikaisia sairauksia yhteisymmärryksessä potilaan ja hänen hoitoonsa osallistuvien kanssa ;"<b>Alkuvaiheen erikoistuva</b>
+Osaan ohjata potilaani oikea-aikaisesti hänen tarvitsemiinsa palveluihin saatava terveyshyöty ja kustannusvaikuttavuus huomioiden.";2020-08-01
+4.1. Diagnosoin ja hoidan potilaitteni pitkäaikaisia sairauksia yhteisymmärryksessä potilaan ja hänen hoitoonsa osallistuvien kanssa;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Hallitsen perusterveydenhuollossa hoidettavien yleisimpien sairauksien diagnostiikan, erotusdiagnostiikan ja hoidon periaatteet.
 <br />
@@ -269,8 +269,8 @@ Kuljen potilaan ja hänen hoitoonsa osallistuvien rinnalla kuormittavissa tilant
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Osallistun hoitopolkujen ja –ketjujen tai hoidon laatumittarien kehittämiseen.";2020-08-01;50;3303
-3315;4.2. Tunnistan kiireellistä hoitoa vaativat potilaat ja toimin tarvittaessa välittömästi ;"<b>Alkuvaiheen erikoistuva</b>
+Osallistun hoitopolkujen ja –ketjujen tai hoidon laatumittarien kehittämiseen.";2020-08-01
+4.2. Tunnistan kiireellistä hoitoa vaativat potilaat ja toimin tarvittaessa välittömästi;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Tunnistan kiireellisen hoidon tarpeen ja annan tarvittavan ensiavun sekä ohjaan oikeaan hoitopaikkaan.
 <br />
@@ -287,8 +287,8 @@ Työyhteisön jäsenet luottavat minuun konsultoidessaan hoidon tarpeen arviosta
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Osallistun kiireellisen hoidon suunnitteluun alueellani.";2020-08-01;50;3303
-3316;4.3. Perustan diagnostisen päättelyni sairauksien ilmaantuvuuteen ja vallitsevuuteen ;"<b>Alkuvaiheen erikoistuva</b>
+Osallistun kiireellisen hoidon suunnitteluun alueellani.";2020-08-01
+4.3. Perustan diagnostisen päättelyni sairauksien ilmaantuvuuteen ja vallitsevuuteen;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Tunnen väestön tavallisten tautien ilmaantuvuuden ja vallitsevuuden.
 <br />
@@ -305,8 +305,8 @@ Sovellan päättelyäni monisairaiden potilaiden hoidossa ja hyödynnän todenn�
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Koostan ja hyödynnän eri lähteistä saatavaa epidemiologista tietoa diagnostisten prosessien kehittämisessä omassa organisaatiossani. ";2020-08-01;50;3303
-3317;4.4. Osaan käyttää aikaa ja hoidon jatkuvuutta diagnostisena työvälineenä ;"<b>Alkuvaiheen erikoistuva</b>
+Koostan ja hyödynnän eri lähteistä saatavaa epidemiologista tietoa diagnostisten prosessien kehittämisessä omassa organisaatiossani. ";2020-08-01
+4.4. Osaan käyttää aikaa ja hoidon jatkuvuutta diagnostisena työvälineenä;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Pidän tarvittaessa potilaitani seurannassani tai hoidossani.
 <br />
@@ -323,8 +323,8 @@ Luon luottamuksellisen potilas-lääkärisuhteen siten, että se tukee diagnosti
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän toimintatapoja, joilla mahdollistetaan ajankäyttö ja hoidon jatkuvuus diagnostisena välineenä.";2020-08-01;50;3303
-3318;4.5. Osaan epäillä, tunnistaa ja hoitaa sairauksien epätyypillisiä ja aikaisia vaiheita ;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän toimintatapoja, joilla mahdollistetaan ajankäyttö ja hoidon jatkuvuus diagnostisena välineenä.";2020-08-01
+4.5. Osaan epäillä, tunnistaa ja hoitaa sairauksien epätyypillisiä ja aikaisia vaiheita;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Tunnen yleisimpien sairauksien tavanomaisen kulun ja pidän mielessäni kaikki erotusdiagnostiset vaihtoehdot.
 <br />
@@ -341,8 +341,8 @@ Vältän ali- ja ylidiagnostiikkaa ja olen valmis arvioimaan potilaan tilanteen 
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän työyhteisön osaamista ja toimintatapoja tukemaan oikea-aikaista hoidontarpeen arviointia ja diagnostiikkaa.";2020-08-01;50;3303
-3319;4.6. Osaan hallita työhöni liittyvän epävarmuuden ja tehdä tarkoituksenmukaisia päätöksiä keskeneräisissäkin asioissa;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän työyhteisön osaamista ja toimintatapoja tukemaan oikea-aikaista hoidontarpeen arviointia ja diagnostiikkaa.";2020-08-01
+4.6. Osaan hallita työhöni liittyvän epävarmuuden ja tehdä tarkoituksenmukaisia päätöksiä keskeneräisissäkin asioissa;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Tunnistan epävarmuuteni ja tiedän mistä tai keneltä pyydän apua.
 <br />
@@ -359,8 +359,8 @@ Suunnittelen ja hallitsen työtäni asioiden keskeneräisyydestä huolimatta.
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Toimintani tukee työyhteisön prosesseja potilasturvalliseen suuntaan.";2020-08-01;50;3303
-3320;4.7. Minulla on hyvät kliinisen tutkimisen taidot ja käytän niitä kulloisenkin potilaan ongelman vaatimalla tavalla;"<b>Alkuvaiheen erikoistuva</b>
+Toimintani tukee työyhteisön prosesseja potilasturvalliseen suuntaan.";2020-08-01
+4.7. Minulla on hyvät kliinisen tutkimisen taidot ja käytän niitä kulloisenkin potilaan ongelman vaatimalla tavalla;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Osaan tutkia potilaan kohdennetusti.
 <br />
@@ -377,8 +377,8 @@ Osaan opettaa kliinisen tutkimisen taitoja työyhteisössäni.
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Edistän hyviä kliinisen tutkimisen käytäntöjä toimintaympäristössäni.";2020-08-01;50;3303
-3321;4.8. Käytän eri lähteistä kokoamaani potilastietoa potilaan hyödyksi;"<b>Alkuvaiheen erikoistuva</b>
+Edistän hyviä kliinisen tutkimisen käytäntöjä toimintaympäristössäni.";2020-08-01
+4.8. Käytän eri lähteistä kokoamaani potilastietoa potilaan hyödyksi;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Tiedän mistä tietolähteistä potilastietoa löytyy ja osaan yhdistellä niitä. Tunnen tietosuojaan liittyvät käytänteet.
 <br />
@@ -396,8 +396,8 @@ Integroin ja tuotan tietoa potilaan hyväksi.
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän tapoja hyödyntää potilastietoa työyhteisössäni ja muissa kehitysryhmissä.";2020-08-01;50;3303
-3322;4.9. Toimin kokonaisvaltaisella työotteella ja otan huomioon perheen, työn tai muun lähiyhteisön sekä kulttuuritaustan ja olemassaolon peruskysymysten merkityksen potilaan sairauksien synnyssä, kehittymisessä ja hoidossa;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän tapoja hyödyntää potilastietoa työyhteisössäni ja muissa kehitysryhmissä.";2020-08-01
+4.9. Toimin kokonaisvaltaisella työotteella ja otan huomioon perheen, työn tai muun lähiyhteisön sekä kulttuuritaustan ja olemassaolon peruskysymysten merkityksen potilaan sairauksien synnyssä, kehittymisessä ja hoidossa;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Tunnistan kokonaisvaltaisen lähestymistavan ja hoidon jatkuvuuden merkityksen hyvän potilas-lääkärisuhteen rakentumisessa
 <br />
@@ -414,8 +414,8 @@ Toimin ennakoivasti ja aktiivisesti vallitsevat olosuhteet huomioiden potilaan j
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän työyhteisöni toimintatapoja tukemaan kokonaisvaltaista työotetta ";2020-08-01;50;3303
-3323;5.1. Osaan hankkia, tulkita ja soveltaa lääketieteellistä tietoa kriittisen tiedonhaun periaatteiden mukaisesti;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän työyhteisöni toimintatapoja tukemaan kokonaisvaltaista työotetta ";2020-08-01
+5.1. Osaan hankkia, tulkita ja soveltaa lääketieteellistä tietoa kriittisen tiedonhaun periaatteiden mukaisesti;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Käytän työssäni näyttöön perustuvia suosituksia ja muita luotettavia tietolähteitä.
 <br />
@@ -432,8 +432,8 @@ Pystyn arvioimaan tieteellisiä tutkimuksia kriittisesti ja soveltamaan niitä o
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Teen tieteellistä tutkimusta tai toimin Käypä hoito –suositus -ryhmissä tai muissa vastaavissa tieteellisissä asiantuntijaryhmissä. ";2020-08-01;50;3304
-3324;5.2. Tunnistan osaamiseni rajat ja kehittymistarpeeni sekä pidän suunnitelmallisesti yllä ja kehitän omaa ammattitaitoani;"<b>Alkuvaiheen erikoistuva</b>
+Teen tieteellistä tutkimusta tai toimin Käypä hoito –suositus -ryhmissä tai muissa vastaavissa tieteellisissä asiantuntijaryhmissä. ";2020-08-01
+5.2. Tunnistan osaamiseni rajat ja kehittymistarpeeni sekä pidän suunnitelmallisesti yllä ja kehitän omaa ammattitaitoani;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Pysähdyn pohtimaan osaamistani ja kehittymistarpeitani ohjauskeskustelujen yhteydessä. Teen säännöllisesti kirjallisia muutoksia opiskelusuunnitelmaani (HOPS).
 <br />
@@ -450,8 +450,8 @@ Jatkan tavoitteellista ja suunnitelmallista ammattitaitoni kartuttamista.
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Toimin pitkällä tähtäimellä siten, että toimipaikkani työntekijöiden osaaminen kokonaisuutena on monipuolista sekä vastaa potilaiden ja väestön tarpeita.";2020-08-01;50;3304
-3325;5.3. Osaan välittää lääketieteellistä tietoa ja osaamista lääkäreille, muulle terveydenhuollon henkilöstölle sekä potilaille ja väestölle;"<b>Alkuvaiheen erikoistuva</b>
+Toimin pitkällä tähtäimellä siten, että toimipaikkani työntekijöiden osaaminen kokonaisuutena on monipuolista sekä vastaa potilaiden ja väestön tarpeita.";2020-08-01
+5.3. Osaan välittää lääketieteellistä tietoa ja osaamista lääkäreille, muulle terveydenhuollon henkilöstölle sekä potilaille ja väestölle;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Pidän esityksiä toimipaikkakoulutuksissa.
 <br />
@@ -468,8 +468,8 @@ Suunnittelen ja toteutan  toimipaikkakoulutusta tai työn kehittämistä, jotka 
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Suunnittelen ja toteutan muiden alojen asiantuntijoiden kanssa väestölle ja potilaille kohdennettua viestintää eri kanavia käyttäen heidän ymmärtämällään kielellä. ";2020-08-01;50;3304
-3326;6.1. Osaan muodostaa ja ylläpitää luottamuksellisia, pitkäaikaisia ja potilasta kunnioittavia hoitosuhteita;"<b>Alkuvaiheen erikoistuva</b>
+Suunnittelen ja toteutan muiden alojen asiantuntijoiden kanssa väestölle ja potilaille kohdennettua viestintää eri kanavia käyttäen heidän ymmärtämällään kielellä. ";2020-08-01
+6.1. Osaan muodostaa ja ylläpitää luottamuksellisia, pitkäaikaisia ja potilasta kunnioittavia hoitosuhteita;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Kuuntelen ja keskustelen potilaan kanssa selvittäen hänen ajatuksensa, huolensa ja odotuksensa.
 <br />
@@ -486,8 +486,8 @@ Huolehdin hoidonjatkuvuuden tarkoituksenmukaisesta toteutumisesta ja pidän yll�
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän työyhteisössäni toimintamalleja, jotka mahdollistavat pitkien ja potilaslähtöisten hoitosuhteiden ylläpitämistä. ";2020-08-01;50;3305
-3327;6.2. Olen aidosti ja empaattisesti läsnä  kohtaamisessa potilaan kanssa kunnioittaen hänen toiveitaan;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän työyhteisössäni toimintamalleja, jotka mahdollistavat pitkien ja potilaslähtöisten hoitosuhteiden ylläpitämistä. ";2020-08-01
+6.2. Olen aidosti ja empaattisesti läsnä  kohtaamisessa potilaan kanssa kunnioittaen hänen toiveitaan;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Käytän keskeytyksetöntä kuuntelua luomaan luottamuksellisen ja välittävän ilmapiirin.
 <br />
@@ -504,8 +504,8 @@ Olen aito ja empaattinen vaikeissakin potilastilanteissa ammatillisuuteni säily
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Olen yleislääketieteen erikoislääkärin roolimalli.";2020-08-01;50;3305
-3328;6.3. Osaan vahvistaa potilaan omia voimavaroja ja ongelmanratkaisutaitoja sekä käyttää potilastyössä valmentavaa ja ohjaavaa työotetta;"<b>Alkuvaiheen erikoistuva</b>
+Olen yleislääketieteen erikoislääkärin roolimalli.";2020-08-01
+6.3. Osaan vahvistaa potilaan omia voimavaroja ja ongelmanratkaisutaitoja sekä käyttää potilastyössä valmentavaa ja ohjaavaa työotetta;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Selvitän yhdessä potilaan kanssa hänen muutostarvettaan ja -valmiuttaan soveltaen motivoivan haastattelun keinoja.
 <br />
@@ -522,8 +522,8 @@ Etsin potilaan kanssa selviytymis- tai ratkaisukeinoja hänen valmiuksiensa ja t
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Edistän valmentavan ja ohjaavan työotteen käyttöä työyhteisössäni.";2020-08-01;50;3305
-3329;6.4. Laadimme yhdessä potilaan ja hänen hoitoonsa osallistuvien kanssa potilaslähtöisen hoitosuunnitelman;"<b>Alkuvaiheen erikoistuva</b>
+Edistän valmentavan ja ohjaavan työotteen käyttöä työyhteisössäni.";2020-08-01
+6.4. Laadimme yhdessä potilaan ja hänen hoitoonsa osallistuvien kanssa potilaslähtöisen hoitosuunnitelman;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Suunnittelen ja kirjaan potilaan sen hetkistä ongelmaa koskevat suunnitelmat perusteluineen huomioiden potilaan roolin hoidon toteuttamisessa.
 <br />
@@ -540,8 +540,8 @@ Teen potilaan tarpeiden mukaisen ja hänen toimijuuttaan edistävän hoitosuunni
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Edistän työyhteisössä hoitosuunnitelmien käyttöä ja kehitän toimintatapoja potilaan toimijuuden vahvistamiseksi.";2020-08-01;50;3305
-3330;7.1. Osaan valita kulloiseenkin tilanteeseen sopivan viestintäkeinon/kanavan ja käytän sitä asianmukaisesti ;"<b>Alkuvaiheen erikoistuva</b>
+Edistän työyhteisössä hoitosuunnitelmien käyttöä ja kehitän toimintatapoja potilaan toimijuuden vahvistamiseksi.";2020-08-01
+7.1. Osaan valita kulloiseenkin tilanteeseen sopivan viestintäkeinon/kanavan ja käytän sitä asianmukaisesti;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Osaan käyttämäni potilastietojärjestelmän toiminnot ja rakenteisen kirjaamisen. Tunnen tietoturvalliset viestintäkeinot.
 <br />
@@ -558,8 +558,8 @@ Väestön ja toimintaympäristön tuntemukseni mahdollistavat eri viestintäkein
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän ja opastan eri viestintäkeinojen käyttöä omassa työ- ja toimintaympäristössäni. Vastaan viestinnästä mediaan ja valtakunnallisiin yhteistyökumppaneihin.";2020-08-01;50;3306
-3331;7.2. Ilmaisen itseäni selkeästi sekä suullisesti että kirjallisesti tilanteen ja viestintäkeinon/kanavan edellyttämillä tavoilla;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän ja opastan eri viestintäkeinojen käyttöä omassa työ- ja toimintaympäristössäni. Vastaan viestinnästä mediaan ja valtakunnallisiin yhteistyökumppaneihin.";2020-08-01
+7.2. Ilmaisen itseäni selkeästi sekä suullisesti että kirjallisesti tilanteen ja viestintäkeinon/kanavan edellyttämillä tavoilla;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Kommunikoin sujuvasti potilaan kanssa hänen äidinkielellään, tarvittaessa tulkin välityksellä. Teen lain mukaiset ja ymmärrettävät rakenteiset sairauskertomusmerkinnät.
 <br />
@@ -576,8 +576,8 @@ Sovellan laaja-alaisesti vuorovaikutustaitoja sekä vaikeissa potilaskohtaamisis
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän ammattilaisille ja väestölle suunnattua viestintää sekä työyhteisössä että väestötasolla.";2020-08-01;50;3306
-3332;7.3. Toimin monialaisissa ja ammattien välisissä ryhmissä tilanteen vaatimalla tavalla esimerkiksi jäsenenä, asiantuntijana, konsulttina tai johtajana;"<b>Alkuvaiheen erikoistuva</b>
+Kehitän ammattilaisille ja väestölle suunnattua viestintää sekä työyhteisössä että väestötasolla.";2020-08-01
+7.3. Toimin monialaisissa ja ammattien välisissä ryhmissä tilanteen vaatimalla tavalla esimerkiksi jäsenenä, asiantuntijana, konsulttina tai johtajana;"<b>Alkuvaiheen erikoistuva</b>
 <br />
 Tunnistan oman roolini ammattien välisissä ryhmissä.
 <br />
@@ -594,4 +594,4 @@ Sovellan tarkoituksenmukaisesti ammattien välisen työn keinoja potilaan parhaa
 <br />
 <b>Erityinen osaaminen</b>
 <br />
-Kehitän ja osallistun monialaisiin yhteistyöverkostoihin väestön tarpeiden mukaisesti tieteellinen näyttö huomioon ottaen";2020-08-01;50;3306
+Kehitän ja osallistun monialaisiin yhteistyöverkostoihin väestön tarpeiden mukaisesti tieteellinen näyttö huomioon ottaen";2020-08-01

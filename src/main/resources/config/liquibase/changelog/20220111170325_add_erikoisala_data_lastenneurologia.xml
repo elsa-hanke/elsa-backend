@@ -6,8 +6,6 @@
 
     <changeSet id="20220111170325" author="jhipster" context="!test">
 
-        <dropNotNullConstraint tableName="arvioitavan_kokonaisuuden_kategoria" columnName="jarjestysnumero"/>
-
         <loadData
             file="config/liquibase/data/erikoisala/lastenneurologia/arvioitavan_kokonaisuuden_kategoria.csv"
             separator=";"
@@ -16,7 +14,12 @@
             <column name="nimi" type="string"/>
             <column name="jarjestysnumero" type="numeric"/>
             <column name="voimassaolo_alkaa" type="date"/>
+            <column name="erikoisala_id" type="numeric"/>
         </loadData>
+
+        <dropForeignKeyConstraint baseTableName="arvioitava_kokonaisuus"
+            constraintName="fk_arvioitava_kokonaisuus__kategoria_id"/>
+        <dropNotNullConstraint tableName="arvioitava_kokonaisuus" columnName="kategoria_id"/>
 
         <loadData
             file="config/liquibase/data/erikoisala/lastenneurologia/arvioitava_kokonaisuus.csv"
@@ -26,9 +29,81 @@
             <column name="nimi" type="string"/>
             <column name="kuvaus" type="string"/>
             <column name="voimassaolo_alkaa" type="date"/>
-            <column name="erikoisala_id" type="numeric"/>
-            <column name="kategoria_id" type="numeric"/>
         </loadData>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Lastenneurologinen status ja kehitysarvio' and erikoisala_id = 22)"/>
+            <where>kategoria_id is null and nimi in ('Lastenneurologinen kliininen tutkimus',
+                'Lastenneurologinen vastasyntyneen konsultaatio (alle 1 kk)',
+                'Sikiötutkimusyksikön konsulaatio')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Akuuttia lastenneurologiaa' and erikoisala_id = 22)"/>
+            <where>kategoria_id is null and nimi in (
+                'Akuuttineurologisen potilaan hoito ja konsultointi (yli 1 kk)',
+                'Akuutin vaikean aivo-ja selkäydinvamman hoito ja kuntoutus',
+                'Kohtausoireiden diagnostiikka', 'Pitkittyneen epileptisen kohtauksen hoito',
+                'Lasten ja nuorten päänsärky',
+                'Autoimmuunienkefaliitti ja muut keskushermoston neuroinflammatoriset ja demyelinoivat sairaudet')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Lapsuus-ja nuoruusiällä alkavat neurologiset pitkäaikaissairaudet' and erikoisala_id = 22)"/>
+            <where>kategoria_id is null and nimi in (
+                'Kehitysneurologisen diagnoosin asettaminen ja neurologisen kehityksen poikkeavuuden etiologinen selvittely',
+                'Kehitysvammaisuuden diagnosointi ja etiologinen selvittely',
+                'Lapsuusiän autismi',
+                'CP-vamman diagnosointi, lapsen ja nuoren hoidon sekä kuntoutuksen suunnittelu',
+                'Lasten ja nuorten epilepsia',
+                'Neuromuskulaaritautien diagnosoiminen, hoito ja sen järjestäminen',
+                'Lastenneurologisten harvinaissairauksien tunnistaminen, diagnosointi ja hoidon pääpiirteiden tunteminen',
+                'Neuro-onkologisten sairauksien hoidon konsultointi ja neurologinen seuranta')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Neuropsykiatriset, toiminnalliset ja eri kehitysvaiheisiin liittyvät lastenneurologiset ongelmat' and erikoisala_id = 22)"/>
+            <where>kategoria_id is null and nimi in (
+                'Lasten ja nuorten unihäiriöt',
+                'Neuropsykiatrisen oirekirjon lastenneurologiset ongelmat',
+                'Neurologisin oirein ilmenevät toiminnalliset häiriöt')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Lastenneurologiset toimenpiteet' and erikoisala_id = 22)"/>
+            <where>kategoria_id is null and nimi in (
+                'Lumbaalipunktio ja likvorin avauspaineen mittaus',
+                'Aivokuoleman toteaminen',
+                'Kuntoutussuunnitelman laatiminen moniammatillisessa kuntoutustyöryhmässä')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Kaikille erikoisaloille yhteisiä osaamiskokonaisuuksia' and erikoisala_id = 22)"/>
+            <where>kategoria_id is null and nimi in (
+                'Haasteellisessa vuorovaikutustilanteessa toimiminen',
+                'Konsultaatioiden tarjoaminen oman yksikön ulkopuolelle',
+                'Hoitovastuun siirtäminen',
+                'Elämän loppuvaiheen hoidon järjestäminen')
+            </where>
+        </update>
+
+        <addForeignKeyConstraint baseColumnNames="kategoria_id"
+            baseTableName="arvioitava_kokonaisuus"
+            constraintName="fk_arvioitava_kokonaisuus__kategoria_id"
+            referencedColumnNames="id"
+            referencedTableName="arvioitavan_kokonaisuuden_kategoria"/>
+        <addNotNullConstraint tableName="arvioitava_kokonaisuus" columnName="kategoria_id"/>
 
         <loadData
             file="config/liquibase/data/erikoisala/lastenneurologia/suoritteen_kategoria.csv"
@@ -40,6 +115,10 @@
             <column name="erikoisala_id" type="numeric"/>
         </loadData>
 
+        <dropForeignKeyConstraint baseTableName="suorite"
+            constraintName="fk_suorite_suoritteen_kategoria_id"/>
+        <dropNotNullConstraint tableName="suorite" columnName="kategoria_id"/>
+
         <loadData
             file="config/liquibase/data/erikoisala/lastenneurologia/suorite.csv"
             separator=";"
@@ -47,8 +126,20 @@
             <column name="id" type="numeric"/>
             <column name="nimi" type="string"/>
             <column name="voimassaolon_alkamispaiva" type="date"/>
-            <column name="kategoria_id" type="numeric"/>
         </loadData>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Lastenneurologiset toimenpiteet' and erikoisala_id = 22)"/>
+            <where>kategoria_id is null</where>
+        </update>
+
+        <addForeignKeyConstraint baseColumnNames="kategoria_id"
+            baseTableName="suorite"
+            constraintName="fk_suorite_suoritteen_kategoria_id"
+            referencedColumnNames="id"
+            referencedTableName="suoritteen_kategoria"/>
+        <addNotNullConstraint tableName="suorite" columnName="kategoria_id"/>
     </changeSet>
 
 </databaseChangeLog>

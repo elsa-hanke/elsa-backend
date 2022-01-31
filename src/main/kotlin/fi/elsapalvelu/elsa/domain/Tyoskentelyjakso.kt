@@ -20,8 +20,7 @@ import javax.validation.constraints.NotNull
 data class Tyoskentelyjakso(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @get: NotNull
@@ -75,7 +74,12 @@ data class Tyoskentelyjakso(
     @Column(name = "liitetty_koejaksoon")
     var liitettyKoejaksoon: Boolean = false,
 
-    @OneToMany(mappedBy = "tyoskentelyjakso", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(
+        mappedBy = "tyoskentelyjakso",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
     var asiakirjat: MutableSet<Asiakirja> = mutableSetOf(),
 
     @ManyToMany(mappedBy = "tyoskentelyjaksot")

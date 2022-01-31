@@ -15,9 +15,9 @@ import javax.validation.constraints.NotNull
 @Audited
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Koulutusjakso(
+
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @get: NotNull

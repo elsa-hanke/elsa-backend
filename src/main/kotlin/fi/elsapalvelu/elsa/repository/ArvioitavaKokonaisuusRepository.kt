@@ -10,7 +10,7 @@ import java.time.LocalDate
 interface ArvioitavaKokonaisuusRepository : JpaRepository<ArvioitavaKokonaisuus, Long> {
 
     @Query(
-        "select oa from ArvioitavaKokonaisuus oa left join oa.erikoisala e " +
+        "select oa from ArvioitavaKokonaisuus oa join oa.kategoria k left join k.erikoisala e " +
             "where e.id = ?1 " +
             "and oa.voimassaoloAlkaa <= ?2 " +
             "and (oa.voimassaoloLoppuu is null or oa.voimassaoloLoppuu >= ?2)"

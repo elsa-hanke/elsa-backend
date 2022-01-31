@@ -6,8 +6,6 @@
 
     <changeSet id="20220112155954" author="jhipster" context="!test">
 
-        <dropNotNullConstraint tableName="arvioitavan_kokonaisuuden_kategoria" columnName="jarjestysnumero"/>
-
         <loadData
             file="config/liquibase/data/erikoisala/tyoterveyshuolto/arvioitavan_kokonaisuuden_kategoria.csv"
             separator=";"
@@ -16,7 +14,12 @@
             <column name="nimi" type="string"/>
             <column name="jarjestysnumero" type="numeric"/>
             <column name="voimassaolo_alkaa" type="date"/>
+            <column name="erikoisala_id" type="numeric"/>
         </loadData>
+
+        <dropForeignKeyConstraint baseTableName="arvioitava_kokonaisuus"
+            constraintName="fk_arvioitava_kokonaisuus__kategoria_id"/>
+        <dropNotNullConstraint tableName="arvioitava_kokonaisuus" columnName="kategoria_id"/>
 
         <loadData
             file="config/liquibase/data/erikoisala/tyoterveyshuolto/arvioitava_kokonaisuus.csv"
@@ -26,9 +29,50 @@
             <column name="nimi" type="string"/>
             <column name="kuvaus" type="string"/>
             <column name="voimassaolo_alkaa" type="date"/>
-            <column name="erikoisala_id" type="numeric"/>
-            <column name="kategoria_id" type="numeric"/>
         </loadData>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '1. Työterveyshuoltotoiminnan suunnittelu' and erikoisala_id = 46)"/>
+            <where>kategoria_id is null and nimi in ('1.1. Toimintasuunnitelman laatiminen')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '2. Työpaikkaselvitys' and erikoisala_id = 46)"/>
+            <where>kategoria_id is null and nimi in ('2.1. Erilaisten työpaikkaselvitysten toteuttaminen ja raportointi')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '3. Työterveystarkastukset' and erikoisala_id = 46)"/>
+            <where>kategoria_id is null and nimi in ('3.1. Erilaisten työterveystarkastusten tarpeen arviointi, suunnittelu ja toteuttaminen')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '4. Neuvonta ja ohjaus sekä erilaiset yhteistyö- ja asiantuntijatoiminnot' and erikoisala_id = 46)"/>
+            <where>kategoria_id is null and nimi in ('4.1. Työterveysneuvottelun toteuttaminen')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '5. Työterveyspainotteinen sairaanhoito' and erikoisala_id = 46)"/>
+            <where>kategoria_id is null and nimi in ('5.1. Sairauksien työperäisyyden selvittäminen',
+                '5.2. Sairauspoissaolotarpeen arviointi ja työkyvyn tukeminen')
+            </where>
+        </update>
+
+        <addForeignKeyConstraint baseColumnNames="kategoria_id"
+            baseTableName="arvioitava_kokonaisuus"
+            constraintName="fk_arvioitava_kokonaisuus__kategoria_id"
+            referencedColumnNames="id"
+            referencedTableName="arvioitavan_kokonaisuuden_kategoria"/>
+        <addNotNullConstraint tableName="arvioitava_kokonaisuus" columnName="kategoria_id"/>
 
         <loadData
             file="config/liquibase/data/erikoisala/tyoterveyshuolto/suoritteen_kategoria.csv"
@@ -41,6 +85,10 @@
             <column name="jarjestysnumero" type="numeric"/>
         </loadData>
 
+        <dropForeignKeyConstraint baseTableName="suorite"
+            constraintName="fk_suorite_suoritteen_kategoria_id"/>
+        <dropNotNullConstraint tableName="suorite" columnName="kategoria_id"/>
+
         <loadData
             file="config/liquibase/data/erikoisala/tyoterveyshuolto/suorite.csv"
             separator=";"
@@ -51,6 +99,72 @@
             <column name="kategoria_id" type="numeric"/>
             <column name="vaadittu_lkm" type="numeric"/>
         </loadData>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = '1. Toiminnan suunnittelu' and erikoisala_id = 46)"/>
+            <where>kategoria_id is null and nimi in (
+                '1.1. Asiakasyrityksen työterveyshuoltosopimuksen läpikäyminen',
+                '1.2. Asiakasyrityksen työterveyshuollon toimintasuunnitelman laatiminen, päivittäminen tai osallistuminen')
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = '2. Työpaikkaselvitys' and erikoisala_id = 46)"/>
+            <where>kategoria_id is null and nimi in (
+                '2.1. Moniammatillisen perustyöpaikkaselvityksen tekeminen',
+                '2.2. Suunnatun työpaikkaselvityksen toteuttaminen')
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = '3. Terveystarkastukset' and erikoisala_id = 46)"/>
+            <where>kategoria_id is null and nimi in (
+                '3.1. Työterveystarkastusten tarvearviointi ja suunnittelu asiakasyrityksessä',
+                '3.2. Altistelähtöinen (ESV) tai työn terveydellisistä erityisvaatimuksista johtuva työterveystarkastus',
+                '3.3. Työkyvyn arviointi')
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = '4. Neuvonta ja ohjaus sekä erilaiset yhteistyötoiminnot' and erikoisala_id = 46)"/>
+            <where>kategoria_id is null and nimi in (
+                '4.1. Työterveysneuvottelun toteuttaminen',
+                '4.2. Työkokeilun suunnittelu ja seuranta',
+                '4.3. Työyhteisön kehittämishankkeeseen tai interventioon osallistuminen',
+                '4.4. Työkyvyn hallinnan, seurannan ja varhaisen tuen malleihin perehtyminen',
+                '4.5. Yrityksen työsuojelun toimintaohjelmaan perehtyminen',
+                '4.6. Työllistymiskyvyn tukemisen palvelujärjestelmään ja oman alueen verkostoon perehtyminen')
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = '5. Työterveyspainotteinen sairaanhoito' and erikoisala_id = 46)"/>
+            <where>kategoria_id is null and nimi in (
+                '5.1. Työhön liittyvien sairauksien tunnistaminen potilastapauksessa')
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = '6. Erikoisalan ja sen moniammatillisen työyhteisön kehittämiseen liittyvät asiantuntijatoiminnot' and erikoisala_id = 46)"/>
+            <where>kategoria_id is null and nimi in (
+                '6.1. Asiantuntijataitojen ja hyvien ammattikäytäntöjen kehittämiseen liittyvä suorite',
+                '6.2. Luento tai yhteenveto ajankohtaisesta työterveys- tai työelämäaiheesta',
+                '6.3. Omassa työssä esiin tullut eettisjuridinen pohdinta')
+            </where>
+        </update>
+
+        <addForeignKeyConstraint baseColumnNames="kategoria_id"
+            baseTableName="suorite"
+            constraintName="fk_suorite_suoritteen_kategoria_id"
+            referencedColumnNames="id"
+            referencedTableName="suoritteen_kategoria"/>
+        <addNotNullConstraint tableName="suorite" columnName="kategoria_id"/>
     </changeSet>
 
 </databaseChangeLog>

@@ -14,7 +14,12 @@
             <column name="nimi" type="string"/>
             <column name="jarjestysnumero" type="numeric"/>
             <column name="voimassaolo_alkaa" type="date"/>
+            <column name="erikoisala_id" type="numeric"/>
         </loadData>
+
+        <dropForeignKeyConstraint baseTableName="arvioitava_kokonaisuus"
+            constraintName="fk_arvioitava_kokonaisuus__kategoria_id"/>
+        <dropNotNullConstraint tableName="arvioitava_kokonaisuus" columnName="kategoria_id"/>
 
         <loadData
             file="config/liquibase/data/erikoisala/yleislaaketiede/arvioitava_kokonaisuus.csv"
@@ -24,9 +29,95 @@
             <column name="nimi" type="string"/>
             <column name="kuvaus" type="string"/>
             <column name="voimassaolo_alkaa" type="date"/>
-            <column name="erikoisala_id" type="numeric"/>
-            <column name="kategoria_id" type="numeric"/>
         </loadData>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '1. Ammatillisuus' and erikoisala_id = 50)"/>
+            <where>kategoria_id is null and nimi in ('1.1 Tunnen ammattieettiset periaatteet ja toimin työssäni niiden mukaisesti',
+                '1.2 Kunnioitan potilaan itsemääräämisoikeutta',
+                '1.3 Olen tietoinen omista asenteistani ja arvoistani',
+                '1.4 Tunnistan työkykyni rajat ja huolehdin työkyvystäni ja hyvinvoinnistani',
+                '1.5 Vastaan potilaan tarpeisiin yhdenvertaisesti käytettävissä olevien voimavarojen puitteissa')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '2. Hyvinvoinnin ja terveyden edistäminen' and erikoisala_id = 50)"/>
+            <where>kategoria_id is null and nimi in (
+                '2.1 Otan huomioon sairauksien ennaltaehkäisyn sekä terveyden ja hyvinvoinnin edistämisen potilaskontakteissa',
+                '2.2. Osaan toimia ennaltaehkäisevässä terveydenhuollossa kuten neuvoloissa sekä koulu- ja opiskelijaterveydenhuollossa',
+                '2.3. Osaan hakea väestön terveyttä koskevaa tietoa ja soveltaa sitä väestön terveyden ja hyvinvoinnin edistämiseksi')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '3. Johtaminen' and erikoisala_id = 50)"/>
+            <where>kategoria_id is null and nimi in (
+                '3.1. Tunnen omaan työhöni liittyvän keskeisen lainsäädännön ja osaan soveltaa sitä työn edellyttämällä tavalla',
+                '3.2. Käytän rajallisia voimavaroja siten, että väestö ja potilaat saavat terveyshyötyä',
+                '3.3. Osaan toimia lähijohtajana ja kykenen ottamaan lääketieteellisen vastuun',
+                '3.4. Kykenen oman sekä työyhteisöni toiminnan kehittämiseen laadun ja potilasturvallisuuden edistämiseksi',
+                '3.5. Osaan ottaa koordinoivan hoitovastuun potilaasta hänen terveysongelmissaan',
+                '3.6. Ohjaan potilaan tarkoituksenmukaisesti muihin sosiaali- ja terveyspalveluihin')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '4. Lääketieteellinen osaaminen ja kliiniset taidot' and erikoisala_id = 50)"/>
+            <where>kategoria_id is null and nimi in (
+                '4.1. Diagnosoin ja hoidan potilaitteni pitkäaikaisia sairauksia yhteisymmärryksessä potilaan ja hänen hoitoonsa osallistuvien kanssa',
+                '4.2. Tunnistan kiireellistä hoitoa vaativat potilaat ja toimin tarvittaessa välittömästi',
+                '4.3. Perustan diagnostisen päättelyni sairauksien ilmaantuvuuteen ja vallitsevuuteen',
+                '4.4. Osaan käyttää aikaa ja hoidon jatkuvuutta diagnostisena työvälineenä',
+                '4.5. Osaan epäillä, tunnistaa ja hoitaa sairauksien epätyypillisiä ja aikaisia vaiheita',
+                '4.6. Osaan hallita työhöni liittyvän epävarmuuden ja tehdä tarkoituksenmukaisia päätöksiä keskeneräisissäkin asioissa',
+                '4.7. Minulla on hyvät kliinisen tutkimisen taidot ja käytän niitä kulloisenkin potilaan ongelman vaatimalla tavalla',
+                '4.8. Käytän eri lähteistä kokoamaani potilastietoa potilaan hyödyksi',
+                '4.9. Toimin kokonaisvaltaisella työotteella ja otan huomioon perheen, työn tai muun lähiyhteisön sekä kulttuuritaustan ja olemassaolon peruskysymysten merkityksen potilaan sairauksien synnyssä, kehittymisessä ja hoidossa')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '5. Tiedonhallinta ja oma osaaminen' and erikoisala_id = 50)"/>
+            <where>kategoria_id is null and nimi in (
+                '5.1. Osaan hankkia, tulkita ja soveltaa lääketieteellistä tietoa kriittisen tiedonhaun periaatteiden mukaisesti',
+                '5.2. Tunnistan osaamiseni rajat ja kehittymistarpeeni sekä pidän suunnitelmallisesti yllä ja kehitän omaa ammattitaitoani',
+                '5.3. Osaan välittää lääketieteellistä tietoa ja osaamista lääkäreille, muulle terveydenhuollon henkilöstölle sekä potilaille ja väestölle')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '6. Vuorovaikutustaidot' and erikoisala_id = 50)"/>
+            <where>kategoria_id is null and nimi in (
+                '6.1. Osaan muodostaa ja ylläpitää luottamuksellisia, pitkäaikaisia ja potilasta kunnioittavia hoitosuhteita',
+                '6.2. Olen aidosti ja empaattisesti läsnä  kohtaamisessa potilaan kanssa kunnioittaen hänen toiveitaan',
+                '6.3. Osaan vahvistaa potilaan omia voimavaroja ja ongelmanratkaisutaitoja sekä käyttää potilastyössä valmentavaa ja ohjaavaa työotetta',
+                '6.4. Laadimme yhdessä potilaan ja hänen hoitoonsa osallistuvien kanssa potilaslähtöisen hoitosuunnitelman')
+            </where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kategoria_id"
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = '7. Yhteistyötaidot' and erikoisala_id = 50)"/>
+            <where>kategoria_id is null and nimi in (
+                '7.1. Osaan valita kulloiseenkin tilanteeseen sopivan viestintäkeinon/kanavan ja käytän sitä asianmukaisesti',
+                '7.2. Ilmaisen itseäni selkeästi sekä suullisesti että kirjallisesti tilanteen ja viestintäkeinon/kanavan edellyttämillä tavoilla',
+                '7.3. Toimin monialaisissa ja ammattien välisissä ryhmissä tilanteen vaatimalla tavalla esimerkiksi jäsenenä, asiantuntijana, konsulttina tai johtajana')
+            </where>
+        </update>
+
+        <addForeignKeyConstraint baseColumnNames="kategoria_id"
+            baseTableName="arvioitava_kokonaisuus"
+            constraintName="fk_arvioitava_kokonaisuus__kategoria_id"
+            referencedColumnNames="id"
+            referencedTableName="arvioitavan_kokonaisuuden_kategoria"/>
+        <addNotNullConstraint tableName="arvioitava_kokonaisuus" columnName="kategoria_id"/>
     </changeSet>
 
 </databaseChangeLog>

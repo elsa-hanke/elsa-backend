@@ -1,8 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.ArvioitavanKokonaisuudenKategoria
+import fi.elsapalvelu.elsa.domain.Erikoisala
+import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
+import javax.persistence.EntityManager
 
 class ArvioitavanKokonaisuudenKategoriaHelper {
 
@@ -21,23 +24,49 @@ class ArvioitavanKokonaisuudenKategoriaHelper {
         private val UPDATED_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(): ArvioitavanKokonaisuudenKategoria {
-            return ArvioitavanKokonaisuudenKategoria(
+        fun createEntity(em: EntityManager): ArvioitavanKokonaisuudenKategoria {
+            val kategoria = ArvioitavanKokonaisuudenKategoria(
                 nimi = DEFAULT_NIMI,
                 jarjestysnumero = DEFAULT_JARJESTYSNUMERO,
                 voimassaoloAlkaa = DEFAULT_VOIMASSAOLO_ALKAA,
                 voimassaoloLoppuu = DEFAULT_VOIMASSAOLO_LOPPUU
             )
+
+            // Lisätään pakollinen tieto
+            val erikoisala: Erikoisala
+            if (em.findAll(Erikoisala::class).isEmpty()) {
+                erikoisala = ErikoisalaHelper.createEntity()
+                em.persist(erikoisala)
+                em.flush()
+            } else {
+                erikoisala = em.findAll(Erikoisala::class)[0]
+            }
+            kategoria.erikoisala = erikoisala
+
+            return kategoria
         }
 
         @JvmStatic
-        fun createUpdatedEntity(): ArvioitavanKokonaisuudenKategoria {
-            return ArvioitavanKokonaisuudenKategoria(
+        fun createUpdatedEntity(em: EntityManager): ArvioitavanKokonaisuudenKategoria {
+            val kategoria = ArvioitavanKokonaisuudenKategoria(
                 nimi = UPDATED_NIMI,
                 jarjestysnumero = UPDATED_JARJESTYSNUMERO,
                 voimassaoloAlkaa = UPDATED_VOIMASSAOLO_ALKAA,
                 voimassaoloLoppuu = UPDATED_VOIMASSAOLO_LOPPUU
             )
+
+            // Lisätään pakollinen tieto
+            val erikoisala: Erikoisala
+            if (em.findAll(Erikoisala::class).isEmpty()) {
+                erikoisala = ErikoisalaHelper.createUpdatedEntity()
+                em.persist(erikoisala)
+                em.flush()
+            } else {
+                erikoisala = em.findAll(Erikoisala::class)[0]
+            }
+            kategoria.erikoisala = erikoisala
+
+            return kategoria
         }
     }
 }

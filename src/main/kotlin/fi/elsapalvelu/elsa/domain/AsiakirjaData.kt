@@ -10,10 +10,9 @@ import javax.persistence.*
 @Entity
 @Table(name = "asiakirja_data")
 @Cache(usage = CacheConcurrencyStrategy.NONE)
-data class AsiakirjaData (
+data class AsiakirjaData(
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @NotNull

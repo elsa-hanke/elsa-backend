@@ -15,8 +15,7 @@ import javax.validation.constraints.NotNull
 data class KayttajaYliopistoErikoisala(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
     @NotNull
@@ -34,7 +33,7 @@ data class KayttajaYliopistoErikoisala(
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoisala: Erikoisala? = null
 
-    ) : Serializable {
+) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -38,21 +38,10 @@ class ArvioitavaKokonaisuusHelper {
             )
 
             // Lisätään pakollinen tieto
-            val erikoisala: Erikoisala
-            if (em.findAll(Erikoisala::class).isEmpty()) {
-                erikoisala = ErikoisalaHelper.createEntity()
-                em.persist(erikoisala)
-                em.flush()
-            } else {
-                erikoisala = em.findAll(Erikoisala::class)[0]
-            }
-            arvioitavaKokonaisuus.erikoisala = erikoisala
-
-            // Lisätään pakollinen tieto
             val arvioitavanKokonaisuudenKategoria: ArvioitavanKokonaisuudenKategoria
             if (em.findAll(ArvioitavanKokonaisuudenKategoria::class).isEmpty()) {
                 arvioitavanKokonaisuudenKategoria =
-                    ArvioitavanKokonaisuudenKategoriaHelper.createEntity()
+                    ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em)
                 em.persist(arvioitavanKokonaisuudenKategoria)
                 em.flush()
             } else {
@@ -74,21 +63,10 @@ class ArvioitavaKokonaisuusHelper {
             )
 
             // Lisätään pakollinen tieto
-            val erikoisala: Erikoisala
-            if (em.findAll(Erikoisala::class).isEmpty()) {
-                erikoisala = ErikoisalaHelper.createUpdatedEntity()
-                em.persist(erikoisala)
-                em.flush()
-            } else {
-                erikoisala = em.findAll(Erikoisala::class)[0]
-            }
-            arvioitavaKokonaisuus.erikoisala = erikoisala
-
-            // Lisätään pakollinen tieto
             val arvioitavanKokonaisuudenKategoria: ArvioitavanKokonaisuudenKategoria
             if (em.findAll(ArvioitavanKokonaisuudenKategoria::class).isEmpty()) {
                 arvioitavanKokonaisuudenKategoria =
-                    ArvioitavanKokonaisuudenKategoriaHelper.createUpdatedEntity()
+                    ArvioitavanKokonaisuudenKategoriaHelper.createUpdatedEntity(em)
                 em.persist(arvioitavanKokonaisuudenKategoria)
                 em.flush()
             } else {
