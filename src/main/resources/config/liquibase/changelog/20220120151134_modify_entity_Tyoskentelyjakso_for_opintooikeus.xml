@@ -73,7 +73,7 @@
         <dropColumn tableName="tyoskentelyjakso_audit" columnName="erikoistuva_laakari_id"/>
         <addColumn tableName="tyoskentelyjakso_audit">
             <column name="opintooikeus_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
         </addColumn>
 
@@ -92,7 +92,7 @@
         <dropColumn tableName="asiakirja_audit" columnName="erikoistuva_laakari_id"/>
         <addColumn tableName="asiakirja_audit">
             <column name="opintooikeus_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
         </addColumn>
 
