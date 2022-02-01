@@ -22,7 +22,7 @@
         <dropColumn tableName="koulutussuunnitelma_audit" columnName="erikoistuva_laakari_id"/>
         <addColumn tableName="koulutussuunnitelma_audit">
             <column name="opintooikeus_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
         </addColumn>
 

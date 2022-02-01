@@ -22,7 +22,7 @@
         <dropColumn tableName="koejakson_koulutussopimus_audit" columnName="erikoistuva_laakari_id"/>
         <addColumn tableName="koejakson_koulutussopimus_audit">
             <column name="opintooikeus_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
         </addColumn>
 
@@ -42,7 +42,7 @@
         <dropColumn tableName="koejakson_aloituskeskustelu_audit" columnName="erikoistuva_laakari_id"/>
         <addColumn tableName="koejakson_aloituskeskustelu_audit">
             <column name="opintooikeus_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
         </addColumn>
 
@@ -62,7 +62,7 @@
         <dropColumn tableName="koejakson_valiarviointi_audit" columnName="erikoistuva_laakari_id"/>
         <addColumn tableName="koejakson_valiarviointi_audit">
             <column name="opintooikeus_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
         </addColumn>
 
@@ -82,7 +82,7 @@
         <dropColumn tableName="koejakson_kehittamistoimenpiteet_audit" columnName="erikoistuva_laakari_id"/>
         <addColumn tableName="koejakson_kehittamistoimenpiteet_audit">
             <column name="opintooikeus_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
         </addColumn>
 
@@ -102,7 +102,7 @@
         <dropColumn tableName="koejakson_loppukeskustelu_audit" columnName="erikoistuva_laakari_id"/>
         <addColumn tableName="koejakson_loppukeskustelu_audit">
             <column name="opintooikeus_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
         </addColumn>
 
@@ -122,7 +122,7 @@
         <dropColumn tableName="koejakson_vastuuhenkilon_arvio_audit" columnName="erikoistuva_laakari_id"/>
         <addColumn tableName="koejakson_vastuuhenkilon_arvio_audit">
             <column name="opintooikeus_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
         </addColumn>
 
