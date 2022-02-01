@@ -118,6 +118,7 @@ class UserService(
         )
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 
+        erikoistuvaLaakari.syntymaaika = LocalDate.now(ZoneId.systemDefault()).minusYears(40)
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
