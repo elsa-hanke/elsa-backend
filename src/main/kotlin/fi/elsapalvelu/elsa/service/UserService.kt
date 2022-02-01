@@ -101,7 +101,7 @@ class UserService(
             LocalDate.now()
         )
         val yliopisto = yliopistoRepository.findByIdOrNull(kayttooikeusHakemusDTO.yliopisto)
-        val erikoisala = erikoisalaRepository.findByIdOrNull(15)
+        val erikoisala = erikoisalaRepository.findByIdOrNull(46)
         val opintoopas = opintoopasRepository.findByIdOrNull(15)
         val asetus = asetusRepository.findByIdOrNull(5)
         var opintooikeus = Opintooikeus(
