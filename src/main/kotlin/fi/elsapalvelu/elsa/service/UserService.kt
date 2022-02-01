@@ -106,7 +106,7 @@ class UserService(
         val asetus = asetusRepository.findByIdOrNull(5)
         var opintooikeus = Opintooikeus(
             opintooikeudenMyontamispaiva = LocalDate.now(ZoneId.systemDefault()),
-            opintooikeudenPaattymispaiva = LocalDate.now(ZoneId.systemDefault()),
+            opintooikeudenPaattymispaiva = LocalDate.now(ZoneId.systemDefault()).plusYears(10),
             opiskelijatunnus = "123456",
             asetus = asetus,
             osaamisenArvioinninOppaanPvm = LocalDate.now(ZoneId.systemDefault()),
