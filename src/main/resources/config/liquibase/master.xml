@@ -172,5 +172,6 @@
     <include file="config/liquibase/changelog/20220128142458_modify_koejakson_vaiheet_for_opintooikeus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220201161333_modify_entity_constraints_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220127094950_add_erikoisala_data_ortopedia.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220201163548_add_erikoisala_data_anestesia.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
