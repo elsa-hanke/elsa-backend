@@ -50,7 +50,7 @@ class TyoskentelyjaksoServiceImpl(
                     tyoskentelyjaksoDTO.omaaErikoisalaaTukeva.takeIf {
                         kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
                     }?.let {
-                        erikoisalaRepository.findByIdOrNull(it.id)
+                        if (it.id == null) null else erikoisalaRepository.findByIdOrNull(it.id)
                     }
             }.takeIf { isValidTyoskentelyjakso(it) }?.let { tyoskentelyjakso ->
                 mapAsiakirjat(
@@ -203,14 +203,20 @@ class TyoskentelyjaksoServiceImpl(
     @Transactional(readOnly = true)
     override fun validateByLiitettyKoejaksoon(opintooikeusId: Long): Triple<Boolean, Boolean, Boolean> {
         val tyoskentelyjaksotLiitetty =
-            tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndLiitettyKoejaksoonTrue(opintooikeusId)
+            tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndLiitettyKoejaksoonTrue(
+                opintooikeusId
+            )
         val tyoskentelyJaksoLiitetty = tyoskentelyjaksotLiitetty.any()
         val tyoskentelyjaksonPituusRiittava =
             validateTyoskentelyjaksonPituusKoejaksolleRiittava(tyoskentelyjaksotLiitetty)
         val tyotodistusLiitetty =
             !tyoskentelyjaksotLiitetty.any { tyoskentelyjakso -> tyoskentelyjakso.asiakirjat.isEmpty() }
 
-        return Triple(tyoskentelyJaksoLiitetty, tyoskentelyjaksonPituusRiittava, tyotodistusLiitetty)
+        return Triple(
+            tyoskentelyJaksoLiitetty,
+            tyoskentelyjaksonPituusRiittava,
+            tyotodistusLiitetty
+        )
     }
 
     private fun validateTyoskentelyjaksonPituusKoejaksolleRiittava(
@@ -219,10 +225,15 @@ class TyoskentelyjaksoServiceImpl(
         var totalLength = 0.0
         val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
             hyvaksiluettavatPerYearMap =
-                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(tyoskentelyjaksot)
+                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(
+                    tyoskentelyjaksot
+                )
         }
         tyoskentelyjaksot.forEach {
-            totalLength += tyoskentelyjaksonPituusCounterService.calculateInDays(it, hyvaksiluettavatCounter)
+            totalLength += tyoskentelyjaksonPituusCounterService.calculateInDays(
+                it,
+                hyvaksiluettavatCounter
+            )
         }
 
         // Pyöristetään päivät ylöspäin UOELSA-717 mukaisesti
@@ -253,7 +264,9 @@ class TyoskentelyjaksoServiceImpl(
             tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeusId)
         val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
             hyvaksiluettavatPerYearMap =
-                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(tyoskentelyjaksot)
+                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(
+                    tyoskentelyjaksot
+                )
         }
         val opintooikeus = opintooikeusRepository.findById(opintooikeusId).get()
 
@@ -267,9 +280,13 @@ class TyoskentelyjaksoServiceImpl(
             )
         }
 
-        val yhteensaVaadittuVahintaan = opintooikeus.opintoopas?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
+        val yhteensaVaadittuVahintaan =
+            opintooikeus.opintoopas?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
         val arvioErikoistumiseenHyvaksyttavista =
-            min(yhteensaVaadittuVahintaan / 2, tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu) +
+            min(
+                yhteensaVaadittuVahintaan / 2,
+                tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu
+            ) +
                 tilastotCounter.nykyiselleErikoisalalleSuoritettu
 
         tilastotCounter.tyoskentelyaikaYhteensa = max(0.0, tilastotCounter.tyoskentelyaikaYhteensa)
@@ -289,7 +306,8 @@ class TyoskentelyjaksoServiceImpl(
                     ?: 0.0,
                 yliopistosairaalaSuoritettu = tilastotCounter.yliopistosairaalaSuoritettu,
                 yliopistosairaaloidenUlkopuolinenVaadittuVahintaan =
-                opintooikeus.opintoopas?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus ?: 0.0,
+                opintooikeus.opintoopas?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus
+                    ?: 0.0,
                 yliopistosairaaloidenUlkopuolinenSuoritettu = tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu,
                 yhteensaVaadittuVahintaan = yhteensaVaadittuVahintaan,
                 yhteensaSuoritettu = arvioErikoistumiseenHyvaksyttavista
@@ -327,7 +345,10 @@ class TyoskentelyjaksoServiceImpl(
         tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>
     ) {
         val tyoskentelyjaksonPituus =
-            tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso, hyvaksiluettavatCounterData)
+            tyoskentelyjaksonPituusCounterService.calculateInDays(
+                tyoskentelyjakso,
+                hyvaksiluettavatCounterData
+            )
         if (tyoskentelyjaksonPituus > 0) {
             // Summataan suoritettu aika koulutustyypettäin
             when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
