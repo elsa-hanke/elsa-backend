@@ -10,21 +10,21 @@
             columnDataType="bigint"
             generationType="ALWAYS"
             incrementBy="1"
-            startWith="1"
+            startWith="3"
             tableName="arviointiasteikko"/>
 
         <addAutoIncrement columnName="id"
             columnDataType="bigint"
             generationType="ALWAYS"
             incrementBy="1"
-            startWith="1"
+            startWith="11"
             tableName="arviointiasteikon_taso"/>
 
         <addAutoIncrement columnName="id"
             columnDataType="bigint"
             generationType="ALWAYS"
             incrementBy="1"
-            startWith="1"
+            startWith="10"
             tableName="arviointityokalu"/>
 
         <addAutoIncrement columnName="id"
@@ -45,7 +45,7 @@
             columnDataType="bigint"
             generationType="ALWAYS"
             incrementBy="1"
-            startWith="1"
+            startWith="6"
             tableName="asetus"/>
 
         <addAutoIncrement columnName="id"
@@ -66,7 +66,7 @@
             columnDataType="bigint"
             generationType="ALWAYS"
             incrementBy="1"
-            startWith="1"
+            startWith="61"
             tableName="erikoisala"/>
 
         <addAutoIncrement columnName="id"
@@ -185,14 +185,14 @@
             columnDataType="bigint"
             generationType="ALWAYS"
             incrementBy="1"
-            startWith="1"
+            startWith="18"
             tableName="opintoopas"/>
 
         <addAutoIncrement columnName="id"
             columnDataType="bigint"
             generationType="ALWAYS"
             incrementBy="1"
-            startWith="1"
+            startWith="7"
             tableName="paivakirja_aihekategoria"/>
 
         <addAutoIncrement columnName="id"
@@ -206,7 +206,7 @@
             columnDataType="bigint"
             generationType="ALWAYS"
             incrementBy="1"
-            startWith="1"
+            startWith="16"
             tableName="poissaolon_syy"/>
 
         <addAutoIncrement columnName="id"
