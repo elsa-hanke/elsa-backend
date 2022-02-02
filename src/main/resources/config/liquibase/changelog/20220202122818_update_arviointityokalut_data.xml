@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220202122818" author="jhipster">
+        <update tableName="arviointityokalu">
+            <column name="nimi" value="Erikoistuvan lääkärin työyhteisötaidot / 360ᵒ"/>
+            <column name="muokkausaika" valueComputed="current_timestamp"/>
+            <where>id=1</where>
+        </update>
+        <update tableName="arviointityokalu">
+            <column name="nimi" value="Leikkaustaitojen arviointi / OSATS"/>
+            <column name="muokkausaika" valueComputed="current_timestamp"/>
+            <where>id=2</where>
+        </update>
+        <update tableName="arviointityokalu">
+            <column name="nimi" value="Potilastapauskeskustelu"/>
+            <column name="muokkausaika" valueComputed="current_timestamp"/>
+            <where>id=3</where>
+        </update>
+        <update tableName="arviointityokalu">
+            <column name="nimi" value="Toimenpidetaitojen havainnointi / O-Score"/>
+            <column name="muokkausaika" valueComputed="current_timestamp"/>
+            <where>id=4</where>
+        </update>
+        <update tableName="arviointityokalu">
+            <column name="nimi" value="Toimenpidetaitojen havainnointi / DOPS"/>
+            <column name="muokkausaika" valueComputed="current_timestamp"/>
+            <where>id=5</where>
+        </update>
+        <update tableName="arviointityokalu">
+            <column name="nimi" value="Tähystystutkimuksen havainnointi / OBAT"/>
+            <column name="muokkausaika" valueComputed="current_timestamp"/>
+            <where>id=6</where>
+        </update>
+        <update tableName="arviointityokalu">
+            <column name="nimi" value="Vastaanottotapahtuman havainnointi / Mini-CEX"/>
+            <column name="muokkausaika" valueComputed="current_timestamp"/>
+            <where>id=7</where>
+        </update>
+        <update tableName="arviointityokalu">
+            <column name="nimi" value="Yleistyökalu"/>
+            <column name="muokkausaika" valueComputed="current_timestamp"/>
+            <where>id=8</where>
+        </update>
+        <insert tableName="arviointityokalu">
+            <column name="id" value="9"/>
+            <column name="nimi" value="Muu"/>
+            <column name="kayttaja_id" value="null"/>
+            <column name="luontiaika" valueComputed="current_timestamp"/>
+            <column name="muokkausaika" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
