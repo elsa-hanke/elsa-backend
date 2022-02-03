@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URI
+import java.net.URLEncoder
 import java.security.Principal
 import java.time.LocalDate
 import java.time.ZoneId
@@ -235,7 +236,10 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
 
         if (asiakirja != null) {
             return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + asiakirja.nimi + "\"")
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
+                )
                 .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
                 .body(asiakirja.asiakirjaData?.fileInputStream?.readBytes())
         }
