@@ -17,4 +17,6 @@ interface PaivakirjamerkintaRepository : JpaRepository<Paivakirjamerkinta, Long>
 
     fun deleteByIdAndOpintooikeusId(id: Long, opintooikeusId: Long)
 
+    fun findAllByTeoriakoulutusId(id: Long): List<Paivakirjamerkinta>
+
 }
