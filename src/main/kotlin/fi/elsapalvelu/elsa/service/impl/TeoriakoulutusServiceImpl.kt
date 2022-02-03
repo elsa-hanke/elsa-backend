@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.Teoriakoulutus
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.service.TeoriakoulutusService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
@@ -23,6 +24,7 @@ class TeoriakoulutusServiceImpl(
     private val teoriakoulutusMapper: TeoriakoulutusMapper,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val asiakirjaMapper: AsiakirjaMapper,
+    private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository
 ) : TeoriakoulutusService {
 
     override fun save(
@@ -85,7 +87,11 @@ class TeoriakoulutusServiceImpl(
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate
     ): List<TeoriakoulutusDTO> {
-        return teoriakoulutusRepository.findForSeurantajakso(opintooikeusId, alkamispaiva, paattymispaiva)
+        return teoriakoulutusRepository.findForSeurantajakso(
+            opintooikeusId,
+            alkamispaiva,
+            paattymispaiva
+        )
             .map(teoriakoulutusMapper::toDto)
     }
 
@@ -93,6 +99,9 @@ class TeoriakoulutusServiceImpl(
         id: Long,
         opintooikeusId: Long
     ) {
+        paivakirjamerkintaRepository.findAllByTeoriakoulutusId(id).forEach {
+            it.teoriakoulutus = null
+        }
         teoriakoulutusRepository.deleteByIdAndOpintooikeusId(id, opintooikeusId)
     }
 
