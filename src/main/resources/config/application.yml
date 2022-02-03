@@ -144,6 +144,7 @@ server:
     session:
       cookie:
         http-only: true
+      timeout: 3600s
 
 cloud:
   aws:
