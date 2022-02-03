@@ -41,15 +41,10 @@ class TyoskentelyjaksoHelper {
                 hyvaksyttyAiempaanErikoisalaan = DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
             )
 
-            // Lisätään pakollinen tieto
-            val tyoskentelypaikka: Tyoskentelypaikka
-            if (em.findAll(Tyoskentelypaikka::class).isEmpty()) {
-                tyoskentelypaikka = TyoskentelypaikkaHelper.createEntity(em)
-                em.persist(tyoskentelypaikka)
-                em.flush()
-            } else {
-                tyoskentelypaikka = em.findAll(Tyoskentelypaikka::class).get(0)
-            }
+            val tyoskentelypaikka = TyoskentelypaikkaHelper.createEntity(em)
+            em.persist(tyoskentelypaikka)
+            em.flush()
+
             tyoskentelyjakso.tyoskentelypaikka = tyoskentelypaikka
 
             // Lisätään pakollinen tieto

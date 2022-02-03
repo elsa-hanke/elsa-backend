@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.Koulutusjakso
 import fi.elsapalvelu.elsa.domain.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KoulutusjaksoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.KoulutusjaksoMapper
@@ -12,6 +13,7 @@ import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavaKokonaisuusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
@@ -44,6 +46,9 @@ import kotlin.test.assertNotNull
 class ErikoistuvaLaakariKoulutusjaksoResourceIT {
     @Autowired
     private lateinit var koulutusjaksoRepository: KoulutusjaksoRepository
+
+    @Autowired
+    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 
     @Autowired
     private lateinit var koulutusjaksoMapper: KoulutusjaksoMapper
@@ -181,6 +186,30 @@ class ErikoistuvaLaakariKoulutusjaksoResourceIT {
             .andExpect(jsonPath("$.[*].luotu").value(hasItem(DEFAULT_LUOTU.toString())))
             .andExpect(jsonPath("$.[*].tallennettu").value(hasItem(DEFAULT_TALLENNETTU.toString())))
             .andExpect(jsonPath("$.[*].lukittu").value(hasItem(DEFAULT_LUKITTU)))
+    }
+
+    @Test
+    @Transactional
+    fun getAllKoulutusjaksotShouldReturnOnlyForOpintooikeusKaytossa() {
+        initTest()
+
+        koulutusjaksoRepository.saveAndFlush(koulutusjakso)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        requireNotNull(erikoistuvaLaakari)
+        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
+
+        val koulutussuunnitelma = KoulutussuunnitelmaHelper.createEntity(em, user)
+        em.persist(koulutussuunnitelma)
+        val koulutusjaksoForAnotherOpintooikeus = createEntity(em, user, koulutussuunnitelma)
+        em.persist(koulutusjaksoForAnotherOpintooikeus)
+
+        restKoulutusjaksoMockMvc.perform(get("$ENTITY_API_URL?sort=id,desc"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$[0].id").value(koulutusjaksoForAnotherOpintooikeus.id))
     }
 
     @Test
@@ -462,7 +491,11 @@ class ErikoistuvaLaakariKoulutusjaksoResourceIT {
         private val count: AtomicLong = AtomicLong(random.nextInt().toLong() + (2L * Integer.MAX_VALUE))
 
         @JvmStatic
-        fun createEntity(em: EntityManager, user: User? = null): Koulutusjakso {
+        fun createEntity(
+            em: EntityManager,
+            user: User? = null,
+            existingKoulutussuunnitelma: Koulutussuunnitelma? = null
+        ): Koulutusjakso {
             val koulutusjakso = Koulutusjakso(
                 nimi = DEFAULT_NIMI,
                 muutOsaamistavoitteet = DEFAULT_MUUT_OSAAMISTAVOITTEET,
@@ -472,15 +505,19 @@ class ErikoistuvaLaakariKoulutusjaksoResourceIT {
             )
 
             // Lisätään pakollinen tieto
-            val koulutussuunnitelma: Koulutussuunnitelma
-            if (em.findAll(Koulutussuunnitelma::class).isEmpty()) {
-                koulutussuunnitelma = KoulutussuunnitelmaHelper.createEntity(em, user)
-                em.persist(koulutussuunnitelma)
-                em.flush()
+            if (existingKoulutussuunnitelma != null) {
+                koulutusjakso.koulutussuunnitelma = existingKoulutussuunnitelma
             } else {
-                koulutussuunnitelma = em.findAll(Koulutussuunnitelma::class).get(0)
+                val koulutussuunnitelma: Koulutussuunnitelma
+                if (em.findAll(Koulutussuunnitelma::class).isEmpty()) {
+                    koulutussuunnitelma = KoulutussuunnitelmaHelper.createEntity(em, user)
+                    em.persist(koulutussuunnitelma)
+                    em.flush()
+                } else {
+                    koulutussuunnitelma = em.findAll(Koulutussuunnitelma::class).get(0)
+                }
+                koulutusjakso.koulutussuunnitelma = koulutussuunnitelma
             }
-            koulutusjakso.koulutussuunnitelma = koulutussuunnitelma
 
             return koulutusjakso
         }

@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
 import junit.framework.TestCase.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
@@ -217,7 +218,6 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         initTest()
 
         asiakirjaRepository.saveAndFlush(asiakirja)
-        em.detach(asiakirja)
 
         val asiakirja2 = AsiakirjaHelper.createEntity(em, user)
         asiakirja2.nimi = AsiakirjaHelper.ASIAKIRJA_PNG_NIMI
@@ -226,7 +226,6 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         asiakirja2.asiakirjaData?.data = BlobProxy.generateProxy(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
 
         asiakirjaRepository.saveAndFlush(asiakirja2)
-        em.detach(asiakirja2)
 
         restAsiakirjaMockMvc.perform(get("/api/erikoistuva-laakari/asiakirjat"))
             .andExpect(status().isOk)
@@ -256,6 +255,27 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
             .andExpect(jsonPath("$[1].tyyppi").value(AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI))
             .andExpect(jsonPath("$[1].asiakirjaData.fileInputStream").doesNotExist())
             .andExpect(jsonPath("$[1].asiakirjaData.fileSize").doesNotExist())
+    }
+
+    @Test
+    @Transactional
+    fun getAsiakirjatShouldReturnOnlyForOpintooikeusKaytossa() {
+        initTest()
+        asiakirjaRepository.saveAndFlush(asiakirja)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        requireNotNull(erikoistuvaLaakari)
+        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
+
+        val asiakirjaForAnotherOpintooikeus = AsiakirjaHelper.createEntity(em, user)
+        em.persist(asiakirjaForAnotherOpintooikeus)
+
+        restAsiakirjaMockMvc.perform(get("/api/erikoistuva-laakari/asiakirjat"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$[0].id").value(asiakirjaForAnotherOpintooikeus.id))
     }
 
     @Test
