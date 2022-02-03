@@ -4,22 +4,22 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Paivakirjamerkinta
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.PaivakirjamerkintaService
 import fi.elsapalvelu.elsa.service.mapper.PaivakirjamerkintaMapper
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TeoriakoulutusHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.hasItem
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -50,14 +50,11 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
     @Autowired
     private lateinit var paivakirjamerkintaRepository: PaivakirjamerkintaRepository
 
-    @Mock
-    private lateinit var paivakirjamerkintaRepositoryMock: PaivakirjamerkintaRepository
+    @Autowired
+    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 
     @Autowired
     private lateinit var paivakirjamerkintaMapper: PaivakirjamerkintaMapper
-
-    @Mock
-    private lateinit var paivakirjamerkintaServiceMock: PaivakirjamerkintaService
 
     @Autowired
     private lateinit var jacksonMessageConverter: MappingJackson2HttpMessageConverter
@@ -214,6 +211,28 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
             .andExpect(jsonPath("$.content.[*].muunAiheenNimi").value(hasItem(DEFAULT_MUUN_AIHEEN_NIMI)))
             .andExpect(jsonPath("$.content.[*].reflektio").value(hasItem(DEFAULT_REFLEKTIO)))
             .andExpect(jsonPath("$.content.[*].yksityinen").value(hasItem(DEFAULT_YKSITYINEN)))
+    }
+
+    @Test
+    @Transactional
+    @Throws(Exception::class)
+    fun getAllPaivakirjamerkinnatShouldReturnOnlyForOpintooikeusKaytossa() {
+        initTest()
+        paivakirjamerkintaRepository.saveAndFlush(paivakirjamerkinta)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        requireNotNull(erikoistuvaLaakari)
+        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
+
+        val paivakirjamerkintaForAnotherOpintooikeus = createEntity(em, user)
+        em.persist(paivakirjamerkintaForAnotherOpintooikeus)
+
+        restPaivakirjamerkintaMockMvc.perform(get("$ENTITY_API_URL?sort=id,desc"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.content.[0].id").value(paivakirjamerkintaForAnotherOpintooikeus.id))
     }
 
     @Test

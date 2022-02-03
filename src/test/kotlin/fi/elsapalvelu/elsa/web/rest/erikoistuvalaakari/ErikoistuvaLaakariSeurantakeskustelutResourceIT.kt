@@ -225,6 +225,24 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
 
     @Test
     @Transactional
+    fun getAllSeurantajaksotShouldReturnOnlyForOpintooikeusKaytossa() {
+        initTest()
+        seurantajaksoRepository.saveAndFlush(seurantajakso)
+
+        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
+
+        val seurantajaksoForAnotherOpintooikeus = createEntity(erikoistuvaLaakari, kouluttaja)
+        em.persist(seurantajaksoForAnotherOpintooikeus)
+
+        restSeurantajaksoMockMvc.perform(get("$ENTITY_API_URL/seurantajaksot"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$[0].id").value(seurantajaksoForAnotherOpintooikeus.id))
+    }
+
+    @Test
+    @Transactional
     fun getSeurantajaksonTiedot() {
         initTest()
         var tapahtumaPvm = DEFAULT_ALKAMISPAIVA.plusDays(1)

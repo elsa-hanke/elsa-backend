@@ -9,7 +9,9 @@ import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.core.IsNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
@@ -94,6 +96,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
     private lateinit var user: User
 
+    private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
+
     @BeforeEach
     fun setup() {
         MockitoAnnotations.openMocks(this)
@@ -101,8 +105,15 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
     @Test
     @Transactional
-    fun getKoejakso() {
-        initTest()
+    fun getKoejaksonVaiheet() {
+        initKoejakso()
+
+        em.persist(koejaksonKoulutussopimus)
+        em.persist(koejaksonAloituskeskustelu)
+        em.persist(koejaksonValiarviointi)
+        em.persist(koejaksonKehittamistoimenpiteet)
+        em.persist(koejaksonLoppukeskustelu)
+        em.persist(koejaksonVastuuhenkilonArvio)
 
         restKoejaksoMockMvc.perform(
             get(
@@ -111,13 +122,52 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.koulutussopimus").isEmpty)
+            .andExpect(jsonPath("$.koulutussopimus").value(IsNull.notNullValue()))
+            .andExpect(jsonPath("$.aloituskeskustelu").value(IsNull.notNullValue()))
+            .andExpect(jsonPath("$.valiarviointi").value(IsNull.notNullValue()))
+            .andExpect(jsonPath("$.kehittamistoimenpiteet").value(IsNull.notNullValue()))
+            .andExpect(jsonPath("$.loppukeskustelu").value(IsNull.notNullValue()))
+            .andExpect(jsonPath("$.vastuuhenkilonArvio").value(IsNull.notNullValue()))
+
+        em.clear()
+    }
+
+    @Test
+    @Transactional
+    fun getNullKoejaksonVaiheetForAnotherOpintooikeus() {
+        initKoejakso()
+
+        em.persist(koejaksonKoulutussopimus)
+        em.persist(koejaksonAloituskeskustelu)
+        em.persist(koejaksonValiarviointi)
+        em.persist(koejaksonKehittamistoimenpiteet)
+        em.persist(koejaksonLoppukeskustelu)
+        em.persist(koejaksonVastuuhenkilonArvio)
+
+        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/erikoistuva-laakari/koejakso"
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.koulutussopimus").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.aloituskeskustelu").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.valiarviointi").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.kehittamistoimenpiteet").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.loppukeskustelu").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.vastuuhenkilonArvio").value(IsNull.nullValue()))
+
+        em.clear()
     }
 
     @Test
     @Transactional
     fun createKoulutussopimusWithExistingId() {
-        initTest()
+        initKoejakso()
 
         koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
 
@@ -137,7 +187,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createKoulutussopimusWithKouluttajaAck() {
-        initTest()
+        initKoejakso()
 
         val kouluttaja = koejaksonKoulutussopimus.kouluttajat?.iterator()?.next()
         kouluttaja?.sopimusHyvaksytty = true
@@ -161,7 +211,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createKoulutussopimusWithVastuuhenkiloAck() {
-        initTest()
+        initKoejakso()
 
         koejaksonKoulutussopimus.vastuuhenkilonKuittausaika = LocalDate.now()
 
@@ -183,7 +233,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createKoulutussopimus() {
-        initTest()
+        initKoejakso()
 
         val databaseSizeBeforeCreate = koejaksonKoulutussopimusRepository.findAll().size
 
@@ -238,7 +288,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun updateKoulutussopimus() {
-        initTest()
+        initKoejakso()
 
         koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
 
@@ -310,7 +360,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createAloituskeskusteluWithExistingId() {
-        initTest()
+        initKoejakso()
 
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
@@ -331,7 +381,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createAloituskeskusteluWithLahikouluttajaAck() {
-        initTest()
+        initKoejakso()
 
         koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
         koejaksonAloituskeskustelu.lahikouluttajanKuittausaika = LocalDate.now()
@@ -354,7 +404,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createAloituskeskusteluWithLahiesimiesAck() {
-        initTest()
+        initKoejakso()
 
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
@@ -377,7 +427,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createAloituskeskustelu() {
-        initTest()
+        initKoejakso()
 
         val databaseSizeBeforeCreate = koejaksonAloituskeskusteluRepository.findAll().size
 
@@ -416,7 +466,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun updateAloituskeskustelu() {
-        initTest()
+        initKoejakso()
 
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
@@ -464,7 +514,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createValiarviointi() {
-        initTest()
+        initKoejakso()
 
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
@@ -498,7 +548,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun ackValiarviointi() {
-        initTest()
+        initKoejakso()
 
         koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointi.lahiesimiehenKuittausaika = DEFAULT_MYONTAMISPAIVA
@@ -532,7 +582,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createValiarviointiWithoutAloituskeskustelu() {
-        initTest()
+        initKoejakso()
 
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
@@ -554,7 +604,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createKehittamistoimenpiteet() {
-        initTest()
+        initKoejakso()
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
@@ -589,7 +639,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun ackKehittamistoimenpiteet() {
-        initTest()
+        initKoejakso()
 
         koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
         koejaksonKehittamistoimenpiteet.lahiesimiehenKuittausaika = DEFAULT_MYONTAMISPAIVA
@@ -626,7 +676,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createKehittamistoimenpiteetWithoutValiarviointi() {
-        initTest()
+        initKoejakso()
 
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
@@ -648,7 +698,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createLoppukeskusteluWithKehittamistoimenpiteet() {
-        initTest()
+        initKoejakso()
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
@@ -687,7 +737,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createLoppukeskusteluWithKehittamistoimenpiteetInvalid() {
-        initTest()
+        initKoejakso()
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
@@ -712,7 +762,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createLoppukeskusteluWithoutKehittamistoimenpiteet() {
-        initTest()
+        initKoejakso()
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
         koejaksonValiarviointi.edistyminenTavoitteidenMukaista = true
@@ -748,7 +798,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createLoppukeskusteluWithoutKehittamistoimenpiteetInvalid() {
-        initTest()
+        initKoejakso()
 
         koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
@@ -771,7 +821,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun ackLoppukeskustelu() {
-        initTest()
+        initKoejakso()
 
         koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonLoppukeskustelu.lahiesimiehenKuittausaika = DEFAULT_MYONTAMISPAIVA
@@ -805,7 +855,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createVastuuhenkilonArvio() {
-        initTest()
+        initKoejakso()
 
         koejaksonLoppukeskustelu.erikoistuvaAllekirjoittanut = true
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
@@ -838,7 +888,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun ackVastuuhenkilonArvio() {
-        initTest()
+        initKoejakso()
 
         koejaksonVastuuhenkilonArvio.koejaksoHyvaksytty = true
         koejaksonVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut = true
@@ -874,7 +924,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Test
     @Transactional
     fun createVastuuhenkilonArvioWithoutLoppukeskustelu() {
-        initTest()
+        initKoejakso()
 
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
 
@@ -893,7 +943,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeCreate)
     }
 
-    fun initTest(userId: String? = DEFAULT_ID) {
+    fun initKoejakso(userId: String? = DEFAULT_ID) {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -906,7 +956,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
             authorities
         )
         TestSecurityContextHolder.getContext().authentication = authentication
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user)
+        erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user)
         em.persist(erikoistuvaLaakari)
 
         val vastuuhenkilo = KayttajaHelper.createEntity(em)

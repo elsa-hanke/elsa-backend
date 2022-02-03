@@ -133,16 +133,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
-        val opintooikeusKaytossa =
-            opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(user.id!!)
-        assertThat(kirjautunutErikoistuvaLaakari?.getOpintooikeusKaytossa()).isNotNull
-        assertThat(kirjautunutErikoistuvaLaakari?.getOpintooikeusKaytossa()).isEqualTo(opintooikeusKaytossa)
+        requireNotNull(kirjautunutErikoistuvaLaakari)
         val defaultTyoskentelypaikka = TyoskentelypaikkaHelper.createEntity(em)
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate + 1)
         val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
         assertThat(testTyoskentelyjakso.opintooikeus?.id).isEqualTo(
-            kirjautunutErikoistuvaLaakari?.getOpintooikeusKaytossa()?.id
+            kirjautunutErikoistuvaLaakari.getOpintooikeusKaytossa()?.id
         )
         assertThat(testTyoskentelyjakso.tyoskentelypaikka?.nimi).isEqualTo(defaultTyoskentelypaikka.nimi)
         assertThat(testTyoskentelyjakso.tyoskentelypaikka?.tyyppi).isEqualTo(
@@ -1073,6 +1070,40 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[0].suoritettu").value(30.0))
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[1].suoritettu").value(15.0))
+    }
+
+    @Test
+    @Transactional
+    fun getTyoskentelyjaksoTableShouldReturnOnlyForOpintooikeusKaytossa() {
+        initTest()
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        em.detach(tyoskentelyjakso)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        requireNotNull(erikoistuvaLaakari)
+        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
+
+        val tyoskentelyjaksoForAnotherOpintooikeus = createEntity(
+            em,
+            user,
+            LocalDate.of(2020, 2, 1),
+            LocalDate.of(2020, 2, 15)
+        )
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjaksoForAnotherOpintooikeus)
+        em.detach(tyoskentelyjaksoForAnotherOpintooikeus)
+
+        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjaksoForAnotherOpintooikeus)
+        keskeytysaikaRepository.saveAndFlush(keskeytysaika)
+        em.detach(keskeytysaika)
+
+        restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot-taulukko"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.keskeytykset").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.tyoskentelyjaksot[0].id").value(tyoskentelyjaksoForAnotherOpintooikeus.id))
     }
 
     @Test

@@ -2,15 +2,16 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavaKokonaisuusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
@@ -46,7 +47,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
     private lateinit var suoritusarviointiMapper: SuoritusarviointiMapper
 
     @Autowired
-    private lateinit var suoritusarviointiService: SuoritusarviointiService
+    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 
     @Autowired
     private lateinit var em: EntityManager
@@ -167,6 +168,34 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
 
     @Test
     @Transactional
+    fun getAllSuoritusarvioinnitShouldReturnOnlyForOpintooikeusKaytossa() {
+        initTest()
+
+        suoritusarviointiRepository.saveAndFlush(suoritusarviointi)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        requireNotNull(erikoistuvaLaakari)
+        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
+
+        val suoritusarviointiForAnotherOpintooikeus = createEntity(em)
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user)
+        em.persist(tyoskentelyjakso)
+
+        suoritusarviointiForAnotherOpintooikeus.tyoskentelyjakso = tyoskentelyjakso
+        suoritusarviointiForAnotherOpintooikeus.arviointiasteikko = erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintoopas?.arviointiasteikko
+
+        em.persist(suoritusarviointiForAnotherOpintooikeus)
+
+        restSuoritusarviointiMockMvc.perform(get("/api/erikoistuva-laakari/suoritusarvioinnit"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$[0].id").value(suoritusarviointiForAnotherOpintooikeus.id))
+    }
+
+    @Test
+    @Transactional
     fun getSuoritusarviointi() {
         initTest()
 
@@ -268,7 +297,19 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         )
         TestSecurityContextHolder.getContext().authentication = authentication
 
-        suoritusarviointi = createEntity(em, user)
+        suoritusarviointi = createEntity(em)
+
+        // Lisätään pakollinen tieto
+        val tyoskentelyjakso: Tyoskentelyjakso
+        if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
+            tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user)
+            em.persist(tyoskentelyjakso)
+            em.flush()
+        } else {
+            tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).get(0)
+        }
+        suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
+        suoritusarviointi.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
     }
 
     companion object {
@@ -288,7 +329,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         private const val UPDATED_LISATIEDOT = "BBBBBBBBBB"
 
         @JvmStatic
-        fun createEntity(em: EntityManager, user: User? = null): Suoritusarviointi {
+        fun createEntity(em: EntityManager): Suoritusarviointi {
             val suoritusarviointi = Suoritusarviointi(
                 tapahtumanAjankohta = DEFAULT_TAPAHTUMAN_AJANKOHTA,
                 arvioitavaTapahtuma = DEFAULT_ARVIOITAVA_TAPAHTUMA,
@@ -317,20 +358,6 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
             suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuus
-
-            // Lisätään pakollinen tieto
-            val tyoskentelyjakso: Tyoskentelyjakso
-            if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user)
-                em.persist(tyoskentelyjakso)
-                em.flush()
-            } else {
-                tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).get(0)
-            }
-            suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
-
-            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
-            suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
 
             return suoritusarviointi
         }
@@ -365,20 +392,6 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
             suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuus
-
-            // Lisätään pakollinen tieto
-            val tyoskentelyjakso: Tyoskentelyjakso
-            if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createUpdatedEntity(em)
-                em.persist(tyoskentelyjakso)
-                em.flush()
-            } else {
-                tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).get(0)
-            }
-            suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
-
-            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
-            suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
 
             return suoritusarviointi
         }

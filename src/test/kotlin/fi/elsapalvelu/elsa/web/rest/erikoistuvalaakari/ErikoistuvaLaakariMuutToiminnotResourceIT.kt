@@ -12,6 +12,7 @@ import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -42,7 +43,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
     @Autowired
     private lateinit var kayttajaRepository: KayttajaRepository
 
-    private lateinit var erikoistuvaUser: User
+    private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
 
     private lateinit var existingYliopisto: Yliopisto
 
@@ -50,7 +51,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
 
     @BeforeEach
     fun initTest() {
-        erikoistuvaUser = KayttajaResourceWithMockUserIT.createEntity()
+        val erikoistuvaUser = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(erikoistuvaUser)
         em.flush()
         val userDetails = mapOf<String, List<Any>>()
@@ -62,12 +63,14 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         )
         TestSecurityContextHolder.getContext().authentication = authentication
 
-        var erikoistuvaLaakari =
+        val existingErikoistuvaLaakari =
             em.findAll(ErikoistuvaLaakari::class).firstOrNull { it.kayttaja?.user == erikoistuvaUser }
-        if (erikoistuvaLaakari == null) {
+        if (existingErikoistuvaLaakari == null) {
             erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, erikoistuvaUser)
             em.persist(erikoistuvaLaakari)
             em.flush()
+        } else {
+            erikoistuvaLaakari = existingErikoistuvaLaakari
         }
     }
 
@@ -100,8 +103,43 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         )
 
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat).hasSize(1)
-        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.first()?.yliopisto).isEqualTo(opintooikeus.yliopisto)
-        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.first()?.erikoisala).isEqualTo(opintooikeus.erikoisala)
+        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto).isEqualTo(opintooikeus.yliopisto)
+        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.erikoisala).isEqualTo(opintooikeus.erikoisala)
+    }
+
+    @Test
+    @Transactional
+    fun `test that new kouluttaja is added with same yliopisto and erikoisala than opintooikeusKaytossa`() {
+        val databaseSizeBeforeCreate = kayttajaRepository.findAll().size
+        val uusiLahikouluttajaDTO = UusiLahikouluttajaDTO(DEFAULT_NIMI, DEFAULT_EMAIL)
+
+        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
+
+        restLahikouluttajatMockMvc.perform(
+            post("/api/erikoistuva-laakari/lahikouluttajat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(uusiLahikouluttajaDTO))
+                .with(csrf())
+        ).andExpect(status().isCreated)
+
+        val kayttajatList = kayttajaRepository.findAll()
+        assertThat(kayttajatList).hasSize(databaseSizeBeforeCreate + 1)
+        val testLahikouluttaja = kayttajatList[kayttajatList.size - 1]
+
+        assertThat(testLahikouluttaja?.getNimi()).isEqualTo(DEFAULT_NIMI)
+        assertThat(testLahikouluttaja?.user?.email).isEqualTo(DEFAULT_EMAIL)
+        assertThat(testLahikouluttaja?.user?.login).isEqualTo(DEFAULT_EMAIL)
+        assertThat(testLahikouluttaja?.user?.activated).isEqualTo(false)
+        assertThat(
+            testLahikouluttaja?.user?.authorities?.contains(
+                Authority(name = KOULUTTAJA)
+            )
+        )
+
+        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat).hasSize(1)
+        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto).isEqualTo(newOpintooikeus.yliopisto)
+        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.erikoisala).isEqualTo(newOpintooikeus.erikoisala)
     }
 
     @Test

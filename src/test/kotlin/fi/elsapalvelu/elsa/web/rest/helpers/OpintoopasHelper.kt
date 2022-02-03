@@ -1,8 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
+import fi.elsapalvelu.elsa.domain.Arviointiasteikko
 import fi.elsapalvelu.elsa.domain.Opintoopas
+import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
+import javax.persistence.EntityManager
 
 class OpintoopasHelper {
 
@@ -40,9 +43,19 @@ class OpintoopasHelper {
 
         @JvmStatic
         fun createEntity(
+            em: EntityManager,
             voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
             voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLO_PAATTYY
         ): Opintoopas {
+            val arviointiasteikko: Arviointiasteikko
+            if (em.findAll(Arviointiasteikko::class).isEmpty()) {
+                arviointiasteikko = ArviointiasteikkoHelper.createEntity()
+                em.persist(arviointiasteikko)
+                em.flush()
+            } else {
+                arviointiasteikko = em.findAll(Arviointiasteikko::class).get(0)
+            }
+
             val opintoopas = Opintoopas(
                 nimi = DEFAULT_NIMI,
                 voimassaoloAlkaa = voimassaoloAlkaa,
@@ -57,15 +70,16 @@ class OpintoopasHelper {
                 erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara =
                 DEFAULT_ERIKOISALAN_VAATIMA_SATEILYSUOJAKOULUTUSTEN_VAHIMMAISMAARA,
                 erikoisalanVaatimaJohtamisopintojenVahimmaismaara =
-                DEFAULT_ERIKOISALAN_VAATIMA_JOHTAMISOPINTOJEN_VAHIMMAISMAARA
-                )
+                DEFAULT_ERIKOISALAN_VAATIMA_JOHTAMISOPINTOJEN_VAHIMMAISMAARA,
+                arviointiasteikko = arviointiasteikko
+            )
 
             return opintoopas
         }
 
         @JvmStatic
         fun createUpdatedEntity(): Opintoopas {
-            val opintoopas = Opintoopas(
+            return Opintoopas(
                 nimi = UPDATED_NIMI,
                 voimassaoloAlkaa = UPDATED_VOIMASSAOLO_ALKAA,
                 voimassaoloPaattyy = UPDATED_VOIMASSAOLO_PAATTYY,
@@ -81,8 +95,6 @@ class OpintoopasHelper {
                 erikoisalanVaatimaJohtamisopintojenVahimmaismaara =
                 UPDATED_ERIKOISALAN_VAATIMA_JOHTAMISOPINTOJEN_VAHIMMAISMAARA
             )
-
-            return opintoopas
         }
     }
 
