@@ -4,19 +4,21 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Teoriakoulutus
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.TeoriakoulutusMapper
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.createByteArray
-import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper.Companion.ASIAKIRJA_PDF_NIMI
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintoopasHelper.Companion.DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.Matchers
 import org.hamcrest.Matchers.hasItem
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,9 +26,7 @@ import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver
 import org.springframework.http.MediaType
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
@@ -37,7 +37,6 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.validation.Validator
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
@@ -55,16 +54,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
     private lateinit var teoriakoulutusMapper: TeoriakoulutusMapper
 
     @Autowired
-    private lateinit var jacksonMessageConverter: MappingJackson2HttpMessageConverter
-
-    @Autowired
-    private lateinit var pageableArgumentResolver: PageableHandlerMethodArgumentResolver
-
-    @Autowired
-    private lateinit var exceptionTranslator: ExceptionTranslator
-
-    @Autowired
-    private lateinit var validator: Validator
+    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 
     @Autowired
     private lateinit var em: EntityManager
@@ -312,6 +302,32 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
                     DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA
                 )
             )
+    }
+
+    @Test
+    @Transactional
+    @Throws(Exception::class)
+    fun getAllTeoriakoulutuksetShouldReturnOnlyForOpintooikeusKaytossa() {
+        initTest()
+        val erikoisala = ErikoisalaHelper.createEntity()
+        em.persist(erikoisala)
+        em.flush()
+        teoriakoulutus.opintooikeus?.erikoisala = erikoisala
+        teoriakoulutusRepository.saveAndFlush(teoriakoulutus)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        requireNotNull(erikoistuvaLaakari)
+        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
+
+        val teoriakoulutusForAnotherOpintooikeus = createEntity(em, user)
+        em.persist(teoriakoulutusForAnotherOpintooikeus)
+
+        restTeoriakoulutusMockMvc.perform(get(ENTITY_API_URL))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.teoriakoulutukset").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.teoriakoulutukset[0].id").value(teoriakoulutusForAnotherOpintooikeus.id))
     }
 
     @Test

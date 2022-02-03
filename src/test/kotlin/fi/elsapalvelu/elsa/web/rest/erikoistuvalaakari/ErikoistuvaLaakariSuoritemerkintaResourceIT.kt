@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.SuoritemerkintaRepository
-import fi.elsapalvelu.elsa.repository.SuoritteenKategoriaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.SuoritemerkintaMapper
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
@@ -43,9 +42,6 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
     @Autowired
     private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
-
-    @Autowired
-    private lateinit var suoritteenKategoriaRepository: SuoritteenKategoriaRepository
 
     @Autowired
     private lateinit var suoritemerkintaMapper: SuoritemerkintaMapper
@@ -424,7 +420,8 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val id = suoritemerkinta.id
         assertNotNull(id)
 
-        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        requireNotNull(erikoistuvaLaakari)
         erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala =
             suoritemerkinta.suorite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
@@ -444,15 +441,41 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
     @Test
     @Transactional
+    fun getSuoritteetTableShouldReturnSuoritemerkintaOnlyForOpintooikeusKaytossa() {
+        initTest()
+
+        suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        requireNotNull(erikoistuvaLaakari)
+        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
+
+        val suoritemerkintaForAnotherOpintooikeus = createEntity(em, newOpintooikeus.erikoisala)
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user)
+        em.persist(tyoskentelyjakso)
+
+        suoritemerkintaForAnotherOpintooikeus.tyoskentelyjakso = tyoskentelyjakso
+        suoritemerkintaForAnotherOpintooikeus.arviointiasteikko = erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintoopas?.arviointiasteikko
+
+        em.persist(suoritemerkintaForAnotherOpintooikeus)
+
+        restSuoritemerkintaMockMvc.perform(get("/api/erikoistuva-laakari/suoritteet-taulukko"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.suoritemerkinnat").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.suoritemerkinnat[0].id").value(suoritemerkintaForAnotherOpintooikeus.id as Any))
+    }
+
+    @Test
+    @Transactional
     fun getSuoritemerkintaForm() {
         initTest()
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
 
-        val id = suoritemerkinta.id
-        assertNotNull(id)
-
-        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)!!
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        requireNotNull(erikoistuvaLaakari)
         erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala =
             suoritemerkinta.suorite?.kategoria?.erikoisala
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
@@ -483,7 +506,20 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         )
         TestSecurityContextHolder.getContext().authentication = authentication
 
-        suoritemerkinta = createEntity(em, erikoisala, user)
+        suoritemerkinta = createEntity(em, erikoisala)
+
+        // Lisätään pakollinen tieto
+        val tyoskentelyjakso: Tyoskentelyjakso
+        if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
+            tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user)
+            em.persist(tyoskentelyjakso)
+            em.flush()
+        } else {
+            tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class)[0]
+        }
+
+        suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
+        suoritemerkinta.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
     }
 
     companion object {
@@ -510,8 +546,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         @JvmStatic
         fun createEntity(
             em: EntityManager,
-            erikoisala: Erikoisala? = null,
-            user: User? = null
+            erikoisala: Erikoisala? = null
         ): Suoritemerkinta {
             val suoritemerkinta = Suoritemerkinta(
                 suorituspaiva = DEFAULT_SUORITUSPAIVA,
@@ -531,19 +566,6 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
                 suorite = em.findAll(Suorite::class)[0]
             }
             suoritemerkinta.suorite = suorite
-
-            // Lisätään pakollinen tieto
-            val tyoskentelyjakso: Tyoskentelyjakso
-            if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user)
-                em.persist(tyoskentelyjakso)
-                em.flush()
-            } else {
-                tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class)[0]
-            }
-
-            suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
-            suoritemerkinta.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
 
             return suoritemerkinta
         }
@@ -568,19 +590,6 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
                 suorite = em.findAll(Suorite::class)[0]
             }
             suoritemerkinta.suorite = suorite
-
-            // Lisätään pakollinen tieto
-            val tyoskentelyjakso: Tyoskentelyjakso
-            if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createUpdatedEntity(em)
-                em.persist(tyoskentelyjakso)
-                em.flush()
-            } else {
-                tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class)[0]
-            }
-
-            suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
-            suoritemerkinta.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
 
             return suoritemerkinta
         }

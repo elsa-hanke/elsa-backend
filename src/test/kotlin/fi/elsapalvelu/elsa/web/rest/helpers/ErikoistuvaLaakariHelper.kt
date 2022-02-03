@@ -18,6 +18,9 @@ class ErikoistuvaLaakariHelper {
         const val DEFAULT_YLIOPISTO = "TAYS"
 
         private val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
+        private val DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
+        private val DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(20L)
+
         const val DEFAULT_ASETUS = "55/2020"
 
         @JvmStatic
@@ -31,9 +34,17 @@ class ErikoistuvaLaakariHelper {
                 em.flush()
             }
 
-            val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
-            em.persist(yliopisto)
             erikoistuvaLaakari.kayttaja = kayttaja
+            em.persist(erikoistuvaLaakari)
+
+            val yliopisto: Yliopisto
+            if (em.findAll(Yliopisto::class).isEmpty()) {
+                yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
+                em.persist(yliopisto)
+                em.flush()
+            } else {
+                yliopisto = em.findAll(Yliopisto::class).get(0)
+            }
 
             val erikoisala: Erikoisala
             if (em.findAll(Erikoisala::class).isEmpty()) {
@@ -44,29 +55,16 @@ class ErikoistuvaLaakariHelper {
                 erikoisala = em.findAll(Erikoisala::class).get(0)
             }
 
-            em.persist(erikoistuvaLaakari)
-
             val opintoopas: Opintoopas
             if (em.findAll(Opintoopas::class).isEmpty()) {
-                opintoopas = OpintoopasHelper.createEntity()
+                opintoopas = OpintoopasHelper.createEntity(em)
                 em.persist(opintoopas)
                 em.flush()
             } else {
                 opintoopas = em.findAll(Opintoopas::class).get(0)
             }
+            opintoopas.erikoisala = erikoisala
 
-            // Lisätään pakollinen tieto
-            val arviointiasteikko: Arviointiasteikko
-            if (em.findAll(Arviointiasteikko::class).isEmpty()) {
-                arviointiasteikko = ArviointiasteikkoHelper.createEntity()
-                em.persist(arviointiasteikko)
-                em.flush()
-            } else {
-                arviointiasteikko = em.findAll(Arviointiasteikko::class).get(0)
-            }
-            opintoopas.arviointiasteikko = arviointiasteikko
-
-            // Lisätään pakollinen tieto
             val asetus: Asetus
             if (em.findAll(Asetus::class).isEmpty()) {
                 asetus = Asetus(nimi = DEFAULT_ASETUS)
@@ -76,10 +74,9 @@ class ErikoistuvaLaakariHelper {
                 asetus = em.findAll(Asetus::class).get(0)
             }
 
-            // Lisätään pakollinen tieto
             val opintooikeus = Opintooikeus(
-                opintooikeudenMyontamispaiva = LocalDate.ofEpochDay(0L),
-                opintooikeudenPaattymispaiva = LocalDate.ofEpochDay(20L),
+                opintooikeudenMyontamispaiva = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
+                opintooikeudenPaattymispaiva = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
                 osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA,
                 erikoistuvaLaakari = erikoistuvaLaakari,
