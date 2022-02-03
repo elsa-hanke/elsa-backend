@@ -175,5 +175,6 @@
     <include file="config/liquibase/changelog/20220201163548_add_erikoisala_data_anestesia.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220202122818_update_arviointityokalut_data.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220202125003_update_opintoopas_data.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220202134411_drop_table_yliopisto_erikoisala.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
