@@ -35,7 +35,11 @@ data class Erikoisala(
 
     @ManyToMany(mappedBy = "erikoisalat")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var yliopistot: MutableSet<Yliopisto> = mutableSetOf()
+    var yliopistot: MutableSet<Yliopisto> = mutableSetOf(),
+
+    @OneToMany(mappedBy = "erikoisala")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    var opintooppaat: MutableSet<Opintoopas> = mutableSetOf()
 
 ) : Serializable {
 
