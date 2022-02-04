@@ -7,7 +7,6 @@ import fi.elsapalvelu.elsa.service.mapper.OpintoopasMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 
 @Service
 @Transactional
@@ -27,8 +26,8 @@ class OpintoopasServiceImpl(
             .map(opintoopasMapper::toDto)
     }
 
-    override fun findAllByValid(): List<OpintoopasDTO> {
-        return opintoopasRepository.findAllByValid(LocalDate.now())
+    override fun findAll(): List<OpintoopasDTO> {
+        return opintoopasRepository.findAll()
             .map(opintoopasMapper::toDto)
     }
 }

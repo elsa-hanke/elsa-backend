@@ -8,5 +8,5 @@ interface OpintoopasService {
 
     fun findAllByOpintooikeudetErikoistuvaLaakariKayttajaUserId(userId: String): List<OpintoopasDTO>
 
-    fun findAllByValid(): List<OpintoopasDTO>
+    fun findAll(): List<OpintoopasDTO>
 }

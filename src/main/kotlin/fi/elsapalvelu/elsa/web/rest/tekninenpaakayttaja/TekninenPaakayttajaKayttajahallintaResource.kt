@@ -65,7 +65,7 @@ class TekninenPaakayttajaKayttajahallintaResource(
 
         form.asetukset = asetusService.findAll().toMutableSet()
 
-        form.opintooppaat = opintoopasService.findAllByValid().toMutableSet()
+        form.opintooppaat = opintoopasService.findAll().toMutableSet()
 
         return ResponseEntity.ok(form)
     }
