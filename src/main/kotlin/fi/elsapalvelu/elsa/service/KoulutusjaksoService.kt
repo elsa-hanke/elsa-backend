@@ -13,4 +13,6 @@ interface KoulutusjaksoService {
     fun findForSeurantajakso(ids: List<Long>, opintooikeusId: Long): List<KoulutusjaksoDTO>
 
     fun delete(id: Long, opintooikeusId: Long)
+
+    fun removeTyoskentelyjaksoReference(tyoskentelyJaksoId: Long)
 }
