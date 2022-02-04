@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220204122234-1" author="jhipster">
+        <createTable tableName="yliopisto_erikoisala">
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yliopisto_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="yliopisto_id, erikoisala_id" tableName="yliopisto_erikoisala"/>
+    </changeSet>
+
+    <changeSet id="20220204122234-2" author="jhipster">
+        <addForeignKeyConstraint baseColumnNames="yliopisto_id"
+                                 baseTableName="yliopisto_erikoisala"
+                                 constraintName="fk_yliopisto_erikoisala_yliopisto_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="yliopisto"/>
+
+        <addForeignKeyConstraint baseColumnNames="erikoisala_id"
+                                 baseTableName="yliopisto_erikoisala"
+                                 constraintName="fk_yliopisto_erikoisala_erikoisala_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="erikoisala"/>
+    </changeSet>
+
+</databaseChangeLog>
