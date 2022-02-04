@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220204145123" author="jhipster">
+        <addColumn tableName="opintoopas">
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20220204145123-relations" author="jhipster">
+        <addForeignKeyConstraint baseTableName="opintoopas" baseColumnNames="erikoisala_id"
+                                 constraintName="fk_opintoopas_erikoisala_id" referencedTableName="erikoisala"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="20220204145123-data" author="jhipster">
+        <update tableName="opintoopas">
+            <column name="erikoisala_id" value="2"/>
+            <where>id=1 or id=2</where>
+        </update>
+
+        <update tableName="opintoopas">
+            <column name="erikoisala_id" value="9"/>
+            <where>id=3 or id=4</where>
+        </update>
+
+        <update tableName="opintoopas">
+            <column name="erikoisala_id" value="22"/>
+            <where>id=5 or id=6</where>
+        </update>
+
+        <update tableName="opintoopas">
+            <column name="erikoisala_id" value="24"/>
+            <where>id=7 or id=8</where>
+        </update>
+
+        <update tableName="opintoopas">
+            <column name="erikoisala_id" value="33"/>
+            <where>id=9 or id=10</where>
+        </update>
+
+        <update tableName="opintoopas">
+            <column name="erikoisala_id" value="44"/>
+            <where>id=11 or id=12</where>
+        </update>
+
+        <update tableName="opintoopas">
+            <column name="erikoisala_id" value="46"/>
+            <where>id between 13 and 15</where>
+        </update>
+
+        <update tableName="opintoopas">
+            <column name="erikoisala_id" value="50"/>
+            <where>id=16 or id=17</where>
+        </update>
+
+        <addNotNullConstraint tableName="opintoopas" columnName="erikoisala_id"/>
+    </changeSet>
+
+</databaseChangeLog>

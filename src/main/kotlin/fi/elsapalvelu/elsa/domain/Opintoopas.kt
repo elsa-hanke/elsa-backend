@@ -62,7 +62,11 @@ data class Opintoopas(
     var arviointiasteikko: Arviointiasteikko? = null,
 
     @OneToMany(mappedBy = "opintoopas")
-    var opintooikeudet: MutableSet<Opintooikeus> = mutableSetOf()
+    var opintooikeudet: MutableSet<Opintooikeus> = mutableSetOf(),
+
+    @NotNull
+    @ManyToOne(optional = false)
+    var erikoisala: Erikoisala? = null
 
 ) : Serializable {
 

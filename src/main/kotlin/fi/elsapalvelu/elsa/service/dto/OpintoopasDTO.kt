@@ -39,7 +39,10 @@ data class OpintoopasDTO(
     @get: NotNull
     var erikoisalanVaatimaJohtamisopintojenVahimmaismaara: Double? = null,
 
-    var arviointiasteikko: ArviointiasteikkoDTO? = null
+    var arviointiasteikko: ArviointiasteikkoDTO? = null,
+
+    @get: NotNull
+    var erikoisala: ErikoisalaDTO? = null
 
 ) : Serializable {
 
