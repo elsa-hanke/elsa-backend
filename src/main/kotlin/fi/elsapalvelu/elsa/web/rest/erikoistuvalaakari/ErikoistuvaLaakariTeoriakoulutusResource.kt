@@ -95,10 +95,9 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<TeoriakoulutuksetDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
-        val teoriakoulutukset = teoriakoulutusService.findAll(opintooikeusId)
-        val opintoopas =
-            opintoopasService.findAllByOpintooikeudetErikoistuvaLaakariKayttajaUserId(user.id!!).firstOrNull()
+        val opintooikeus = opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val teoriakoulutukset = teoriakoulutusService.findAll(opintooikeus.id!!)
+        val opintoopas = opintoopasService.findOne(opintooikeus.opintoopasId!!)
 
         return ResponseEntity.ok(
             TeoriakoulutuksetDTO(

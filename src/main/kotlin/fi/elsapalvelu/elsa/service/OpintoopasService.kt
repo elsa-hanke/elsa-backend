@@ -6,7 +6,5 @@ interface OpintoopasService {
 
     fun findOne(id: Long): OpintoopasDTO?
 
-    fun findAllByOpintooikeudetErikoistuvaLaakariKayttajaUserId(userId: String): List<OpintoopasDTO>
-
     fun findAll(): List<OpintoopasDTO>
 }
