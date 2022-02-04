@@ -39,6 +39,14 @@ interface KoulutusjaksoRepository : JpaRepository<Koulutusjakso, Long> {
 
     fun findAllByKoulutussuunnitelmaOpintooikeusId(opintooikeusId: Long): MutableList<Koulutusjakso>
 
+    @Query(
+        "select koulutusjakso " +
+            "from Koulutusjakso koulutusjakso " +
+            "left join koulutusjakso.tyoskentelyjaksot t " +
+            "where t.id = :tyoskentelyjaksoId"
+    )
+    fun findAllByTyoskentelyjaksoId(tyoskentelyjaksoId: Long): MutableList<Koulutusjakso>
+
     fun findOneByIdAndKoulutussuunnitelmaOpintooikeusId(
         id: Long,
         opintooikeusId: Long

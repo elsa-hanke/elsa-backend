@@ -34,7 +34,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val fileValidationService: FileValidationService,
     private val overlappingTyoskentelyjaksoValidationService: OverlappingTyoskentelyjaksoValidationService,
     private val overlappingKeskeytysaikaValidationService: OverlappingKeskeytysaikaValidationService,
-    private val opintooikeusService: OpintooikeusService
+    private val opintooikeusService: OpintooikeusService,
+    private val koulutusjaksoService: KoulutusjaksoService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -146,7 +147,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
-        asiakirjaService.removeTyoskentelyjaksoReference(opintooikeusId, id)
+        asiakirjaService.removeTyoskentelyjaksoReference(id)
+        koulutusjaksoService.removeTyoskentelyjaksoReference(id)
         if (tyoskentelyjaksoService.delete(id, opintooikeusId)) {
             return ResponseEntity
                 .noContent()

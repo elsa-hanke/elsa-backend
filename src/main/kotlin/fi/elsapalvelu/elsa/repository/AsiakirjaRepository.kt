@@ -14,5 +14,7 @@ interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
         tyoskentelyJaksoId: Long?
     ): List<Asiakirja>
 
+    fun findAllByTyoskentelyjaksoId(tyoskentelyJaksoId: Long?): List<Asiakirja>
+
     fun findOneByIdAndOpintooikeusId(id: Long, opintooikeusId: Long): Asiakirja?
 }

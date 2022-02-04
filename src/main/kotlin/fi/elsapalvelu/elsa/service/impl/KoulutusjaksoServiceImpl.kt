@@ -81,4 +81,13 @@ class KoulutusjaksoServiceImpl(
             opintooikeusId
         )
     }
+
+    override fun removeTyoskentelyjaksoReference(tyoskentelyJaksoId: Long) {
+        val koulutusjaksotByTyoskentelyjakso =
+            koulutusjaksoRepository.findAllByTyoskentelyjaksoId(tyoskentelyJaksoId)
+
+        koulutusjaksotByTyoskentelyjakso.forEach { koulutusjakso ->
+            koulutusjakso.tyoskentelyjaksot?.removeIf { it.id == tyoskentelyJaksoId }
+        }
+    }
 }
