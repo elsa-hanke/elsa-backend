@@ -21,11 +21,6 @@ class OpintoopasServiceImpl(
         }
     }
 
-    override fun findAllByOpintooikeudetErikoistuvaLaakariKayttajaUserId(userId: String): List<OpintoopasDTO> {
-        return opintoopasRepository.findAllByOpintooikeudetErikoistuvaLaakariKayttajaUserId(userId)
-            .map(opintoopasMapper::toDto)
-    }
-
     override fun findAll(): List<OpintoopasDTO> {
         return opintoopasRepository.findAll()
             .map(opintoopasMapper::toDto)
