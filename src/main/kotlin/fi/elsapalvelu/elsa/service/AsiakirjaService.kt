@@ -16,6 +16,6 @@ interface AsiakirjaService {
 
     fun delete(ids: List<Long> , opintooikeusId: Long)
 
-    fun removeTyoskentelyjaksoReference(opintooikeusId: Long, tyoskentelyJaksoId: Long?)
+    fun removeTyoskentelyjaksoReference(tyoskentelyJaksoId: Long?)
 
 }
