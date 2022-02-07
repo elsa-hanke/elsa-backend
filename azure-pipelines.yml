@@ -4,6 +4,8 @@ variables:
     value: 'Ubuntu-latest'
   - name: isMain
     value: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+  - name: isRelease
+    value: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]
   - name: tag
     value: $(Build.BuildNumber)
   - name: ACCOUNT_ID_DEV
@@ -16,8 +18,6 @@ variables:
     value: 'eu-west-1'
   - name: IMAGE_REPO_NAME_DEV
     value: 'ecr-dev-backend'
-  - name: IMAGE_REPO_NAME_STAGING
-    value: 'ecr-staging-backend'
 
 stages:
   - stage: Build
@@ -39,7 +39,6 @@ stages:
             value: $(Pipeline.Workspace)/.gradle
           - name: TERM
             value: dumb
-
         steps:
           - task: JavaToolInstaller@0
             inputs:
@@ -85,7 +84,7 @@ stages:
               script: |
                 ./gradlew --stop
           - task: ECRPushImage@1
-            condition: eq(variables.isMain, true)
+            condition: or(eq(variables.isMain, true), eq(variables.isRelease, true))
             inputs:
               awsCredentials: 'elsa-ci'
               regionName: 'eu-west-1'
@@ -137,7 +136,7 @@ stages:
     displayName: Deploy testi
     dependsOn:
       - Build
-    condition: and(succeeded(), eq(variables.isMain, true))
+    condition: and(succeeded(), eq(variables.isRelease, true))
     jobs:
       - deployment: Deploy
         displayName: Deploy testi
@@ -175,12 +174,13 @@ stages:
     displayName: Deploy prod
     dependsOn:
       - Build
-    condition: and(succeeded(), eq(variables.isMain, true))
+      - Deploy_backend_testi
+    condition: and(succeeded(), eq(variables.isRelease, true))
     jobs:
       - deployment: Deploy
         displayName: Deploy prod
         environment:
-          name: "testi"
+          name: "production"
         pool:
           vmImage: $(vmImageName)
         strategy:
