@@ -622,4 +622,20 @@
         <cve>CVE-2021-23463</cve>
     </suppress>
     <!-- /UNLIKELY VULNERABILITIES 2021-12-22 -->
+    <!-- UNLIKELY VULNERABILITIES 2021-12-22 -->
+    <suppress>
+        <notes><![CDATA[
+   file name: h2-1.4.200.jar
+   ]]></notes>
+        <sha1>f7533fe7cb8e99c87a43d325a77b4b678ad9031a</sha1>
+        <cve>CVE-2021-42392</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: h2-1.4.200.jar
+   ]]></notes>
+        <sha1>f7533fe7cb8e99c87a43d325a77b4b678ad9031a</sha1>
+        <cve>CVE-2022-23221</cve>
+    </suppress>
+    <!-- /UNLIKELY VULNERABILITIES 2021-12-22 -->
 </suppressions>
