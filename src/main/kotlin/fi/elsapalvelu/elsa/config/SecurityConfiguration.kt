@@ -320,7 +320,7 @@ class SecurityConfiguration(
 
         // Lokaalissa ympäristössä luodaan uusi käyttäjä, jos sitä ei löydy
         if (existingUser == null) {
-//            if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
+            if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
                 cipher.init(Cipher.ENCRYPT_MODE, originalKey)
                 val params = cipher.parameters
                 val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
@@ -338,7 +338,7 @@ class SecurityConfiguration(
             }
 
             existingUser = findExistingUser(cipher, originalKey, hetu, eppn)
-//        }
+        }
 
         if (existingUser == null) {
             log.error(
