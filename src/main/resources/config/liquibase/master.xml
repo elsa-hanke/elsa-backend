@@ -178,5 +178,6 @@
     <include file="config/liquibase/changelog/20220202134411_drop_table_yliopisto_erikoisala.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220204122234_added_entity_YliopistoErikoisala.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220204145123_modify_entity_Opintoopas.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220216155702_added_entity_ApplicationSettings.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
