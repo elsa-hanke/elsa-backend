@@ -65,12 +65,15 @@ class ErikoistuvaLaakariServiceImpl(
         )
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        val asetus = asetusRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!)
-        val opintoopas = opintoopasRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!)
-        val validOpintooikeusExists = opintooikeusRepository.existsByErikoistuvaLaakariKayttajaUserId(
-            user.id!!,
-            LocalDate.now()
-        )
+        val asetus =
+            asetusRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!)
+        val opintoopas =
+            opintoopasRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!)
+        val validOpintooikeusExists =
+            opintooikeusRepository.existsByErikoistuvaLaakariKayttajaUserId(
+                user.id!!,
+                LocalDate.now()
+            )
         var opintooikeus = Opintooikeus(
             opintooikeudenMyontamispaiva = kayttajahallintaErikoistuvaLaakariDTO.opintooikeusAlkaa,
             opintooikeudenPaattymispaiva = kayttajahallintaErikoistuvaLaakariDTO.opintooikeusPaattyy,
@@ -78,10 +81,12 @@ class ErikoistuvaLaakariServiceImpl(
             osaamisenArvioinninOppaanPvm = kayttajahallintaErikoistuvaLaakariDTO.osaamisenArvioinninOppaanPvm,
             erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = yliopistoMapper.toEntity(
-                yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).orElse(null)
+                yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!)
+                    .orElse(null)
             ),
             erikoisala = erikoisalaMapper.toEntity(
-                erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!).orElse(null)
+                erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!)
+                    .orElse(null)
             ),
             asetus = asetus,
             opintoopas = opintoopas,
@@ -141,18 +146,34 @@ class ErikoistuvaLaakariServiceImpl(
         return null
     }
 
+    override fun findAllForVastuuhenkilo(kayttajaId: Long): List<ErikoistuvaLaakariDTO> {
+        val erikoistuvatLaakarit: MutableSet<ErikoistuvaLaakariDTO> = mutableSetOf()
+        val kayttaja = kayttajaRepository.findById(kayttajaId).orElse(null)
+        kayttaja?.yliopistotAndErikoisalat?.forEach {
+            erikoistuvatLaakarit.addAll(
+                erikoistuvaLaakariRepository.findAllForVastuuhenkilo(
+                    it.erikoisala?.id!!,
+                    it.yliopisto?.id!!
+                )
+                    .map(erikoistuvaLaakariMapper::toDto)
+            )
+        }
+        return erikoistuvatLaakarit.toList()
+    }
+
     override fun resendInvitation(id: Long) {
         erikoistuvaLaakariRepository.findByIdOrNull(id)?.let { erikoistuvaLaakari ->
-            verificationTokenService.findOne(erikoistuvaLaakari.kayttaja?.user?.id!!)?.let { token ->
-                mailService.sendEmailFromTemplate(
-                    erikoistuvaLaakari.kayttaja?.user!!,
-                    "uusiErikoistuvaLaakari.html",
-                    "email.uusierikoistuvalaakari.title",
-                    properties = mapOf(
-                        Pair(MailProperty.ID, token),
+            verificationTokenService.findOne(erikoistuvaLaakari.kayttaja?.user?.id!!)
+                ?.let { token ->
+                    mailService.sendEmailFromTemplate(
+                        erikoistuvaLaakari.kayttaja?.user!!,
+                        "uusiErikoistuvaLaakari.html",
+                        "email.uusierikoistuvalaakari.title",
+                        properties = mapOf(
+                            Pair(MailProperty.ID, token),
+                        )
                     )
-                )
-            }
+                }
         }
     }
 }

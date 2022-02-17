@@ -255,20 +255,27 @@ class TyoskentelyjaksoServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getTilastot(opintooikeusId: Long): TyoskentelyjaksotTilastotDTO {
+        val opintooikeus = opintooikeusRepository.findById(opintooikeusId).get()
+
+        return getTilastot(opintooikeus)
+    }
+
+    override fun getTilastot(
+        opintooikeus: Opintooikeus
+    ): TyoskentelyjaksotTilastotDTO {
+        val tyoskentelyjaksot =
+            tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeus.id!!)
         val tilastotCounter = TilastotCounter()
         val kaytannonKoulutusSuoritettuMap =
             KaytannonKoulutusTyyppi.values().map { it to 0.0 }.toMap().toMutableMap()
         val tyoskentelyjaksotSuoritettu =
             mutableSetOf<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>()
-        val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeusId)
         val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
             hyvaksiluettavatPerYearMap =
                 tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(
                     tyoskentelyjaksot
                 )
         }
-        val opintooikeus = opintooikeusRepository.findById(opintooikeusId).get()
 
         tyoskentelyjaksot.map {
             getTyoskentelyjaksoTilastot(

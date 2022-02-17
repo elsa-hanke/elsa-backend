@@ -26,4 +26,13 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
         userId: String,
         paiva: LocalDate
     ): Boolean
+
+    @Query(
+        """
+        select o from Opintooikeus o
+        where o.kaytossa = true and current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        and o.erikoisala.id = :erikoisalaId and o.yliopisto.id = :yliopistoId
+        """
+    )
+    fun findByErikoisalaAndYliopisto(erikoisalaId: Long, yliopistoId: Long): List<Opintooikeus>
 }

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotDTO
@@ -29,7 +30,13 @@ interface TyoskentelyjaksoService {
 
     fun getTilastot(opintooikeusId: Long): TyoskentelyjaksotTilastotDTO
 
-    fun updateLiitettyKoejaksoon(id: Long, opintooikeusId: Long, liitettyKoejaksoon: Boolean): TyoskentelyjaksoDTO?
+    fun getTilastot(opintooikeus: Opintooikeus): TyoskentelyjaksotTilastotDTO
+
+    fun updateLiitettyKoejaksoon(
+        id: Long,
+        opintooikeusId: Long,
+        liitettyKoejaksoon: Boolean
+    ): TyoskentelyjaksoDTO?
 
     fun validatePaattymispaiva(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
