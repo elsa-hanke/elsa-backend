@@ -26,6 +26,12 @@ plugins {
     id "org.liquibase.gradle"
     id "org.sonarqube"
     id "org.owasp.dependencycheck"
+    id "com.apollographql.apollo3" version "${apolloVersion}"
+}
+
+apollo {
+    packageName.set("fi.elsapalvelu.elsa")
+    generateKotlinModels.set(true)
 }
 
 group = "fi.elsapalvelu.elsa"
@@ -252,7 +258,12 @@ dependencies {
     implementation "com.sndyuk:logback-more-appenders:1.8.6"
     // https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot
     implementation(platform("org.apache.logging.log4j:log4j-bom:2.17.1"))
+    implementation "com.apollographql.apollo3:apollo-runtime:${apolloVersion}"
+    implementation "com.squareup.okhttp3:okhttp-tls:4.9.3"
+}
 
+apollo {
+  packageName.set("fi.elsapalvelu.elsa")
 }
 
 task cleanResources(type: Delete) {

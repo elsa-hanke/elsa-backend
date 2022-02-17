@@ -42,6 +42,7 @@ class ApplicationProperties {
 
         private val suomifi = Suomifi()
         private val haka = Haka()
+        private val sisuHy = SisuHy()
 
         fun getSuomifi(): Suomifi {
             return suomifi
@@ -49,6 +50,10 @@ class ApplicationProperties {
 
         fun getHaka(): Haka {
             return haka
+        }
+
+        fun getSisuHy(): SisuHy {
+            return sisuHy
         }
 
         class Suomifi {
@@ -65,6 +70,13 @@ class ApplicationProperties {
             var samlPrivateKeyLocation: String? = null
             var samlCertificateLocation: String? = null
             var samlHakaMetadataLocation: String? = null
+        }
+
+        class SisuHy {
+            var apiKey: String? = null
+            var graphQlEndpointUrl: String? = null
+            var privateKeyLocation: String? = null
+            var certificateLocation: String? = null
         }
     }
 
