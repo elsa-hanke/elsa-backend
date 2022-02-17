@@ -204,5 +204,10 @@ application:
       saml-private-key-location: classpath:private.key
       saml-certificate-location: classpath:public.crt
       saml-haka-metadata-location: https://haka.funet.fi/metadata/haka_test_metadata_signed.xml
+    sisuhy:
+      api-key:
+      graphql-endpoint-url: https://gw-api-test.it.helsinki.fi/secure/sisu/graphql
+      private-key-location: classpath:sisu/hy-sisu.key
+      certificate-location: classpath:sisu/hy-sisu.crt
   feedback:
     to: matti.hiitola@oulu.fi
