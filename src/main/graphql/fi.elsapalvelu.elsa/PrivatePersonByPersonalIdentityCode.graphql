@@ -1,0 +1,21 @@
+query PrivatePersonByPersonalIdentityCode($id: ID!) {
+    private_person_by_personal_identity_code(id: $id) {
+        studentNumber
+        dateOfBirth
+        studyRights {
+            id
+            valid {
+                startDate
+                endDate
+            }
+            state
+            phase1EducationClassificationUrn
+            decreeOnUniversityDegrees {
+                shortName {fi}
+            }
+            acceptedSelectionPath {
+                educationPhase1GroupId
+            }
+        }
+    }
+}
