@@ -24,7 +24,13 @@ class ErikoistuvaLaakariHelper {
         const val DEFAULT_ASETUS = "55/2020"
 
         @JvmStatic
-        fun createEntity(em: EntityManager, user: User? = null): ErikoistuvaLaakari {
+        fun createEntity(
+            em: EntityManager,
+            user: User? = null,
+            opintooikeudenAlkamispaiva: LocalDate? = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
+            opintooikeudenPaattymispaiva: LocalDate? = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
+            erikoisala: Erikoisala? = null
+        ): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari()
 
             var kayttaja = em.findAll(Kayttaja::class).firstOrNull { it.user == user }
@@ -46,13 +52,15 @@ class ErikoistuvaLaakariHelper {
                 yliopisto = em.findAll(Yliopisto::class).get(0)
             }
 
-            val erikoisala: Erikoisala
-            if (em.findAll(Erikoisala::class).isEmpty()) {
-                erikoisala = ErikoisalaHelper.createEntity()
-                em.persist(erikoisala)
-                em.flush()
-            } else {
-                erikoisala = em.findAll(Erikoisala::class).get(0)
+            var erikoistuvanErikoisala = erikoisala
+            if (erikoistuvanErikoisala == null) {
+                if (em.findAll(Erikoisala::class).isEmpty()) {
+                    erikoistuvanErikoisala = ErikoisalaHelper.createEntity()
+                    em.persist(erikoisala)
+                    em.flush()
+                } else {
+                    erikoistuvanErikoisala = em.findAll(Erikoisala::class).get(0)
+                }
             }
 
             val opintoopas: Opintoopas
@@ -63,7 +71,7 @@ class ErikoistuvaLaakariHelper {
             } else {
                 opintoopas = em.findAll(Opintoopas::class).get(0)
             }
-            opintoopas.erikoisala = erikoisala
+            opintoopas.erikoisala = erikoistuvanErikoisala
 
             val asetus: Asetus
             if (em.findAll(Asetus::class).isEmpty()) {
@@ -75,13 +83,13 @@ class ErikoistuvaLaakariHelper {
             }
 
             val opintooikeus = Opintooikeus(
-                opintooikeudenMyontamispaiva = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
-                opintooikeudenPaattymispaiva = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
+                opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
+                opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
                 osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA,
                 erikoistuvaLaakari = erikoistuvaLaakari,
                 yliopisto = yliopisto,
-                erikoisala = erikoisala,
+                erikoisala = erikoistuvanErikoisala,
                 opintoopas = opintoopas,
                 asetus = asetus,
                 kaytossa = true
