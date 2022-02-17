@@ -17,7 +17,7 @@ class TyoskentelyjaksoHelper {
         private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
-        private val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
+        private val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
         private val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         private const val DEFAULT_OSAAIKAPROSENTTI: Int = 50
