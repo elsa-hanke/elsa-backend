@@ -20,5 +20,7 @@ interface ErikoistuvaLaakariService {
 
     fun findOneByKayttajaId(kayttajaId: Long): ErikoistuvaLaakariDTO?
 
+    fun findAllForVastuuhenkilo(kayttajaId: Long): List<ErikoistuvaLaakariDTO>
+
     fun resendInvitation(id: Long)
 }
