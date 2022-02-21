@@ -6,4 +6,6 @@ interface EtusivuService {
 
     fun getErikoistujienSeurantaForVastuuhenkilo(userId: String): ErikoistujienSeurantaDTO
 
+    fun getErikoistujienSeurantaForKouluttaja(userId: String): ErikoistujienSeurantaDTO
+
 }

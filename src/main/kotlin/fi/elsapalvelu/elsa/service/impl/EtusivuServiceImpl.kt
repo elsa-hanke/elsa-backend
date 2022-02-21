@@ -63,6 +63,31 @@ class EtusivuServiceImpl(
         return seurantaDTO
     }
 
+    override fun getErikoistujienSeurantaForKouluttaja(userId: String): ErikoistujienSeurantaDTO {
+        val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
+        val seurantaDTO = ErikoistujienSeurantaDTO()
+
+        kayttaja?.let {
+            seurantaDTO.kayttajaYliopistoErikoisalat =
+                kayttaja.yliopistotAndErikoisalat.groupBy { it.yliopisto }.map {
+                    KayttajaErikoisalatPerYliopistoDTO(
+                        yliopistoNimi = it.key?.nimi,
+                        erikoisalat = it.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
+                            .sorted()
+                    )
+                }
+            seurantaDTO.kayttajaYliopistoErikoisalat?.forEach {
+                seurantaDTO.erikoisalat?.addAll(it.erikoisalat!!)
+            }
+            seurantaDTO.erikoisalat = seurantaDTO.erikoisalat?.sorted()?.toMutableSet()
+            opintooikeusRepository.findByKouluttajaValtuutus(kayttaja.id!!).forEach {
+                seurantaDTO.erikoistujienEteneminen?.add(getErikoistujanEteneminen(it))
+            }
+        }
+
+        return seurantaDTO
+    }
+
     private fun getErikoistujanEteneminen(opintooikeus: Opintooikeus): ErikoistujanEteneminenDTO {
         val eteneminen = ErikoistujanEteneminenDTO()
 

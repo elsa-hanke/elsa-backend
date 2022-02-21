@@ -35,4 +35,16 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
         """
     )
     fun findByErikoisalaAndYliopisto(erikoisalaId: Long, yliopistoId: Long): List<Opintooikeus>
+
+    @Query(
+        """
+        select o from Opintooikeus o
+        join o.erikoistuvaLaakari e
+        join e.annetutValtuutukset v
+        where o.kaytossa = true and current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        and v.valtuutettu.id = :kayttajaId
+        and current_date between v.alkamispaiva and v.paattymispaiva
+        """
+    )
+    fun findByKouluttajaValtuutus(kayttajaId: Long): List<Opintooikeus>
 }
