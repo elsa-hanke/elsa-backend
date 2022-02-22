@@ -115,7 +115,7 @@ stages:
                     awsCredentials: "elsa-ci"
                     regionName: "eu-west-1"
                     bucketName: "kehitys.elsapalvelu.fi"
-                    sourceFolder: "$(Pipeline.Workspace)/src/main/resources/templates/huoltokatko.html"
+                    sourceFolder: "/src/main/resources/templates/huoltokatko.html"
                     globExpressions: "**"
                   displayName: "Deploy to S3"
                 - task: AWSCLI@1
