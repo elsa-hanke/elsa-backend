@@ -67,19 +67,19 @@ stages:
               steps:
                 - task: S3Upload@1
                   inputs:
-                    awsCredentials: "elsa-ci"
+                    awsCredentials: "sandbox-elsa-ci"
                     regionName: "eu-west-1"
-                    bucketName: "kehitys.elsapalvelu.fi"
+                    bucketName: "sandbox.elsapalvelu.fi"
                     sourceFolder: "$(Build.SourcesDirectory)/src/main/resources/templates/huoltokatko.html"
                     globExpressions: "**"
                   displayName: "Deploy to S3"
                 - task: AWSCLI@1
                   inputs:
-                    awsCredentials: "elsa-ci"
+                    awsCredentials: "sandbox-elsa-ci"
                     regionName: "eu-west-1"
                     awsCommand: "cloudfront"
                     awsSubCommand: "create-invalidation"
-                    awsArguments: '--distribution-id EXEO15DPST8ID --paths "/*"'
+                    awsArguments: '--distribution-id EHJY1V5AOBIP --paths "/*"'
 
   - stage: Deploy_backend_sandbox
     displayName: Deploy backend sandbox
