@@ -128,6 +128,40 @@ stages:
                                              --force-new-deployment
                   displayName: Force update ecs service
 
+  - stage: Deploy_maintenance_page_testi
+    displayName: Deploy maintenance page testi
+    dependsOn:
+      - Build
+    condition: and(succeeded(), eq(variables.isRelease, true))
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy maintenance page
+        environment:
+          name: "testi"
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - script: mv $(Build.SourcesDirectory)/src/main/resources/templates/huoltokatko.html "$(Build.SourcesDirectory)/src/main/resources/templates/index.html"
+                - task: S3Upload@1
+                  inputs:
+                    awsCredentials: "staging-elsa-ci"
+                    regionName: "eu-west-1"
+                    bucketName: "testi.elsapalvelu.fi"
+                    sourceFolder: "$(Build.SourcesDirectory)/src/main/resources/templates/"
+                    globExpressions: "index.html"
+                  displayName: "Deploy to S3"
+                - task: AWSCLI@1
+                  inputs:
+                    awsCredentials: "staging-elsa-ci"
+                    regionName: "eu-west-1"
+                    awsCommand: "cloudfront"
+                    awsSubCommand: "create-invalidation"
+                    awsArguments: '--distribution-id E45AQGQKD12C0 --paths "/*"'
+
   - stage: Deploy_backend_testi
     displayName: Deploy testi
     dependsOn:
@@ -161,6 +195,40 @@ stages:
                                              --task-definition elsa-staging-backend:${NEW_REVISION} \
                                              --force-new-deployment
                   displayName: Force update ecs service
+
+  - stage: Deploy_maintenance_page_prod
+    displayName: Deploy maintenance page prod
+    dependsOn:
+      - Build
+    condition: and(succeeded(), eq(variables.isRelease, true))
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy maintenance page
+        environment:
+          name: "production"
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - script: mv $(Build.SourcesDirectory)/src/main/resources/templates/huoltokatko.html "$(Build.SourcesDirectory)/src/main/resources/templates/index.html"
+                - task: S3Upload@1
+                  inputs:
+                    awsCredentials: "prod-elsa-ci"
+                    regionName: "eu-west-1"
+                    bucketName: "elsapalvelu.fi"
+                    sourceFolder: "$(Build.SourcesDirectory)/src/main/resources/templates/"
+                    globExpressions: "index.html"
+                  displayName: "Deploy to S3"
+                - task: AWSCLI@1
+                  inputs:
+                    awsCredentials: "prod-elsa-ci"
+                    regionName: "eu-west-1"
+                    awsCommand: "cloudfront"
+                    awsSubCommand: "create-invalidation"
+                    awsArguments: '--distribution-id E1FSXLBGWL4WJQ --paths "/*"'
 
   - stage: Deploy_backend_prod
     displayName: Deploy prod
