@@ -94,38 +94,6 @@ stages:
               pushTag: $(tag)
             displayName: 'Push image'
 
-  - stage: Deploy_maintenance_page_dev
-    displayName: Deploy maintenance page dev
-    dependsOn:
-      - Build
-    condition: and(succeeded(), eq(variables.isMain, true))
-    jobs:
-      - deployment: Deploy
-        displayName: Deploy maintenance page
-        environment:
-          name: "development"
-        pool:
-          vmImage: $(vmImageName)
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: S3Upload@1
-                  inputs:
-                    awsCredentials: "elsa-ci"
-                    regionName: "eu-west-1"
-                    bucketName: "kehitys.elsapalvelu.fi"
-                    sourceFolder: "/src/main/resources/templates/huoltokatko.html"
-                    globExpressions: "**"
-                  displayName: "Deploy to S3"
-                - task: AWSCLI@1
-                  inputs:
-                    awsCredentials: "elsa-ci"
-                    regionName: "eu-west-1"
-                    awsCommand: "cloudfront"
-                    awsSubCommand: "create-invalidation"
-                    awsArguments: '--distribution-id EXEO15DPST8ID --paths "/*"'
-
   - stage: Deploy_backend_dev
     displayName: Deploy backend dev
     dependsOn:
