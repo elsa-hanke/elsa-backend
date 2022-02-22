@@ -94,6 +94,38 @@ stages:
               pushTag: $(tag)
             displayName: 'Push image'
 
+  - stage: Deploy_maintenance_page_dev
+    displayName: Deploy maintenance page dev
+    dependsOn:
+      - Build
+    condition: and(succeeded(), eq(variables.isMain, true))
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy maintenance page
+        environment:
+          name: "development"
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: S3Upload@1
+                  inputs:
+                    awsCredentials: "elsa-ci"
+                    regionName: "eu-west-1"
+                    bucketName: "kehitys.elsapalvelu.fi"
+                    sourceFolder: "$(Pipeline.Workspace)/src/main/resources/templates/huoltokatko.html"
+                    globExpressions: "**"
+                  displayName: "Deploy to S3"
+                - task: AWSCLI@1
+                  inputs:
+                    awsCredentials: "elsa-ci"
+                    regionName: "eu-west-1"
+                    awsCommand: "cloudfront"
+                    awsSubCommand: "create-invalidation"
+                    awsArguments: '--distribution-id EXEO15DPST8ID --paths "/*"'
+
   - stage: Deploy_backend_dev
     displayName: Deploy backend dev
     dependsOn:
@@ -118,13 +150,9 @@ stages:
                     inlineScript: |
                       set -e
                       ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME_DEV}:$(Build.BuildNumber)"
-
                       TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "elsa-dev-backend" --region "$AWS_DEFAULT_REGION")
-
                       NEW_TASK_DEFINTIION=$(echo $TASK_DEFINITION | jq --arg IMAGE "$ECR_IMAGE" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
-
                       NEW_TASK_INFO=$(aws ecs register-task-definition --region "$AWS_DEFAULT_REGION" --cli-input-json "$NEW_TASK_DEFINTIION")
-
                       NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
                       aws ecs update-service --cluster elsa-dev-cluster \
                                              --service elsa-dev-backend-service \
@@ -156,13 +184,9 @@ stages:
                     inlineScript: |
                       set -e
                       ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME_DEV}:$(Build.BuildNumber)"
-
                       TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "elsa-staging-backend" --region "$AWS_DEFAULT_REGION")
-
                       NEW_TASK_DEFINTIION=$(echo $TASK_DEFINITION | jq --arg IMAGE "$ECR_IMAGE" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
-
                       NEW_TASK_INFO=$(aws ecs register-task-definition --region "$AWS_DEFAULT_REGION" --cli-input-json "$NEW_TASK_DEFINTIION")
-
                       NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
                       aws ecs update-service --cluster elsa-staging-cluster \
                                              --service elsa-staging-backend-service \
@@ -195,13 +219,9 @@ stages:
                     inlineScript: |
                       set -e
                       ECR_IMAGE="939452229770.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME_DEV}:$(Build.BuildNumber)"
-
                       TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "elsa-prod-backend" --region "$AWS_DEFAULT_REGION")
-
                       NEW_TASK_DEFINTIION=$(echo $TASK_DEFINITION | jq --arg IMAGE "$ECR_IMAGE" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
-
                       NEW_TASK_INFO=$(aws ecs register-task-definition --region "$AWS_DEFAULT_REGION" --cli-input-json "$NEW_TASK_DEFINTIION")
-
                       NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
                       aws ecs update-service --cluster elsa-prod-cluster \
                                              --service elsa-prod-backend-service \
