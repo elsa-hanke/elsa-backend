@@ -49,6 +49,40 @@ stages:
               repositoryName: 'ecr-sandbox-backend'
             displayName: 'Push image'
 
+  - stage: Deploy_maintenance_page_dev
+    displayName: Deploy maintenance page dev
+    dependsOn:
+      - Build
+    # condition: and(succeeded(), eq(variables.isMain, true))
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy maintenance page
+        environment:
+          name: "sandbox"
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - script: mv $(Build.SourcesDirectory)/src/main/resources/templates/huoltokatko.html "$(Build.SourcesDirectory)/src/main/resources/templates/index.html"
+                - task: S3Upload@1
+                  inputs:
+                    awsCredentials: "sandbox-elsa-ci"
+                    regionName: "eu-west-1"
+                    bucketName: "sandbox.elsapalvelu.fi"
+                    sourceFolder: "$(Build.SourcesDirectory)/src/main/resources/templates/"
+                    globExpressions: "index.html"
+                  displayName: "Deploy to S3"
+                - task: AWSCLI@1
+                  inputs:
+                    awsCredentials: "sandbox-elsa-ci"
+                    regionName: "eu-west-1"
+                    awsCommand: "cloudfront"
+                    awsSubCommand: "create-invalidation"
+                    awsArguments: '--distribution-id EHJY1V5AOBIP --paths "/*"'
+
   - stage: Deploy_backend_sandbox
     displayName: Deploy backend sandbox
     dependsOn: Build
