@@ -16,6 +16,9 @@
             <column name="boolean_setting" type="boolean">
                 <constraints nullable="true"/>
             </column>
+            <column name="datetime_setting" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
         </createTable>
 
         <addUniqueConstraint tableName="application_setting" columnNames="setting_name"/>
