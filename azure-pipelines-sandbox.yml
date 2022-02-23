@@ -70,8 +70,8 @@ stages:
                     targetType: 'inline'
                     script: |
                       # Write your PowerShell commands here.
-                      dir
-                      Write-Host echo $PWD
+                      
+                      Write-Host echo $(ls)
                 - task: S3Upload@1
                   inputs:
                     awsCredentials: 'sandbox-elsa-ci'
