@@ -71,7 +71,7 @@ stages:
                     regionName: 'eu-west-1'
                     bucketName: 'sandbox.elsapalvelu.fi'
                     sourceFolder: '$(Build.SourcesDirectory)'
-                    globExpressions: 'src/main/resources/templates/*.html'
+                    globExpressions: '/**/huoltokatko.html'
                   displayName: "Deploy to S3"
                 - task: AWSCLI@1
                   inputs:
