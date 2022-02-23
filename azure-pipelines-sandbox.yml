@@ -70,7 +70,7 @@ stages:
                     awsCredentials: 'sandbox-elsa-ci'
                     regionName: 'eu-west-1'
                     bucketName: 'sandbox.elsapalvelu.fi'
-                    sourceFolder: '$(Pipeline.Workspace)/s/src/main/resources/templates'
+                    sourceFolder: '$(Pipeline.Workspace)/s/elsa-backend/src/main/resources/templates'
                     globExpressions: '**'
                   displayName: "Deploy to S3"
                 - task: AWSCLI@1
