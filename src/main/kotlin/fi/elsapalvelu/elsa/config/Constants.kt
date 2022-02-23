@@ -6,4 +6,3 @@ const val LOGIN_REGEX: String =
 const val SYSTEM_ACCOUNT: String = "system"
 const val ANONYMOUS_USER: String = "anonymoususer"
 const val DEFAULT_LANGUAGE: String = "fi"
-const val APP_SETTING_QUERY_OPINTOTIETO_DATA: String = "APP_SETTING_QUERY_OPINTOTIETO_DATA"
