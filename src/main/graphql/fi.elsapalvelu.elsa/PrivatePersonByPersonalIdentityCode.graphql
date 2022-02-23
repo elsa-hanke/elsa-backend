@@ -3,6 +3,7 @@ query PrivatePersonByPersonalIdentityCode($id: ID!) {
         studentNumber
         dateOfBirth
         studyRights {
+            id
             valid {
                 startDate
                 endDate

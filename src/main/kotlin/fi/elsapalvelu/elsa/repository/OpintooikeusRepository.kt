@@ -13,6 +13,11 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
 
     fun findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId: String): Opintooikeus?
 
+    fun findOneByYliopistoOpintooikeusIdAndErikoistuvaLaakariId(
+        yliopistoOpintooikeusId: String,
+        erikoistuvaLaakariId: Long
+    ): Opintooikeus?
+
     @Query(
         """
         select case when count(o) > 0 then true else false end from Opintooikeus o
