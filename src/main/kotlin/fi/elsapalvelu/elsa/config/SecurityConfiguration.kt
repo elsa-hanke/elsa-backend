@@ -147,6 +147,7 @@ class SecurityConfiguration(
             .antMatchers("/authorize").authenticated()
             .antMatchers("/api/").permitAll() // ohjaus etusivulle
             .antMatchers("/api/haka-yliopistot").permitAll()
+            .antMatchers("/api/julkinen/**").permitAll()
             .antMatchers("/api/auth-info").denyAll()
             .antMatchers("/api/erikoistuva-laakari/kayttooikeushakemus").authenticated()
             .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
