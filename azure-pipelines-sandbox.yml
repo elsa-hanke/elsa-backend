@@ -70,7 +70,7 @@ stages:
                     targetType: 'inline'
                     script: |
                       # Write your PowerShell commands here.
-                      
+                      dir
                       Write-Host echo $PWD
                 - task: S3Upload@1
                   inputs:
