@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220223164211" author="jhipster">
+        <update tableName="yliopisto">
+            <column name="nimi" value="HELSINGIN_YLIOPISTO"/>
+            <where>nimi='Helsingin yliopisto' or nimi='Helsingin Yliopisto' or nimi='Yliopisto 1'</where>
+        </update>
+        <update tableName="yliopisto">
+            <column name="nimi" value="OULUN_YLIOPISTO"/>
+            <where>nimi='Oulun yliopisto' or nimi='Oulun Yliopisto' or nimi='Yliopisto 2'</where>
+        </update>
+        <update tableName="yliopisto">
+            <column name="nimi" value="TAMPEREEN_YLIOPISTO"/>
+            <where>nimi='Tampereen Yliopisto' or nimi='Yliopisto 3'</where>
+        </update>
+        <update tableName="yliopisto">
+            <column name="nimi" value="TURUN_YLIOPISTO"/>
+            <where>nimi='Turun Yliopisto' or nimi='Yliopisto 4'</where>
+        </update>
+        <update tableName="yliopisto">
+            <column name="nimi" value="ITA_SUOMEN_YLIOPISTO"/>
+            <where>nimi='Itä-Suomen Yliopisto' or nimi='Yliopisto 5'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>
