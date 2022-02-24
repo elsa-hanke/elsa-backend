@@ -5,7 +5,7 @@ import java.util.*
 
 class SuoritteetTableDTO(
 
-    var suoritteenKategoriat: SortedSet<SuoritteenKategoriaDTO> = sortedSetOf(),
+    var suoritteenKategoriat: Set<SuoritteenKategoriaDTO> = setOf(),
 
     var suoritemerkinnat: Set<SuoritemerkintaDTO> = setOf(),
 
