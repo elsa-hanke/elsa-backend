@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import javax.persistence.EntityManager
@@ -92,7 +93,8 @@ class ErikoistuvaLaakariHelper {
                 erikoisala = erikoistuvanErikoisala,
                 opintoopas = opintoopas,
                 asetus = asetus,
-                kaytossa = true
+                kaytossa = true,
+                tila = OpintooikeudenTila.AKTIIVINEN
             )
             em.persist(opintooikeus)
             em.flush()

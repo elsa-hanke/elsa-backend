@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.domain.Asetus
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.Yliopisto
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import javax.persistence.EntityManager
@@ -55,7 +56,8 @@ class OpintooikeusHelper {
                 erikoisala = erikoisala,
                 opintoopas = opintoopas,
                 asetus = asetus,
-                kaytossa = false
+                kaytossa = false,
+                tila = OpintooikeudenTila.AKTIIVINEN
             )
             em.persist(opintooikeus)
             em.flush()

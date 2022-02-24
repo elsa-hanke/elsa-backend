@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.*
@@ -90,7 +91,8 @@ class ErikoistuvaLaakariServiceImpl(
             ),
             asetus = asetus,
             opintoopas = opintoopas,
-            kaytossa = !validOpintooikeusExists
+            kaytossa = !validOpintooikeusExists,
+            tila = OpintooikeudenTila.AKTIIVINEN
         )
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 
