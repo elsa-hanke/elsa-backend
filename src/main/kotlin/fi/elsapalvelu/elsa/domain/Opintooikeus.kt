@@ -1,8 +1,10 @@
 package fi.elsapalvelu.elsa.domain
 
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
+import java.time.Instant
 import java.time.LocalDate
 import javax.persistence.*
 import javax.validation.constraints.NotNull
@@ -15,6 +17,9 @@ data class Opintooikeus(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
+
+    @Column(name = "yliopisto_opintooikeus_id")
+    var yliopistoOpintooikeusId: String? = null,
 
     @NotNull
     @Column(name = "opintooikeuden_myontamispaiva")
@@ -34,6 +39,13 @@ data class Opintooikeus(
     @NotNull
     @Column(name = "kaytossa")
     var kaytossa: Boolean = false,
+
+    @NotNull
+    @Column(name = "tila")
+    var tila: OpintooikeudenTila? = null,
+
+    @Column(name = "muokkausaika")
+    var muokkausaika: Instant? = null,
 
     @NotNull
     @ManyToOne(optional = false)
