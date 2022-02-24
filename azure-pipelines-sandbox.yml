@@ -51,8 +51,8 @@ stages:
 
   - stage: Deploy_maintenance_page_dev
     displayName: Deploy maintenance page dev
-    dependsOn:
-      - Build
+    # dependsOn:
+    #   - Build
     # condition: and(succeeded(), eq(variables.isMain, true))
     jobs:
       - deployment: Deploy
