@@ -66,7 +66,7 @@ stages:
             deploy:
               steps:
                 - checkout: self
-                - script: mv $(Build.ArtifactStagingDirectory)/src/main/resources/templates/huoltokatko.html "$(Build.ArtifactStagingDirectory)/src/main/resources/templates/index.html"
+                - script: mv $(Build.SourcesDirectory)/src/main/resources/templates/huoltokatko.html "$(Build.SourcesDirectory)/src/main/resources/templates/index.html"
                 - task: S3Upload@1
                   inputs:
                     awsCredentials: "sandbox-elsa-ci"
