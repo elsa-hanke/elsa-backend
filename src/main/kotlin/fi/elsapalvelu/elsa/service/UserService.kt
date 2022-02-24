@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.KayttooikeusHakemusDTO
@@ -114,7 +115,8 @@ class UserService(
             yliopisto = yliopisto,
             erikoisala = erikoisala,
             opintoopas = opintoopas,
-            kaytossa = !validOpintooikeusExists
+            kaytossa = !validOpintooikeusExists,
+            tila = OpintooikeudenTila.AKTIIVINEN
         )
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 

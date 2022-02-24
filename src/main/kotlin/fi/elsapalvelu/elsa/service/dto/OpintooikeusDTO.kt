@@ -8,6 +8,8 @@ data class OpintooikeusDTO(
 
     var id: Long? = null,
 
+    var yliopistoOpintooikeusId: String? = null,
+
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
     var opintooikeudenPaattymispaiva: LocalDate? = null,
