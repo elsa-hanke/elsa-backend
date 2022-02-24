@@ -51,9 +51,11 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         suoritemerkintaDTO.lukittu = false
 
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
-        suoritemerkintaDTO.arviointiasteikko = arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
+        suoritemerkintaDTO.arviointiasteikko =
+            arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
         suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
             return ResponseEntity
                 .created(URI("/api/suoritemerkinnat/${it.id}"))
@@ -118,7 +120,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         principal: Principal?
     ): ResponseEntity<SuoritteetTableDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val table = SuoritteetTableDTO()
 
         table.suoritteenKategoriat = suoritteenKategoriaService
@@ -138,7 +141,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val form = SuoritemerkintaFormDTO()
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService
@@ -154,12 +158,12 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         return ResponseEntity.ok(form)
     }
 
-    private fun toSortedSuoritteenKategoriat(suoritteenKategoriat: List<SuoritteenKategoriaDTO>): SortedSet<SuoritteenKategoriaDTO> {
+    private fun toSortedSuoritteenKategoriat(suoritteenKategoriat: List<SuoritteenKategoriaDTO>): Set<SuoritteenKategoriaDTO> {
         return suoritteenKategoriat.map {
             it.apply {
                 suoritteet = suoritteet?.sortedBy { suoritteet -> suoritteet.nimi }?.toSet()
             }
             it
-        }.toSortedSet(compareBy { kategoria -> kategoria.jarjestysnumero })
+        }.sortedBy { kategoria -> kategoria.jarjestysnumero }.toSet()
     }
 }
