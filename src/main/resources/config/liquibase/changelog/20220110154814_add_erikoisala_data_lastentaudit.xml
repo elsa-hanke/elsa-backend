@@ -33,7 +33,7 @@
 
         <update tableName="arvioitava_kokonaisuus">
             <column name="kategoria_id"
-                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Lastentaudit' and erikoisala_id = 26)"/>
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Lastentaudit' and erikoisala_id = 24)"/>
             <where>kategoria_id is null</where>
         </update>
 
@@ -69,7 +69,7 @@
 
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Päivystyspediatria ja infektiot' and erikoisala_id = 26)"/>
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Päivystyspediatria ja infektiot' and erikoisala_id = 24)"/>
             <where>kategoria_id is null and nimi in (
                 'Laskimon kanylointi',
                 'Rakkopunktio',
@@ -78,7 +78,7 @@
 
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Neonatologia' and erikoisala_id = 26)"/>
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Neonatologia' and erikoisala_id = 24)"/>
             <where>kategoria_id is null and nimi in (
                 'Maskiventilaatio',
                 'Intubaatio',
@@ -93,7 +93,7 @@
 
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Neonatologia' and erikoisala_id = 26)"/>
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Neonatologia' and erikoisala_id = 24)"/>
             <where>kategoria_id is null and nimi in (
                 'Valtimon kanylointi',
                 'Maskiventilaatio',
