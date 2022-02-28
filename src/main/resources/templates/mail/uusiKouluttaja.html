@@ -11,15 +11,19 @@
 </p>
 <p>
     <span th:text="${name}"></span> on kutsunut sinut käyttäjäksi ELSA-palveluun.
-
-    Pääset kirjautumaan järjestelmään seuraavan linkin kautta:
+    Ensimmäisellä kerralla pääset kirjautumaan järjestelmään henkilökohtaisen kirjautumislinkkisi
+    kautta:
 </p>
 <p>
     <a th:href="${url}" th:text="${url}"
        th:with="url=(@{|${baseUrl}/kirjautuminen?token=${id}|})"></a>
 </p>
 <p>
-    HUOM! Tähän sähköpostiviestiin ei voi vastata.
+    Jatkossa voit kirjautua palveluun suoraan julkisen osoitteen kautta.
+</p>
+<p>
+    HUOM! Älä jaa henkilökohtaista kirjautumislinkkiäsi eteenpäin. Tähän sähköpostiviestiin ei voi
+    vastata.
 </p>
 <p>
     <span>Terveisin, </span>
