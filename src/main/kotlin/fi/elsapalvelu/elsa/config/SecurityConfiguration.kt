@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
+import org.apache.commons.text.similarity.LevenshteinDistance
 import org.opensaml.saml.common.assertion.ValidationContext
 import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
 import org.slf4j.LoggerFactory
@@ -273,8 +274,26 @@ class SecurityConfiguration(
                 .ifPresent {
                     val tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
 
-                    val existingUser =
-                        findExistingUser(cipher, originalKey, hetu, eppn)
+                    // Kutsutun käyttäjä etu- ja sukunimi tulee olla tarpeeksi lähellä
+                    // kutsussa syötettyjä tietoja
+                    val distance = LevenshteinDistance()
+                    val firstNameDistFirst = distance.apply(tokenUser.firstName, firstName)
+                    val firstNameDistLast = distance.apply(tokenUser.firstName, lastName)
+                    val lastNameDistFirst = distance.apply(tokenUser.lastName, firstName)
+                    val lastNameDistLast = distance.apply(tokenUser.lastName, lastName)
+                    val treshhold = 2
+                    if ((firstNameDistFirst > treshhold && firstNameDistLast > treshhold)
+                        || (lastNameDistFirst > treshhold && lastNameDistLast > treshhold)
+                    ) {
+                        log.error(
+                            "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
+                                "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole" +
+                                "tarpeeksi lähellä käyttäjän nimeä."
+                        )
+                        throw Exception(LoginException.VIRHEELLINEN_NIMI.name)
+                    }
+
+                    val existingUser = findExistingUser(cipher, originalKey, hetu, eppn)
 
                     // Yhdistä käyttäjä jos löytyy
                     if (existingUser != null) {
