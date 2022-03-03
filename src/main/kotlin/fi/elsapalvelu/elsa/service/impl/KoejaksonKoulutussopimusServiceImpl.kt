@@ -36,9 +36,15 @@ class KoejaksonKoulutussopimusServiceImpl(
         opintooikeusId: Long
     ): KoejaksonKoulutussopimusDTO? {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
-            var koulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
+            var koulutussopimus =
+                koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
             koulutussopimus.opintooikeus = it
-            koulutussopimus.koulutuspaikat?.forEach { it.koulutussopimus = koulutussopimus }
+            koulutussopimus.koulutuspaikat?.forEach { paikka ->
+                paikka.koulutussopimus = koulutussopimus
+                if (paikka.yliopisto == null) {
+                    paikka.yliopisto = it.yliopisto
+                }
+            }
             koulutussopimus.kouluttajat?.forEach { it.koulutussopimus = koulutussopimus }
             if (koulutussopimus.lahetetty) koulutussopimus.erikoistuvanAllekirjoitusaika =
                 LocalDate.now()
@@ -100,25 +106,22 @@ class KoejaksonKoulutussopimusServiceImpl(
         updated: KoejaksonKoulutussopimus
     ): KoejaksonKoulutussopimus {
         koulutussopimus.apply {
-            erikoistuvanNimi = updated.erikoistuvanNimi
-            erikoistuvanOpiskelijatunnus = updated.erikoistuvanOpiskelijatunnus
-            erikoistuvanSyntymaaika = updated.erikoistuvanSyntymaaika
-            erikoistuvanYliopisto = updated.erikoistuvanYliopisto
-            opintooikeudenMyontamispaiva = updated.opintooikeudenMyontamispaiva
             koejaksonAlkamispaiva = updated.koejaksonAlkamispaiva
             erikoistuvanPuhelinnumero = updated.erikoistuvanPuhelinnumero
-            erikoistuvanSahkoposti = updated.erikoistuvanSahkoposti
             lahetetty = updated.lahetetty
             vastuuhenkilo = updated.vastuuhenkilo
-            vastuuhenkilonNimi = updated.vastuuhenkilonNimi
-            vastuuhenkilonNimike = updated.vastuuhenkilonNimike
         }
         koulutussopimus.kouluttajat?.clear()
         updated.kouluttajat?.let { koulutussopimus.kouluttajat?.addAll(it) }
         koulutussopimus.kouluttajat?.forEach { it.koulutussopimus = koulutussopimus }
         koulutussopimus.koulutuspaikat?.clear()
         updated.koulutuspaikat?.let { koulutussopimus.koulutuspaikat?.addAll(it) }
-        koulutussopimus.koulutuspaikat?.forEach { it.koulutussopimus = koulutussopimus }
+        koulutussopimus.koulutuspaikat?.forEach {
+            it.koulutussopimus = koulutussopimus
+            if (it.yliopisto == null) {
+                it.yliopisto = koulutussopimus.opintooikeus?.yliopisto
+            }
+        }
 
         if (updated.lahetetty) {
             koulutussopimus.korjausehdotus = null
@@ -148,13 +151,10 @@ class KoejaksonKoulutussopimusServiceImpl(
         updated: KoejaksonKoulutussopimus
     ): KoejaksonKoulutussopimus {
         val updatedKouluttaja = updated.kouluttajat?.first { k -> k.id == kouluttaja.id }
-        kouluttaja.nimi = updatedKouluttaja?.nimi
-        kouluttaja.nimike = updatedKouluttaja?.nimike
         kouluttaja.toimipaikka = updatedKouluttaja?.toimipaikka
         kouluttaja.lahiosoite = updatedKouluttaja?.lahiosoite
         kouluttaja.postitoimipaikka = updatedKouluttaja?.postitoimipaikka
         kouluttaja.puhelin = updatedKouluttaja?.puhelin
-        kouluttaja.sahkoposti = updatedKouluttaja?.sahkoposti
 
         // Hyväksytty
         if (updated.korjausehdotus.isNullOrBlank()) {

@@ -17,9 +17,10 @@ interface KoejaksonKoulutussopimusMapper :
     EntityMapper<KoejaksonKoulutussopimusDTO, KoejaksonKoulutussopimus> {
 
     @Mappings(
-        Mapping(source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar", target = "erikoistuvanAvatar"),
-        Mapping(source = "vastuuhenkilonNimi", target = "vastuuhenkilo.nimi"),
-        Mapping(source = "vastuuhenkilonNimike", target = "vastuuhenkilo.nimike"),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar",
+            target = "erikoistuvanAvatar"
+        ),
         Mapping(source = "vastuuhenkiloHyvaksynyt", target = "vastuuhenkilo.sopimusHyvaksytty"),
         Mapping(source = "vastuuhenkilonKuittausaika", target = "vastuuhenkilo.kuittausaika"),
         Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo.id"),
@@ -27,8 +28,6 @@ interface KoejaksonKoulutussopimusMapper :
     override fun toDto(entity: KoejaksonKoulutussopimus): KoejaksonKoulutussopimusDTO
 
     @Mappings(
-        Mapping(source = "vastuuhenkilo.nimi", target = "vastuuhenkilonNimi"),
-        Mapping(source = "vastuuhenkilo.nimike", target = "vastuuhenkilonNimike"),
         Mapping(source = "vastuuhenkilo.sopimusHyvaksytty", target = "vastuuhenkiloHyvaksynyt"),
         Mapping(source = "vastuuhenkilo.kuittausaika", target = "vastuuhenkilonKuittausaika"),
         Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo")

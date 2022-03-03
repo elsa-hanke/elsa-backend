@@ -6,6 +6,7 @@ import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import javax.persistence.*
+import javax.validation.constraints.NotNull
 
 @Entity
 @Audited
@@ -20,9 +21,10 @@ data class KoulutussopimuksenKoulutuspaikka(
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
 
-    @Column(name = "yliopisto", nullable = false)
+    @NotNull
+    @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var yliopisto: String? = null,
+    var yliopisto: Yliopisto? = null,
 
     @ManyToOne
     var koulutussopimus: KoejaksonKoulutussopimus? = null

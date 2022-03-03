@@ -8,9 +8,7 @@ data class KoulutussopimuksenKoulutuspaikkaDTO(
 
     var nimi: String? = null,
 
-    var erikoisala: String? = null,
-
-    var yliopisto: String? = null
+    var yliopistoId: Long? = null
 
 ) : Serializable {
     override fun toString() = "KoulutussopimuksenKoulutuspaikkaDTO"
