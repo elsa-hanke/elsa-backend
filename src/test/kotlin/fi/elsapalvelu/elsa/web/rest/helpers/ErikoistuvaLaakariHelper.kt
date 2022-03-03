@@ -30,7 +30,9 @@ class ErikoistuvaLaakariHelper {
             user: User? = null,
             opintooikeudenAlkamispaiva: LocalDate? = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
             opintooikeudenPaattymispaiva: LocalDate? = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
-            erikoisala: Erikoisala? = null
+            erikoisala: Erikoisala? = null,
+            opintoopas: Opintoopas? = null,
+            yliopisto: Yliopisto? = null
         ): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari()
 
@@ -44,13 +46,15 @@ class ErikoistuvaLaakariHelper {
             erikoistuvaLaakari.kayttaja = kayttaja
             em.persist(erikoistuvaLaakari)
 
-            val yliopisto: Yliopisto
-            if (em.findAll(Yliopisto::class).isEmpty()) {
-                yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
-                em.persist(yliopisto)
-                em.flush()
-            } else {
-                yliopisto = em.findAll(Yliopisto::class).get(0)
+            var erikoistuvanYliopisto = yliopisto
+            if (erikoistuvanYliopisto == null) {
+                if (em.findAll(Yliopisto::class).isEmpty()) {
+                    erikoistuvanYliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
+                    em.persist(erikoistuvanYliopisto)
+                    em.flush()
+                } else {
+                    erikoistuvanYliopisto = em.findAll(Yliopisto::class).get(0)
+                }
             }
 
             var erikoistuvanErikoisala = erikoisala
@@ -64,15 +68,17 @@ class ErikoistuvaLaakariHelper {
                 }
             }
 
-            val opintoopas: Opintoopas
-            if (em.findAll(Opintoopas::class).isEmpty()) {
-                opintoopas = OpintoopasHelper.createEntity(em)
-                em.persist(opintoopas)
-                em.flush()
-            } else {
-                opintoopas = em.findAll(Opintoopas::class).get(0)
+            var opintoopasKaytossa = opintoopas
+            if (opintoopasKaytossa == null) {
+                if (em.findAll(Opintoopas::class).isEmpty()) {
+                    opintoopasKaytossa = OpintoopasHelper.createEntity(em, erikoisala = erikoistuvanErikoisala)
+                    em.persist(opintoopasKaytossa)
+                    em.flush()
+                } else {
+                    opintoopasKaytossa = em.findAll(Opintoopas::class).get(0)
+                    opintoopasKaytossa.erikoisala = erikoistuvanErikoisala
+                }
             }
-            opintoopas.erikoisala = erikoistuvanErikoisala
 
             val asetus: Asetus
             if (em.findAll(Asetus::class).isEmpty()) {
@@ -89,9 +95,9 @@ class ErikoistuvaLaakariHelper {
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
                 osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA,
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                yliopisto = yliopisto,
+                yliopisto = erikoistuvanYliopisto,
                 erikoisala = erikoistuvanErikoisala,
-                opintoopas = opintoopas,
+                opintoopas = opintoopasKaytossa,
                 asetus = asetus,
                 kaytossa = true,
                 tila = OpintooikeudenTila.AKTIIVINEN
