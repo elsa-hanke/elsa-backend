@@ -43,6 +43,7 @@ class ErikoistuvaLaakariHelper {
                 em.flush()
             }
 
+            erikoistuvaLaakari.syntymaaika = LocalDate.ofEpochDay(5L)
             erikoistuvaLaakari.kayttaja = kayttaja
             em.persist(erikoistuvaLaakari)
 

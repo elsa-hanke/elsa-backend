@@ -42,19 +42,11 @@ class KoejaksonVaiheetHelper {
             val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonKoulutussopimus(
                 opintooikeus = opintooikeus,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanSyntymaaika = DEFAULT_SYNTYMAAIKA,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
-                opintooikeudenMyontamispaiva = DEFAULT_MYONTAMISPAIVA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
                 erikoistuvanPuhelinnumero = erikoistuvaLaakari.kayttaja?.user?.phoneNumber,
-                erikoistuvanSahkoposti = erikoistuvaLaakari.kayttaja?.user?.email,
                 lahetetty = true,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
-                vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
-                vastuuhenkilonNimike = vastuuhenkilo.nimike,
             )
         }
 
@@ -156,7 +148,6 @@ class KoejaksonVaiheetHelper {
         ): KoulutussopimuksenKouluttaja {
             return KoulutussopimuksenKouluttaja(
                 kouluttaja = kouluttaja,
-                nimi = kouluttaja.getNimi(),
                 koulutussopimus = koejaksonKoulutussopimus,
                 sopimusHyvaksytty = true,
                 kuittausaika = DEFAULT_KUITTAUSAIKA_KOULUTTAJA
@@ -166,10 +157,11 @@ class KoejaksonVaiheetHelper {
         @JvmStatic
         fun createKoulutussopimuksenKoulutuspaikka(
             koejaksonKoulutussopimus: KoejaksonKoulutussopimus,
+            yliopisto: Yliopisto
         ): KoulutussopimuksenKoulutuspaikka {
             return KoulutussopimuksenKoulutuspaikka(
                 nimi = DEFAULT_KOULUTUSPAIKKA,
-                yliopisto = DEFAULT_YLIOPISTO,
+                yliopisto = yliopisto,
                 koulutussopimus = koejaksonKoulutussopimus
             )
         }

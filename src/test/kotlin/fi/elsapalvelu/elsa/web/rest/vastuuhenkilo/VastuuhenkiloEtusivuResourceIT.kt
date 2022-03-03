@@ -242,7 +242,7 @@ class VastuuhenkiloEtusivuResourceIT {
             )
             .andExpect(
                 jsonPath("$.erikoistujienEteneminen[0].erikoistuvaLaakariSyntymaaika").value(
-                    erikoistuvaLaakari.syntymaaika
+                    erikoistuvaLaakari.syntymaaika.toString()
                 )
             )
             .andExpect(
