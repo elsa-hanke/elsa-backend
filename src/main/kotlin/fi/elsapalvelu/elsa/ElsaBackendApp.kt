@@ -6,9 +6,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
+import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment
 import tech.jhipster.config.DefaultProfileUtil
 import tech.jhipster.config.JHipsterConstants
+import java.time.Clock
 import javax.annotation.PostConstruct
 
 @SpringBootApplication
@@ -38,6 +40,11 @@ class ElsaBackendApp(private val env: Environment) {
                     "It should not run with both the 'dev' and 'cloud' profiles at the same time."
             )
         }
+    }
+
+    @Bean
+    fun clock(): Clock {
+        return Clock.systemDefaultZone();
     }
 
     companion object {

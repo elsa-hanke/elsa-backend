@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -36,7 +37,8 @@ class OpintotietodataPersistenceServiceImpl(
     private val opintoopasRepository: OpintoopasRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val asetusRepository: AsetusRepository,
-    private val erikoisalaSisuTutkintoohjelmaRepository: ErikoisalaSisuTutkintoohjelmaRepository
+    private val erikoisalaSisuTutkintoohjelmaRepository: ErikoisalaSisuTutkintoohjelmaRepository,
+    private val clock: Clock
 ) : OpintotietodataPersistenceService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -65,7 +67,7 @@ class OpintotietodataPersistenceServiceImpl(
         // päättymispäivä käsitellään samassa yhteydessä muiden tarkistusten kanssa.
         opintotietodataDTO.opintooikeudet?.filter {
             it.opintooikeudenPaattymispaiva == null || !it.opintooikeudenPaattymispaiva!!.isBefore(
-                LocalDate.now()
+                LocalDate.now(clock)
             )
         }
             ?.forEach {

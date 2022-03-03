@@ -32,8 +32,7 @@ class OpintooikeusHelper {
             em.persist(erikoisala)
             em.flush()
 
-            val opintoopas = OpintoopasHelper.createEntity(em)
-            opintoopas.erikoisala = erikoisala
+            val opintoopas = OpintoopasHelper.createEntity(em, erikoisala = erikoisala)
             em.persist(opintoopas)
             em.flush()
 

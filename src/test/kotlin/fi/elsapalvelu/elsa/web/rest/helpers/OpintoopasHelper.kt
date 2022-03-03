@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.Arviointiasteikko
+import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.domain.Opintoopas
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
@@ -45,7 +46,8 @@ class OpintoopasHelper {
         fun createEntity(
             em: EntityManager,
             voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
-            voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLO_PAATTYY
+            voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLO_PAATTYY,
+            erikoisala: Erikoisala
         ): Opintoopas {
             val arviointiasteikko: Arviointiasteikko
             if (em.findAll(Arviointiasteikko::class).isEmpty()) {
@@ -71,7 +73,8 @@ class OpintoopasHelper {
                 DEFAULT_ERIKOISALAN_VAATIMA_SATEILYSUOJAKOULUTUSTEN_VAHIMMAISMAARA,
                 erikoisalanVaatimaJohtamisopintojenVahimmaismaara =
                 DEFAULT_ERIKOISALAN_VAATIMA_JOHTAMISOPINTOJEN_VAHIMMAISMAARA,
-                arviointiasteikko = arviointiasteikko
+                arviointiasteikko = arviointiasteikko,
+                erikoisala = erikoisala
             )
 
             return opintoopas
