@@ -18,6 +18,12 @@ fun LocalDate.isInRange(startDate: LocalDate, endDate: LocalDate?): Boolean {
     return startDate <= this && (endDate == null || endDate >= this)
 }
 
+fun LocalDate.periodLessThan(endDate: LocalDate?, lessThanYears: Int): Boolean {
+    return ChronoUnit.YEARS.between(
+        this, endDate
+    ) < lessThanYears
+}
+
 fun Int.startOfYearDate(): LocalDate {
     return LocalDate.of(this, 1, 1)
 }

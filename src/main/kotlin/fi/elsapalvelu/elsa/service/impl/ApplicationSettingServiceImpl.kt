@@ -10,11 +10,6 @@ import java.time.Instant
 class ApplicationSettingServiceImpl(
     private val applicationSettingRepository: ApplicationSettingRepository
 ) : ApplicationSettingService {
-
-    override fun getBooleanSettingValue(settingName: ApplicationSettingTyyppi): Boolean? {
-        return applicationSettingRepository.findOneBySettingName(settingName)?.booleanSetting
-    }
-
     override fun getDatetimeSettingValue(settingName: ApplicationSettingTyyppi): Instant? {
         return applicationSettingRepository.findOneBySettingName(settingName)?.datetimeSetting
     }
