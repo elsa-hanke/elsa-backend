@@ -179,6 +179,7 @@
     <include file="config/liquibase/changelog/20220204122234_added_entity_YliopistoErikoisala.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220204145123_modify_entity_Opintoopas.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220216155702_added_entity_ApplicationSettings.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220301145144_modify_entity_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220223164211_modify_entity_data_Yliopisto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220224130754_modify_entity_Opintooikeus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220228123311_modify_entity_Yliopisto.xml" relativeToChangelogFile="false"/>

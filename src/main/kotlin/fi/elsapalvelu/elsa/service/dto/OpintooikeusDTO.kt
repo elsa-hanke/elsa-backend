@@ -23,6 +23,9 @@ data class OpintooikeusDTO(
     var osaamisenArvioinninOppaanPvm: LocalDate? = null,
 
     @get: NotNull
+    var yliopistoId: Long? = null,
+
+    @get: NotNull
     var yliopistoNimi: String? = null,
 
     @get: NotNull
