@@ -2,9 +2,20 @@ package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
+import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.*
-import org.apache.commons.text.similarity.LevenshteinDistance
+import fi.elsapalvelu.elsa.service.OpintooikeusService
+import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.service.OpintotietodataPersistenceService
+import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import org.opensaml.saml.common.assertion.ValidationContext
 import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
 import org.slf4j.LoggerFactory
@@ -43,14 +54,10 @@ import org.springframework.web.filter.CorsFilter
 import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_PRODUCTION
-import java.nio.charset.StandardCharsets
-import java.time.LocalDate
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
-import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
-
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
@@ -59,17 +66,13 @@ class SecurityConfiguration(
     private val corsFilter: CorsFilter,
     private val applicationProperties: ApplicationProperties,
     private val problemSupport: SecurityProblemSupport,
-    private val userRepository: UserRepository,
-    private val verificationTokenRepository: VerificationTokenRepository,
-    private val kayttajaRepository: KayttajaRepository,
-    private val suoritusarviointiRepository: SuoritusarviointiRepository,
-    private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
-    private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
-    private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
-    private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
-    private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
-    private val opintooikeusRepository: OpintooikeusRepository,
+    private val userService: UserService,
+    private val opintooikeusService: OpintooikeusService,
+    private val opintotietodataFetchingServices: List<OpintotietodataFetchingService>,
+    private val opintotietodataPersistenceService: OpintotietodataPersistenceService,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val kayttajaRepository: KayttajaRepository,
+    private val userRepository: UserRepository,
     private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
     private val env: Environment
 ) : WebSecurityConfigurerAdapter() {
@@ -163,7 +166,6 @@ class SecurityConfiguration(
             .antMatchers("/api/julkinen/**").permitAll()
             .antMatchers("/api/auth-info").denyAll()
             .antMatchers("/api/login/impersonate").hasAnyAuthority(VASTUUHENKILO, KOULUTTAJA)
-            .antMatchers("/api/erikoistuva-laakari/kayttooikeushakemus").authenticated()
             .antMatchers(HttpMethod.GET, "/api/erikoistuva-laakari/**")
             .hasAnyAuthority(ERIKOISTUVA_LAAKARI, ERIKOISTUVA_LAAKARI_IMPERSONATED)
             .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
@@ -186,30 +188,23 @@ class SecurityConfiguration(
                 applicationContext.getBean(RelyingPartyRegistrationRepository::class.java)
             val relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver =
                 DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
-            httpConfiguration.and().saml2Login()
-                .authenticationConverter(
-                    Saml2AuthenticationTokenConverter(
-                        relyingPartyRegistrationResolver
-                    )
+            httpConfiguration.and().saml2Login().authenticationConverter(
+                Saml2AuthenticationTokenConverter(
+                    relyingPartyRegistrationResolver
                 )
-                .authenticationManager(ProviderManager(authenticationProvider))
-                .defaultSuccessUrl("/", true)
-                .failureUrl("/kirjaudu")
-                .and()
-                .addFilterBefore(ElsaUriFilter(applicationProperties), CsrfFilter::class.java)
-                .saml2Logout { saml2 ->
+            ).authenticationManager(ProviderManager(authenticationProvider)).defaultSuccessUrl("/", true)
+                .failureUrl("/kirjaudu").and()
+                .addFilterBefore(ElsaUriFilter(applicationProperties), CsrfFilter::class.java).saml2Logout { saml2 ->
                     saml2.logoutRequest { request ->
                         request.logoutRequestResolver(
                             logoutRequestResolver(relyingPartyRegistrationResolver)
                         )
-                    }.logoutUrl("/api/logout")
-                        .logoutResponse { response ->
-                            response.logoutResponseResolver(
-                                logoutResponseResolver(relyingPartyRegistrationResolver)
-                            )
-                        }
-                }
-                .logout().logoutSuccessUrl("/")
+                    }.logoutUrl("/api/logout").logoutResponse { response ->
+                        response.logoutResponseResolver(
+                            logoutResponseResolver(relyingPartyRegistrationResolver)
+                        )
+                    }
+                }.logout().logoutSuccessUrl("/")
         }
     }
 
@@ -247,8 +242,7 @@ class SecurityConfiguration(
     }
 
     fun convertAuthentication(responseToken: OpenSaml4AuthenticationProvider.ResponseToken): Saml2Authentication? {
-        val token: Saml2Authentication = OpenSaml4AuthenticationProvider
-            .createDefaultResponseAuthenticationConverter()
+        val token: Saml2Authentication = OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter()
             .convert(responseToken) as Saml2Authentication
         val principal = token.principal as Saml2AuthenticatedPrincipal
         val firstName = principal.attributes["urn:oid:2.5.4.42"]?.get(0) as String
@@ -268,193 +262,116 @@ class SecurityConfiguration(
         principal.attributes["nameID"] = mutableListOf(nameID?.value) as List<*>?
         principal.attributes["nameIDFormat"] = mutableListOf(nameID?.format) as List<*>?
         principal.attributes["nameIDQualifier"] = mutableListOf(nameID?.nameQualifier) as List<*>?
-        principal.attributes["nameIDSPQualifier"] =
-            mutableListOf(nameID?.spNameQualifier) as List<*>?
+        principal.attributes["nameIDSPQualifier"] = mutableListOf(nameID?.spNameQualifier) as List<*>?
 
-        val decodedKey =
-            Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
+        val decodedKey = Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
         val originalKey: SecretKey = SecretKeySpec(
-            decodedKey,
-            0,
-            decodedKey.size,
-            applicationProperties.getSecurity().secretKeyAlgorithm
+            decodedKey, 0, decodedKey.size, applicationProperties.getSecurity().secretKeyAlgorithm
         )
 
         val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
-
         val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
         val verificationToken = attr.request.getParameter("RelayState")
 
         // Kutsuttu käyttäjä
         if (verificationToken != null) {
-            verificationTokenRepository.findById(verificationToken)
-                .ifPresent {
-                    val tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
-
-                    // Kutsutun käyttäjä etu- ja sukunimi tulee olla tarpeeksi lähellä
-                    // kutsussa syötettyjä tietoja
-                    val distance = LevenshteinDistance()
-                    val firstNameDistFirst = distance.apply(tokenUser.firstName, firstName)
-                    val firstNameDistLast = distance.apply(tokenUser.firstName, lastName)
-                    val lastNameDistFirst = distance.apply(tokenUser.lastName, firstName)
-                    val lastNameDistLast = distance.apply(tokenUser.lastName, lastName)
-                    val treshhold = 2
-                    if ((firstNameDistFirst > treshhold && firstNameDistLast > treshhold)
-                        || (lastNameDistFirst > treshhold && lastNameDistLast > treshhold)
-                    ) {
-                        log.error(
-                            "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
-                                "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole" +
-                                "tarpeeksi lähellä käyttäjän nimeä."
-                        )
-                        throw Exception(LoginException.VIRHEELLINEN_NIMI.name)
-                    }
-
-                    val existingUser = findExistingUser(cipher, originalKey, hetu, eppn)
-
-                    // Yhdistä käyttäjä jos löytyy
-                    if (existingUser != null) {
-                        val existingKayttaja = kayttajaRepository.findOneByUserId(existingUser.id!!)
-                        val tokenKayttaja = kayttajaRepository.findOneByUserId(tokenUser.id!!)
-
-                        updateKouluttajaReferences(
-                            tokenKayttaja.get().id!!,
-                            existingKayttaja.get().id!!
-                        )
-
-                        existingUser.email = tokenUser.email
-                        existingUser.authorities.clear()
-                        existingUser.authorities.addAll(tokenUser.authorities)
-
-                        kayttajaRepository.delete(tokenKayttaja.get())
-                        verificationTokenRepository.delete(it)
-                        userRepository.delete(tokenUser)
-                        userRepository.save(existingUser)
-                    } else {
-                        cipher.init(Cipher.ENCRYPT_MODE, originalKey)
-                        val params = cipher.parameters
-                        val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
-                        val ciphertext = if (hetu != null)
-                            cipher.doFinal(
-                                hetu.toString().toByteArray(StandardCharsets.UTF_8)
-                            ) else null
-
-                        tokenUser.hetu = ciphertext
-                        tokenUser.eppn = eppn
-                        tokenUser.initVector = iv
-                        tokenUser.firstName = firstName
-                        tokenUser.lastName = lastName
-
-                        userRepository.save(tokenUser)
-                        verificationTokenRepository.delete(it)
-                    }
-                }
+            userService.createOrUpdateUserWithToken(
+                verificationToken, cipher, originalKey, hetu, eppn, firstName, lastName
+            )
         }
 
-        // Käyttäjä täytyy löytyä järjestelmästä
-        var existingUser =
-            findExistingUser(cipher, originalKey, hetu, eppn)
+        var existingUser = userService.findExistingUser(cipher, originalKey, hetu, eppn)
 
-        // Lokaalissa ympäristössä luodaan uusi käyttäjä, jos sitä ei löydy
-        if (existingUser == null) {
-            if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
-                cipher.init(Cipher.ENCRYPT_MODE, originalKey)
-                val params = cipher.parameters
-                val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
-                val ciphertext = cipher.doFinal(hetu.toString().toByteArray(StandardCharsets.UTF_8))
-                userRepository.save(
-                    User(
-                        login = UUID.randomUUID().toString(),
-                        firstName = firstName,
-                        lastName = lastName,
-                        activated = true,
-                        hetu = ciphertext,
-                        initVector = iv
+        hetu?.let {
+            if (existingUser == null) {
+                fetchAndHandleOpintotietodataForFirstLogin(cipher, originalKey, hetu, firstName, lastName)
+                existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
+
+                // Lokaalissa ympäristössä luodaan uusi käyttäjä, jos sitä ei löydy.
+                if (existingUser == null && env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
+                    opintotietodataPersistenceService.createWithoutOpintotietodata(
+                        cipher, originalKey, it, firstName, lastName
                     )
-                )
+                    existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
+                }
+            } else if (hasErikoistuvaLaakariRole(existingUser!!)) {
+                fetchAndUpdateOpintotietodataIfChanged(existingUser?.id!!, hetu, firstName, lastName)
             }
-
-            existingUser = findExistingUser(cipher, originalKey, hetu, eppn)
         }
 
         if (existingUser == null) {
             log.error(
-                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
-                    "Käyttäjällä ei ole käyttöoikeutta."
+                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " + "Käyttäjällä ei ole käyttöoikeutta."
             )
             throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
         }
 
         // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus
-        if (!onOikeus(existingUser)) {
+        if (hasErikoistuvaLaakariRole(existingUser!!) && !opintooikeusService.onOikeus(
+                existingUser!!
+            )
+        ) {
             log.error(
-                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " +
-                    "Käyttäjällä ei ole aktiivista opinto-oikeutta."
+                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole aktiivista opinto-oikeutta."
             )
             throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
         }
 
-        return Saml2Authentication(
-            createPrincipal(existingUser.id, principal),
+        return Saml2Authentication(createPrincipal(existingUser!!.id, principal),
             token.saml2Response,
-            existingUser.authorities.map { SimpleGrantedAuthority(it.name) }
-        )
+            existingUser!!.authorities.map { SimpleGrantedAuthority(it.name) })
     }
 
-    private fun onOikeus(user: User): Boolean {
-        if (user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))) {
-            return opintooikeusRepository.existsByErikoistuvaLaakariKayttajaUserId(
-                user.id!!,
-                LocalDate.now()
-            )
-        }
-        return true
-    }
+    private fun hasErikoistuvaLaakariRole(user: User): Boolean =
+        user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))
 
     private fun createPrincipal(
-        name: String?,
-        principal: Saml2AuthenticatedPrincipal
+        name: String?, principal: Saml2AuthenticatedPrincipal
     ): DefaultSaml2AuthenticatedPrincipal {
         val newPrincipal = DefaultSaml2AuthenticatedPrincipal(name, principal.attributes)
         newPrincipal.relyingPartyRegistrationId = principal.relyingPartyRegistrationId
         return newPrincipal
     }
 
-    private fun findExistingUser(
-        cipher: Cipher,
-        originalKey: SecretKey,
-        hetu: String?,
-        eppn: String?
-    ): User? {
-        if (hetu != null) {
-            userRepository.findAllWithAuthorities().filter { u -> u.hetu != null }.forEach { u ->
-                cipher.init(Cipher.DECRYPT_MODE, originalKey, IvParameterSpec(u.initVector))
-                val userHetu = String(cipher.doFinal(u.hetu), StandardCharsets.UTF_8)
-                if (userHetu == hetu) {
-                    return u
+    private fun fetchAndHandleOpintotietodataForFirstLogin(
+        cipher: Cipher, originalKey: SecretKey, hetu: String, firstName: String, lastName: String
+    ) {
+        runBlocking {
+            val deferreds: List<Deferred<OpintotietodataDTO?>> =
+                opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }.map { service ->
+                    async {
+                        service.fetchOpintotietodata(hetu)
+                    }
                 }
-            }
-        } else if (eppn != null) {
-            userRepository.findAllWithAuthorities().filter { u -> u.eppn != null }.forEach { u ->
-                if (u.eppn == eppn) {
-                    return u
+
+            deferreds.awaitAll().map {
+                it?.let {
+                    opintotietodataPersistenceService.create(cipher, originalKey, hetu, firstName, lastName, it)
                 }
             }
         }
-
-        return null
     }
 
-    private fun updateKouluttajaReferences(oldId: Long, newId: Long) {
-        suoritusarviointiRepository.changeKouluttaja(oldId, newId)
-        koejaksonKoulutussopimusRepository.changeKouluttaja(oldId, newId)
-        koejaksonAloituskeskusteluRepository.changeKouluttaja(oldId, newId)
-        koejaksonAloituskeskusteluRepository.changeEsimies(oldId, newId)
-        koejaksonValiarviointiRepository.changeKouluttaja(oldId, newId)
-        koejaksonValiarviointiRepository.changeEsimies(oldId, newId)
-        koejaksonKehittamistoimenpiteetRepository.changeKouluttaja(oldId, newId)
-        koejaksonKehittamistoimenpiteetRepository.changeEsimies(oldId, newId)
-        koejaksonLoppukeskusteluRepository.changeKouluttaja(oldId, newId)
-        koejaksonLoppukeskusteluRepository.changeEsimies(oldId, newId)
+    private fun fetchAndUpdateOpintotietodataIfChanged(
+        userId: String,
+        hetu: String,
+        firstName: String,
+        lastName: String
+    ) {
+        runBlocking {
+            val deferreds: List<Deferred<OpintotietodataDTO?>> =
+                opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }.map { service ->
+                    async {
+                        service.fetchOpintotietodata(hetu)
+                    }
+                }
+
+            deferreds.awaitAll().map {
+                it?.let {
+                    opintotietodataPersistenceService.createOrUpdateIfChanged(userId, firstName, lastName, it)
+                }
+            }
+        }
     }
+
 }

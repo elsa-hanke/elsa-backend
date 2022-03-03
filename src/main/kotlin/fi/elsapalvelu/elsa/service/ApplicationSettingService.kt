@@ -5,7 +5,5 @@ import java.time.Instant
 
 interface ApplicationSettingService {
 
-    fun getBooleanSettingValue(settingName: ApplicationSettingTyyppi): Boolean?
-
     fun getDatetimeSettingValue(settingName: ApplicationSettingTyyppi): Instant?
 }

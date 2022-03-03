@@ -13,7 +13,7 @@ import fi.elsapalvelu.elsa.service.mapper.YliopistoMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
+import java.time.Instant
 import java.util.*
 
 @Service
@@ -70,11 +70,13 @@ class ErikoistuvaLaakariServiceImpl(
             asetusRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!)
         val opintoopas =
             opintoopasRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!)
-        val validOpintooikeusExists =
-            opintooikeusRepository.existsByErikoistuvaLaakariKayttajaUserId(
-                user.id!!,
-                LocalDate.now()
-            )
+
+        // Asetetaan mahdollisesti muille olemassaoleville opinto-oikeuksille kaytossa = false, koska käytössä voi
+        // olla vain yksi kerrallaan.
+        erikoistuvaLaakari.opintooikeudet.forEach {
+            it.kaytossa = false
+        }
+
         var opintooikeus = Opintooikeus(
             opintooikeudenMyontamispaiva = kayttajahallintaErikoistuvaLaakariDTO.opintooikeusAlkaa,
             opintooikeudenPaattymispaiva = kayttajahallintaErikoistuvaLaakariDTO.opintooikeusPaattyy,
@@ -91,8 +93,9 @@ class ErikoistuvaLaakariServiceImpl(
             ),
             asetus = asetus,
             opintoopas = opintoopas,
-            kaytossa = !validOpintooikeusExists,
-            tila = OpintooikeudenTila.AKTIIVINEN
+            kaytossa = true,
+            tila = OpintooikeudenTila.AKTIIVINEN,
+            muokkausaika = Instant.now()
         )
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 
