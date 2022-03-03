@@ -13,6 +13,17 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
 
     fun findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId: String): Opintooikeus?
 
+    fun findOneByErikoistuvaLaakariIdAndYliopistoOpintooikeusId(
+        erikoistuvaLaakariId: Long,
+        yliopistoOpintooikeusId: String
+    ): Opintooikeus?
+
+    fun findOneByErikoistuvaLaakariIdAndYliopistoIdAndErikoisalaIdAndYliopistoOpintooikeusIdIsNull(
+        erikoistuvaLaakariId: Long,
+        yliopistoId: Long,
+        erikoisalaId: Long
+    ): Opintooikeus?
+
     @Query(
         """
         select case when count(o) > 0 then true else false end from Opintooikeus o
@@ -22,10 +33,10 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
         where :paiva between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva and u.id = :userId
         """
     )
-    fun existsByErikoistuvaLaakariKayttajaUserId(
+    fun findByErikoistuvaLaakariKayttajaUserIdAndBetweenDate(
         userId: String,
         paiva: LocalDate
-    ): Boolean
+    ): List<Opintooikeus>
 
     @Query(
         """

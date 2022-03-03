@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 class SisuHyClientBuilderImpl(
     applicationProperties: ApplicationProperties,
     resourceLoader: ResourceLoader
-) : SisuHyClientBuilder {
+): SisuHyClientBuilder {
 
     init {
         Companion.applicationProperties = applicationProperties
@@ -84,4 +84,3 @@ private class ApiKeyInterceptor(private val apiKey: String) : Interceptor {
         return chain.proceed(request)
     }
 }
-

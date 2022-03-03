@@ -3,9 +3,12 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
+import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.UusiLahikouluttajaDTO
+import fi.elsapalvelu.elsa.service.impl.UserServiceImpl
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -14,7 +17,6 @@ import java.net.URI
 import java.security.Principal
 import java.util.*
 import javax.persistence.EntityExistsException
-import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
@@ -22,16 +24,12 @@ private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariMuutToiminnotResource(
-    private val userService: UserService,
+    private val userService: UserServiceImpl,
     private val kayttajaService: KayttajaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val verificationTokenService: VerificationTokenService,
     private val mailService: MailService
 ) {
-
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
-
     @GetMapping("")
     fun getErikoistuvaLaakari(
         principal: Principal?
@@ -40,15 +38,6 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let {
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-    }
-
-    @PutMapping("/kayttooikeushakemus")
-    fun updateErikoistuvalaakariKayttooikeushakemus(
-        @Valid @RequestBody kayttooikeusHakemusDTO: KayttooikeusHakemusDTO,
-        principal: Principal?,
-        request: HttpServletRequest
-    ) {
-        userService.updateUserAuthorities(principal, kayttooikeusHakemusDTO)
     }
 
     @PostMapping("/lahikouluttajat")
