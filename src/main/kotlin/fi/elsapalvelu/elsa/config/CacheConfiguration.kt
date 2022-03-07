@@ -74,6 +74,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Erikoisala::class.java.name + ".suoritteenKategoriat")
             createCache(cm, fi.elsapalvelu.elsa.domain.Erikoisala::class.java.name + ".yliopistot")
             createCache(cm, fi.elsapalvelu.elsa.domain.Erikoisala::class.java.name + ".opintooppaat")
+            createCache(cm, fi.elsapalvelu.elsa.domain.Erikoisala::class.java.name + ".sisuTutkintoohjelmakoodit")
             createCache(cm, fi.elsapalvelu.elsa.domain.Erikoisala::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari::class.java.name + ".annetutValtuutukset")
             createCache(cm, fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari::class.java.name + ".opintooikeudet")
@@ -127,6 +128,8 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Yliopisto::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.repository.UserRepository.USERS_BY_EMAIL_CACHE)
             createCache(cm, fi.elsapalvelu.elsa.repository.UserRepository.USERS_BY_LOGIN_CACHE)
+            createCache(cm, fi.elsapalvelu.elsa.domain.ApplicationSetting::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.ErikoisalaSisuTutkintoohjelma::class.java.name)
         }
         // @formatter:on
     }

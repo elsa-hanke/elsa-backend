@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220307105213" author="jhipster">
+
+        <createTable tableName="erikoisala_sisu_tutkintoohjelma">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tutkintoohjelma_id" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="erikoisala_sisu_tutkintoohjelma"/>
+
+        <addForeignKeyConstraint baseTableName="erikoisala_sisu_tutkintoohjelma" baseColumnNames="erikoisala_id"
+                                 constraintName="fk_erikoisala_sisu_tutkintoohjelma_erikoisala_id"
+                                 referencedTableName="erikoisala"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>
