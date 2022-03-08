@@ -183,5 +183,6 @@
     <include file="config/liquibase/changelog/20220224130754_modify_entity_Opintooikeus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220228123311_modify_entity_Yliopisto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220307105213_added_entity_ErikoisalaSisuTutkintoohjelma.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220308141823_modify_entity_Erikoisala.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

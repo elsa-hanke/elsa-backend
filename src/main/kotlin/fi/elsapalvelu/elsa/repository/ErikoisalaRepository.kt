@@ -5,4 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ErikoisalaRepository : JpaRepository<Erikoisala, Long>
+interface ErikoisalaRepository : JpaRepository<Erikoisala, Long> {
+
+    fun findOneByVirtaPatevyyskoodi(virtaPatevyyskoodi: String): Erikoisala?
+    
+}
