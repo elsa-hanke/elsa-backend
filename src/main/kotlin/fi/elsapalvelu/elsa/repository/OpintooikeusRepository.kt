@@ -41,7 +41,7 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
     @Query(
         """
         select o from Opintooikeus o
-        where o.kaytossa = true and current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        where current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
         and o.erikoisala.id = :erikoisalaId and o.yliopisto.id = :yliopistoId
         """
     )
@@ -52,7 +52,7 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
         select o from Opintooikeus o
         join o.erikoistuvaLaakari e
         join e.annetutValtuutukset v
-        where o.kaytossa = true and current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        where current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
         and v.valtuutettu.id = :kayttajaId
         and current_date between v.alkamispaiva and v.paattymispaiva
         """
