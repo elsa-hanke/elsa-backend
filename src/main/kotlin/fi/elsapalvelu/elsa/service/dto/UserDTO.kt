@@ -46,7 +46,9 @@ open class UserDTO(
 
     var lastModifiedDate: Instant? = null,
 
-    var authorities: Set<String>? = null
+    var authorities: Set<String>? = null,
+
+    var impersonated: Boolean? = false
 ) {
     constructor(user: User) :
         this(

@@ -31,6 +31,7 @@ import org.springframework.security.saml2.provider.service.web.authentication.lo
 import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutResponseResolver
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutResponseResolver
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
@@ -68,6 +69,8 @@ class SecurityConfiguration(
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
     private val env: Environment
 ) : WebSecurityConfigurerAdapter() {
 
@@ -150,7 +153,10 @@ class SecurityConfiguration(
             .antMatchers("/api/haka-yliopistot").permitAll()
             .antMatchers("/api/julkinen/**").permitAll()
             .antMatchers("/api/auth-info").denyAll()
+            .antMatchers("/api/login/impersonate").hasAnyAuthority(VASTUUHENKILO, KOULUTTAJA)
             .antMatchers("/api/erikoistuva-laakari/kayttooikeushakemus").authenticated()
+            .antMatchers(HttpMethod.GET, "/api/erikoistuva-laakari/**")
+            .hasAnyAuthority(ERIKOISTUVA_LAAKARI, ERIKOISTUVA_LAAKARI_IMPERSONATED)
             .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
             .antMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
             .antMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
@@ -193,6 +199,16 @@ class SecurityConfiguration(
                         }
                 }
                 .logout().logoutSuccessUrl("/")
+                .and()
+                .addFilterAfter(
+                    ElsaSwitchUserFilter(
+                        erikoistuvaLaakariRepository,
+                        kayttajaRepository,
+                        userRepository,
+                        kouluttajavaltuutusRepository
+                    ),
+                    FilterSecurityInterceptor::class.java
+                )
         }
     }
 

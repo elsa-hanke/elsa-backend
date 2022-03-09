@@ -10,6 +10,9 @@ interface ErikoistuvaLaakariRepository : JpaRepository<ErikoistuvaLaakari, Long>
 
     fun findOneByKayttajaUserId(userId: String): ErikoistuvaLaakari?
 
+    @Query("select distinct e from ErikoistuvaLaakari e join fetch e.opintooikeudet where e.id = :id")
+    fun findByIdWithOpintooikeudet(id: Long): ErikoistuvaLaakari?
+
     fun findOneByKayttajaId(kayttajaId: Long): ErikoistuvaLaakari?
 
     @Query(
