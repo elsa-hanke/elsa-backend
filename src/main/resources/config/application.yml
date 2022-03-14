@@ -207,6 +207,7 @@ application:
     sisuhy:
       api-key:
       graphql-endpoint-url: https://gw-api-test.it.helsinki.fi/secure/sisu/graphql
+      tutkintoohjelma-export-url: https://gw-api-test.it.helsinki.fi/secure/sisu/kori/api/qualifications/v1/export?since=0&limit=10000
       private-key-location: classpath:sisu/hy-sisu.key
       certificate-location: classpath:sisu/hy-sisu.crt
   feedback:

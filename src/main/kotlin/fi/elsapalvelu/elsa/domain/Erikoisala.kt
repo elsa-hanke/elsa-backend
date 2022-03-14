@@ -28,7 +28,7 @@ data class Erikoisala(
     @Column(name = "virta_patevyyskoodi", nullable = false)
     var virtaPatevyyskoodi: String? = null,
 
-    @OneToMany(mappedBy = "erikoisala")
+    @OneToMany(mappedBy = "erikoisala", cascade = [CascadeType.ALL], orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var sisuTutkintoohjelmat: MutableSet<ErikoisalaSisuTutkintoohjelma> = mutableSetOf(),
 
