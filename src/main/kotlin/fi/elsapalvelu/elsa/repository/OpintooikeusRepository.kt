@@ -26,7 +26,7 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
 
     @Query(
         """
-        select case when count(o) > 0 then true else false end from Opintooikeus o
+        select o from Opintooikeus o
         join o.erikoistuvaLaakari e
         join e.kayttaja k
         join k.user u
