@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 class SisuHyClientBuilderImpl(
     applicationProperties: ApplicationProperties,
     resourceLoader: ResourceLoader
-): SisuHyClientBuilder {
+) : SisuHyClientBuilder {
 
     init {
         Companion.applicationProperties = applicationProperties
@@ -35,7 +35,7 @@ class SisuHyClientBuilderImpl(
         private lateinit var applicationProperties: ApplicationProperties
         private lateinit var resourceLoader: ResourceLoader
 
-        private val okHttpClient: OkHttpClient by lazy {
+        val okHttpClient: OkHttpClient by lazy {
             val publicKeyResource: Resource =
                 resourceLoader.getResource(
                     applicationProperties.getSecurity().getSisuHy().certificateLocation!!
@@ -72,6 +72,10 @@ class SisuHyClientBuilderImpl(
 
     override fun apolloClient(): ApolloClient {
         return apolloClient
+    }
+
+    override fun okHttpClient(): OkHttpClient {
+        return okHttpClient
     }
 }
 
