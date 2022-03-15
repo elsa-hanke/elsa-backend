@@ -161,6 +161,8 @@ class SecurityConfiguration(
             .antMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
             .antMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
             .antMatchers("/api/tekninen-paakayttaja/**").hasAuthority(TEKNINEN_PAAKAYTTAJA)
+            .antMatchers(HttpMethod.PUT, "/api/kayttaja")
+            .hasAnyAuthority(ERIKOISTUVA_LAAKARI, KOULUTTAJA, VASTUUHENKILO, TEKNINEN_PAAKAYTTAJA)
             .antMatchers("/api/**").authenticated()
             .antMatchers("/management/health").permitAll()
             .antMatchers("/management/info").denyAll()
