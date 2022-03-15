@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.service.dto.UserDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import javax.validation.Valid
@@ -28,6 +29,16 @@ class KayttajaResource(
             (principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
                 .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED)
         return user
+    }
+
+    @GetMapping("/kayttaja-impersonated")
+    fun getKayttajaImpersonated(principal: Principal?): UserDTO {
+        (principal as Saml2Authentication).authorities.forEach {
+            if (it is SwitchUserGrantedAuthority) {
+                return userService.getUser(it.source.name)
+            }
+        }
+        return getKayttaja(principal)
     }
 
     @PutMapping("/kayttaja")
