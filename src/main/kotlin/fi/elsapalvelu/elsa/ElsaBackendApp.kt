@@ -1,6 +1,10 @@
 package fi.elsapalvelu.elsa
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.repository.ErikoisalaSisuTutkintoohjelmaRepository
+import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaFetchingService
+import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaImportService
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties
@@ -10,14 +14,26 @@ import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment
 import tech.jhipster.config.DefaultProfileUtil
 import tech.jhipster.config.JHipsterConstants
+import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
 import java.time.Clock
 import javax.annotation.PostConstruct
 
 @SpringBootApplication
 @EnableConfigurationProperties(LiquibaseProperties::class, ApplicationProperties::class)
-class ElsaBackendApp(private val env: Environment) {
+class ElsaBackendApp(
+    private val env: Environment,
+    erikoisalaSisuTutkintoohjelmaRepository: ErikoisalaSisuTutkintoohjelmaRepository,
+    sisuTutkintoohjelmaFetchingService: SisuTutkintoohjelmaFetchingService,
+    sisuTutkintoohjelmaImportService: SisuTutkintoohjelmaImportService
+) {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+    init {
+        Companion.erikoisalaSisuTutkintoohjelmaRepository = erikoisalaSisuTutkintoohjelmaRepository
+        Companion.sisuTutkintoohjelmaFetchingService = sisuTutkintoohjelmaFetchingService
+        Companion.sisuTutkintoohjelmaImportService = sisuTutkintoohjelmaImportService
+    }
 
     @PostConstruct
     fun initApplication() {
@@ -48,10 +64,25 @@ class ElsaBackendApp(private val env: Environment) {
     }
 
     companion object {
+
+        private lateinit var erikoisalaSisuTutkintoohjelmaRepository: ErikoisalaSisuTutkintoohjelmaRepository
+        private lateinit var sisuTutkintoohjelmaFetchingService: SisuTutkintoohjelmaFetchingService
+        private lateinit var sisuTutkintoohjelmaImportService: SisuTutkintoohjelmaImportService
+
         @JvmStatic
         fun main(args: Array<String>) {
             val env = runApplication<ElsaBackendApp>(*args) { DefaultProfileUtil.addDefaultProfile(this) }.environment
             logApplicationStartup(env)
+
+            if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT) && erikoisalaSisuTutkintoohjelmaRepository.findAll()
+                    .isEmpty()
+            ) {
+                runBlocking {
+                    sisuTutkintoohjelmaFetchingService.fetch()?.let {
+                            sisuTutkintoohjelmaImportService.import(it)
+                        }
+                }
+            }
         }
 
         @JvmStatic
