@@ -1,11 +1,14 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
+import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.hamcrest.collection.IsCollectionWithSize.hasSize
@@ -16,11 +19,17 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
@@ -66,10 +75,22 @@ class VastuuhenkiloEtusivuResourceIT {
     private lateinit var koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
 
     @Autowired
+    private lateinit var paivakirjamerkintaRepository: PaivakirjamerkintaRepository
+
+    @Autowired
+    private lateinit var koulutussuunnitelmaRepository: KoulutussuunnitelmaRepository
+
+    @Autowired
+    private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
+
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
+    @Autowired
     private lateinit var em: EntityManager
 
     @Autowired
-    private lateinit var restKoejaksoMockMvc: MockMvc
+    private lateinit var restEtusivuMockMvc: MockMvc
 
     private lateinit var user: User
 
@@ -102,7 +123,7 @@ class VastuuhenkiloEtusivuResourceIT {
         kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
         vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
-        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
+        restEtusivuMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat").value(hasSize<Int>(1)))
@@ -200,7 +221,7 @@ class VastuuhenkiloEtusivuResourceIT {
         seurantajakso.huolenaiheet = "huolenaiheet"
         seurantajaksoRepository.save(seurantajakso)
 
-        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
+        restEtusivuMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoistujienEteneminen").value(hasSize<Int>(1)))
@@ -293,7 +314,7 @@ class VastuuhenkiloEtusivuResourceIT {
             )
         )
 
-        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
+        restEtusivuMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoistujienEteneminen").value(hasSize<Int>(1)))
@@ -339,7 +360,7 @@ class VastuuhenkiloEtusivuResourceIT {
             )
         )
 
-        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
+        restEtusivuMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoistujienEteneminen").value(hasSize<Int>(1)))
@@ -385,7 +406,7 @@ class VastuuhenkiloEtusivuResourceIT {
             )
         )
 
-        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
+        restEtusivuMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoistujienEteneminen").value(hasSize<Int>(1)))
@@ -431,14 +452,191 @@ class VastuuhenkiloEtusivuResourceIT {
             )
         )
 
-        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
+        restEtusivuMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoistujienEteneminen").value(hasSize<Int>(2)))
     }
 
+    @Test
+    @Transactional
+    fun testImpersonation() {
+        initTest()
+
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+
+        val erikoisala1 = erikoisalaRepository.findById(1).get()
+
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
+            kayttaja = vastuuhenkilo,
+            yliopisto = yliopisto1,
+            erikoisala = erikoisala1
+        )
+        kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
+        vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
+
+        val erikoistuvaLaakari =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+
+        val tyoskentelyjakso =
+            TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        restEtusivuMockMvc.perform(
+            get("/api/login/impersonate?erikoistuvaLaakariId=${erikoistuvaLaakari.id}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isFound)
+
+        // Päivitetään Security contextiin impersonoitu käyttäjä
+        val currentAuthentication: Authentication =
+            TestSecurityContextHolder.getContext().authentication
+        val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(
+            ERIKOISTUVA_LAAKARI_IMPERSONATED, currentAuthentication
+        )
+        val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
+        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
+            erikoistuvaLaakari.kayttaja?.user?.id,
+            mapOf(
+                "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari.kayttaja?.user?.firstName),
+                "urn:oid:2.5.4.4" to listOf(erikoistuvaLaakari.kayttaja?.user?.lastName),
+                "nameID" to currentPrincipal.attributes["nameID"],
+                "nameIDFormat" to currentPrincipal.attributes["nameIDFormat"],
+                "nameIDQualifier" to currentPrincipal.attributes["nameIDQualifier"],
+                "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"]
+            )
+        )
+        val context = TestSecurityContextHolder.getContext()
+        context.authentication = Saml2Authentication(
+            newPrincipal,
+            (currentAuthentication as Saml2Authentication).saml2Response,
+            listOf(switchAuthority)
+        )
+        TestSecurityContextHolder.setContext(context)
+
+        // GET kutsut sallittuja
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(1)))
+
+        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+        val updatedTyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
+        // Muut kutsut estetty
+        restEtusivuMockMvc.perform(
+            MockMvcRequestBuilders.put("/api/erikoistuva-laakari/tyoskentelyjaksot")
+                .param("tyoskentelyjaksoJson", updatedTyoskentelyjaksoJson)
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isForbidden)
+
+        // Yksityisiä päiväkirjamerkintöjä ei palauteta
+        val paivakirjamerkinta1 =
+            PaivakirjamerkintaHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
+        paivakirjamerkintaRepository.saveAndFlush(paivakirjamerkinta1)
+        val paivakirjamerkinta2 =
+            PaivakirjamerkintaHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
+        paivakirjamerkinta2.yksityinen = true
+        paivakirjamerkintaRepository.saveAndFlush(paivakirjamerkinta2)
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/paivakirjamerkinnat"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
+            .andExpect(jsonPath("$.content[0].yksityinen").value(false))
+
+        // Yksityisiä koulutussuunnitelman kenttiä ei palauteta
+        val koulutussuunnitelma =
+            KoulutussuunnitelmaHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
+        koulutussuunnitelmaRepository.saveAndFlush(koulutussuunnitelma)
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/koulutussuunnitelma"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.motivaatiokirje").value(KoulutussuunnitelmaHelper.DEFAULT_MOTIVAATIOKIRJE))
+            .andExpect(
+                jsonPath("$.motivaatiokirjeYksityinen").value(
+                    KoulutussuunnitelmaHelper.DEFAULT_MOTIVAATIOKIRJE_YKSITYINEN
+                )
+            )
+            .andExpect(jsonPath("$.opiskeluJaTyohistoria").value(KoulutussuunnitelmaHelper.DEFAULT_OPISKELU_JA_TYOHISTORIA))
+            .andExpect(
+                jsonPath("$.opiskeluJaTyohistoriaYksityinen").value(
+                    KoulutussuunnitelmaHelper.DEFAULT_OPISKELU_JA_TYOHISTORIA_YKSITYINEN
+                )
+            )
+            .andExpect(jsonPath("$.vahvuudet").value(KoulutussuunnitelmaHelper.DEFAULT_VAHVUUDET))
+            .andExpect(jsonPath("$.vahvuudetYksityinen").value(KoulutussuunnitelmaHelper.DEFAULT_VAHVUUDET_YKSITYINEN))
+            .andExpect(jsonPath("$.tulevaisuudenVisiointi").value(KoulutussuunnitelmaHelper.DEFAULT_TULEVAISUUDEN_VISIOINTI))
+            .andExpect(
+                jsonPath("$.tulevaisuudenVisiointiYksityinen").value(
+                    KoulutussuunnitelmaHelper.DEFAULT_TULEVAISUUDEN_VISIOINTI_YKSITYINEN
+                )
+            )
+            .andExpect(jsonPath("$.osaamisenKartuttaminen").value(KoulutussuunnitelmaHelper.DEFAULT_OSAAMISEN_KARTUTTAMINEN))
+            .andExpect(
+                jsonPath("$.osaamisenKartuttaminenYksityinen").value(
+                    KoulutussuunnitelmaHelper.DEFAULT_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN
+                )
+            )
+            .andExpect(jsonPath("$.elamankentta").value(KoulutussuunnitelmaHelper.DEFAULT_ELAMANKENTTA))
+            .andExpect(jsonPath("$.elamankenttaYksityinen").value(KoulutussuunnitelmaHelper.DEFAULT_ELAMANKENTTA_YKSITYINEN))
+
+        koulutussuunnitelma.elamankenttaYksityinen = true
+        koulutussuunnitelma.vahvuudetYksityinen = true
+        koulutussuunnitelma.opiskeluJaTyohistoriaYksityinen = true
+        koulutussuunnitelma.osaamisenKartuttaminenYksityinen = true
+        koulutussuunnitelma.tulevaisuudenVisiointiYksityinen = true
+        koulutussuunnitelmaRepository.saveAndFlush(koulutussuunnitelma)
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/koulutussuunnitelma"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.opiskeluJaTyohistoria").isEmpty)
+            .andExpect(jsonPath("$.vahvuudet").isEmpty)
+            .andExpect(jsonPath("$.tulevaisuudenVisiointi").isEmpty)
+            .andExpect(jsonPath("$.osaamisenKartuttaminen").isEmpty)
+            .andExpect(jsonPath("$.elamankentta").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun testImpersonationNotAllowed() {
+        initTest()
+
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+
+        // Eri erikoisala
+        val erikoisala1 = erikoisalaRepository.findById(2).get()
+
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
+            kayttaja = vastuuhenkilo,
+            yliopisto = yliopisto1,
+            erikoisala = erikoisala1
+        )
+        kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
+        vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
+
+        val erikoistuvaLaakari =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+
+        restEtusivuMockMvc.perform(
+            get("/api/login/impersonate?erikoistuvaLaakariId=${erikoistuvaLaakari.id}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
     fun initTest(createVastuuhenkilonArvio: Boolean? = true) {
-        user = KayttajaResourceWithMockUserIT.createEntity()
+        user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO))
         em.persist(user)
         em.flush()
         val userDetails = mapOf<String, List<Any>>(
