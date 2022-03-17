@@ -119,6 +119,15 @@ class SecurityConfiguration(
             .ignoringAntMatchers("/api/logout")
             .and()
             .addFilterBefore(corsFilter, CsrfFilter::class.java)
+            .addFilterAfter(
+                ElsaSwitchUserFilter(
+                    erikoistuvaLaakariRepository,
+                    kayttajaRepository,
+                    userRepository,
+                    kouluttajavaltuutusRepository
+                ),
+                FilterSecurityInterceptor::class.java
+            )
             .exceptionHandling()
             .authenticationEntryPoint(problemSupport)
             .accessDeniedHandler(problemSupport)
@@ -201,16 +210,6 @@ class SecurityConfiguration(
                         }
                 }
                 .logout().logoutSuccessUrl("/")
-                .and()
-                .addFilterAfter(
-                    ElsaSwitchUserFilter(
-                        erikoistuvaLaakariRepository,
-                        kayttajaRepository,
-                        userRepository,
-                        kouluttajavaltuutusRepository
-                    ),
-                    FilterSecurityInterceptor::class.java
-                )
         }
     }
 
