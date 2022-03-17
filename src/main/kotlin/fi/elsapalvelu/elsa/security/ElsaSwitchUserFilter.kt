@@ -8,6 +8,8 @@ import fi.elsapalvelu.elsa.repository.UserRepository
 import io.undertow.util.BadRequestException
 import org.springframework.core.log.LogMessage
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
+import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.authentication.InternalAuthenticationServiceException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.GrantedAuthority
@@ -96,13 +98,13 @@ class ElsaSwitchUserFilter(
         val erikoistuvaLaakariId = request.getParameter("erikoistuvaLaakariId")
         val erikoistuvaLaakari =
             erikoistuvaLaakariRepository.findByIdWithOpintooikeudet(erikoistuvaLaakariId.toLong())
-                ?: throw IllegalArgumentException("Erikoistuvaa lääkäriä ei löydy")
+                ?: throw InternalAuthenticationServiceException("Erikoistuvaa lääkäriä ei löydy")
         val principal =
             SecurityContextHolder.getContext().authentication.principal as Saml2AuthenticatedPrincipal
 
         if (!onOikeus(principal, erikoistuvaLaakari)) {
             SecurityLoggingWrapper.info("Denying access for user with id ${principal.name} to switch to user with id ${erikoistuvaLaakari.kayttaja?.user?.id}")
-            throw BadRequestException("Käyttäjällä ei oikeuksia katsella erikoistujan tietoja")
+            throw BadCredentialsException("Käyttäjällä ei oikeuksia katsella erikoistujan tietoja")
         } else {
             SecurityLoggingWrapper.info("User with id ${principal.name} switching to user with id ${erikoistuvaLaakari.kayttaja?.user?.id}")
         }
@@ -127,7 +129,9 @@ class ElsaSwitchUserFilter(
                 "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"]
             )
         )
-        newPrincipal.relyingPartyRegistrationId = currentPrincipal.relyingPartyRegistrationId
+        if (currentPrincipal.relyingPartyRegistrationId != null) {
+            newPrincipal.relyingPartyRegistrationId = currentPrincipal.relyingPartyRegistrationId
+        }
         return Saml2Authentication(
             newPrincipal,
             (currentAuthentication as Saml2Authentication).saml2Response,
