@@ -41,6 +41,20 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
     @Query(
         """
         select o from Opintooikeus o
+        join o.erikoistuvaLaakari e
+        where o.id = :id and e.id = :erikoistuvaLaakariId
+        and :paiva between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        """
+    )
+    fun findOneByIdAndErikoistuvaLaakariIdAndBetweenDate(
+        id: Long,
+        erikoistuvaLaakariId: Long,
+        paiva: LocalDate
+    ): Opintooikeus?
+
+    @Query(
+        """
+        select o from Opintooikeus o
         where current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
         and o.erikoisala.id = :erikoisalaId and o.yliopisto.id = :yliopistoId
         """
