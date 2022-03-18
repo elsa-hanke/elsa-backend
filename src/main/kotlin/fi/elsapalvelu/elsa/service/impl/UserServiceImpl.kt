@@ -133,6 +133,11 @@ class UserServiceImpl(
         return UserDTO(user)
     }
 
+    override fun updateEmailForFirstLogin(email: String, userId: String) {
+        val user = userRepository.findById(userId).get()
+        user.email = email
+    }
+
     override fun createOrUpdateUserWithToken(
         verificationToken: String,
         cipher: Cipher,
