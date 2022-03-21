@@ -2,10 +2,7 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KoejaksonKoulutussopimus
 import fi.elsapalvelu.elsa.domain.KoulutussopimuksenKouluttaja
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
@@ -28,7 +25,8 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val userRepository: UserRepository
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -49,6 +47,11 @@ class KoejaksonKoulutussopimusServiceImpl(
             if (koulutussopimus.lahetetty) koulutussopimus.erikoistuvanAllekirjoitusaika =
                 LocalDate.now()
             koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
+
+            val user = it.erikoistuvaLaakari?.kayttaja?.user
+            user?.email = koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti
+            user?.phoneNumber = koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
+            userRepository.save(user)
 
             // Sähköposti kouluttajille allekirjoitetusta sopimuksesta
             if (koulutussopimus.lahetetty) {
@@ -84,16 +87,36 @@ class KoejaksonKoulutussopimusServiceImpl(
             && kirjautunutErikoistuvaLaakari == koulutussopimus.opintooikeus?.erikoistuvaLaakari
         ) {
             koulutussopimus = handleErikoistuva(koulutussopimus, updatedKoulutussopimus)
+
+            val user = koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user
+            user?.email = koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti
+            user?.phoneNumber = koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
+            userRepository.save(user)
         }
 
         koulutussopimus.kouluttajat?.toTypedArray()?.forEach {
             if (it.kouluttaja?.user?.id == userId) {
                 koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
+
+                val kayttaja = it.kouluttaja
+                val user = it.kouluttaja?.user
+                val kouluttaja =
+                    koejaksonKoulutussopimusDTO.kouluttajat?.first { it.kayttajaUserId == userId }
+                user?.phoneNumber = kouluttaja?.puhelin
+                user?.email = kouluttaja?.sahkoposti
+                kayttaja?.nimike = kouluttaja?.nimike
+                userRepository.save(user)
+                kayttajaRepository.save(kayttaja)
             }
         }
 
         if (koulutussopimus.vastuuhenkilo?.user?.id == userId) {
             koulutussopimus = handleVastuuhenkilo(koulutussopimus, updatedKoulutussopimus)
+
+            val user = koulutussopimus.vastuuhenkilo?.user
+            user?.phoneNumber = koejaksonKoulutussopimusDTO.vastuuhenkilo?.puhelin
+            user?.email = koejaksonKoulutussopimusDTO.vastuuhenkilo?.sahkoposti
+            userRepository.save(user)
         }
 
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
@@ -107,7 +130,6 @@ class KoejaksonKoulutussopimusServiceImpl(
     ): KoejaksonKoulutussopimus {
         koulutussopimus.apply {
             koejaksonAlkamispaiva = updated.koejaksonAlkamispaiva
-            erikoistuvanPuhelinnumero = updated.erikoistuvanPuhelinnumero
             lahetetty = updated.lahetetty
             vastuuhenkilo = updated.vastuuhenkilo
         }
@@ -154,7 +176,6 @@ class KoejaksonKoulutussopimusServiceImpl(
         kouluttaja.toimipaikka = updatedKouluttaja?.toimipaikka
         kouluttaja.lahiosoite = updatedKouluttaja?.lahiosoite
         kouluttaja.postitoimipaikka = updatedKouluttaja?.postitoimipaikka
-        kouluttaja.puhelin = updatedKouluttaja?.puhelin
 
         // Hyväksytty
         if (updated.korjausehdotus.isNullOrBlank()) {

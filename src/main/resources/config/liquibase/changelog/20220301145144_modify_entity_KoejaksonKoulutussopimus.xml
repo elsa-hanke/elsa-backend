@@ -71,6 +71,14 @@
 
         <dropColumn
             tableName="koejakson_koulutussopimus"
+            columnName="erikoistuvan_puhelinnumero"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus_audit"
+            columnName="erikoistuvan_puhelinnumero"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus"
             columnName="vastuuhenkilon_nimi"/>
 
         <dropColumn
@@ -108,6 +116,14 @@
         <dropColumn
             tableName="koulutussopimuksen_kouluttaja_audit"
             columnName="sahkoposti"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_kouluttaja"
+            columnName="puhelin"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_kouluttaja_audit"
+            columnName="puhelin"/>
 
         <dropColumn
             tableName="koulutussopimuksen_koulutuspaikka"

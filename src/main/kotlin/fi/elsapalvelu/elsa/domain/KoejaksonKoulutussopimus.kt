@@ -29,9 +29,6 @@ data class KoejaksonKoulutussopimus(
     @Column(name = "koejakson_alkamispaiva")
     var koejaksonAlkamispaiva: LocalDate? = null,
 
-    @Column(name = "erikoistuvan_puhelinnumero")
-    var erikoistuvanPuhelinnumero: String? = null,
-
     @NotNull
     @Column(name = "lahetetty", nullable = false)
     var lahetetty: Boolean = false,
@@ -93,7 +90,7 @@ data class KoejaksonKoulutussopimus(
             "erikoistuvanYliopisto=${opintooikeus?.yliopisto?.nimi}, " +
             "opintooikeudenMyontamispaiva=${opintooikeus?.opintooikeudenMyontamispaiva}, " +
             "koejaksonAlkamispaiva=$koejaksonAlkamispaiva, " +
-            "erikoistuvanPuhelinnumero=$erikoistuvanPuhelinnumero, " +
+            "erikoistuvanPuhelinnumero=${opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber}, " +
             "erikoistuvanSahkoposti=${opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email}, " +
             "lahetetty=$lahetetty, " +
             "muokkauspaiva=$muokkauspaiva, " +

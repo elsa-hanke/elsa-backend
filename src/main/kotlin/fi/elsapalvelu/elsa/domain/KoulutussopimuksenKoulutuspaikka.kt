@@ -44,8 +44,7 @@ data class KoulutussopimuksenKoulutuspaikka(
         return "KoulutussopimuksenKoulutuspaikka(" +
             "id=$id, " +
             "nimi=$nimi, " +
-            "yliopisto=$yliopisto, " +
-            "koulutussopimus=$koulutussopimus)"
+            "yliopisto=$yliopisto)"
     }
 
     companion object {
