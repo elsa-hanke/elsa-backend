@@ -37,12 +37,25 @@ interface KoejaksonKoulutussopimusMapper :
             target = "erikoistuvanSahkoposti"
         ),
         Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.phoneNumber",
+            target = "erikoistuvanPuhelinnumero"
+        ),
+        Mapping(
             source = "opintooikeus.opintooikeudenMyontamispaiva",
             target = "opintooikeudenMyontamispaiva"
         ),
         Mapping(source = "vastuuhenkiloHyvaksynyt", target = "vastuuhenkilo.sopimusHyvaksytty"),
         Mapping(source = "vastuuhenkilonKuittausaika", target = "vastuuhenkilo.kuittausaika"),
         Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo.id"),
+        Mapping(source = "vastuuhenkilo.nimike", target = "vastuuhenkilo.nimike"),
+        Mapping(
+            source = "vastuuhenkilo.user.email",
+            target = "vastuuhenkilo.sahkoposti"
+        ),
+        Mapping(
+            source = "vastuuhenkilo.user.phoneNumber",
+            target = "vastuuhenkilo.puhelin"
+        )
     )
     override fun toDto(entity: KoejaksonKoulutussopimus): KoejaksonKoulutussopimusDTO
 
