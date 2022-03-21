@@ -172,7 +172,7 @@ class KayttajaResourceWithMockUserIT {
         @JvmStatic
         fun createEntity(
             nimi: String = "$DEFAULT_FIRSTNAME $DEFAULT_LASTNAME",
-            email: String = RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL,
+            email: String? = RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL,
             authority: Authority = DEFAULT_AUTHORITY
         ): User {
             val names = nimi.split(" ")
