@@ -47,6 +47,9 @@ data class KoejaksonKoulutussopimusDTO(
 
     var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikkaDTO>? = mutableSetOf(),
 
+    // Lisätään allekirjoituksen logiikka sarakesign toteutuksen yhteydessä
+    var allekirjoitettu: Boolean? = null,
+
     var erikoistuvanAllekirjoitusaika: LocalDate? = null
 
 ) : Serializable {
