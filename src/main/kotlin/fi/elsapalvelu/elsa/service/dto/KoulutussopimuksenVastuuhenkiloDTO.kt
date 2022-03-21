@@ -11,6 +11,10 @@ data class KoulutussopimuksenVastuuhenkiloDTO(
 
     var nimike: String? = null,
 
+    var puhelin: String? = null,
+
+    var sahkoposti: String? = null,
+
     var sopimusHyvaksytty: Boolean? = null,
 
     var kuittausaika: LocalDate? = null
