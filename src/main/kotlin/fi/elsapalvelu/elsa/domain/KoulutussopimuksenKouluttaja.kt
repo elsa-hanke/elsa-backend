@@ -31,9 +31,6 @@ data class KoulutussopimuksenKouluttaja(
     @Column(name = "postitoimipaikka")
     var postitoimipaikka: String? = null,
 
-    @Column(name = "puhelin")
-    var puhelin: String? = null,
-
     @Column(name = "sopimus_hyvaksytty")
     var sopimusHyvaksytty: Boolean = false,
 
@@ -58,16 +55,11 @@ data class KoulutussopimuksenKouluttaja(
         return "KoulutussopimuksenKouluttaja(" +
             "id=$id, " +
             "kouluttaja=$kouluttaja, " +
-            "nimi=${kouluttaja?.getNimi()}, " +
-            "nimike=${kouluttaja?.nimike}, " +
             "toimipaikka=$toimipaikka, " +
             "lahiosoite=$lahiosoite, " +
             "postitoiminpaikka=$postitoimipaikka, " +
-            "puhelin=$puhelin, " +
-            "sahkoposti=${kouluttaja?.user?.email}, " +
             "sopimusHyvaksytty=$sopimusHyvaksytty, " +
-            "sopimuksenKuittausaika=$kuittausaika, " +
-            "koulutussopimus=$koulutussopimus)"
+            "sopimuksenKuittausaika=$kuittausaika)"
     }
 
     companion object {
