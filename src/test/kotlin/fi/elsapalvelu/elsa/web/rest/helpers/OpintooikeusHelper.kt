@@ -22,8 +22,9 @@ class OpintooikeusHelper {
         fun addOpintooikeusForErikoistuvaLaakari(
             em: EntityManager,
             erikoistuvaLaakari: ErikoistuvaLaakari,
-            opintooikeudenAlkamispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
-            opintooikeudenPaattymispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA
+            alkamispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
+            paattymispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
+            tila: OpintooikeudenTila = OpintooikeudenTila.AKTIIVINEN
         ): Opintooikeus {
             val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
             em.persist(yliopisto)
@@ -46,8 +47,8 @@ class OpintooikeusHelper {
             }
 
             val opintooikeus = Opintooikeus(
-                opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
-                opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
+                opintooikeudenMyontamispaiva = alkamispaiva,
+                opintooikeudenPaattymispaiva = paattymispaiva,
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
                 osaamisenArvioinninOppaanPvm = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
                 erikoistuvaLaakari = erikoistuvaLaakari,
@@ -56,7 +57,7 @@ class OpintooikeusHelper {
                 opintoopas = opintoopas,
                 asetus = asetus,
                 kaytossa = false,
-                tila = OpintooikeudenTila.AKTIIVINEN
+                tila = tila
             )
             em.persist(opintooikeus)
             em.flush()
