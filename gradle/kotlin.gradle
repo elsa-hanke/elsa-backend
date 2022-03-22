@@ -39,6 +39,7 @@ allOpen {
 
 ktlint {
     // See more options: https://github.com/JLLeitschuh/ktlint-gradle#configuration
+    version.set("0.45.1")
     ignoreFailures = true
     disabledRules = ["no-wildcard-imports", "filename"]
 }
