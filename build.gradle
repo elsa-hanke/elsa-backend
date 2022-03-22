@@ -9,7 +9,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
         classpath "org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}"
         classpath "org.jetbrains.kotlin:kotlin-noarg:${kotlinVersion}"
-        classpath "org.jlleitschuh.gradle:ktlint-gradle:10.1.0"
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:10.2.1"
         classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektVersion}"
         classpath "io.gitlab.arturbosch.detekt:detekt-formatting:${detektVersion}"
     }
@@ -180,13 +180,13 @@ dependencies {
     implementation "io.dropwizard.metrics:metrics-core"
     implementation "io.micrometer:micrometer-registry-prometheus"
     implementation "net.logstash.logback:logstash-logback-encoder"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-    implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5"
-    implementation "com.fasterxml.jackson.core:jackson-annotations"
-    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
     implementation "javax.cache:cache-api"
     implementation "org.hibernate:hibernate-core:${hibernateVersion}"
     implementation "com.zaxxer:HikariCP"
@@ -265,7 +265,7 @@ dependencies {
 }
 
 apollo {
-  packageName.set("fi.elsapalvelu.elsa")
+    packageName.set("fi.elsapalvelu.elsa")
 }
 
 task cleanResources(type: Delete) {
