@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220323124645" author="jhipster">
+        <addColumn tableName="erikoisala">
+            <column name="liittynyt_elsaan" type="boolean">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <update tableName="erikoisala">
+            <column name="liittynyt_elsaan" value="true"/>
+            <where>id in
+            (2, 9, 22, 24, 33, 44, 46, 50)
+            </where>
+        </update>
+
+    </changeSet>
+
+</databaseChangeLog>
