@@ -23,6 +23,7 @@ interface OpintooikeusMapper :
         Mapping(source = "yliopisto.nimi", target = "yliopistoNimi"),
         Mapping(source = "erikoisala.id", target = "erikoisalaId"),
         Mapping(source = "erikoisala.nimi", target = "erikoisalaNimi"),
+        Mapping(source = "erikoisala.liittynytElsaan", target = "erikoisalaLiittynytElsaan"),
         Mapping(source = "opintoopas.id", target = "opintoopasId"),
         Mapping(source = "opintoopas.nimi", target = "opintoopasNimi"),
     )
