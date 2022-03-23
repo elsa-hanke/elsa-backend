@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
@@ -38,6 +39,9 @@ class TekninenPaakayttajaKayttajahallintaResourceIT {
 
     @Autowired
     private lateinit var em: EntityManager
+
+    @Autowired
+    private lateinit var erikoisalaRepository: ErikoisalaRepository
 
     @Autowired
     private lateinit var restMockMvc: MockMvc
@@ -91,11 +95,13 @@ class TekninenPaakayttajaKayttajahallintaResourceIT {
         val yliopisto = Yliopisto(nimi = ErikoistuvaLaakariHelper.DEFAULT_YLIOPISTO)
         em.persist(yliopisto)
 
+        val erikoisalatCountByLiittynytElsaan = erikoisalaRepository.findAllByLiittynytElsaanTrue().count()
+
         restMockMvc.perform(get("/api/tekninen-paakayttaja/kayttaja-lomake"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.yliopistot").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(60)))
+            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(erikoisalatCountByLiittynytElsaan)))
     }
 
     @Test
