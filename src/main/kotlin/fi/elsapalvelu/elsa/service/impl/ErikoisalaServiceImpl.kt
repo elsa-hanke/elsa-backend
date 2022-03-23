@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.service.ErikoisalaService
 import fi.elsapalvelu.elsa.service.dto.ErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
@@ -25,6 +24,11 @@ class ErikoisalaServiceImpl(
     @Transactional(readOnly = true)
     override fun findAll(): List<ErikoisalaDTO> {
         return erikoisalaRepository.findAll()
+            .map(erikoisalaMapper::toDto)
+    }
+
+    override fun findAllByLiittynytElsaan(): List<ErikoisalaDTO> {
+        return erikoisalaRepository.findAllByLiittynytElsaanTrue()
             .map(erikoisalaMapper::toDto)
     }
 

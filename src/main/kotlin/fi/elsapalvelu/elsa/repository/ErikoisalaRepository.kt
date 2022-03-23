@@ -8,5 +8,6 @@ import org.springframework.stereotype.Repository
 interface ErikoisalaRepository : JpaRepository<Erikoisala, Long> {
 
     fun findOneByVirtaPatevyyskoodi(virtaPatevyyskoodi: String): Erikoisala?
-    
+
+    fun findAllByLiittynytElsaanTrue(): List<Erikoisala>
 }
