@@ -28,6 +28,8 @@ data class OpintooikeusDTO(
     @get: NotNull
     var erikoisalaId: Long? = null,
 
+    var erikoisalaLiittynytElsaan: Boolean = false,
+
     @get: NotNull
     var erikoisalaNimi: String? = null,
 
