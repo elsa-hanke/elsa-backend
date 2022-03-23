@@ -312,7 +312,9 @@ class SecurityConfiguration(
             )
         ) {
             log.error(
-                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole aktiivista opinto-oikeutta."
+                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole voimassaolevaa " +
+                    "opinto-oikeutta, opinto-oikeuden tila ei salli kirjautumista tai opinto-oikeuden erikoisala " +
+                    "ei ole liittynyt Elsaan."
             )
             throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
         }

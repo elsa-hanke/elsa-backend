@@ -51,7 +51,7 @@ class OpintooikeusServiceImpl(
             user.id!!,
             LocalDate.now(clock)
         ).forEach {
-            if (allowedOpintooikeusTilat().contains(it.tila)) return true
+            if (allowedOpintooikeusTilat().contains(it.tila) && it.erikoisala?.liittynytElsaan == true) return true
         }
         return false
     }
