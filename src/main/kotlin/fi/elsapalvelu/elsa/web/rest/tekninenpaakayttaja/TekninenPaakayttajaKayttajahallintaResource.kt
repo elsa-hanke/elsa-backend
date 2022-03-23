@@ -61,7 +61,7 @@ class TekninenPaakayttajaKayttajahallintaResource(
 
         form.yliopistot = yliopistoService.findAll().toMutableSet()
 
-        form.erikoisalat = erikoisalaService.findAll().toMutableSet()
+        form.erikoisalat = erikoisalaService.findAllByLiittynytElsaan().toMutableSet()
 
         form.asetukset = asetusService.findAll().toMutableSet()
 
