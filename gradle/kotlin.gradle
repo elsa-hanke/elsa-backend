@@ -49,12 +49,6 @@ detekt {
     toolVersion = detektVersion
     source = files("src/main/kotlin")
     config = files("detekt-config.yml")
-    reports {
-        xml {
-            enabled = true
-            destination = file("$buildDir/reports/detekt/detekt.xml")
-        }
-    }
 }
 
 if (OperatingSystem.current().isWindows()) {
