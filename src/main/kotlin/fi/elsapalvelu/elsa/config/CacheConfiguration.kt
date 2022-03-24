@@ -130,6 +130,8 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.repository.UserRepository.USERS_BY_LOGIN_CACHE)
             createCache(cm, fi.elsapalvelu.elsa.domain.ApplicationSetting::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.ErikoisalaSisuTutkintoohjelma::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.OpintosuoritusKurssikoodi::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.OpintosuoritusTyyppi::class.java.name)
         }
         // @formatter:on
     }

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220324154832" author="jhipster">
+        <createTable tableName="opintosuoritus_kurssikoodi">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tunniste" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tyyppi_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="osakokonaisuus" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yliopisto_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addAutoIncrement columnName="id"
+                          columnDataType="bigint"
+                          generationType="ALWAYS"
+                          incrementBy="1"
+                          startWith="1"
+                          tableName="opintosuoritus_kurssikoodi"/>
+
+    </changeSet>
+
+    <changeSet id="20220324154832-1-data" context="!test" author="jhipster">
+
+        <loadData
+            file="config/liquibase/data/kurssikoodit/helsinki/opintosuoritus_kurssikoodi.csv"
+            separator=";"
+            tableName="opintosuoritus_kurssikoodi">
+            <column name="nimi" type="string"/>
+            <column name="tyyppi_id" type="numeric"/>
+            <column name="osakokonaisuus" type="boolean"/>
+        </loadData>
+
+        <update tableName="opintosuoritus_kurssikoodi">
+            <column name="yliopisto_id"
+                    valueComputed="(select id from yliopisto where nimi = 'HELSINGIN_YLIOPISTO')"/>
+        </update>
+
+        <addNotNullConstraint tableName="opintosuoritus_kurssikoodi" columnName="yliopisto_id"/>
+
+        <addForeignKeyConstraint baseTableName="opintosuoritus_kurssikoodi" baseColumnNames="tyyppi_id"
+                                 constraintName="fk_opintosuoritus_kurssikoodi_tyyppi_id"
+                                 referencedTableName="opintosuoritus_tyyppi"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="opintosuoritus_kurssikoodi" baseColumnNames="yliopisto_id"
+                                 constraintName="fk_opintosuoritus_kurssikoodi_yliopisto_id"
+                                 referencedTableName="yliopisto"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

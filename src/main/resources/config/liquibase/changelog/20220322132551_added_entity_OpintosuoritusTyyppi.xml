@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220322132551" author="jhipster">
+        <createTable tableName="opintosuoritus_tyyppi">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addAutoIncrement columnName="id"
+                          columnDataType="bigint"
+                          generationType="ALWAYS"
+                          incrementBy="1"
+                          startWith="1"
+                          tableName="opintosuoritus_tyyppi"/>
+    </changeSet>
+
+    <changeSet id="20220322132551-data" context="!test" author="jhipster">
+        <insert tableName="opintosuoritus_tyyppi">
+            <column name="nimi" value="JOHTAMISOPINTO"/>
+        </insert>
+        <insert tableName="opintosuoritus_tyyppi">
+            <column name="nimi" value="SATEILYSUOJAKOULUTUS"/>
+        </insert>
+        <insert tableName="opintosuoritus_tyyppi">
+            <column name="nimi" value="VALTAKUNNALLINEN_KUULUSTELU"/>
+        </insert>
+        <insert tableName="opintosuoritus_tyyppi">
+            <column name="nimi" value="KOEJAKSO"/>
+        </insert>
+        <insert tableName="opintosuoritus_tyyppi">
+            <column name="nimi" value="TERVEYSKESKUSKOULUTUSJAKSO"/>
+        </insert>
+        <insert tableName="opintosuoritus_tyyppi">
+            <column name="nimi" value="YLEISLAAKETIETEEN_ERITYISKOULUTUS"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
