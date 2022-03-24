@@ -1,0 +1,43 @@
+query OpintosuorituksetQuery($id: ID!){
+    private_person_by_personal_identity_code(id: $id) {
+        attainments {
+            state
+            attainmentDate
+            credits
+            courseUnitId
+            code
+            name { fi, sv }
+            module {
+                code
+                name { fi, sv }
+            }
+            courseUnit {
+                code
+                name { fi, sv }
+            }
+            grade {
+                name { fi, sv }
+                passed
+            }
+            expiryDate
+            studyRightId
+            childAttainments {
+                state
+                attainmentDate
+                credits
+                courseUnitId
+                code
+                name { fi, sv }
+                courseUnit {
+                    code
+                    name { fi, sv }
+                }
+                grade {
+                    name { fi, sv }
+                    passed
+                }
+                expiryDate
+            }
+        }
+    }
+}

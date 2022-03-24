@@ -1,4 +1,4 @@
-query PrivatePersonByPersonalIdentityCode($id: ID!) {
+query OpintotietodataQuery($id: ID!) {
     private_person_by_personal_identity_code(id: $id) {
         studentNumber
         dateOfBirth
@@ -11,7 +11,7 @@ query PrivatePersonByPersonalIdentityCode($id: ID!) {
             state
             phase1EducationClassificationUrn
             decreeOnUniversityDegrees {
-                shortName {fi}
+                shortName { fi }
             }
             acceptedSelectionPath {
                 educationPhase1GroupId

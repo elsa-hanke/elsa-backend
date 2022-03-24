@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import com.apollographql.apollo3.exception.ApolloException
-import fi.elsapalvelu.elsa.PrivatePersonByPersonalIdentityCodeQuery
+import fi.elsapalvelu.elsa.OpintotietodataQuery
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
@@ -27,7 +27,7 @@ class SisuHyServiceImpl(
     override suspend fun fetchOpintotietodata(hetu: String): OpintotietodataDTO? {
         try {
             val response =
-                sisuHyClientBuilder.apolloClient().query(PrivatePersonByPersonalIdentityCodeQuery(id = hetu))
+                sisuHyClientBuilder.apolloClient().query(OpintotietodataQuery(id = hetu))
                     .execute()
 
             return response.data?.private_person_by_personal_identity_code?.let {
