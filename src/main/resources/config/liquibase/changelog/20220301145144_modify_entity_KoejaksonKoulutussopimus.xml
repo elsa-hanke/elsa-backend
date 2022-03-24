@@ -134,15 +134,19 @@
             columnName="yliopisto"/>
 
         <addColumn tableName="koulutussopimuksen_koulutuspaikka">
-            <column name="yliopisto_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
+            <column name="sopimus_oman_yliopiston_kanssa" type="boolean"/>
         </addColumn>
 
         <addColumn tableName="koulutussopimuksen_koulutuspaikka_audit">
-            <column name="yliopisto_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
+            <column name="sopimus_oman_yliopiston_kanssa" type="boolean"/>
+        </addColumn>
+
+        <addColumn tableName="koulutussopimuksen_koulutuspaikka">
+            <column name="yliopisto_id" type="bigint"/>
+        </addColumn>
+
+        <addColumn tableName="koulutussopimuksen_koulutuspaikka_audit">
+            <column name="yliopisto_id" type="bigint"/>
         </addColumn>
 
         <addForeignKeyConstraint baseColumnNames="yliopisto_id"

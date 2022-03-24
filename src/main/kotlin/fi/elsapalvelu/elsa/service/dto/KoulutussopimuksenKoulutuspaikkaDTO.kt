@@ -8,6 +8,8 @@ data class KoulutussopimuksenKoulutuspaikkaDTO(
 
     var nimi: String? = null,
 
+    var koulutussopimusOmanYliopistonKanssa: Boolean? = null,
+
     var yliopistoId: Long? = null
 
 ) : Serializable {

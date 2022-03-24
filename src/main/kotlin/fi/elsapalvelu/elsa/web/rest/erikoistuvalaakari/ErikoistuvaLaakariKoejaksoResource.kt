@@ -44,7 +44,8 @@ class ErikoistuvaLaakariKoejaksoResource(
     @GetMapping("/koejakso")
     fun getKoejakso(principal: Principal?): ResponseEntity<KoejaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val result = KoejaksoDTO()
 
         koejaksonKoulutussopimusService.findByOpintooikeusId(opintooikeusId)
@@ -128,7 +129,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKoulutussopimusDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         if (koulutussopimusDTO.id != null) {
             throw BadRequestAlertException(
@@ -169,7 +171,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         validateKoulutussopimus(koulutussopimusDTO)
 
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val koulutussopimus =
             koejaksonKoulutussopimusService.findByOpintooikeusId(opintooikeusId)
 
@@ -199,7 +202,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val aloituskeskustelu =
             koejaksonAloituskeskusteluService.findByOpintooikeusId(opintooikeusId)
@@ -233,7 +237,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val aloituskeskustelu =
             koejaksonAloituskeskusteluService.findByOpintooikeusId(opintooikeusId)
@@ -285,7 +290,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val valiarviointi =
             koejaksonValiarviointiService.findByOpintooikeusId(opintooikeusId)
@@ -329,7 +335,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val valiarviointi =
             koejaksonValiarviointiService.findByOpintooikeusId(opintooikeusId)
@@ -357,7 +364,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val kehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetService.findByOpintooikeusId(opintooikeusId)
@@ -390,11 +398,12 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        koejaksonKehittamistoimenpiteetService.create(kehittamistoimenpiteetDTO, opintooikeusId)?.let {
-            return ResponseEntity
-                .created(URI("/api/koejakso/kehittamistoimenpiteet/${it.id}"))
-                .body(it)
-        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        koejaksonKehittamistoimenpiteetService.create(kehittamistoimenpiteetDTO, opintooikeusId)
+            ?.let {
+                return ResponseEntity
+                    .created(URI("/api/koejakso/kehittamistoimenpiteet/${it.id}"))
+                    .body(it)
+            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @PutMapping("/koejakso/kehittamistoimenpiteet")
@@ -403,7 +412,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val kehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetService.findByOpintooikeusId(opintooikeusId)
@@ -421,7 +431,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
         )
 
-        val result = koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
+        val result =
+            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
         return ResponseEntity.ok(result)
     }
 
@@ -431,7 +442,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val loppukeskustelu =
             koejaksonLoppukeskusteluService.findByOpintooikeusId(opintooikeusId)
@@ -483,7 +495,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val loppukeskustelu =
             koejaksonLoppukeskusteluService.findByOpintooikeusId(opintooikeusId)
@@ -509,7 +522,8 @@ class ErikoistuvaLaakariKoejaksoResource(
     fun getVastuuhenkilonArvioForm(principal: Principal?): ResponseEntity<VastuuhenkilonArvioFormDTO> {
         val form = VastuuhenkilonArvioFormDTO().apply {
             val user = userService.getAuthenticatedUser(principal)
-            val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            val opintooikeusId =
+                opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
             vastuuhenkilot = kayttajaService.findVastuuhenkilot(user.id!!)
             val (tyoskentelyJaksoLiitetty, tyoskentelyjaksonPituusRiittava, tyotodistusLiitetty) =
                 tyoskentelyjaksoService.validateByLiitettyKoejaksoon(opintooikeusId)
@@ -527,7 +541,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val vastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioService.findByOpintooikeusId(opintooikeusId)
 
@@ -581,7 +596,8 @@ class ErikoistuvaLaakariKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         val vastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioService.findByOpintooikeusId(opintooikeusId)

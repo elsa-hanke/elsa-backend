@@ -40,6 +40,10 @@ data class ErikoistuvaLaakari(
         return this.getOpintooikeusKaytossa()?.yliopisto?.nimi
     }
 
+    fun getYliopistoId(): Long? {
+        return this.getOpintooikeusKaytossa()?.yliopisto?.id
+    }
+
     fun getOpiskelijatunnus(): String? {
         return this.getOpintooikeusKaytossa()?.opiskelijatunnus
     }
