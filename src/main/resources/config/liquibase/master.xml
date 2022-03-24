@@ -189,5 +189,7 @@
     <include file="config/liquibase/changelog/20220322132551_added_entity_OpintosuoritusTyyppi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220323124645_modify_entity_Erikoisala.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220324154832_added_entity_OpintosuoritusKurssikoodi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220324164511_added_entity_Opintosuoritus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220324164811_added_entity_OpintosuoritusOsakokonaisuus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
