@@ -240,7 +240,7 @@ class OpintotietodataPersistenceServiceImpl(
             opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
             opiskelijatunnus = opiskelijatunnus,
             asetus = asetus,
-            osaamisenArvioinninOppaanPvm = opintoopas.voimassaoloAlkaa,
+            osaamisenArvioinninOppaanPvm = opintooikeudenAlkamispaiva,
             erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = yliopisto,
             erikoisala = erikoisala,
