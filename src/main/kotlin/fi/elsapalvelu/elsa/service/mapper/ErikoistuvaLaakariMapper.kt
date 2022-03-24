@@ -22,6 +22,7 @@ interface ErikoistuvaLaakariMapper :
         Mapping(source = "kayttaja.user.email", target = "sahkoposti"),
         Mapping(source = "kayttaja.user.phoneNumber", target = "puhelinnumero"),
         Mapping(source = "yliopistoNimi", target = "yliopisto"),
+        Mapping(source = "yliopistoId", target = "yliopistoId"),
         Mapping(source = "opiskelijatunnus", target = "opiskelijatunnus"),
         Mapping(source = "erikoisalaNimi", target = "erikoisalaNimi"),
         Mapping(source = "opintooikeusKaytossa.id", target = "opintooikeusKaytossaId")

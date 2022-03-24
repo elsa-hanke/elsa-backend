@@ -18,11 +18,13 @@ data class KoulutussopimuksenKoulutuspaikka(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
-    @Column(name = "nimi", nullable = false)
+    @Column(name = "nimi")
     var nimi: String? = null,
 
-    @NotNull
-    @ManyToOne(optional = false)
+    @Column(name = "sopimus_oman_yliopiston_kanssa")
+    var koulutussopimusOmanYliopistonKanssa: Boolean? = null,
+
+    @ManyToOne
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var yliopisto: Yliopisto? = null,
 
