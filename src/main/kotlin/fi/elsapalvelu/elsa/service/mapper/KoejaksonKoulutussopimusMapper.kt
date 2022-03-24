@@ -31,6 +31,7 @@ interface KoejaksonKoulutussopimusMapper :
             target = "erikoistuvanSyntymaaika"
         ),
         Mapping(source = "opintooikeus.yliopisto.nimi", target = "erikoistuvanYliopisto"),
+        Mapping(source = "opintooikeus.yliopisto.id", target = "erikoistuvanYliopistoId"),
         Mapping(source = "opintooikeus.erikoisala.nimi", target = "erikoistuvanErikoisala"),
         Mapping(
             source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.email",
