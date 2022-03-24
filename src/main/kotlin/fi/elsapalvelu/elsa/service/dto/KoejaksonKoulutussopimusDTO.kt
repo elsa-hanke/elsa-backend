@@ -17,8 +17,6 @@ data class KoejaksonKoulutussopimusDTO(
 
     var erikoistuvanYliopisto: String? = null,
 
-    var erikoistuvanYliopistoId: Long? = null,
-
     var erikoistuvanErikoisala: String? = null,
 
     var erikoistuvanPuhelinnumero: String? = null,

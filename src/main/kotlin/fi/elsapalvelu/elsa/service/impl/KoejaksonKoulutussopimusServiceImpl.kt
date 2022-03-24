@@ -39,8 +39,8 @@ class KoejaksonKoulutussopimusServiceImpl(
             koulutussopimus.opintooikeus = it
             koulutussopimus.koulutuspaikat?.forEach { paikka ->
                 paikka.koulutussopimus = koulutussopimus
-                if (paikka.yliopisto == null) {
-                    paikka.yliopisto = it.yliopisto
+                if (paikka.koulutussopimusOmanYliopistonKanssa == true) {
+                    paikka.yliopisto = null
                 }
             }
             koulutussopimus.kouluttajat?.forEach { it.koulutussopimus = koulutussopimus }
@@ -140,8 +140,8 @@ class KoejaksonKoulutussopimusServiceImpl(
         updated.koulutuspaikat?.let { koulutussopimus.koulutuspaikat?.addAll(it) }
         koulutussopimus.koulutuspaikat?.forEach {
             it.koulutussopimus = koulutussopimus
-            if (it.yliopisto == null) {
-                it.yliopisto = koulutussopimus.opintooikeus?.yliopisto
+            if (it.koulutussopimusOmanYliopistonKanssa == true) {
+                it.yliopisto = null
             }
         }
 
