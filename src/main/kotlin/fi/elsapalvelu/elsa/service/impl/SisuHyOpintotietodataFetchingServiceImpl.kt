@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 @Service
-class SisuHyServiceImpl(
+class SisuHyOpintotietodataFetchingServiceImpl(
     private val sisuHyClientBuilder: SisuHyClientBuilder,
     private val yliopistoRepository: YliopistoRepository
 ) : OpintotietodataFetchingService {
