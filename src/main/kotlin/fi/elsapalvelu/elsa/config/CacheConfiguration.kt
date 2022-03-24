@@ -102,6 +102,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Opintooikeus::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Opintooikeus::class.java.name + ".tyoskentelyjaksot")
             createCache(cm, fi.elsapalvelu.elsa.domain.Opintooikeus::class.java.name + ".teoriakoulutukset")
+            createCache(cm, fi.elsapalvelu.elsa.domain.Opintooikeus::class.java.name + ".opintosuoritukset")
             createCache(cm, fi.elsapalvelu.elsa.domain.Opintoopas::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.PaivakirjaAihekategoria::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Paivakirjamerkinta::class.java.name + ".aihekategoriat")
@@ -132,6 +133,9 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.ErikoisalaSisuTutkintoohjelma::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.OpintosuoritusKurssikoodi::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.OpintosuoritusTyyppi::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Opintosuoritus::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Opintosuoritus::class.java.name + ".osakokonaisuudet")
+            createCache(cm, fi.elsapalvelu.elsa.domain.OpintosuoritusOsakokonaisuus::class.java.name)
         }
         // @formatter:on
     }

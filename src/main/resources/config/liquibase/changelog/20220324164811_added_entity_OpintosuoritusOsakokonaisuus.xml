@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220324164811" author="jhipster">
+        <createTable tableName="opintosuoritus_osakokonaisuus">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nimi_fi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nimi_sv" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="nimi_en" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="kurssikoodi" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="suorituspaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opintopisteet" type="numeric">
+                <constraints nullable="true"/>
+            </column>
+            <column name="hyvaksytty" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arvio_fi" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="arvio_sv" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="vanhenemispaiva" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="opintosuoritus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="muokkausaika" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addAutoIncrement columnName="id"
+                          columnDataType="bigint"
+                          generationType="ALWAYS"
+                          incrementBy="1"
+                          startWith="1"
+                          tableName="opintosuoritus_osakokonaisuus"/>
+
+        <addForeignKeyConstraint baseTableName="opintosuoritus_osakokonaisuus" baseColumnNames="opintosuoritus_id"
+                                 constraintName="fk_opintosuoritus_osakokonaisuus_opintosuoritus_id"
+                                 referencedTableName="opintosuoritus"
+                                 referencedColumnNames="id"/>
+
+        <createTable tableName="opintosuoritus_osakokonaisuus_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="nimi_fi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nimi_sv" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="kurssikoodi" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="suorituspaiva" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opintopisteet" type="numeric">
+                <constraints nullable="true"/>
+            </column>
+            <column name="hyvaksytty" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arvio_fi" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="arvio_sv" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="vanhenemispaiva" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="opintosuoritus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="muokkausaika" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="opintosuoritus_osakokonaisuus_audit"
+                                 constraintName="fk_opintosuoritus_osakokonaisuus_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+    </changeSet>
+
+</databaseChangeLog>
