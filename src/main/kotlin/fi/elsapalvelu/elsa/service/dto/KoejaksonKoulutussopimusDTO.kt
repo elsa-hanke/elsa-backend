@@ -9,19 +9,14 @@ data class KoejaksonKoulutussopimusDTO(
 
     var id: Long? = null,
 
-    @get: NotNull
     var erikoistuvanNimi: String? = null,
 
-    @get: NotNull
     var erikoistuvanOpiskelijatunnus: String? = null,
 
-    @get: NotNull
     var erikoistuvanSyntymaaika: LocalDate? = null,
 
-    @get: NotNull
     var erikoistuvanYliopisto: String? = null,
 
-    @get: NotNull
     var erikoistuvanYliopistoId: Long? = null,
 
     var erikoistuvanErikoisala: String? = null,
@@ -33,7 +28,6 @@ data class KoejaksonKoulutussopimusDTO(
     @Lob
     var erikoistuvanAvatar: ByteArray? = null,
 
-    @get: NotNull
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
     var koejaksonAlkamispaiva: LocalDate? = null,
