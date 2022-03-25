@@ -30,7 +30,7 @@ class SuoriteServiceImpl(
     @Transactional(readOnly = true)
     override fun findAllOpintooikeusId(opintooikeusId: Long): List<SuoriteDTO> {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
-            // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää
+            // Jos päivämäärää jonka mukainen osaamisen arvioinnin opas käytössä ei ole määritetty, käytetään nykyistä päivää
             // voimassaolon rajaamisessa
             return suoriteRepository.findAllByValid(
                 it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
