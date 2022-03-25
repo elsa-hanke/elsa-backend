@@ -28,7 +28,7 @@ class ArvioitavaKokonaisuusServiceImpl(
     @Transactional(readOnly = true)
     override fun findAllByOpintooikeusId(opintooikeusId: Long): List<ArvioitavaKokonaisuusDTO> {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
-            // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä, ei ole määritetty, käytetään nykyistä päivää
+            // Jos päivämäärää jonka mukainen osaamisen arvioinnin opas käytössä, ei ole määritetty, käytetään nykyistä päivää
             // voimassaolon rajaamisessa
             arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
                 it.erikoisala?.id, it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
