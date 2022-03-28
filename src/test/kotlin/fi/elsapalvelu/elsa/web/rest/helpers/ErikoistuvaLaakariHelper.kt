@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.web.rest.findAll
+import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils
 import java.time.LocalDate
 import javax.persistence.EntityManager
 
@@ -32,7 +33,8 @@ class ErikoistuvaLaakariHelper {
             opintooikeudenPaattymispaiva: LocalDate? = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
             erikoisala: Erikoisala? = null,
             opintoopas: Opintoopas? = null,
-            yliopisto: Yliopisto? = null
+            yliopisto: Yliopisto? = null,
+            yliopistoOpintooikeusId: String? = RandomStringUtils.randomAlphabetic(8),
         ): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari()
 
@@ -91,6 +93,7 @@ class ErikoistuvaLaakariHelper {
             }
 
             val opintooikeus = Opintooikeus(
+                yliopistoOpintooikeusId = yliopistoOpintooikeusId,
                 opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
                 opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
