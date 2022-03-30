@@ -7,10 +7,7 @@ import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.*
-import fi.elsapalvelu.elsa.service.OpintooikeusService
-import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
-import fi.elsapalvelu.elsa.service.OpintotietodataPersistenceService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -70,6 +67,8 @@ class SecurityConfiguration(
     private val opintooikeusService: OpintooikeusService,
     private val opintotietodataFetchingServices: List<OpintotietodataFetchingService>,
     private val opintotietodataPersistenceService: OpintotietodataPersistenceService,
+    private val opintosuorituksetFetchingService: List<OpintosuorituksetFetchingService>,
+    private val opintosuorituksetPersistenceService: OpintosuorituksetPersistenceService,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val userRepository: UserRepository,
@@ -282,7 +281,7 @@ class SecurityConfiguration(
 
         var existingUser = userService.findExistingUser(cipher, originalKey, hetu, eppn)
 
-        hetu?.let {
+        if (hetu != null) {
             if (existingUser == null) {
                 fetchAndHandleOpintotietodataForFirstLogin(cipher, originalKey, hetu, firstName, lastName)
                 existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
@@ -290,27 +289,30 @@ class SecurityConfiguration(
                 // Lokaalissa ympäristössä luodaan uusi käyttäjä, jos sitä ei löydy.
                 if (existingUser == null && env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
                     opintotietodataPersistenceService.createWithoutOpintotietodata(
-                        cipher, originalKey, it, firstName, lastName
+                        cipher, originalKey, hetu, firstName, lastName
                     )
                     existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
                 }
-            } else if (hasErikoistuvaLaakariRole(existingUser!!)) {
-                fetchAndUpdateOpintotietodataIfChanged(existingUser?.id!!, hetu, firstName, lastName)
+
+                existingUser?.let { user ->
+                    fetchAndHandleOpintosuorituksetNonBlocking(user.id!!, hetu)
+                }
+            } else if (hasErikoistuvaLaakariRole(existingUser)) {
+                fetchAndUpdateOpintotietodataIfChanged(existingUser.id!!, hetu, firstName, lastName)
+                fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id!!, hetu)
             }
         }
 
         if (existingUser == null) {
             log.error(
-                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " + "Käyttäjällä ei ole käyttöoikeutta."
+                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
+                    "Käyttäjällä ei ole käyttöoikeutta."
             )
             throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
         }
 
         // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus
-        if (hasErikoistuvaLaakariRole(existingUser!!) && !opintooikeusService.onOikeus(
-                existingUser!!
-            )
-        ) {
+        if (hasErikoistuvaLaakariRole(existingUser) && !opintooikeusService.onOikeus(existingUser)) {
             log.error(
                 "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole voimassaolevaa " +
                     "opinto-oikeutta, opinto-oikeuden tila ei salli kirjautumista tai opinto-oikeuden erikoisala " +
@@ -319,9 +321,9 @@ class SecurityConfiguration(
             throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
         }
 
-        return Saml2Authentication(createPrincipal(existingUser!!.id, principal),
+        return Saml2Authentication(createPrincipal(existingUser.id, principal),
             token.saml2Response,
-            existingUser!!.authorities.map { SimpleGrantedAuthority(it.name) })
+            existingUser.authorities.map { SimpleGrantedAuthority(it.name) })
     }
 
     private fun hasErikoistuvaLaakariRole(user: User): Boolean =
@@ -376,4 +378,18 @@ class SecurityConfiguration(
         }
     }
 
+    private fun fetchAndHandleOpintosuorituksetNonBlocking(userId: String, hetu: String) {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        try {
+            opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }.map { service ->
+                scope.launch {
+                    service.fetchOpintosuoritukset(hetu)?.let {
+                        opintosuorituksetPersistenceService.createOrUpdateIfChanged(userId, it)
+                    }
+                }
+            }
+        } catch (ex: Exception) {
+            log.error("Virhe opintosuoritusten haussa tai tallentamisessa: ${ex.message} ${ex.stackTrace}")
+        }
+    }
 }
