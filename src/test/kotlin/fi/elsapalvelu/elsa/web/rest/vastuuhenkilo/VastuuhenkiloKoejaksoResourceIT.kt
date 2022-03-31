@@ -112,7 +112,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[3].id").value(koejaksonAloituskeskustelu.id as Any))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[3].tyyppi").value("ALOITUSKESKUSTELU"))
             .andExpect(jsonPath("$[1].id").value(koejaksonKoulutussopimus.id as Any))
-            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
+            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.ODOTTAA_ALLEKIRJOITUKSIA.name as Any))
             .andExpect(jsonPath("$[1].tyyppi").value("KOULUTUSSOPIMUS"))
     }
 
@@ -135,7 +135,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKoulutussopimus.opintooikeus?.opiskelijatunnus))
             .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKoulutussopimus.opintooikeus?.yliopisto?.nimi))
-            .andExpect(jsonPath("$.erikoistuvanPuhelinnumero").value(koejaksonKoulutussopimus.erikoistuvanPuhelinnumero))
+            .andExpect(jsonPath("$.erikoistuvanPuhelinnumero").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber))
             .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email))
             .andExpect(jsonPath("$.lahetetty").value(koejaksonKoulutussopimus.lahetetty))
             .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonKoulutussopimus.vastuuhenkilo?.id))

@@ -43,7 +43,6 @@ class KoejaksonVaiheetHelper {
             return KoejaksonKoulutussopimus(
                 opintooikeus = opintooikeus,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
-                erikoistuvanPuhelinnumero = erikoistuvaLaakari.kayttaja?.user?.phoneNumber,
                 lahetetty = true,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
