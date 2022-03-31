@@ -9,10 +9,7 @@ import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.opensaml.saml.common.assertion.ValidationContext
 import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
 import org.slf4j.LoggerFactory
@@ -341,16 +338,22 @@ class SecurityConfiguration(
         cipher: Cipher, originalKey: SecretKey, hetu: String, firstName: String, lastName: String
     ) {
         runBlocking {
-            val deferreds: List<Deferred<OpintotietodataDTO?>> =
-                opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }.map { service ->
-                    async {
-                        service.fetchOpintotietodata(hetu)
-                    }
-                }
+            supervisorScope {
+                try {
+                    val deferreds: List<Deferred<OpintotietodataDTO?>> =
+                        opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }.map { service ->
+                            async(Dispatchers.IO) {
+                                service.fetchOpintotietodata(hetu)
+                            }
+                        }
 
-            deferreds.awaitAll().map {
-                it?.let {
-                    opintotietodataPersistenceService.create(cipher, originalKey, hetu, firstName, lastName, it)
+                    deferreds.awaitAll().map {
+                        it?.let {
+                            opintotietodataPersistenceService.create(cipher, originalKey, hetu, firstName, lastName, it)
+                        }
+                    }
+                } catch (ex: Exception) {
+                     log.error("Virhe opintotietodatan haussa tai tallentamisessa: ${ex.message} ${ex.stackTrace}")
                 }
             }
         }
@@ -363,16 +366,22 @@ class SecurityConfiguration(
         lastName: String
     ) {
         runBlocking {
-            val deferreds: List<Deferred<OpintotietodataDTO?>> =
-                opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }.map { service ->
-                    async {
-                        service.fetchOpintotietodata(hetu)
-                    }
-                }
+            supervisorScope {
+                try {
+                    val deferreds: List<Deferred<OpintotietodataDTO?>> =
+                        opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }.map { service ->
+                            async(Dispatchers.IO) {
+                                service.fetchOpintotietodata(hetu)
+                            }
+                        }
 
-            deferreds.awaitAll().map {
-                it?.let {
-                    opintotietodataPersistenceService.createOrUpdateIfChanged(userId, firstName, lastName, it)
+                    deferreds.awaitAll().map {
+                        it?.let {
+                            opintotietodataPersistenceService.createOrUpdateIfChanged(userId, firstName, lastName, it)
+                        }
+                    }
+                } catch (ex: Exception) {
+                    log.error("Virhe opintotietodatan haussa tai päivittämisessä: ${ex.message} ${ex.stackTrace}")
                 }
             }
         }
