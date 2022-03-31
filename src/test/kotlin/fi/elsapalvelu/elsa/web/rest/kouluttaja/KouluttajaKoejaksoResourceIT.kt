@@ -130,7 +130,7 @@ class KouluttajaKoejaksoResourceIT {
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].id").value(koejaksonAloituskeskustelu.id))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].tyyppi").value("ALOITUSKESKUSTELU"))
             .andExpect(jsonPath("$[1].id").value(koejaksonKoulutussopimus.id))
-            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.HYVAKSYTTY.name))
+            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.ODOTTAA_ALLEKIRJOITUKSIA.name))
             .andExpect(jsonPath("$[1].tyyppi").value("KOULUTUSSOPIMUS"))
             .andExpect(jsonPath("$[1].erikoistuvanNimi").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
     }
@@ -154,7 +154,7 @@ class KouluttajaKoejaksoResourceIT {
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKoulutussopimus.opintooikeus?.opiskelijatunnus))
             .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKoulutussopimus.opintooikeus?.yliopisto?.nimi))
-            .andExpect(jsonPath("$.erikoistuvanPuhelinnumero").value(koejaksonKoulutussopimus.erikoistuvanPuhelinnumero))
+            .andExpect(jsonPath("$.erikoistuvanPuhelinnumero").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber))
             .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email))
             .andExpect(jsonPath("$.lahetetty").value(koejaksonKoulutussopimus.lahetetty))
             .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonKoulutussopimus.vastuuhenkilo?.id))
@@ -279,7 +279,6 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.kouluttajat?.forEach {
-            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
             it.lahiosoite = KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE
             it.toimipaikka = KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA
             it.postitoimipaikka = KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA
@@ -312,7 +311,6 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.kouluttajat?.forEach {
-            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
             it.lahiosoite = KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE
             it.toimipaikka = KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA
             it.postitoimipaikka = KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA
@@ -320,6 +318,9 @@ class KouluttajaKoejaksoResourceIT {
         }
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
+        koulutussopimusDTO.kouluttajat?.forEach {
+            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
+        }
 
         restKoejaksoMockMvc.perform(
             put("/api/kouluttaja/koejakso/koulutussopimus")
@@ -335,7 +336,7 @@ class KouluttajaKoejaksoResourceIT {
 
         assertThat(testKoulutussopimus.kouluttajat).hasSize(1)
         val testKouluttaja = testKoulutussopimus.kouluttajat?.iterator()?.next()
-        assertThat(testKouluttaja?.puhelin).isEqualTo(KoejaksonVaiheetHelper.UPDATED_PHONE)
+        assertThat(testKouluttaja?.kouluttaja?.user?.phoneNumber).isEqualTo(KoejaksonVaiheetHelper.UPDATED_PHONE)
         assertThat(testKouluttaja?.lahiosoite).isEqualTo(KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE)
         assertThat(testKouluttaja?.toimipaikka).isEqualTo(KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA)
         assertThat(testKouluttaja?.postitoimipaikka).isEqualTo(KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA)
@@ -356,7 +357,6 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.kouluttajat?.forEach {
-            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
             it.lahiosoite = KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE
             it.toimipaikka = KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA
             it.postitoimipaikka = KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA
@@ -366,6 +366,9 @@ class KouluttajaKoejaksoResourceIT {
         updatedKoulutussopimus.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
+        koulutussopimusDTO.kouluttajat?.forEach {
+            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
+        }
 
         restKoejaksoMockMvc.perform(
             put("/api/kouluttaja/koejakso/koulutussopimus")
@@ -382,7 +385,7 @@ class KouluttajaKoejaksoResourceIT {
 
         assertThat(testKoulutussopimus.kouluttajat).hasSize(1)
         val testKouluttaja = testKoulutussopimus.kouluttajat?.iterator()?.next()
-        assertThat(testKouluttaja?.puhelin).isEqualTo(KoejaksonVaiheetHelper.UPDATED_PHONE)
+        assertThat(testKouluttaja?.kouluttaja?.user?.phoneNumber).isEqualTo(KoejaksonVaiheetHelper.UPDATED_PHONE)
         assertThat(testKouluttaja?.lahiosoite).isEqualTo(KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE)
         assertThat(testKouluttaja?.toimipaikka).isEqualTo(KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA)
         assertThat(testKouluttaja?.postitoimipaikka).isEqualTo(KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA)
