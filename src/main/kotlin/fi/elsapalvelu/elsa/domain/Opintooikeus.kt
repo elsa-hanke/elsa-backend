@@ -68,14 +68,28 @@ data class Opintooikeus(
     @ManyToOne(optional = false)
     var asetus: Asetus? = null,
 
-    @OneToMany(mappedBy = "opintooikeus")
+    @OneToMany(
+        mappedBy = "opintooikeus",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf(),
 
-    @OneToOne(mappedBy = "opintooikeus")
+    @OneToOne(
+        mappedBy = "opintooikeus",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    )
     var koulutussuunnitelma: Koulutussuunnitelma? = null,
 
-    @OneToMany(mappedBy = "opintooikeus")
+    @OneToMany(
+        mappedBy = "opintooikeus",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var teoriakoulutukset: MutableSet<Teoriakoulutus>? = mutableSetOf(),
 
