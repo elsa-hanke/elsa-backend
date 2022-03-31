@@ -258,7 +258,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
             koejaksonKoulutussopimusDTO.erikoistuvanSyntymaaika
         )
         assertThat(sopimus.opintooikeus?.yliopisto?.nimi).isEqualTo(koejaksonKoulutussopimusDTO.erikoistuvanYliopisto)
-        assertThat(sopimus.erikoistuvanPuhelinnumero).isEqualTo(koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero)
+        assertThat(sopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber).isEqualTo(
+            koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
+        )
         assertThat(sopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email).isEqualTo(
             koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti
         )
@@ -276,11 +278,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val kouluttaja = sopimus.kouluttajat?.iterator()?.next()
         val kouluttajaDTO = koejaksonKoulutussopimusDTO.kouluttajat?.iterator()?.next()
         assertThat(kouluttaja?.kouluttaja?.id).isEqualTo(kouluttajaDTO?.kayttajaId)
-        assertThat(kouluttaja?.toimipaikka).isEqualTo(kouluttajaDTO?.toimipaikka)
-        assertThat(kouluttaja?.lahiosoite).isEqualTo(kouluttajaDTO?.lahiosoite)
-        assertThat(kouluttaja?.postitoimipaikka).isEqualTo(kouluttajaDTO?.postitoimipaikka)
-        assertThat(kouluttaja?.puhelin).isEqualTo(kouluttajaDTO?.puhelin)
-        assertThat(kouluttaja?.kouluttaja?.user?.email).isEqualTo(kouluttajaDTO?.sahkoposti)
+        assertThat(kouluttaja?.toimipaikka).isNull()
+        assertThat(kouluttaja?.lahiosoite).isNull()
+        assertThat(kouluttaja?.postitoimipaikka).isNull()
         assertThat(kouluttaja?.sopimusHyvaksytty).isFalse
         assertThat(kouluttaja?.kuittausaika).isNull()
         assertThat(sopimus.koulutuspaikat).hasSize(1)
@@ -305,7 +305,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.koejaksonAlkamispaiva = UPDATED_ALKAMISPAIVA
-        updatedKoulutussopimus.erikoistuvanPuhelinnumero = UPDATED_PHONE
+        updatedKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber =
+            UPDATED_PHONE
 
         val updatedKoulutuspaikka = updatedKoulutussopimus.koulutuspaikat?.iterator()?.next()
         updatedKoulutuspaikka?.nimi = UPDATED_KOULUTUSPAIKKA
@@ -342,7 +343,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(koulutussopimusList).hasSize(databaseSizeBeforeUpdate)
         val testKoulutussopimus = koulutussopimusList[koulutussopimusList.size - 1]
         assertThat(testKoulutussopimus.koejaksonAlkamispaiva).isEqualTo(UPDATED_ALKAMISPAIVA)
-        assertThat(testKoulutussopimus.erikoistuvanPuhelinnumero).isEqualTo(UPDATED_PHONE)
+        assertThat(testKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber).isEqualTo(
+            UPDATED_PHONE
+        )
 
         val testKoulutuspaikka = testKoulutussopimus.koulutuspaikat?.iterator()?.next()
         assertThat(testKoulutuspaikka?.nimi).isEqualTo(UPDATED_KOULUTUSPAIKKA)
@@ -1041,7 +1044,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
             return KoejaksonKoulutussopimus(
                 opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
-                erikoistuvanPuhelinnumero = erikoistuvaLaakari.kayttaja?.user?.phoneNumber,
                 lahetetty = false,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
