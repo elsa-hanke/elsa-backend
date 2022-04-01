@@ -218,6 +218,7 @@ dependencies {
             strictly("3.0.11.RELEASE") // CVE-2021-43466 on 3.0.12.RELEASE
         }
     }
+    implementation "org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE"
     implementation "org.zalando:problem-spring-web"
     implementation "org.springframework.security:spring-security-config:${springSecurityVersion}"
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
@@ -257,6 +258,8 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp-tls:4.9.3"
     implementation "net.javacrumbs.shedlock:shedlock-spring:4.33.0"
     implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.33.0"
+    implementation "com.itextpdf:kernel:7.2.1"
+    implementation "com.itextpdf:html2pdf:4.0.1"
 }
 
 apollo {
