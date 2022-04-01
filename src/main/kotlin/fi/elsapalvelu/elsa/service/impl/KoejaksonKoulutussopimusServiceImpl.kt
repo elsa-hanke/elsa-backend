@@ -1,18 +1,25 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.KoejaksonKoulutussopimus
-import fi.elsapalvelu.elsa.domain.KoulutussopimuksenKouluttaja
+import com.itextpdf.html2pdf.HtmlConverter
+import com.itextpdf.kernel.pdf.PdfWriter
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
+import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.thymeleaf.context.Context
+import org.thymeleaf.spring5.SpringTemplateEngine
+import java.io.*
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.persistence.EntityNotFoundException
 
@@ -26,7 +33,9 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val templateEngine: SpringTemplateEngine,
+    private val asiakirjaRepository: AsiakirjaRepository
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -121,7 +130,12 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
-        return koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
+        val dto = koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
+        if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
+            luoPdf(dto, koulutussopimus.opintooikeus!!)
+        }
+
+        return dto
     }
 
     private fun handleErikoistuva(
@@ -362,5 +376,25 @@ class KoejaksonKoulutussopimusServiceImpl(
 
     override fun delete(id: Long) {
         koejaksonKoulutussopimusRepository.deleteById(id)
+    }
+
+    private fun luoPdf(koulutussopimus: KoejaksonKoulutussopimusDTO, opintooikeus: Opintooikeus) {
+        val locale = Locale.forLanguageTag("fi")
+        val context = Context(locale).apply {
+            setVariable("sopimus", koulutussopimus)
+        }
+        val content = templateEngine.process("pdf/koulutussopimus.html", context)
+        val outputStream = ByteArrayOutputStream()
+        val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+        HtmlConverter.convertToPdf(content, PdfWriter(outputStream))
+        asiakirjaRepository.save(
+            Asiakirja(
+                opintooikeus = opintooikeus,
+                nimi = "koejakson_koulutussopimus_${timestamp}.pdf",
+                tyyppi = "application/pdf",
+                lisattypvm = LocalDateTime.now(),
+                asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
+            )
+        )
     }
 }
