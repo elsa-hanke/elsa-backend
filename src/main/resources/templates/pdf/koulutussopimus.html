@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>Koejakson koulutussopimus</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style>
+        hr {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 0;
+            border-top: 1px solid rgba(34, 34, 34, 0.1);
+        }
+
+        th {
+            text-align: left;
+        }
+
+        td {
+            padding-bottom: 2px;
+        }
+
+        table {
+            border-spacing: 0;
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .col-2 {
+            flex: 0 0 66.6666666667%;
+            max-width: 66.6666666667%;
+        }
+
+        .col-4 {
+            flex: 0 0 33.3333333333%;
+            max-width: 33.3333333333%;
+        }
+
+        h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            margin-top: 0;
+        }
+
+        .mb-0 {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1 th:text="#{koulutussopimus.title}"></h1>
+    <hr/>
+    <div>
+        <table>
+            <caption></caption>
+            <tr>
+                <th style="width: 12rem" th:text="#{koulutussopimus.erikoistuvalaakari}"></th>
+                <td th:text="${sopimus.erikoistuvanNimi + ', ' + sopimus.erikoistuvanErikoisala}"></td>
+            </tr>
+            <tr>
+                <th th:text="#{koulutussopimus.opiskelijanumero}"></th>
+                <td th:text="${sopimus.erikoistuvanOpiskelijatunnus}"></td>
+            </tr>
+            <tr>
+                <th th:text="#{koulutussopimus.syntymaaika}"></th>
+                <td th:text="${#temporals.format(sopimus.erikoistuvanSyntymaaika, 'dd.MM.yyyy')}"></td>
+            </tr>
+            <tr>
+                <th th:text="#{koulutussopimus.yliopisto}"></th>
+                <td th:text="#{'koulutussopimus.' + ${sopimus.erikoistuvanYliopisto}}"></td>
+            </tr>
+        </table>
+    </div>
+    <hr/>
+    <h4 th:text="#{koulutussopimus.opintooikeudenMyontamispaiva}"></h4>
+    <p th:text="${#temporals.format(sopimus.opintooikeudenMyontamispaiva, 'dd.MM.yyyy')}"></p>
+    <h4 th:text="#{koulutussopimus.koejaksonAlkamispaiva}"></h4>
+    <p class="mb-0" th:text="${#temporals.format(sopimus.koejaksonAlkamispaiva, 'dd.MM.yyyy')}"></p>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{koulutussopimus.sahkoposti}"></h4>
+            <p th:text="${sopimus.erikoistuvanSahkoposti}"></p>
+        </div>
+        <div class="col-4">
+            <h4 th:text="#{koulutussopimus.puhelinnumero}"></h4>
+            <p th:text="${sopimus.erikoistuvanPuhelinnumero}"></p>
+        </div>
+    </div>
+    <hr/>
+    <h3 th:text="#{koulutussopimus.koulutuspaikanTiedot}"></h3>
+    <div th:each="koulutuspaikka: ${sopimus.koulutuspaikat}">
+        <h4 th:text="#{koulutussopimus.koulutuspaikka.nimi}"></h4>
+        <p th:text="${koulutuspaikka.nimi}"></p>
+        <h4 th:text="#{koulutussopimus.koulutuspaikka.koulutussopimusOmanYliopistonKanssa}"></h4>
+        <p th:text="${koulutuspaikka.koulutussopimusOmanYliopistonKanssa} ? #{koulutussopimus.koulutuspaikka.kylla} : #{koulutussopimus.koulutuspaikka.ei} + ' ' + #{'koulutussopimus.' + ${koulutuspaikka.yliopisto}}"></p>
+    </div>
+    <hr/>
+    <h3 th:text="#{koulutussopimus.kouluttajat}"></h3>
+    <div th:each="kouluttaja: ${sopimus.kouluttajat}">
+        <h4 th:text="#{koulutussopimus.kouluttaja.nimi}"></h4>
+        <p th:text="${kouluttaja.nimi}"></p>
+        <h4 th:text="#{koulutussopimus.kouluttaja.nimike}"></h4>
+        <p th:text="${kouluttaja.nimike}"></p>
+        <h4 th:text="#{koulutussopimus.kouluttaja.toimipaikka}"></h4>
+        <p class="mb-0" th:text="${kouluttaja.toimipaikka}"></p>
+        <div class="row">
+            <div class="col-4">
+                <h4 th:text="#{koulutussopimus.kouluttaja.lahiosoite}"></h4>
+                <p th:text="${kouluttaja.lahiosoite}"></p>
+            </div>
+            <div class="col-4">
+                <h4 th:text="#{koulutussopimus.kouluttaja.postitoimipaikka}"></h4>
+                <p th:text="${kouluttaja.postitoimipaikka}"></p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <h4 th:text="#{koulutussopimus.sahkoposti}"></h4>
+                <p th:text="${kouluttaja.sahkoposti}"></p>
+            </div>
+            <div class="col-4">
+                <h4 th:text="#{koulutussopimus.puhelinnumero}"></h4>
+                <p th:text="${kouluttaja.puhelin}"></p>
+            </div>
+        </div>
+    </div>
+    <hr/>
+    <h3 th:text="#{koulutussopimus.vastuuhenkilo}"></h3>
+    <h4 th:text="#{koulutussopimus.vastuuhenkilo.nimi}"></h4>
+    <p th:text="${sopimus.vastuuhenkilo.nimi}">
+        <span
+            th:text="${sopimus.vastuuhenkilo.nimike != null} ? ', ' + ${sopimus.vastuuhenkilo.nimike} : ''"></span>
+    </p>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{koulutussopimus.sahkoposti}"></h4>
+            <p th:text="${sopimus.vastuuhenkilo.sahkoposti}"></p>
+        </div>
+        <div class="col-4">
+            <h4 th:text="#{koulutussopimus.puhelinnumero}"></h4>
+            <p th:text="${sopimus.vastuuhenkilo.puhelin}"></p>
+        </div>
+    </div>
+    <hr/>
+    <h3 th:text="#{koulutussopimus.muokkauspaivamaarat}"></h3>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{koulutussopimus.paivays}"></h4>
+            <p th:text="${#temporals.format(sopimus.erikoistuvanAllekirjoitusaika, 'dd.MM.yyyy')}"></p>
+        </div>
+        <div class="col-2">
+            <h4 th:text="#{koulutussopimus.nimiJaNimike}"></h4>
+            <p th:text="${sopimus.erikoistuvanNimi + ', ' + sopimus.erikoistuvanErikoisala}"></p>
+        </div>
+    </div>
+    <div th:each="kouluttaja: ${sopimus.kouluttajat}">
+        <div class="row">
+            <div class="col-4">
+                <h4 th:text="#{koulutussopimus.paivays}"></h4>
+                <p th:text="${#temporals.format(kouluttaja.kuittausaika, 'dd.MM.yyyy')}"></p>
+            </div>
+            <div class="col-2">
+                <h4 th:text="#{koulutussopimus.nimiJaNimike}"></h4>
+                <p th:text="${kouluttaja.nimi + ', ' + kouluttaja.nimike}"></p>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{koulutussopimus.paivays}"></h4>
+            <p th:text="${#temporals.format(sopimus.vastuuhenkilo.kuittausaika, 'dd.MM.yyyy')}"></p>
+        </div>
+        <div class="col-2">
+            <h4 th:text="#{koulutussopimus.nimiJaNimike}"></h4>
+            <p th:text="${sopimus.vastuuhenkilo.nimi}">
+                <span
+                    th:text="${sopimus.vastuuhenkilo.nimike != null} ? ', ' + ${sopimus.vastuuhenkilo.nimike} : ''"></span>
+            </p>
+        </div>
+    </div>
+    <hr/>
+</div>
+</body>
+</html>
