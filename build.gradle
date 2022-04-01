@@ -179,7 +179,7 @@ dependencies {
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonVersion}"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5:${jacksonVersion}"
     implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}"
     implementation "javax.cache:cache-api"
     implementation "org.hibernate:hibernate-core:${hibernateVersion}"
     implementation "com.zaxxer:HikariCP"
@@ -227,7 +227,7 @@ dependencies {
     implementation "org.opensaml:opensaml-saml-api:${opensamlVersion}"
     implementation "org.opensaml:opensaml-saml-impl:${opensamlVersion}"
     implementation("org.bouncycastle:bcprov-jdk15on:1.69")
-    implementation "org.postgresql:postgresql:42.2.23"
+    implementation "org.postgresql:postgresql:42.3.3"
     liquibaseRuntime "org.postgresql:postgresql"
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
