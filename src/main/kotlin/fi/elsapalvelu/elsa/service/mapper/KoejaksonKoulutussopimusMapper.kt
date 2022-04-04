@@ -22,8 +22,8 @@ interface KoejaksonKoulutussopimusMapper :
             target = "erikoistuvanAvatar"
         ),
         Mapping(
-            target = "erikoistuvanNimi",
-            expression = "java(entity.getOpintooikeus().getErikoistuvaLaakari().getKayttaja().getNimi())"
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.nimi",
+            target = "erikoistuvanNimi"
         ),
         Mapping(source = "opintooikeus.opiskelijatunnus", target = "erikoistuvanOpiskelijatunnus"),
         Mapping(

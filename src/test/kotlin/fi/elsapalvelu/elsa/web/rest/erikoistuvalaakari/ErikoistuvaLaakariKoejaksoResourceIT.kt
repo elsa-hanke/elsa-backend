@@ -258,7 +258,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(sopimus.opintooikeus?.erikoistuvaLaakari?.syntymaaika).isEqualTo(
             koejaksonKoulutussopimusDTO.erikoistuvanSyntymaaika
         )
-        assertThat(sopimus.opintooikeus?.yliopisto?.nimi.toString()).isEqualTo(koejaksonKoulutussopimusDTO.erikoistuvanYliopisto)
+        assertThat(sopimus.opintooikeus?.yliopisto?.nimi.toString()).isEqualTo(
+            koejaksonKoulutussopimusDTO.erikoistuvanYliopisto
+        )
         assertThat(sopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber).isEqualTo(
             koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
         )
@@ -447,11 +449,21 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
         assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeCreate + 1)
         val keskustelu = aloituskeskusteluList[aloituskeskusteluList.size - 1]
-        assertThat(keskustelu.erikoistuvanNimi).isEqualTo(koejaksonAloituskeskusteluDTO.erikoistuvanNimi)
-        assertThat(keskustelu.erikoistuvanErikoisala).isEqualTo(koejaksonAloituskeskusteluDTO.erikoistuvanErikoisala)
-        assertThat(keskustelu.erikoistuvanOpiskelijatunnus).isEqualTo(koejaksonAloituskeskusteluDTO.erikoistuvanOpiskelijatunnus)
-        assertThat(keskustelu.erikoistuvanYliopisto).isEqualTo(koejaksonAloituskeskusteluDTO.erikoistuvanYliopisto)
-        assertThat(keskustelu.erikoistuvanSahkoposti).isEqualTo(koejaksonAloituskeskusteluDTO.erikoistuvanSahkoposti)
+        assertThat(keskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()).isEqualTo(
+            koejaksonAloituskeskusteluDTO.erikoistuvanNimi
+        )
+        assertThat(keskustelu.opintooikeus?.erikoisala?.nimi).isEqualTo(
+            koejaksonAloituskeskusteluDTO.erikoistuvanErikoisala
+        )
+        assertThat(keskustelu.opintooikeus?.opiskelijatunnus).isEqualTo(
+            koejaksonAloituskeskusteluDTO.erikoistuvanOpiskelijatunnus
+        )
+        assertThat(keskustelu.opintooikeus?.yliopisto?.nimi.toString()).isEqualTo(
+            koejaksonAloituskeskusteluDTO.erikoistuvanYliopisto
+        )
+        assertThat(keskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email).isEqualTo(
+            koejaksonAloituskeskusteluDTO.erikoistuvanSahkoposti
+        )
         assertThat(keskustelu.koejaksonSuorituspaikka).isEqualTo(koejaksonAloituskeskusteluDTO.koejaksonSuorituspaikka)
         assertThat(keskustelu.koejaksonToinenSuorituspaikka).isEqualTo(koejaksonAloituskeskusteluDTO.koejaksonToinenSuorituspaikka)
         assertThat(keskustelu.koejaksonAlkamispaiva).isEqualTo(koejaksonAloituskeskusteluDTO.koejaksonAlkamispaiva)
@@ -459,9 +471,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(keskustelu.suoritettuKokoaikatyossa).isEqualTo(koejaksonAloituskeskusteluDTO.suoritettuKokoaikatyossa)
         assertThat(keskustelu.tyotunnitViikossa).isEqualTo(koejaksonAloituskeskusteluDTO.tyotunnitViikossa)
         assertThat(keskustelu.lahikouluttaja?.id).isEqualTo(koejaksonAloituskeskusteluDTO.lahikouluttaja?.id)
-        assertThat(keskustelu.lahikouluttajanNimi).isEqualTo(koejaksonAloituskeskusteluDTO.lahikouluttaja?.nimi)
         assertThat(keskustelu.lahiesimies?.id).isEqualTo(koejaksonAloituskeskusteluDTO.lahiesimies?.id)
-        assertThat(keskustelu.lahiesimiehenNimi).isEqualTo(koejaksonAloituskeskusteluDTO.lahiesimies?.nimi)
         assertThat(keskustelu.koejaksonOsaamistavoitteet).isEqualTo(koejaksonAloituskeskusteluDTO.koejaksonOsaamistavoitteet)
         assertThat(keskustelu.lahetetty).isEqualTo(koejaksonAloituskeskusteluDTO.lahetetty)
         assertThat(keskustelu.muokkauspaiva).isNotNull
@@ -483,7 +493,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         updatedAloituskeskustelu.koejaksonAlkamispaiva = UPDATED_ALKAMISPAIVA
         updatedAloituskeskustelu.koejaksonPaattymispaiva = UPDATED_PAATTYMISPAIVA
-        updatedAloituskeskustelu.erikoistuvanSahkoposti = UPDATED_EMAIL
 
         val updatedKouluttaja = KayttajaHelper.createUpdatedEntity(
             em,
@@ -491,9 +500,10 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         )
         em.persist(updatedKouluttaja)
         updatedAloituskeskustelu.lahikouluttaja = updatedKouluttaja
-        updatedAloituskeskustelu.lahikouluttajanNimi = updatedKouluttaja.getNimi()
 
         val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
+
+        aloituskeskusteluDTO.erikoistuvanSahkoposti = UPDATED_EMAIL
 
         restKoejaksoMockMvc.perform(
             put("/api/erikoistuva-laakari/koejakso/aloituskeskustelu")
@@ -507,12 +517,13 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val testAloituskeskustelu = aloituskeskusteluList[aloituskeskusteluList.size - 1]
         assertThat(testAloituskeskustelu.koejaksonAlkamispaiva).isEqualTo(UPDATED_ALKAMISPAIVA)
         assertThat(testAloituskeskustelu.koejaksonPaattymispaiva).isEqualTo(UPDATED_PAATTYMISPAIVA)
-        assertThat(testAloituskeskustelu.erikoistuvanSahkoposti).isEqualTo(UPDATED_EMAIL)
+        assertThat(testAloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email).isEqualTo(
+            UPDATED_EMAIL
+        )
 
         val testLahikouluttaja =
             kayttajaRepository.findById(testAloituskeskustelu.lahikouluttaja?.id!!)
         assertThat(testLahikouluttaja.get().user?.id).isEqualTo(updatedKouluttaja.user?.id)
-        assertThat(testAloituskeskustelu.lahikouluttajanNimi).isEqualTo(UPDATED_VASTUUHENKILO_NIMI)
     }
 
     @Test
@@ -1083,19 +1094,12 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
             val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonAloituskeskustelu(
                 opintooikeus = opintooikeus,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
-                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
-                erikoistuvanSahkoposti = erikoistuvaLaakari.kayttaja?.user?.email,
                 koejaksonSuorituspaikka = DEFAULT_KOULUTUSPAIKKA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
                 koejaksonPaattymispaiva = DEFAULT_PAATTYMISPAIVA,
                 suoritettuKokoaikatyossa = true,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.getNimi(),
                 koejaksonOsaamistavoitteet = DEFAULT_OSAAMISTAVOITTEET,
                 lahetetty = false,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
