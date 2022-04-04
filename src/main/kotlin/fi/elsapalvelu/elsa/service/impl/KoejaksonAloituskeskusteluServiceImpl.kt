@@ -1,15 +1,11 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KoejaksonAloituskeskustelu
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
-import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -28,8 +24,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
     private val koejaksonAloituskeskusteluMapper: KoejaksonAloituskeskusteluMapper,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
-    private val kayttajaMapper: KayttajaMapper,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val userRepository: UserRepository
 ) : KoejaksonAloituskeskusteluService {
 
     override fun create(
@@ -40,14 +36,19 @@ class KoejaksonAloituskeskusteluServiceImpl(
             var aloituskeskustelu =
                 koejaksonAloituskeskusteluMapper.toEntity(koejaksonAloituskeskusteluDTO)
             aloituskeskustelu.opintooikeus = it
-            if (koejaksonAloituskeskusteluDTO.lahetetty == true) aloituskeskustelu.erikoistuvanAllekirjoitusaika =
+            if (koejaksonAloituskeskusteluDTO.lahetetty == true) aloituskeskustelu.erikoistuvanKuittausaika =
                 LocalDate.now()
             aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
+
+            val user = it.erikoistuvaLaakari?.kayttaja?.user
+            user?.email = koejaksonAloituskeskusteluDTO.erikoistuvanSahkoposti
+            userRepository.save(user)
 
             if (aloituskeskustelu.lahetetty) {
                 // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
                 mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!).get().user!!,
+                    kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!)
+                        .get().user!!,
                     "aloituskeskusteluKouluttajalle.html",
                     "email.aloituskeskustelukouluttajalle.title",
                     properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
@@ -76,6 +77,10 @@ class KoejaksonAloituskeskusteluServiceImpl(
             && kirjautunutErikoistuvaLaakari == aloituskeskustelu.opintooikeus?.erikoistuvaLaakari
         ) {
             aloituskeskustelu = handleErikoistuva(aloituskeskustelu, updatedAloituskeskustelu)
+
+            val user = aloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user
+            user?.email = koejaksonAloituskeskusteluDTO.erikoistuvanSahkoposti
+            userRepository.save(user)
         }
 
         if (aloituskeskustelu.lahikouluttaja?.user?.id == userId && !aloituskeskustelu.lahiesimiesHyvaksynyt) {
@@ -93,11 +98,6 @@ class KoejaksonAloituskeskusteluServiceImpl(
         aloituskeskustelu: KoejaksonAloituskeskustelu,
         updated: KoejaksonAloituskeskustelu
     ): KoejaksonAloituskeskustelu {
-        aloituskeskustelu.erikoistuvanNimi = updated.erikoistuvanNimi
-        aloituskeskustelu.erikoistuvanErikoisala = updated.erikoistuvanErikoisala
-        aloituskeskustelu.erikoistuvanOpiskelijatunnus = updated.erikoistuvanOpiskelijatunnus
-        aloituskeskustelu.erikoistuvanYliopisto = updated.erikoistuvanYliopisto
-        aloituskeskustelu.erikoistuvanSahkoposti = updated.erikoistuvanSahkoposti
         aloituskeskustelu.koejaksonSuorituspaikka = updated.koejaksonSuorituspaikka
         aloituskeskustelu.koejaksonToinenSuorituspaikka = updated.koejaksonToinenSuorituspaikka
         aloituskeskustelu.koejaksonAlkamispaiva = updated.koejaksonAlkamispaiva
@@ -105,15 +105,13 @@ class KoejaksonAloituskeskusteluServiceImpl(
         aloituskeskustelu.suoritettuKokoaikatyossa = updated.suoritettuKokoaikatyossa
         aloituskeskustelu.tyotunnitViikossa = updated.tyotunnitViikossa
         aloituskeskustelu.lahikouluttaja = updated.lahikouluttaja
-        aloituskeskustelu.lahikouluttajanNimi = updated.lahikouluttajanNimi
         aloituskeskustelu.lahiesimies = updated.lahiesimies
-        aloituskeskustelu.lahiesimiehenNimi = updated.lahiesimiehenNimi
         aloituskeskustelu.koejaksonOsaamistavoitteet = updated.koejaksonOsaamistavoitteet
         aloituskeskustelu.lahetetty = updated.lahetetty
 
         if (aloituskeskustelu.lahetetty) {
             aloituskeskustelu.korjausehdotus = null
-            aloituskeskustelu.erikoistuvanAllekirjoitusaika = LocalDate.now()
+            aloituskeskustelu.erikoistuvanKuittausaika = LocalDate.now()
         }
 
         val result = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
@@ -144,7 +142,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         else {
             aloituskeskustelu.korjausehdotus = updated.korjausehdotus
             aloituskeskustelu.lahetetty = false
-            aloituskeskustelu.erikoistuvanAllekirjoitusaika = null
+            aloituskeskustelu.erikoistuvanKuittausaika = null
         }
 
         val result = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
@@ -187,7 +185,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
             aloituskeskustelu.lahetetty = false
             aloituskeskustelu.lahikouluttajaHyvaksynyt = false
             aloituskeskustelu.lahikouluttajanKuittausaika = null
-            aloituskeskustelu.erikoistuvanAllekirjoitusaika = null
+            aloituskeskustelu.erikoistuvanKuittausaika = null
         }
 
         val result = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)

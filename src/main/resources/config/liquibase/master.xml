@@ -192,5 +192,6 @@
     <include file="config/liquibase/changelog/20220324164511_added_entity_Opintosuoritus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220324164811_added_entity_OpintosuoritusOsakokonaisuus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220408121744_modify_entity_OpintosuoritusOsakokonaisuus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220404135232_modify_entity_KoejaksonAloituskeskustelu.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
