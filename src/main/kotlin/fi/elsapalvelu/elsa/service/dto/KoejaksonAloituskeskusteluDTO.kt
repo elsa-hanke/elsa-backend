@@ -50,7 +50,7 @@ data class KoejaksonAloituskeskusteluDTO(
 
     var korjausehdotus: String? = null,
 
-    var erikoistuvanAllekirjoitusaika: LocalDate? = null
+    var erikoistuvanKuittausaika: LocalDate? = null
 
 ) : Serializable {
     override fun toString() = "KoejaksonAloituskeskusteluDTO"
