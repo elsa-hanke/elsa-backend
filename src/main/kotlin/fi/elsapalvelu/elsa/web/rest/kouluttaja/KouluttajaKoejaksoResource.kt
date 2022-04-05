@@ -212,7 +212,7 @@ class KouluttajaKoejaksoResource(
         }
 
         validateArviointi(
-            valiarviointi.get().erikoistuvaAllekirjoittanut,
+            valiarviointi.get().lahiesimies?.sopimusHyvaksytty,
             ENTITY_KOEJAKSON_VALIARVIOINTI
         )
 
@@ -283,7 +283,8 @@ class KouluttajaKoejaksoResource(
             ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
         )
 
-        val result = koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
+        val result =
+            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
         return ResponseEntity.ok(result)
     }
 

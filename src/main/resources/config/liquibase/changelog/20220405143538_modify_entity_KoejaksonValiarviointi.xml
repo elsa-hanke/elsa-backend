@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220405143538" author="jhipster">
+
+        <delete tableName="koejakson_valiarviointi"/>
+        <delete tableName="koejakson_valiarviointi_audit"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi"
+            columnName="erikoistuvan_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi_audit"
+            columnName="erikoistuvan_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi"
+            columnName="erikoistuvan_erikoisala"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi_audit"
+            columnName="erikoistuvan_erikoisala"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi"
+            columnName="erikoistuvan_opiskelijatunnus"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi_audit"
+            columnName="erikoistuvan_opiskelijatunnus"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi"
+            columnName="erikoistuvan_yliopisto"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi_audit"
+            columnName="erikoistuvan_yliopisto"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi"
+            columnName="lahikouluttajan_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi_audit"
+            columnName="lahikouluttajan_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi"
+            columnName="lahiesimiehen_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi_audit"
+            columnName="lahiesimiehen_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi"
+            columnName="erikoistuva_allekirjoittanut"/>
+
+        <dropColumn
+            tableName="koejakson_valiarviointi_audit"
+            columnName="erikoistuva_allekirjoittanut"/>
+
+        <renameColumn
+            tableName="koejakson_valiarviointi"
+            oldColumnName="erikoistuvan_allekirjoitusaika"
+            newColumnName="erikoistuvan_kuittausaika"/>
+
+        <renameColumn
+            tableName="koejakson_valiarviointi_audit"
+            oldColumnName="erikoistuvan_allekirjoitusaika"
+            newColumnName="erikoistuvan_kuittausaika"/>
+
+    </changeSet>
+
+</databaseChangeLog>
