@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KoejaksonLoppukeskustelu
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonLoppukeskusteluRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
@@ -9,7 +8,6 @@ import fi.elsapalvelu.elsa.service.KoejaksonLoppukeskusteluService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonLoppukeskusteluDTO
-import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonLoppukeskusteluMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -22,12 +20,10 @@ import javax.persistence.EntityNotFoundException
 @Service
 @Transactional
 class KoejaksonLoppukeskusteluServiceImpl(
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
     private val koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
-    private val kayttajaMapper: KayttajaMapper,
     private val opintooikeusRepository: OpintooikeusRepository
 ) : KoejaksonLoppukeskusteluService {
 
@@ -64,10 +60,6 @@ class KoejaksonLoppukeskusteluServiceImpl(
         val updatedLoppukeskustelu =
             koejaksonLoppukeskusteluMapper.toEntity(koejaksonLoppukeskusteluDTO)
 
-        if (loppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId && loppukeskustelu.lahiesimiesHyvaksynyt) {
-            loppukeskustelu = handleErikoistuva(loppukeskustelu)
-        }
-
         if (loppukeskustelu.lahikouluttaja?.user?.id == userId && !loppukeskustelu.lahiesimiesHyvaksynyt) {
             loppukeskustelu = handleKouluttaja(loppukeskustelu, updatedLoppukeskustelu)
         }
@@ -77,38 +69,6 @@ class KoejaksonLoppukeskusteluServiceImpl(
         }
 
         return koejaksonLoppukeskusteluMapper.toDto(loppukeskustelu)
-    }
-
-    private fun handleErikoistuva(loppukeskustelu: KoejaksonLoppukeskustelu): KoejaksonLoppukeskustelu {
-        loppukeskustelu.erikoistuvaAllekirjoittanut = true
-        loppukeskustelu.erikoistuvanAllekirjoitusaika = LocalDate.now()
-
-        val result = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
-
-        // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta loppukeskustelusta
-        val erikoistuvaLaakari =
-            kayttajaRepository.findById(loppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                .get().user!!
-        mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!).get().user!!,
-            "loppukeskusteluHyvaksytty.html",
-            "email.loppukeskusteluhyvaksytty.title",
-            properties = mapOf(
-                Pair(MailProperty.ID, loppukeskustelu.id!!.toString()),
-                Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-            )
-        )
-        mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id!!).get().user!!,
-            "loppukeskusteluHyvaksytty.html",
-            "email.loppukeskusteluhyvaksytty.title",
-            properties = mapOf(
-                Pair(MailProperty.ID, loppukeskustelu.id!!.toString()),
-                Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-            )
-        )
-
-        return result
     }
 
     private fun handleKouluttaja(

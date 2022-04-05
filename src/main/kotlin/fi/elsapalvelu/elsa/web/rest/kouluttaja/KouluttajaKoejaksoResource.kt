@@ -347,7 +347,7 @@ class KouluttajaKoejaksoResource(
         }
 
         validateArviointi(
-            loppukeskustelu.get().erikoistuvaAllekirjoittanut,
+            loppukeskustelu.get().lahiesimies?.sopimusHyvaksytty,
             ENTITY_KOEJAKSON_LOPPUKESKUSTELU
         )
 

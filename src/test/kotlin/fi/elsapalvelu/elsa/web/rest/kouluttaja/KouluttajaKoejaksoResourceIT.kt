@@ -118,7 +118,7 @@ class KouluttajaKoejaksoResourceIT {
             .andExpect(jsonPath("$[0].id").value(koejaksonLoppukeskustelu.id))
             .andExpect(jsonPath("$[0].tila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name))
             .andExpect(jsonPath("$[0].tyyppi").value(KoejaksoTyyppi.LOPPUKESKUSTELU.name))
-            .andExpect(jsonPath("$[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.erikoistuvanNimi))
+            .andExpect(jsonPath("$[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(
                 jsonPath("$[0].hyvaksytytVaiheet[0].id").value(
                     koejaksonKehittamistoimenpiteet.id
@@ -254,12 +254,12 @@ class KouluttajaKoejaksoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(koejaksonLoppukeskustelu.id as Any))
-            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonLoppukeskustelu.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonLoppukeskustelu.erikoistuvanOpiskelijatunnus as Any))
-            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonLoppukeskustelu.erikoistuvanYliopisto as Any))
-            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonLoppukeskustelu.lahikouluttaja?.id as Any))
-            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonLoppukeskustelu.lahiesimies?.id as Any))
+            .andExpect(jsonPath("$.id").value(koejaksonLoppukeskustelu.id))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonLoppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonLoppukeskustelu.opintooikeus?.opiskelijatunnus))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonLoppukeskustelu.opintooikeus?.yliopisto?.nimi))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonLoppukeskustelu.lahikouluttaja?.id))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonLoppukeskustelu.lahiesimies?.id))
             .andExpect(jsonPath("$.korjausehdotus").isEmpty)
     }
 

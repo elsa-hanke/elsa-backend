@@ -426,35 +426,6 @@ class ErikoistuvaLaakariKoejaksoResource(
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
-    @PutMapping("/koejakso/loppukeskustelu")
-    fun updateLoppukeskustelu(
-        @Valid @RequestBody loppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
-        principal: Principal?
-    ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
-
-        val loppukeskustelu =
-            koejaksonLoppukeskusteluService.findByOpintooikeusId(opintooikeusId)
-
-        if (!loppukeskustelu.isPresent) {
-            throw BadRequestAlertException(
-                "Koejakson loppukeskustelua ei löydy.",
-                ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                "dataillegal.koejakson-loppukeskustelua-ei-loydy"
-            )
-        }
-
-        validateKuittaus(
-            loppukeskustelu.get().lahiesimies?.kuittausaika != null,
-            ENTITY_KOEJAKSON_LOPPUKESKUSTELU
-        )
-
-        val result = koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, user.id!!)
-        return ResponseEntity.ok(result)
-    }
-
     @GetMapping("/vastuuhenkilonarvio-lomake")
     fun getVastuuhenkilonArvioForm(principal: Principal?): ResponseEntity<VastuuhenkilonArvioFormDTO> {
         val form = VastuuhenkilonArvioFormDTO().apply {
@@ -512,7 +483,7 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         val loppukeskustelu =
             koejaksonLoppukeskusteluService.findByOpintooikeusId(opintooikeusId)
-        if (!loppukeskustelu.isPresent || loppukeskustelu.get().erikoistuvaAllekirjoittanut != true) {
+        if (!loppukeskustelu.isPresent || loppukeskustelu.get().lahiesimies?.sopimusHyvaksytty != true) {
             throw BadRequestAlertException(
                 "Loppukeskustelu täytyy hyväksyä ennen vastuuhenkilön arviota.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
