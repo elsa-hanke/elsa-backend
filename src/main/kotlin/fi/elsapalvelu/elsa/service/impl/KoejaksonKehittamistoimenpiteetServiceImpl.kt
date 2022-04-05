@@ -45,7 +45,8 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
 
             // Sähköposti kouluttajalle
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(kehittamistoimenpiteet.lahikouluttaja?.id!!).get().user!!,
+                kayttajaRepository.findById(kehittamistoimenpiteet.lahikouluttaja?.id!!)
+                    .get().user!!,
                 "kehittamistoimenpiteetKouluttajalle.html",
                 "email.kehittamistoimenpiteetkouluttajalle.title",
                 properties = mapOf(Pair(MailProperty.ID, kehittamistoimenpiteet.id!!.toString()))
@@ -66,12 +67,6 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         val updatedKehittamistoimenpiteet =
             koejaksonKehittamistoimenpiteetMapper.toEntity(koejaksonKehittamistoimenpiteetDTO)
 
-        if (kehittamistoimenpiteet.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId
-            && kehittamistoimenpiteet.lahiesimiesHyvaksynyt
-        ) {
-            kehittamistoimenpiteet = handleErikoistuva(kehittamistoimenpiteet)
-        }
-
         if (kehittamistoimenpiteet.lahikouluttaja?.user?.id == userId
             && !kehittamistoimenpiteet.lahiesimiesHyvaksynyt
         ) {
@@ -87,39 +82,6 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         }
 
         return koejaksonKehittamistoimenpiteetMapper.toDto(kehittamistoimenpiteet)
-    }
-
-    private fun handleErikoistuva(kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet): KoejaksonKehittamistoimenpiteet {
-        kehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
-        kehittamistoimenpiteet.erikoistuvanAllekirjoitusaika = LocalDate.now()
-
-        val result = koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
-
-        // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
-        if (result.erikoistuvaAllekirjoittanut) {
-            val erikoistuvaLaakari =
-                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!).get().user!!
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahikouluttaja?.id!!).get().user!!,
-                "kehittamistoimenpiteetHyvaksytty.html",
-                "email.kehittamistoimenpiteethyvaksytty.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, result.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                )
-            )
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
-                "kehittamistoimenpiteetHyvaksytty.html",
-                "email.kehittamistoimenpiteethyvaksytty.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, result.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                )
-            )
-        }
-
-        return result
     }
 
     private fun handleKouluttaja(
@@ -220,10 +182,11 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         id: Long,
         userId: String
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
-        val kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahikouluttajaUserId(
-            id,
-            userId
-        )
+        val kehittamistoimenpiteet =
+            koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahikouluttajaUserId(
+                id,
+                userId
+            )
         return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
     }
 
@@ -232,10 +195,11 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         id: Long,
         userId: String
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
-        val kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahiesimiesUserId(
-            id,
-            userId
-        )
+        val kehittamistoimenpiteet =
+            koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahiesimiesUserId(
+                id,
+                userId
+            )
         return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
     }
 
@@ -254,12 +218,14 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
     private fun applyWithKehittamistoimenpiteetDescription(
         kehittamistoimenpiteet: Optional<KoejaksonKehittamistoimenpiteet>
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
-        val kehittamistoimenpiteetDto = kehittamistoimenpiteet.map(koejaksonKehittamistoimenpiteetMapper::toDto)
+        val kehittamistoimenpiteetDto =
+            kehittamistoimenpiteet.map(koejaksonKehittamistoimenpiteetMapper::toDto)
         if (kehittamistoimenpiteet.isPresent) {
             kehittamistoimenpiteet.get().opintooikeus?.id?.let { opintooikeusId ->
                 koejaksonValiarviointiRepository.findByOpintooikeusId(opintooikeusId).let {
                     kehittamistoimenpiteetDto.get().apply {
-                        this.kehittamistoimenpiteetKuvaus = if (it.isPresent) it.get().kehittamistoimenpiteet else null
+                        this.kehittamistoimenpiteetKuvaus =
+                            if (it.isPresent) it.get().kehittamistoimenpiteet else null
                     }
                 }
             }

@@ -374,36 +374,6 @@ class ErikoistuvaLaakariKoejaksoResource(
             } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
-    @PutMapping("/koejakso/kehittamistoimenpiteet")
-    fun updateKehittamistoimenpiteet(
-        @Valid @RequestBody kehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO,
-        principal: Principal?
-    ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
-
-        val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByOpintooikeusId(opintooikeusId)
-
-        if (!kehittamistoimenpiteet.isPresent) {
-            throw BadRequestAlertException(
-                "Koejakson kehittämistoimenpiteitä ei löydy.",
-                ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                "dataillegal.koejakson-kehittamistoimenpiteita-ei-loydy"
-            )
-        }
-
-        validateKuittaus(
-            kehittamistoimenpiteet.get().lahiesimies?.kuittausaika != null,
-            ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
-        )
-
-        val result =
-            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
-        return ResponseEntity.ok(result)
-    }
-
     @PostMapping("/koejakso/loppukeskustelu")
     fun createLoppukeskustelu(
         @Valid @RequestBody loppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
@@ -439,7 +409,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             valiarviointi.isPresent && valiarviointi.get().lahiesimies?.sopimusHyvaksytty == true
                 && valiarviointi.get().edistyminenTavoitteidenMukaista == true
         val validKehittamistoimenpiteet =
-            kehittamistoimenpiteet.isPresent && kehittamistoimenpiteet.get().erikoistuvaAllekirjoittanut == true
+            kehittamistoimenpiteet.isPresent && kehittamistoimenpiteet.get().lahiesimies?.sopimusHyvaksytty == true
         if (!validValiarviointi && !validKehittamistoimenpiteet) {
             throw BadRequestAlertException(
                 "Väliarviointi täytyy hyväksyä ilman kehitettäviä asioita " +

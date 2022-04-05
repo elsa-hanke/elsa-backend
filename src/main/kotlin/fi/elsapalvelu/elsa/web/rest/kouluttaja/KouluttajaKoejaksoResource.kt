@@ -279,7 +279,7 @@ class KouluttajaKoejaksoResource(
         }
 
         validateArviointi(
-            kehittamistoimenpiteet.get().erikoistuvaAllekirjoittanut,
+            kehittamistoimenpiteet.get().lahiesimies?.sopimusHyvaksytty,
             ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
         )
 
