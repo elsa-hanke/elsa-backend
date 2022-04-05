@@ -607,54 +607,21 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val kehittamistoimenpiteetList = koejaksonKehittamistoimenpiteetRepository.findAll()
         assertThat(kehittamistoimenpiteetList).hasSize(databaseSizeBeforeCreate + 1)
         val arviointi = kehittamistoimenpiteetList[kehittamistoimenpiteetList.size - 1]
-        assertThat(arviointi.erikoistuvanNimi).isEqualTo(koejaksonKehittamistoimenpiteetDTO.erikoistuvanNimi)
-        assertThat(arviointi.erikoistuvanErikoisala).isEqualTo(koejaksonKehittamistoimenpiteetDTO.erikoistuvanErikoisala)
-        assertThat(arviointi.erikoistuvanOpiskelijatunnus).isEqualTo(
+        assertThat(arviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()).isEqualTo(
+            koejaksonKehittamistoimenpiteetDTO.erikoistuvanNimi
+        )
+        assertThat(arviointi.opintooikeus?.erikoisala?.nimi).isEqualTo(
+            koejaksonKehittamistoimenpiteetDTO.erikoistuvanErikoisala
+        )
+        assertThat(arviointi.opintooikeus?.opiskelijatunnus).isEqualTo(
             koejaksonKehittamistoimenpiteetDTO.erikoistuvanOpiskelijatunnus
         )
-        assertThat(arviointi.erikoistuvanYliopisto).isEqualTo(koejaksonKehittamistoimenpiteetDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.opintooikeus?.yliopisto?.nimi).isEqualTo(
+            koejaksonKehittamistoimenpiteetDTO.erikoistuvanYliopisto
+        )
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahikouluttaja?.id)
-        assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahikouluttaja?.nimi)
         assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahiesimies?.id)
-        assertThat(arviointi.lahiesimiehenNimi).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahiesimies?.nimi)
         assertThat(arviointi.muokkauspaiva).isNotNull
-    }
-
-    @Test
-    @Transactional
-    fun ackKehittamistoimenpiteet() {
-        initKoejakso()
-
-        koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
-        koejaksonKehittamistoimenpiteet.lahiesimiehenKuittausaika = DEFAULT_MYONTAMISPAIVA
-        koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
-
-        val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
-
-        val id = koejaksonKehittamistoimenpiteet.id
-        assertNotNull(id)
-        val updatedKehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetRepository.findById(id).get()
-        em.detach(updatedKehittamistoimenpiteet)
-
-        updatedKehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
-
-        val kehittamistoimenpiteetDTO =
-            koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
-
-        restKoejaksoMockMvc.perform(
-            put("/api/erikoistuva-laakari/koejakso/kehittamistoimenpiteet")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(kehittamistoimenpiteetDTO))
-                .with(csrf())
-        ).andExpect(status().isOk)
-
-        val kehittamistoimenpiteetList = koejaksonKehittamistoimenpiteetRepository.findAll()
-        assertThat(kehittamistoimenpiteetList).hasSize(databaseSizeBeforeUpdate)
-        val testKehittamistoimenpiteet =
-            kehittamistoimenpiteetList[kehittamistoimenpiteetList.size - 1]
-        assertThat(testKehittamistoimenpiteet.erikoistuvaAllekirjoittanut).isEqualTo(true)
-        assertThat(testKehittamistoimenpiteet.muokkauspaiva).isEqualTo(DEFAULT_MUOKKAUSPAIVA)
     }
 
     @Test
@@ -689,7 +656,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
-        koejaksonKehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
+        koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
         koejaksonKehittamistoimenpiteet.muokkauspaiva = LocalDate.now()
         koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
 
@@ -1106,16 +1073,10 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         ): KoejaksonKehittamistoimenpiteet {
             val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonKehittamistoimenpiteet(
-                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
-                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
+                opintooikeus = opintooikeus,
                 kehittamistoimenpiteetRiittavat = true,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.getNimi(),
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }
