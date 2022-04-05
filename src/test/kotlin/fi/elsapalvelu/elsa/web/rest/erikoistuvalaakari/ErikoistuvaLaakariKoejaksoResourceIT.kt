@@ -674,16 +674,16 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
         assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeCreate + 1)
         val arviointi = loppukeskusteluList[loppukeskusteluList.size - 1]
-        assertThat(arviointi.erikoistuvanNimi).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanNimi)
-        assertThat(arviointi.erikoistuvanErikoisala).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanErikoisala)
-        assertThat(arviointi.erikoistuvanOpiskelijatunnus).isEqualTo(
+        assertThat(arviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()).isEqualTo(
+            koejaksonLoppukeskusteluDTO.erikoistuvanNimi
+        )
+        assertThat(arviointi.opintooikeus?.erikoisala?.nimi).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanErikoisala)
+        assertThat(arviointi.opintooikeus?.opiskelijatunnus).isEqualTo(
             koejaksonLoppukeskusteluDTO.erikoistuvanOpiskelijatunnus
         )
-        assertThat(arviointi.erikoistuvanYliopisto).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.opintooikeus?.yliopisto?.nimi).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanYliopisto)
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.id)
-        assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.nimi)
         assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.id)
-        assertThat(arviointi.lahiesimiehenNimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.nimi)
         assertThat(arviointi.muokkauspaiva).isNotNull
     }
 
@@ -737,16 +737,16 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
         assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeCreate + 1)
         val arviointi = loppukeskusteluList[loppukeskusteluList.size - 1]
-        assertThat(arviointi.erikoistuvanNimi).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanNimi)
-        assertThat(arviointi.erikoistuvanErikoisala).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanErikoisala)
-        assertThat(arviointi.erikoistuvanOpiskelijatunnus).isEqualTo(
+        assertThat(arviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()).isEqualTo(
+            koejaksonLoppukeskusteluDTO.erikoistuvanNimi
+        )
+        assertThat(arviointi.opintooikeus?.erikoisala?.nimi).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanErikoisala)
+        assertThat(arviointi.opintooikeus?.opiskelijatunnus).isEqualTo(
             koejaksonLoppukeskusteluDTO.erikoistuvanOpiskelijatunnus
         )
-        assertThat(arviointi.erikoistuvanYliopisto).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.opintooikeus?.yliopisto?.nimi).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanYliopisto)
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.id)
-        assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.nimi)
         assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.id)
-        assertThat(arviointi.lahiesimiehenNimi).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.nimi)
         assertThat(arviointi.muokkauspaiva).isNotNull
     }
 
@@ -776,44 +776,10 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
     @Test
     @Transactional
-    fun ackLoppukeskustelu() {
-        initKoejakso()
-
-        koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
-        koejaksonLoppukeskustelu.lahiesimiehenKuittausaika = DEFAULT_MYONTAMISPAIVA
-        koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
-
-        val databaseSizeBeforeUpdate = koejaksonLoppukeskusteluRepository.findAll().size
-
-        val id = koejaksonLoppukeskustelu.id
-        assertNotNull(id)
-        val updatedLoppukeskustelu = koejaksonLoppukeskusteluRepository.findById(id).get()
-        em.detach(updatedLoppukeskustelu)
-
-        updatedLoppukeskustelu.erikoistuvaAllekirjoittanut = true
-
-        val loppukeskusteluDTO = koejaksonLoppukeskusteluMapper.toDto(updatedLoppukeskustelu)
-
-        restKoejaksoMockMvc.perform(
-            put("/api/erikoistuva-laakari/koejakso/loppukeskustelu")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(loppukeskusteluDTO))
-                .with(csrf())
-        ).andExpect(status().isOk)
-
-        val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
-        assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeUpdate)
-        val testLoppukeskustelu = loppukeskusteluList[loppukeskusteluList.size - 1]
-        assertThat(testLoppukeskustelu.erikoistuvaAllekirjoittanut).isEqualTo(true)
-        assertThat(testLoppukeskustelu.muokkauspaiva).isEqualTo(DEFAULT_MUOKKAUSPAIVA)
-    }
-
-    @Test
-    @Transactional
     fun createVastuuhenkilonArvio() {
         initKoejakso()
 
-        koejaksonLoppukeskustelu.erikoistuvaAllekirjoittanut = true
+        koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
 
         val databaseSizeBeforeCreate = koejaksonVastuuhenkilonArvioRepository.findAll().size
@@ -1089,16 +1055,10 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         ): KoejaksonLoppukeskustelu {
             val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonLoppukeskustelu(
-                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
-                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
+                opintooikeus = opintooikeus,
                 esitetaanKoejaksonHyvaksymista = true,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.getNimi(),
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }

@@ -199,5 +199,6 @@
     <include file="config/liquibase/changelog/20220421150322_modify_entity_Teoriakoulutus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220414150148_modify_entity_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220405163027_modify_entity_KoejaksonKehittamistoimenpiteet.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220405171933_modify_entity_KoejaksonLoppukeskustelu.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
