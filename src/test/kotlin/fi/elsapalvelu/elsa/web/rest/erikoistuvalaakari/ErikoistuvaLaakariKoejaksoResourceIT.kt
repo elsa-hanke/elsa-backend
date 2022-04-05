@@ -549,49 +549,15 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val valiarviointiList = koejaksonValiarviointiRepository.findAll()
         assertThat(valiarviointiList).hasSize(databaseSizeBeforeCreate + 1)
         val arviointi = valiarviointiList[valiarviointiList.size - 1]
-        assertThat(arviointi.erikoistuvanNimi).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanNimi)
-        assertThat(arviointi.erikoistuvanErikoisala).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanErikoisala)
-        assertThat(arviointi.erikoistuvanOpiskelijatunnus).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanOpiskelijatunnus)
-        assertThat(arviointi.erikoistuvanYliopisto).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()).isEqualTo(
+            koejaksonValiarviointiDTO.erikoistuvanNimi
+        )
+        assertThat(arviointi.opintooikeus?.erikoisala?.nimi).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanErikoisala)
+        assertThat(arviointi.opintooikeus?.opiskelijatunnus).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanOpiskelijatunnus)
+        assertThat(arviointi.opintooikeus?.yliopisto?.nimi).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanYliopisto)
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonValiarviointiDTO.lahikouluttaja?.id)
-        assertThat(arviointi.lahikouluttajanNimi).isEqualTo(koejaksonValiarviointiDTO.lahikouluttaja?.nimi)
         assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonValiarviointiDTO.lahiesimies?.id)
-        assertThat(arviointi.lahiesimiehenNimi).isEqualTo(koejaksonValiarviointiDTO.lahiesimies?.nimi)
         assertThat(arviointi.muokkauspaiva).isNotNull
-    }
-
-    @Test
-    @Transactional
-    fun ackValiarviointi() {
-        initKoejakso()
-
-        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
-        koejaksonValiarviointi.lahiesimiehenKuittausaika = DEFAULT_MYONTAMISPAIVA
-        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
-
-        val databaseSizeBeforeUpdate = koejaksonValiarviointiRepository.findAll().size
-
-        val id = koejaksonValiarviointi.id
-        assertNotNull(id)
-        val updatedValiarviointi = koejaksonValiarviointiRepository.findById(id).get()
-        em.detach(updatedValiarviointi)
-
-        updatedValiarviointi.erikoistuvaAllekirjoittanut = true
-
-        val valiarviointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
-
-        restKoejaksoMockMvc.perform(
-            put("/api/erikoistuva-laakari/koejakso/valiarviointi")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valiarviointiDTO))
-                .with(csrf())
-        ).andExpect(status().isOk)
-
-        val valiarviointiList = koejaksonValiarviointiRepository.findAll()
-        assertThat(valiarviointiList).hasSize(databaseSizeBeforeUpdate)
-        val testValiarviointi = valiarviointiList[valiarviointiList.size - 1]
-        assertThat(testValiarviointi.erikoistuvaAllekirjoittanut).isEqualTo(true)
-        assertThat(testValiarviointi.muokkauspaiva).isEqualTo(DEFAULT_MUOKKAUSPAIVA)
     }
 
     @Test
@@ -621,7 +587,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createKehittamistoimenpiteet() {
         initKoejakso()
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         val databaseSizeBeforeCreate = koejaksonKehittamistoimenpiteetRepository.findAll().size
@@ -715,7 +681,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createLoppukeskusteluWithKehittamistoimenpiteet() {
         initKoejakso()
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         koejaksonKehittamistoimenpiteet.erikoistuvaAllekirjoittanut = true
@@ -754,7 +720,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createLoppukeskusteluWithKehittamistoimenpiteetInvalid() {
         initKoejakso()
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
@@ -779,7 +745,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createLoppukeskusteluWithoutKehittamistoimenpiteet() {
         initKoejakso()
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointi.edistyminenTavoitteidenMukaista = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
@@ -815,7 +781,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createLoppukeskusteluWithoutKehittamistoimenpiteetInvalid() {
         initKoejakso()
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         val databaseSizeBeforeCreate = koejaksonLoppukeskusteluRepository.findAll().size
@@ -1114,18 +1080,12 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         ): KoejaksonValiarviointi {
             val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonValiarviointi(
-                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
-                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
+                opintooikeus = opintooikeus,
                 edistyminenTavoitteidenMukaista = false,
                 vahvuudet = DEFAULT_VAHVUUDET,
                 kehittamistoimenpiteet = DEFAULT_KEHITTAMISTOIMENPITEET,
                 lahikouluttaja = lahikouluttaja,
-                lahikouluttajanNimi = lahikouluttaja.getNimi(),
                 lahiesimies = lahiesimies,
-                lahiesimiehenNimi = lahiesimies.getNimi(),
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }

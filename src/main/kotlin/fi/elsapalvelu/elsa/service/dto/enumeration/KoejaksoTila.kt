@@ -51,8 +51,7 @@ enum class KoejaksoTila {
         ): KoejaksoTila {
             return if (!aloituskeskusteluHyvaksytty) EI_AKTIIVINEN
             else if (valiarviointiDTO == null) UUSI
-            else if (valiarviointiDTO.erikoistuvaAllekirjoittanut == true) HYVAKSYTTY
-            else if (valiarviointiDTO.lahiesimies?.sopimusHyvaksytty == true) ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
+            else if (valiarviointiDTO.lahiesimies?.sopimusHyvaksytty == true) HYVAKSYTTY
             else if (valiarviointiDTO.lahikouluttaja?.sopimusHyvaksytty == true && valiarviointiDTO.lahikouluttaja?.id == kayttajaId) ODOTTAA_ESIMIEHEN_HYVAKSYNTAA
             else if (!valiarviointiDTO.korjausehdotus.isNullOrBlank() && (valiarviointiDTO.lahikouluttaja?.id == kayttajaId || valiarviointiDTO.lahiesimies?.id == kayttajaId)) PALAUTETTU_KORJATTAVAKSI
             else ODOTTAA_HYVAKSYNTAA
