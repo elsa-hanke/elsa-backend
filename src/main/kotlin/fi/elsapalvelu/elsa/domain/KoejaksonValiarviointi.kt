@@ -27,22 +27,6 @@ data class KoejaksonValiarviointi(
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var opintooikeus: Opintooikeus? = null,
 
-    @NotNull
-    @Column(name = "erikoistuvan_nimi", nullable = false)
-    var erikoistuvanNimi: String? = null,
-
-    @NotNull
-    @Column(name = "erikoistuvan_erikoisala", nullable = false)
-    var erikoistuvanErikoisala: String? = null,
-
-    @NotNull
-    @Column(name = "erikoistuvan_opiskelijatunnus", nullable = false)
-    var erikoistuvanOpiskelijatunnus: String? = null,
-
-    @NotNull
-    @Column(name = "erikoistuvan_yliopisto", nullable = false)
-    var erikoistuvanYliopisto: String? = null,
-
     @Column(name = "edistyminen_tavoitteiden_mukaista")
     var edistyminenTavoitteidenMukaista: Boolean? = null,
 
@@ -69,10 +53,6 @@ data class KoejaksonValiarviointi(
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var lahikouluttaja: Kayttaja? = null,
 
-    @NotNull
-    @Column(name = "lahikouluttajan_nimi", nullable = false)
-    var lahikouluttajanNimi: String? = null,
-
     @Column(name = "lahikouluttaja_hyvaksynyt")
     var lahikouluttajaHyvaksynyt: Boolean = false,
 
@@ -83,10 +63,6 @@ data class KoejaksonValiarviointi(
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var lahiesimies: Kayttaja? = null,
-
-    @NotNull
-    @Column(name = "lahiesimiehen_nimi", nullable = false)
-    var lahiesimiehenNimi: String? = null,
 
     @Column(name = "lahiesimies_hyvaksynyt")
     var lahiesimiesHyvaksynyt: Boolean = false,
@@ -101,11 +77,8 @@ data class KoejaksonValiarviointi(
     @Column(name = "korjausehdotus")
     var korjausehdotus: String? = null,
 
-    @Column(name = "erikoistuva_allekirjoittanut")
-    var erikoistuvaAllekirjoittanut: Boolean = false,
-
-    @Column(name = "erikoistuvan_allekirjoitusaika", nullable = false)
-    var erikoistuvanAllekirjoitusaika: LocalDate? = null
+    @Column(name = "erikoistuvan_kuittausaika", nullable = false)
+    var erikoistuvanKuittausaika: LocalDate? = null
 
 ) : Serializable {
 
@@ -132,24 +105,17 @@ data class KoejaksonValiarviointi(
         return "KoejaksonValiarviointi(" +
             "id=$id, " +
             "opintooikeus=$opintooikeus, " +
-            "erikoistuvanNimi=$erikoistuvanNimi, " +
-            "erikoistuvanErikoisala=$erikoistuvanErikoisala, " +
-            "erikoistuvanOpiskelijatunnus=$erikoistuvanOpiskelijatunnus, " +
-            "erikoistuvanYliopisto=$erikoistuvanYliopisto, " +
             "edistyminenTavoitteidenMukaista=$edistyminenTavoitteidenMukaista, " +
             "vahvuudet=$vahvuudet, " +
             "kehittamistoimenpiteet=$kehittamistoimenpiteet, " +
             "lahikouluttaja=$lahikouluttaja, " +
-            "lahikouluttajanNimi=$lahikouluttajanNimi, " +
             "lahikouluttajaHyvaksynyt=$lahikouluttajaHyvaksynyt, " +
             "lahikouluttajanKuittausaika=$lahikouluttajanKuittausaika, " +
             "lahiesimies=$lahiesimies, " +
-            "lahiesimiehenNimi=$lahiesimiehenNimi, " +
             "lahiesimiesHyvaksynyt=$lahiesimiesHyvaksynyt, " +
             "lahiesimiehenKuittausaika=$lahiesimiehenKuittausaika, " +
             "muokkauspaiva=$muokkauspaiva, " +
-            "korjausehdotus=$korjausehdotus, " +
-            "erikoistuvaAllekirjoittanut=$erikoistuvaAllekirjoittanut)"
+            "korjausehdotus=$korjausehdotus)"
     }
 
     companion object {

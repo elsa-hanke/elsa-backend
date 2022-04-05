@@ -60,10 +60,6 @@ class KoejaksonValiarviointiServiceImpl(
 
         val updatedValiarviointi = koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
 
-        if (valiarviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId && valiarviointi.lahiesimiesHyvaksynyt) {
-            valiarviointi = handleErikoistuva(valiarviointi)
-        }
-
         if (valiarviointi.lahikouluttaja?.user?.id == userId && !valiarviointi.lahiesimiesHyvaksynyt) {
             valiarviointi = handleKouluttaja(valiarviointi, updatedValiarviointi)
         }
@@ -73,40 +69,6 @@ class KoejaksonValiarviointiServiceImpl(
         }
 
         return koejaksonValiarviointiMapper.toDto(valiarviointi)
-    }
-
-    private fun handleErikoistuva(valiarviointi: KoejaksonValiarviointi): KoejaksonValiarviointi {
-        valiarviointi.erikoistuvaAllekirjoittanut = true
-        valiarviointi.erikoistuvanAllekirjoitusaika = LocalDate.now()
-
-        val result = koejaksonValiarviointiRepository.save(valiarviointi)
-
-        // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
-        if (result.erikoistuvaAllekirjoittanut) {
-            val erikoistuvaLaakari =
-                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahikouluttaja?.id!!).get().user!!,
-                "valiarviointiHyvaksytty.html",
-                "email.valiarviointihyvaksytty.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, result.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                )
-            )
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
-                "valiarviointiHyvaksytty.html",
-                "email.valiarviointihyvaksytty.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, result.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                )
-            )
-        }
-
-        return result
     }
 
     private fun handleKouluttaja(
@@ -219,7 +181,10 @@ class KoejaksonValiarviointiServiceImpl(
         id: Long,
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonValiarviointiDTO> {
-        return koejaksonValiarviointiRepository.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(id, vastuuhenkiloUserId)
+        return koejaksonValiarviointiRepository.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+            id,
+            vastuuhenkiloUserId
+        )
             .map(koejaksonValiarviointiMapper::toDto)
     }
 

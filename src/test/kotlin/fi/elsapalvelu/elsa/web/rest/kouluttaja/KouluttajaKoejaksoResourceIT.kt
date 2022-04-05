@@ -104,7 +104,7 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointi.kehittamistoimenpiteet =
             KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
@@ -202,10 +202,10 @@ class KouluttajaKoejaksoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(koejaksonValiarviointi.id as Any))
-            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonValiarviointi.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonValiarviointi.erikoistuvanOpiskelijatunnus as Any))
-            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonValiarviointi.erikoistuvanYliopisto as Any))
+            .andExpect(jsonPath("$.id").value(koejaksonValiarviointi.id))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonValiarviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonValiarviointi.opintooikeus?.opiskelijatunnus))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonValiarviointi.opintooikeus?.yliopisto?.nimi))
             .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonValiarviointi.lahikouluttaja?.id as Any))
             .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonValiarviointi.lahiesimies?.id as Any))
             .andExpect(jsonPath("$.korjausehdotus").isEmpty)
@@ -720,7 +720,7 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointi.kehittamistoimenpiteet =
             KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
@@ -770,7 +770,7 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointi.kehittamistoimenpiteet =
             KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
@@ -823,7 +823,7 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointi.kehittamistoimenpiteet =
             KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
@@ -875,7 +875,7 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
@@ -920,7 +920,7 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
@@ -968,7 +968,7 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonAloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now()
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
 
-        koejaksonValiarviointi.erikoistuvaAllekirjoittanut = true
+        koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 

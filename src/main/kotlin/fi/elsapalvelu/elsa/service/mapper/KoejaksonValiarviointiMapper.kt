@@ -17,15 +17,23 @@ interface KoejaksonValiarviointiMapper :
     EntityMapper<KoejaksonValiarviointiDTO, KoejaksonValiarviointi> {
 
     @Mappings(
-        Mapping(source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar", target = "erikoistuvanAvatar"),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar",
+            target = "erikoistuvanAvatar"
+        ),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.nimi",
+            target = "erikoistuvanNimi"
+        ),
+        Mapping(source = "opintooikeus.yliopisto.nimi", target = "erikoistuvanYliopisto"),
+        Mapping(source = "opintooikeus.erikoisala.nimi", target = "erikoistuvanErikoisala"),
+        Mapping(source = "opintooikeus.opiskelijatunnus", target = "erikoistuvanOpiskelijatunnus"),
         Mapping(source = "lahikouluttaja.id", target = "lahikouluttaja.id"),
         Mapping(source = "lahikouluttaja.user.id", target = "lahikouluttaja.kayttajaUserId"),
-        Mapping(source = "lahikouluttajanNimi", target = "lahikouluttaja.nimi"),
         Mapping(source = "lahikouluttajaHyvaksynyt", target = "lahikouluttaja.sopimusHyvaksytty"),
         Mapping(source = "lahikouluttajanKuittausaika", target = "lahikouluttaja.kuittausaika"),
         Mapping(source = "lahiesimies.id", target = "lahiesimies.id"),
         Mapping(source = "lahiesimies.user.id", target = "lahiesimies.kayttajaUserId"),
-        Mapping(source = "lahiesimiehenNimi", target = "lahiesimies.nimi"),
         Mapping(source = "lahiesimiesHyvaksynyt", target = "lahiesimies.sopimusHyvaksytty"),
         Mapping(source = "lahiesimiehenKuittausaika", target = "lahiesimies.kuittausaika")
     )
@@ -33,11 +41,9 @@ interface KoejaksonValiarviointiMapper :
 
     @Mappings(
         Mapping(source = "lahikouluttaja.id", target = "lahikouluttaja"),
-        Mapping(source = "lahikouluttaja.nimi", target = "lahikouluttajanNimi"),
         Mapping(source = "lahikouluttaja.sopimusHyvaksytty", target = "lahikouluttajaHyvaksynyt"),
         Mapping(source = "lahikouluttaja.kuittausaika", target = "lahikouluttajanKuittausaika"),
         Mapping(source = "lahiesimies.id", target = "lahiesimies"),
-        Mapping(source = "lahiesimies.nimi", target = "lahiesimiehenNimi"),
         Mapping(source = "lahiesimies.sopimusHyvaksytty", target = "lahiesimiesHyvaksynyt"),
         Mapping(source = "lahiesimies.kuittausaika", target = "lahiesimiehenKuittausaika")
     )
