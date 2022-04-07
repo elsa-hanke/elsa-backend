@@ -38,7 +38,7 @@ class OpintosuorituksetPersistenceServiceImpl(
     override fun createOrUpdateIfChanged(userId: String, opintosuoritukset: OpintosuorituksetDTO) {
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         val kurssikoodit =
-            opintosuoritusKurssikoodiRepository.findAllByYliopistoNimi(opintosuoritukset.yliopisto.toString())
+            opintosuoritusKurssikoodiRepository.findAllByYliopistoNimi(opintosuoritukset.yliopisto)
 
         opintosuoritukset.items?.mapNotNull { opintosuoritusDTO ->
             checkKurssikoodiExistsOrLogError(opintosuoritusDTO, userId)?.let {

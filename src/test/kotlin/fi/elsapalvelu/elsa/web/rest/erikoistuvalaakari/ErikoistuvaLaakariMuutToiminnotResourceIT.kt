@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
@@ -222,6 +223,6 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
     companion object {
         private const val DEFAULT_NIMI: String = "Test User"
         private const val DEFAULT_EMAIL: String = "test.user@test.test"
-        private const val DEFAULT_YLIOPISTO = "TAYS"
+        private val DEFAULT_YLIOPISTO = YliopistoEnum.TAMPEREEN_YLIOPISTO
     }
 }

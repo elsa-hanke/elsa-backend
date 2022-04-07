@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
@@ -134,7 +135,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             .andExpect(jsonPath("$.id").value(koejaksonKoulutussopimus.id))
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKoulutussopimus.opintooikeus?.opiskelijatunnus))
-            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKoulutussopimus.opintooikeus?.yliopisto?.nimi))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKoulutussopimus.opintooikeus?.yliopisto?.nimi.toString()))
             .andExpect(jsonPath("$.erikoistuvanPuhelinnumero").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber))
             .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email))
             .andExpect(jsonPath("$.lahetetty").value(koejaksonKoulutussopimus.lahetetty))
@@ -834,7 +835,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val esimies = KayttajaHelper.createEntity(em)
         em.persist(esimies)
 
-        val yliopisto = Yliopisto(nimi = "TAYS")
+        val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
         em.persist(yliopisto)
 
         koejaksonKoulutussopimus =
@@ -890,7 +891,7 @@ class VastuuhenkiloKoejaksoResourceIT {
                 opintooikeus = opintooikeus,
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
                 erikoistuvanErikoisala = KoejaksonVaiheetHelper.DEFAULT_ERIKOISALA,
                 muokkauspaiva = KoejaksonVaiheetHelper.DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,

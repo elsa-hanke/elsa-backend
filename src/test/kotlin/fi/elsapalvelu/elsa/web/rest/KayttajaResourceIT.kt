@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.Yliopisto
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
@@ -221,7 +222,7 @@ class KayttajaResourceIT {
         val vastuuhenkilo = KayttajaHelper.createEntity(em, user)
         kayttajaRepository.save(vastuuhenkilo)
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 

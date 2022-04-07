@@ -331,7 +331,7 @@ class OpintotietodataPersistenceServiceImpl(
     }
 
     private fun findYliopistoOrLogError(yliopisto: YliopistoEnum): Yliopisto? {
-        return yliopistoRepository.findOneByNimi(yliopisto.toString()) ?: run {
+        return yliopistoRepository.findOneByNimi(yliopisto) ?: run {
             log.error("Yliopistoa $yliopisto ei löydy ELSA:n tietokannasta")
             return null
         }

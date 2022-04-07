@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.Yliopisto
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import javax.persistence.EntityManager
@@ -12,7 +13,7 @@ import javax.persistence.EntityManager
 class OpintooikeusHelper {
 
     companion object {
-        const val DEFAULT_YLIOPISTO = "HY"
+        val DEFAULT_YLIOPISTO = YliopistoEnum.HELSINGIN_YLIOPISTO
         const val DEFAULT_ASETUS = "55/2020"
         private const val DEFAULT_OPISKELIJATUNNUS = "CCCCCCCCCC"
         private val DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)

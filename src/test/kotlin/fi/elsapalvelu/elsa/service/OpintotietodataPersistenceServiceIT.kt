@@ -93,11 +93,11 @@ class OpintotietodataPersistenceServiceIT {
         `when`(clock.instant()).thenReturn(Instant.ofEpochSecond(now))
         `when`(clock.zone).thenReturn(ZoneId.systemDefault())
 
-        em.persist(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO.toString()))
-        em.persist(Yliopisto(nimi = YliopistoEnum.OULUN_YLIOPISTO.toString()))
-        em.persist(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO.toString()))
-        em.persist(Yliopisto(nimi = YliopistoEnum.TURUN_YLIOPISTO.toString()))
-        em.persist(Yliopisto(nimi = YliopistoEnum.ITA_SUOMEN_YLIOPISTO.toString()))
+        em.persist(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
+        em.persist(Yliopisto(nimi = YliopistoEnum.OULUN_YLIOPISTO))
+        em.persist(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
+        em.persist(Yliopisto(nimi = YliopistoEnum.TURUN_YLIOPISTO))
+        em.persist(Yliopisto(nimi = YliopistoEnum.ITA_SUOMEN_YLIOPISTO))
 
         asetus = Asetus(nimi = asetusNimi)
         em.persist(asetus)
@@ -180,7 +180,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(opintooikeus.erikoistuvaLaakari).isNotNull
         assertThat(opintooikeus.erikoistuvaLaakari!!.id).isEqualTo(erikoistuvaLaakari!!.id)
         assertThat(opintooikeus.yliopistoOpintooikeusId).isEqualTo(opintooikeusId)
-        assertThat(opintooikeus.yliopisto?.nimi).isEqualTo(yliopisto.toString())
+        assertThat(opintooikeus.yliopisto?.nimi).isEqualTo(yliopisto)
         assertThat(opintooikeus.opiskelijatunnus).isEqualTo(opiskelijatunnus)
         assertThat(opintooikeus.erikoisala).isEqualTo(erikoisala)
         assertThat(opintooikeus.opintooikeudenMyontamispaiva).isEqualTo(defaultOpintooikeudenMyontamispaiva)
@@ -221,7 +221,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(firstOpintooikeus.erikoistuvaLaakari).isNotNull
         assertThat(firstOpintooikeus.erikoistuvaLaakari!!.id).isEqualTo(erikoistuvaLaakari!!.id)
         assertThat(firstOpintooikeus.yliopistoOpintooikeusId).isEqualTo(opintooikeusId)
-        assertThat(firstOpintooikeus.yliopisto?.nimi).isEqualTo(yliopisto.toString())
+        assertThat(firstOpintooikeus.yliopisto?.nimi).isEqualTo(yliopisto)
         assertThat(firstOpintooikeus.opiskelijatunnus).isEqualTo(opiskelijatunnus)
         assertThat(firstOpintooikeus.erikoisala).isEqualTo(erikoisala)
         assertThat(firstOpintooikeus.opintooikeudenMyontamispaiva).isEqualTo(defaultOpintooikeudenMyontamispaiva)
@@ -236,7 +236,7 @@ class OpintotietodataPersistenceServiceIT {
 
         val secondOpintooikeus = opintooikeudet[1]
         assertThat(secondOpintooikeus.yliopistoOpintooikeusId).isEqualTo(secondOpintooikeusId)
-        assertThat(secondOpintooikeus.yliopisto?.nimi).isEqualTo(yliopisto.toString())
+        assertThat(secondOpintooikeus.yliopisto?.nimi).isEqualTo(yliopisto)
         assertThat(secondOpintooikeus.opiskelijatunnus).isEqualTo(opiskelijatunnus)
         assertThat(secondOpintooikeus.erikoisala).isEqualTo(secondErikoisala)
         assertThat(secondOpintooikeus.opintooikeudenMyontamispaiva).isEqualTo(defaultSecondOpintooikeudenMyontamispaiva)
@@ -610,7 +610,7 @@ class OpintotietodataPersistenceServiceIT {
         opintooikeudenPaattymispaiva: LocalDate = defaultOpintooikeudenPaattymispaiva,
         yliopistoEnum: YliopistoEnum
     ): String {
-        val yliopisto = yliopistoRepository.findOneByNimi(yliopistoEnum.toString())
+        val yliopisto = yliopistoRepository.findOneByNimi(yliopistoEnum)
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(
             em,
             null,

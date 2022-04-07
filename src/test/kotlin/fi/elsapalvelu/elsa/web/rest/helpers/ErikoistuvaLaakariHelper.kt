@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.web.rest.findAll
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils
 import java.time.LocalDate
@@ -17,7 +18,7 @@ class ErikoistuvaLaakariHelper {
         private const val DEFAULT_OPISKELIJATUNNUS = "AAAAAAAAAA"
         private const val UPDATED_OPISKELIJATUNNUS = "BBBBBBBBBB"
 
-        const val DEFAULT_YLIOPISTO = "TAYS"
+        val DEFAULT_YLIOPISTO = YliopistoEnum.TAMPEREEN_YLIOPISTO
 
         private val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
         private val DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)

@@ -51,7 +51,7 @@ class OpintosuorituksetPersistenceServiceIT {
 
     @BeforeEach
     fun setup() {
-        val yliopisto = Yliopisto(nimi = yliopistoEnum.toString())
+        val yliopisto = Yliopisto(nimi = yliopistoEnum)
         em.persist(yliopisto)
 
         erikoistuvaLaakari =
