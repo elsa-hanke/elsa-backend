@@ -37,7 +37,7 @@ data class ErikoistuvaLaakari(
 ) : Serializable {
 
     fun getYliopistoNimi(): String? {
-        return this.getOpintooikeusKaytossa()?.yliopisto?.nimi
+        return this.getOpintooikeusKaytossa()?.yliopisto?.nimi.toString()
     }
 
     fun getYliopistoId(): Long? {

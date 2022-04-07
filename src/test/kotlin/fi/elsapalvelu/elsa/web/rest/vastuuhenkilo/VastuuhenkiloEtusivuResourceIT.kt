@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
@@ -106,7 +107,7 @@ class VastuuhenkiloEtusivuResourceIT {
     fun getErikoistujienSeurantaEmptyList() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.save(
             Erikoisala(
@@ -127,7 +128,7 @@ class VastuuhenkiloEtusivuResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat").value(hasSize<Int>(1)))
-            .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat[0].yliopistoNimi").value(yliopisto1.nimi))
+            .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat[0].yliopistoNimi").value(yliopisto1.nimi.toString()))
             .andExpect(
                 jsonPath("$.kayttajaYliopistoErikoisalat[0].erikoisalat").value(
                     hasSize<Int>(
@@ -149,7 +150,7 @@ class VastuuhenkiloEtusivuResourceIT {
     fun getErikoistujienSeuranta() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
@@ -284,7 +285,7 @@ class VastuuhenkiloEtusivuResourceIT {
     fun getErikoistujienSeurantaKoejaksoAloitettu() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
@@ -326,7 +327,7 @@ class VastuuhenkiloEtusivuResourceIT {
     fun getErikoistujienSeurantaKoejaksoHyvaksytty() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
@@ -350,7 +351,7 @@ class VastuuhenkiloEtusivuResourceIT {
                 opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanOpiskelijatunnus = erikoistuvaLaakari.getOpintooikeusKaytossa()?.opiskelijatunnus,
-                erikoistuvanYliopisto = erikoistuvaLaakari.getOpintooikeusKaytossa()?.yliopisto?.nimi,
+                erikoistuvanYliopisto = erikoistuvaLaakari.getOpintooikeusKaytossa()?.yliopisto?.nimi.toString(),
                 erikoistuvanErikoisala = erikoistuvaLaakari.getErikoisalaNimi(),
                 muokkauspaiva = LocalDate.now(),
                 vastuuhenkilo = vastuuhenkilo,
@@ -372,7 +373,7 @@ class VastuuhenkiloEtusivuResourceIT {
     fun getErikoistujienSeurantaOpintooikeudenVoimassaolo() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
@@ -417,7 +418,7 @@ class VastuuhenkiloEtusivuResourceIT {
     fun getErikoistujienSeurantaUseaErikoisala() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
         val erikoisala2 = erikoisalaRepository.findById(2).get()
@@ -463,7 +464,7 @@ class VastuuhenkiloEtusivuResourceIT {
     fun testImpersonation() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
@@ -608,7 +609,7 @@ class VastuuhenkiloEtusivuResourceIT {
     fun testImpersonationNotAllowed() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
 
         // Eri erikoisala
         val erikoisala1 = erikoisalaRepository.findById(2).get()

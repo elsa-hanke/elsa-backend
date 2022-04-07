@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.kouluttaja
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
@@ -83,7 +84,7 @@ class KouluttajaEtusivuResourceIT {
     fun getErikoistujienSeurantaEmptyList() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.save(
             Erikoisala(
@@ -104,7 +105,7 @@ class KouluttajaEtusivuResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat").value(hasSize<Int>(1)))
-            .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat[0].yliopistoNimi").value(yliopisto1.nimi))
+            .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat[0].yliopistoNimi").value(yliopisto1.nimi.toString()))
             .andExpect(
                 jsonPath("$.kayttajaYliopistoErikoisalat[0].erikoisalat").value(
                     hasSize<Int>(
@@ -126,7 +127,7 @@ class KouluttajaEtusivuResourceIT {
     fun getErikoistujienSeuranta() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
@@ -272,7 +273,7 @@ class KouluttajaEtusivuResourceIT {
     fun testImpersonation() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
@@ -314,7 +315,7 @@ class KouluttajaEtusivuResourceIT {
     fun testImpersonationNotAllowed() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = "Yliopisto 1"))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 

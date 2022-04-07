@@ -37,7 +37,7 @@ class EtusivuServiceImpl(
             seurantaDTO.kayttajaYliopistoErikoisalat =
                 kayttaja.yliopistotAndErikoisalat.groupBy { it.yliopisto }.map {
                     KayttajaErikoisalatPerYliopistoDTO(
-                        yliopistoNimi = it.key?.nimi,
+                        yliopistoNimi = it.key?.nimi.toString(),
                         erikoisalat = it.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
                             .sorted()
                     )
@@ -71,7 +71,7 @@ class EtusivuServiceImpl(
             seurantaDTO.kayttajaYliopistoErikoisalat =
                 kayttaja.yliopistotAndErikoisalat.groupBy { it.yliopisto }.map {
                     KayttajaErikoisalatPerYliopistoDTO(
-                        yliopistoNimi = it.key?.nimi,
+                        yliopistoNimi = it.key?.nimi.toString(),
                         erikoisalat = it.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
                             .sorted()
                     )
