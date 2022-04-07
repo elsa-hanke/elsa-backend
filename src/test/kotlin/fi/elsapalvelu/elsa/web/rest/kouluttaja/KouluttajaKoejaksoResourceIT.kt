@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
@@ -9,7 +10,6 @@ import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.*
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
-import fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari.ErikoistuvaLaakariKoejaksoResourceIT
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KoejaksonVaiheetHelper
@@ -153,7 +153,7 @@ class KouluttajaKoejaksoResourceIT {
             .andExpect(jsonPath("$.id").value(koejaksonKoulutussopimus.id))
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKoulutussopimus.opintooikeus?.opiskelijatunnus))
-            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKoulutussopimus.opintooikeus?.yliopisto?.nimi))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKoulutussopimus.opintooikeus?.yliopisto?.nimi.toString()))
             .andExpect(jsonPath("$.erikoistuvanPuhelinnumero").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber))
             .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email))
             .andExpect(jsonPath("$.lahetetty").value(koejaksonKoulutussopimus.lahetetty))
@@ -1032,7 +1032,7 @@ class KouluttajaKoejaksoResourceIT {
         val esimies = KayttajaHelper.createEntity(em, if (isEsimies) user else null)
         em.persist(esimies)
 
-        val yliopisto = Yliopisto(nimi = "TAYS")
+        val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
         em.persist(yliopisto)
 
         koejaksonKoulutussopimus =

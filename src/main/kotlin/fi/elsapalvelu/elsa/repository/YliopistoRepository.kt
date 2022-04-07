@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.repository
 
 import fi.elsapalvelu.elsa.domain.Yliopisto
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -27,5 +28,5 @@ interface YliopistoRepository : JpaRepository<Yliopisto, Long> {
     @Query("select yliopisto from Yliopisto yliopisto where yliopisto.hakaId is not null")
     fun findAllHaka(): MutableList<Yliopisto>
 
-    fun findOneByNimi(nimi: String): Yliopisto?
+    fun findOneByNimi(nimi: YliopistoEnum): Yliopisto?
 }
