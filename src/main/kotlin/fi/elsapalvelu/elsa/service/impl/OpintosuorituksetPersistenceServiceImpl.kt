@@ -116,11 +116,12 @@ class OpintosuorituksetPersistenceServiceImpl(
             updated = true
         }
 
-        opintosuoritusDTO.vanhenemispaiva.takeIf { opintosuoritus.vanhenemispaiva != it }
-            ?.let {
-                opintosuoritus.vanhenemispaiva = it
-                updated = true
-            }
+        // Päivitetään vanhenemispäivä vaikka se olisi null opintotietojärjestelmästä saadussa datassa,
+        // koska vanhenemispäivä saatetaan haluta poistaa joiltakin suorituksilta.
+        if (opintosuoritusDTO.vanhenemispaiva != opintosuoritus.vanhenemispaiva) {
+            opintosuoritus.vanhenemispaiva = opintosuoritusDTO.vanhenemispaiva
+            updated = true
+        }
 
         if (updated) {
             opintosuoritus.muokkausaika = Instant.now()
@@ -168,8 +169,10 @@ class OpintosuorituksetPersistenceServiceImpl(
             updated = true
         }
 
-        osakokonaisuusDTO.vanhenemispaiva.takeIf { osakokonaisuus.vanhenemispaiva != it }?.let {
-            osakokonaisuus.vanhenemispaiva = it
+        // Päivitetään vanhenemispäivä vaikka se olisi null opintotietojärjestelmästä saadussa datassa,
+        // koska vanhenemispäivä saatetaan haluta poistaa joiltakin osakokonaisuuksilta.
+        if (osakokonaisuusDTO.vanhenemispaiva != osakokonaisuus.vanhenemispaiva) {
+            osakokonaisuus.vanhenemispaiva = osakokonaisuusDTO.vanhenemispaiva
             updated = true
         }
 
