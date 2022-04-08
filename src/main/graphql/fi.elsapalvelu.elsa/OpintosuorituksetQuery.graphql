@@ -4,7 +4,6 @@ query OpintosuorituksetQuery($id: ID!){
             state
             attainmentDate
             credits
-            courseUnitId
             code
             name { fi, sv }
             module {
@@ -25,7 +24,6 @@ query OpintosuorituksetQuery($id: ID!){
                 state
                 attainmentDate
                 credits
-                courseUnitId
                 code
                 name { fi, sv }
                 courseUnit {
