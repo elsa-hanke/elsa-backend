@@ -29,7 +29,16 @@ data class Kayttaja(
 
     @OneToMany(mappedBy = "kayttaja")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisala> = mutableSetOf()
+    var yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisala> = mutableSetOf(),
+
+    @ManyToMany
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JoinTable(
+        name = "rel_kayttaja__yliopisto",
+        joinColumns = [JoinColumn(name = "kayttaja_id", referencedColumnName = "id")],
+        inverseJoinColumns = [JoinColumn(name = "yliopisto_id", referencedColumnName = "id")]
+    )
+    var yliopistot: MutableSet<Yliopisto> = mutableSetOf(),
 
 ) : Serializable {
 
