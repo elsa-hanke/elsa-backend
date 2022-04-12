@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220411170612" author="jhipster">
+        <createTable tableName="rel_kayttaja__yliopisto">
+            <column name="kayttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yliopisto_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="rel_kayttaja__yliopisto" baseColumnNames="kayttaja_id"
+                                 constraintName="fk_rel_kayttaja__yliopisto_kayttaja_id"
+                                 referencedTableName="kayttaja"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="rel_kayttaja__yliopisto" baseColumnNames="yliopisto_id"
+                                 constraintName="fk_rel_kayttaja__yliopisto_yliopisto_id"
+                                 referencedTableName="yliopisto"
+                                 referencedColumnNames="id"/>
+
+    </changeSet>
+</databaseChangeLog>
