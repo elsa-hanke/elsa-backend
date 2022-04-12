@@ -81,6 +81,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".saadutValtuutukset")
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".yliopistotAndErikoisalat")
+            createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".yliopistot")
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Keskeytysaika::class.java.name)
