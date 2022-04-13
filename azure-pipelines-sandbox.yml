@@ -49,8 +49,8 @@ stages:
               repositoryName: 'ecr-sandbox-backend'
             displayName: 'Push image'
 
-  - stage: Deploy_maintenance_page_dev
-    displayName: Deploy maintenance page dev
+  - stage: Deploy_maintenance_page_sandbox
+    displayName: Deploy maintenance page sandbox
     dependsOn:
       - Build
     # condition: and(succeeded(), eq(variables.isMain, true))
@@ -85,7 +85,9 @@ stages:
 
   - stage: Deploy_backend_sandbox
     displayName: Deploy backend sandbox
-    dependsOn: Build
+    dependsOn: 
+    - Build
+    - Deploy_maintenance_page_sandbox
     jobs:
       - deployment: Deploy
         displayName: Deploy backend sandbox
