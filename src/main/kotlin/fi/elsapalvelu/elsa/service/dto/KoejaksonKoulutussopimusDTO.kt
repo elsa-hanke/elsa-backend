@@ -9,16 +9,12 @@ data class KoejaksonKoulutussopimusDTO(
 
     var id: Long? = null,
 
-    @get: NotNull
     var erikoistuvanNimi: String? = null,
 
-    @get: NotNull
     var erikoistuvanOpiskelijatunnus: String? = null,
 
-    @get: NotNull
     var erikoistuvanSyntymaaika: LocalDate? = null,
 
-    @get: NotNull
     var erikoistuvanYliopisto: String? = null,
 
     var erikoistuvanErikoisala: String? = null,
@@ -30,7 +26,6 @@ data class KoejaksonKoulutussopimusDTO(
     @Lob
     var erikoistuvanAvatar: ByteArray? = null,
 
-    @get: NotNull
     var opintooikeudenMyontamispaiva: LocalDate? = null,
 
     var koejaksonAlkamispaiva: LocalDate? = null,
@@ -46,6 +41,9 @@ data class KoejaksonKoulutussopimusDTO(
     var kouluttajat: MutableSet<KoulutussopimuksenKouluttajaDTO>? = mutableSetOf(),
 
     var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikkaDTO>? = mutableSetOf(),
+
+    // Lisätään allekirjoituksen logiikka sarakesign toteutuksen yhteydessä
+    var allekirjoitettu: Boolean? = null,
 
     var erikoistuvanAllekirjoitusaika: LocalDate? = null
 

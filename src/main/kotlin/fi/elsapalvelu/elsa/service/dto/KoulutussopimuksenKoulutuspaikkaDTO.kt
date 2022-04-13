@@ -8,7 +8,9 @@ data class KoulutussopimuksenKoulutuspaikkaDTO(
 
     var nimi: String? = null,
 
-    var erikoisala: String? = null,
+    var koulutussopimusOmanYliopistonKanssa: Boolean? = null,
+
+    var yliopistoId: Long? = null,
 
     var yliopisto: String? = null
 

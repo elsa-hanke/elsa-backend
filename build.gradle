@@ -9,7 +9,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
         classpath "org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}"
         classpath "org.jetbrains.kotlin:kotlin-noarg:${kotlinVersion}"
-        classpath "org.jlleitschuh.gradle:ktlint-gradle:10.1.0"
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:10.2.1"
         classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektVersion}"
         classpath "io.gitlab.arturbosch.detekt:detekt-formatting:${detektVersion}"
     }
@@ -26,6 +26,12 @@ plugins {
     id "org.liquibase.gradle"
     id "org.sonarqube"
     id "org.owasp.dependencycheck"
+    id "com.apollographql.apollo3" version "${apolloVersion}"
+}
+
+apollo {
+    packageName.set("fi.elsapalvelu.elsa")
+    generateKotlinModels.set(true)
 }
 
 group = "fi.elsapalvelu.elsa"
@@ -33,8 +39,6 @@ version = "0.0.1-SNAPSHOT"
 
 description = ""
 
-sourceCompatibility = 11
-targetCompatibility = 11
 assert System.properties["java.specification.version"] == "11" || "12" || "13" || "14" || "15" || "16" || "17"
 
 apply from: "gradle/docker.gradle"
@@ -142,13 +146,6 @@ dependencyCheck {
 configurations {
     providedRuntime
     implementation.exclude module: "spring-boot-starter-tomcat"
-    all {
-        resolutionStrategy {
-            // Inherited version from Spring Boot can't be used because of regressions:
-            // To be removed as soon as spring-boot use the same version
-            force 'org.liquibase:liquibase-core:3.9.0'
-        }
-    }
 }
 
 configurations.all {
@@ -176,13 +173,13 @@ dependencies {
     implementation "io.dropwizard.metrics:metrics-core"
     implementation "io.micrometer:micrometer-registry-prometheus"
     implementation "net.logstash.logback:logstash-logback-encoder"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-    implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5"
-    implementation "com.fasterxml.jackson.core:jackson-annotations"
-    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}"
     implementation "javax.cache:cache-api"
     implementation "org.hibernate:hibernate-core:${hibernateVersion}"
     implementation "com.zaxxer:HikariCP"
@@ -192,9 +189,11 @@ dependencies {
     implementation "org.hibernate:hibernate-entitymanager:${hibernateVersion}"
     implementation "org.hibernate.validator:hibernate-validator:${hibernateVersion}"
     implementation "org.hibernate:hibernate-envers:${hibernateVersion}"
-    implementation "org.liquibase:liquibase-core"
+    implementation "org.liquibase:liquibase-core:${liquibaseVersion}"
     liquibaseRuntime "org.liquibase:liquibase-core"
-    liquibaseRuntime "org.liquibase.ext:liquibase-hibernate5:${liquibaseHibernate5Version}"
+    liquibaseRuntime("org.liquibase.ext:liquibase-hibernate5:${liquibaseVersion}") {
+        exclude module: "liquibase-test-harness"
+    }
     liquibaseRuntime sourceSets.main.compileClasspath
     implementation "org.springframework.boot:spring-boot-loader-tools:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-mail:${springBootVersion}"
@@ -219,6 +218,7 @@ dependencies {
             strictly("3.0.11.RELEASE") // CVE-2021-43466 on 3.0.12.RELEASE
         }
     }
+    implementation "org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE"
     implementation "org.zalando:problem-spring-web"
     implementation "org.springframework.security:spring-security-config:${springSecurityVersion}"
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
@@ -228,7 +228,7 @@ dependencies {
     implementation "org.opensaml:opensaml-saml-api:${opensamlVersion}"
     implementation "org.opensaml:opensaml-saml-impl:${opensamlVersion}"
     implementation("org.bouncycastle:bcprov-jdk15on:1.69")
-    implementation "org.postgresql:postgresql:42.2.23"
+    implementation "org.postgresql:postgresql:42.3.3"
     liquibaseRuntime "org.postgresql:postgresql"
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
@@ -243,7 +243,7 @@ dependencies {
     testImplementation "com.h2database:h2"
     implementation "co.elastic.logging:logback-ecs-encoder:1.3.2"
     implementation "commons-codec:commons-codec:1.15"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.5.0"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.10"
     implementation "org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE"
     implementation "com.jayway.jsonpath:json-path:2.6.0"
     implementation "org.apache.commons:commons-lang3:3.12.0"
@@ -254,7 +254,16 @@ dependencies {
     implementation "com.sndyuk:logback-more-appenders:1.8.6"
     // https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot
     implementation(platform("org.apache.logging.log4j:log4j-bom:2.17.1"))
+    implementation "com.apollographql.apollo3:apollo-runtime:${apolloVersion}"
+    implementation "com.squareup.okhttp3:okhttp-tls:4.9.3"
+    implementation "net.javacrumbs.shedlock:shedlock-spring:4.33.0"
+    implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.33.0"
+    implementation "com.itextpdf:kernel:7.2.1"
+    implementation "com.itextpdf:html2pdf:4.0.1"
+}
 
+apollo {
+    packageName.set("fi.elsapalvelu.elsa")
 }
 
 task cleanResources(type: Delete) {

@@ -26,38 +26,8 @@ data class KoejaksonKoulutussopimus(
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var opintooikeus: Opintooikeus? = null,
 
-    @NotNull
-    @Column(name = "erikoistuvan_nimi", nullable = false)
-    var erikoistuvanNimi: String? = null,
-
-    @NotNull
-    @Column(name = "erikoistuvan_opiskelijatunnus", nullable = false)
-    var erikoistuvanOpiskelijatunnus: String? = null,
-
-    @NotNull
-    @Column(name = "erikoistuvan_syntymaaika", nullable = false)
-    var erikoistuvanSyntymaaika: LocalDate? = null,
-
-    @NotNull
-    @Column(name = "erikoistuvan_yliopisto", nullable = false)
-    var erikoistuvanYliopisto: String? = null,
-
-    @NotNull
-    @Column(name = "erikoistuvan_erikoisala", nullable = false)
-    var erikoistuvanErikoisala: String? = null,
-
-    @NotNull
-    @Column(name = "opintooikeuden_myontamispaiva")
-    var opintooikeudenMyontamispaiva: LocalDate? = null,
-
     @Column(name = "koejakson_alkamispaiva")
     var koejaksonAlkamispaiva: LocalDate? = null,
-
-    @Column(name = "erikoistuvan_puhelinnumero")
-    var erikoistuvanPuhelinnumero: String? = null,
-
-    @Column(name = "erikoistuvan_sahkoposti")
-    var erikoistuvanSahkoposti: String? = null,
 
     @NotNull
     @Column(name = "lahetetty", nullable = false)
@@ -70,12 +40,6 @@ data class KoejaksonKoulutussopimus(
     @ManyToOne
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var vastuuhenkilo: Kayttaja? = null,
-
-    @Column(name = "vastuuhenkilon_nimi", nullable = false)
-    var vastuuhenkilonNimi: String? = null,
-
-    @Column(name = "vastuuhenkilon_nimike")
-    var vastuuhenkilonNimike: String? = null,
 
     @Column(name = "vastuuhenkilo_hyvaksynyt")
     var vastuuhenkiloHyvaksynyt: Boolean = false,
@@ -120,19 +84,17 @@ data class KoejaksonKoulutussopimus(
         return "KoejaksonKoulutussopimus(" +
             "id=$id, " +
             "opintooikeus=$opintooikeus, " +
-            "erikoistuvanNimi=$erikoistuvanNimi, " +
-            "erikoistuvanOpiskelijatunnus=$erikoistuvanOpiskelijatunnus, " +
-            "erikoistuvanSyntymaaika=$erikoistuvanSyntymaaika, " +
-            "erikoistuvanYliopisto=$erikoistuvanYliopisto, " +
-            "opintooikeudenMyontamispaiva=$opintooikeudenMyontamispaiva, " +
+            "erikoistuvanNimi=${opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()}, " +
+            "erikoistuvanOpiskelijatunnus=${opintooikeus?.opiskelijatunnus}, " +
+            "erikoistuvanSyntymaaika=${opintooikeus?.erikoistuvaLaakari?.syntymaaika}, " +
+            "erikoistuvanYliopisto=${opintooikeus?.yliopisto?.nimi}, " +
+            "opintooikeudenMyontamispaiva=${opintooikeus?.opintooikeudenMyontamispaiva}, " +
             "koejaksonAlkamispaiva=$koejaksonAlkamispaiva, " +
-            "erikoistuvanPuhelinnumero=$erikoistuvanPuhelinnumero, " +
-            "erikoistuvanSahkoposti=$erikoistuvanSahkoposti, " +
+            "erikoistuvanPuhelinnumero=${opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber}, " +
+            "erikoistuvanSahkoposti=${opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email}, " +
             "lahetetty=$lahetetty, " +
             "muokkauspaiva=$muokkauspaiva, " +
             "vastuuhenkilo=$vastuuhenkilo, " +
-            "vastuuhenkilonNimi=$vastuuhenkilonNimi, " +
-            "vastuuhenkilonNimike=$vastuuhenkilonNimike, " +
             "vastuuhenkiloHyvaksynyt=$vastuuhenkiloHyvaksynyt, " +
             "vastuuhenkilonKuittausaika=$vastuuhenkilonKuittausaika, " +
             "korjausehdotus=$korjausehdotus, " +

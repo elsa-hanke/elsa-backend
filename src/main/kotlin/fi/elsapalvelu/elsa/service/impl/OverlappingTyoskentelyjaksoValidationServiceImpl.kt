@@ -183,6 +183,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                             if (reducedFactor < 0) overallTyoskentelyaikaFactorForCurrentDate -= abs(reducedFactor)
                             counterData.hyvaksiluettavatPerYearMap[date.year] = max(0.0, reducedFactor)
                         }
+                        else -> {}
                     }
                 }
             }

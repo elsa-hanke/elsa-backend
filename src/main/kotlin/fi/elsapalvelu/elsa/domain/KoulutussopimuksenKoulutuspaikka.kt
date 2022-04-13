@@ -6,6 +6,7 @@ import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import javax.persistence.*
+import javax.validation.constraints.NotNull
 
 @Entity
 @Audited
@@ -17,12 +18,15 @@ data class KoulutussopimuksenKoulutuspaikka(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
-    @Column(name = "nimi", nullable = false)
+    @Column(name = "nimi")
     var nimi: String? = null,
 
-    @Column(name = "yliopisto", nullable = false)
+    @Column(name = "sopimus_oman_yliopiston_kanssa")
+    var koulutussopimusOmanYliopistonKanssa: Boolean? = null,
+
+    @ManyToOne
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var yliopisto: String? = null,
+    var yliopisto: Yliopisto? = null,
 
     @ManyToOne
     var koulutussopimus: KoejaksonKoulutussopimus? = null
@@ -42,8 +46,7 @@ data class KoulutussopimuksenKoulutuspaikka(
         return "KoulutussopimuksenKoulutuspaikka(" +
             "id=$id, " +
             "nimi=$nimi, " +
-            "yliopisto=$yliopisto, " +
-            "koulutussopimus=$koulutussopimus)"
+            "yliopisto=$yliopisto)"
     }
 
     companion object {

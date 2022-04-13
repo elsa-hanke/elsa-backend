@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220308141823" author="jhipster">
+        <addColumn tableName="erikoisala">
+            <column name="virta_patevyyskoodi" type="varchar(10)">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+
+        <loadUpdateData
+            primaryKey="id"
+            file="config/liquibase/data/virta_patevyyskoodit.csv"
+            separator=";"
+            onlyUpdate="true"
+            tableName="erikoisala">
+            <column name="id" type="numeric"/>
+            <column name="virta_patevyyskoodi" type="string"/>
+        </loadUpdateData>
+    </changeSet>
+
+</databaseChangeLog>

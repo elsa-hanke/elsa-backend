@@ -13,24 +13,49 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
 
     fun findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId: String): Opintooikeus?
 
+    fun findOneByErikoistuvaLaakariIdAndYliopistoOpintooikeusId(
+        erikoistuvaLaakariId: Long,
+        yliopistoOpintooikeusId: String
+    ): Opintooikeus?
+
+    fun findOneByErikoistuvaLaakariIdAndYliopistoIdAndErikoisalaIdAndYliopistoOpintooikeusIdIsNull(
+        erikoistuvaLaakariId: Long,
+        yliopistoId: Long,
+        erikoisalaId: Long
+    ): Opintooikeus?
+
     @Query(
         """
-        select case when count(o) > 0 then true else false end from Opintooikeus o
+        select o from Opintooikeus o
         join o.erikoistuvaLaakari e
         join e.kayttaja k
         join k.user u
         where :paiva between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva and u.id = :userId
         """
     )
-    fun existsByErikoistuvaLaakariKayttajaUserId(
+    fun findByErikoistuvaLaakariKayttajaUserIdAndBetweenDate(
         userId: String,
         paiva: LocalDate
-    ): Boolean
+    ): List<Opintooikeus>
 
     @Query(
         """
         select o from Opintooikeus o
-        where o.kaytossa = true and current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        join o.erikoistuvaLaakari e
+        where o.id = :id and e.id = :erikoistuvaLaakariId
+        and :paiva between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        """
+    )
+    fun findOneByIdAndErikoistuvaLaakariIdAndBetweenDate(
+        id: Long,
+        erikoistuvaLaakariId: Long,
+        paiva: LocalDate
+    ): Opintooikeus?
+
+    @Query(
+        """
+        select o from Opintooikeus o
+        where current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
         and o.erikoisala.id = :erikoisalaId and o.yliopisto.id = :yliopistoId
         """
     )
@@ -41,7 +66,7 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long> {
         select o from Opintooikeus o
         join o.erikoistuvaLaakari e
         join e.annetutValtuutukset v
-        where o.kaytossa = true and current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        where current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
         and v.valtuutettu.id = :kayttajaId
         and current_date between v.alkamispaiva and v.paattymispaiva
         """

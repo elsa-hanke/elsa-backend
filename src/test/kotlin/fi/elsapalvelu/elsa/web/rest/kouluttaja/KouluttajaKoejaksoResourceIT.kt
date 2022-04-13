@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
@@ -114,24 +115,24 @@ class KouluttajaKoejaksoResourceIT {
         restKoejaksoMockMvc.perform(get("/api/kouluttaja/koejaksot"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$[0].id").value(koejaksonLoppukeskustelu.id as Any))
-            .andExpect(jsonPath("$[0].tila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name as Any))
-            .andExpect(jsonPath("$[0].tyyppi").value(KoejaksoTyyppi.LOPPUKESKUSTELU.name as Any))
-            .andExpect(jsonPath("$[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$[0].id").value(koejaksonLoppukeskustelu.id))
+            .andExpect(jsonPath("$[0].tila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name))
+            .andExpect(jsonPath("$[0].tyyppi").value(KoejaksoTyyppi.LOPPUKESKUSTELU.name))
+            .andExpect(jsonPath("$[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.erikoistuvanNimi))
             .andExpect(
                 jsonPath("$[0].hyvaksytytVaiheet[0].id").value(
-                    koejaksonKehittamistoimenpiteet.id as Any
+                    koejaksonKehittamistoimenpiteet.id
                 )
             )
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].tyyppi").value("KEHITTAMISTOIMENPITEET"))
-            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].id").value(koejaksonValiarviointi.id as Any))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].id").value(koejaksonValiarviointi.id))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].tyyppi").value("VALIARVIOINTI"))
-            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].id").value(koejaksonAloituskeskustelu.id as Any))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].id").value(koejaksonAloituskeskustelu.id))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].tyyppi").value("ALOITUSKESKUSTELU"))
-            .andExpect(jsonPath("$[1].id").value(koejaksonKoulutussopimus.id as Any))
-            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
+            .andExpect(jsonPath("$[1].id").value(koejaksonKoulutussopimus.id))
+            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.ODOTTAA_ALLEKIRJOITUKSIA.name))
             .andExpect(jsonPath("$[1].tyyppi").value("KOULUTUSSOPIMUS"))
-            .andExpect(jsonPath("$[1].erikoistuvanNimi").value(koejaksonKoulutussopimus.erikoistuvanNimi as Any))
+            .andExpect(jsonPath("$[1].erikoistuvanNimi").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
     }
 
     @Test
@@ -149,14 +150,14 @@ class KouluttajaKoejaksoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(koejaksonKoulutussopimus.id as Any))
-            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKoulutussopimus.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKoulutussopimus.erikoistuvanOpiskelijatunnus as Any))
-            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKoulutussopimus.erikoistuvanYliopisto as Any))
-            .andExpect(jsonPath("$.erikoistuvanPuhelinnumero").value(koejaksonKoulutussopimus.erikoistuvanPuhelinnumero as Any))
-            .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonKoulutussopimus.erikoistuvanSahkoposti as Any))
-            .andExpect(jsonPath("$.lahetetty").value(koejaksonKoulutussopimus.lahetetty as Any))
-            .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonKoulutussopimus.vastuuhenkilo?.id as Any))
+            .andExpect(jsonPath("$.id").value(koejaksonKoulutussopimus.id))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKoulutussopimus.opintooikeus?.opiskelijatunnus))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKoulutussopimus.opintooikeus?.yliopisto?.nimi.toString()))
+            .andExpect(jsonPath("$.erikoistuvanPuhelinnumero").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber))
+            .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email))
+            .andExpect(jsonPath("$.lahetetty").value(koejaksonKoulutussopimus.lahetetty))
+            .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonKoulutussopimus.vastuuhenkilo?.id))
             .andExpect(jsonPath("$.korjausehdotus").isEmpty)
     }
 
@@ -278,9 +279,6 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.kouluttajat?.forEach {
-            it.nimike = KoejaksonVaiheetHelper.UPDATED_NIMIKE
-            it.sahkoposti = KoejaksonVaiheetHelper.UPDATED_EMAIL
-            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
             it.lahiosoite = KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE
             it.toimipaikka = KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA
             it.postitoimipaikka = KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA
@@ -313,9 +311,6 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.kouluttajat?.forEach {
-            it.nimike = KoejaksonVaiheetHelper.UPDATED_NIMIKE
-            it.sahkoposti = KoejaksonVaiheetHelper.UPDATED_EMAIL
-            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
             it.lahiosoite = KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE
             it.toimipaikka = KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA
             it.postitoimipaikka = KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA
@@ -323,6 +318,9 @@ class KouluttajaKoejaksoResourceIT {
         }
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
+        koulutussopimusDTO.kouluttajat?.forEach {
+            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
+        }
 
         restKoejaksoMockMvc.perform(
             put("/api/kouluttaja/koejakso/koulutussopimus")
@@ -338,9 +336,7 @@ class KouluttajaKoejaksoResourceIT {
 
         assertThat(testKoulutussopimus.kouluttajat).hasSize(1)
         val testKouluttaja = testKoulutussopimus.kouluttajat?.iterator()?.next()
-        assertThat(testKouluttaja?.nimike).isEqualTo(KoejaksonVaiheetHelper.UPDATED_NIMIKE)
-        assertThat(testKouluttaja?.sahkoposti).isEqualTo(KoejaksonVaiheetHelper.UPDATED_EMAIL)
-        assertThat(testKouluttaja?.puhelin).isEqualTo(KoejaksonVaiheetHelper.UPDATED_PHONE)
+        assertThat(testKouluttaja?.kouluttaja?.user?.phoneNumber).isEqualTo(KoejaksonVaiheetHelper.UPDATED_PHONE)
         assertThat(testKouluttaja?.lahiosoite).isEqualTo(KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE)
         assertThat(testKouluttaja?.toimipaikka).isEqualTo(KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA)
         assertThat(testKouluttaja?.postitoimipaikka).isEqualTo(KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA)
@@ -361,9 +357,6 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.kouluttajat?.forEach {
-            it.nimike = KoejaksonVaiheetHelper.UPDATED_NIMIKE
-            it.sahkoposti = KoejaksonVaiheetHelper.UPDATED_EMAIL
-            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
             it.lahiosoite = KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE
             it.toimipaikka = KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA
             it.postitoimipaikka = KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA
@@ -373,6 +366,9 @@ class KouluttajaKoejaksoResourceIT {
         updatedKoulutussopimus.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
+        koulutussopimusDTO.kouluttajat?.forEach {
+            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
+        }
 
         restKoejaksoMockMvc.perform(
             put("/api/kouluttaja/koejakso/koulutussopimus")
@@ -389,9 +385,7 @@ class KouluttajaKoejaksoResourceIT {
 
         assertThat(testKoulutussopimus.kouluttajat).hasSize(1)
         val testKouluttaja = testKoulutussopimus.kouluttajat?.iterator()?.next()
-        assertThat(testKouluttaja?.nimike).isEqualTo(KoejaksonVaiheetHelper.UPDATED_NIMIKE)
-        assertThat(testKouluttaja?.sahkoposti).isEqualTo(KoejaksonVaiheetHelper.UPDATED_EMAIL)
-        assertThat(testKouluttaja?.puhelin).isEqualTo(KoejaksonVaiheetHelper.UPDATED_PHONE)
+        assertThat(testKouluttaja?.kouluttaja?.user?.phoneNumber).isEqualTo(KoejaksonVaiheetHelper.UPDATED_PHONE)
         assertThat(testKouluttaja?.lahiosoite).isEqualTo(KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE)
         assertThat(testKouluttaja?.toimipaikka).isEqualTo(KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA)
         assertThat(testKouluttaja?.postitoimipaikka).isEqualTo(KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA)
@@ -1038,6 +1032,9 @@ class KouluttajaKoejaksoResourceIT {
         val esimies = KayttajaHelper.createEntity(em, if (isEsimies) user else null)
         em.persist(esimies)
 
+        val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
+        em.persist(yliopisto)
+
         koejaksonKoulutussopimus =
             KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
         koejaksonKoulutussopimus.kouluttajat =
@@ -1050,7 +1047,7 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonKoulutussopimus.koulutuspaikat =
             mutableSetOf(
                 KoejaksonVaiheetHelper.createKoulutussopimuksenKoulutuspaikka(
-                    koejaksonKoulutussopimus
+                    koejaksonKoulutussopimus, yliopisto
                 )
             )
         em.persist(koejaksonKoulutussopimus)

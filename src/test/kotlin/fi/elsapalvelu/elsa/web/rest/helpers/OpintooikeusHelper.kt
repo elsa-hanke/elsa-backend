@@ -4,6 +4,8 @@ import fi.elsapalvelu.elsa.domain.Asetus
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.Yliopisto
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import javax.persistence.EntityManager
@@ -11,7 +13,7 @@ import javax.persistence.EntityManager
 class OpintooikeusHelper {
 
     companion object {
-        const val DEFAULT_YLIOPISTO = "HY"
+        val DEFAULT_YLIOPISTO = YliopistoEnum.HELSINGIN_YLIOPISTO
         const val DEFAULT_ASETUS = "55/2020"
         private const val DEFAULT_OPISKELIJATUNNUS = "CCCCCCCCCC"
         private val DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
@@ -21,8 +23,9 @@ class OpintooikeusHelper {
         fun addOpintooikeusForErikoistuvaLaakari(
             em: EntityManager,
             erikoistuvaLaakari: ErikoistuvaLaakari,
-            opintooikeudenAlkamispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
-            opintooikeudenPaattymispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA
+            alkamispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
+            paattymispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
+            tila: OpintooikeudenTila = OpintooikeudenTila.AKTIIVINEN
         ): Opintooikeus {
             val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
             em.persist(yliopisto)
@@ -31,8 +34,7 @@ class OpintooikeusHelper {
             em.persist(erikoisala)
             em.flush()
 
-            val opintoopas = OpintoopasHelper.createEntity(em)
-            opintoopas.erikoisala = erikoisala
+            val opintoopas = OpintoopasHelper.createEntity(em, erikoisala = erikoisala)
             em.persist(opintoopas)
             em.flush()
 
@@ -46,8 +48,8 @@ class OpintooikeusHelper {
             }
 
             val opintooikeus = Opintooikeus(
-                opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
-                opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
+                opintooikeudenMyontamispaiva = alkamispaiva,
+                opintooikeudenPaattymispaiva = paattymispaiva,
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
                 osaamisenArvioinninOppaanPvm = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
                 erikoistuvaLaakari = erikoistuvaLaakari,
@@ -55,7 +57,8 @@ class OpintooikeusHelper {
                 erikoisala = erikoisala,
                 opintoopas = opintoopas,
                 asetus = asetus,
-                kaytossa = false
+                kaytossa = false,
+                tila = tila
             )
             em.persist(opintooikeus)
             em.flush()

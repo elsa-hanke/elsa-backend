@@ -9,6 +9,8 @@ interface ErikoisalaService {
 
     fun findAll(): List<ErikoisalaDTO>
 
+    fun findAllByLiittynytElsaan(): List<ErikoisalaDTO>
+
     fun findOne(id: Long): Optional<ErikoisalaDTO>
 
     fun delete(id: Long)

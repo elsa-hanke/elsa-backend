@@ -23,6 +23,8 @@ data class ErikoistuvaLaakariDTO(
 
     var yliopisto: String? = null,
 
+    var yliopistoId: String? = null,
+
     var erikoisalaNimi: String? = null,
 
     var opintooikeudet: MutableSet<OpintooikeusDTO>? = null,

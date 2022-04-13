@@ -22,12 +22,6 @@ data class KoulutussopimuksenKouluttaja(
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var kouluttaja: Kayttaja? = null,
 
-    @Column(name = "nimi", nullable = false)
-    var nimi: String? = null,
-
-    @Column(name = "nimike")
-    var nimike: String? = null,
-
     @Column(name = "toimipaikka")
     var toimipaikka: String? = null,
 
@@ -36,12 +30,6 @@ data class KoulutussopimuksenKouluttaja(
 
     @Column(name = "postitoimipaikka")
     var postitoimipaikka: String? = null,
-
-    @Column(name = "puhelin")
-    var puhelin: String? = null,
-
-    @Column(name = "sahkoposti")
-    var sahkoposti: String? = null,
 
     @Column(name = "sopimus_hyvaksytty")
     var sopimusHyvaksytty: Boolean = false,
@@ -67,16 +55,11 @@ data class KoulutussopimuksenKouluttaja(
         return "KoulutussopimuksenKouluttaja(" +
             "id=$id, " +
             "kouluttaja=$kouluttaja, " +
-            "nimi=$nimi, " +
-            "nimike=$nimike, " +
             "toimipaikka=$toimipaikka, " +
             "lahiosoite=$lahiosoite, " +
             "postitoiminpaikka=$postitoimipaikka, " +
-            "puhelin=$puhelin, " +
-            "sahkoposti=$sahkoposti, " +
             "sopimusHyvaksytty=$sopimusHyvaksytty, " +
-            "sopimuksenKuittausaika=$kuittausaika, " +
-            "koulutussopimus=$koulutussopimus)"
+            "sopimuksenKuittausaika=$kuittausaika)"
     }
 
     companion object {

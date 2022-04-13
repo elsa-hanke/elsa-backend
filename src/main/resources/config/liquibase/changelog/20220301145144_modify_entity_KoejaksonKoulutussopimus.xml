@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220301145144" author="jhipster">
+
+        <delete tableName="koulutussopimuksen_koulutuspaikka"/>
+        <delete tableName="koulutussopimuksen_koulutuspaikka_audit"/>
+        <delete tableName="koulutussopimuksen_kouluttaja"/>
+        <delete tableName="koulutussopimuksen_kouluttaja_audit"/>
+        <delete tableName="koejakson_koulutussopimus"/>
+        <delete tableName="koejakson_koulutussopimus_audit"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus"
+            columnName="erikoistuvan_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus_audit"
+            columnName="erikoistuvan_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus"
+            columnName="erikoistuvan_opiskelijatunnus"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus_audit"
+            columnName="erikoistuvan_opiskelijatunnus"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus"
+            columnName="erikoistuvan_syntymaaika"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus_audit"
+            columnName="erikoistuvan_syntymaaika"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus"
+            columnName="erikoistuvan_yliopisto"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus_audit"
+            columnName="erikoistuvan_yliopisto"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus"
+            columnName="erikoistuvan_erikoisala"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus_audit"
+            columnName="erikoistuvan_erikoisala"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus"
+            columnName="opintooikeuden_myontamispaiva"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus_audit"
+            columnName="opintooikeuden_myontamispaiva"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus"
+            columnName="erikoistuvan_sahkoposti"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus_audit"
+            columnName="erikoistuvan_sahkoposti"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus"
+            columnName="erikoistuvan_puhelinnumero"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus_audit"
+            columnName="erikoistuvan_puhelinnumero"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus"
+            columnName="vastuuhenkilon_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus_audit"
+            columnName="vastuuhenkilon_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus"
+            columnName="vastuuhenkilon_nimike"/>
+
+        <dropColumn
+            tableName="koejakson_koulutussopimus_audit"
+            columnName="vastuuhenkilon_nimike"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_kouluttaja"
+            columnName="nimi"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_kouluttaja_audit"
+            columnName="nimi"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_kouluttaja"
+            columnName="nimike"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_kouluttaja_audit"
+            columnName="nimike"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_kouluttaja"
+            columnName="sahkoposti"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_kouluttaja_audit"
+            columnName="sahkoposti"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_kouluttaja"
+            columnName="puhelin"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_kouluttaja_audit"
+            columnName="puhelin"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_koulutuspaikka"
+            columnName="yliopisto"/>
+
+        <dropColumn
+            tableName="koulutussopimuksen_koulutuspaikka_audit"
+            columnName="yliopisto"/>
+
+        <addColumn tableName="koulutussopimuksen_koulutuspaikka">
+            <column name="sopimus_oman_yliopiston_kanssa" type="boolean"/>
+        </addColumn>
+
+        <addColumn tableName="koulutussopimuksen_koulutuspaikka_audit">
+            <column name="sopimus_oman_yliopiston_kanssa" type="boolean"/>
+        </addColumn>
+
+        <addColumn tableName="koulutussopimuksen_koulutuspaikka">
+            <column name="yliopisto_id" type="bigint"/>
+        </addColumn>
+
+        <addColumn tableName="koulutussopimuksen_koulutuspaikka_audit">
+            <column name="yliopisto_id" type="bigint"/>
+        </addColumn>
+
+        <addForeignKeyConstraint baseColumnNames="yliopisto_id"
+            baseTableName="koulutussopimuksen_koulutuspaikka"
+            constraintName="fk_koulutussopimuksen_koulutuspaikka_yliopisto_id"
+            referencedColumnNames="id"
+            referencedTableName="yliopisto"/>
+
+    </changeSet>
+
+</databaseChangeLog>

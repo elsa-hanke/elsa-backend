@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.*
@@ -144,7 +145,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         em.persist(koejaksonLoppukeskustelu)
         em.persist(koejaksonVastuuhenkilonArvio)
 
-        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        val newOpintooikeus =
+            OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
         OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
 
         restKoejaksoMockMvc.perform(
@@ -249,40 +251,44 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val koulutussopimusList = koejaksonKoulutussopimusRepository.findAll()
         assertThat(koulutussopimusList).hasSize(databaseSizeBeforeCreate + 1)
         val sopimus = koulutussopimusList[koulutussopimusList.size - 1]
-        assertThat(sopimus.erikoistuvanNimi).isEqualTo(koejaksonKoulutussopimusDTO.erikoistuvanNimi)
-        assertThat(sopimus.erikoistuvanOpiskelijatunnus).isEqualTo(koejaksonKoulutussopimusDTO.erikoistuvanOpiskelijatunnus)
-        assertThat(sopimus.erikoistuvanSyntymaaika).isEqualTo(koejaksonKoulutussopimusDTO.erikoistuvanSyntymaaika)
-        assertThat(sopimus.erikoistuvanYliopisto).isEqualTo(koejaksonKoulutussopimusDTO.erikoistuvanYliopisto)
-        assertThat(sopimus.erikoistuvanPuhelinnumero).isEqualTo(koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero)
-        assertThat(sopimus.erikoistuvanSahkoposti).isEqualTo(koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti)
-        assertThat(sopimus.opintooikeudenMyontamispaiva).isEqualTo(koejaksonKoulutussopimusDTO.opintooikeudenMyontamispaiva)
+        assertThat(sopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()).isEqualTo(
+            koejaksonKoulutussopimusDTO.erikoistuvanNimi
+        )
+        assertThat(sopimus.opintooikeus?.opiskelijatunnus).isEqualTo(koejaksonKoulutussopimusDTO.erikoistuvanOpiskelijatunnus)
+        assertThat(sopimus.opintooikeus?.erikoistuvaLaakari?.syntymaaika).isEqualTo(
+            koejaksonKoulutussopimusDTO.erikoistuvanSyntymaaika
+        )
+        assertThat(sopimus.opintooikeus?.yliopisto?.nimi.toString()).isEqualTo(koejaksonKoulutussopimusDTO.erikoistuvanYliopisto)
+        assertThat(sopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber).isEqualTo(
+            koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
+        )
+        assertThat(sopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email).isEqualTo(
+            koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti
+        )
+        assertThat(sopimus.opintooikeus?.opintooikeudenMyontamispaiva).isEqualTo(
+            koejaksonKoulutussopimusDTO.opintooikeudenMyontamispaiva
+        )
         assertThat(sopimus.koejaksonAlkamispaiva).isEqualTo(koejaksonKoulutussopimusDTO.koejaksonAlkamispaiva)
         assertThat(sopimus.lahetetty).isEqualTo(koejaksonKoulutussopimusDTO.lahetetty)
         assertThat(sopimus.muokkauspaiva).isNotNull
         assertThat(sopimus.vastuuhenkilo?.id).isEqualTo(koejaksonKoulutussopimusDTO.vastuuhenkilo?.id)
-        assertThat(sopimus.vastuuhenkilonNimi).isEqualTo(koejaksonKoulutussopimusDTO.vastuuhenkilo?.nimi)
-        assertThat(sopimus.vastuuhenkilonNimike).isEqualTo(koejaksonKoulutussopimusDTO.vastuuhenkilo?.nimike)
         assertThat(sopimus.vastuuhenkiloHyvaksynyt).isFalse
         assertThat(sopimus.vastuuhenkilonKuittausaika).isNull()
         assertThat(sopimus.korjausehdotus).isNull()
         assertThat(sopimus.kouluttajat).hasSize(1)
         val kouluttaja = sopimus.kouluttajat?.iterator()?.next()
-        val kouluttajaDTO = koejaksonKoulutussopimus.kouluttajat?.iterator()?.next()
-        assertThat(kouluttaja?.nimi).isEqualTo(kouluttajaDTO?.nimi)
-        assertThat(kouluttaja?.nimike).isEqualTo(kouluttajaDTO?.nimike)
-        assertThat(kouluttaja?.kouluttaja?.id).isEqualTo(kouluttajaDTO?.kouluttaja?.id)
-        assertThat(kouluttaja?.toimipaikka).isEqualTo(kouluttajaDTO?.toimipaikka)
-        assertThat(kouluttaja?.lahiosoite).isEqualTo(kouluttajaDTO?.lahiosoite)
-        assertThat(kouluttaja?.postitoimipaikka).isEqualTo(kouluttajaDTO?.postitoimipaikka)
-        assertThat(kouluttaja?.puhelin).isEqualTo(kouluttajaDTO?.puhelin)
-        assertThat(kouluttaja?.sahkoposti).isEqualTo(kouluttajaDTO?.sahkoposti)
+        val kouluttajaDTO = koejaksonKoulutussopimusDTO.kouluttajat?.iterator()?.next()
+        assertThat(kouluttaja?.kouluttaja?.id).isEqualTo(kouluttajaDTO?.kayttajaId)
+        assertThat(kouluttaja?.toimipaikka).isNull()
+        assertThat(kouluttaja?.lahiosoite).isNull()
+        assertThat(kouluttaja?.postitoimipaikka).isNull()
         assertThat(kouluttaja?.sopimusHyvaksytty).isFalse
         assertThat(kouluttaja?.kuittausaika).isNull()
         assertThat(sopimus.koulutuspaikat).hasSize(1)
         val koulutuspaikka = sopimus.koulutuspaikat?.iterator()?.next()
-        val koulutuspaikkaDTO = koejaksonKoulutussopimus.koulutuspaikat?.iterator()?.next()
+        val koulutuspaikkaDTO = koejaksonKoulutussopimusDTO.koulutuspaikat?.iterator()?.next()
         assertThat(koulutuspaikka?.nimi).isEqualTo(koulutuspaikkaDTO?.nimi)
-        assertThat(koulutuspaikka?.yliopisto).isEqualTo(koulutuspaikkaDTO?.yliopisto)
+        assertThat(koulutuspaikka?.yliopisto?.id).isEqualTo(koulutuspaikkaDTO?.yliopistoId)
     }
 
     @Test
@@ -300,8 +306,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         em.detach(updatedKoulutussopimus)
 
         updatedKoulutussopimus.koejaksonAlkamispaiva = UPDATED_ALKAMISPAIVA
-        updatedKoulutussopimus.erikoistuvanSahkoposti = UPDATED_EMAIL
-        updatedKoulutussopimus.erikoistuvanPuhelinnumero = UPDATED_PHONE
+        updatedKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber =
+            UPDATED_PHONE
 
         val updatedKoulutuspaikka = updatedKoulutussopimus.koulutuspaikat?.iterator()?.next()
         updatedKoulutuspaikka?.nimi = UPDATED_KOULUTUSPAIKKA
@@ -324,8 +330,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         )
         em.persist(updatedVastuuhenkilo)
         updatedKoulutussopimus.vastuuhenkilo = updatedVastuuhenkilo
-        updatedKoulutussopimus.vastuuhenkilonNimi = updatedVastuuhenkilo.getNimi()
-        updatedKoulutussopimus.vastuuhenkilonNimike = updatedVastuuhenkilo.nimike
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
@@ -340,8 +344,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(koulutussopimusList).hasSize(databaseSizeBeforeUpdate)
         val testKoulutussopimus = koulutussopimusList[koulutussopimusList.size - 1]
         assertThat(testKoulutussopimus.koejaksonAlkamispaiva).isEqualTo(UPDATED_ALKAMISPAIVA)
-        assertThat(testKoulutussopimus.erikoistuvanSahkoposti).isEqualTo(UPDATED_EMAIL)
-        assertThat(testKoulutussopimus.erikoistuvanPuhelinnumero).isEqualTo(UPDATED_PHONE)
+        assertThat(testKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber).isEqualTo(
+            UPDATED_PHONE
+        )
 
         val testKoulutuspaikka = testKoulutussopimus.koulutuspaikat?.iterator()?.next()
         assertThat(testKoulutuspaikka?.nimi).isEqualTo(UPDATED_KOULUTUSPAIKKA)
@@ -354,7 +359,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         val testVastuuhenkilo = kayttajaRepository.findById(testKoulutussopimus.vastuuhenkilo?.id!!)
         assertThat(testVastuuhenkilo.get().user?.id).isEqualTo(updatedVastuuhenkilo.user?.id)
-        assertThat(testKoulutussopimus.vastuuhenkilonNimi).isEqualTo(UPDATED_VASTUUHENKILO_NIMI)
     }
 
     @Test
@@ -968,11 +972,19 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val esimies = KayttajaHelper.createEntity(em)
         em.persist(esimies)
 
+        val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
+        em.persist(yliopisto)
+
         koejaksonKoulutussopimus = createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
         koejaksonKoulutussopimus.kouluttajat =
             mutableSetOf(createKoulutussopimuksenKouluttaja(koejaksonKoulutussopimus, kouluttaja))
         koejaksonKoulutussopimus.koulutuspaikat =
-            mutableSetOf(createKoulutussopimuksenKoulutuspaikka(koejaksonKoulutussopimus))
+            mutableSetOf(
+                createKoulutussopimuksenKoulutuspaikka(
+                    koejaksonKoulutussopimus,
+                    yliopisto
+                )
+            )
 
         koejaksonAloituskeskustelu =
             createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
@@ -1016,7 +1028,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         private const val UPDATED_VASTUUHENKILO_NIMI = "Ville Vastuuhenkilö"
 
         private const val DEFAULT_KOULUTUSPAIKKA = "TAYS Päivystyskeskus"
-        private const val DEFAULT_YLIOPISTO = "TAYS"
+        private val DEFAULT_YLIOPISTO = YliopistoEnum.TAMPEREEN_YLIOPISTO
 
         private const val UPDATED_KOULUTUSPAIKKA = "HUS Päivystyskeskus"
 
@@ -1030,22 +1042,12 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
             erikoistuvaLaakari: ErikoistuvaLaakari,
             vastuuhenkilo: Kayttaja
         ): KoejaksonKoulutussopimus {
-            val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonKoulutussopimus(
                 opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanSyntymaaika = DEFAULT_SYNTYMAAIKA,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
-                opintooikeudenMyontamispaiva = DEFAULT_MYONTAMISPAIVA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
-                erikoistuvanPuhelinnumero = erikoistuvaLaakari.kayttaja?.user?.phoneNumber,
-                erikoistuvanSahkoposti = erikoistuvaLaakari.kayttaja?.user?.email,
                 lahetetty = false,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
-                vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
-                vastuuhenkilonNimike = vastuuhenkilo.nimike,
             )
         }
 
@@ -1056,7 +1058,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         ): KoulutussopimuksenKouluttaja {
             return KoulutussopimuksenKouluttaja(
                 kouluttaja = kouluttaja,
-                nimi = kouluttaja.getNimi(),
                 koulutussopimus = koejaksonKoulutussopimus
             )
         }
@@ -1064,10 +1065,11 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         @JvmStatic
         fun createKoulutussopimuksenKoulutuspaikka(
             koejaksonKoulutussopimus: KoejaksonKoulutussopimus,
+            yliopisto: Yliopisto
         ): KoulutussopimuksenKoulutuspaikka {
             return KoulutussopimuksenKoulutuspaikka(
                 nimi = DEFAULT_KOULUTUSPAIKKA,
-                yliopisto = DEFAULT_YLIOPISTO,
+                yliopisto = yliopisto,
                 koulutussopimus = koejaksonKoulutussopimus
             )
         }
@@ -1084,7 +1086,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
                 erikoistuvanSahkoposti = erikoistuvaLaakari.kayttaja?.user?.email,
                 koejaksonSuorituspaikka = DEFAULT_KOULUTUSPAIKKA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
@@ -1112,7 +1114,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
                 edistyminenTavoitteidenMukaista = false,
                 vahvuudet = DEFAULT_VAHVUUDET,
                 kehittamistoimenpiteet = DEFAULT_KEHITTAMISTOIMENPITEET,
@@ -1136,7 +1138,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
                 kehittamistoimenpiteetRiittavat = true,
                 lahikouluttaja = lahikouluttaja,
                 lahikouluttajanNimi = lahikouluttaja.getNimi(),
@@ -1158,7 +1160,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
                 esitetaanKoejaksonHyvaksymista = true,
                 lahikouluttaja = lahikouluttaja,
                 lahikouluttajanNimi = lahikouluttaja.getNimi(),
@@ -1179,7 +1181,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
                 erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
                 vastuuhenkilo = vastuuhenkilo,
                 vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
                 vastuuhenkilonNimike = vastuuhenkilo.nimike,

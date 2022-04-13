@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
@@ -112,7 +113,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[3].id").value(koejaksonAloituskeskustelu.id as Any))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[3].tyyppi").value("ALOITUSKESKUSTELU"))
             .andExpect(jsonPath("$[1].id").value(koejaksonKoulutussopimus.id as Any))
-            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.HYVAKSYTTY.name as Any))
+            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.ODOTTAA_ALLEKIRJOITUKSIA.name as Any))
             .andExpect(jsonPath("$[1].tyyppi").value("KOULUTUSSOPIMUS"))
     }
 
@@ -131,14 +132,14 @@ class VastuuhenkiloKoejaksoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(koejaksonKoulutussopimus.id as Any))
-            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKoulutussopimus.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKoulutussopimus.erikoistuvanOpiskelijatunnus as Any))
-            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKoulutussopimus.erikoistuvanYliopisto as Any))
-            .andExpect(jsonPath("$.erikoistuvanPuhelinnumero").value(koejaksonKoulutussopimus.erikoistuvanPuhelinnumero as Any))
-            .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonKoulutussopimus.erikoistuvanSahkoposti as Any))
-            .andExpect(jsonPath("$.lahetetty").value(koejaksonKoulutussopimus.lahetetty as Any))
-            .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonKoulutussopimus.vastuuhenkilo?.id as Any))
+            .andExpect(jsonPath("$.id").value(koejaksonKoulutussopimus.id))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKoulutussopimus.opintooikeus?.opiskelijatunnus))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKoulutussopimus.opintooikeus?.yliopisto?.nimi.toString()))
+            .andExpect(jsonPath("$.erikoistuvanPuhelinnumero").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber))
+            .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email))
+            .andExpect(jsonPath("$.lahetetty").value(koejaksonKoulutussopimus.lahetetty))
+            .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonKoulutussopimus.vastuuhenkilo?.id))
             .andExpect(jsonPath("$.korjausehdotus").isEmpty)
     }
 
@@ -834,6 +835,9 @@ class VastuuhenkiloKoejaksoResourceIT {
         val esimies = KayttajaHelper.createEntity(em)
         em.persist(esimies)
 
+        val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
+        em.persist(yliopisto)
+
         koejaksonKoulutussopimus =
             KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
         koejaksonKoulutussopimus.kouluttajat =
@@ -846,7 +850,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         koejaksonKoulutussopimus.koulutuspaikat =
             mutableSetOf(
                 KoejaksonVaiheetHelper.createKoulutussopimuksenKoulutuspaikka(
-                    koejaksonKoulutussopimus
+                    koejaksonKoulutussopimus, yliopisto
                 )
             )
         em.persist(koejaksonKoulutussopimus)
@@ -869,7 +873,8 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.persist(koejaksonLoppukeskustelu)
 
         if (createVastuuhenkilonArvio == true) {
-            koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+            koejaksonVastuuhenkilonArvio =
+                createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
             em.persist(koejaksonVastuuhenkilonArvio)
         }
     }
@@ -886,7 +891,7 @@ class VastuuhenkiloKoejaksoResourceIT {
                 opintooikeus = opintooikeus,
                 erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
                 erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi,
+                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
                 erikoistuvanErikoisala = KoejaksonVaiheetHelper.DEFAULT_ERIKOISALA,
                 muokkauspaiva = KoejaksonVaiheetHelper.DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,

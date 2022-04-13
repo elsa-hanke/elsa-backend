@@ -9,10 +9,11 @@ enum class KoejaksoTila {
     ODOTTAA_HYVAKSYNTAA,
     ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA,
     ODOTTAA_ESIMIEHEN_HYVAKSYNTAA,
-    ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA,
     ODOTTAA_TOISEN_KOULUTTAJAN_HYVAKSYNTAA,
+    ODOTTAA_ALLEKIRJOITUKSIA,
     PALAUTETTU_KORJATTAVAKSI,
-    HYVAKSYTTY;
+    HYVAKSYTTY,
+    ALLEKIRJOITETTU;
 
     companion object {
         fun fromSopimus(
@@ -20,11 +21,12 @@ enum class KoejaksoTila {
             kayttajaId: Long? = null
         ): KoejaksoTila {
             return if (koejaksonKoulutussopimusDTO == null) UUSI
-            else if (koejaksonKoulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true) HYVAKSYTTY
+            else if (koejaksonKoulutussopimusDTO.allekirjoitettu == true) ALLEKIRJOITETTU
+            else if (koejaksonKoulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true) ODOTTAA_ALLEKIRJOITUKSIA
             else if (!koejaksonKoulutussopimusDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else if (koejaksonKoulutussopimusDTO.lahetetty == false) TALLENNETTU_KESKENERAISENA
             else if (koejaksonKoulutussopimusDTO.kouluttajat?.all { it.sopimusHyvaksytty == true } == true) {
-                if (koejaksonKoulutussopimusDTO.kouluttajat?.find { it.kayttajaId == kayttajaId } != null) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
+                if (koejaksonKoulutussopimusDTO.kouluttajat?.find { it.kayttajaId == kayttajaId } != null) ODOTTAA_ALLEKIRJOITUKSIA
                 else ODOTTAA_HYVAKSYNTAA
             } else if (koejaksonKoulutussopimusDTO.kouluttajat?.find { it.kayttajaId == kayttajaId }?.sopimusHyvaksytty == true) ODOTTAA_TOISEN_KOULUTTAJAN_HYVAKSYNTAA
             else ODOTTAA_HYVAKSYNTAA

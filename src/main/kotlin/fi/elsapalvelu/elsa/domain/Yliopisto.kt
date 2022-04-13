@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -16,8 +17,9 @@ data class Yliopisto(
     var id: Long? = null,
 
     @get: NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "nimi", nullable = false)
-    var nimi: String? = null,
+    var nimi: YliopistoEnum? = null,
 
     @ManyToMany
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -32,7 +34,10 @@ data class Yliopisto(
     var hakaId: String? = null,
 
     @Column(name = "haka_entity_id", nullable = true)
-    var hakaEntityId: String? = null
+    var hakaEntityId: String? = null,
+
+    @Column(name = "hae_opintotietodata", nullable = true)
+    var haeOpintotietodata: Boolean? = null
 
 ) : Serializable {
 

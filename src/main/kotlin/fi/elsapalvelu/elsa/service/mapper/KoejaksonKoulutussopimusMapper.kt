@@ -10,25 +10,56 @@ import org.mapstruct.ReportingPolicy
 
 @Mapper(
     componentModel = "spring",
-    uses = [KayttajaMapper::class, KoulutussopimuksenKouluttajaMapper::class],
+    uses = [KayttajaMapper::class, KoulutussopimuksenKouluttajaMapper::class, KoulutussopimuksenKoulutuspaikkaMapper::class],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
 interface KoejaksonKoulutussopimusMapper :
     EntityMapper<KoejaksonKoulutussopimusDTO, KoejaksonKoulutussopimus> {
 
     @Mappings(
-        Mapping(source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar", target = "erikoistuvanAvatar"),
-        Mapping(source = "vastuuhenkilonNimi", target = "vastuuhenkilo.nimi"),
-        Mapping(source = "vastuuhenkilonNimike", target = "vastuuhenkilo.nimike"),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar",
+            target = "erikoistuvanAvatar"
+        ),
+        Mapping(
+            target = "erikoistuvanNimi",
+            expression = "java(entity.getOpintooikeus().getErikoistuvaLaakari().getKayttaja().getNimi())"
+        ),
+        Mapping(source = "opintooikeus.opiskelijatunnus", target = "erikoistuvanOpiskelijatunnus"),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.syntymaaika",
+            target = "erikoistuvanSyntymaaika"
+        ),
+        Mapping(source = "opintooikeus.yliopisto.nimi", target = "erikoistuvanYliopisto"),
+        Mapping(source = "opintooikeus.erikoisala.nimi", target = "erikoistuvanErikoisala"),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.email",
+            target = "erikoistuvanSahkoposti"
+        ),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.phoneNumber",
+            target = "erikoistuvanPuhelinnumero"
+        ),
+        Mapping(
+            source = "opintooikeus.opintooikeudenMyontamispaiva",
+            target = "opintooikeudenMyontamispaiva"
+        ),
         Mapping(source = "vastuuhenkiloHyvaksynyt", target = "vastuuhenkilo.sopimusHyvaksytty"),
         Mapping(source = "vastuuhenkilonKuittausaika", target = "vastuuhenkilo.kuittausaika"),
         Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo.id"),
+        Mapping(source = "vastuuhenkilo.nimike", target = "vastuuhenkilo.nimike"),
+        Mapping(
+            source = "vastuuhenkilo.user.email",
+            target = "vastuuhenkilo.sahkoposti"
+        ),
+        Mapping(
+            source = "vastuuhenkilo.user.phoneNumber",
+            target = "vastuuhenkilo.puhelin"
+        )
     )
     override fun toDto(entity: KoejaksonKoulutussopimus): KoejaksonKoulutussopimusDTO
 
     @Mappings(
-        Mapping(source = "vastuuhenkilo.nimi", target = "vastuuhenkilonNimi"),
-        Mapping(source = "vastuuhenkilo.nimike", target = "vastuuhenkilonNimike"),
         Mapping(source = "vastuuhenkilo.sopimusHyvaksytty", target = "vastuuhenkiloHyvaksynyt"),
         Mapping(source = "vastuuhenkilo.kuittausaika", target = "vastuuhenkilonKuittausaika"),
         Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo")

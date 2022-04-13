@@ -1,7 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.web.rest.findAll
+import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils
 import java.time.LocalDate
 import javax.persistence.EntityManager
 
@@ -15,7 +18,7 @@ class ErikoistuvaLaakariHelper {
         private const val DEFAULT_OPISKELIJATUNNUS = "AAAAAAAAAA"
         private const val UPDATED_OPISKELIJATUNNUS = "BBBBBBBBBB"
 
-        const val DEFAULT_YLIOPISTO = "TAYS"
+        val DEFAULT_YLIOPISTO = YliopistoEnum.TAMPEREEN_YLIOPISTO
 
         private val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
         private val DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
@@ -29,7 +32,10 @@ class ErikoistuvaLaakariHelper {
             user: User? = null,
             opintooikeudenAlkamispaiva: LocalDate? = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
             opintooikeudenPaattymispaiva: LocalDate? = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
-            erikoisala: Erikoisala? = null
+            erikoisala: Erikoisala? = null,
+            opintoopas: Opintoopas? = null,
+            yliopisto: Yliopisto? = null,
+            yliopistoOpintooikeusId: String? = RandomStringUtils.randomAlphabetic(8),
         ): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari()
 
@@ -40,16 +46,19 @@ class ErikoistuvaLaakariHelper {
                 em.flush()
             }
 
+            erikoistuvaLaakari.syntymaaika = LocalDate.ofEpochDay(5L)
             erikoistuvaLaakari.kayttaja = kayttaja
             em.persist(erikoistuvaLaakari)
 
-            val yliopisto: Yliopisto
-            if (em.findAll(Yliopisto::class).isEmpty()) {
-                yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
-                em.persist(yliopisto)
-                em.flush()
-            } else {
-                yliopisto = em.findAll(Yliopisto::class).get(0)
+            var erikoistuvanYliopisto = yliopisto
+            if (erikoistuvanYliopisto == null) {
+                if (em.findAll(Yliopisto::class).isEmpty()) {
+                    erikoistuvanYliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
+                    em.persist(erikoistuvanYliopisto)
+                    em.flush()
+                } else {
+                    erikoistuvanYliopisto = em.findAll(Yliopisto::class).get(0)
+                }
             }
 
             var erikoistuvanErikoisala = erikoisala
@@ -63,15 +72,17 @@ class ErikoistuvaLaakariHelper {
                 }
             }
 
-            val opintoopas: Opintoopas
-            if (em.findAll(Opintoopas::class).isEmpty()) {
-                opintoopas = OpintoopasHelper.createEntity(em)
-                em.persist(opintoopas)
-                em.flush()
-            } else {
-                opintoopas = em.findAll(Opintoopas::class).get(0)
+            var opintoopasKaytossa = opintoopas
+            if (opintoopasKaytossa == null) {
+                if (em.findAll(Opintoopas::class).isEmpty()) {
+                    opintoopasKaytossa = OpintoopasHelper.createEntity(em, erikoisala = erikoistuvanErikoisala)
+                    em.persist(opintoopasKaytossa)
+                    em.flush()
+                } else {
+                    opintoopasKaytossa = em.findAll(Opintoopas::class).get(0)
+                    opintoopasKaytossa.erikoisala = erikoistuvanErikoisala
+                }
             }
-            opintoopas.erikoisala = erikoistuvanErikoisala
 
             val asetus: Asetus
             if (em.findAll(Asetus::class).isEmpty()) {
@@ -83,16 +94,18 @@ class ErikoistuvaLaakariHelper {
             }
 
             val opintooikeus = Opintooikeus(
+                yliopistoOpintooikeusId = yliopistoOpintooikeusId,
                 opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
                 opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
                 osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA,
                 erikoistuvaLaakari = erikoistuvaLaakari,
-                yliopisto = yliopisto,
+                yliopisto = erikoistuvanYliopisto,
                 erikoisala = erikoistuvanErikoisala,
-                opintoopas = opintoopas,
+                opintoopas = opintoopasKaytossa,
                 asetus = asetus,
-                kaytossa = true
+                kaytossa = true,
+                tila = OpintooikeudenTila.AKTIIVINEN
             )
             em.persist(opintooikeus)
             em.flush()
