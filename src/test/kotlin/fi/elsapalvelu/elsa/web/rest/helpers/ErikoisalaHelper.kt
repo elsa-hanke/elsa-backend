@@ -16,25 +16,27 @@ class ErikoisalaHelper {
         private val UPDATED_TYYPPI: ErikoisalaTyyppi = ErikoisalaTyyppi.HAMMASLAAKETIEDE
 
         @JvmStatic
-        fun createEntity(virtaPatevyyskoodi: String? = null): Erikoisala {
-            val erikoisala = Erikoisala(
-                nimi = DEFAULT_NIMI,
+        fun createEntity(
+            nimi: String = DEFAULT_NIMI,
+            virtaPatevyyskoodi: String? = DEFAULT_VIRTAPATEVYYSKOODI
+        ): Erikoisala {
+            return Erikoisala(
+                nimi = nimi,
                 tyyppi = DEFAULT_TYYPPI,
-                virtaPatevyyskoodi = virtaPatevyyskoodi ?: DEFAULT_VIRTAPATEVYYSKOODI
+                virtaPatevyyskoodi = virtaPatevyyskoodi
             )
-
-            return erikoisala
         }
 
         @JvmStatic
-        fun createUpdatedEntity(virtaPatevyyskoodi: String? = null): Erikoisala {
-            val erikoisala = Erikoisala(
-                nimi = UPDATED_NIMI,
+        fun createUpdatedEntity(
+            nimi: String = UPDATED_NIMI,
+            virtaPatevyyskoodi: String? = UPDATED_VIRTAPATEVYYSKOODI
+        ): Erikoisala {
+            return Erikoisala(
+                nimi = nimi,
                 tyyppi = UPDATED_TYYPPI,
-                virtaPatevyyskoodi = virtaPatevyyskoodi ?: UPDATED_VIRTAPATEVYYSKOODI
+                virtaPatevyyskoodi = virtaPatevyyskoodi
             )
-
-            return erikoisala
         }
     }
 }

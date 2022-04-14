@@ -47,11 +47,11 @@ class SisuTutkintoohjelmaImportServiceIT {
 
     @BeforeEach
     fun setupForEach() {
-        erikoisala1 = ErikoisalaHelper.createEntity(virtaPatevyyskoodi1)
+        erikoisala1 = ErikoisalaHelper.createEntity(virtaPatevyyskoodi = virtaPatevyyskoodi1)
         em.persist(erikoisala1)
-        erikoisala2 = ErikoisalaHelper.createEntity(virtaPatevyyskoodi2)
+        erikoisala2 = ErikoisalaHelper.createEntity(virtaPatevyyskoodi = virtaPatevyyskoodi2)
         em.persist(erikoisala2)
-        erikoisala3 = ErikoisalaHelper.createEntity(virtaPatevyyskoodi3)
+        erikoisala3 = ErikoisalaHelper.createEntity(virtaPatevyyskoodi = virtaPatevyyskoodi3)
         em.persist(erikoisala3)
     }
 

@@ -31,14 +31,16 @@ class TeoriakoulutusHelper {
         fun createEntity(
             em: EntityManager,
             user: User? = null,
-            alkamispaiva: LocalDate = DEFAULT_ALKAMISPAIVA
+            alkamispaiva: LocalDate = DEFAULT_ALKAMISPAIVA,
+            paattymispaiva: LocalDate = DEFAULT_PAATTYMISPAIVA,
+            erikoistumiseenHyvaksyttavaTuntimaara: Double? = DEFAULT_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA
         ): Teoriakoulutus {
             val teoriakoulutus = Teoriakoulutus(
                 koulutuksenNimi = DEFAULT_KOULUTUKSEN_NIMI,
                 koulutuksenPaikka = DEFAULT_KOULUTUKSEN_PAIKKA,
                 alkamispaiva = alkamispaiva,
-                paattymispaiva = DEFAULT_PAATTYMISPAIVA,
-                erikoistumiseenHyvaksyttavaTuntimaara = DEFAULT_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA
+                paattymispaiva = paattymispaiva,
+                erikoistumiseenHyvaksyttavaTuntimaara = erikoistumiseenHyvaksyttavaTuntimaara
             )
 
             // Lisätään pakollinen tieto

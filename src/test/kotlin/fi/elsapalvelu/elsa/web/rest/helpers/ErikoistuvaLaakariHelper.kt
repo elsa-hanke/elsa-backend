@@ -35,6 +35,7 @@ class ErikoistuvaLaakariHelper {
             erikoisala: Erikoisala? = null,
             opintoopas: Opintoopas? = null,
             yliopisto: Yliopisto? = null,
+            asetus: Asetus? = null,
             yliopistoOpintooikeusId: String? = RandomStringUtils.randomAlphabetic(8),
         ): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari()
@@ -84,13 +85,15 @@ class ErikoistuvaLaakariHelper {
                 }
             }
 
-            val asetus: Asetus
-            if (em.findAll(Asetus::class).isEmpty()) {
-                asetus = Asetus(nimi = DEFAULT_ASETUS)
-                em.persist(asetus)
-                em.flush()
-            } else {
-                asetus = em.findAll(Asetus::class).get(0)
+            var asetusKaytossa = asetus
+            if (asetusKaytossa == null) {
+                if (em.findAll(Asetus::class).isEmpty()) {
+                    asetusKaytossa = Asetus(nimi = DEFAULT_ASETUS)
+                    em.persist(asetusKaytossa)
+                    em.flush()
+                } else {
+                    asetusKaytossa = em.findAll(Asetus::class).get(0)
+                }
             }
 
             val opintooikeus = Opintooikeus(
@@ -103,7 +106,7 @@ class ErikoistuvaLaakariHelper {
                 yliopisto = erikoistuvanYliopisto,
                 erikoisala = erikoistuvanErikoisala,
                 opintoopas = opintoopasKaytossa,
-                asetus = asetus,
+                asetus = asetusKaytossa,
                 kaytossa = true,
                 tila = OpintooikeudenTila.AKTIIVINEN
             )
