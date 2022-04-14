@@ -2,12 +2,16 @@ package fi.elsapalvelu.elsa.service.impl
 
 import com.itextpdf.html2pdf.HtmlConverter
 import com.itextpdf.kernel.pdf.PdfWriter
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.service.SarakesignService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
+import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
+import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
@@ -15,7 +19,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
 import org.thymeleaf.spring5.SpringTemplateEngine
-import java.io.*
+import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -35,7 +39,9 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val userRepository: UserRepository,
     private val templateEngine: SpringTemplateEngine,
-    private val asiakirjaRepository: AsiakirjaRepository
+    private val asiakirjaRepository: AsiakirjaRepository,
+    private val sarakesignService: SarakesignService,
+    private val applicationProperties: ApplicationProperties
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -57,10 +63,11 @@ class KoejaksonKoulutussopimusServiceImpl(
                 LocalDate.now()
             koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
-            val user = it.erikoistuvaLaakari?.kayttaja?.user
-            user?.email = koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti
-            user?.phoneNumber = koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
-            userRepository.save(user)
+            it.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
+                user.email = koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti
+                user.phoneNumber = koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
+                userRepository.save(user)
+            }
 
             // Sähköposti kouluttajille allekirjoitetusta sopimuksesta
             if (koulutussopimus.lahetetty) {
@@ -97,23 +104,24 @@ class KoejaksonKoulutussopimusServiceImpl(
         ) {
             koulutussopimus = handleErikoistuva(koulutussopimus, updatedKoulutussopimus)
 
-            val user = koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user
-            user?.email = koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti
-            user?.phoneNumber = koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
-            userRepository.save(user)
+            koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
+                user.email = koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti
+                user.phoneNumber = koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
+                userRepository.save(user)
+            }
         }
 
         koulutussopimus.kouluttajat?.toTypedArray()?.forEach {
             if (it.kouluttaja?.user?.id == userId) {
                 koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
 
-                val kayttaja = it.kouluttaja
-                val user = it.kouluttaja?.user
+                val kayttaja = it.kouluttaja!!
+                val user = it.kouluttaja?.user!!
                 val kouluttaja =
                     koejaksonKoulutussopimusDTO.kouluttajat?.first { it.kayttajaUserId == userId }
-                user?.phoneNumber = kouluttaja?.puhelin
-                user?.email = kouluttaja?.sahkoposti
-                kayttaja?.nimike = kouluttaja?.nimike
+                user.phoneNumber = kouluttaja?.puhelin
+                user.email = kouluttaja?.sahkoposti
+                kayttaja.nimike = kouluttaja?.nimike
                 userRepository.save(user)
                 kayttajaRepository.save(kayttaja)
             }
@@ -122,17 +130,18 @@ class KoejaksonKoulutussopimusServiceImpl(
         if (koulutussopimus.vastuuhenkilo?.user?.id == userId) {
             koulutussopimus = handleVastuuhenkilo(koulutussopimus, updatedKoulutussopimus)
 
-            val user = koulutussopimus.vastuuhenkilo?.user
-            user?.phoneNumber = koejaksonKoulutussopimusDTO.vastuuhenkilo?.puhelin
-            user?.email = koejaksonKoulutussopimusDTO.vastuuhenkilo?.sahkoposti
-            userRepository.save(user)
+            koulutussopimus.vastuuhenkilo?.user?.let {
+                it.phoneNumber = koejaksonKoulutussopimusDTO.vastuuhenkilo?.puhelin
+                it.email = koejaksonKoulutussopimusDTO.vastuuhenkilo?.sahkoposti
+                userRepository.save(it)
+            }
         }
 
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
         val dto = koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
         if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
-            luoPdf(dto, koulutussopimus.opintooikeus!!)
+            luoPdf(dto, koulutussopimus)
         }
 
         return dto
@@ -337,8 +346,10 @@ class KoejaksonKoulutussopimusServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonKoulutussopimusDTO> {
-        return koejaksonKoulutussopimusRepository.findByOpintooikeusId(opintooikeusId)
-            .map(koejaksonKoulutussopimusMapper::toDto)
+        val koulutussopimus =
+            koejaksonKoulutussopimusRepository.findByOpintooikeusId(opintooikeusId)
+        koulutussopimus.ifPresent { tarkistaAllekirjoitus(it) }
+        return koulutussopimus.map(koejaksonKoulutussopimusMapper::toDto)
     }
 
     @Transactional(readOnly = true)
@@ -350,17 +361,19 @@ class KoejaksonKoulutussopimusServiceImpl(
             koejaksonKoulutussopimusRepository.findOneByIdAndKouluttajatKouluttajaUserId(
                 id,
                 userId
-            ).map(koejaksonKoulutussopimusMapper::toDto)
+            )
+        koulutussopimus.ifPresent { tarkistaAllekirjoitus(it) }
 
+        val koulutussopimusDTO = koulutussopimus.map(koejaksonKoulutussopimusMapper::toDto)
         val currentKayttaja = kayttajaRepository.findOneByUserId(userId).get()
-        val currentKoulutussopimuksenKouluttaja = if (koulutussopimus.isPresent)
-            koulutussopimus.get().kouluttajat?.find {
+        val currentKoulutussopimuksenKouluttaja = if (koulutussopimusDTO.isPresent)
+            koulutussopimusDTO.get().kouluttajat?.find {
                 it.kayttajaId == currentKayttaja.id
             } else null
         if (currentKoulutussopimuksenKouluttaja?.sahkoposti.isNullOrEmpty()) {
             currentKoulutussopimuksenKouluttaja?.sahkoposti = currentKayttaja.user?.email
         }
-        return koulutussopimus
+        return koulutussopimusDTO
     }
 
     @Transactional(readOnly = true)
@@ -368,32 +381,116 @@ class KoejaksonKoulutussopimusServiceImpl(
         id: Long,
         userId: String
     ): Optional<KoejaksonKoulutussopimusDTO> {
-        return koejaksonKoulutussopimusRepository.findOneByIdAndVastuuhenkiloUserId(
+        val koulutussopimus = koejaksonKoulutussopimusRepository.findOneByIdAndVastuuhenkiloUserId(
             id,
             userId
-        ).map(koejaksonKoulutussopimusMapper::toDto)
+        )
+        koulutussopimus.ifPresent { tarkistaAllekirjoitus(it) }
+        return koulutussopimus.map(koejaksonKoulutussopimusMapper::toDto)
     }
 
     override fun delete(id: Long) {
         koejaksonKoulutussopimusRepository.deleteById(id)
     }
 
-    private fun luoPdf(koulutussopimus: KoejaksonKoulutussopimusDTO, opintooikeus: Opintooikeus) {
+    override fun tarkistaAllekirjoitus(koejaksonKoulutussopimus: KoejaksonKoulutussopimus) {
+        val yliopisto = koejaksonKoulutussopimus.opintooikeus?.yliopisto?.nimi!!
+        if (koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt
+            && !koejaksonKoulutussopimus.allekirjoitettu
+            && !sarakesignService.getApiUrl(yliopisto).isNullOrBlank()
+        ) {
+            val status =
+                sarakesignService.tarkistaAllekirjoitus(
+                    koejaksonKoulutussopimus.sarakeSignRequestId,
+                    yliopisto
+                )
+
+            if (status == 3) { // Completed
+                koejaksonKoulutussopimus.allekirjoitettu = true
+            } else if (status == 4) { // Aborted
+                koejaksonKoulutussopimus.korjausehdotus = "Allekirjoitus keskeytetty"
+                koejaksonKoulutussopimus.lahetetty = false
+                koejaksonKoulutussopimus.erikoistuvanAllekirjoitusaika = null
+                koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt = false
+                koejaksonKoulutussopimus.vastuuhenkilonKuittausaika = null
+
+                koejaksonKoulutussopimus.kouluttajat?.forEach {
+                    it.sopimusHyvaksytty = false
+                    it.kuittausaika = null
+                }
+            }
+            koejaksonKoulutussopimusRepository.save(koejaksonKoulutussopimus)
+        }
+    }
+
+    private fun luoPdf(
+        koulutussopimusDTO: KoejaksonKoulutussopimusDTO,
+        koulutussopimus: KoejaksonKoulutussopimus
+    ) {
         val locale = Locale.forLanguageTag("fi")
         val context = Context(locale).apply {
-            setVariable("sopimus", koulutussopimus)
+            setVariable("sopimus", koulutussopimusDTO)
         }
         val content = templateEngine.process("pdf/koulutussopimus.html", context)
         val outputStream = ByteArrayOutputStream()
         val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
         HtmlConverter.convertToPdf(content, PdfWriter(outputStream))
-        asiakirjaRepository.save(
+        val asiakirja = asiakirjaRepository.save(
             Asiakirja(
-                opintooikeus = opintooikeus,
+                opintooikeus = koulutussopimus.opintooikeus,
                 nimi = "koejakson_koulutussopimus_${timestamp}.pdf",
                 tyyppi = "application/pdf",
                 lisattypvm = LocalDateTime.now(),
                 asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
+            )
+        )
+
+        if (!sarakesignService.getApiUrl(koulutussopimus.opintooikeus?.yliopisto?.nimi!!)
+                .isNullOrBlank()
+        ) {
+            lahetaAllekirjoitettavaksi(koulutussopimus, asiakirja)
+        }
+
+    }
+
+    private fun lahetaAllekirjoitettavaksi(
+        koulutussopimus: KoejaksonKoulutussopimus,
+        asiakirja: Asiakirja
+    ) {
+        val recipients: MutableList<SarakeSignRecipientDTO> = mutableListOf()
+        koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let {
+            recipients.add(
+                lisaaVastaanottaja(
+                    it
+                )
+            )
+        }
+        koulutussopimus.kouluttajat?.forEach {
+            it.kouluttaja?.user?.let { user ->
+                recipients.add(
+                    lisaaVastaanottaja(user)
+                )
+            }
+        }
+        koulutussopimus.vastuuhenkilo?.user?.let { recipients.add(lisaaVastaanottaja(it)) }
+
+        koulutussopimus.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
+            "Koejakson koulutussopimus",
+            recipients,
+            asiakirja.id!!,
+            koulutussopimus.opintooikeus?.yliopisto?.nimi!!
+        )
+        koejaksonKoulutussopimusRepository.save(koulutussopimus)
+    }
+
+    private fun lisaaVastaanottaja(user: User): SarakeSignRecipientDTO {
+        return SarakeSignRecipientDTO(
+            phaseNumber = 0,
+            recipient = user.email,
+            fields = SarakeSignRecipientFieldsDTO(
+                firstName = user.firstName,
+                lastName = user.lastName,
+                phoneNumber = user.phoneNumber
             )
         )
     }

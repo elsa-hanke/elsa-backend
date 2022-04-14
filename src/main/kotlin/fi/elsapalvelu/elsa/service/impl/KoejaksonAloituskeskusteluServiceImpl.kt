@@ -40,9 +40,10 @@ class KoejaksonAloituskeskusteluServiceImpl(
                 LocalDate.now()
             aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
 
-            val user = it.erikoistuvaLaakari?.kayttaja?.user
-            user?.email = koejaksonAloituskeskusteluDTO.erikoistuvanSahkoposti
-            userRepository.save(user)
+            it.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
+                user.email = koejaksonAloituskeskusteluDTO.erikoistuvanSahkoposti
+                userRepository.save(user)
+            }
 
             if (aloituskeskustelu.lahetetty) {
                 // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
@@ -78,9 +79,10 @@ class KoejaksonAloituskeskusteluServiceImpl(
         ) {
             aloituskeskustelu = handleErikoistuva(aloituskeskustelu, updatedAloituskeskustelu)
 
-            val user = aloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user
-            user?.email = koejaksonAloituskeskusteluDTO.erikoistuvanSahkoposti
-            userRepository.save(user)
+            aloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let {
+                it.email = koejaksonAloituskeskusteluDTO.erikoistuvanSahkoposti
+                userRepository.save(it)
+            }
         }
 
         if (aloituskeskustelu.lahikouluttaja?.user?.id == userId && !aloituskeskustelu.lahiesimiesHyvaksynyt) {

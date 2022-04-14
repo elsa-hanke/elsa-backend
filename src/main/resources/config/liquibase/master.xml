@@ -197,5 +197,6 @@
     <include file="config/liquibase/changelog/20220411134233_modify_data_jhi_authority.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220411170612_add_join_table_kayttaja_yliopisto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220421150322_modify_entity_Teoriakoulutus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220414150148_modify_entity_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

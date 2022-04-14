@@ -212,3 +212,24 @@ application:
       certificate-location: classpath:sisu/hy-sisu.crt
   feedback:
     to: matti.hiitola@oulu.fi
+  sarakesign:
+    oulu:
+      api-key:
+      api-url:
+      request-template-id:
+    hki:
+      api-key:
+      api-url:
+      request-template-id:
+    tre:
+      api-key:
+      api-url:
+      request-template-id:
+    turku:
+      api-key:
+      api-url:
+      request-template-id:
+    uef:
+      api-key:
+      api-url:
+      request-template-id:

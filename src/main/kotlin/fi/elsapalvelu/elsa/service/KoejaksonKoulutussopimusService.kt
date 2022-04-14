@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.domain.KoejaksonKoulutussopimus
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import java.util.*
 
@@ -32,4 +33,6 @@ interface KoejaksonKoulutussopimusService {
     ): Optional<KoejaksonKoulutussopimusDTO>
 
     fun delete(id: Long)
+
+    fun tarkistaAllekirjoitus(koejaksonKoulutussopimus: KoejaksonKoulutussopimus)
 }

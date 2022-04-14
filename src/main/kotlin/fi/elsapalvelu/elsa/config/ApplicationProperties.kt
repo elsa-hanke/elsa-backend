@@ -13,6 +13,7 @@ class ApplicationProperties {
     private val csrf = Csrf()
     private val security = Security()
     private val feedback = Feedback()
+    private val sarakesign = Sarakesign()
 
     fun getCsrf(): Csrf {
         return csrf
@@ -24,6 +25,10 @@ class ApplicationProperties {
 
     fun getFeedback(): Feedback {
         return feedback
+    }
+
+    fun getSarakesign(): Sarakesign {
+        return sarakesign
     }
 
     class Csrf {
@@ -62,7 +67,6 @@ class ApplicationProperties {
             var samlCertificateLocation: String? = null
             var samlSuomifiMetadataLocation: String? = null
             var samlSuomifiEntityId: String? = null
-            var samlSuomifiSloUrl: String? = null
         }
 
         class Haka {
@@ -83,5 +87,64 @@ class ApplicationProperties {
 
     class Feedback {
         var to: String? = null
+    }
+
+    class Sarakesign {
+
+        private val oulu = Oulu()
+        private val hki = Hki()
+        private val tre = Tre()
+        private val turku = Turku()
+        private val uef = Uef()
+
+        fun getOulu(): Oulu {
+            return oulu
+        }
+
+        fun getHki(): Hki {
+            return hki
+        }
+
+        fun getTre(): Tre {
+            return tre
+        }
+
+        fun getTurku(): Turku {
+            return turku
+        }
+
+        fun getUef(): Uef {
+            return uef
+        }
+
+        class Oulu {
+            var apiKey: String? = null
+            var apiUrl: String? = null
+            var requestTemplateId: String? = null
+        }
+
+        class Hki {
+            var apiKey: String? = null
+            var apiUrl: String? = null
+            var requestTemplateId: String? = null
+        }
+
+        class Tre {
+            var apiKey: String? = null
+            var apiUrl: String? = null
+            var requestTemplateId: String? = null
+        }
+
+        class Turku {
+            var apiKey: String? = null
+            var apiUrl: String? = null
+            var requestTemplateId: String? = null
+        }
+
+        class Uef {
+            var apiKey: String? = null
+            var apiUrl: String? = null
+            var requestTemplateId: String? = null
+        }
     }
 }

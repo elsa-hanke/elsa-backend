@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220414150148" author="jhipster">
+        <addColumn tableName="koejakson_koulutussopimus">
+            <column name="sarakesign_request_id" type="text"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_koulutussopimus_audit">
+            <column name="sarakesign_request_id" type="text"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_koulutussopimus">
+            <column name="allekirjoitettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="koejakson_koulutussopimus_audit">
+            <column name="allekirjoitettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+    </changeSet>
+
+</databaseChangeLog>
