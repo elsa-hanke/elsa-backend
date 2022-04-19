@@ -5,16 +5,15 @@ import fi.elsapalvelu.elsa.domain.Asiakirja
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
-import junit.framework.TestCase.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.hibernate.engine.jdbc.BlobProxy
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
@@ -53,9 +52,6 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
     @Autowired
     private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 
-    @Autowired
-    private lateinit var opintooikeusRepository: OpintooikeusRepository
-
     private lateinit var asiakirja: Asiakirja
 
     private lateinit var tempFile1: File
@@ -93,7 +89,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         val testAsiakirja = asiakirjaList[asiakirjaList.size - 1]
         assertThat(testAsiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(testAsiakirja.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
-        assertThat(testAsiakirja.asiakirjaData?.data?.binaryStream?.readBytes()).isEqualTo(
+        assertThat(testAsiakirja.asiakirjaData?.data?.binaryStream?.use { it.readBytes() }).isEqualTo(
             AsiakirjaHelper.ASIAKIRJA_PDF_DATA
         )
         assertThat(testAsiakirja.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
@@ -119,7 +115,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         val testAsiakirja = asiakirjaList[asiakirjaList.size - 2]
         assertThat(testAsiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(testAsiakirja.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
-        assertThat(testAsiakirja.asiakirjaData?.data?.binaryStream?.readBytes()).isEqualTo(
+        assertThat(testAsiakirja.asiakirjaData?.data?.binaryStream?.use { it.readBytes() }).isEqualTo(
             AsiakirjaHelper.ASIAKIRJA_PDF_DATA
         )
         assertThat(testAsiakirja.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
@@ -127,7 +123,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         val testAsiakirja2 = asiakirjaList[asiakirjaList.size - 1]
         assertThat(testAsiakirja2.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI)
         assertThat(testAsiakirja2.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI)
-        assertThat(testAsiakirja2.asiakirjaData?.data?.binaryStream?.readBytes()).isEqualTo(
+        assertThat(testAsiakirja2.asiakirjaData?.data?.binaryStream?.use { it.readBytes() }).isEqualTo(
             AsiakirjaHelper.ASIAKIRJA_PNG_DATA
         )
         assertThat(testAsiakirja2.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
@@ -286,7 +282,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         asiakirjaRepository.saveAndFlush(asiakirja)
 
         val id = asiakirja.id
-        assertNotNull(id)
+        Assertions.assertNotNull(id)
 
         restAsiakirjaMockMvc.perform(get("/api/erikoistuva-laakari/asiakirjat/{id}", id))
             .andExpect(status().isOk)

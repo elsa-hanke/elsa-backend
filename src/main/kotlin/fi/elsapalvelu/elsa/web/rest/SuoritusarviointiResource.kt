@@ -2,7 +2,10 @@ package fi.elsapalvelu.elsa.web.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
-import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.FileValidationService
+import fi.elsapalvelu.elsa.service.SuoritusarviointiQueryService
+import fi.elsapalvelu.elsa.service.SuoritusarviointiService
+import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -28,8 +31,7 @@ open class SuoritusarviointiResource(
     private val suoritusarviointiQueryService: SuoritusarviointiQueryService,
     private val userService: UserService,
     private val objectMapper: ObjectMapper,
-    private val fileValidationService: FileValidationService,
-    private val opintooikeusService: OpintooikeusService
+    private val fileValidationService: FileValidationService
 ) {
 
     @GetMapping("/suoritusarvioinnit")
@@ -67,14 +69,14 @@ open class SuoritusarviointiResource(
         val asiakirja = suoritusarviointiService
             .findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(id, user.id!!)
 
-        if (asiakirja != null) {
+        asiakirja?.asiakirjaData?.fileInputStream?.use {
             return ResponseEntity.ok()
                 .header(
                     HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
                 )
                 .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
-                .body(asiakirja.asiakirjaData?.fileInputStream?.readBytes())
+                .body(it.readBytes())
         }
         return ResponseEntity.notFound().build()
     }

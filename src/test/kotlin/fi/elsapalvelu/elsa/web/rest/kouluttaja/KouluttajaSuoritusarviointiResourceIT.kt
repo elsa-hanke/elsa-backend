@@ -118,7 +118,7 @@ class KouluttajaSuoritusarviointiResourceIT {
         assertThat(testSuoritusarviointi.arviointiLiiteNimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(testSuoritusarviointi.arviointiLiiteTyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
         val asiakirjaData = testSuoritusarviointi.asiakirjaData
-        assertThat(asiakirjaData?.data?.binaryStream?.readBytes()).isEqualTo(
+        assertThat(asiakirjaData?.data?.binaryStream?.use { it.readBytes() }).isEqualTo(
             AsiakirjaHelper.ASIAKIRJA_PDF_DATA
         )
     }
@@ -193,8 +193,6 @@ class KouluttajaSuoritusarviointiResourceIT {
     companion object {
 
         private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
-        private const val DEFAULT_LOGIN = "johndoe"
-        private const val DEFAULT_EMAIL = "john.doe@example.com"
 
         private val DEFAULT_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.now(ZoneId.systemDefault())
