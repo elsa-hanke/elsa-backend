@@ -2,13 +2,19 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.Opintooikeus
+import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.service.ErikoistujienSeurantaQueryService
 import fi.elsapalvelu.elsa.service.EtusivuService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
+import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistujanEteneminenDTO
+import fi.elsapalvelu.elsa.service.dto.ErikoistujanEteneminenVirkailijaDTO
 import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaDTO
 import fi.elsapalvelu.elsa.service.dto.KayttajaErikoisalatPerYliopistoDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -26,7 +32,10 @@ class EtusivuServiceImpl(
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
     private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
     private val arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository,
-    private val suoritteenKategoriaRepository: SuoritteenKategoriaRepository
+    private val suoritteenKategoriaRepository: SuoritteenKategoriaRepository,
+    private val erikoistujienSeurantaQueryService: ErikoistujienSeurantaQueryService,
+    private val teoriakoulutusRepository: TeoriakoulutusRepository,
+    private val opintosuoritusRepository: OpintosuoritusRepository
 ) : EtusivuService {
 
     override fun getErikoistujienSeurantaForVastuuhenkilo(userId: String): ErikoistujienSeurantaDTO {
@@ -86,6 +95,59 @@ class EtusivuServiceImpl(
         }
 
         return seurantaDTO
+    }
+
+    override fun getErikoistujienSeurantaForVirkailija(
+        userId: String,
+        criteria: ErikoistujanEteneminenCriteria,
+        pageable: Pageable
+    ): Page<ErikoistujanEteneminenVirkailijaDTO>? {
+        kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
+            // Opintohallinnon virkailija toimii vain yhden yliopiston alla.
+            k.yliopistot.firstOrNull()?.let {
+                return erikoistujienSeurantaQueryService.findByCriteriaAndYliopistoId(
+                    criteria,
+                    pageable,
+                    it.id!!,
+                    k.user?.langKey
+                ).map { opintooikeus ->
+                    val teoriakoulutukset = teoriakoulutusRepository.findAllByOpintooikeusId(opintooikeus.id!!)
+                    val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!)
+                    ErikoistujanEteneminenVirkailijaDTO(
+                        opintooikeus.erikoistuvaLaakari?.id,
+                        opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName,
+                        opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.lastName,
+                        opintooikeus.erikoistuvaLaakari?.syntymaaika,
+                        opintooikeus.erikoisala?.nimi,
+                        opintooikeus.asetus?.nimi,
+                        getKoejaksoTila(opintooikeus),
+                        opintooikeus.opintooikeudenMyontamispaiva,
+                        opintooikeus.opintooikeudenPaattymispaiva,
+                        tyoskentelyjaksoService.getTilastot(opintooikeus),
+                        teoriakoulutukset.sumOf { t ->
+                            t.erikoistumiseenHyvaksyttavaTuntimaara ?: 0.0
+                        },
+                        opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara,
+                        opintosuoritukset.asSequence()
+                            .filter { opintosuoritus -> opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.JOHTAMISOPINTO }
+                            .sumOf { johtamisopinto ->
+                                johtamisopinto.opintopisteet ?: 0.0
+                            },
+                        opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
+                        opintosuoritukset.asSequence()
+                            .filter { opintosuoritus -> opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS }
+                            .sumOf { sateilysuojakoulutus ->
+                                sateilysuojakoulutus.opintopisteet ?: 0.0
+                            },
+                        opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara,
+                        opintosuoritukset.count { opintosuoritus ->
+                            opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU && opintosuoritus.hyvaksytty
+                        }
+                    )
+                }
+            }
+        }
+        return null
     }
 
     private fun getErikoistujanEteneminen(opintooikeus: Opintooikeus): ErikoistujanEteneminenDTO {
@@ -152,7 +214,14 @@ class EtusivuServiceImpl(
                     .sumOf { suorite -> suorite.vaadittulkm!! }
             }
 
-        // Koejakso
+        eteneminen.koejaksoTila = getKoejaksoTila(opintooikeus)
+
+        return eteneminen
+    }
+
+    private fun getKoejaksoTila(
+        opintooikeus: Opintooikeus
+    ): KoejaksoTila {
         val koulutussopimus =
             koejaksonKoulutussopimusRepository.findByOpintooikeusId(opintooikeus.id!!)
         val vastuuhenkilonArvio =
@@ -160,19 +229,17 @@ class EtusivuServiceImpl(
         val aloituskeskustelu =
             koejaksonAloituskeskusteluRepository.findByOpintooikeusId(opintooikeus.id!!)
 
-        if (vastuuhenkilonArvio.isPresent && vastuuhenkilonArvio.get().koejaksoHyvaksytty == true) {
-            eteneminen.koejaksoTila = KoejaksoTila.HYVAKSYTTY
+        return if (vastuuhenkilonArvio.isPresent && vastuuhenkilonArvio.get().koejaksoHyvaksytty == true) {
+            KoejaksoTila.HYVAKSYTTY
         } else if ((koulutussopimus.isPresent && koulutussopimus.get().koejaksonAlkamispaiva?.isAfter(
                 LocalDate.now()
             ) != true) || (aloituskeskustelu.isPresent && aloituskeskustelu.get().koejaksonAlkamispaiva?.isAfter(
                 LocalDate.now()
             ) != true)
         ) {
-            eteneminen.koejaksoTila = KoejaksoTila.ODOTTAA_HYVAKSYNTAA
+            KoejaksoTila.ODOTTAA_HYVAKSYNTAA
         } else {
-            eteneminen.koejaksoTila = KoejaksoTila.EI_AKTIIVINEN
+            KoejaksoTila.EI_AKTIIVINEN
         }
-
-        return eteneminen
     }
 }
