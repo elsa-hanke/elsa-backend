@@ -40,8 +40,9 @@ class SisuHyClientBuilderImpl(
                 resourceLoader.getResource(
                     applicationProperties.getSecurity().getSisuHy().certificateLocation!!
                 )
+            val bytes = publicKeyResource.inputStream.use { it.readBytes() }
             val certificate: X509Certificate =
-                X509Support.decodeCertificate(publicKeyResource.inputStream.readBytes())!!
+                X509Support.decodeCertificate(bytes)!!
             val privateKeyResource: Resource =
                 resourceLoader.getResource(
                     applicationProperties.getSecurity().getSisuHy().privateKeyLocation!!
