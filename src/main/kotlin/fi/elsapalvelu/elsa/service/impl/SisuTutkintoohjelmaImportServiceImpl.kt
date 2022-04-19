@@ -12,7 +12,7 @@ class SisuTutkintoohjelmaImportServiceImpl(
     private val erikoisalaRepository: ErikoisalaRepository
 ) : SisuTutkintoohjelmaImportService {
     override fun import(qualifications: Qualifications) {
-        qualifications.entities
+        qualifications.entities?.asSequence()
             ?.filter { it.code != null && it.code.startsWith("e") }
             ?.groupBy { it.code }
             ?.mapValues { it.value }
