@@ -10,7 +10,9 @@ import org.springframework.core.io.ResourceLoader
 import org.springframework.security.converter.RsaKeyConverters
 import org.springframework.security.saml2.core.Saml2X509Credential
 import org.springframework.security.saml2.provider.service.registration.*
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.net.URL
 import java.security.cert.X509Certificate
 import java.security.interfaces.RSAPrivateKey
@@ -42,8 +44,9 @@ class RelyingPartyConfiguration(
                 resourceLoader.getResource(
                     applicationProperties.getSecurity().getSuomifi().samlCertificateLocation!!
                 )
+            val bytes = publicKeyResource.inputStream.use { it.readBytes() }
             val certificate: X509Certificate =
-                X509Support.decodeCertificate(publicKeyResource.inputStream.readBytes())!!
+                X509Support.decodeCertificate(bytes)!!
 
             val privateKeyResource: Resource =
                 resourceLoader.getResource(
@@ -82,8 +85,9 @@ class RelyingPartyConfiguration(
                 resourceLoader.getResource(
                     applicationProperties.getSecurity().getHaka().samlCertificateLocation!!
                 )
+            val bytes = publicKeyResource.inputStream.use { it.readBytes() }
             val certificate: X509Certificate =
-                X509Support.decodeCertificate(publicKeyResource.inputStream.readBytes())!!
+                X509Support.decodeCertificate(bytes)!!
 
             val privateKeyResource: Resource =
                 resourceLoader.getResource(

@@ -89,15 +89,16 @@ class ErikoistuvaLaakariAsiakirjaResource(
         val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val asiakirja = asiakirjaService.findOne(id, opintooikeusId)
 
-        if (asiakirja != null) {
+        asiakirja?.asiakirjaData?.fileInputStream?.use {
             return ResponseEntity.ok()
                 .header(
                     HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
                 )
                 .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
-                .body(asiakirja.asiakirjaData?.fileInputStream?.readBytes())
+                .body(it.readBytes())
         }
+
         return ResponseEntity.notFound().build()
     }
 
