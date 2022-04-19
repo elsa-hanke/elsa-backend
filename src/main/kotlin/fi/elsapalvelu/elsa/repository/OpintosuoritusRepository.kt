@@ -9,4 +9,6 @@ interface OpintosuoritusRepository : JpaRepository<Opintosuoritus, Long> {
         yliopistoOpintooikeusId: String,
         kurssikoodi: String
     ): Opintosuoritus?
+
+    fun findAllByOpintooikeusId(opintooikeusId: Long) : List<Opintosuoritus>
 }
