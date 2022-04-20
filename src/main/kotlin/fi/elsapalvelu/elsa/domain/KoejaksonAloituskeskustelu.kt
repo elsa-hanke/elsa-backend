@@ -39,7 +39,7 @@ data class KoejaksonAloituskeskustelu(
     var koejaksonPaattymispaiva: LocalDate? = null,
 
     @Column(name = "suoritettu_kokoaikatyossa")
-    var suoritettuKokoaikatyossa: Boolean = false,
+    var suoritettuKokoaikatyossa: Boolean? = null,
 
     @Column(name = "tyotunnit_viikossa")
     var tyotunnitViikossa: Double? = null,
