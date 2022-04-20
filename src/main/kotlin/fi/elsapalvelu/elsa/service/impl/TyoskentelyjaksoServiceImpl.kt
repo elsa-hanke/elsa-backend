@@ -404,14 +404,14 @@ class TyoskentelyjaksoServiceImpl(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         opintooikeusId: Long
     ): Boolean {
-        return tyoskentelyjaksoDTO.id?.let { tyoskentelyjaksoId ->
+        val paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva ?: return true
+
+        tyoskentelyjaksoDTO.id?.let { tyoskentelyjaksoId ->
             tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(
                 tyoskentelyjaksoId,
                 opintooikeusId
             )
         }?.let { tyoskentelyjakso ->
-            val paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva ?: return true
-
             for (suoritemerkinta in tyoskentelyjakso.suoritemerkinnat) {
                 if (paattymispaiva.isBefore(suoritemerkinta.suorituspaiva)) {
                     return false
@@ -430,8 +430,8 @@ class TyoskentelyjaksoServiceImpl(
                 }
             }
 
-            true
-        } ?: true
+            return true
+        } ?: return true
     }
 
     data class TilastotCounter(
