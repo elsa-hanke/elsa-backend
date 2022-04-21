@@ -37,7 +37,7 @@ data class Teoriakoulutus(
 
     @get: Min(value = 0)
     @Column(name = "erikoistumiseen_hyvaksyttava_tuntimaara")
-    var erikoistumiseenHyvaksyttavaTuntimaara: Int? = null,
+    var erikoistumiseenHyvaksyttavaTuntimaara: Double? = null,
 
     @OneToMany(
         mappedBy = "teoriakoulutus",

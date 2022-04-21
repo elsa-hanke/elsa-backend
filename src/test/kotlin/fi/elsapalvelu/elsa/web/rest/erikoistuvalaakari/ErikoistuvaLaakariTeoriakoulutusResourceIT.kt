@@ -643,8 +643,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         private val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
-        private const val DEFAULT_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA: Int = 5
-        private const val UPDATED_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA: Int = 10
+        private const val DEFAULT_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA: Double = 5.0
+        private const val UPDATED_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA: Double = 10.0
 
         val DEFAULT_FILE: ByteArray = createByteArray(1, "0")
         val UPDATED_FILE: ByteArray = createByteArray(1, "1")

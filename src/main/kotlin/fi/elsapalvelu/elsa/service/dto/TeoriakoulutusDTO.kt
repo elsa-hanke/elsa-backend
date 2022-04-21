@@ -22,7 +22,7 @@ data class TeoriakoulutusDTO(
     var paattymispaiva: LocalDate? = null,
 
     @get: Min(value = 0)
-    var erikoistumiseenHyvaksyttavaTuntimaara: Int? = null,
+    var erikoistumiseenHyvaksyttavaTuntimaara: Double? = null,
 
     var todistukset: MutableSet<AsiakirjaDTO>? = mutableSetOf()
 
