@@ -14,6 +14,9 @@ interface KayttajaRepository : JpaRepository<Kayttaja, Long> {
     @Query("select k from Kayttaja k join k.user u join fetch k.yliopistotAndErikoisalat where u.id = :id")
     fun findOneByUserIdWithErikoisalat(id: String): Optional<Kayttaja>
 
+    @Query("select k from Kayttaja k join k.user u join fetch k.yliopistot where u.id = :id")
+    fun findOneByUserIdWithYliopistot(id: String): Optional<Kayttaja>
+
     fun findOneByUserEmail(email: String): Optional<Kayttaja>
 
     @Query("select k from Kayttaja k join k.user u left join u.authorities a where a.name in :authorities")
