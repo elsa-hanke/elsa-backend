@@ -45,7 +45,9 @@ data class KoejaksonValiarviointiDTO(
 
     var korjausehdotus: String? = null,
 
-    var erikoistuvanKuittausaika: LocalDate? = null
+    var erikoistuvanKuittausaika: LocalDate? = null,
+
+    var koejaksonOsaamistavoitteet: String? = null
 
 ) : Serializable {
     override fun toString() = "KoejaksonValiarviointiDTO"
