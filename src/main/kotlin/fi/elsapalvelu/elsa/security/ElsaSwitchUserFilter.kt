@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
-import io.undertow.util.BadRequestException
 import org.springframework.core.log.LogMessage
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.authentication.BadCredentialsException
@@ -33,7 +32,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 /**
- * Kouluttaja/vastuuhenkilö voi haluta katsoa erikoistujan tietoja, jolloin autentikaatiota
+ * Kouluttaja/vastuuhenkilö/opintohallinnon virkailija voi haluta katsoa erikoistujan tietoja, jolloin autentikaatiota
  * täytyy impersonoida. Toteutettu SwitchUserFilter pohjalta ja mukautettu toimimaan SAML kanssa.
  */
 class ElsaSwitchUserFilter(
@@ -139,25 +138,30 @@ class ElsaSwitchUserFilter(
         )
     }
 
-    // Vain saman yliopiston ja erikoisalan vastuuhenkilöt tai kouluttajavaltuutuksen saaneet
-    // henkilöt voivat katsella erikoistujan tietoja
+    // Vain saman yliopiston ja erikoisalan vastuuhenkilöt, kouluttajavaltuutuksen saaneet
+    // henkilöt tai saman yliopiston opintohallinnon virkailijat voivat katsella erikoistujan tietoja.
     private fun onOikeus(
         principal: Saml2AuthenticatedPrincipal,
         erikoistuvaLaakari: ErikoistuvaLaakari
     ): Boolean {
-        val kirjautunutKayttaja = kayttajaRepository.findOneByUserIdWithErikoisalat(principal.name)
-            .orElseThrow { EntityNotFoundException("Käyttäjä ei ole kirjautunut") }
+        val userId = principal.name
+        val kirjautunutKayttaja =
+            kayttajaRepository.findOneByUserIdWithErikoisalat(userId).orElseGet {
+                kayttajaRepository.findOneByUserIdWithYliopistot(userId)
+                    .orElseThrow { EntityNotFoundException("Käyttäjä ei ole kirjautunut") }
+            }
 
-        if (kirjautunutKayttaja.yliopistotAndErikoisalat.none { it.erikoisala?.id == erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala?.id && it.yliopisto?.id == erikoistuvaLaakari.getOpintooikeusKaytossa()?.yliopisto?.id }) {
-            return false
-        }
+        val authorityNames =
+            userRepository.findByIdWithAuthorities(kirjautunutKayttaja.user?.id!!).get().authorities.map { it.name }
 
-        val authorities =
-            userRepository.findByIdWithAuthorities(kirjautunutKayttaja.user?.id!!).get().authorities
+        if (authorityNames.contains(VASTUUHENKILO) && kirjautunutKayttaja.yliopistotAndErikoisalat.find {
+                it.erikoisala?.id == erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala?.id &&
+                    it.yliopisto?.id == erikoistuvaLaakari.getOpintooikeusKaytossa()?.yliopisto?.id
+            } != null) return true
 
-        if (authorities.map { it.name }.contains(VASTUUHENKILO)) {
-            return true
-        }
+        if (authorityNames.contains(OPINTOHALLINNON_VIRKAILIJA) && kirjautunutKayttaja.yliopistot.find {
+                it.id == erikoistuvaLaakari.getYliopistoId()
+            } != null) return true
 
         return kouluttajavaltuutusRepository.findByValtuuttajaKayttajaUserIdAndValtuutettuUserIdAndPaattymispaivaAfter(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
