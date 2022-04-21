@@ -554,7 +554,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         )
         assertThat(arviointi.opintooikeus?.erikoisala?.nimi).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanErikoisala)
         assertThat(arviointi.opintooikeus?.opiskelijatunnus).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanOpiskelijatunnus)
-        assertThat(arviointi.opintooikeus?.yliopisto?.nimi).isEqualTo(koejaksonValiarviointiDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.opintooikeus?.yliopisto?.nimi.toString()).isEqualTo(
+            koejaksonValiarviointiDTO.erikoistuvanYliopisto
+        )
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonValiarviointiDTO.lahikouluttaja?.id)
         assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonValiarviointiDTO.lahiesimies?.id)
         assertThat(arviointi.muokkauspaiva).isNotNull
@@ -587,6 +589,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createKehittamistoimenpiteet() {
         initKoejakso()
 
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
         koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
@@ -659,6 +662,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createKehittamistoimenpiteetWithoutValiarviointi() {
         initKoejakso()
 
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
         val databaseSizeBeforeCreate = koejaksonKehittamistoimenpiteetRepository.findAll().size
@@ -681,6 +685,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createLoppukeskusteluWithKehittamistoimenpiteet() {
         initKoejakso()
 
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
         koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
@@ -720,6 +725,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createLoppukeskusteluWithKehittamistoimenpiteetInvalid() {
         initKoejakso()
 
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
         koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
@@ -745,6 +751,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createLoppukeskusteluWithoutKehittamistoimenpiteet() {
         initKoejakso()
 
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
         koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointi.edistyminenTavoitteidenMukaista = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
@@ -781,6 +788,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createLoppukeskusteluWithoutKehittamistoimenpiteetInvalid() {
         initKoejakso()
 
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
         koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
 
