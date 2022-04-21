@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KoejaksonValiarviointi
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.KoejaksonValiarviointiService
@@ -25,7 +26,8 @@ class KoejaksonValiarviointiServiceImpl(
     private val koejaksonValiarviointiMapper: KoejaksonValiarviointiMapper,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository
 ) : KoejaksonValiarviointiService {
 
     override fun create(
@@ -145,13 +147,13 @@ class KoejaksonValiarviointiServiceImpl(
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<KoejaksonValiarviointiDTO> {
         return koejaksonValiarviointiRepository.findById(id)
-            .map(koejaksonValiarviointiMapper::toDto)
+            .map(this::mapValiarviointi)
     }
 
     @Transactional(readOnly = true)
     override fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonValiarviointiDTO> {
         return koejaksonValiarviointiRepository.findByOpintooikeusId(opintooikeusId)
-            .map(koejaksonValiarviointiMapper::toDto)
+            .map(this::mapValiarviointi)
     }
 
     @Transactional(readOnly = true)
@@ -162,7 +164,7 @@ class KoejaksonValiarviointiServiceImpl(
         return koejaksonValiarviointiRepository.findOneByIdAndLahikouluttajaUserId(
             id,
             userId
-        ).map(koejaksonValiarviointiMapper::toDto)
+        ).map(this::mapValiarviointi)
     }
 
     @Transactional(readOnly = true)
@@ -173,7 +175,7 @@ class KoejaksonValiarviointiServiceImpl(
         return koejaksonValiarviointiRepository.findOneByIdAndLahiesimiesUserId(
             id,
             userId
-        ).map(koejaksonValiarviointiMapper::toDto)
+        ).map(this::mapValiarviointi)
     }
 
     @Transactional(readOnly = true)
@@ -185,10 +187,18 @@ class KoejaksonValiarviointiServiceImpl(
             id,
             vastuuhenkiloUserId
         )
-            .map(koejaksonValiarviointiMapper::toDto)
+            .map(this::mapValiarviointi)
     }
 
     override fun delete(id: Long) {
         koejaksonValiarviointiRepository.deleteById(id)
+    }
+
+    private fun mapValiarviointi(valiarviointi: KoejaksonValiarviointi): KoejaksonValiarviointiDTO {
+        val result = koejaksonValiarviointiMapper.toDto(valiarviointi)
+        result.koejaksonOsaamistavoitteet =
+            koejaksonAloituskeskusteluRepository.findByOpintooikeusId(valiarviointi.opintooikeus?.id!!)
+                .get().koejaksonOsaamistavoitteet
+        return result
     }
 }
