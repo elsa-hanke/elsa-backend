@@ -12,7 +12,7 @@ interface SuoritteenKategoriaRepository : JpaRepository<SuoritteenKategoria, Lon
     // Haetaan kategoriat, jotka ovat voimassa mikäli kategorian alta löytyy yksi tai useampi
     // suorite, joka on voimassa.
     @Query(
-        "select sk from SuoritteenKategoria sk " +
+        "select distinct sk from SuoritteenKategoria sk " +
             "left join sk.erikoisala e " +
             "left join fetch sk.suoritteet s " +
             "where e.id = ?1 " +
