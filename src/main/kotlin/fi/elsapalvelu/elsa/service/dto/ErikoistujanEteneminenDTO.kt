@@ -16,7 +16,7 @@ data class ErikoistujanEteneminenDTO(
 
     var tyoskentelyjaksoTilastot: TyoskentelyjaksotTilastotDTO? = null,
 
-    var arviointienKa: Double? = null,
+    var arviointienKeskiarvo: Double? = null,
 
     var arviointienLkm: Int? = null,
 
