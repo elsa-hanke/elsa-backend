@@ -2,9 +2,10 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistujanEteneminenVirkailijaDTO
+import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaDTO
+import fi.elsapalvelu.elsa.service.dto.ErikoistumisenEdistyminenDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaDTO
 
 interface EtusivuService {
 
@@ -17,4 +18,6 @@ interface EtusivuService {
         criteria: ErikoistujanEteneminenCriteria,
         pageable: Pageable
     ): Page<ErikoistujanEteneminenVirkailijaDTO>?
+
+    fun getErikoistumisenSeurantaForErikoistuja(userId: String): ErikoistumisenEdistyminenDTO?
 }
