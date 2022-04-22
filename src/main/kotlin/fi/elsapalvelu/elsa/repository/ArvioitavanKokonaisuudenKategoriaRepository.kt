@@ -17,7 +17,7 @@ interface ArvioitavanKokonaisuudenKategoriaRepository :
     fun findAllValid(now: LocalDate): List<ArvioitavanKokonaisuudenKategoria>
 
     @Query(
-        "select akk from ArvioitavanKokonaisuudenKategoria akk " +
+        "select distinct akk from ArvioitavanKokonaisuudenKategoria akk " +
             "left join fetch akk.arvioitavatKokonaisuudet ak " +
             "left join akk.erikoisala e " +
             "where e.id = ?1 " +
