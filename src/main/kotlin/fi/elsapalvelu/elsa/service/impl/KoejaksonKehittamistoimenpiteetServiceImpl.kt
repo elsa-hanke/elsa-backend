@@ -9,7 +9,6 @@ import fi.elsapalvelu.elsa.service.KoejaksonKehittamistoimenpiteetService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKehittamistoimenpiteetDTO
-import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKehittamistoimenpiteetMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -28,7 +27,6 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
     private val koejaksonKehittamistoimenpiteetMapper: KoejaksonKehittamistoimenpiteetMapper,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
-    private val kayttajaMapper: KayttajaMapper,
     private val opintooikeusRepository: OpintooikeusRepository
 ) : KoejaksonKehittamistoimenpiteetService {
 
@@ -166,7 +164,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<KoejaksonKehittamistoimenpiteetDTO> {
         return koejaksonKehittamistoimenpiteetRepository.findById(id)
-            .map(koejaksonKehittamistoimenpiteetMapper::toDto)
+            .map(this::mapKehittamistoimenpiteet)
     }
 
     @Transactional(readOnly = true)
@@ -174,7 +172,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         return koejaksonKehittamistoimenpiteetRepository.findByOpintooikeusId(
             opintooikeusId
         )
-            .map(koejaksonKehittamistoimenpiteetMapper::toDto)
+            .map(this::mapKehittamistoimenpiteet)
     }
 
     @Transactional(readOnly = true)
@@ -212,7 +210,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             id,
             vastuuhenkiloUserId
         )
-            .map(koejaksonKehittamistoimenpiteetMapper::toDto)
+            .map(this::mapKehittamistoimenpiteet)
     }
 
     private fun applyWithKehittamistoimenpiteetDescription(
@@ -226,6 +224,9 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
                     kehittamistoimenpiteetDto.get().apply {
                         this.kehittamistoimenpiteetKuvaus =
                             if (it.isPresent) it.get().kehittamistoimenpiteet else null
+                        this.kehittamistoimenpideKategoriat =
+                            if (it.isPresent) it.get().kehittamistoimenpideKategoriat?.toList() else null
+                        this.muuKategoria = if (it.isPresent) it.get().muuKategoria else null
                     }
                 }
             }
@@ -235,5 +236,16 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
 
     override fun delete(id: Long) {
         koejaksonKehittamistoimenpiteetRepository.deleteById(id)
+    }
+
+    private fun mapKehittamistoimenpiteet(kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet): KoejaksonKehittamistoimenpiteetDTO {
+        val result = koejaksonKehittamistoimenpiteetMapper.toDto(kehittamistoimenpiteet)
+        koejaksonValiarviointiRepository.findByOpintooikeusId(kehittamistoimenpiteet.opintooikeus?.id!!)
+            .let {
+                result.kehittamistoimenpideKategoriat =
+                    it.get().kehittamistoimenpideKategoriat?.toList()
+                result.muuKategoria = it.get().muuKategoria
+            }
+        return result
     }
 }
