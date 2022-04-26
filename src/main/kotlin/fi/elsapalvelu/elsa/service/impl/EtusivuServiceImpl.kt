@@ -31,7 +31,7 @@ class EtusivuServiceImpl(
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
     private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
-    private val arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository,
+    private val arvioitavanKokonaisuudenKategoriaRepository: ArvioitavanKokonaisuudenKategoriaRepository,
     private val suoritteenKategoriaRepository: SuoritteenKategoriaRepository,
     private val erikoistujienSeurantaQueryService: ErikoistujienSeurantaQueryService,
     private val teoriakoulutusRepository: TeoriakoulutusRepository,
@@ -180,10 +180,10 @@ class EtusivuServiceImpl(
         }
         eteneminen.arviointienLkm = suoritusarvioinnit.keys.size
         eteneminen.arvioitavienKokonaisuuksienLkm =
-            arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
+            arvioitavanKokonaisuudenKategoriaRepository.findAllByErikoisalaIdAndValid(
                 opintooikeus.erikoisala?.id,
                 opintooikeus.osaamisenArvioinninOppaanPvm!!
-            ).size
+            ).map { it.arvioitavatKokonaisuudet }.flatten().size
 
         // Seurantajaksot
         val seurantajaksot = seurantajaksoRepository.findByOpintooikeusId(opintooikeus.id!!)
