@@ -616,7 +616,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(arviointi.opintooikeus?.opiskelijatunnus).isEqualTo(
             koejaksonKehittamistoimenpiteetDTO.erikoistuvanOpiskelijatunnus
         )
-        assertThat(arviointi.opintooikeus?.yliopisto?.nimi).isEqualTo(
+        assertThat(arviointi.opintooikeus?.yliopisto?.nimi.toString()).isEqualTo(
             koejaksonKehittamistoimenpiteetDTO.erikoistuvanYliopisto
         )
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonKehittamistoimenpiteetDTO.lahikouluttaja?.id)

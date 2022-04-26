@@ -386,7 +386,7 @@ class VastuuhenkiloKoejaksoResourceIT {
                     koejaksonKehittamistoimenpiteet.opintooikeus?.opiskelijatunnus
                 )
             )
-            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKehittamistoimenpiteet.opintooikeus?.yliopisto?.nimi))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKehittamistoimenpiteet.opintooikeus?.yliopisto?.nimi.toString()))
             .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonKehittamistoimenpiteet.lahikouluttaja?.id))
             .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonKehittamistoimenpiteet.lahiesimies?.id))
             .andExpect(jsonPath("$.korjausehdotus").isEmpty)
