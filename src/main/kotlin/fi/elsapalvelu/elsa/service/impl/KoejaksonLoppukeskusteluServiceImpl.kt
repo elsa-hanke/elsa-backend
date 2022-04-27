@@ -1,9 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KoejaksonLoppukeskustelu
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonLoppukeskusteluRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonLoppukeskusteluService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
@@ -24,7 +22,10 @@ class KoejaksonLoppukeskusteluServiceImpl(
     private val koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
+    private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
+    private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository
 ) : KoejaksonLoppukeskusteluService {
 
     override fun create(
@@ -145,13 +146,13 @@ class KoejaksonLoppukeskusteluServiceImpl(
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<KoejaksonLoppukeskusteluDTO> {
         return koejaksonLoppukeskusteluRepository.findById(id)
-            .map(koejaksonLoppukeskusteluMapper::toDto)
+            .map(this::mapLoppukeskustelu)
     }
 
     @Transactional(readOnly = true)
     override fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonLoppukeskusteluDTO> {
         return koejaksonLoppukeskusteluRepository.findByOpintooikeusId(opintooikeusId)
-            .map(koejaksonLoppukeskusteluMapper::toDto)
+            .map(this::mapLoppukeskustelu)
     }
 
     @Transactional(readOnly = true)
@@ -160,7 +161,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
         userId: String
     ): Optional<KoejaksonLoppukeskusteluDTO> {
         return koejaksonLoppukeskusteluRepository.findOneByIdAndLahikouluttajaUserId(id, userId)
-            .map(koejaksonLoppukeskusteluMapper::toDto)
+            .map(this::mapLoppukeskustelu)
     }
 
     @Transactional(readOnly = true)
@@ -171,7 +172,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
         return koejaksonLoppukeskusteluRepository.findOneByIdAndLahiesimiesUserId(
             id,
             userId
-        ).map(koejaksonLoppukeskusteluMapper::toDto)
+        ).map(this::mapLoppukeskustelu)
     }
 
     @Transactional(readOnly = true)
@@ -183,10 +184,32 @@ class KoejaksonLoppukeskusteluServiceImpl(
             id,
             vastuuhenkiloUserId
         )
-            .map(koejaksonLoppukeskusteluMapper::toDto)
+            .map(this::mapLoppukeskustelu)
     }
 
     override fun delete(id: Long) {
         koejaksonLoppukeskusteluRepository.deleteById(id)
+    }
+
+    private fun mapLoppukeskustelu(loppukeskustelu: KoejaksonLoppukeskustelu): KoejaksonLoppukeskusteluDTO {
+        val result = koejaksonLoppukeskusteluMapper.toDto(loppukeskustelu)
+        val opintoOikeusId = loppukeskustelu.opintooikeus?.id!!
+        result.koejaksonOsaamistavoitteet =
+            koejaksonAloituskeskusteluRepository.findByOpintooikeusId(opintoOikeusId)
+                .get().koejaksonOsaamistavoitteet
+        koejaksonValiarviointiRepository.findByOpintooikeusId(opintoOikeusId).let {
+            result.edistyminenTavoitteidenMukaista = it.get().edistyminenTavoitteidenMukaista
+            result.kehittamistoimenpideKategoriat =
+                it.get().kehittamistoimenpideKategoriat?.toList()
+            result.muuKategoria = it.get().muuKategoria
+            result.vahvuudet = it.get().vahvuudet
+            result.kehittamistoimenpiteet = it.get().kehittamistoimenpiteet
+        }
+        if (result.edistyminenTavoitteidenMukaista == false) {
+            result.kehittamistoimenpiteetRiittavat =
+                koejaksonKehittamistoimenpiteetRepository.findByOpintooikeusId(opintoOikeusId)
+                    .get().kehittamistoimenpiteetRiittavat
+        }
+        return result
     }
 }

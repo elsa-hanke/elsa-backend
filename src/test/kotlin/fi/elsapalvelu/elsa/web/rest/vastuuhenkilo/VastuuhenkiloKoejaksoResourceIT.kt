@@ -494,7 +494,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             .andExpect(jsonPath("$.id").value(koejaksonLoppukeskustelu.id))
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonLoppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonLoppukeskustelu.opintooikeus?.opiskelijatunnus))
-            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonLoppukeskustelu.opintooikeus?.yliopisto?.nimi))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonLoppukeskustelu.opintooikeus?.yliopisto?.nimi.toString()))
             .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonLoppukeskustelu.lahikouluttaja?.id))
             .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonLoppukeskustelu.lahiesimies?.id))
             .andExpect(jsonPath("$.korjausehdotus").isEmpty)
