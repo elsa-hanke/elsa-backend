@@ -398,6 +398,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         if (koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt
             && !koejaksonKoulutussopimus.allekirjoitettu
             && !sarakesignService.getApiUrl(yliopisto).isNullOrBlank()
+            && koejaksonKoulutussopimus.sarakeSignRequestId != null
         ) {
             val status =
                 sarakesignService.tarkistaAllekirjoitus(
