@@ -138,7 +138,7 @@ class SarakesignServiceImpl(
 
         val map: MultiValueMap<String, Any> = LinkedMultiValueMap()
 
-        val file = File(asiakirja.id.toString() + "_" + asiakirja.nimi)
+        val file = File("/tmp/" + asiakirja.id.toString() + "_" + asiakirja.nimi)
         val data = asiakirja.asiakirjaData?.data!!
         Files.write(file.toPath(), data.getBytes(1, data.length().toInt()))
 
