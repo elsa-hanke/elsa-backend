@@ -21,24 +21,30 @@ class SuoritteenKategoriaHelper {
         private val UPDATED_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(em: EntityManager, erikoisala: Erikoisala? = null, voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
-                         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA): SuoritteenKategoria {
+        fun createEntity(
+            em: EntityManager,
+            existingErikoisala: Erikoisala? = null,
+            voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
+            voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA
+        ): SuoritteenKategoria {
             val suoritteenKategoria = SuoritteenKategoria(
                 nimi = DEFAULT_NIMI,
                 voimassaolonAlkamispaiva = voimassaoloAlkaa,
                 voimassaolonPaattymispaiva = voimassaoloPaattyy
             )
 
-            erikoisala?.let {
-                suoritteenKategoria.erikoisala = erikoisala
-                return suoritteenKategoria
+            var erikoisala = existingErikoisala
+            if (erikoisala == null) {
+                if (em.findAll(Erikoisala::class).isEmpty()) {
+                    erikoisala = ErikoisalaHelper.createEntity()
+                    em.persist(erikoisala)
+                    em.flush()
+                } else {
+                    erikoisala = em.findAll(Erikoisala::class)[0]
+                }
             }
+            suoritteenKategoria.erikoisala = erikoisala
 
-            val newErikoisala = ErikoisalaHelper.createEntity()
-            em.persist(newErikoisala)
-            em.flush()
-
-            suoritteenKategoria.erikoisala = newErikoisala
             return suoritteenKategoria
         }
 
