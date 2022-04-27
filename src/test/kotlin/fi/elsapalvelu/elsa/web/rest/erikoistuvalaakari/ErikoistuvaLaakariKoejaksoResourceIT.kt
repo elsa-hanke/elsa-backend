@@ -681,7 +681,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(arviointi.opintooikeus?.opiskelijatunnus).isEqualTo(
             koejaksonLoppukeskusteluDTO.erikoistuvanOpiskelijatunnus
         )
-        assertThat(arviointi.opintooikeus?.yliopisto?.nimi).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.opintooikeus?.yliopisto?.nimi.toString()).isEqualTo(
+            koejaksonLoppukeskusteluDTO.erikoistuvanYliopisto
+        )
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.id)
         assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.id)
         assertThat(arviointi.muokkauspaiva).isNotNull
@@ -744,7 +746,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(arviointi.opintooikeus?.opiskelijatunnus).isEqualTo(
             koejaksonLoppukeskusteluDTO.erikoistuvanOpiskelijatunnus
         )
-        assertThat(arviointi.opintooikeus?.yliopisto?.nimi).isEqualTo(koejaksonLoppukeskusteluDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.opintooikeus?.yliopisto?.nimi.toString()).isEqualTo(
+            koejaksonLoppukeskusteluDTO.erikoistuvanYliopisto
+        )
         assertThat(arviointi.lahikouluttaja?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahikouluttaja?.id)
         assertThat(arviointi.lahiesimies?.id).isEqualTo(koejaksonLoppukeskusteluDTO.lahiesimies?.id)
         assertThat(arviointi.muokkauspaiva).isNotNull
@@ -779,6 +783,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createVastuuhenkilonArvio() {
         initKoejakso()
 
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+        koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
         koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
 
@@ -848,6 +855,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     fun createVastuuhenkilonArvioWithoutLoppukeskustelu() {
         initKoejakso()
 
+        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
+        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
+        koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
 
         val databaseSizeBeforeCreate = koejaksonVastuuhenkilonArvioRepository.findAll().size

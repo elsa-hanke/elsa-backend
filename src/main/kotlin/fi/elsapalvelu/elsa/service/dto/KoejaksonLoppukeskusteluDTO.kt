@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.domain.enumeration.KehittamistoimenpideKategoria
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.Lob
@@ -38,7 +39,21 @@ data class KoejaksonLoppukeskusteluDTO(
 
     var korjausehdotus: String? = null,
 
-    var erikoistuvanKuittausaika: LocalDate? = null
+    var erikoistuvanKuittausaika: LocalDate? = null,
+
+    var koejaksonOsaamistavoitteet: String? = null,
+
+    var edistyminenTavoitteidenMukaista: Boolean? = null,
+
+    var kehittamistoimenpideKategoriat: List<KehittamistoimenpideKategoria>? = null,
+
+    var muuKategoria: String? = null,
+
+    var vahvuudet: String? = null,
+
+    var kehittamistoimenpiteet: String? = null,
+
+    var kehittamistoimenpiteetRiittavat: Boolean? = null
 
 ) : Serializable {
     override fun toString() = "KoejaksonLoppukeskusteluDTO"
