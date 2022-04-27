@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.ArvioitavaKokonaisuus
 import fi.elsapalvelu.elsa.domain.ArvioitavanKokonaisuudenKategoria
-import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
@@ -28,7 +27,8 @@ class ArvioitavaKokonaisuusHelper {
         fun createEntity(
             em: EntityManager,
             voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
-            voimassaoloLoppuu: LocalDate? = DEFAULT_VOIMASSAOLO_LOPPUU
+            voimassaoloLoppuu: LocalDate? = DEFAULT_VOIMASSAOLO_LOPPUU,
+            existingKategoria: ArvioitavanKokonaisuudenKategoria? = null
         ): ArvioitavaKokonaisuus {
             val arvioitavaKokonaisuus = ArvioitavaKokonaisuus(
                 nimi = DEFAULT_NIMI,
@@ -38,15 +38,17 @@ class ArvioitavaKokonaisuusHelper {
             )
 
             // Lisätään pakollinen tieto
-            val arvioitavanKokonaisuudenKategoria: ArvioitavanKokonaisuudenKategoria
-            if (em.findAll(ArvioitavanKokonaisuudenKategoria::class).isEmpty()) {
-                arvioitavanKokonaisuudenKategoria =
-                    ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em)
-                em.persist(arvioitavanKokonaisuudenKategoria)
-                em.flush()
-            } else {
-                arvioitavanKokonaisuudenKategoria =
-                    em.findAll(ArvioitavanKokonaisuudenKategoria::class)[0]
+            var arvioitavanKokonaisuudenKategoria = existingKategoria
+            if (arvioitavanKokonaisuudenKategoria == null) {
+                if (em.findAll(ArvioitavanKokonaisuudenKategoria::class).isEmpty()) {
+                    arvioitavanKokonaisuudenKategoria =
+                        ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em)
+                    em.persist(arvioitavanKokonaisuudenKategoria)
+                    em.flush()
+                } else {
+                    arvioitavanKokonaisuudenKategoria =
+                        em.findAll(ArvioitavanKokonaisuudenKategoria::class)[0]
+                }
             }
             arvioitavaKokonaisuus.kategoria = arvioitavanKokonaisuudenKategoria
 

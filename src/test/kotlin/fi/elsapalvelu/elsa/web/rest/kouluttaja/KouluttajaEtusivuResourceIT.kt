@@ -56,6 +56,9 @@ class KouluttajaEtusivuResourceIT {
     private lateinit var arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository
 
     @Autowired
+    private lateinit var arvioitavanKokonaisuudenKategoriaRepository: ArvioitavanKokonaisuudenKategoriaRepository
+
+    @Autowired
     private lateinit var suoritemerkintaRepository: SuoritemerkintaRepository
 
     @Autowired
@@ -164,11 +167,17 @@ class KouluttajaEtusivuResourceIT {
             )
         )
 
+        val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala1)
+        arvioitavanKokonaisuudenKategoriaRepository.save(arvioitavanKokonaisuudenKategoria)
+
         val arvioitavaKokonaisuus1 = ArvioitavaKokonaisuusHelper.createEntity(em)
         arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus1)
 
         val arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em)
         arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus2)
+
+        arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus1)
+        arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus2)
 
         // Vain korkein arvosana lasketaan
         suoritusarviointiRepository.save(
@@ -239,7 +248,7 @@ class KouluttajaEtusivuResourceIT {
                     5
                 )
             )
-            .andExpect(jsonPath("$.erikoistujienEteneminen[0].arviointienKa").value(3.5))
+            .andExpect(jsonPath("$.erikoistujienEteneminen[0].arviointienKeskiarvo").value(3.5))
             .andExpect(jsonPath("$.erikoistujienEteneminen[0].arviointienLkm").value(2))
             .andExpect(
                 jsonPath("$.erikoistujienEteneminen[0].arvioitavienKokonaisuuksienLkm").value(

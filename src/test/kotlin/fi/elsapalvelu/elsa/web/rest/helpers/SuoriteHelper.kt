@@ -22,24 +22,34 @@ class SuoriteHelper {
         private val UPDATED_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(em: EntityManager, erikoisala: Erikoisala? = null, voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
-                         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA): Suorite {
+        fun createEntity(
+            em: EntityManager,
+            erikoisala: Erikoisala? = null,
+            voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
+            voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA,
+            existingKategoria: SuoritteenKategoria? = null,
+            vaadittuLkm: Int? = null
+        ): Suorite {
             val suorite = Suorite(
                 nimi = DEFAULT_NIMI,
                 voimassaolonAlkamispaiva = voimassaoloAlkaa,
-                voimassaolonPaattymispaiva = voimassaoloPaattyy
+                voimassaolonPaattymispaiva = voimassaoloPaattyy,
+                vaadittulkm = vaadittuLkm
             )
 
             // Lisätään pakollinen tieto
-            val suoritteenKategoria: SuoritteenKategoria
-            if (em.findAll(SuoritteenKategoria::class).isEmpty()) {
-                suoritteenKategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
-                em.persist(suoritteenKategoria)
-                em.flush()
-            } else {
-                suoritteenKategoria = em.findAll(SuoritteenKategoria::class).get(0)
+            var suoritteenKategoria = existingKategoria
+            if (suoritteenKategoria == null) {
+                if (em.findAll(SuoritteenKategoria::class).isEmpty()) {
+                    suoritteenKategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+                    em.persist(suoritteenKategoria)
+                    em.flush()
+                } else {
+                    suoritteenKategoria = em.findAll(SuoritteenKategoria::class).get(0)
+                }
             }
             suorite.kategoria = suoritteenKategoria
+
             return suorite
         }
 
