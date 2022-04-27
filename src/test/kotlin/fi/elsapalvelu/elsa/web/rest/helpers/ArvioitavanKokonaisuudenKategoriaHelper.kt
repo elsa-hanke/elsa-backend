@@ -24,8 +24,8 @@ class ArvioitavanKokonaisuudenKategoriaHelper {
         private val UPDATED_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
         @JvmStatic
-        fun createEntity(em: EntityManager): ArvioitavanKokonaisuudenKategoria {
-            val kategoria = ArvioitavanKokonaisuudenKategoria(
+        fun createEntity(em: EntityManager, existingErikoisala: Erikoisala? = null): ArvioitavanKokonaisuudenKategoria {
+            val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoria(
                 nimi = DEFAULT_NIMI,
                 jarjestysnumero = DEFAULT_JARJESTYSNUMERO,
                 voimassaoloAlkaa = DEFAULT_VOIMASSAOLO_ALKAA,
@@ -33,17 +33,19 @@ class ArvioitavanKokonaisuudenKategoriaHelper {
             )
 
             // Lisätään pakollinen tieto
-            val erikoisala: Erikoisala
-            if (em.findAll(Erikoisala::class).isEmpty()) {
-                erikoisala = ErikoisalaHelper.createEntity()
-                em.persist(erikoisala)
-                em.flush()
-            } else {
-                erikoisala = em.findAll(Erikoisala::class)[0]
+            var erikoisala = existingErikoisala
+            if (erikoisala == null) {
+                if (em.findAll(Erikoisala::class).isEmpty()) {
+                    erikoisala = ErikoisalaHelper.createEntity()
+                    em.persist(erikoisala)
+                    em.flush()
+                } else {
+                    erikoisala = em.findAll(Erikoisala::class)[0]
+                }
             }
-            kategoria.erikoisala = erikoisala
+            arvioitavanKokonaisuudenKategoria.erikoisala = erikoisala
 
-            return kategoria
+            return arvioitavanKokonaisuudenKategoria
         }
 
         @JvmStatic

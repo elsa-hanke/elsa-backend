@@ -30,7 +30,8 @@ class SuoritemerkintaHelper {
             em: EntityManager,
             erikoisala: Erikoisala? = null,
             user: User? = null,
-            suorituspaiva: LocalDate = DEFAULT_SUORITUSPAIVA
+            suorituspaiva: LocalDate = DEFAULT_SUORITUSPAIVA,
+            existingSuorite: Suorite? = null
         ): Suoritemerkinta {
             val suoritemerkinta = Suoritemerkinta(
                 suorituspaiva = suorituspaiva,
@@ -41,13 +42,15 @@ class SuoritemerkintaHelper {
             )
 
             // Lisätään pakollinen tieto
-            val suorite: Suorite
-            if (em.findAll(Suorite::class).isEmpty()) {
-                suorite = SuoriteHelper.createEntity(em, erikoisala)
-                em.persist(suorite)
-                em.flush()
-            } else {
-                suorite = em.findAll(Suorite::class)[0]
+            var suorite = existingSuorite
+            if (suorite == null) {
+                if (em.findAll(Suorite::class).isEmpty()) {
+                    suorite = SuoriteHelper.createEntity(em, erikoisala)
+                    em.persist(suorite)
+                    em.flush()
+                } else {
+                    suorite = em.findAll(Suorite::class)[0]
+                }
             }
             suoritemerkinta.suorite = suorite
 
