@@ -153,6 +153,7 @@ class EtusivuServiceImpl(
                     k.user?.langKey
                 ).map { opintooikeus ->
                     val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!)
+                    val osakokonaisuusKurssikoodit = getOpintosuoritusOsakokonaisuusKurssikoodit(opintosuoritukset)
                     ErikoistujanEteneminenVirkailijaDTO(
                         opintooikeus.erikoistuvaLaakari?.id,
                         opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName,
@@ -166,9 +167,9 @@ class EtusivuServiceImpl(
                         tyoskentelyjaksoService.getTilastot(opintooikeus),
                         getTeoriakoulutuksetTuntimaara(opintooikeus.id!!),
                         opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara,
-                        getJohtamisopinnotSuoritettu(opintosuoritukset),
+                        getJohtamisopinnotSuoritettu(opintosuoritukset, osakokonaisuusKurssikoodit),
                         opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
-                        getSateilysuojakoulutuksetSuoritettu(opintosuoritukset),
+                        getSateilysuojakoulutuksetSuoritettu(opintosuoritukset, osakokonaisuusKurssikoodit),
                         opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara,
                         getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset)
                     )
@@ -186,6 +187,7 @@ class EtusivuServiceImpl(
                 val suoritemerkinnatMap = getSuoritemerkinnatMap(opintooikeus.id!!)
                 val suoritemerkinnat = suoritemerkinnatMap.values.flatten()
                 val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!)
+                val osakokonaisuusKurssikoodit = getOpintosuoritusOsakokonaisuusKurssikoodit(opintosuoritukset)
                 val arviointiasteikko =
                     opintooikeus.opintoopas?.arviointiasteikko?.let { arviointiasteikkoMapper.toDto(it) }
 
@@ -201,9 +203,9 @@ class EtusivuServiceImpl(
                     tyoskentelyjaksoService.getTilastot(opintooikeus),
                     getTeoriakoulutuksetTuntimaara(opintooikeus.id!!),
                     opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara,
-                    getJohtamisopinnotSuoritettu(opintosuoritukset),
+                    getJohtamisopinnotSuoritettu(opintosuoritukset, osakokonaisuusKurssikoodit),
                     opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
-                    getSateilysuojakoulutuksetSuoritettu(opintosuoritukset),
+                    getSateilysuojakoulutuksetSuoritettu(opintosuoritukset, osakokonaisuusKurssikoodit),
                     opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara,
                     getKoejaksoTila(opintooikeus),
                     getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset),
@@ -378,24 +380,43 @@ class EtusivuServiceImpl(
         voimassaoloAlkaaDate <= osaamisenArvioinninOppaanPvm &&
             (voimassaoloPaattyy == null || voimassaoloPaattyy >= osaamisenArvioinninOppaanPvm)
 
+    private fun getOpintosuoritusOsakokonaisuusKurssikoodit(opintosuoritukset: List<Opintosuoritus>): List<String> =
+        opintosuoritukset.mapNotNull { opintosuoritus ->
+            opintosuoritus.osakokonaisuudet?.mapNotNull { o -> o.kurssikoodi }
+        }.flatten()
+
     private fun getTeoriakoulutuksetTuntimaara(opintooikeusId: Long): Double =
         teoriakoulutusRepository.findAllByOpintooikeusId(opintooikeusId).sumOf { t ->
             t.erikoistumiseenHyvaksyttavaTuntimaara ?: 0.0
         }
 
-    private fun getJohtamisopinnotSuoritettu(opintosuoritukset: List<Opintosuoritus>): Double =
-        opintosuoritukset.asSequence()
-            .filter { opintosuoritus -> opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.JOHTAMISOPINTO }
+    private fun getJohtamisopinnotSuoritettu(
+        opintosuoritukset: List<Opintosuoritus>,
+        osakokonaisuusKurssikoodit: List<String>
+    ): Double {
+        return opintosuoritukset.asSequence()
+            .filter { opintosuoritus ->
+                opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.JOHTAMISOPINTO &&
+                    opintosuoritus.kurssikoodi !in osakokonaisuusKurssikoodit
+            }
             .sumOf { johtamisopinto ->
                 johtamisopinto.opintopisteet ?: 0.0
             }
+    }
 
-    private fun getSateilysuojakoulutuksetSuoritettu(opintosuoritukset: List<Opintosuoritus>) =
-        opintosuoritukset.asSequence()
-            .filter { opintosuoritus -> opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS }
+    private fun getSateilysuojakoulutuksetSuoritettu(
+        opintosuoritukset: List<Opintosuoritus>,
+        osakokonaisuusKurssikoodit: List<String>
+    ): Double {
+        return opintosuoritukset.asSequence()
+            .filter { opintosuoritus ->
+                opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS &&
+                    opintosuoritus.kurssikoodi !in osakokonaisuusKurssikoodit
+            }
             .sumOf { sateilysuojakoulutus ->
                 sateilysuojakoulutus.opintopisteet ?: 0.0
             }
+    }
 
     private fun getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset: List<Opintosuoritus>): Int =
         opintosuoritukset.count { opintosuoritus ->
