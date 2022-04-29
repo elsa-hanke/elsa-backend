@@ -476,7 +476,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         koulutussopimus.vastuuhenkilo?.user?.let { recipients.add(lisaaVastaanottaja(it)) }
 
         koulutussopimus.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
-            "Koejakson koulutussopimus",
+            "Koejakson koulutussopimus - " + koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
             recipients,
             asiakirja.id!!,
             koulutussopimus.opintooikeus?.yliopisto?.nimi!!
