@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.web.bind.annotation.*
@@ -22,6 +23,7 @@ import java.security.Principal
 import javax.validation.Valid
 
 @RestController
+@PreAuthorize("!hasRole('ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA')")
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariKoulutussuunnitelmaResource(
     private val koulutussuunnitelmaService: KoulutussuunnitelmaService,

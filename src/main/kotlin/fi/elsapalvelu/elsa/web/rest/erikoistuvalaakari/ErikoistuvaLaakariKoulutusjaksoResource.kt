@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
@@ -16,6 +17,7 @@ import java.util.*
 import javax.validation.Valid
 
 @RestController
+@PreAuthorize("!hasRole('ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA')")
 @RequestMapping("/api/erikoistuva-laakari/koulutussuunnitelma")
 class ErikoistuvaLaakariKoulutusjaksoResource(
     private val koulutusjaksoRepository: KoulutusjaksoRepository,

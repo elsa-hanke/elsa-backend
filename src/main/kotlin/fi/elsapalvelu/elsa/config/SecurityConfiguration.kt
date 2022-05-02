@@ -163,7 +163,7 @@ class SecurityConfiguration(
             .antMatchers("/api/auth-info").denyAll()
             .antMatchers("/api/login/impersonate").hasAnyAuthority(VASTUUHENKILO, KOULUTTAJA, OPINTOHALLINNON_VIRKAILIJA)
             .antMatchers(HttpMethod.GET, "/api/erikoistuva-laakari/**")
-            .hasAnyAuthority(ERIKOISTUVA_LAAKARI, ERIKOISTUVA_LAAKARI_IMPERSONATED)
+            .hasAnyAuthority(ERIKOISTUVA_LAAKARI, ERIKOISTUVA_LAAKARI_IMPERSONATED, ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
             .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
             .antMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
             .antMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
