@@ -1,12 +1,15 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
+import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.hamcrest.Matchers.hasSize
@@ -18,11 +21,17 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
@@ -45,6 +54,12 @@ class VirkailijaEtusivuResourceIT {
     @Autowired
     private lateinit var erikoisalaRepository: ErikoisalaRepository
 
+    @Autowired
+    private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
+
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
     private lateinit var virkailija: Kayttaja
 
     private lateinit var defaultYliopisto: Yliopisto
@@ -62,6 +77,8 @@ class VirkailijaEtusivuResourceIT {
     private lateinit var asetus1: Asetus
 
     private lateinit var asetus2: Asetus
+
+    private lateinit var tyoskentelyjakso: Tyoskentelyjakso
 
     @BeforeEach
     fun setup() {
@@ -118,12 +135,12 @@ class VirkailijaEtusivuResourceIT {
 
         erikoistuvaLaakari2.getOpintooikeusKaytossa()?.yliopisto = anotherYliopisto
 
-        em.persist(
+        tyoskentelyjakso =
             TyoskentelyjaksoHelper.createEntity(
                 em,
                 erikoistuvaLaakari1.kayttaja?.user
             )
-        )
+        em.persist(tyoskentelyjakso)
 
         em.persist(
             TeoriakoulutusHelper.createEntity(
@@ -402,6 +419,106 @@ class VirkailijaEtusivuResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoisalat").value(hasSize<Int>(erikoisalatCountByLiittynytElsaan)))
             .andExpect(jsonPath("$.asetukset").value(hasSize<Int>(7)))
+    }
+
+    @Test
+    @Transactional
+    fun testImpersonation() {
+        initTest()
+
+        tyoskentelyjakso =
+            TyoskentelyjaksoHelper.createEntity(
+                em,
+                erikoistuvaLaakari1.kayttaja?.user
+            )
+        em.persist(tyoskentelyjakso)
+
+        restEtusivuMockMvc.perform(
+            get("/api/login/impersonate?erikoistuvaLaakariId=${erikoistuvaLaakari1.id}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isFound)
+
+        // Päivitetään Security contextiin impersonoitu käyttäjä
+        val currentAuthentication: Authentication =
+            TestSecurityContextHolder.getContext().authentication
+        val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(
+            ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA, currentAuthentication
+        )
+        val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
+        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
+            erikoistuvaLaakari1.kayttaja?.user?.id,
+            mapOf(
+                "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari1.kayttaja?.user?.firstName),
+                "urn:oid:2.5.4.4" to listOf(erikoistuvaLaakari1.kayttaja?.user?.lastName),
+                "nameID" to currentPrincipal.attributes["nameID"],
+                "nameIDFormat" to currentPrincipal.attributes["nameIDFormat"],
+                "nameIDQualifier" to currentPrincipal.attributes["nameIDQualifier"],
+                "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"]
+            )
+        )
+        val context = TestSecurityContextHolder.getContext()
+        context.authentication = Saml2Authentication(
+            newPrincipal,
+            (currentAuthentication as Saml2Authentication).saml2Response,
+            listOf(switchAuthority)
+        )
+        TestSecurityContextHolder.setContext(context)
+
+        // Testataan, että yksi sallituista osioista palauttaa ok responsen.
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(1)))
+
+        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+        val updatedTyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
+        // Ainoastaan GET-kutsut sallittuja
+        restEtusivuMockMvc.perform(
+            MockMvcRequestBuilders.put("/api/erikoistuva-laakari/tyoskentelyjaksot")
+                .param("tyoskentelyjaksoJson", updatedTyoskentelyjaksoJson)
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isForbidden)
+
+        // Ei sallitut osiot
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/koulutussuunnitelma/koulutusjaksot"))
+            .andExpect(status().isForbidden)
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/koulutussuunnitelma"))
+            .andExpect(status().isForbidden)
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/paivakirjamerkinnat?page=0&size=20&sort=paivamaara,id,desc"))
+            .andExpect(status().isForbidden)
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/paivakirjamerkinnat-rajaimet"))
+            .andExpect(status().isForbidden)
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/suoritusarvioinnit"))
+            .andExpect(status().isForbidden)
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/suoritusarvioinnit-rajaimet"))
+            .andExpect(status().isForbidden)
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/suoritteet-taulukko"))
+            .andExpect(status().isForbidden)
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/seurantakeskustelut/seurantajaksot"))
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @Transactional
+    fun testImpersonationNotAllowedWhenErikoistuvaNotInSameYliopisto() {
+        initTest()
+
+        erikoistuvaLaakari1.getOpintooikeusKaytossa()?.yliopisto = anotherYliopisto
+
+        restEtusivuMockMvc.perform(
+            get("/api/login/impersonate?erikoistuvaLaakariId=${erikoistuvaLaakari1.id}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isUnauthorized)
     }
 
     fun initTest() {
