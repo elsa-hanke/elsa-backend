@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.OpintooikeusService
+import fi.elsapalvelu.elsa.service.SeurantajaksoService
+import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.SeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.SeurantajaksonTiedotDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -23,10 +25,6 @@ private const val ENTITY_NAME = "seurantajakso"
 class ErikoistuvaLaakariSeurantakeskustelutResource(
     private val userService: UserService,
     private val seurantajaksoService: SeurantajaksoService,
-    private val suoritusarviointiService: SuoritusarviointiService,
-    private val suoritemerkintaService: SuoritemerkintaService,
-    private val koulutusjaksoService: KoulutusjaksoService,
-    private val teoriakoulutusService: TeoriakoulutusService,
     private val opintooikeusService: OpintooikeusService
 ) {
 
