@@ -38,6 +38,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
             aloituskeskustelu.opintooikeus = it
             if (koejaksonAloituskeskusteluDTO.lahetetty == true) aloituskeskustelu.erikoistuvanKuittausaika =
                 LocalDate.now()
+            aloituskeskustelu.korjausehdotus = null
             aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
 
             it.erikoistuvaLaakari?.kayttaja?.user?.let { user ->

@@ -40,8 +40,7 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val userRepository: UserRepository,
     private val templateEngine: SpringTemplateEngine,
     private val asiakirjaRepository: AsiakirjaRepository,
-    private val sarakesignService: SarakesignService,
-    private val applicationProperties: ApplicationProperties
+    private val sarakesignService: SarakesignService
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -61,6 +60,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             koulutussopimus.kouluttajat?.forEach { it.koulutussopimus = koulutussopimus }
             if (koulutussopimus.lahetetty) koulutussopimus.erikoistuvanAllekirjoitusaika =
                 LocalDate.now()
+            koulutussopimus.korjausehdotus = null
             koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
             it.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
