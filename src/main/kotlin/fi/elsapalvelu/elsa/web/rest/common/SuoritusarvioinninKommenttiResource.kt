@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 import java.security.Principal
@@ -15,6 +16,7 @@ import javax.validation.Valid
 private const val ENTITY_NAME = "suoritusarvioinnin_kommentti"
 
 @RestController
+@PreAuthorize("!hasRole('ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA')")
 @RequestMapping("/api/")
 class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
     private val suoritusarvioinninKommenttiService: SuoritusarvioinninKommenttiService,
