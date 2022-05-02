@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest
 
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
@@ -24,10 +25,11 @@ class KayttajaResource(
     fun getKayttaja(principal: Principal?): UserDTO {
         val userId = userService.getAuthenticatedUser(principal).id!!
         val user = userService.getUser(userId)
+        val authorities = (principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
 
-        user.impersonated =
-            (principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
-                .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED)
+        user.impersonated = authorities.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED) || authorities.contains(
+            ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+        )
         return user
     }
 

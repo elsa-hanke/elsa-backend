@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.web.bind.annotation.*
@@ -24,6 +25,7 @@ import java.util.*
 import javax.validation.Valid
 
 @RestController
+@PreAuthorize("!hasRole('ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA')")
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariPaivakirjamerkintaResource(
     private val userService: UserService,

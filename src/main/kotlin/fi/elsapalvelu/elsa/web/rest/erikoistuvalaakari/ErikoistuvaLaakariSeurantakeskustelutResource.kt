@@ -1,11 +1,14 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.OpintooikeusService
+import fi.elsapalvelu.elsa.service.SeurantajaksoService
+import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.SeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.SeurantajaksonTiedotDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
@@ -17,14 +20,11 @@ import javax.validation.Valid
 private const val ENTITY_NAME = "seurantajakso"
 
 @RestController
+@PreAuthorize("!hasRole('ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA')")
 @RequestMapping("/api/erikoistuva-laakari/seurantakeskustelut")
 class ErikoistuvaLaakariSeurantakeskustelutResource(
     private val userService: UserService,
     private val seurantajaksoService: SeurantajaksoService,
-    private val suoritusarviointiService: SuoritusarviointiService,
-    private val suoritemerkintaService: SuoritemerkintaService,
-    private val koulutusjaksoService: KoulutusjaksoService,
-    private val teoriakoulutusService: TeoriakoulutusService,
     private val opintooikeusService: OpintooikeusService
 ) {
 
