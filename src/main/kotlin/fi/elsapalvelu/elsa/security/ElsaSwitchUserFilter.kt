@@ -101,7 +101,8 @@ class ElsaSwitchUserFilter(
         val principal =
             SecurityContextHolder.getContext().authentication.principal as Saml2AuthenticatedPrincipal
 
-        if (!onOikeus(principal, erikoistuvaLaakari)) {
+        val impersonatedRole = getImpersonatedRole(principal, erikoistuvaLaakari)
+        if (impersonatedRole == null) {
             SecurityLoggingWrapper.info("Denying access for user with id ${principal.name} to switch to user with id ${erikoistuvaLaakari.kayttaja?.user?.id}")
             throw BadCredentialsException("Käyttäjällä ei oikeuksia katsella erikoistujan tietoja")
         } else {
@@ -113,7 +114,7 @@ class ElsaSwitchUserFilter(
         val currentAuthentication: Authentication =
             SecurityContextHolder.getContext().authentication
         val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(
-            ERIKOISTUVA_LAAKARI_IMPERSONATED,
+            impersonatedRole,
             currentAuthentication
         )
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
@@ -140,10 +141,10 @@ class ElsaSwitchUserFilter(
 
     // Vain saman yliopiston ja erikoisalan vastuuhenkilöt, kouluttajavaltuutuksen saaneet
     // henkilöt tai saman yliopiston opintohallinnon virkailijat voivat katsella erikoistujan tietoja.
-    private fun onOikeus(
+    private fun getImpersonatedRole(
         principal: Saml2AuthenticatedPrincipal,
         erikoistuvaLaakari: ErikoistuvaLaakari
-    ): Boolean {
+    ): String? {
         val userId = principal.name
         val kirjautunutKayttaja =
             kayttajaRepository.findOneByUserIdWithErikoisalat(userId).orElseGet {
@@ -157,17 +158,20 @@ class ElsaSwitchUserFilter(
         if (authorityNames.contains(VASTUUHENKILO) && kirjautunutKayttaja.yliopistotAndErikoisalat.find {
                 it.erikoisala?.id == erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala?.id &&
                     it.yliopisto?.id == erikoistuvaLaakari.getOpintooikeusKaytossa()?.yliopisto?.id
-            } != null) return true
+            } != null) return ERIKOISTUVA_LAAKARI_IMPERSONATED
 
         if (authorityNames.contains(OPINTOHALLINNON_VIRKAILIJA) && kirjautunutKayttaja.yliopistot.find {
                 it.id == erikoistuvaLaakari.getYliopistoId()
-            } != null) return true
+            } != null) return ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 
-        return kouluttajavaltuutusRepository.findByValtuuttajaKayttajaUserIdAndValtuutettuUserIdAndPaattymispaivaAfter(
-            erikoistuvaLaakari.kayttaja?.user?.id!!,
-            kirjautunutKayttaja.user?.id!!,
-            LocalDate.now().minusDays(1)
-        ).isPresent
+        if (kouluttajavaltuutusRepository.findByValtuuttajaKayttajaUserIdAndValtuutettuUserIdAndPaattymispaivaAfter(
+                erikoistuvaLaakari.kayttaja?.user?.id!!,
+                kirjautunutKayttaja.user?.id!!,
+                LocalDate.now().minusDays(1)
+            ).isPresent
+        ) return ERIKOISTUVA_LAAKARI_IMPERSONATED
+
+        return null
     }
 
     private fun attemptExitUser(): Authentication {
