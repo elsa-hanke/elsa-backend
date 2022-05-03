@@ -27,6 +27,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
     private val userService: UserServiceImpl,
     private val kayttajaService: KayttajaService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
+    private val opintooikeusService: OpintooikeusService,
     private val verificationTokenService: VerificationTokenService,
     private val mailService: MailService
 ) {
@@ -96,5 +97,15 @@ class ErikoistuvaLaakariMuutToiminnotResource(
             KAYTTAJA_ENTITY_NAME,
             "dataillegal.uuden-lahikouluttajan-voi-lisata-vain-erikoistuva-laakari"
         )
+    }
+
+    @PatchMapping("opinto-oikeus/{id}")
+    fun updateOpintooikeusKaytossa(
+        @PathVariable(value = "id", required = true) id: Long,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        val user = userService.getAuthenticatedUser(principal)
+        opintooikeusService.setOpintooikeusKaytossa(user.id!!, id)
+        return ResponseEntity.ok().build()
     }
 }
