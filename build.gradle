@@ -10,8 +10,6 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}"
         classpath "org.jetbrains.kotlin:kotlin-noarg:${kotlinVersion}"
         classpath "org.jlleitschuh.gradle:ktlint-gradle:10.2.1"
-        classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektVersion}"
-        classpath "io.gitlab.arturbosch.detekt:detekt-formatting:${detektVersion}"
     }
 }
 

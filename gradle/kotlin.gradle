@@ -8,8 +8,6 @@ apply plugin: "kotlin-jpa" // See https://kotlinlang.org/docs/reference/compiler
 
 apply plugin: "org.jlleitschuh.gradle.ktlint"
 
-apply plugin: "io.gitlab.arturbosch.detekt"
-
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}"
     implementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
@@ -45,12 +43,6 @@ ktlint {
 }
 check.dependsOn ktlintCheck
 
-detekt {
-    toolVersion = detektVersion
-    source = files("src/main/kotlin")
-    config = files("detekt-config.yml")
-}
-
 if (OperatingSystem.current().isWindows()) {
     bootRun {
         doFirst {
@@ -63,12 +55,6 @@ if (OperatingSystem.current().isWindows()) {
 jacocoTestReport {
     // Add Kotlin sources to Jacoco source dirs
     sourceDirectories.from += sourceSets.main.kotlin.srcDirs
-}
-
-sonarqube {
-    properties {
-        property "sonar.kotlin.detekt.reportPaths", detekt.reports.xml.destination
-    }
 }
 
 check.dependsOn jacocoTestReport
