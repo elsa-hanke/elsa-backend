@@ -39,8 +39,8 @@ class SuoritusarviointiServiceImpl(
         suoritusarviointi = suoritusarviointiRepository.save(suoritusarviointi)
         mailService.sendEmailFromTemplate(
             kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!).get().user!!,
-            "arviointipyyntoKouluttajalleEmail.html",
-            "email.arviointipyyntokouluttajalle.title",
+            templateName = "arviointipyyntoKouluttajalleEmail.html",
+            titleKey = "email.arviointipyyntokouluttajalle.title",
             properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
         )
         return suoritusarviointiMapper.toDto(suoritusarviointi)
@@ -153,8 +153,8 @@ class SuoritusarviointiServiceImpl(
         mailService.sendEmailFromTemplate(
             kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                 .get().user!!,
-            templateName,
-            titleKey,
+            templateName = templateName,
+            titleKey = titleKey,
             properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
         )
 

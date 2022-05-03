@@ -42,8 +42,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             // Sähköposti vastuuhenkilölle
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(vastuuhenkilonArvio.vastuuhenkilo?.id!!).get().user!!,
-                "vastuuhenkilonArvioKuitattava.html",
-                "email.vastuuhenkilonarviokuitattava.title",
+                templateName = "vastuuhenkilonArvioKuitattava.html",
+                titleKey = "email.vastuuhenkilonarviokuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
             )
 
@@ -92,8 +92,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(vastuuhenkilonArvio.vastuuhenkilo?.id!!)
                     .get().user!!,
-                "vastuuhenkilonArvioHyvaksytty.html",
-                "email.vastuuhenkilonarviohyvaksytty.title",
+                templateName = "vastuuhenkilonArvioHyvaksytty.html",
+                titleKey = "email.vastuuhenkilonarviohyvaksytty.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()),
                     Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
@@ -106,8 +106,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(vastuuhenkilonArvio?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                         .get().user!!,
-                    "vastuuhenkilonArvioKuitattava.html",
-                    "email.vastuuhenkilonarviokuitattava.title",
+                    templateName = "vastuuhenkilonArvioKuitattava.html",
+                    titleKey = "email.vastuuhenkilonarviokuitattava.title",
                     properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
                 )
             }

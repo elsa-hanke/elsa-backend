@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
@@ -7,6 +8,8 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.periodLessThan
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.service.MailProperty
+import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.OpintotietodataPersistenceService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
@@ -36,9 +39,12 @@ class OpintotietodataPersistenceServiceImpl(
     private val erikoisalaRepository: ErikoisalaRepository,
     private val opintoopasRepository: OpintoopasRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
+    private val opintooikeusHerateRepository: OpintooikeusHerateRepository,
     private val asetusRepository: AsetusRepository,
     private val erikoisalaSisuTutkintoohjelmaRepository: ErikoisalaSisuTutkintoohjelmaRepository,
-    private val clock: Clock
+    private val clock: Clock,
+    private val mailService: MailService,
+    private val applicationProperties: ApplicationProperties
 ) : OpintotietodataPersistenceService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -49,95 +55,46 @@ class OpintotietodataPersistenceServiceImpl(
         hetu: String?,
         etunimi: String,
         sukunimi: String,
-        opintotietodataDTO: OpintotietodataDTO
+        opintotietodataDTOs: List<OpintotietodataDTO>
     ) {
-        val syntymaaika =
+        val syntymaaika = opintotietodataDTOs.first().let {
             checkSyntymaaikaValidDateExistsOrLogError(
-                opintotietodataDTO.syntymaaika,
-                opintotietodataDTO.yliopisto,
+                it.syntymaaika,
+                it.yliopisto,
                 etunimi,
                 sukunimi
             )
-                ?: return
+        } ?: return
         val erikoistuvaLaakari = createErikoistuvaLaakari(cipher, originalKey, hetu, etunimi, sukunimi, syntymaaika)
         val userId = erikoistuvaLaakari.kayttaja?.user?.id!!
-        val opiskelijatunnus = opintotietodataDTO.opiskelijatunnus
 
-        // Ei käsitellä opinto-oikeuksia, joiden päättymispäivä on menneisyydessä. Mahdollisesti puuttuva opinto-oikeuden
-        // päättymispäivä käsitellään samassa yhteydessä muiden tarkistusten kanssa.
-        opintotietodataDTO.opintooikeudet?.filter {
-            it.opintooikeudenPaattymispaiva == null || !it.opintooikeudenPaattymispaiva!!.isBefore(
-                LocalDate.now(clock)
-            )
+        flattenAndfilterOpintooikeudetByVoimassaDate(opintotietodataDTOs)?.let {
+            checkOpintooikeudetAmount(it, erikoistuvaLaakari, flattenYliopistot(opintotietodataDTOs))
         }
-            ?.forEach {
-                createOpintooikeus(it, opintotietodataDTO.yliopisto, userId, opiskelijatunnus, erikoistuvaLaakari)
+
+        opintotietodataDTOs.forEach { dto ->
+            filterOpintooikeudetByVoimassaDate(dto.opintooikeudet)?.forEach {
+                createOpintooikeus(it, dto.yliopisto, userId, dto.opiskelijatunnus, erikoistuvaLaakari)
             }
+        }
     }
 
     override fun createOrUpdateIfChanged(
-        userId: String, etunimi: String, sukunimi: String, opintotietodataDTO: OpintotietodataDTO
+        userId: String, etunimi: String, sukunimi: String, opintotietodataDTOs: List<OpintotietodataDTO>
     ) {
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
             ?: throw EntityNotFoundException("Erikoistuvaa lääkäriä ei löydy.")
 
         updateNimiIfChanged(erikoistuvaLaakari, etunimi, sukunimi)
 
-        opintotietodataDTO.opintooikeudet?.forEach { opintooikeusDTO ->
-            val opintooikeusId =
-                checkOpintooikeusIdValueExistsOrLogError(opintooikeusDTO.id, opintotietodataDTO.yliopisto, userId)
-                    ?: return@forEach
-            val yliopisto = findYliopistoOrLogError(opintotietodataDTO.yliopisto) ?: return@forEach
-            val erikoisala = findErikoisalaOrLogError(
-                opintooikeusDTO.erikoisalaTunniste,
-                opintotietodataDTO.yliopisto,
-                userId
-            ) ?: return@forEach
+        flattenAndfilterOpintooikeudetByVoimassaDate(opintotietodataDTOs)?.let {
+            checkOpintooikeudetAmount(it, erikoistuvaLaakari, flattenYliopistot(opintotietodataDTOs))
+        }
 
-            findExistingOpintooikeus(
-                opintooikeusId,
-                erikoistuvaLaakari.id!!,
-                yliopisto.id!!,
-                erikoisala.id!!
-            )?.also { opintooikeus ->
-                val opintooikeudenTila = checkOpintooikeudenTilaValueExistsOrLogError(
-                    opintooikeusDTO.tila, opintotietodataDTO.yliopisto, userId
-                ) ?: return@forEach
-                val asetusStr =
-                    checkAsetusValueExistsOrLogError(opintooikeusDTO.asetus, opintotietodataDTO.yliopisto, userId)
-                        ?: return@forEach
-
-                opintooikeusId.takeIf { opintooikeus.yliopistoOpintooikeusId == null }
-                    ?.let { opintooikeus.yliopistoOpintooikeusId = it }
-
-                opintooikeusDTO.opintooikeudenPaattymispaiva?.takeIf { it != opintooikeus.opintooikeudenPaattymispaiva }
-                    ?.let {
-                        opintooikeus.opintooikeudenPaattymispaiva = it
-                    }
-
-                opintooikeudenTila.takeIf { it != opintooikeus.tila }?.let {
-                    opintooikeus.tila = it
-                }
-
-                asetusStr.takeIf { it != opintooikeus.asetus?.nimi }?.let {
-                    findAsetusOrLogError(it, opintotietodataDTO.yliopisto, userId)?.let { asetus ->
-                        opintooikeus.asetus = asetus
-                        handleAsetusUpdated(
-                            opintooikeus,
-                            opintooikeusDTO.opintooikeudenPaattymispaiva,
-                            opintotietodataDTO.yliopisto,
-                            userId
-                        )
-                    } ?: return
-                }
-                opintooikeus.muokkausaika = Instant.now()
-            } ?: createOpintooikeus(
-                opintooikeusDTO,
-                opintotietodataDTO.yliopisto,
-                userId,
-                opintotietodataDTO.opiskelijatunnus,
-                erikoistuvaLaakari
-            )
+        opintotietodataDTOs.forEach { dto ->
+            filterOpintooikeudetByVoimassaDate(dto.opintooikeudet)?.forEach {
+                createOrUpdateOpintooikeus(it, dto.yliopisto, userId, dto.opiskelijatunnus, erikoistuvaLaakari)
+            }
         }
     }
 
@@ -169,6 +126,65 @@ class OpintotietodataPersistenceServiceImpl(
 
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+    }
+
+    private fun flattenAndfilterOpintooikeudetByVoimassaDate(opintotietodataDTOs: List<OpintotietodataDTO>): List<OpintotietoOpintooikeusDataDTO>? =
+        opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten().let {
+            filterOpintooikeudetByVoimassaDate(it)
+        }
+
+    private fun filterOpintooikeudetByVoimassaDate(opintooikeudet: List<OpintotietoOpintooikeusDataDTO>?):
+        List<OpintotietoOpintooikeusDataDTO>? =
+        opintooikeudet?.filter {
+            it.opintooikeudenPaattymispaiva == null || !it.opintooikeudenPaattymispaiva!!.isBefore(
+                LocalDate.now(clock)
+            )
+        }
+
+    private fun flattenYliopistot(opintotietodataDTOs: List<OpintotietodataDTO>): List<YliopistoEnum> =
+        opintotietodataDTOs.map { it.yliopisto }
+
+    private fun checkOpintooikeudetAmount(
+        opintooikeudetVoimassa: List<OpintotietoOpintooikeusDataDTO>?,
+        erikoistuvaLaakari: ErikoistuvaLaakari,
+        yliopistot: List<YliopistoEnum>
+    ) {
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        var opintooikeusHerate: OpintooikeusHerate? = null
+        opintooikeudetVoimassa?.takeIf { it.size > 2 }?.takeIf {
+            opintooikeusHerate = opintooikeusHerateRepository.findOneByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusHerate?.useaVoimassaolevaHerateLahetetty == null
+        }?.let {
+            mailService.sendEmailFromTemplate(
+                user,
+                getOpintohallintoEmailAddresses(yliopistot),
+                "useaOpintooikeus.html",
+                "useaopintooikeus.title",
+                properties = mapOf(
+                    Pair(MailProperty.NAME, user.firstName + " " + user.lastName)
+                )
+            )
+
+            opintooikeusHerate ?: OpintooikeusHerate(
+                erikoistuvaLaakari = erikoistuvaLaakari
+            ).apply {
+                useaVoimassaolevaHerateLahetetty = Instant.now()
+            }.let { opintooikeusHerateRepository.save(it) }
+        }
+    }
+
+    private fun getOpintohallintoEmailAddresses(yliopistot: List<YliopistoEnum>): Array<String> {
+        return yliopistot.mapNotNull { getOpintohallintoEmailAddress(it) }.toTypedArray()
+    }
+
+    private fun getOpintohallintoEmailAddress(yliopisto: YliopistoEnum): String? {
+        return when (yliopisto) {
+            YliopistoEnum.OULUN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().oulu
+            YliopistoEnum.TAMPEREEN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().tre
+            YliopistoEnum.TURUN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().turku
+            YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().uef
+            else -> null
+        }
     }
 
     private fun createErikoistuvaLaakari(
@@ -253,6 +269,69 @@ class OpintotietodataPersistenceServiceImpl(
 
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+    }
+
+    private fun createOrUpdateOpintooikeus(
+        opintooikeusDTO: OpintotietoOpintooikeusDataDTO,
+        yliopistoEnum: YliopistoEnum,
+        userId: String,
+        opiskelijatunnus: String?,
+        erikoistuvaLaakari: ErikoistuvaLaakari
+    ) {
+        val opintooikeusId =
+            checkOpintooikeusIdValueExistsOrLogError(opintooikeusDTO.id, yliopistoEnum, userId)
+                ?: return
+        val yliopisto = findYliopistoOrLogError(yliopistoEnum) ?: return
+        val erikoisala = findErikoisalaOrLogError(
+            opintooikeusDTO.erikoisalaTunniste,
+            yliopistoEnum,
+            userId
+        ) ?: return
+
+        findExistingOpintooikeus(
+            opintooikeusId,
+            erikoistuvaLaakari.id!!,
+            yliopisto.id!!,
+            erikoisala.id!!
+        )?.also { opintooikeus ->
+            val opintooikeudenTila = checkOpintooikeudenTilaValueExistsOrLogError(
+                opintooikeusDTO.tila, yliopistoEnum, userId
+            ) ?: return
+            val asetusStr =
+                checkAsetusValueExistsOrLogError(opintooikeusDTO.asetus, yliopistoEnum, userId)
+                    ?: return
+
+            opintooikeusId.takeIf { opintooikeus.yliopistoOpintooikeusId == null }
+                ?.let { opintooikeus.yliopistoOpintooikeusId = it }
+
+            opintooikeusDTO.opintooikeudenPaattymispaiva?.takeIf { it != opintooikeus.opintooikeudenPaattymispaiva }
+                ?.let {
+                    opintooikeus.opintooikeudenPaattymispaiva = it
+                }
+
+            opintooikeudenTila.takeIf { it != opintooikeus.tila }?.let {
+                opintooikeus.tila = it
+            }
+
+            asetusStr.takeIf { it != opintooikeus.asetus?.nimi }?.let {
+                findAsetusOrLogError(it, yliopistoEnum, userId)?.let { asetus ->
+                    opintooikeus.asetus = asetus
+                    handleAsetusUpdated(
+                        opintooikeus,
+                        opintooikeusDTO.opintooikeudenPaattymispaiva,
+                        yliopistoEnum,
+                        userId
+                    )
+                } ?: return
+            }
+            opintooikeus.muokkausaika = Instant.now()
+        } ?: createOpintooikeus(
+            opintooikeusDTO,
+            yliopistoEnum,
+            userId,
+            opiskelijatunnus,
+            erikoistuvaLaakari
+        )
     }
 
     private fun findExistingOpintooikeus(

@@ -81,8 +81,8 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                 val token = verificationTokenService.save(result.userId!!)
                 mailService.sendEmailFromTemplate(
                     User(email = uusiLahikouluttajaDTO.sahkoposti),
-                    "uusiKouluttaja.html",
-                    "email.uusikouluttaja.title",
+                    templateName = "uusiKouluttaja.html",
+                    titleKey = "email.uusikouluttaja.title",
                     properties = mapOf(
                         Pair(MailProperty.ID, token),
                         Pair(MailProperty.NAME, user.firstName + " " + user.lastName)

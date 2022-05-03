@@ -14,6 +14,7 @@ class ApplicationProperties {
     private val security = Security()
     private val feedback = Feedback()
     private val sarakesign = Sarakesign()
+    private val opintohallintoemail = Opintohallintoemail()
 
     fun getCsrf(): Csrf {
         return csrf
@@ -29,6 +30,10 @@ class ApplicationProperties {
 
     fun getSarakesign(): Sarakesign {
         return sarakesign
+    }
+
+    fun getOpintohallintoemail(): Opintohallintoemail {
+        return opintohallintoemail
     }
 
     class Csrf {
@@ -147,4 +152,11 @@ class ApplicationProperties {
             var requestTemplateId: String? = null
         }
     }
-}
+
+    class Opintohallintoemail {
+        var oulu: String? = null
+        var tre: String? = null
+        var turku: String? = null
+        var uef: String? = null
+    }
+ }
