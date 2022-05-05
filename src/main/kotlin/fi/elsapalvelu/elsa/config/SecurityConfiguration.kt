@@ -161,9 +161,14 @@ class SecurityConfiguration(
             .antMatchers("/api/haka-yliopistot").permitAll()
             .antMatchers("/api/julkinen/**").permitAll()
             .antMatchers("/api/auth-info").denyAll()
-            .antMatchers("/api/login/impersonate").hasAnyAuthority(VASTUUHENKILO, KOULUTTAJA, OPINTOHALLINNON_VIRKAILIJA)
+            .antMatchers("/api/login/impersonate")
+            .hasAnyAuthority(VASTUUHENKILO, KOULUTTAJA, OPINTOHALLINNON_VIRKAILIJA)
             .antMatchers(HttpMethod.GET, "/api/erikoistuva-laakari/**")
-            .hasAnyAuthority(ERIKOISTUVA_LAAKARI, ERIKOISTUVA_LAAKARI_IMPERSONATED, ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
+            .hasAnyAuthority(
+                ERIKOISTUVA_LAAKARI,
+                ERIKOISTUVA_LAAKARI_IMPERSONATED,
+                ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+            )
             .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
             .antMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
             .antMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
@@ -348,13 +353,11 @@ class SecurityConfiguration(
                             }
                         }
 
-                    deferreds.awaitAll().map {
-                        it?.let {
-                            opintotietodataPersistenceService.create(cipher, originalKey, hetu, firstName, lastName, it)
-                        }
+                    deferreds.awaitAll().filterNotNull().let {
+                        opintotietodataPersistenceService.create(cipher, originalKey, hetu, firstName, lastName, it)
                     }
                 } catch (ex: Exception) {
-                     log.error("Virhe opintotietodatan haussa tai tallentamisessa: ${ex.message} ${ex.stackTrace}")
+                    log.error("Virhe opintotietodatan haussa tai tallentamisessa: ${ex.message} ${ex.stackTrace}")
                 }
             }
         }
@@ -376,10 +379,8 @@ class SecurityConfiguration(
                             }
                         }
 
-                    deferreds.awaitAll().map {
-                        it?.let {
-                            opintotietodataPersistenceService.createOrUpdateIfChanged(userId, firstName, lastName, it)
-                        }
+                    deferreds.awaitAll().filterNotNull().let {
+                        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, firstName, lastName, it)
                     }
                 } catch (ex: Exception) {
                     log.error("Virhe opintotietodatan haussa tai päivittämisessä: ${ex.message} ${ex.stackTrace}")

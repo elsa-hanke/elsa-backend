@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.time.LocalDate
 
 @Service
 @Transactional
@@ -51,12 +52,14 @@ class OpintosuorituksetPersistenceServiceImpl(
             }
         }?.forEach opintosuoritukset@{ opintosuoritusDTO ->
             checkNimiExistsOrLogError(opintosuoritusDTO, userId) ?: return@opintosuoritukset
+            checkSuorituspaivaValidOrLogError(opintosuoritusDTO, userId) ?: return@opintosuoritukset
             checkOpintooikeusIdExistsOrLogError(opintosuoritusDTO, userId) ?: return@opintosuoritukset
             checkArvioExistsOrLogError(opintosuoritusDTO, userId) ?: return@opintosuoritukset
 
             opintosuoritusDTO.osakokonaisuudet?.forEach { osakokonaisuusDTO ->
                 checkKurssikoodiForOsakokonaisuusExistsOrLogError(osakokonaisuusDTO, userId) ?: return@opintosuoritukset
                 checkNimiForOsakokonaisuusExistsOrLogError(osakokonaisuusDTO, userId) ?: return@opintosuoritukset
+                checkSuorituspaivaForOsakokonaisuusValidOrLogError(osakokonaisuusDTO, userId) ?: return@opintosuoritukset
                 checkArvioForOsakokonaisuusExistsOrLogError(osakokonaisuusDTO, userId) ?: return@opintosuoritukset
             }
 
@@ -243,7 +246,7 @@ class OpintosuorituksetPersistenceServiceImpl(
     // Vähintään suomenkielinen nimi opintosuoritukselle täytyy löytyä.
     private fun checkNimiExistsOrLogError(
         opintosuoritusDTO: OpintosuoritusDTO,
-        userId: String,
+        userId: String
     ): String? = opintosuoritusDTO.nimi_fi ?: run {
         log.error(
             "${javaClass.name}: user id: $userId. Nimeä (fi) ei ole asetettu" +
@@ -251,6 +254,18 @@ class OpintosuorituksetPersistenceServiceImpl(
         )
         return null
     }
+
+    private fun checkSuorituspaivaValidOrLogError(
+        opintosuoritusDTO: OpintosuoritusDTO,
+        userId: String
+    ): LocalDate? = opintosuoritusDTO.suorituspaiva ?: run {
+        log.error(
+            "${javaClass.name}: user id: $userId. Kelvollista suorituspäivämäärää ei ole asetettu" +
+                " opintosuoritukselle $opintosuoritusDTO"
+        )
+        return null
+    }
+
 
     // Vähintään suomenkielinen nimi osakokonaisuudelle täytyy löytyä.
     private fun checkNimiForOsakokonaisuusExistsOrLogError(
@@ -260,6 +275,17 @@ class OpintosuorituksetPersistenceServiceImpl(
         log.error(
             "${javaClass.name}: user id: $userId. Nimeä (fi) ei ole asetettu opintosuorituksen" +
                 " osakokonaisuudelle $osakokonaisuusDTO"
+        )
+        return null
+    }
+
+    private fun checkSuorituspaivaForOsakokonaisuusValidOrLogError(
+        osakokonaisuusDTO: OpintosuoritusOsakokonaisuusDTO,
+        userId: String
+    ): LocalDate? = osakokonaisuusDTO.suorituspaiva ?: run {
+        log.error(
+            "${javaClass.name}: user id: $userId. Kelvollista suorituspäivämäärää ei ole asetettu" +
+                " opintosuorituksen osakokonaisuudelle $osakokonaisuusDTO"
         )
         return null
     }

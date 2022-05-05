@@ -12,7 +12,7 @@ interface OpintotietodataPersistenceService {
         hetu: String?,
         etunimi: String,
         sukunimi: String,
-        opintotietodataDTO: OpintotietodataDTO
+        opintotietodataDTOs: List<OpintotietodataDTO>
     )
 
     fun createWithoutOpintotietodata(
@@ -27,6 +27,6 @@ interface OpintotietodataPersistenceService {
         userId: String,
         etunimi: String,
         sukunimi: String,
-        opintotietodataDTO: OpintotietodataDTO
+        opintotietodataDTOs: List<OpintotietodataDTO>
     )
 }

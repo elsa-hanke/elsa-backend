@@ -1,8 +1,11 @@
 package fi.elsapalvelu.elsa.extensions
 
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
+
+private val log = LoggerFactory.getLogger("LocalDateExtensions")
 
 fun LocalDate.duringYears(endDate: LocalDate): List<Int> {
     return (this.year..endDate.year).toList()
@@ -31,4 +34,15 @@ fun Int.startOfYearDate(): LocalDate {
 fun Int.endOfYearDate(): LocalDate {
     return YearMonth.of(this, 12).atEndOfMonth()
 }
+
+fun String.tryParse(): LocalDate? {
+    return try {
+        LocalDate.parse(this)
+    }
+    catch(ex: Exception) {
+        log.warn("$this ei ole kelvollinen päivämäärä." )
+        null
+    }
+}
+
 

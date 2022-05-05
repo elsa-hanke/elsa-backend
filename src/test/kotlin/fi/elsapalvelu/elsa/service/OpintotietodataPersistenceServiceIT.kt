@@ -17,6 +17,7 @@ import fi.elsapalvelu.elsa.web.rest.helpers.OpintoopasHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -158,13 +159,18 @@ class OpintotietodataPersistenceServiceIT {
     @Transactional
     fun shouldPersistOpintotietodata(yliopisto: YliopistoEnum) {
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData())
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto))
         )
 
-        opintotietodataPersistenceService.create(cipher, originalKey, hetu, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO)
+        )
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
@@ -199,13 +205,18 @@ class OpintotietodataPersistenceServiceIT {
     @Transactional
     fun shouldPersistOpintotietodataWithMultipleOpintooikeus(yliopisto: YliopistoEnum) {
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData(), createSecondOpintooikeusData())
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto), createSecondOpintooikeusData(yliopisto))
         )
 
-        opintotietodataPersistenceService.create(cipher, originalKey, hetu, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO)
+        )
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
@@ -250,18 +261,116 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(secondOpintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
     }
 
+    @Test
+    @Transactional
+    fun shouldPersistOpintotietodataWithMultipleYliopisto() {
+        val opintotietodataDTO = OpintotietodataDTO(
+            syntymaaika,
+            opintooikeudet = listOf(createOpintooikeusData(YliopistoEnum.HELSINGIN_YLIOPISTO))
+        )
+
+        val opintotietodataDTO2 = OpintotietodataDTO(
+            syntymaaika,
+            opintooikeudet = listOf(createSecondOpintooikeusData(YliopistoEnum.TAMPEREEN_YLIOPISTO))
+        )
+
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO, opintotietodataDTO2)
+        )
+
+        val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
+        assertNotNull(existingUser)
+        assertUserProperties(existingUser)
+
+        val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(existingUser.id!!)
+        assertThat(opintooikeudet).size().isEqualTo(2)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(existingUser.id!!)
+        assertThat(erikoistuvaLaakari?.syntymaaika).isEqualTo(syntymaaika)
+
+        val firstOpintooikeus = opintooikeudet[0]
+        assertThat(firstOpintooikeus.erikoistuvaLaakari).isNotNull
+        assertThat(firstOpintooikeus.erikoistuvaLaakari!!.id).isEqualTo(erikoistuvaLaakari!!.id)
+        assertThat(firstOpintooikeus.yliopistoOpintooikeusId).isEqualTo(opintooikeusId)
+        assertThat(firstOpintooikeus.yliopisto?.nimi).isEqualTo(YliopistoEnum.HELSINGIN_YLIOPISTO)
+        assertThat(firstOpintooikeus.opiskelijatunnus).isEqualTo(opiskelijatunnus)
+        assertThat(firstOpintooikeus.erikoisala).isEqualTo(erikoisala)
+        assertThat(firstOpintooikeus.opintooikeudenMyontamispaiva).isEqualTo(defaultOpintooikeudenMyontamispaiva)
+        assertThat(firstOpintooikeus.opintooikeudenPaattymispaiva).isEqualTo(defaultOpintooikeudenPaattymispaiva)
+        assertThat(firstOpintooikeus.asetus).isEqualTo(asetus)
+        assertThat(firstOpintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultOpintopasVoimassaoloAlkaa)
+        assertThat(firstOpintooikeus.opintoopas?.voimassaoloPaattyy).isEqualTo(defaultOpintopasVoimassaoloPaattyy)
+        assertThat(firstOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(defaultOpintooikeudenMyontamispaiva)
+        assertThat(firstOpintooikeus.kaytossa).isEqualTo(false)
+        assertThat(firstOpintooikeus.muokkausaika).isNotNull
+        assertThat(firstOpintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
+
+        val secondOpintooikeus = opintooikeudet[1]
+        assertThat(secondOpintooikeus.yliopistoOpintooikeusId).isEqualTo(secondOpintooikeusId)
+        assertThat(secondOpintooikeus.yliopisto?.nimi).isEqualTo(YliopistoEnum.TAMPEREEN_YLIOPISTO)
+        assertThat(secondOpintooikeus.opiskelijatunnus).isEqualTo(opiskelijatunnus)
+        assertThat(secondOpintooikeus.erikoisala).isEqualTo(secondErikoisala)
+        assertThat(secondOpintooikeus.opintooikeudenMyontamispaiva).isEqualTo(defaultSecondOpintooikeudenMyontamispaiva)
+        assertThat(secondOpintooikeus.opintooikeudenPaattymispaiva).isEqualTo(defaultSecondOpintooikeudenPaattymispaiva)
+        assertThat(secondOpintooikeus.asetus).isEqualTo(secondAsetus)
+        assertThat(secondOpintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
+        assertThat(secondOpintooikeus.opintoopas?.voimassaoloPaattyy).isNull()
+        assertThat(secondOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(defaultSecondOpintooikeudenMyontamispaiva)
+        assertThat(secondOpintooikeus.kaytossa).isEqualTo(true)
+        assertThat(secondOpintooikeus.muokkausaika).isNotNull
+        assertThat(secondOpintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
+    }
+
+    @Test
+    @Transactional
+    fun shouldUseFirstValidSyntymaaikaIfOpintooikeusExistsInMultipleYliopistot() {
+        val opintotietodataDTO = OpintotietodataDTO(
+            null,
+            opintooikeudet = listOf(createOpintooikeusData(YliopistoEnum.HELSINGIN_YLIOPISTO))
+        )
+
+        val opintotietodataDTO2 = OpintotietodataDTO(
+            syntymaaika,
+            opintooikeudet = listOf(createOpintooikeusData(YliopistoEnum.TAMPEREEN_YLIOPISTO))
+        )
+
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO, opintotietodataDTO2)
+        )
+
+        val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(existingUser?.id!!)
+        assertThat(erikoistuvaLaakari?.syntymaaika).isEqualTo(syntymaaika)
+    }
+
     @ParameterizedTest
     @EnumSource(YliopistoEnum::class)
     @Transactional
     fun shouldNotPersistOpintotietodataWithMissingOpintooikeusId(yliopisto: YliopistoEnum) {
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData().apply { id = null })
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply { id = null })
         )
 
-        opintotietodataPersistenceService.create(cipher, originalKey, hetu, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO)
+        )
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
@@ -276,13 +385,18 @@ class OpintotietodataPersistenceServiceIT {
     @Transactional
     fun shouldNotPersistOpintotietodataWithMissingAsetus(yliopisto: YliopistoEnum) {
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData().apply { asetus = null })
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply { asetus = null })
         )
 
-        opintotietodataPersistenceService.create(cipher, originalKey, hetu, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO)
+        )
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
@@ -297,13 +411,18 @@ class OpintotietodataPersistenceServiceIT {
     @Transactional
     fun shouldNotPersistOpintotietodataWithMissingErikoisalaTunniste(yliopisto: YliopistoEnum) {
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData().apply { erikoisalaTunniste = null })
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply { erikoisalaTunniste = null })
         )
 
-        opintotietodataPersistenceService.create(cipher, originalKey, hetu, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO)
+        )
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
@@ -318,13 +437,18 @@ class OpintotietodataPersistenceServiceIT {
     @Transactional
     fun shouldNotPersistOpintotietodataWithMissingOpintooikeudenAlkamispaiva(yliopisto: YliopistoEnum) {
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData().apply { opintooikeudenAlkamispaiva = null })
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply { opintooikeudenAlkamispaiva = null })
         )
 
-        opintotietodataPersistenceService.create(cipher, originalKey, hetu, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO)
+        )
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
@@ -339,13 +463,18 @@ class OpintotietodataPersistenceServiceIT {
     @Transactional
     fun shouldNotPersistOpintotietodataWithMissingOpintooikeudenPaattymispaiva(yliopisto: YliopistoEnum) {
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData().apply { opintooikeudenPaattymispaiva = null })
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply { opintooikeudenPaattymispaiva = null })
         )
 
-        opintotietodataPersistenceService.create(cipher, originalKey, hetu, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO)
+        )
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
@@ -360,13 +489,18 @@ class OpintotietodataPersistenceServiceIT {
     @Transactional
     fun shouldNotPersistOpintotietodataWithMissingOpintooikeudenTila(yliopisto: YliopistoEnum) {
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData().apply { tila = null })
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply { tila = null })
         )
 
-        opintotietodataPersistenceService.create(cipher, originalKey, hetu, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO)
+        )
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
@@ -384,11 +518,9 @@ class OpintotietodataPersistenceServiceIT {
         val newOpintooikeudenPaattymispaiva = defaultOpintooikeudenPaattymispaiva.plusYears(10)
 
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
             opintooikeudet = listOf(
-                createOpintooikeusData().apply {
+                createOpintooikeusData(yliopisto).apply {
                     opintooikeudenPaattymispaiva = newOpintooikeudenPaattymispaiva
                 }
             )
@@ -398,7 +530,7 @@ class OpintotietodataPersistenceServiceIT {
             opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         assertThat(opintooikeudet).size().isEqualTo(1)
 
-        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, listOf(opintotietodataDTO))
 
         opintooikeudet =
             opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
@@ -426,10 +558,8 @@ class OpintotietodataPersistenceServiceIT {
         val newOpintooikeudenPaattymispaiva = defaultOpintooikeudenPaattymispaiva.plusYears(10)
 
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData().apply {
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply {
                 tila = OpintooikeudenTila.PASSIIVINEN
                 opintooikeudenPaattymispaiva = newOpintooikeudenPaattymispaiva
             })
@@ -439,7 +569,7 @@ class OpintotietodataPersistenceServiceIT {
             opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         assertThat(opintooikeudet).size().isEqualTo(1)
 
-        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, listOf(opintotietodataDTO))
 
         opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         assertThat(opintooikeudet).size().isEqualTo(1)
@@ -467,10 +597,8 @@ class OpintotietodataPersistenceServiceIT {
         )
 
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData().apply {
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply {
                 opintooikeudenPaattymispaiva = paattymispaivaForTemporaryOpintooikeus
             })
         )
@@ -479,7 +607,7 @@ class OpintotietodataPersistenceServiceIT {
             opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         assertThat(opintooikeudet).size().isEqualTo(1)
 
-        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, listOf(opintotietodataDTO))
 
         opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         assertThat(opintooikeudet).size().isEqualTo(1)
@@ -498,10 +626,8 @@ class OpintotietodataPersistenceServiceIT {
         val userId = initUserWithOpintooikeus(opintooikeusId = opintooikeusId, yliopistoEnum = yliopisto)
 
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData().apply {
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply {
                 opintooikeudenPaattymispaiva = null
             })
         )
@@ -510,7 +636,7 @@ class OpintotietodataPersistenceServiceIT {
             opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         assertThat(opintooikeudet).size().isEqualTo(1)
 
-        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, listOf(opintotietodataDTO))
 
         opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         assertThat(opintooikeudet).size().isEqualTo(1)
@@ -529,17 +655,15 @@ class OpintotietodataPersistenceServiceIT {
         val userId = initUserWithOpintooikeus(yliopistoEnum = yliopisto)
 
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createSecondOpintooikeusData())
+            opintooikeudet = listOf(createSecondOpintooikeusData(yliopisto))
         )
 
         var opintooikeudet =
             opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         assertThat(opintooikeudet).size().isEqualTo(1)
 
-        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, listOf(opintotietodataDTO))
 
         opintooikeudet =
             opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
@@ -565,13 +689,11 @@ class OpintotietodataPersistenceServiceIT {
         val userId = initUserWithOpintooikeus(opintooikeusId = opintooikeusId, yliopistoEnum = yliopisto)
 
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createSecondOpintooikeusData().apply { tila = null })
+            opintooikeudet = listOf(createSecondOpintooikeusData(yliopisto).apply { tila = null })
         )
 
-        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, listOf(opintotietodataDTO))
 
         val opintooikeudet =
             opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
@@ -588,13 +710,11 @@ class OpintotietodataPersistenceServiceIT {
         val userId = initUserWithOpintooikeus(opintooikeusId = opintooikeusId, yliopistoEnum = yliopisto)
 
         val opintotietodataDTO = OpintotietodataDTO(
-            yliopisto,
-            opiskelijatunnus,
             syntymaaika,
-            opintooikeudet = listOf(createSecondOpintooikeusData().apply { asetus = null })
+            opintooikeudet = listOf(createSecondOpintooikeusData(yliopisto).apply { asetus = null })
         )
 
-        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, opintotietodataDTO)
+        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, listOf(opintotietodataDTO))
 
         val opintooikeudet =
             opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
@@ -667,7 +787,7 @@ class OpintotietodataPersistenceServiceIT {
 
         private const val opiskelijatunnus = "123456"
 
-        private const val syntymaaika = "1980-01-01"
+        private val syntymaaika = LocalDate.ofEpochDay(0L)
 
         private const val opintooikeusId = "int-test-1"
 
@@ -696,28 +816,31 @@ class OpintotietodataPersistenceServiceIT {
         private const val secondTutkintoohjelmaId = "int-test-DP-2"
 
         @JvmStatic
-        fun createOpintooikeusData(): OpintotietoOpintooikeusDataDTO {
+        fun createOpintooikeusData(yliopisto: YliopistoEnum): OpintotietoOpintooikeusDataDTO {
             return OpintotietoOpintooikeusDataDTO(
                 opintooikeusId,
                 defaultOpintooikeudenMyontamispaiva,
                 defaultOpintooikeudenPaattymispaiva,
                 asetusNimi,
                 tutkintoohjelmaId,
-                OpintooikeudenTila.AKTIIVINEN
+                OpintooikeudenTila.AKTIIVINEN,
+                yliopisto,
+                opiskelijatunnus
             )
         }
 
         @JvmStatic
-        fun createSecondOpintooikeusData(): OpintotietoOpintooikeusDataDTO {
+        fun createSecondOpintooikeusData(yliopisto: YliopistoEnum): OpintotietoOpintooikeusDataDTO {
             return OpintotietoOpintooikeusDataDTO(
                 secondOpintooikeusId,
                 defaultSecondOpintooikeudenMyontamispaiva,
                 defaultSecondOpintooikeudenPaattymispaiva,
                 secondAsetusNimi,
                 secondTutkintoohjelmaId,
-                OpintooikeudenTila.AKTIIVINEN
+                OpintooikeudenTila.AKTIIVINEN,
+                yliopisto,
+                opiskelijatunnus
             )
         }
     }
-
 }

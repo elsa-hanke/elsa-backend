@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
 import java.time.LocalDate
-import javax.validation.constraints.NotNull
 
 data class OpintosuoritusOsakokonaisuusDTO(
 
@@ -14,8 +13,7 @@ data class OpintosuoritusOsakokonaisuusDTO(
 
     var kurssikoodi: String? = null,
 
-    @get: NotNull
-    var suorituspaiva: LocalDate,
+    var suorituspaiva: LocalDate? = null,
 
     var opintopisteet: Double? = null,
 
