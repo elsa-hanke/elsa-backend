@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.impl
 
 import com.itextpdf.html2pdf.HtmlConverter
 import com.itextpdf.kernel.pdf.PdfWriter
-import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
@@ -74,8 +73,8 @@ class KoejaksonKoulutussopimusServiceImpl(
                 koulutussopimus.kouluttajat?.forEach {
                     mailService.sendEmailFromTemplate(
                         kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
-                        "koulutussopimusKouluttajalle.html",
-                        "email.koulutussopimuskouluttajalle.title",
+                        templateName = "koulutussopimusKouluttajalle.html",
+                        titleKey = "email.koulutussopimuskouluttajalle.title",
                         properties = mapOf(Pair(MailProperty.ID, koulutussopimus.id!!.toString()))
                     )
                 }
@@ -180,8 +179,8 @@ class KoejaksonKoulutussopimusServiceImpl(
             result.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
-                    "koulutussopimusKouluttajalle.html",
-                    "email.koulutussopimuskouluttajalle.title",
+                    templateName = "koulutussopimusKouluttajalle.html",
+                    titleKey = "email.koulutussopimuskouluttajalle.title",
                     properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
                 )
             }
@@ -223,8 +222,8 @@ class KoejaksonKoulutussopimusServiceImpl(
         if (result.kouluttajat?.all { it.sopimusHyvaksytty } == true) {
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.vastuuhenkilo?.id!!).get().user!!,
-                "koulutussopimusVastuuhenkilolle.html",
-                "email.koulutussopimusvastuuhenkilolle.title",
+                templateName = "koulutussopimusVastuuhenkilolle.html",
+                titleKey = "email.koulutussopimusvastuuhenkilolle.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
         }
@@ -236,8 +235,8 @@ class KoejaksonKoulutussopimusServiceImpl(
                     .get().user!!
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
-                "koulutussopimusPalautettu.html",
-                "email.koulutussopimuspalautettu.title",
+                templateName = "koulutussopimusPalautettu.html",
+                titleKey = "email.koulutussopimuspalautettu.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
 
@@ -245,8 +244,8 @@ class KoejaksonKoulutussopimusServiceImpl(
                 if (it.id != kouluttaja.id) {
                     mailService.sendEmailFromTemplate(
                         kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
-                        "koulutussopimusPalautettuKouluttaja.html",
-                        "email.koulutussopimuspalautettu.title",
+                        templateName = "koulutussopimusPalautettuKouluttaja.html",
+                        titleKey = "email.koulutussopimuspalautettu.title",
                         properties = mapOf(
                             Pair(
                                 MailProperty.NAME,
@@ -292,16 +291,16 @@ class KoejaksonKoulutussopimusServiceImpl(
                     .get().user!!
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
-                "koulutussopimusHyvaksytty.html",
-                "email.koulutussopimushyvaksytty.title",
+                templateName = "koulutussopimusHyvaksytty.html",
+                titleKey = "email.koulutussopimushyvaksytty.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
 
             result.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
-                    "koulutussopimusHyvaksyttyKouluttaja.html",
-                    "email.koulutussopimushyvaksytty.title",
+                    templateName = "koulutussopimusHyvaksyttyKouluttaja.html",
+                    titleKey = "email.koulutussopimushyvaksytty.title",
                     properties = mapOf(
                         Pair(MailProperty.ID, result.id!!.toString()),
                         Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
@@ -317,16 +316,16 @@ class KoejaksonKoulutussopimusServiceImpl(
                     .get().user!!
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
-                "koulutussopimusPalautettu.html",
-                "email.koulutussopimuspalautettu.title",
+                templateName = "koulutussopimusPalautettu.html",
+                titleKey = "email.koulutussopimuspalautettu.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
 
             result.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
-                    "koulutussopimusPalautettuKouluttaja.html",
-                    "email.koulutussopimuspalautettu.title",
+                    templateName = "koulutussopimusPalautettuKouluttaja.html",
+                    titleKey = "email.koulutussopimuspalautettu.title",
                     properties = mapOf(
                         Pair(MailProperty.NAME, erikoistuvaLaakari.getName()),
                         Pair(MailProperty.TEXT, result.korjausehdotus!!)

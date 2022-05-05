@@ -105,8 +105,8 @@ class ErikoistuvaLaakariServiceImpl(
         val token = verificationTokenService.save(user.id!!)
         mailService.sendEmailFromTemplate(
             User(email = user.email),
-            "uusiErikoistuvaLaakari.html",
-            "email.uusierikoistuvalaakari.title",
+            templateName = "uusiErikoistuvaLaakari.html",
+            titleKey = "email.uusierikoistuvalaakari.title",
             properties = mapOf(
                 Pair(MailProperty.ID, token),
             )
@@ -172,8 +172,8 @@ class ErikoistuvaLaakariServiceImpl(
                 ?.let { token ->
                     mailService.sendEmailFromTemplate(
                         erikoistuvaLaakari.kayttaja?.user!!,
-                        "uusiErikoistuvaLaakari.html",
-                        "email.uusierikoistuvalaakari.title",
+                        templateName = "uusiErikoistuvaLaakari.html",
+                        titleKey = "email.uusierikoistuvalaakari.title",
                         properties = mapOf(
                             Pair(MailProperty.ID, token),
                         )

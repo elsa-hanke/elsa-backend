@@ -61,8 +61,8 @@ class SuoritusarvioinninKommenttiServiceImpl(
                     .get().user!!
             mailService.sendEmailFromTemplate(
                 user,
-                "suoritusarvioinninKommenttiEmail.html",
-                "email.suoritusarvioinninkommentti.title",
+                templateName = "suoritusarvioinninKommenttiEmail.html",
+                titleKey = "email.suoritusarvioinninkommentti.title",
                 properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
             )
             return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)

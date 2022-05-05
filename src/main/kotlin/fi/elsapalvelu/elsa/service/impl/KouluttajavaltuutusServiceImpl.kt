@@ -45,8 +45,8 @@ class KouluttajavaltuutusServiceImpl(
 
             mailService.sendEmailFromTemplate(
                 kouluttajavaltuutus.valtuutettu?.user!!,
-                "katseluoikeudet.html",
-                "email.katseluoikeudet.title",
+                templateName = "katseluoikeudet.html",
+                titleKey = "email.katseluoikeudet.title",
                 properties = mapOf(
                     Pair(
                         MailProperty.NAME,

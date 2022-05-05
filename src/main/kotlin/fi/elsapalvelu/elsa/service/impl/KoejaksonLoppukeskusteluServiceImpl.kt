@@ -41,8 +41,8 @@ class KoejaksonLoppukeskusteluServiceImpl(
             // Sähköposti kouluttajalle
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!).get().user!!,
-                "loppukeskusteluKouluttajalle.html",
-                "email.loppukeskustelukouluttajalle.title",
+                templateName = "loppukeskusteluKouluttajalle.html",
+                titleKey = "email.loppukeskustelukouluttajalle.title",
                 properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
             )
 
@@ -87,8 +87,8 @@ class KoejaksonLoppukeskusteluServiceImpl(
         // Sähköposti esimiehelle kouluttajan hyväksymästä loppukeskustelusta
         mailService.sendEmailFromTemplate(
             kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id!!).get().user!!,
-            "loppukeskusteluKuitattava.html",
-            "email.loppukeskustelukuitattava.title",
+            templateName = "loppukeskusteluKuitattava.html",
+            titleKey = "email.loppukeskustelukuitattava.title",
             properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
         )
 
@@ -119,8 +119,8 @@ class KoejaksonLoppukeskusteluServiceImpl(
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(loppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!,
-                "loppukeskusteluKuitattava.html",
-                "email.loppukeskustelukuitattava.title",
+                templateName = "loppukeskusteluKuitattava.html",
+                titleKey = "email.loppukeskustelukuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
             )
         }
@@ -129,8 +129,8 @@ class KoejaksonLoppukeskusteluServiceImpl(
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!)
                     .get().user!!,
-                "loppukeskusteluPalautettu.html",
-                "email.loppukeskustelupalautettu.title",
+                templateName = "loppukeskusteluPalautettu.html",
+                titleKey = "email.loppukeskustelupalautettu.title",
                 properties = mapOf(
                     Pair(
                         MailProperty.ID,

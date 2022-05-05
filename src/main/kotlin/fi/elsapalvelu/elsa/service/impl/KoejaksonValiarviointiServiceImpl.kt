@@ -43,8 +43,8 @@ class KoejaksonValiarviointiServiceImpl(
             // Sähköposti kouluttajalle
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(valiarvointi.lahikouluttaja?.id!!).get().user!!,
-                "valiarviointiKouluttajalle.html",
-                "email.valiarviointikouluttajalle.title",
+                templateName = "valiarviointiKouluttajalle.html",
+                titleKey = "email.valiarviointikouluttajalle.title",
                 properties = mapOf(Pair(MailProperty.ID, valiarvointi.id!!.toString()))
             )
 
@@ -93,8 +93,8 @@ class KoejaksonValiarviointiServiceImpl(
             // Sähköposti esimiehelle kouluttajan hyväksymästä väliarvioinnista
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
-                "valiarviointiKuitattava.html",
-                "email.valiarviointikuitattava.title",
+                templateName = "valiarviointiKuitattava.html",
+                titleKey = "email.valiarviointikuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
         }
@@ -125,8 +125,8 @@ class KoejaksonValiarviointiServiceImpl(
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!,
-                "valiarviointiKuitattava.html",
-                "email.valiarviointikuitattava.title",
+                templateName = "valiarviointiKuitattava.html",
+                titleKey = "email.valiarviointikuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
         }
@@ -135,8 +135,8 @@ class KoejaksonValiarviointiServiceImpl(
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.lahikouluttaja?.id!!)
                     .get().user!!,
-                "valiarviointiPalautettu.html",
-                "email.valiarviointipalautettu.title",
+                templateName = "valiarviointiPalautettu.html",
+                titleKey = "email.valiarviointipalautettu.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
         }
