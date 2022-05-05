@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220503112344" author="jhipster">
+        <createTable tableName="opintooikeus_herate">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="erikoistuva_laakari_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="usea_voimassaoleva_herate_lahetetty" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+            <column name="maaraaikainen_paattymassa_herate_lahetetty" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+            <column name="paattymassa_herate_lahetetty" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="erikoistuva_laakari_id"
+                                 baseTableName="opintooikeus_herate"
+                                 constraintName="fk_opintooikeus_herate_erikoistuva_laakari_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="erikoistuva_laakari"/>
+    </changeSet>
+
+</databaseChangeLog>

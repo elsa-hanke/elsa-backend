@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
@@ -7,6 +8,8 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.periodLessThan
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.service.MailProperty
+import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.OpintotietodataPersistenceService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
@@ -38,7 +41,10 @@ class OpintotietodataPersistenceServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val asetusRepository: AsetusRepository,
     private val erikoisalaSisuTutkintoohjelmaRepository: ErikoisalaSisuTutkintoohjelmaRepository,
-    private val clock: Clock
+    private val clock: Clock,
+    private val opintooikeusHerateRepository: OpintooikeusHerateRepository,
+    private val mailService: MailService,
+    private val applicationProperties: ApplicationProperties
 ) : OpintotietodataPersistenceService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -61,6 +67,8 @@ class OpintotietodataPersistenceServiceImpl(
         val filteredOpintotietodataOpintooikeudet =
             filterOpintooikeudetByVoimassaDate(opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten())
 
+        checkOpintooikeudetAmount(filteredOpintotietodataOpintooikeudet, erikoistuvaLaakari)
+
         filteredOpintotietodataOpintooikeudet.forEach {
             createOpintooikeus(it, userId, erikoistuvaLaakari)
         }
@@ -75,6 +83,9 @@ class OpintotietodataPersistenceServiceImpl(
         updateNimiIfChanged(erikoistuvaLaakari, etunimi, sukunimi)
 
         val opintotietodataOpintooikeudet = opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
+
+        checkOpintooikeudetAmount(filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet), erikoistuvaLaakari)
+
         val existingOpintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         val opintotietodataNewOpintooikeudet =
             opintotietodataOpintooikeudet.filter { o -> o.id !in existingOpintooikeudet.map { it.yliopistoOpintooikeusId } }
@@ -130,6 +141,49 @@ class OpintotietodataPersistenceServiceImpl(
                 LocalDate.now(clock)
             )
         }
+
+    private fun checkOpintooikeudetAmount(
+        opintooikeudet: List<OpintotietoOpintooikeusDataDTO>,
+        erikoistuvaLaakari: ErikoistuvaLaakari
+    ) {
+        val yliopistot = opintooikeudet.map { it.yliopisto }.toSet()
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        var opintooikeusHerate: OpintooikeusHerate? = null
+        opintooikeudet.takeIf { it.size > 2 }?.takeIf {
+            opintooikeusHerate = opintooikeusHerateRepository.findOneByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusHerate?.useaVoimassaolevaHerateLahetetty == null
+        }?.let {
+            mailService.sendEmailFromTemplate(
+                user,
+                getOpintohallintoEmailAddresses(yliopistot),
+                "useaOpintooikeus.html",
+                "useaopintooikeus.title",
+                properties = mapOf(
+                    Pair(MailProperty.NAME, user.firstName + " " + user.lastName)
+                )
+            )
+
+            opintooikeusHerate ?: OpintooikeusHerate(
+                erikoistuvaLaakari = erikoistuvaLaakari
+            ).apply {
+                useaVoimassaolevaHerateLahetetty = Instant.now()
+            }.let { opintooikeusHerateRepository.save(it) }
+        }
+    }
+
+    private fun getOpintohallintoEmailAddresses(yliopistot: Set<YliopistoEnum>): List<String> {
+        return yliopistot.mapNotNull { getOpintohallintoEmailAddress(it) }
+    }
+
+    private fun getOpintohallintoEmailAddress(yliopisto: YliopistoEnum): String? {
+        return when (yliopisto) {
+            YliopistoEnum.OULUN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().oulu
+            YliopistoEnum.TAMPEREEN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().tre
+            YliopistoEnum.TURUN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().turku
+            YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().uef
+            else -> null
+        }
+    }
 
     private fun createErikoistuvaLaakari(
         cipher: Cipher, originalKey: SecretKey, hetu: String?, etunimi: String, sukunimi: String, syntymaaika: LocalDate

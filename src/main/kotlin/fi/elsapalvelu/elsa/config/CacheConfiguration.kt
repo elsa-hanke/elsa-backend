@@ -137,6 +137,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Opintosuoritus::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Opintosuoritus::class.java.name + ".osakokonaisuudet")
             createCache(cm, fi.elsapalvelu.elsa.domain.OpintosuoritusOsakokonaisuus::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.OpintooikeusHerate::class.java.name)
         }
         // @formatter:on
     }
