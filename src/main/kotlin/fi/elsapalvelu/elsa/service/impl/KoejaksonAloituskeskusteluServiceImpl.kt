@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.domain.KoejaksonAloituskeskustelu
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
+import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
@@ -25,7 +26,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) : KoejaksonAloituskeskusteluService {
 
     override fun create(
@@ -47,6 +49,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
             }
 
             if (aloituskeskustelu.lahetetty) {
+                lisaaValtuutukset(aloituskeskustelu)
+
                 // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!)
@@ -121,6 +125,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
 
         // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
         if (result.lahetetty) {
+            lisaaValtuutukset(aloituskeskustelu)
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.lahikouluttaja?.id!!).get().user!!,
                 templateName = "aloituskeskusteluKouluttajalle.html",
@@ -239,6 +244,17 @@ class KoejaksonAloituskeskusteluServiceImpl(
         }
 
         return result
+    }
+
+    private fun lisaaValtuutukset(aloituskeskustelu: KoejaksonAloituskeskustelu) {
+        kouluttajavaltuutusService.lisaaValtuutus(
+            aloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+            aloituskeskustelu.lahikouluttaja?.id!!
+        )
+        kouluttajavaltuutusService.lisaaValtuutus(
+            aloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+            aloituskeskustelu.lahiesimies?.id!!
+        )
     }
 
     @Transactional(readOnly = true)

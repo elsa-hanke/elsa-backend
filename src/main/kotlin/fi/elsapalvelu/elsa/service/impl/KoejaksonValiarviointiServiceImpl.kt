@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.KoejaksonValiarviointiService
+import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonValiarviointiDTO
@@ -27,7 +28,8 @@ class KoejaksonValiarviointiServiceImpl(
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
-    private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository
+    private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) : KoejaksonValiarviointiService {
 
     override fun create(
@@ -35,20 +37,29 @@ class KoejaksonValiarviointiServiceImpl(
         opintooikeusId: Long
     ): KoejaksonValiarviointiDTO? {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
-            var valiarvointi =
+            var valiarviointi =
                 koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
-            valiarvointi.opintooikeus = it
-            valiarvointi = koejaksonValiarviointiRepository.save(valiarvointi)
+            valiarviointi.opintooikeus = it
+            valiarviointi = koejaksonValiarviointiRepository.save(valiarviointi)
+
+            kouluttajavaltuutusService.lisaaValtuutus(
+                valiarviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                valiarviointi.lahikouluttaja?.id!!
+            )
+            kouluttajavaltuutusService.lisaaValtuutus(
+                valiarviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                valiarviointi.lahiesimies?.id!!
+            )
 
             // Sähköposti kouluttajalle
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(valiarvointi.lahikouluttaja?.id!!).get().user!!,
+                kayttajaRepository.findById(valiarviointi.lahikouluttaja?.id!!).get().user!!,
                 templateName = "valiarviointiKouluttajalle.html",
                 titleKey = "email.valiarviointikouluttajalle.title",
-                properties = mapOf(Pair(MailProperty.ID, valiarvointi.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, valiarviointi.id!!.toString()))
             )
 
-            koejaksonValiarviointiMapper.toDto(valiarvointi)
+            koejaksonValiarviointiMapper.toDto(valiarviointi)
         }
     }
 

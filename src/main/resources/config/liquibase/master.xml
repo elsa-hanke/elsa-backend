@@ -202,5 +202,6 @@
     <include file="config/liquibase/changelog/20220405171933_modify_entity_KoejaksonLoppukeskustelu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220503112344_added_entity_OpintooikeusHerate.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220504132645_modify_entity_Kouluttajavaltuutus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220505094631_modify_entity_constraints_KouluttajaValtuutus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

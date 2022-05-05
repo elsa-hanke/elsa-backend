@@ -27,7 +27,8 @@ class SeurantajaksoServiceImpl(
     private val suoritemerkintaService: SuoritemerkintaService,
     private val koulutusjaksoService: KoulutusjaksoService,
     private val teoriakoulutusService: TeoriakoulutusService,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) : SeurantajaksoService {
 
     override fun create(
@@ -64,6 +65,11 @@ class SeurantajaksoServiceImpl(
                 koulutusjaksoRepository.saveAll(koulutusjaksot)
             }
 
+            kouluttajavaltuutusService.lisaaValtuutus(
+                opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                seurantajakso.kouluttaja?.id!!
+            )
+
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
                 templateName = "uusiSeurantajakso.html",
@@ -82,7 +88,7 @@ class SeurantajaksoServiceImpl(
         userId: String
     ): SeurantajaksoDTO {
         var seurantajakso =
-            seurantajaksoRepository. findById(seurantajaksoDTO.id!!)
+            seurantajaksoRepository.findById(seurantajaksoDTO.id!!)
                 .orElseThrow { EntityNotFoundException("Seurantajaksoa ei löydy") }
 
         val updatedSeurantajakso =
@@ -218,7 +224,11 @@ class SeurantajaksoServiceImpl(
         koulutusjaksot: List<Long>
     ): SeurantajaksonTiedotDTO {
         val arvioinnit =
-            suoritusarviointiService.findForSeurantajakso(opintooikeusId, alkamispaiva, paattymispaiva)
+            suoritusarviointiService.findForSeurantajakso(
+                opintooikeusId,
+                alkamispaiva,
+                paattymispaiva
+            )
         val arvioitavatKokonaisuudetMap = arvioinnit.groupBy { it.arvioitavaKokonaisuus }
         val arvioitavatKategoriatMap = arvioitavatKokonaisuudetMap.keys.groupBy { it?.kategoria }
         val kategoriat = arvioitavatKategoriatMap.map { (kategoria, kokonaisuudet) ->
@@ -234,13 +244,18 @@ class SeurantajaksoServiceImpl(
         }.sortedBy { it.jarjestysnumero }
 
         val suoritemerkinnat =
-            suoritemerkintaService.findForSeurantajakso(opintooikeusId, alkamispaiva, paattymispaiva)
+            suoritemerkintaService.findForSeurantajakso(
+                opintooikeusId,
+                alkamispaiva,
+                paattymispaiva
+            )
         val suoritteetMap = suoritemerkinnat.groupBy { it.suorite }
         val suoritteet = suoritteetMap.map { (tavoite, suoritemerkinnat) ->
             SeurantajaksonSuoritemerkintaDTO(tavoite?.nimi, suoritemerkinnat)
         }
 
-        val koulutusjaksotDTO = koulutusjaksoService.findForSeurantajakso(koulutusjaksot, opintooikeusId)
+        val koulutusjaksotDTO =
+            koulutusjaksoService.findForSeurantajakso(koulutusjaksot, opintooikeusId)
         val osaamistavoitteet =
             koulutusjaksotDTO.map { jakso -> jakso.osaamistavoitteet.map { it.nimi } }.flatten()
                 .distinct()
@@ -283,7 +298,8 @@ class SeurantajaksoServiceImpl(
                 properties = mapOf(
                     Pair(
                         MailProperty.NAME,
-                        seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName().toString()
+                        seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
+                            .toString()
                     )
                 )
             )
