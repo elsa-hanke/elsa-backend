@@ -20,6 +20,8 @@ enum class MailProperty(val property: String) {
     BASE_URL("baseUrl"),
     ID("id"),
     NAME("name"),
+    YLIOPISTO("yliopisto"),
+    ERIKOISALA("erikoisala"),
     TEXT("text"),
     DATE("date"),
     FEEDBACK("feedback"),

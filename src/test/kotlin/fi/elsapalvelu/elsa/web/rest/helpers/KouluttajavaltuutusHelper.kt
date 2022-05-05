@@ -44,7 +44,7 @@ class KouluttajavaltuutusHelper {
             } else {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
-            kouluttajavaltuutus.valtuuttaja = erikoistuvaLaakari
+            kouluttajavaltuutus.valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
             // Lisätään pakollinen tieto
             val kayttaja: Kayttaja
@@ -78,7 +78,7 @@ class KouluttajavaltuutusHelper {
             } else {
                 erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
             }
-            kouluttajavaltuutus.valtuuttaja = erikoistuvaLaakari
+            kouluttajavaltuutus.valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             // Lisätään pakollinen tieto
             val kayttaja: Kayttaja
             if (em.findAll(Kayttaja::class).isEmpty()) {
