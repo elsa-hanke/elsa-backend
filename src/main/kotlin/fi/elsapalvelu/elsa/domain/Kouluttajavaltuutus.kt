@@ -39,7 +39,7 @@ data class Kouluttajavaltuutus(
     @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var valtuuttaja: ErikoistuvaLaakari? = null,
+    var valtuuttajaOpintooikeus: Opintooikeus? = null,
 
     @NotNull
     @ManyToOne(optional = false)

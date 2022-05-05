@@ -66,7 +66,7 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>, JpaSpecifi
         """
         select o from Opintooikeus o
         join o.erikoistuvaLaakari e
-        join e.annetutValtuutukset v
+        join o.annetutValtuutukset v
         where current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
         and v.valtuutettu.id = :kayttajaId
         and current_date between v.alkamispaiva and v.paattymispaiva

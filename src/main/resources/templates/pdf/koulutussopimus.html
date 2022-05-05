@@ -71,7 +71,7 @@
             </tr>
             <tr>
                 <th th:text="#{koulutussopimus.yliopisto}"></th>
-                <td th:text="#{'koulutussopimus.' + ${sopimus.erikoistuvanYliopisto}}"></td>
+                <td th:text="#{${sopimus.erikoistuvanYliopisto}}"></td>
             </tr>
         </table>
     </div>
@@ -96,7 +96,7 @@
         <h4 th:text="#{koulutussopimus.koulutuspaikka.nimi}"></h4>
         <p th:text="${koulutuspaikka.nimi}"></p>
         <h4 th:text="#{koulutussopimus.koulutuspaikka.koulutussopimusOmanYliopistonKanssa}"></h4>
-        <p th:text="${koulutuspaikka.koulutussopimusOmanYliopistonKanssa} ? #{koulutussopimus.koulutuspaikka.kylla} : #{koulutussopimus.koulutuspaikka.ei} + ' ' + #{'koulutussopimus.' + ${koulutuspaikka.yliopisto}}"></p>
+        <p th:text="${koulutuspaikka.koulutussopimusOmanYliopistonKanssa} ? #{koulutussopimus.koulutuspaikka.kylla} : #{koulutussopimus.koulutuspaikka.ei} + ' ' + #{${koulutuspaikka.yliopisto}}"></p>
     </div>
     <hr/>
     <h3 th:text="#{koulutussopimus.kouluttajat}"></h3>
