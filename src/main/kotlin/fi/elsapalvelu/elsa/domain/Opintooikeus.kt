@@ -100,7 +100,16 @@ data class Opintooikeus(
         fetch = FetchType.LAZY
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var opintosuoritukset: MutableSet<Opintosuoritus>? = mutableSetOf()
+    var opintosuoritukset: MutableSet<Opintosuoritus>? = mutableSetOf(),
+
+    @OneToMany(
+        mappedBy = "valtuuttajaOpintooikeus",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    var annetutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf()
 
 ) : Serializable {
 

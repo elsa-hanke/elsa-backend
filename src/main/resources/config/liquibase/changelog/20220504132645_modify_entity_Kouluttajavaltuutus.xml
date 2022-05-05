@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220504132645" author="jhipster">
+
+        <dropForeignKeyConstraint baseTableName="kouluttajavaltuutus"
+                                  constraintName="fk_kouluttajavaltuutus_valtuuttaja_id"/>
+
+        <update tableName="kouluttajavaltuutus">
+            <column name="valtuuttaja_id"
+                    valueComputed="(select id from opintooikeus where kaytossa = true and erikoistuva_laakari_id = (select id from erikoistuva_laakari where kayttaja_id = valtuuttaja_id))"/>
+        </update>
+
+        <renameColumn tableName="kouluttajavaltuutus" oldColumnName="valtuuttaja_id"
+                      newColumnName="valtuuttaja_opintooikeus_id"/>
+
+        <addForeignKeyConstraint baseTableName="kouluttajavaltuutus" baseColumnNames="valtuuttaja_opintooikeus_id"
+                                 constraintName="fk_kouluttajavaltuutus_opintooikeus_id"
+                                 referencedTableName="opintooikeus"
+                                 referencedColumnNames="id"/>
+
+    </changeSet>
+
+    <changeSet id="20220504132645-audit" author="jhipster">
+
+        <update tableName="kouluttajavaltuutus_audit">
+            <column name="valtuuttaja_id"
+                    valueComputed="(select id from opintooikeus where kaytossa = true and erikoistuva_laakari_id = (select id from erikoistuva_laakari where kayttaja_id = valtuuttaja_id))"/>
+        </update>
+
+        <renameColumn tableName="kouluttajavaltuutus_audit" oldColumnName="valtuuttaja_id"
+                      newColumnName="valtuuttaja_opintooikeus_id"/>
+
+    </changeSet>
+
+</databaseChangeLog>

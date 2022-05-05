@@ -164,8 +164,8 @@ class ElsaSwitchUserFilter(
                 it.id == erikoistuvaLaakari.getYliopistoId()
             } != null) return ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 
-        if (kouluttajavaltuutusRepository.findByValtuuttajaKayttajaUserIdAndValtuutettuUserIdAndPaattymispaivaAfter(
-                erikoistuvaLaakari.kayttaja?.user?.id!!,
+        if (kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
+                erikoistuvaLaakari.getOpintooikeusKaytossa()?.id!!,
                 kirjautunutKayttaja.user?.id!!,
                 LocalDate.now().minusDays(1)
             ).isPresent

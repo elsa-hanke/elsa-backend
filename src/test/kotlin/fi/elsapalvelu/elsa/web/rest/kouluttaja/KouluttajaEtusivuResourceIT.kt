@@ -153,7 +153,7 @@ class KouluttajaEtusivuResourceIT {
             Kouluttajavaltuutus(
                 alkamispaiva = LocalDate.now().minusMonths(6),
                 paattymispaiva = LocalDate.now().plusMonths(6),
-                valtuuttaja = erikoistuvaLaakari,
+                valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 valtuutettu = kouluttaja,
                 valtuutuksenLuontiaika = Instant.now(),
                 valtuutuksenMuokkausaika = Instant.now()
@@ -305,7 +305,7 @@ class KouluttajaEtusivuResourceIT {
             Kouluttajavaltuutus(
                 alkamispaiva = LocalDate.now().minusMonths(6),
                 paattymispaiva = LocalDate.now().plusMonths(6),
-                valtuuttaja = erikoistuvaLaakari,
+                valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 valtuutettu = kouluttaja,
                 valtuutuksenLuontiaika = Instant.now(),
                 valtuutuksenMuokkausaika = Instant.now()

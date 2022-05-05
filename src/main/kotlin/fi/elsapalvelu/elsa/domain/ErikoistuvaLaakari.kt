@@ -28,11 +28,7 @@ data class ErikoistuvaLaakari(
     @NotEmpty
     @OneToMany(mappedBy = "erikoistuvaLaakari")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var opintooikeudet: MutableSet<Opintooikeus> = mutableSetOf(),
-
-    @OneToMany(mappedBy = "valtuuttaja")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var annetutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf()
+    var opintooikeudet: MutableSet<Opintooikeus> = mutableSetOf()
 
 ) : Serializable {
 

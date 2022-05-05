@@ -1,10 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus
+import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
@@ -40,6 +41,9 @@ class ErikoistuvaLaakariKouluttajavaltuutusResourceIT {
 
     @Autowired
     private lateinit var kouluttajavaltuutusRepository: KouluttajavaltuutusRepository
+
+    @Autowired
+    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 
     @Autowired
     private lateinit var em: EntityManager
@@ -131,10 +135,12 @@ class ErikoistuvaLaakariKouluttajavaltuutusResourceIT {
         val kouluttajavaltuutusList = kouluttajavaltuutusRepository.findAll()
         assertThat(kouluttajavaltuutusList).hasSize(databaseSizeBeforeCreate + 1)
 
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
         val testValtuutus = kouluttajavaltuutusList[kouluttajavaltuutusList.size - 1]
+
         assertThat(testValtuutus.alkamispaiva).isEqualTo(LocalDate.now())
         assertThat(testValtuutus.paattymispaiva).isEqualTo(LocalDate.now().plusMonths(6))
-        assertThat(testValtuutus.valtuuttaja?.kayttaja?.user?.id).isEqualTo(user.id)
+        assertThat(testValtuutus.valtuuttajaOpintooikeus?.id).isEqualTo(erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id)
         assertThat(testValtuutus.valtuutettu?.id).isEqualTo(kouluttaja.id)
     }
 
@@ -183,10 +189,12 @@ class ErikoistuvaLaakariKouluttajavaltuutusResourceIT {
         val kouluttajavaltuutusList = kouluttajavaltuutusRepository.findAll()
         assertThat(kouluttajavaltuutusList).hasSize(databaseSizeBeforeCreate)
 
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
         val testValtuutus = kouluttajavaltuutusList[kouluttajavaltuutusList.size - 1]
+
         assertThat(testValtuutus.alkamispaiva).isEqualTo(kouluttajavaltuutus.alkamispaiva)
         assertThat(testValtuutus.paattymispaiva).isEqualTo(LocalDate.now().plusMonths(2))
-        assertThat(testValtuutus.valtuuttaja?.kayttaja?.user?.id).isEqualTo(user.id)
+        assertThat(testValtuutus.valtuuttajaOpintooikeus?.id).isEqualTo(erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id)
         assertThat(testValtuutus.valtuutettu?.id).isEqualTo(kouluttaja.id)
     }
 
@@ -210,13 +218,13 @@ class ErikoistuvaLaakariKouluttajavaltuutusResourceIT {
         kouluttaja = KayttajaHelper.createEntity(em)
         em.persist(kouluttaja)
 
-        kouluttajavaltuutus = createKouluttajavaltuutus(erikoistuvaLaakari, kouluttaja)
+        kouluttajavaltuutus = createKouluttajavaltuutus(erikoistuvaLaakari.getOpintooikeusKaytossa()!!, kouluttaja)
     }
 
     companion object {
         @JvmStatic
         fun createKouluttajavaltuutus(
-            valtuuttaja: ErikoistuvaLaakari,
+            valtuuttajaOpintooikeus: Opintooikeus,
             valtuutettu: Kayttaja
         ): Kouluttajavaltuutus {
             return Kouluttajavaltuutus(
@@ -224,7 +232,7 @@ class ErikoistuvaLaakariKouluttajavaltuutusResourceIT {
                 paattymispaiva = LocalDate.now(),
                 valtuutuksenLuontiaika = Instant.now(),
                 valtuutuksenMuokkausaika = Instant.now(),
-                valtuuttaja = valtuuttaja,
+                valtuuttajaOpintooikeus = valtuuttajaOpintooikeus,
                 valtuutettu = valtuutettu
             )
         }
