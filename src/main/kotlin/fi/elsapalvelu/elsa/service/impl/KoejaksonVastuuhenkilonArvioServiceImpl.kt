@@ -7,7 +7,6 @@ import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
-import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -25,7 +24,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
-    private val kayttajaMapper: KayttajaMapper,
     private val opintooikeusRepository: OpintooikeusRepository
 ) : KoejaksonVastuuhenkilonArvioService {
 
@@ -42,8 +40,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             // Sähköposti vastuuhenkilölle
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(vastuuhenkilonArvio.vastuuhenkilo?.id!!).get().user!!,
-                "vastuuhenkilonArvioKuitattava.html",
-                "email.vastuuhenkilonarviokuitattava.title",
+                templateName = "vastuuhenkilonArvioKuitattava.html",
+                titleKey = "email.vastuuhenkilonarviokuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
             )
 
@@ -92,8 +90,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(vastuuhenkilonArvio.vastuuhenkilo?.id!!)
                     .get().user!!,
-                "vastuuhenkilonArvioHyvaksytty.html",
-                "email.vastuuhenkilonarviohyvaksytty.title",
+                templateName = "vastuuhenkilonArvioHyvaksytty.html",
+                titleKey = "email.vastuuhenkilonarviohyvaksytty.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()),
                     Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
@@ -106,8 +104,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(vastuuhenkilonArvio?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                         .get().user!!,
-                    "vastuuhenkilonArvioKuitattava.html",
-                    "email.vastuuhenkilonarviokuitattava.title",
+                    templateName = "vastuuhenkilonArvioKuitattava.html",
+                    titleKey = "email.vastuuhenkilonarviokuitattava.title",
                     properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
                 )
             }

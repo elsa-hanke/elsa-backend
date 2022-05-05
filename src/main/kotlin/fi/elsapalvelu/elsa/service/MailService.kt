@@ -39,6 +39,7 @@ class MailService(
     @Async
     fun sendEmail(
         to: String,
+        cc: List<String>? = listOf(),
         subject: String,
         content: String,
         isMultipart: Boolean,
@@ -46,13 +47,14 @@ class MailService(
     ) {
         log.debug(
             "Send email[multipart '$isMultipart' and html '$isHtml']" +
-                " to '$to' with subject '$subject' and content=$content"
+                " to: '$to', cc: '${cc?.joinToString { it }}' with subject '$subject' and content=$content"
         )
 
         val mimeMessage = javaMailSender.createMimeMessage()
         try {
             MimeMessageHelper(mimeMessage, isMultipart, StandardCharsets.UTF_8.name()).apply {
                 setTo(to)
+                cc?.filterNot { it.isEmpty() }?.toTypedArray().takeUnless { it.isNullOrEmpty() }?.let { setCc(it) }
                 setFrom(jHipsterProperties.mail.from)
                 setSubject(subject)
                 setText(content, isHtml)
@@ -69,6 +71,7 @@ class MailService(
     @Async
     fun sendEmailFromTemplate(
         user: User,
+        cc: List<String>? = listOf(),
         templateName: String,
         titleKey: String,
         properties: Map<MailProperty, String>
@@ -88,12 +91,13 @@ class MailService(
             }
         }
 
-        sendEmailFromTemplate(user.email!!, templateName, titleKey, locale, context)
+        sendEmailFromTemplate(user.email!!, cc, templateName, titleKey, locale, context)
     }
 
     @Async
     fun sendEmailFromTemplate(
         to: String?,
+        cc: List<String>? = listOf(),
         templateName: String,
         titleKey: String,
         properties: Map<MailProperty, String>
@@ -110,11 +114,12 @@ class MailService(
                 setVariable(it.key.property, it.value)
             }
         }
-        sendEmailFromTemplate(to, templateName, titleKey, locale, context)
+        sendEmailFromTemplate(to, cc, templateName, titleKey, locale, context)
     }
 
     private fun sendEmailFromTemplate(
         to: String,
+        cc: List<String>? = listOf(),
         templateName: String,
         titleKey: String,
         locale: Locale,
@@ -122,6 +127,6 @@ class MailService(
     ) {
         val content = templateEngine.process("mail/${templateName}", context)
         val subject = messageSource.getMessage(titleKey, null, locale)
-        sendEmail(to, subject, content, isMultipart = false, isHtml = true)
+        sendEmail(to, cc, subject, content, isMultipart = false, isHtml = true)
     }
 }
