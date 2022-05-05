@@ -19,8 +19,8 @@ class PalauteServiceImpl(
         kayttajaRepository.findOneByUserId(userId).ifPresent {
             mailService.sendEmailFromTemplate(
                 applicationProperties.getFeedback().to,
-                "palaute.html",
-                "email.palaute.title",
+                templateName = "palaute.html",
+                titleKey = "email.palaute.title",
                 properties = mapOf(
                     Pair(MailProperty.FEEDBACK_TOPIC, palauteDTO.palautteenAihe!!),
                     Pair(MailProperty.FEEDBACK, palauteDTO.palaute!!)

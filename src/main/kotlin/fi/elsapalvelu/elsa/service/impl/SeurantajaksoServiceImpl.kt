@@ -16,7 +16,6 @@ import javax.persistence.EntityNotFoundException
 @Service
 @Transactional
 class SeurantajaksoServiceImpl(
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val seurantajaksoRepository: SeurantajaksoRepository,
     private val seurantajaksoMapper: SeurantajaksoMapper,
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
@@ -67,8 +66,8 @@ class SeurantajaksoServiceImpl(
 
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
-                "uusiSeurantajakso.html",
-                "email.uusiseurantajakso.title",
+                templateName = "uusiSeurantajakso.html",
+                titleKey = "email.uusiseurantajakso.title",
                 properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
             )
 
@@ -106,8 +105,8 @@ class SeurantajaksoServiceImpl(
 
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
-                "seurantajaksonYhteisetMerkinnat.html",
-                "email.seurantajaksonyhteisetmerkinnat.title",
+                templateName = "seurantajaksonYhteisetMerkinnat.html",
+                titleKey = "email.seurantajaksonyhteisetmerkinnat.title",
                 properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
             )
         }
@@ -140,8 +139,8 @@ class SeurantajaksoServiceImpl(
                     mailService.sendEmailFromTemplate(
                         kayttajaRepository.findById(seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                             .get().user!!,
-                        "seurantajaksoPalautettu.html",
-                        "email.seurantajaksopalautettu.title",
+                        templateName = "seurantajaksoPalautettu.html",
+                        titleKey = "email.seurantajaksopalautettu.title",
                         properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
                     )
                 }
@@ -149,8 +148,8 @@ class SeurantajaksoServiceImpl(
                     mailService.sendEmailFromTemplate(
                         kayttajaRepository.findById(seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                             .get().user!!,
-                        "seurantajaksoHyvaksytty.html",
-                        "email.seurantajaksohyvaksytty.title",
+                        templateName = "seurantajaksoHyvaksytty.html",
+                        titleKey = "email.seurantajaksohyvaksytty.title",
                         properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
                     )
                 }
@@ -158,8 +157,8 @@ class SeurantajaksoServiceImpl(
                     mailService.sendEmailFromTemplate(
                         kayttajaRepository.findById(seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                             .get().user!!,
-                        "seurantajaksoArvioitu.html",
-                        "email.seurantajaksoarvioitu.title",
+                        templateName = "seurantajaksoArvioitu.html",
+                        titleKey = "email.seurantajaksoarvioitu.title",
                         properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
                     )
                 }
@@ -279,8 +278,8 @@ class SeurantajaksoServiceImpl(
         if (seurantajakso != null) {
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(seurantajakso.kouluttaja?.id!!).get().user!!,
-                "seurantajaksoPoistettu.html",
-                "email.seurantajaksopoistettu.title",
+                templateName = "seurantajaksoPoistettu.html",
+                titleKey = "email.seurantajaksopoistettu.title",
                 properties = mapOf(
                     Pair(
                         MailProperty.NAME,

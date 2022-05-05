@@ -45,8 +45,8 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(kehittamistoimenpiteet.lahikouluttaja?.id!!)
                     .get().user!!,
-                "kehittamistoimenpiteetKouluttajalle.html",
-                "email.kehittamistoimenpiteetkouluttajalle.title",
+                templateName = "kehittamistoimenpiteetKouluttajalle.html",
+                titleKey = "email.kehittamistoimenpiteetkouluttajalle.title",
                 properties = mapOf(Pair(MailProperty.ID, kehittamistoimenpiteet.id!!.toString()))
             )
 
@@ -99,8 +99,8 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             // Sähköposti esimiehelle kouluttajan hyväksymästä kehittämistoimenpiteestä
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
-                "kehittamistoimenpiteetKuitattava.html",
-                "email.kehittamistoimenpiteetkuitattava.title",
+                templateName = "kehittamistoimenpiteetKuitattava.html",
+                titleKey = "email.kehittamistoimenpiteetkuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
         }
@@ -132,8 +132,8 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!,
-                "kehittamistoimenpiteetKuitattava.html",
-                "email.kehittamistoimenpiteetkuitattava.title",
+                templateName = "kehittamistoimenpiteetKuitattava.html",
+                titleKey = "email.kehittamistoimenpiteetkuitattava.title",
                 properties = mapOf(
                     Pair(
                         MailProperty.ID,
@@ -147,8 +147,8 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             mailService.sendEmailFromTemplate(
                 kayttajaRepository.findById(result.lahikouluttaja?.id!!)
                     .get().user!!,
-                "kehittamistoimenpiteetPalautettu.html",
-                "email.kehittamistoimenpiteetpalautettu.title",
+                templateName = "kehittamistoimenpiteetPalautettu.html",
+                titleKey = "email.kehittamistoimenpiteetpalautettu.title",
                 properties = mapOf(
                     Pair(
                         MailProperty.ID,
