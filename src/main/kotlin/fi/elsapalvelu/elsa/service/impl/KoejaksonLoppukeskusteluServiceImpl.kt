@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.domain.KoejaksonLoppukeskustelu
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonLoppukeskusteluService
+import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonLoppukeskusteluDTO
@@ -25,7 +26,8 @@ class KoejaksonLoppukeskusteluServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
     private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
-    private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository
+    private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) : KoejaksonLoppukeskusteluService {
 
     override fun create(
@@ -37,6 +39,15 @@ class KoejaksonLoppukeskusteluServiceImpl(
                 koejaksonLoppukeskusteluMapper.toEntity(koejaksonLoppukeskusteluDTO)
             loppukeskustelu.opintooikeus = it
             loppukeskustelu = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
+
+            kouluttajavaltuutusService.lisaaValtuutus(
+                loppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                loppukeskustelu.lahikouluttaja?.id!!
+            )
+            kouluttajavaltuutusService.lisaaValtuutus(
+                loppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                loppukeskustelu.lahiesimies?.id!!
+            )
 
             // Sähköposti kouluttajalle
             mailService.sendEmailFromTemplate(

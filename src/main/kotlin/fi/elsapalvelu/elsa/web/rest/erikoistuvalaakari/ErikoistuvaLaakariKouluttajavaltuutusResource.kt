@@ -66,7 +66,7 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
                 alkamispaiva = LocalDate.now(),
                 paattymispaiva = LocalDate.now().plusMonths(6),
                 valtuutettu = valtuutettu
-            )
+            ), true
         )
 
         return ResponseEntity

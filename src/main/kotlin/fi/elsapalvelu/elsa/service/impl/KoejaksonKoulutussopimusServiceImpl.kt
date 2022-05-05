@@ -4,10 +4,7 @@ import com.itextpdf.html2pdf.HtmlConverter
 import com.itextpdf.kernel.pdf.PdfWriter
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
-import fi.elsapalvelu.elsa.service.MailProperty
-import fi.elsapalvelu.elsa.service.MailService
-import fi.elsapalvelu.elsa.service.SarakesignService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
@@ -39,7 +36,8 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val userRepository: UserRepository,
     private val templateEngine: SpringTemplateEngine,
     private val asiakirjaRepository: AsiakirjaRepository,
-    private val sarakesignService: SarakesignService
+    private val sarakesignService: SarakesignService,
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -68,11 +66,15 @@ class KoejaksonKoulutussopimusServiceImpl(
                 userRepository.save(user)
             }
 
-            // Sähköposti kouluttajille allekirjoitetusta sopimuksesta
+            // Sähköposti kouluttajille lähetetystä sopimuksesta
             if (koulutussopimus.lahetetty) {
-                koulutussopimus.kouluttajat?.forEach {
+                koulutussopimus.kouluttajat?.forEach { kouluttaja ->
+                    kouluttajavaltuutusService.lisaaValtuutus(
+                        it.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                        kouluttaja.kouluttaja?.id!!
+                    )
                     mailService.sendEmailFromTemplate(
-                        kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
+                        kayttajaRepository.findById(kouluttaja.kouluttaja?.id!!).get().user!!,
                         templateName = "koulutussopimusKouluttajalle.html",
                         titleKey = "email.koulutussopimuskouluttajalle.title",
                         properties = mapOf(Pair(MailProperty.ID, koulutussopimus.id!!.toString()))
@@ -177,6 +179,10 @@ class KoejaksonKoulutussopimusServiceImpl(
         // Sähköposti kouluttajille allekirjoitetusta sopimuksesta
         if (updated.lahetetty) {
             result.kouluttajat?.forEach {
+                kouluttajavaltuutusService.lisaaValtuutus(
+                    koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                    it.kouluttaja?.id!!
+                )
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
                     templateName = "koulutussopimusKouluttajalle.html",
