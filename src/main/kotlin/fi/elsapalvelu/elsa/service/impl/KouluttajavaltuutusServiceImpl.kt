@@ -1,10 +1,12 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
 import fi.elsapalvelu.elsa.service.mapper.KouluttajavaltuutusMapper
 import org.springframework.stereotype.Service
@@ -20,20 +22,32 @@ class KouluttajavaltuutusServiceImpl(
     private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
     private val kouluttajavaltuutusMapper: KouluttajavaltuutusMapper,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val kayttajaRepository: KayttajaRepository,
     private val mailService: MailService
 ) : KouluttajavaltuutusService {
 
     override fun save(
         userId: String,
-        kouluttajavaltuutusDTO: KouluttajavaltuutusDTO
+        kouluttajavaltuutusDTO: KouluttajavaltuutusDTO,
+        sendMail: Boolean
     ): KouluttajavaltuutusDTO {
         var kouluttajavaltuutus = kouluttajavaltuutusMapper.toEntity(kouluttajavaltuutusDTO)
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         val opintooikeus = erikoistuvaLaakari?.getOpintooikeusKaytossa()
 
         if (kouluttajavaltuutus.id == null) {
-            kouluttajavaltuutus.valtuuttajaOpintooikeus = opintooikeus
-            kouluttajavaltuutus.valtuutuksenLuontiaika = Instant.now()
+            kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
+                opintooikeus?.id!!,
+                kayttajaRepository.findById(kouluttajavaltuutusDTO.valtuutettu?.id!!)
+                    .get().user?.id!!,
+                LocalDate.now().minusDays(1)
+            ).ifPresentOrElse({
+                kouluttajavaltuutus = it
+                kouluttajavaltuutus.paattymispaiva = kouluttajavaltuutusDTO.paattymispaiva
+            }, {
+                kouluttajavaltuutus.valtuuttajaOpintooikeus = opintooikeus
+                kouluttajavaltuutus.valtuutuksenLuontiaika = Instant.now()
+            })
         } else {
             kouluttajavaltuutusRepository.findById(kouluttajavaltuutus.id!!).ifPresent {
                 kouluttajavaltuutus = it
@@ -44,30 +58,32 @@ class KouluttajavaltuutusServiceImpl(
             kouluttajavaltuutus.valtuutuksenMuokkausaika = Instant.now()
             kouluttajavaltuutus = kouluttajavaltuutusRepository.save(kouluttajavaltuutus)
 
-            mailService.sendEmailFromTemplate(
-                kouluttajavaltuutus.valtuutettu?.user!!,
-                templateName = "katseluoikeudet.html",
-                titleKey = "email.katseluoikeudet.title",
-                properties = mapOf(
-                    Pair(
-                        MailProperty.NAME,
-                        erikoistuvaLaakari?.kayttaja!!.getNimi()
-                    ),
-                    Pair(
-                        MailProperty.ERIKOISALA,
-                        opintooikeus?.erikoisala?.nimi!!
-                    ),
-                    Pair(
-                        MailProperty.YLIOPISTO,
-                        opintooikeus.yliopisto?.nimi?.toString()!!
-                    ),
-                    Pair(
-                        MailProperty.DATE, kouluttajavaltuutus.paattymispaiva!!.format(
-                            DateTimeFormatter.ofPattern("dd.MM.yyyy")
+            if (sendMail) {
+                mailService.sendEmailFromTemplate(
+                    kouluttajavaltuutus.valtuutettu?.user!!,
+                    templateName = "katseluoikeudet.html",
+                    titleKey = "email.katseluoikeudet.title",
+                    properties = mapOf(
+                        Pair(
+                            MailProperty.NAME,
+                            erikoistuvaLaakari?.kayttaja!!.getNimi()
+                        ),
+                        Pair(
+                            MailProperty.ERIKOISALA,
+                            opintooikeus?.erikoisala?.nimi!!
+                        ),
+                        Pair(
+                            MailProperty.YLIOPISTO,
+                            opintooikeus.yliopisto?.nimi?.toString()!!
+                        ),
+                        Pair(
+                            MailProperty.DATE, kouluttajavaltuutus.paattymispaiva!!.format(
+                                DateTimeFormatter.ofPattern("dd.MM.yyyy")
+                            )
                         )
                     )
                 )
-            )
+            }
         }
 
         return kouluttajavaltuutusMapper.toDto(kouluttajavaltuutus)
@@ -80,7 +96,7 @@ class KouluttajavaltuutusServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllValtuutettuByValtuuttajaKayttajaUserId(userId: String,): List<KouluttajavaltuutusDTO> {
+    override fun findAllValtuutettuByValtuuttajaKayttajaUserId(userId: String): List<KouluttajavaltuutusDTO> {
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         return kouluttajavaltuutusRepository.findAllByValtuuttajaOpintooikeusIdAndPaattymispaivaAfter(
             erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id!!,
@@ -110,5 +126,16 @@ class KouluttajavaltuutusServiceImpl(
 
     override fun delete(id: Long) {
         kouluttajavaltuutusRepository.deleteById(id)
+    }
+
+    override fun lisaaValtuutus(erikoistuvaUserId: String, valtuutettuKayttajaId: Long) {
+        save(
+            erikoistuvaUserId,
+            KouluttajavaltuutusDTO(
+                alkamispaiva = LocalDate.now(),
+                paattymispaiva = LocalDate.now().plusMonths(6),
+                valtuutettu = KayttajaDTO(id = valtuutettuKayttajaId)
+            )
+        )
     }
 }

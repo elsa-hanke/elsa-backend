@@ -5,7 +5,11 @@ import java.util.*
 
 interface KouluttajavaltuutusService {
 
-    fun save(userId: String, kouluttajavaltuutusDTO: KouluttajavaltuutusDTO): KouluttajavaltuutusDTO
+    fun save(
+        userId: String,
+        kouluttajavaltuutusDTO: KouluttajavaltuutusDTO,
+        sendMail: Boolean = false
+    ): KouluttajavaltuutusDTO
 
     fun findAll(): List<KouluttajavaltuutusDTO>
 
@@ -19,4 +23,6 @@ interface KouluttajavaltuutusService {
     fun findOne(id: Long): Optional<KouluttajavaltuutusDTO>
 
     fun delete(id: Long)
+
+    fun lisaaValtuutus(erikoistuvaUserId: String, valtuutettuKayttajaId: Long)
 }

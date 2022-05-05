@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.repository.KoejaksonKehittamistoimenpiteetRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.KoejaksonKehittamistoimenpiteetService
+import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKehittamistoimenpiteetDTO
@@ -27,7 +28,8 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
     private val koejaksonKehittamistoimenpiteetMapper: KoejaksonKehittamistoimenpiteetMapper,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) : KoejaksonKehittamistoimenpiteetService {
 
     override fun create(
@@ -40,6 +42,15 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             kehittamistoimenpiteet.opintooikeus = it
             kehittamistoimenpiteet =
                 koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
+
+            kouluttajavaltuutusService.lisaaValtuutus(
+                kehittamistoimenpiteet.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                kehittamistoimenpiteet.lahikouluttaja?.id!!
+            )
+            kouluttajavaltuutusService.lisaaValtuutus(
+                kehittamistoimenpiteet.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                kehittamistoimenpiteet.lahiesimies?.id!!
+            )
 
             // Sähköposti kouluttajalle
             mailService.sendEmailFromTemplate(
