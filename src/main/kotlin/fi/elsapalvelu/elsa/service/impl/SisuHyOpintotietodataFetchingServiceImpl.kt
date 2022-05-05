@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.extensions.tryParse
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.SisuHyClientBuilder
@@ -14,7 +15,6 @@ import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.SisuOpintooikeudenTila
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 
 @Service
 class SisuHyOpintotietodataFetchingServiceImpl(
@@ -32,9 +32,7 @@ class SisuHyOpintotietodataFetchingServiceImpl(
 
             return response.data?.private_person_by_personal_identity_code?.let {
                 OpintotietodataDTO(
-                    opiskelijatunnus = it.studentNumber,
-                    syntymaaika = it.dateOfBirth,
-                    yliopisto = YliopistoEnum.HELSINGIN_YLIOPISTO,
+                    syntymaaika = it.dateOfBirth?.tryParse(),
                     opintooikeudet = it.studyRights?.filter { opintooikeus ->
                         (opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_LAAKARI_SISU_KOULUTUS ||
                             opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS)
@@ -42,18 +40,12 @@ class SisuHyOpintotietodataFetchingServiceImpl(
                         OpintotietoOpintooikeusDataDTO(
                             id = opintooikeus.id,
                             tila = mapOpintooikeudenTila(opintooikeus.state),
-                            opintooikeudenAlkamispaiva = opintooikeus.valid?.startDate?.let { alkamispaiva ->
-                                LocalDate.parse(
-                                    alkamispaiva
-                                )
-                            },
-                            opintooikeudenPaattymispaiva = opintooikeus.valid?.endDate?.let { paattymispaiva ->
-                                LocalDate.parse(
-                                    paattymispaiva
-                                )
-                            },
+                            opintooikeudenAlkamispaiva = opintooikeus.valid?.startDate?.tryParse(),
+                            opintooikeudenPaattymispaiva = opintooikeus.valid?.endDate?.tryParse(),
                             asetus = opintooikeus.decreeOnUniversityDegrees?.shortName?.fi,
-                            erikoisalaTunniste = opintooikeus.acceptedSelectionPath?.educationPhase1GroupId
+                            erikoisalaTunniste = opintooikeus.acceptedSelectionPath?.educationPhase1GroupId,
+                            opiskelijatunnus = it.studentNumber,
+                            yliopisto = YliopistoEnum.HELSINGIN_YLIOPISTO
                         )
                     })
             }
