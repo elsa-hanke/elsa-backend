@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import java.io.Serializable
 import java.time.LocalDate
 
@@ -16,8 +17,12 @@ data class OpintotietoOpintooikeusDataDTO(
 
     var erikoisalaTunniste: String? = null,
 
-    var tila: OpintooikeudenTila? = null
+    var tila: OpintooikeudenTila? = null,
 
-) : Serializable {
+    var yliopisto: YliopistoEnum,
+
+    var opiskelijatunnus: String? = null,
+
+    ) : Serializable {
     override fun toString() = "OpintotietoOpintooikeusDataDTO"
 }

@@ -158,6 +158,8 @@ class OpintosuorituksetPersistenceServiceIT {
         assertThat(opintosuoritus2.opintooikeus).isEqualTo(opintooikeus)
     }
 
+
+
     @Test
     @Transactional
     fun shouldNotPersistOpintosuoritusWithMissingKurssikoodi() {
@@ -203,6 +205,26 @@ class OpintosuorituksetPersistenceServiceIT {
     fun shouldNotPersistOpintosuoritusWithMissingName() {
         val opintosuoritusDTO = createOpintosuoritus1DTO().apply {
             nimi_fi = null
+        }
+
+        val opintosuorituksetDTO =
+            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
+
+        opintosuorituksetPersistenceService.createOrUpdateIfChanged(
+            erikoistuvaLaakari.kayttaja?.user?.id!!,
+            opintosuorituksetDTO
+        )
+
+        val opintosuoritukset = opintosuoritusRepository.findAll()
+        assertThat(opintosuoritukset).hasSize(databaseSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
+    fun shouldNotPersistOpintosuoritusWithMissingSuorituspaiva() {
+        val opintosuoritusDTO = createOpintosuoritus1DTO().apply {
+            suorituspaiva = null
         }
 
         val opintosuorituksetDTO =
@@ -284,6 +306,28 @@ class OpintosuorituksetPersistenceServiceIT {
         val opintosuoritusDTO = createOpintosuoritus1DTO().apply {
             osakokonaisuudet = listOf(createOpintosuoritusOsakokonaisuusDTO().apply {
                 nimi_fi = null
+            })
+        }
+
+        val opintosuorituksetDTO =
+            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
+
+        opintosuorituksetPersistenceService.createOrUpdateIfChanged(
+            erikoistuvaLaakari.kayttaja?.user?.id!!,
+            opintosuorituksetDTO
+        )
+
+        val opintosuoritukset = opintosuoritusRepository.findAll()
+        assertThat(opintosuoritukset).hasSize(databaseSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
+    fun shouldNotPersistOpintosuoritusIfHasOsakokonaisuusWithMissingSuorituspaiva() {
+        val opintosuoritusDTO = createOpintosuoritus1DTO().apply {
+            osakokonaisuudet = listOf(createOpintosuoritusOsakokonaisuusDTO().apply {
+                suorituspaiva = null
             })
         }
 

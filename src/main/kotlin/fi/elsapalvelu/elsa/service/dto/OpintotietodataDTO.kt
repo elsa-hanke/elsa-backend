@@ -1,15 +1,11 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import java.io.Serializable
+import java.time.LocalDate
 
 data class OpintotietodataDTO(
 
-    var yliopisto: YliopistoEnum,
-
-    var opiskelijatunnus: String? = null,
-
-    var syntymaaika: String? = null,
+    var syntymaaika: LocalDate? = null,
 
     var opintooikeudet: List<OpintotietoOpintooikeusDataDTO>? = null
 
