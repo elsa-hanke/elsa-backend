@@ -11,7 +11,7 @@
 
         <update tableName="kouluttajavaltuutus">
             <column name="valtuuttaja_id"
-                    valueComputed="(select id from opintooikeus where kaytossa = true and erikoistuva_laakari_id = (select id from erikoistuva_laakari where kayttaja_id = valtuuttaja_id))"/>
+                    valueComputed="(select id from opintooikeus where kaytossa = true and erikoistuva_laakari_id = valtuuttaja_id)"/>
         </update>
 
         <renameColumn tableName="kouluttajavaltuutus" oldColumnName="valtuuttaja_id"
@@ -28,7 +28,7 @@
 
         <update tableName="kouluttajavaltuutus_audit">
             <column name="valtuuttaja_id"
-                    valueComputed="(select id from opintooikeus where kaytossa = true and erikoistuva_laakari_id = (select id from erikoistuva_laakari where kayttaja_id = valtuuttaja_id))"/>
+                    valueComputed="(select id from opintooikeus where kaytossa = true and erikoistuva_laakari_id = valtuuttaja_id)"/>
         </update>
 
         <renameColumn tableName="kouluttajavaltuutus_audit" oldColumnName="valtuuttaja_id"
