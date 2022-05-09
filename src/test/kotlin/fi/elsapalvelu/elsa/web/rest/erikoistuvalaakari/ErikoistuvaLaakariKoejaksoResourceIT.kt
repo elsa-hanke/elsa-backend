@@ -894,14 +894,19 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val vastuuhenkilonArvioList = koejaksonVastuuhenkilonArvioRepository.findAll()
         assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeCreate + 1)
         val arviointi = vastuuhenkilonArvioList[vastuuhenkilonArvioList.size - 1]
-        assertThat(arviointi.erikoistuvanNimi).isEqualTo(koejaksonVastuuhenkilonArvioDTO.erikoistuvanNimi)
-        assertThat(arviointi.erikoistuvanErikoisala).isEqualTo(koejaksonVastuuhenkilonArvioDTO.erikoistuvanErikoisala)
-        assertThat(arviointi.erikoistuvanOpiskelijatunnus).isEqualTo(
+        assertThat(arviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()).isEqualTo(
+            koejaksonVastuuhenkilonArvioDTO.erikoistuvanNimi
+        )
+        assertThat(arviointi.opintooikeus?.erikoisala?.nimi).isEqualTo(
+            koejaksonVastuuhenkilonArvioDTO.erikoistuvanErikoisala
+        )
+        assertThat(arviointi.opintooikeus?.opiskelijatunnus).isEqualTo(
             koejaksonVastuuhenkilonArvioDTO.erikoistuvanOpiskelijatunnus
         )
-        assertThat(arviointi.erikoistuvanYliopisto).isEqualTo(koejaksonVastuuhenkilonArvioDTO.erikoistuvanYliopisto)
+        assertThat(arviointi.opintooikeus?.yliopisto?.nimi.toString()).isEqualTo(
+            koejaksonVastuuhenkilonArvioDTO.erikoistuvanYliopisto
+        )
         assertThat(arviointi.vastuuhenkilo?.id).isEqualTo(koejaksonVastuuhenkilonArvioDTO.vastuuhenkilo?.id)
-        assertThat(arviointi.vastuuhenkilonNimi).isEqualTo(koejaksonVastuuhenkilonArvioDTO.vastuuhenkilo?.nimi)
         assertThat(arviointi.muokkauspaiva).isNotNull
     }
 
@@ -957,42 +962,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 .content(convertObjectToJsonBytes(vastuuhenkilonArvioDTO))
                 .with(csrf())
         ).andExpect(status().isBadRequest)
-    }
-
-    @Test
-    @Transactional
-    fun ackVastuuhenkilonArvio() {
-        initKoejakso()
-
-        koejaksonVastuuhenkilonArvio.koejaksoHyvaksytty = true
-        koejaksonVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut = true
-        koejaksonVastuuhenkilonArvio.vastuuhenkilonKuittausaika = DEFAULT_MYONTAMISPAIVA
-        koejaksonVastuuhenkilonArvioRepository.saveAndFlush(koejaksonVastuuhenkilonArvio)
-
-        val databaseSizeBeforeUpdate = koejaksonVastuuhenkilonArvioRepository.findAll().size
-
-        val id = koejaksonVastuuhenkilonArvio.id
-        assertNotNull(id)
-        val updatedVastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.findById(id).get()
-        em.detach(updatedVastuuhenkilonArvio)
-
-        updatedVastuuhenkilonArvio.erikoistuvaAllekirjoittanut = true
-
-        val vastuuhenkilonArvioDTO =
-            koejaksonVastuuhenkilonArvioMapper.toDto(updatedVastuuhenkilonArvio)
-
-        restKoejaksoMockMvc.perform(
-            put("/api/erikoistuva-laakari/koejakso/vastuuhenkilonarvio")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(vastuuhenkilonArvioDTO))
-                .with(csrf())
-        ).andExpect(status().isOk)
-
-        val vastuuhenkilonArvioList = koejaksonVastuuhenkilonArvioRepository.findAll()
-        assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeUpdate)
-        val testVastuuhenkilonArvio = vastuuhenkilonArvioList[vastuuhenkilonArvioList.size - 1]
-        assertThat(testVastuuhenkilonArvio.erikoistuvaAllekirjoittanut).isEqualTo(true)
-        assertThat(testVastuuhenkilonArvio.muokkauspaiva).isEqualTo(DEFAULT_MUOKKAUSPAIVA)
     }
 
     @Test
@@ -1110,14 +1079,10 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     companion object {
 
         private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
-        private const val DEFAULT_LOGIN = "johndoe"
-        private const val DEFAULT_EMAIL = "john.doe@example.com"
 
         private const val UPDATED_EMAIL = "doe.john@example.com"
         private const val UPDATED_PHONE = "+358101001010"
 
-        private val DEFAULT_SYNTYMAAIKA: LocalDate = LocalDate.ofEpochDay(0L)
-        private val DEFAULT_MYONTAMISPAIVA: LocalDate = LocalDate.ofEpochDay(1L)
         private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(2L)
         private val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(5L)
         private val DEFAULT_MUOKKAUSPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
@@ -1125,13 +1090,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         private val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(3L)
         private val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
 
-        private const val DEFAULT_KOULUTTAJA_ID = "4b73bc2c-88c4-11eb-8dcd-0242ac130003"
-        private const val DEFAULT_ESIMIES_ID = "43c0ebfa-92f9-11eb-a8b3-0242ac130003"
-        private const val DEFAULT_VASTUUHENKILO_ID = "53d6e70e-88c4-11eb-8dcd-0242ac130003"
-
-        private const val UPDATED_KOULUTTAJA_ID = "914cb8c5-c56d-4ab4-81a8-e51b5db0a85b"
         private const val UPDATED_KOULUTTAJA_NIMI = "Kalle Kouluttaja"
-        private const val UPDATED_VASTUUHENKILO_ID = "1df48f72-8bbe-11eb-8dcd-0242ac130003"
         private const val UPDATED_VASTUUHENKILO_NIMI = "Ville Vastuuhenkilö"
 
         private const val DEFAULT_KOULUTUSPAIKKA = "TAYS Päivystyskeskus"
@@ -1257,16 +1216,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
             erikoistuvaLaakari: ErikoistuvaLaakari,
             vastuuhenkilo: Kayttaja
         ): KoejaksonVastuuhenkilonArvio {
-            val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonVastuuhenkilonArvio(
                 opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanErikoisala = opintooikeus?.erikoisala?.nimi,
-                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
                 vastuuhenkilo = vastuuhenkilo,
-                vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
-                vastuuhenkilonNimike = vastuuhenkilo.nimike,
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA
             )
         }

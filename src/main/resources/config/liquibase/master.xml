@@ -206,5 +206,6 @@
     <include file="config/liquibase/changelog/20220506104922_added_entity_VastuuhenkilonTehtavatyyppi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220506105112_add_join_table_erikoisalan_tehtava.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220506105322_add_join_table_rel_kayttaja_vastuuhenkilon_tehtavatyyppi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220509123801_modify_entity_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

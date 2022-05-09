@@ -18,21 +18,37 @@ interface KoejaksonVastuuhenkilonArvioMapper :
     EntityMapper<KoejaksonVastuuhenkilonArvioDTO, KoejaksonVastuuhenkilonArvio> {
 
     @Mappings(
-        Mapping(source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar", target = "erikoistuvanAvatar"),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar",
+            target = "erikoistuvanAvatar"
+        ),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.nimi",
+            target = "erikoistuvanNimi"
+        ),
+        Mapping(source = "opintooikeus.yliopisto.nimi", target = "erikoistuvanYliopisto"),
+        Mapping(source = "opintooikeus.erikoisala.nimi", target = "erikoistuvanErikoisala"),
+        Mapping(source = "opintooikeus.opiskelijatunnus", target = "erikoistuvanOpiskelijatunnus"),
         Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo.id"),
-        Mapping(source = "vastuuhenkilonNimi", target = "vastuuhenkilo.nimi"),
-        Mapping(source = "vastuuhenkilonNimike", target = "vastuuhenkilo.nimike"),
-        Mapping(source = "vastuuhenkiloAllekirjoittanut", target = "vastuuhenkilo.sopimusHyvaksytty"),
-        Mapping(source = "vastuuhenkilonKuittausaika", target = "vastuuhenkilo.kuittausaika")
+        Mapping(
+            source = "vastuuhenkiloHyvaksynyt",
+            target = "vastuuhenkilo.sopimusHyvaksytty"
+        ),
+        Mapping(source = "vastuuhenkilonKuittausaika", target = "vastuuhenkilo.kuittausaika"),
+        Mapping(
+            source = "virkailijaHyvaksynyt",
+            target = "virkailija.sopimusHyvaksytty"
+        ),
+        Mapping(source = "virkailijanKuittausaika", target = "virkailija.kuittausaika")
     )
     override fun toDto(entity: KoejaksonVastuuhenkilonArvio): KoejaksonVastuuhenkilonArvioDTO
 
     @Mappings(
         Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo"),
-        Mapping(source = "vastuuhenkilo.nimi", target = "vastuuhenkilonNimi"),
-        Mapping(source = "vastuuhenkilo.nimike", target = "vastuuhenkilonNimike"),
-        Mapping(source = "vastuuhenkilo.sopimusHyvaksytty", target = "vastuuhenkiloAllekirjoittanut"),
-        Mapping(source = "vastuuhenkilo.kuittausaika", target = "vastuuhenkilonKuittausaika")
+        Mapping(source = "vastuuhenkilo.sopimusHyvaksytty", target = "vastuuhenkiloHyvaksynyt"),
+        Mapping(source = "vastuuhenkilo.kuittausaika", target = "vastuuhenkilonKuittausaika"),
+        Mapping(source = "virkailija.sopimusHyvaksytty", target = "virkailijaHyvaksynyt"),
+        Mapping(source = "virkailija.kuittausaika", target = "virkailijanKuittausaika")
     )
     override fun toEntity(dto: KoejaksonVastuuhenkilonArvioDTO): KoejaksonVastuuhenkilonArvio
 

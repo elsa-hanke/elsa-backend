@@ -32,7 +32,8 @@ class VastuuhenkiloKoejaksoResource(
     @GetMapping("/koejaksot")
     fun getKoejaksot(principal: Principal?): ResponseEntity<List<KoejaksonVaiheDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val koejaksonVaiheet = koejaksonVaiheetService.findAllByVastuuhenkiloKayttajaUserId(user.id!!)
+        val koejaksonVaiheet =
+            koejaksonVaiheetService.findAllByVastuuhenkiloKayttajaUserId(user.id!!)
         return ResponseEntity.ok(koejaksonVaiheet)
     }
 
@@ -54,7 +55,10 @@ class VastuuhenkiloKoejaksoResource(
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val aloituskeskusteluDTO =
-            koejaksonAloituskeskusteluService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(id, user.id!!)
+            koejaksonAloituskeskusteluService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+                id,
+                user.id!!
+            )
         return ResponseUtil.wrapOrNotFound(aloituskeskusteluDTO)
     }
 
@@ -65,7 +69,10 @@ class VastuuhenkiloKoejaksoResource(
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val valiarviointiDTO =
-            koejaksonValiarviointiService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(id, user.id!!)
+            koejaksonValiarviointiService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+                id,
+                user.id!!
+            )
         return ResponseUtil.wrapOrNotFound(valiarviointiDTO)
     }
 
@@ -76,7 +83,10 @@ class VastuuhenkiloKoejaksoResource(
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val kehittamistoimenpiteetDTO =
-            koejaksonKehittamistoimenpiteetService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(id, user.id!!)
+            koejaksonKehittamistoimenpiteetService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+                id,
+                user.id!!
+            )
         return ResponseUtil.wrapOrNotFound(kehittamistoimenpiteetDTO)
     }
 
@@ -87,7 +97,10 @@ class VastuuhenkiloKoejaksoResource(
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val loppukeskusteluDTO =
-            koejaksonLoppukeskusteluService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(id, user.id!!)
+            koejaksonLoppukeskusteluService.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
+                id,
+                user.id!!
+            )
         return ResponseUtil.wrapOrNotFound(loppukeskusteluDTO)
     }
 
@@ -166,7 +179,7 @@ class VastuuhenkiloKoejaksoResource(
             )
         }
 
-        if (vastuuhenkilonArvio.get().erikoistuvaAllekirjoittanut == true) {
+        if (vastuuhenkilonArvio.get().allekirjoitettu == true) {
             throw BadRequestAlertException(
                 "Allekirjoitettua arviointia ei saa muokata.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,

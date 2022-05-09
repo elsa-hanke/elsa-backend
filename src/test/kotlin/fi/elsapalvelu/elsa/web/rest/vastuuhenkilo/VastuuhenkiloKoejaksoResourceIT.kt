@@ -90,7 +90,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt = true
         koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
 
-        koejaksonVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut = false
+        koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
         vastuuhenkilonArvioRepository.saveAndFlush(koejaksonVastuuhenkilonArvio)
 
         restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejaksot"))
@@ -596,11 +596,11 @@ class VastuuhenkiloKoejaksoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(koejaksonVastuuhenkilonArvio.id as Any))
-            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonVastuuhenkilonArvio.erikoistuvanNimi as Any))
-            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonVastuuhenkilonArvio.erikoistuvanOpiskelijatunnus as Any))
-            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonVastuuhenkilonArvio.erikoistuvanYliopisto as Any))
-            .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonVastuuhenkilonArvio.vastuuhenkilo?.id as Any))
+            .andExpect(jsonPath("$.id").value(koejaksonVastuuhenkilonArvio.id))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonVastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonVastuuhenkilonArvio.opintooikeus?.opiskelijatunnus))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonVastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi.toString()))
+            .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonVastuuhenkilonArvio.vastuuhenkilo?.id))
     }
 
     @Test
@@ -751,7 +751,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.detach(updatedVastuuhenkilonArvio)
 
         updatedVastuuhenkilonArvio.koejaksoHyvaksytty = true
-        updatedVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut = true
+        updatedVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = true
         updatedVastuuhenkilonArvio.vastuuhenkilonKuittausaika =
             KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
@@ -769,7 +769,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeUpdate)
         val testVastuuhenkilonArvio = vastuuhenkilonArvioList[vastuuhenkilonArvioList.size - 1]
         assertThat(testVastuuhenkilonArvio.koejaksoHyvaksytty).isEqualTo(true)
-        assertThat(testVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut).isEqualTo(true)
+        assertThat(testVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt).isEqualTo(true)
         assertThat(testVastuuhenkilonArvio.vastuuhenkilonKuittausaika).isEqualTo(
             KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
         )
@@ -788,7 +788,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.detach(updatedVastuuhenkilonArvio)
 
         updatedVastuuhenkilonArvio.koejaksoHyvaksytty = false
-        updatedVastuuhenkilonArvio.vastuuhenkiloAllekirjoittanut = true
+        updatedVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = true
         updatedVastuuhenkilonArvio.vastuuhenkilonKuittausaika =
             KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
@@ -889,14 +889,8 @@ class VastuuhenkiloKoejaksoResourceIT {
             val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonVastuuhenkilonArvio(
                 opintooikeus = opintooikeus,
-                erikoistuvanNimi = erikoistuvaLaakari.kayttaja?.getNimi(),
-                erikoistuvanOpiskelijatunnus = opintooikeus?.opiskelijatunnus,
-                erikoistuvanYliopisto = opintooikeus?.yliopisto?.nimi.toString(),
-                erikoistuvanErikoisala = KoejaksonVaiheetHelper.DEFAULT_ERIKOISALA,
                 muokkauspaiva = KoejaksonVaiheetHelper.DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
-                vastuuhenkilonNimi = vastuuhenkilo.getNimi(),
-                vastuuhenkilonNimike = vastuuhenkilo.nimike
             )
         }
     }
