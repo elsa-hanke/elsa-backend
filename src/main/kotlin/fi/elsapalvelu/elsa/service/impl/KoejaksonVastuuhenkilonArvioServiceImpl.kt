@@ -39,6 +39,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             var vastuuhenkilonArvio =
                 koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
             vastuuhenkilonArvio.opintooikeus = it
+            vastuuhenkilonArvio.virkailija = null
             vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
             // Sähköposti vastuuhenkilölle
@@ -80,41 +81,24 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         if (vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId
             && vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null
         ) {
-            vastuuhenkilonArvio.erikoistuvaAllekirjoittanut = true
-            vastuuhenkilonArvio.erikoistuvanAllekirjoitusaika = LocalDate.now()
+            vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
         }
 
         if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
             vastuuhenkilonArvio.apply {
-                vastuuhenkiloAllekirjoittanut = true
+                vastuuhenkiloHyvaksynyt = true
                 vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
                 koejaksoHyvaksytty = updatedVastuuhenkilonArvio.koejaksoHyvaksytty
             }.takeIf { it.koejaksoHyvaksytty == false }?.apply {
                 perusteluHylkaamiselle = updatedVastuuhenkilonArvio.perusteluHylkaamiselle
-                hylattyArviointiKaytyLapiKeskustellen = updatedVastuuhenkilonArvio.hylattyArviointiKaytyLapiKeskustellen
+                hylattyArviointiKaytyLapiKeskustellen =
+                    updatedVastuuhenkilonArvio.hylattyArviointiKaytyLapiKeskustellen
             }
         }
 
         vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
-        // Sähköposti vastuuhenkilölle allekirjoitetusta loppukeskustelusta
-        if (vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId
-            && vastuuhenkilonArvio.erikoistuvaAllekirjoittanut
-        ) {
-            val erikoistuvaLaakari =
-                kayttajaRepository.findById(vastuuhenkilonArvio?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(vastuuhenkilonArvio.vastuuhenkilo?.id!!)
-                    .get().user!!,
-                templateName = "vastuuhenkilonArvioHyvaksytty.html",
-                titleKey = "email.vastuuhenkilonarviohyvaksytty.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()),
-                    Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                )
-            )
-        } else if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
+        if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
 
             // Sähköposti erikoistuvalle vastuuhenkilon kuittaamasta arviosta
             if (vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {

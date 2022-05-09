@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220509123801" author="jhipster">
+
+        <delete tableName="koejakson_vastuuhenkilon_arvio"/>
+        <delete tableName="koejakson_vastuuhenkilon_arvio_audit"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio"
+            columnName="erikoistuvan_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio_audit"
+            columnName="erikoistuvan_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio"
+            columnName="erikoistuvan_erikoisala"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio_audit"
+            columnName="erikoistuvan_erikoisala"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio"
+            columnName="erikoistuvan_opiskelijatunnus"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio_audit"
+            columnName="erikoistuvan_opiskelijatunnus"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio"
+            columnName="erikoistuvan_yliopisto"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio_audit"
+            columnName="erikoistuvan_yliopisto"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio"
+            columnName="vastuuhenkilon_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio_audit"
+            columnName="vastuuhenkilon_nimi"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio"
+            columnName="vastuuhenkilon_nimike"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio_audit"
+            columnName="vastuuhenkilon_nimike"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio"
+            columnName="erikoistuva_allekirjoittanut"/>
+
+        <dropColumn
+            tableName="koejakson_vastuuhenkilon_arvio_audit"
+            columnName="erikoistuva_allekirjoittanut"/>
+
+        <renameColumn
+            tableName="koejakson_vastuuhenkilon_arvio"
+            oldColumnName="erikoistuvan_allekirjoitusaika"
+            newColumnName="erikoistuvan_kuittausaika"/>
+
+        <renameColumn
+            tableName="koejakson_vastuuhenkilon_arvio_audit"
+            oldColumnName="erikoistuvan_allekirjoitusaika"
+            newColumnName="erikoistuvan_kuittausaika"/>
+
+        <renameColumn
+            tableName="koejakson_vastuuhenkilon_arvio"
+            oldColumnName="vastuuhenkilo_allekirjoittanut"
+            newColumnName="vastuuhenkilo_hyvaksynyt"/>
+
+        <renameColumn
+            tableName="koejakson_vastuuhenkilon_arvio_audit"
+            oldColumnName="vastuuhenkilo_allekirjoittanut"
+            newColumnName="vastuuhenkilo_hyvaksynyt"/>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="virkailija_id" type="bigint"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio_audit">
+            <column name="virkailija_id" type="bigint"/>
+        </addColumn>
+
+        <addForeignKeyConstraint baseColumnNames="virkailija_id"
+            baseTableName="koejakson_vastuuhenkilon_arvio"
+            constraintName="fk_koejakson_vastuuhenkilon_arvio_virkailija_id"
+            referencedColumnNames="id"
+            referencedTableName="kayttaja"/>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="lisatiedot_virkailijalta" type="text"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio_audit">
+            <column name="lisatiedot_virkailijalta" type="text"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="virkailija_hyvaksynyt" type="boolean"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio_audit">
+            <column name="virkailija_hyvaksynyt" type="boolean"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="virkailijan_kuittausaika" type="date"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio_audit">
+            <column name="virkailijan_kuittausaika" type="date"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="sarakesign_request_id" type="text"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio_audit">
+            <column name="sarakesign_request_id" type="text"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="allekirjoitettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio_audit">
+            <column name="allekirjoitettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+    </changeSet>
+
+</databaseChangeLog>
