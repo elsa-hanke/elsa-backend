@@ -1,8 +1,10 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
@@ -24,6 +26,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
+    private val kayttajaService: KayttajaService,
     private val opintooikeusRepository: OpintooikeusRepository
 ) : KoejaksonVastuuhenkilonArvioService {
 
@@ -32,6 +35,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         opintooikeusId: Long
     ): KoejaksonVastuuhenkilonArvioDTO? {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            validateVastuuhenkilo(it.erikoistuvaLaakari?.kayttaja?.user?.id!!, koejaksonVastuuhenkilonArvioDTO)
             var vastuuhenkilonArvio =
                 koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
             vastuuhenkilonArvio.opintooikeus = it
@@ -46,6 +50,19 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             )
 
             koejaksonVastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvio)
+        }
+    }
+
+    private fun validateVastuuhenkilo(
+        userId: String,
+        vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO
+    ) {
+        if (kayttajaService.findVastuuhenkiloByTehtavatyyppi(
+                userId,
+                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+            ).id != vastuuhenkilonArvioDTO.vastuuhenkilo?.id
+        ) {
+            throw java.lang.IllegalArgumentException("Vastuuhenkilöä ei saa vaihtaa")
         }
     }
 

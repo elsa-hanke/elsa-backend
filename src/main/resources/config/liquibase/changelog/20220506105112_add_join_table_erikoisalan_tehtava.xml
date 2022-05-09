@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220506105112" author="jhipster">
+        <createTable tableName="rel_erikoisala_vastuuhenkilon_tehtavatyyppi">
+            <column name="erikoisala_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="rel_erikoisala_vastuuhenkilon_tehtavatyyppi"
+                                 baseColumnNames="erikoisala_id"
+                                 constraintName="fk_rel_erikoisala_vastuuhenkilon_tehtavatyyppi_erikoisala_id"
+                                 referencedTableName="erikoisala"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="rel_erikoisala_vastuuhenkilon_tehtavatyyppi"
+                                 baseColumnNames="vastuuhenkilon_tehtavatyyppi_id"
+                                 constraintName="fk_rel_erikoisala_vastuuhenkilon_tehtavatyyppi_tehtavatyyppi_id"
+                                 referencedTableName="vastuuhenkilon_tehtavatyyppi"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="20220506105112-1-data" author="jhipster">
+        <loadData
+            file="config/liquibase/data/erikoisala_vastuuhenkilon_tehtavatyypit.csv"
+            separator=";"
+            tableName="rel_erikoisala_vastuuhenkilon_tehtavatyyppi">
+            <column name="erikoisala_id" type="numeric"/>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" type="numeric"/>
+        </loadData>
+    </changeSet>
+</databaseChangeLog>

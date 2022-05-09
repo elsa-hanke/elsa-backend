@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import javax.persistence.EntityExistsException
+import javax.persistence.EntityNotFoundException
 
 @Service
 @Transactional
@@ -101,15 +103,28 @@ class KayttajaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findVastuuhenkilot(userId: String): List<KayttajaDTO> {
+    override fun findVastuuhenkiloByTehtavatyyppi(
+        userId: String,
+        tehtavatyyppi: VastuuhenkilonTehtavatyyppiEnum
+    ): KayttajaDTO {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             val opintooikeus = it.getOpintooikeusKaytossa()
-            return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
+            val vastuuhenkilot = kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
                 listOf(VASTUUHENKILO),
                 opintooikeus?.yliopisto?.id,
                 opintooikeus?.erikoisala?.id
-            ).map(kayttajaMapper::toDto)
-        } ?: return listOf()
+            )
+            return if (vastuuhenkilot.size == 1) {
+                kayttajaMapper.toDto(vastuuhenkilot.first())
+            } else {
+                vastuuhenkilot.firstOrNull { v ->
+                    v.vastuuhenkilonTehtavatyypit.map { t -> t.nimi }.contains(tehtavatyyppi)
+                }?.let { v ->
+                    kayttajaMapper.toDto(v)
+                }
+            } ?: throw EntityNotFoundException("Vastuuhenkilöä ei löydy")
+        }
+        throw EntityNotFoundException("Erikoistuvaa lääkäriä ei löydy")
     }
 
     @Transactional(readOnly = true)
