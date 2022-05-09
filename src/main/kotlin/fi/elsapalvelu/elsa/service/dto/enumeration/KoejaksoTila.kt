@@ -7,7 +7,7 @@ enum class KoejaksoTila {
     UUSI,
     TALLENNETTU_KESKENERAISENA,
     ODOTTAA_HYVAKSYNTAA,
-    ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA,
+    ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA,
     ODOTTAA_ESIMIEHEN_HYVAKSYNTAA,
     ODOTTAA_TOISEN_KOULUTTAJAN_HYVAKSYNTAA,
     ODOTTAA_ALLEKIRJOITUKSIA,
@@ -89,8 +89,9 @@ enum class KoejaksoTila {
         ): KoejaksoTila {
             return if (!loppukeskusteluHyvaksytty) EI_AKTIIVINEN
             else if (vastuuhenkilonArvioDTO == null) UUSI
-            else if (vastuuhenkilonArvioDTO.erikoistuvaAllekirjoittanut == true) HYVAKSYTTY
-            else if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true) ODOTTAA_ERIKOISTUVAN_HYVAKSYNTAA
+            else if (vastuuhenkilonArvioDTO.allekirjoitettu == true) ALLEKIRJOITETTU
+            else if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true) ODOTTAA_ALLEKIRJOITUKSIA
+            else if (vastuuhenkilonArvioDTO.virkailija?.sopimusHyvaksytty == true) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
             else ODOTTAA_HYVAKSYNTAA
         }
     }

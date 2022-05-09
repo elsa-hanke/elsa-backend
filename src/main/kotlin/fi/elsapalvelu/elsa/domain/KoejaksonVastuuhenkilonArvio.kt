@@ -27,39 +27,18 @@ data class KoejaksonVastuuhenkilonArvio(
     var opintooikeus: Opintooikeus? = null,
 
     @NotNull
-    @Column(name = "erikoistuvan_nimi", nullable = false)
-    var erikoistuvanNimi: String? = null,
-
-    @NotNull
-    @Column(name = "erikoistuvan_erikoisala", nullable = false)
-    var erikoistuvanErikoisala: String? = null,
-
-    @NotNull
-    @Column(name = "erikoistuvan_opiskelijatunnus", nullable = false)
-    var erikoistuvanOpiskelijatunnus: String? = null,
-
-    @NotNull
-    @Column(name = "erikoistuvan_yliopisto", nullable = false)
-    var erikoistuvanYliopisto: String? = null,
-
-    @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var vastuuhenkilo: Kayttaja? = null,
 
-    @NotNull
-    @Column(name = "vastuuhenkilon_nimi", nullable = false)
-    var vastuuhenkilonNimi: String? = null,
-
-    @NotNull
-    @Column(name = "vastuuhenkilon_nimike", nullable = false)
-    var vastuuhenkilonNimike: String? = null,
-
     @Column(name = "koejakso_hyvaksytty")
     var koejaksoHyvaksytty: Boolean? = null,
 
-    @Column(name = "vastuuhenkilo_allekirjoittanut")
-    var vastuuhenkiloAllekirjoittanut: Boolean = false,
+    @Column(name = "vastuuhenkilo_hyvaksynyt")
+    var vastuuhenkiloHyvaksynyt: Boolean = false,
+
+    @Column(name = "vastuuhenkilon_kuittausaika")
+    var vastuuhenkilonKuittausaika: LocalDate? = null,
 
     @Column(name = "perustelu_hylkaamiselle")
     var perusteluHylkaamiselle: String? = null,
@@ -67,18 +46,31 @@ data class KoejaksonVastuuhenkilonArvio(
     @Column(name = "hylatty_arviointi_kayty_lapi_keskustellen")
     var hylattyArviointiKaytyLapiKeskustellen: Boolean? = null,
 
-    @Column(name = "vastuuhenkilon_kuittausaika")
-    var vastuuhenkilonKuittausaika: LocalDate? = null,
-
     @NotNull
     @Column(name = "muokkauspaiva", nullable = false)
     var muokkauspaiva: LocalDate? = null,
 
-    @Column(name = "erikoistuva_allekirjoittanut")
-    var erikoistuvaAllekirjoittanut: Boolean = false,
+    @Column(name = "erikoistuvan_kuittausaika", nullable = false)
+    var erikoistuvanKuittausaika: LocalDate? = null,
 
-    @Column(name = "erikoistuvan_allekirjoitusaika", nullable = false)
-    var erikoistuvanAllekirjoitusaika: LocalDate? = null
+    @ManyToOne
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+    var virkailija: Kayttaja? = null,
+
+    @Column(name = "lisatiedot_virkailijalta")
+    var lisatiedotVirkailijalta: String? = null,
+
+    @Column(name = "virkailija_hyvaksynyt")
+    var virkailijaHyvaksynyt: Boolean = false,
+
+    @Column(name = "virkailijan_kuittausaika")
+    var virkailijanKuittausaika: LocalDate? = null,
+
+    @Column(name = "sarakesign_request_id")
+    var sarakeSignRequestId: String? = null,
+
+    @Column(name = "allekirjoitettu", nullable = false)
+    var allekirjoitettu: Boolean = false
 
 ) : Serializable {
 
@@ -105,16 +97,10 @@ data class KoejaksonVastuuhenkilonArvio(
         return "KoejaksonVastuuhenkilonArvio(" +
             "id=$id, " +
             "opintooikeus=$opintooikeus, " +
-            "erikoistuvanNimi=$erikoistuvanNimi, " +
-            "erikoistuvanErikoisala=$erikoistuvanErikoisala, " +
-            "erikoistuvanOpiskelijatunnus=$erikoistuvanOpiskelijatunnus, " +
-            "erikoistuvanYliopisto=$erikoistuvanYliopisto, " +
             "vastuuhenkilo=$vastuuhenkilo, " +
-            "vastuuhenkilonNimi=$vastuuhenkilonNimi, " +
-            "vastuuhenkiloAllekirjoittanut=$vastuuhenkiloAllekirjoittanut, " +
+            "vastuuhenkiloAllekirjoittanut=$vastuuhenkiloHyvaksynyt, " +
             "vastuuhenkilonKuittausaika=$vastuuhenkilonKuittausaika, " +
-            "muokkauspaiva=$muokkauspaiva, " +
-            "erikoistuvaAllekirjoittanut=$erikoistuvaAllekirjoittanut)"
+            "muokkauspaiva=$muokkauspaiva)"
     }
 
     companion object {
