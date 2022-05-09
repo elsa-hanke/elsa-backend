@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import com.itextpdf.html2pdf.HtmlConverter
 import com.itextpdf.kernel.pdf.PdfWriter
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
@@ -32,6 +33,7 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
+    private val kayttajaService: KayttajaService,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val userRepository: UserRepository,
     private val templateEngine: SpringTemplateEngine,
@@ -45,6 +47,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         opintooikeusId: Long
     ): KoejaksonKoulutussopimusDTO? {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            validateVastuuhenkilo(it.erikoistuvaLaakari?.kayttaja?.user?.id!!, koejaksonKoulutussopimusDTO)
             var koulutussopimus =
                 koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
             koulutussopimus.opintooikeus = it
@@ -146,6 +149,16 @@ class KoejaksonKoulutussopimusServiceImpl(
         }
 
         return dto
+    }
+
+    private fun validateVastuuhenkilo(userId: String, koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO) {
+        if (kayttajaService.findVastuuhenkiloByTehtavatyyppi(
+                userId,
+                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+            ).id != koejaksonKoulutussopimusDTO.vastuuhenkilo?.id
+        ) {
+            throw java.lang.IllegalArgumentException("Vastuuhenkilöä ei saa vaihtaa")
+        }
     }
 
     private fun handleErikoistuva(

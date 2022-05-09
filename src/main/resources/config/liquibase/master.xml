@@ -203,5 +203,8 @@
     <include file="config/liquibase/changelog/20220503112344_added_entity_OpintooikeusHerate.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220504132645_modify_entity_Kouluttajavaltuutus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220505094631_modify_entity_constraints_KouluttajaValtuutus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220506104922_added_entity_VastuuhenkilonTehtavatyyppi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220506105112_add_join_table_erikoisalan_tehtava.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220506105322_add_join_table_rel_kayttaja_vastuuhenkilon_tehtavatyyppi.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

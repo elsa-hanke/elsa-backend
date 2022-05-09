@@ -4,7 +4,7 @@ import java.io.Serializable
 
 data class VastuuhenkilonArvioFormDTO(
 
-    var vastuuhenkilot: List<KayttajaDTO>? = null,
+    var vastuuhenkilo: KayttajaDTO? = null,
 
     var tyoskentelyjaksoLiitetty: Boolean = false,
 
