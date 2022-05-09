@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import java.util.*
@@ -22,7 +23,7 @@ interface KayttajaService {
 
     fun findKouluttajat(userId: String): List<KayttajaDTO>
 
-    fun findVastuuhenkilot(userId: String): List<KayttajaDTO>
+    fun findVastuuhenkiloByTehtavatyyppi(userId: String, tehtavatyyppi: VastuuhenkilonTehtavatyyppiEnum): KayttajaDTO
 
     fun findTeknisetPaakayttajat(): List<KayttajaDTO>
 

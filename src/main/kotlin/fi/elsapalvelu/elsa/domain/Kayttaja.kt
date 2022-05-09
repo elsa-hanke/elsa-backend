@@ -40,6 +40,15 @@ data class Kayttaja(
     )
     var yliopistot: MutableSet<Yliopisto> = mutableSetOf(),
 
+    @ManyToMany
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JoinTable(
+        name = "rel_kayttaja_vastuuhenkilon_tehtavatyyppi",
+        joinColumns = [JoinColumn(name = "kayttaja_id", referencedColumnName = "id")],
+        inverseJoinColumns = [JoinColumn(name = "vastuuhenkilon_tehtavatyyppi_id", referencedColumnName = "id")]
+    )
+    var vastuuhenkilonTehtavatyypit: MutableSet<VastuuhenkilonTehtavatyyppi> = mutableSetOf()
+
 ) : Serializable {
 
     fun getNimi(): String {

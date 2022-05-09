@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
@@ -116,7 +117,10 @@ class ErikoistuvaLaakariKoejaksoResource(
     fun getKoulutussopimusForm(principal: Principal?): ResponseEntity<KoulutussopimusFormDTO> {
         val form = KoulutussopimusFormDTO().apply {
             val user = userService.getAuthenticatedUser(principal)
-            vastuuhenkilot = kayttajaService.findVastuuhenkilot(user.id!!)
+            vastuuhenkilo = kayttajaService.findVastuuhenkiloByTehtavatyyppi(
+                user.id!!,
+                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+            )
             yliopistot = yliopistoService.findAll()
         }
 
@@ -181,6 +185,14 @@ class ErikoistuvaLaakariKoejaksoResource(
                 "Koulutussopimusta ei löydy.",
                 ENTITY_KOEJAKSON_SOPIMUS,
                 "dataillegal.koulutussopimusta-ei-loydy"
+            )
+        }
+
+        if (koulutussopimusDTO.vastuuhenkilo?.id != koulutussopimus.get().vastuuhenkilo?.id) {
+            throw BadRequestAlertException(
+                "Vastuuhenkilöä ei voi vaihtaa.",
+                ENTITY_KOEJAKSON_SOPIMUS,
+                "dataillegal.vastuuhenkiloa-ei-saa-vaihtaa"
             )
         }
 
@@ -432,7 +444,10 @@ class ErikoistuvaLaakariKoejaksoResource(
             val user = userService.getAuthenticatedUser(principal)
             val opintooikeusId =
                 opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
-            vastuuhenkilot = kayttajaService.findVastuuhenkilot(user.id!!)
+            vastuuhenkilo = kayttajaService.findVastuuhenkiloByTehtavatyyppi(
+                user.id!!,
+                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+            )
             val (tyoskentelyJaksoLiitetty, tyoskentelyjaksonPituusRiittava, tyotodistusLiitetty) =
                 tyoskentelyjaksoService.validateByLiitettyKoejaksoon(opintooikeusId)
             this.tyoskentelyjaksoLiitetty = tyoskentelyJaksoLiitetty
@@ -515,6 +530,14 @@ class ErikoistuvaLaakariKoejaksoResource(
                 "Koejakson vastuuhenkilön arviota ei löydy.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
                 "dataillegal.koejakson-vastuuhenkilon-arviota-ei-loydy"
+            )
+        }
+
+        if (vastuuhenkilonArvio.get().vastuuhenkilo?.id != vastuuhenkilonArvioDTO.vastuuhenkilo?.id) {
+            throw BadRequestAlertException(
+                "Vastuuhenkilöä ei saa vaihtaa.",
+                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
+                "dataillegal.vastuuhenkiloa-ei-saa-vaihtaa"
             )
         }
 

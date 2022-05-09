@@ -81,6 +81,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".saadutValtuutukset")
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".yliopistotAndErikoisalat")
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".yliopistot")
+            createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name + ".vastuuhenkilonTehtavatyypit")
             createCache(cm, fi.elsapalvelu.elsa.domain.Kayttaja::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.Keskeytysaika::class.java.name)
@@ -138,6 +139,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Opintosuoritus::class.java.name + ".osakokonaisuudet")
             createCache(cm, fi.elsapalvelu.elsa.domain.OpintosuoritusOsakokonaisuus::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.OpintooikeusHerate::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.VastuuhenkilonTehtavatyyppi::class.java.name)
         }
         // @formatter:on
     }
