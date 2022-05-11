@@ -47,8 +47,13 @@ class SarakesignServiceImpl(
     }
 
     override fun tarkistaAllekirjoitus(requestId: String?, yliopisto: YliopistoEnum): Int {
-        val token = login(yliopisto)
-        return getRequestStatus(requestId, token, yliopisto)
+        return try {
+            val token = login(yliopisto)
+            getRequestStatus(requestId, token, yliopisto)
+        } catch (e: Exception) {
+            log.error("Sarakesign tilan tarkistus epäonnistui: $e")
+            0
+        }
     }
 
     private fun login(yliopisto: YliopistoEnum): String {
