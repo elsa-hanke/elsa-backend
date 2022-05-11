@@ -1,20 +1,26 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
+import fi.elsapalvelu.elsa.service.dto.YliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
 import fi.elsapalvelu.elsa.service.mapper.ErikoistuvaLaakariMapper
 import fi.elsapalvelu.elsa.service.mapper.YliopistoMapper
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.*
+import javax.persistence.EntityNotFoundException
 
 @Service
 @Transactional
@@ -116,9 +122,48 @@ class ErikoistuvaLaakariServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(): List<ErikoistuvaLaakariDTO> {
-        return erikoistuvaLaakariRepository.findAll()
-            .map(erikoistuvaLaakariMapper::toDto)
+    override fun findAll(pageable: Pageable): Page<KayttajahallintaKayttajaListItemDTO> {
+        return erikoistuvaLaakariRepository.findAll(pageable)
+            .map {
+                KayttajahallintaKayttajaListItemDTO(
+                    kayttajaId = it.kayttaja?.id,
+                    etunimi = it.kayttaja?.user?.firstName,
+                    sukunimi = it.kayttaja?.user?.lastName,
+                    syntymaaika = it.syntymaaika,
+                    yliopistotAndErikoisalat = it.opintooikeudet.map { o ->
+                        YliopistoErikoisalaDTO(
+                            yliopisto = o.yliopisto?.nimi,
+                            erikoisala = o.erikoisala?.nimi
+                        )
+                    },
+                    kayttajatilinTila = KayttajatilinTila.AKTIIVINEN
+                )
+            }
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAllForVirkailija(userId: String, pageable: Pageable): Page<KayttajahallintaKayttajaListItemDTO> {
+        val kayttaja =
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+        val yliopisto =
+            kayttaja.yliopistot.firstOrNull() ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
+
+        return erikoistuvaLaakariRepository.findAllByYliopistoId(pageable, yliopisto.id!!)
+            .map {
+                KayttajahallintaKayttajaListItemDTO(
+                    kayttajaId = it.kayttaja?.id,
+                    etunimi = it.kayttaja?.user?.firstName,
+                    sukunimi = it.kayttaja?.user?.lastName,
+                    syntymaaika = it.syntymaaika,
+                    yliopistotAndErikoisalat = it.opintooikeudet.map { o ->
+                        YliopistoErikoisalaDTO(
+                            yliopisto = o.yliopisto?.nimi,
+                            erikoisala = o.erikoisala?.nimi
+                        )
+                    },
+                    kayttajatilinTila = KayttajatilinTila.AKTIIVINEN
+                )
+            }
     }
 
     @Transactional(readOnly = true)

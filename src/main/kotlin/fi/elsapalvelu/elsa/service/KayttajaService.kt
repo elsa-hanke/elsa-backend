@@ -35,4 +35,6 @@ interface KayttajaService {
         erikoistuvaUserId: String,
         kouluttajaEmail: String
     ): KayttajaDTO?
+
+    fun findVastuuhenkilot(userId: String): List<KayttajaDTO>
 }
