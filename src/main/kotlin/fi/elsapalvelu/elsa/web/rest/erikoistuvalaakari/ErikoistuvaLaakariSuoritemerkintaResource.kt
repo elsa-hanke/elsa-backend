@@ -165,6 +165,6 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
                 suoritteet = suoritteet?.sortedBy { suoritteet -> suoritteet.nimi }?.toSet()
             }
             it
-        }.sortedBy { kategoria -> kategoria.jarjestysnumero }.toSet()
+        }.sortedWith(compareBy({ it.jarjestysnumero }, { it.nimi })).toSet()
     }
 }
