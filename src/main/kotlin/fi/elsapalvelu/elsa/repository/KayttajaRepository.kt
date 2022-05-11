@@ -31,4 +31,13 @@ interface KayttajaRepository : JpaRepository<Kayttaja, Long> {
         yliopistoId: Long?,
         erikoisalaId: Long?
     ): MutableList<Kayttaja>
+
+    @Query(
+        "select k from Kayttaja k join k.user u left join u.authorities a left join k.yliopistotAndErikoisalat y " +
+            "where a.name in :authorities and k.id = y.kayttaja.id and y.yliopisto.id = :yliopistoId"
+    )
+    fun findAllByAuthoritiesAndYliopisto(
+        authorities: List<String>,
+        yliopistoId: Long?
+    ): MutableList<Kayttaja>
 }

@@ -181,4 +181,14 @@ class KayttajaServiceImpl(
             kayttajaMapper.toDto(it)
         }
     }
+
+    override fun findVastuuhenkilot(userId: String): List<KayttajaDTO> {
+        val kayttaja =
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+        val yliopisto = kayttaja.yliopistot.firstOrNull()
+            ?: throw EntityNotFoundException("Käyttäjälle ei ole määritelty yliopistoa")
+
+        return kayttajaRepository.findAllByAuthoritiesAndYliopisto(listOf(VASTUUHENKILO), yliopisto.id)
+            .map(kayttajaMapper::toDto)
+    }
 }
