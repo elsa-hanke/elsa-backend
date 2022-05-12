@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
+import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
@@ -17,6 +18,10 @@ data class Kayttaja(
 
     @Column(name = "nimike", nullable = true)
     var nimike: String? = null,
+
+    @Column(name = "tila", nullable = false)
+    @Enumerated(EnumType.STRING)
+    var tila: KayttajatilinTila? = null,
 
     @NotNull
     @OneToOne(optional = false)

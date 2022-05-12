@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import javax.persistence.EntityManager
 
@@ -21,7 +22,8 @@ class KayttajaHelper {
         @JvmStatic
         fun createEntity(em: EntityManager, user: User? = null): Kayttaja {
             val kayttaja = Kayttaja(
-                nimike = DEFAULT_NIMIKE
+                nimike = DEFAULT_NIMIKE,
+                tila = KayttajatilinTila.AKTIIVINEN
             )
 
             // Lisätään pakollinen tieto
@@ -42,7 +44,7 @@ class KayttajaHelper {
             em: EntityManager,
             nimi: String = UPDATED_NIMI
         ): Kayttaja {
-            val kayttaja = Kayttaja()
+            val kayttaja = Kayttaja(tila = KayttajatilinTila.AKTIIVINEN)
 
             // Lisätään pakollinen tieto
             val user = KayttajaResourceWithMockUserIT.createEntity(nimi)

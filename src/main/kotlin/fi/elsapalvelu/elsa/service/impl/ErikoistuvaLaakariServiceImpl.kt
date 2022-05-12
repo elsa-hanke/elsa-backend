@@ -64,6 +64,7 @@ class ErikoistuvaLaakariServiceImpl(
 
         var kayttaja = Kayttaja(
             user = user,
+            tila = KayttajatilinTila.KUTSUTTU
         )
         kayttaja = kayttajaRepository.save(kayttaja)
 
@@ -136,7 +137,7 @@ class ErikoistuvaLaakariServiceImpl(
                             erikoisala = o.erikoisala?.nimi
                         )
                     },
-                    kayttajatilinTila = KayttajatilinTila.AKTIIVINEN
+                    kayttajatilinTila = it.kayttaja?.tila
                 )
             }
     }
@@ -161,7 +162,7 @@ class ErikoistuvaLaakariServiceImpl(
                             erikoisala = o.erikoisala?.nimi
                         )
                     },
-                    kayttajatilinTila = KayttajatilinTila.AKTIIVINEN
+                    kayttajatilinTila = it.kayttaja?.tila
                 )
             }
     }
