@@ -10,7 +10,11 @@ data class VastuuhenkilonArvioFormDTO(
 
     var tyoskentelyjaksonPituusRiittava: Boolean = false,
 
-    var tyotodistusLiitetty: Boolean = false
+    var tyotodistusLiitetty: Boolean = false,
+
+    var muutOpintooikeudet: List<OpintooikeusDTO>? = null,
+
+    var koulutussopimusHyvaksytty: Boolean? = null
 
 ) : Serializable {
     override fun toString() = "VastuuhenkilonArvioFormDTO"

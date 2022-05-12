@@ -29,6 +29,14 @@ interface KoejaksonVastuuhenkilonArvioMapper :
         Mapping(source = "opintooikeus.yliopisto.nimi", target = "erikoistuvanYliopisto"),
         Mapping(source = "opintooikeus.erikoisala.nimi", target = "erikoistuvanErikoisala"),
         Mapping(source = "opintooikeus.opiskelijatunnus", target = "erikoistuvanOpiskelijatunnus"),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.email",
+            target = "erikoistuvanSahkoposti"
+        ),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.phoneNumber",
+            target = "erikoistuvanPuhelinnumero"
+        ),
         Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo.id"),
         Mapping(
             source = "vastuuhenkiloHyvaksynyt",
@@ -38,6 +46,14 @@ interface KoejaksonVastuuhenkilonArvioMapper :
         Mapping(
             source = "virkailijaHyvaksynyt",
             target = "virkailija.sopimusHyvaksytty"
+        ),
+        Mapping(
+            source = "vastuuhenkilo.user.email",
+            target = "vastuuhenkilonSahkoposti"
+        ),
+        Mapping(
+            source = "vastuuhenkilo.user.phoneNumber",
+            target = "vastuuhenkilonPuhelinnumero"
         ),
         Mapping(source = "virkailijanKuittausaika", target = "virkailija.kuittausaika")
     )

@@ -453,6 +453,13 @@ class ErikoistuvaLaakariKoejaksoResource(
             this.tyoskentelyjaksoLiitetty = tyoskentelyJaksoLiitetty
             this.tyoskentelyjaksonPituusRiittava = tyoskentelyjaksonPituusRiittava
             this.tyotodistusLiitetty = tyotodistusLiitetty
+            this.muutOpintooikeudet =
+                opintooikeusService.findAllValidByErikoistuvaLaakariKayttajaUserId(user.id!!)
+                    .filter { it.id != opintooikeusId }
+            val koulutussopimus =
+                koejaksonKoulutussopimusService.findByOpintooikeusId(opintooikeusId)
+            this.koulutussopimusHyvaksytty =
+                koulutussopimus.isPresent && koulutussopimus.get().vastuuhenkilo?.sopimusHyvaksytty == true
         }
 
         return ResponseEntity.ok(form)
