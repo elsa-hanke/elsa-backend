@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.periodLessThan
@@ -197,6 +198,7 @@ class OpintotietodataPersistenceServiceImpl(
         val kayttaja = kayttajaRepository.save(
             Kayttaja(
                 user = user,
+                tila = KayttajatilinTila.AKTIIVINEN
             )
         )
 

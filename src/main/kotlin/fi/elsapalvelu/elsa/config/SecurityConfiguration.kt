@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
@@ -312,6 +313,15 @@ class SecurityConfiguration(
                     "Käyttäjällä ei ole käyttöoikeutta."
             )
             throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
+        }
+
+        val kayttaja = kayttajaRepository.findOneByUserId(existingUser.id!!).orElseThrow {
+            Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
+        }
+
+        if (kayttaja.tila == KayttajatilinTila.PASSIIVINEN) {
+            log.error("Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. Käyttäjän tili on passivoitu")
+            throw Exception(LoginException.TILI_PASSIVOITU.name)
         }
 
         // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus

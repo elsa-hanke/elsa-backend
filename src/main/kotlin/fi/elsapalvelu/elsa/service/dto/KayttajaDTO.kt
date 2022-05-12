@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.dto
 
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.VastuuhenkilonTehtavatyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import java.io.Serializable
 import javax.persistence.Lob
 import javax.validation.constraints.NotNull
@@ -18,6 +19,8 @@ data class KayttajaDTO(
     var sukunimi: String? = null,
 
     var sahkoposti: String? = null,
+
+    var tila: KayttajatilinTila? = null,
 
     @Lob
     var avatar: ByteArray? = null,
