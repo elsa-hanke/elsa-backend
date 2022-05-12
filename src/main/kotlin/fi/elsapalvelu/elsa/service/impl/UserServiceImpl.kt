@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.config.LoginException
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
@@ -26,6 +27,7 @@ import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
+import javax.persistence.EntityNotFoundException
 
 
 @Service
@@ -175,19 +177,26 @@ class UserServiceImpl(
 
                 // Yhdistä käyttäjä jos löytyy
                 if (existingUser != null) {
-                    val existingKayttaja = kayttajaRepository.findOneByUserId(existingUser.id!!)
-                    val tokenKayttaja = kayttajaRepository.findOneByUserId(tokenUser.id!!)
+                    val existingKayttaja =
+                        kayttajaRepository.findOneByUserId(existingUser.id!!)
+                            .orElseThrow { EntityNotFoundException("Olemassaolevaa käyttäjää ei löydy") }
+                    val tokenKayttaja =
+                        kayttajaRepository.findOneByUserId(tokenUser.id!!)
+                            .orElseThrow { EntityNotFoundException("Väliaikaista käyttäjää ei löydy") }
+
+                    existingKayttaja.tila.takeIf { t -> t == KayttajatilinTila.KUTSUTTU }
+                        ?.apply { KayttajatilinTila.AKTIIVINEN }
 
                     updateKouluttajaReferences(
-                        tokenKayttaja.get().id!!,
-                        existingKayttaja.get().id!!
+                        tokenKayttaja.id!!,
+                        existingKayttaja.id!!
                     )
 
                     existingUser.email = tokenUser.email
                     existingUser.authorities.clear()
                     existingUser.authorities.addAll(tokenUser.authorities)
 
-                    kayttajaRepository.delete(tokenKayttaja.get())
+                    kayttajaRepository.delete(tokenKayttaja)
                     verificationTokenRepository.delete(it)
                     userRepository.delete(tokenUser)
                     userRepository.save(existingUser)
