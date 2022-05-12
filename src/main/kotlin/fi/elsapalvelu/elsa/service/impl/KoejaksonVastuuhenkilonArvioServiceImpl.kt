@@ -1,13 +1,9 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
-import fi.elsapalvelu.elsa.service.KayttajaService
-import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
-import fi.elsapalvelu.elsa.service.MailProperty
-import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
 import org.springframework.data.repository.findByIdOrNull
@@ -26,8 +22,16 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
+    private val userRepository: UserRepository,
     private val kayttajaService: KayttajaService,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val tyoskentelyjaksoService: TyoskentelyjaksoService,
+    private val koejaksonAloituskeskusteluService: KoejaksonAloituskeskusteluService,
+    private val koejaksonValiarviointiService: KoejaksonValiarviointiService,
+    private val koejaksonKehittamistoimenpiteetService: KoejaksonKehittamistoimenpiteetService,
+    private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService,
+    private val opintooikeusService: OpintooikeusService,
+    private val koulutussopimusRepository: KoejaksonKoulutussopimusRepository
 ) : KoejaksonVastuuhenkilonArvioService {
 
     override fun create(
@@ -35,12 +39,21 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         opintooikeusId: Long
     ): KoejaksonVastuuhenkilonArvioDTO? {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
-            validateVastuuhenkilo(it.erikoistuvaLaakari?.kayttaja?.user?.id!!, koejaksonVastuuhenkilonArvioDTO)
+            validateVastuuhenkilo(
+                it.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                koejaksonVastuuhenkilonArvioDTO
+            )
             var vastuuhenkilonArvio =
                 koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
             vastuuhenkilonArvio.opintooikeus = it
             vastuuhenkilonArvio.virkailija = null
             vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
+
+            it.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
+                user.email = koejaksonVastuuhenkilonArvioDTO.erikoistuvanSahkoposti
+                user.phoneNumber = koejaksonVastuuhenkilonArvioDTO.erikoistuvanPuhelinnumero
+                userRepository.save(user)
+            }
 
             // Sähköposti vastuuhenkilölle
             mailService.sendEmailFromTemplate(
@@ -78,12 +91,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val updatedVastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
 
-        if (vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId
-            && vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null
-        ) {
-            vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
-        }
-
         if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
             vastuuhenkilonArvio.apply {
                 vastuuhenkiloHyvaksynyt = true
@@ -99,6 +106,12 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
         if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
+
+            vastuuhenkilonArvio.vastuuhenkilo?.user?.let { user ->
+                user.email = koejaksonVastuuhenkilonArvioDTO.vastuuhenkilonSahkoposti
+                user.phoneNumber = koejaksonVastuuhenkilonArvioDTO.vastuuhenkilonPuhelinnumero
+                userRepository.save(user)
+            }
 
             // Sähköposti erikoistuvalle vastuuhenkilon kuittaamasta arviosta
             if (vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
@@ -118,13 +131,13 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<KoejaksonVastuuhenkilonArvioDTO> {
         return koejaksonVastuuhenkilonArvioRepository.findById(id)
-            .map(koejaksonVastuuhenkilonArvioMapper::toDto)
+            .map(this::mapVastuuhenkilonArvio)
     }
 
     @Transactional(readOnly = true)
     override fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonVastuuhenkilonArvioDTO> {
         return koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(opintooikeusId)
-            .map(koejaksonVastuuhenkilonArvioMapper::toDto)
+            .map(this::mapVastuuhenkilonArvio)
     }
 
     @Transactional(readOnly = true)
@@ -133,10 +146,33 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         userId: String
     ): Optional<KoejaksonVastuuhenkilonArvioDTO> {
         return koejaksonVastuuhenkilonArvioRepository.findOneByIdAndVastuuhenkiloUserId(id, userId)
-            .map(koejaksonVastuuhenkilonArvioMapper::toDto)
+            .map(this::mapVastuuhenkilonArvio)
     }
 
     override fun delete(id: Long) {
         koejaksonVastuuhenkilonArvioRepository.deleteById(id)
+    }
+
+    private fun mapVastuuhenkilonArvio(vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio): KoejaksonVastuuhenkilonArvioDTO {
+        val result = koejaksonVastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvio)
+        val opintoOikeusId = vastuuhenkilonArvio.opintooikeus?.id!!
+        result.koejaksonSuorituspaikat =
+            tyoskentelyjaksoService.findAllByOpintooikeusId(opintoOikeusId)
+        result.aloituskeskustelu =
+            koejaksonAloituskeskusteluService.findByOpintooikeusId(opintoOikeusId)
+                .orElse(null)
+        result.valiarviointi =
+            koejaksonValiarviointiService.findByOpintooikeusId(opintoOikeusId).orElse(null)
+        result.kehittamistoimenpiteet =
+            koejaksonKehittamistoimenpiteetService.findByOpintooikeusId(opintoOikeusId).orElse(null)
+        result.loppukeskustelu =
+            koejaksonLoppukeskusteluService.findByOpintooikeusId(opintoOikeusId).orElse(null)
+        result.muutOpintooikeudet =
+            opintooikeusService.findAllValidByErikoistuvaLaakariKayttajaUserId(vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!)
+                .filter { it.id != opintoOikeusId }
+        val koulutussopimus = koulutussopimusRepository.findByOpintooikeusId(opintoOikeusId)
+        result.koulutussopimusHyvaksytty =
+            koulutussopimus.isPresent && koulutussopimus.get().vastuuhenkiloHyvaksynyt == true
+        return result
     }
 }
