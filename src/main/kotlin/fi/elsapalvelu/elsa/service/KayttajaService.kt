@@ -37,4 +37,8 @@ interface KayttajaService {
     ): KayttajaDTO?
 
     fun findVastuuhenkilot(userId: String): List<KayttajaDTO>
+
+    fun activateKayttaja(kayttajaId: Long)
+
+    fun passivateKayttaja(kayttajaId: Long)
 }

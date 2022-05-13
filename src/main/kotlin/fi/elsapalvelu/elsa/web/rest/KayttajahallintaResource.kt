@@ -139,6 +139,22 @@ open class KayttajahallintaResource(
             .build()
     }
 
+    @PatchMapping("/kayttajat/{id}/aktivoi")
+    fun activateKayttaja(
+        @PathVariable id: Long
+    ): ResponseEntity<Void> {
+        kayttajaService.activateKayttaja(id)
+        return ResponseEntity.ok().build()
+    }
+
+    @PatchMapping("/kayttajat/{id}/passivoi")
+    fun passivateKayttaja(
+        @PathVariable id: Long
+    ): ResponseEntity<Void> {
+        kayttajaService.passivateKayttaja(id)
+        return ResponseEntity.ok().build()
+    }
+
     private fun hasVirkailijaRole(userDTO: UserDTO): Boolean {
         return userDTO.authorities!!.contains(OPINTOHALLINNON_VIRKAILIJA)
     }
