@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala
+import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
@@ -50,6 +51,7 @@ class KayttajaServiceImpl(
             user.firstName = names?.dropLast(1)?.joinToString()
             user.lastName = names?.last()
             user = userRepository.save(user)
+            kayttajaDTO.tila = KayttajatilinTila.AKTIIVINEN
             var kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
             kayttaja.user = user
             val opintooikeus =
@@ -190,5 +192,17 @@ class KayttajaServiceImpl(
 
         return kayttajaRepository.findAllByAuthoritiesAndYliopisto(listOf(VASTUUHENKILO), yliopisto.id)
             .map(kayttajaMapper::toDto)
+    }
+
+    override fun activateKayttaja(kayttajaId: Long) {
+        val kayttaja =
+            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+        kayttaja.tila = KayttajatilinTila.AKTIIVINEN
+    }
+
+    override fun passivateKayttaja(kayttajaId: Long) {
+        val kayttaja =
+            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+        kayttaja.tila = KayttajatilinTila.PASSIIVINEN
     }
 }

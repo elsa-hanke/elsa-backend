@@ -184,7 +184,7 @@ class UserServiceImpl(
                         kayttajaRepository.findOneByUserId(tokenUser.id!!)
                             .orElseThrow { EntityNotFoundException("Väliaikaista käyttäjää ei löydy") }
 
-                    existingKayttaja.tila.takeIf { t -> t == KayttajatilinTila.KUTSUTTU }
+                    existingKayttaja.takeIf { t -> t.tila == KayttajatilinTila.KUTSUTTU }
                         ?.apply { KayttajatilinTila.AKTIIVINEN }
 
                     updateKouluttajaReferences(
@@ -216,6 +216,10 @@ class UserServiceImpl(
                     tokenUser.lastName = lastName
 
                     userRepository.save(tokenUser)
+                    val kayttaja =
+                        kayttajaRepository.findOneByUserId(tokenUser.id!!)
+                            .orElseThrow { EntityNotFoundException("Olemassaolevaa käyttäjää ei löydy") }
+                    kayttaja.tila = KayttajatilinTila.AKTIIVINEN
                     verificationTokenRepository.delete(it)
                 }
             }
