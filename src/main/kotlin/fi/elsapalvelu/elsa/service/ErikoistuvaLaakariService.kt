@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
@@ -13,9 +14,17 @@ interface ErikoistuvaLaakariService {
 
     fun save(kayttajahallintaErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariDTO): ErikoistuvaLaakariDTO
 
-    fun findAll(pageable: Pageable): Page<KayttajahallintaKayttajaListItemDTO>
+    fun findAll(
+        userId: String,
+        criteria: KayttajahallintaCriteria,
+        pageable: Pageable
+    ): Page<KayttajahallintaKayttajaListItemDTO>
 
-    fun findAllForVirkailija(userId: String, pageable: Pageable): Page<KayttajahallintaKayttajaListItemDTO>
+    fun findAllForVirkailija(
+        userId: String,
+        criteria: KayttajahallintaCriteria,
+        pageable: Pageable
+    ): Page<KayttajahallintaKayttajaListItemDTO>
 
     fun findOne(id: Long): Optional<ErikoistuvaLaakariDTO>
 

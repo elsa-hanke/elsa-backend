@@ -14,7 +14,8 @@ class VirkailijaKayttajahallintaResource(
     yliopistoService: YliopistoService,
     erikoisalaService: ErikoisalaService,
     asetusService: AsetusService,
-    opintoopasService: OpintoopasService
+    opintoopasService: OpintoopasService,
+    vastuuhenkilonTehtavatyyppiService: VastuuhenkilonTehtavatyyppiService
 ) : KayttajahallintaResource(
     erikoistuvaLaakariService,
     userService,
@@ -22,5 +23,6 @@ class VirkailijaKayttajahallintaResource(
     yliopistoService,
     erikoisalaService,
     asetusService,
-    opintoopasService
+    opintoopasService,
+    vastuuhenkilonTehtavatyyppiService
 )

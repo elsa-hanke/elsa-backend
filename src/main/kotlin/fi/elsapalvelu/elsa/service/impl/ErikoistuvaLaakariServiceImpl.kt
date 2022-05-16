@@ -6,8 +6,8 @@ import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
-import fi.elsapalvelu.elsa.service.dto.YliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
@@ -27,6 +27,7 @@ import javax.persistence.EntityNotFoundException
 class ErikoistuvaLaakariServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val erikoistuvaLaakariMapper: ErikoistuvaLaakariMapper,
+    private val kayttajahallintaQueryService: KayttajahallintaQueryService,
     private val yliopistoService: YliopistoService,
     private val yliopistoMapper: YliopistoMapper,
     private val erikoisalaService: ErikoisalaService,
@@ -123,48 +124,33 @@ class ErikoistuvaLaakariServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(pageable: Pageable): Page<KayttajahallintaKayttajaListItemDTO> {
-        return erikoistuvaLaakariRepository.findAll(pageable)
-            .map {
-                KayttajahallintaKayttajaListItemDTO(
-                    kayttajaId = it.kayttaja?.id,
-                    etunimi = it.kayttaja?.user?.firstName,
-                    sukunimi = it.kayttaja?.user?.lastName,
-                    syntymaaika = it.syntymaaika,
-                    yliopistotAndErikoisalat = it.opintooikeudet.map { o ->
-                        YliopistoErikoisalaDTO(
-                            yliopisto = o.yliopisto?.nimi,
-                            erikoisala = o.erikoisala?.nimi
-                        )
-                    },
-                    kayttajatilinTila = it.kayttaja?.tila
-                )
-            }
+    override fun findAll(userId:String, criteria: KayttajahallintaCriteria, pageable: Pageable): Page<KayttajahallintaKayttajaListItemDTO> {
+        val kayttaja =
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+        return kayttajahallintaQueryService.findErikoistuvatByCriteria(
+            criteria,
+            pageable,
+            kayttaja.user?.langKey
+        )
     }
 
     @Transactional(readOnly = true)
-    override fun findAllForVirkailija(userId: String, pageable: Pageable): Page<KayttajahallintaKayttajaListItemDTO> {
+    override fun findAllForVirkailija(
+        userId: String,
+        criteria: KayttajahallintaCriteria,
+        pageable: Pageable
+    ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
             kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
         val yliopisto =
             kayttaja.yliopistot.firstOrNull() ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
 
-        return erikoistuvaLaakariRepository.findAllByYliopistoId(pageable, yliopisto.id!!)
-            .map {
-                KayttajahallintaKayttajaListItemDTO(
-                    kayttajaId = it.kayttaja?.id,
-                    etunimi = it.kayttaja?.user?.firstName,
-                    sukunimi = it.kayttaja?.user?.lastName,
-                    syntymaaika = it.syntymaaika,
-                    yliopistotAndErikoisalat = it.opintooikeudet.map { o ->
-                        YliopistoErikoisalaDTO(
-                            yliopisto = o.yliopisto?.nimi,
-                            erikoisala = o.erikoisala?.nimi
-                        )
-                    },
-                    kayttajatilinTila = it.kayttaja?.tila
-                )
-            }
+        return kayttajahallintaQueryService.findErikoistuvatByCriteriaAndYliopistoId(
+            criteria,
+            pageable,
+            yliopisto.id,
+            kayttaja.user?.langKey
+        )
     }
 
     @Transactional(readOnly = true)
