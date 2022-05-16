@@ -2,8 +2,10 @@ package fi.elsapalvelu.elsa.web.rest
 
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.KayttajahallintaKayttajatOptionsDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
@@ -27,21 +29,32 @@ open class KayttajahallintaResource(
     private val yliopistoService: YliopistoService,
     private val erikoisalaService: ErikoisalaService,
     private val asetusService: AsetusService,
-    private val opintoopasService: OpintoopasService
+    private val opintoopasService: OpintoopasService,
+    private val vastuuhenkilonTehtavatyyppiService: VastuuhenkilonTehtavatyyppiService
 ) {
     @GetMapping("/erikoistuvat-laakarit")
     fun getErikoistuvatLaakarit(
-        principal: Principal?,
-        pageable: Pageable
+        criteria: KayttajahallintaCriteria,
+        pageable: Pageable,
+        principal: Principal?
     ): ResponseEntity<Page<KayttajahallintaKayttajaListItemDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val erikoistujat =
             if (hasVirkailijaRole(user)) {
-                erikoistuvaLaakariService.findAllForVirkailija(user.id!!, pageable)
+                erikoistuvaLaakariService.findAllForVirkailija(user.id!!, criteria, pageable)
             } else {
-                erikoistuvaLaakariService.findAll(pageable)
+                erikoistuvaLaakariService.findAll(user.id!!, criteria, pageable)
             }
         return ResponseEntity.ok(erikoistujat)
+    }
+
+    @GetMapping("/kayttajat/rajaimet")
+    fun getKayttajahallintaRajaimet(): ResponseEntity<KayttajahallintaKayttajatOptionsDTO> {
+        val form = KayttajahallintaKayttajatOptionsDTO()
+        form.erikoisalat = erikoisalaService.findAllByLiittynytElsaan().toSet()
+        form.vastuuhenkilonVastuualueet = vastuuhenkilonTehtavatyyppiService.findAll().toSet()
+
+        return ResponseEntity.ok(form)
     }
 
     @GetMapping("/kayttajat/{id}")
