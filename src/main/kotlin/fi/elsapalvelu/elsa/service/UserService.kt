@@ -28,7 +28,7 @@ interface UserService {
         omatTiedotDTO: OmatTiedotDTO, userId: String
     ): UserDTO
 
-    fun updateEmailForFirstLogin(email: String, userId: String)
+    fun updateEmail(email: String, userId: String)
 
     fun createOrUpdateUserWithToken(
         verificationToken: String,

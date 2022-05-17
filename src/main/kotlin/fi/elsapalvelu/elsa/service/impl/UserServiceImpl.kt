@@ -135,8 +135,8 @@ class UserServiceImpl(
         return UserDTO(user)
     }
 
-    override fun updateEmailForFirstLogin(email: String, userId: String) {
-        val user = userRepository.findById(userId).get()
+    override fun updateEmail(email: String, userId: String) {
+        val user = userRepository.findById(userId).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
         user.email = email
     }
 

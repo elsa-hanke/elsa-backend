@@ -7,15 +7,14 @@ import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.KayttajahallintaKayttajatOptionsDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
-import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
-import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
-import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
-import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaFormDTO
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
 import javax.validation.Valid
@@ -165,6 +164,25 @@ open class KayttajahallintaResource(
         @PathVariable id: Long
     ): ResponseEntity<Void> {
         kayttajaService.passivateKayttaja(id)
+        return ResponseEntity.ok().build()
+    }
+
+    @PatchMapping("/kayttajat/{userId}")
+    fun patchEmailAddress(
+        @PathVariable userId: String,
+        @Valid @RequestBody kayttajaDTO: KayttajahallintaUpdateKayttajaDTO,
+    ): ResponseEntity<Void> {
+        kayttajaDTO.sahkoposti?.let {
+            if (userService.existsByEmail(it)) {
+                throw BadRequestAlertException(
+                    "Sähköpostiosoitteella löytyy jo käyttäjä",
+                    "user",
+                    "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
+                )
+            }
+            userService.updateEmail(it, userId)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+
         return ResponseEntity.ok().build()
     }
 
