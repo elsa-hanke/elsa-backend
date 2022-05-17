@@ -35,7 +35,7 @@ class ErikoistuvaLaakariKaytonAloitusResource(
                     "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
                 )
             }
-            userService.updateEmailForFirstLogin(it, user.id!!)
+            userService.updateEmail(it, user.id!!)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
 
         val opintooikeudetVoimassa = opintooikeusService.findAllValidByErikoistuvaLaakariKayttajaUserId(user.id!!)
