@@ -58,7 +58,9 @@ data class KoejaksonVastuuhenkilonArvioDTO(
 
     var kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteetDTO? = null,
 
-    var loppukeskustelu: KoejaksonLoppukeskusteluDTO? = null
+    var loppukeskustelu: KoejaksonLoppukeskusteluDTO? = null,
+
+    var korjausehdotus: String? = null
 
 ) : Serializable {
     override fun toString() = "KoejaksonVastuuhenkilonArvioDTO"

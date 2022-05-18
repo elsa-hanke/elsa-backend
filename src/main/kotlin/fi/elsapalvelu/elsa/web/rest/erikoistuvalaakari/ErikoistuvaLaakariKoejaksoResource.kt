@@ -556,10 +556,13 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        validateKuittaus(
-            vastuuhenkilonArvio.get().vastuuhenkilo?.kuittausaika != null,
-            ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO
-        )
+        if (vastuuhenkilonArvio.get().virkailija?.sopimusHyvaksytty == true) {
+            throw BadRequestAlertException(
+                "Hyväksyttyä sopimusta ei voi muokata",
+                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
+                "dataillegal.erikoistuva-ei-voi-allekirjoittaa-sopimusta-jos-esimies-ei-ole-kuitannut-sita"
+            )
+        }
 
         val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id!!)
         return ResponseEntity.ok(result)

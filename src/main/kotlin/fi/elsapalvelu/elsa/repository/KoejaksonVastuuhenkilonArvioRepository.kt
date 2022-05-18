@@ -2,12 +2,14 @@ package fi.elsapalvelu.elsa.repository
 
 import fi.elsapalvelu.elsa.domain.KoejaksonVastuuhenkilonArvio
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
 interface KoejaksonVastuuhenkilonArvioRepository :
-    JpaRepository<KoejaksonVastuuhenkilonArvio, Long> {
+    JpaRepository<KoejaksonVastuuhenkilonArvio, Long>,
+    JpaSpecificationExecutor<KoejaksonVastuuhenkilonArvio> {
 
     fun findOneByIdAndVastuuhenkiloUserId(
         id: Long,
@@ -19,4 +21,9 @@ interface KoejaksonVastuuhenkilonArvioRepository :
     fun findAllByVastuuhenkiloUserId(
         userId: String
     ): List<KoejaksonVastuuhenkilonArvio>
+
+    fun findOneByIdAndOpintooikeusYliopistoId(
+        id: Long,
+        yliopistoId: Long
+    ): Optional<KoejaksonVastuuhenkilonArvio>
 }

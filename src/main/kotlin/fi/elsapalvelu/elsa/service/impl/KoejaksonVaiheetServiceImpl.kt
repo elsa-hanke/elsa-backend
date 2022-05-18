@@ -4,10 +4,14 @@ import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
+import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioQueryService
+import fi.elsapalvelu.elsa.service.criteria.KoejaksoCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.*
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -29,7 +33,8 @@ class KoejaksonVaiheetServiceImpl(
     private val koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper,
     private val vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
     private val vastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper,
-    private val kayttajaRepository: KayttajaRepository
+    private val kayttajaRepository: KayttajaRepository,
+    private val koejaksonVastuuhenkilonArvioQueryService: KoejaksonVastuuhenkilonArvioQueryService
 ) : KoejaksonVaiheetService {
 
     override fun findAllByKouluttajaKayttajaUserId(userId: String): List<KoejaksonVaiheDTO> {
@@ -58,6 +63,34 @@ class KoejaksonVaiheetServiceImpl(
         applyKoulutussopimuksetForVastuuhenkilo(userId, resultMap)
 
         return sortKoejaksonVaiheet(resultMap)
+    }
+
+    override fun findAllByVirkailijaKayttajaUserId(
+        userId: String,
+        criteria: KoejaksoCriteria,
+        pageable: Pageable
+    ): Page<KoejaksonVaiheDTO>? {
+        kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
+            // Opintohallinnon virkailija toimii vain yhden yliopiston alla.
+            k.yliopistot.firstOrNull()?.let {
+                return koejaksonVastuuhenkilonArvioQueryService.findByCriteriaAndYliopistoId(
+                    criteria,
+                    pageable,
+                    it.id!!,
+                    k.user?.langKey
+                ).map { arvio ->
+                    KoejaksonVaiheDTO(
+                        arvio.id,
+                        KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
+                        KoejaksoTila.fromVastuuhenkilonArvio(arvio),
+                        arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
+                        arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getAvatar(),
+                        arvio.muokkauspaiva
+                    )
+                }
+            }
+        }
+        return null
     }
 
     private fun applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(

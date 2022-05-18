@@ -143,6 +143,14 @@
             </column>
         </addColumn>
 
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="korjausehdotus" type="text"/>
+        </addColumn>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio_audit">
+            <column name="korjausehdotus" type="text"/>
+        </addColumn>
+
     </changeSet>
 
 </databaseChangeLog>
