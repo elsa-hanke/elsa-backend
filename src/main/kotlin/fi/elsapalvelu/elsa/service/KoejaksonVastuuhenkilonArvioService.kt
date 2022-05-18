@@ -26,5 +26,10 @@ interface KoejaksonVastuuhenkilonArvioService {
         userId: String
     ): Optional<KoejaksonVastuuhenkilonArvioDTO>
 
+    fun findOneByIdAndVirkailijaUserId(
+        id: Long,
+        userId: String
+    ): Optional<KoejaksonVastuuhenkilonArvioDTO>
+
     fun delete(id: Long)
 }
