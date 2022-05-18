@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
@@ -31,7 +32,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val koejaksonKehittamistoimenpiteetService: KoejaksonKehittamistoimenpiteetService,
     private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService,
     private val opintooikeusService: OpintooikeusService,
-    private val koulutussopimusRepository: KoejaksonKoulutussopimusRepository
+    private val koulutussopimusRepository: KoejaksonKoulutussopimusRepository,
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 ) : KoejaksonVastuuhenkilonArvioService {
 
     override fun create(
@@ -47,6 +49,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
             vastuuhenkilonArvio.opintooikeus = it
             vastuuhenkilonArvio.virkailija = null
+            vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
             vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
             it.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
@@ -84,48 +87,116 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
         userId: String
     ): KoejaksonVastuuhenkilonArvioDTO {
-        var vastuuhenkilonArvio =
+        val vastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioRepository.findById(koejaksonVastuuhenkilonArvioDTO.id!!)
                 .orElseThrow { EntityNotFoundException("Vastuuhenkilön arviota ei löydy") }
 
         val updatedVastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
 
-        if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
-            vastuuhenkilonArvio.apply {
-                vastuuhenkiloHyvaksynyt = true
-                vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
-                koejaksoHyvaksytty = updatedVastuuhenkilonArvio.koejaksoHyvaksytty
-            }.takeIf { it.koejaksoHyvaksytty == false }?.apply {
-                perusteluHylkaamiselle = updatedVastuuhenkilonArvio.perusteluHylkaamiselle
-                hylattyArviointiKaytyLapiKeskustellen =
-                    updatedVastuuhenkilonArvio.hylattyArviointiKaytyLapiKeskustellen
-            }
-        }
+        val kirjautunutErikoistuvaLaakari =
+            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
 
-        vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
-
-        if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
-
-            vastuuhenkilonArvio.vastuuhenkilo?.user?.let { user ->
-                user.email = koejaksonVastuuhenkilonArvioDTO.vastuuhenkilonSahkoposti
-                user.phoneNumber = koejaksonVastuuhenkilonArvioDTO.vastuuhenkilonPuhelinnumero
-                userRepository.save(user)
-            }
-
-            // Sähköposti erikoistuvalle vastuuhenkilon kuittaamasta arviosta
-            if (vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(vastuuhenkilonArvio?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                        .get().user!!,
-                    templateName = "vastuuhenkilonArvioKuitattava.html",
-                    titleKey = "email.vastuuhenkilonarviokuitattava.title",
-                    properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
-                )
+        if (kirjautunutErikoistuvaLaakari != null
+            && kirjautunutErikoistuvaLaakari == vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari
+        ) {
+            handleErikoistuja(
+                vastuuhenkilonArvio,
+                koejaksonVastuuhenkilonArvioDTO.erikoistuvanSahkoposti,
+                koejaksonVastuuhenkilonArvioDTO.erikoistuvanPuhelinnumero
+            )
+        } else if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
+            handleVastuuhenkilo(
+                vastuuhenkilonArvio,
+                updatedVastuuhenkilonArvio,
+                koejaksonVastuuhenkilonArvioDTO.vastuuhenkilonSahkoposti,
+                koejaksonVastuuhenkilonArvioDTO.vastuuhenkilonPuhelinnumero
+            )
+        } else {
+            kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
+                k.yliopistot.firstOrNull()?.let { yliopisto ->
+                    if (yliopisto.id == vastuuhenkilonArvio.opintooikeus?.yliopisto?.id) {
+                        handleVirkailija(vastuuhenkilonArvio, updatedVastuuhenkilonArvio, k)
+                    }
+                }
             }
         }
 
         return koejaksonVastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvio)
+    }
+
+    private fun handleErikoistuja(
+        vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio,
+        email: String?,
+        phoneNumber: String?
+    ) {
+        vastuuhenkilonArvio.korjausehdotus = null
+        vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
+
+        koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
+
+        vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
+            user.email = email
+            user.phoneNumber = phoneNumber
+            userRepository.save(user)
+        }
+    }
+
+    private fun handleVirkailija(
+        vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio,
+        updated: KoejaksonVastuuhenkilonArvio,
+        virkailija: Kayttaja
+    ) {
+        // Hyväksytty
+        if (updated.korjausehdotus.isNullOrBlank()) {
+            vastuuhenkilonArvio.virkailija = virkailija
+            vastuuhenkilonArvio.virkailijaHyvaksynyt = true
+            vastuuhenkilonArvio.virkailijanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+        }
+        // Palautettu korjattavaksi
+        else {
+            vastuuhenkilonArvio.korjausehdotus = updated.korjausehdotus
+            vastuuhenkilonArvio.virkailijaHyvaksynyt = false
+            vastuuhenkilonArvio.virkailijanKuittausaika = null
+            vastuuhenkilonArvio.erikoistuvanKuittausaika = null
+        }
+
+        koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
+    }
+
+    private fun handleVastuuhenkilo(
+        vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio,
+        updated: KoejaksonVastuuhenkilonArvio,
+        email: String?,
+        phoneNumber: String?
+    ) {
+        vastuuhenkilonArvio.apply {
+            vastuuhenkiloHyvaksynyt = true
+            vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            koejaksoHyvaksytty = updated.koejaksoHyvaksytty
+        }.takeIf { it.koejaksoHyvaksytty == false }?.apply {
+            perusteluHylkaamiselle = updated.perusteluHylkaamiselle
+            hylattyArviointiKaytyLapiKeskustellen = updated.hylattyArviointiKaytyLapiKeskustellen
+        }
+
+        val result = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
+
+        result.vastuuhenkilo?.user?.let { user ->
+            user.email = email
+            user.phoneNumber = phoneNumber
+            userRepository.save(user)
+        }
+
+        // Sähköposti erikoistuvalle vastuuhenkilon kuittaamasta arviosta
+        if (vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
+                    .get().user!!,
+                templateName = "vastuuhenkilonArvioKuitattava.html",
+                titleKey = "email.vastuuhenkilonarviokuitattava.title",
+                properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
+            )
+        }
     }
 
     @Transactional(readOnly = true)
@@ -147,6 +218,22 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     ): Optional<KoejaksonVastuuhenkilonArvioDTO> {
         return koejaksonVastuuhenkilonArvioRepository.findOneByIdAndVastuuhenkiloUserId(id, userId)
             .map(this::mapVastuuhenkilonArvio)
+    }
+
+    override fun findOneByIdAndVirkailijaUserId(
+        id: Long,
+        userId: String
+    ): Optional<KoejaksonVastuuhenkilonArvioDTO> {
+        kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
+            k.yliopistot.firstOrNull()?.let { yliopisto ->
+                return koejaksonVastuuhenkilonArvioRepository.findOneByIdAndOpintooikeusYliopistoId(
+                    id,
+                    yliopisto.id!!
+                )
+                    .map(this::mapVastuuhenkilonArvio)
+            }
+        }
+        return Optional.empty()
     }
 
     override fun delete(id: Long) {

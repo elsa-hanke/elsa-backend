@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.enumeration
 
+import fi.elsapalvelu.elsa.domain.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.service.dto.*
 
 enum class KoejaksoTila {
@@ -90,8 +91,17 @@ enum class KoejaksoTila {
             return if (!loppukeskusteluHyvaksytty) EI_AKTIIVINEN
             else if (vastuuhenkilonArvioDTO == null) UUSI
             else if (vastuuhenkilonArvioDTO.allekirjoitettu == true) ALLEKIRJOITETTU
+            else if (!vastuuhenkilonArvioDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true) ODOTTAA_ALLEKIRJOITUKSIA
             else if (vastuuhenkilonArvioDTO.virkailija?.sopimusHyvaksytty == true) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
+            else ODOTTAA_HYVAKSYNTAA
+        }
+
+        fun fromVastuuhenkilonArvio(vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio?): KoejaksoTila {
+            return if (vastuuhenkilonArvio?.allekirjoitettu == true) ALLEKIRJOITETTU
+            else if (vastuuhenkilonArvio?.vastuuhenkiloHyvaksynyt == true) ODOTTAA_ALLEKIRJOITUKSIA
+            else if (vastuuhenkilonArvio?.virkailijaHyvaksynyt == true) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
+            else if (!vastuuhenkilonArvio?.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else ODOTTAA_HYVAKSYNTAA
         }
     }

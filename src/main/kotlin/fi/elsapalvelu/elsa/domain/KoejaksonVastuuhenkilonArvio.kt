@@ -66,6 +66,9 @@ data class KoejaksonVastuuhenkilonArvio(
     @Column(name = "virkailijan_kuittausaika")
     var virkailijanKuittausaika: LocalDate? = null,
 
+    @Column(name = "korjausehdotus")
+    var korjausehdotus: String? = null,
+
     @Column(name = "sarakesign_request_id")
     var sarakeSignRequestId: String? = null,
 
