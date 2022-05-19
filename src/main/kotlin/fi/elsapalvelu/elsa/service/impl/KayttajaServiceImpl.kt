@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KayttajaService
+import fi.elsapalvelu.elsa.service.constants.kayttajaNotFoundError
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
@@ -186,7 +187,7 @@ class KayttajaServiceImpl(
 
     override fun findVastuuhenkilot(userId: String): List<KayttajaDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
         val yliopisto = kayttaja.yliopistot.firstOrNull()
             ?: throw EntityNotFoundException("Käyttäjälle ei ole määritelty yliopistoa")
 
@@ -196,13 +197,13 @@ class KayttajaServiceImpl(
 
     override fun activateKayttaja(kayttajaId: Long) {
         val kayttaja =
-            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
         kayttaja.tila = KayttajatilinTila.AKTIIVINEN
     }
 
     override fun passivateKayttaja(kayttajaId: Long) {
         val kayttaja =
-            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
         kayttaja.tila = KayttajatilinTila.PASSIIVINEN
     }
 }

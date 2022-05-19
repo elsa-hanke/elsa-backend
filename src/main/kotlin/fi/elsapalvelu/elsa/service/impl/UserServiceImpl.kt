@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.constants.kayttajaNotFoundError
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import net.coobird.thumbnailator.Thumbnails
@@ -136,7 +137,7 @@ class UserServiceImpl(
     }
 
     override fun updateEmail(email: String, userId: String) {
-        val user = userRepository.findById(userId).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+        val user = userRepository.findById(userId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
         user.email = email
     }
 
@@ -179,10 +180,10 @@ class UserServiceImpl(
                 if (existingUser != null) {
                     val existingKayttaja =
                         kayttajaRepository.findOneByUserId(existingUser.id!!)
-                            .orElseThrow { EntityNotFoundException("Olemassaolevaa käyttäjää ei löydy") }
+                            .orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
                     val tokenKayttaja =
                         kayttajaRepository.findOneByUserId(tokenUser.id!!)
-                            .orElseThrow { EntityNotFoundException("Väliaikaista käyttäjää ei löydy") }
+                            .orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
 
                     existingKayttaja.takeIf { t -> t.tila == KayttajatilinTila.KUTSUTTU }
                         ?.apply { KayttajatilinTila.AKTIIVINEN }
@@ -218,7 +219,7 @@ class UserServiceImpl(
                     userRepository.save(tokenUser)
                     val kayttaja =
                         kayttajaRepository.findOneByUserId(tokenUser.id!!)
-                            .orElseThrow { EntityNotFoundException("Olemassaolevaa käyttäjää ei löydy") }
+                            .orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
                     kayttaja.tila = KayttajatilinTila.AKTIIVINEN
                     verificationTokenRepository.delete(it)
                 }
