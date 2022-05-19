@@ -40,7 +40,7 @@ class ErikoistuvaLaakariHelper {
         ): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari()
 
-            var kayttaja = em.findAll(Kayttaja::class).firstOrNull { it.user == user }
+            var kayttaja = user?.let { em.findAll(Kayttaja::class).firstOrNull { it.user == user } }
             if (kayttaja == null) {
                 kayttaja = KayttajaHelper.createEntity(em, user)
                 em.persist(kayttaja)
