@@ -34,6 +34,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
+import java.security.SecureRandom
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
@@ -487,7 +488,7 @@ class ErikoistuvaLaakariKoulutusjaksoResourceIT {
         private val ENTITY_API_URL: String = "/api/erikoistuva-laakari/koulutussuunnitelma/koulutusjaksot"
         private val ENTITY_API_URL_ID: String = ENTITY_API_URL + "/{id}"
 
-        private val random: Random = Random()
+        private val random: Random = SecureRandom()
         private val count: AtomicLong = AtomicLong(random.nextInt().toLong() + (2L * Integer.MAX_VALUE))
 
         @JvmStatic
