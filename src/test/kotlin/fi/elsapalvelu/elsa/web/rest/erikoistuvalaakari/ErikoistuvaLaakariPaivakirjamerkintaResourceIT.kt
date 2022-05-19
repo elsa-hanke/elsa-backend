@@ -10,7 +10,6 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.PaivakirjamerkintaMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
-import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
@@ -24,9 +23,7 @@ import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver
 import org.springframework.http.MediaType
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
@@ -36,7 +33,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.validation.Validator
+import java.security.SecureRandom
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
@@ -55,18 +52,6 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
 
     @Autowired
     private lateinit var paivakirjamerkintaMapper: PaivakirjamerkintaMapper
-
-    @Autowired
-    private lateinit var jacksonMessageConverter: MappingJackson2HttpMessageConverter
-
-    @Autowired
-    private lateinit var pageableArgumentResolver: PageableHandlerMethodArgumentResolver
-
-    @Autowired
-    private lateinit var exceptionTranslator: ExceptionTranslator
-
-    @Autowired
-    private lateinit var validator: Validator
 
     @Autowired
     private lateinit var em: EntityManager
@@ -544,7 +529,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
         private const val ENTITY_API_URL: String = "/api/erikoistuva-laakari/paivakirjamerkinnat"
         private const val ENTITY_API_URL_ID: String = "$ENTITY_API_URL/{id}"
 
-        private val random: Random = Random()
+        private val random: Random = SecureRandom()
         private val count: AtomicLong = AtomicLong(random.nextInt().toLong() + (2L * Integer.MAX_VALUE))
 
         @JvmStatic
