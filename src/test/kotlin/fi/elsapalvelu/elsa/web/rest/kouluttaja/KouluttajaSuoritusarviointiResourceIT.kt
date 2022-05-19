@@ -7,7 +7,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
 import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
-import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
+import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavaKokonaisuusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper

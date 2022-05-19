@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.ArviointiasteikkoTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
-import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
+import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

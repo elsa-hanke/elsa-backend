@@ -1,11 +1,10 @@
-package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
+package fi.elsapalvelu.elsa.web.rest.common
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
-import fi.elsapalvelu.elsa.web.rest.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
@@ -35,7 +34,7 @@ import javax.persistence.EntityManager
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
-class TekninenPaakayttajaKayttajahallintaResourceIT {
+class KayttajahallintaResourceIT {
 
     @Autowired
     private lateinit var em: EntityManager
@@ -116,8 +115,8 @@ class TekninenPaakayttajaKayttajahallintaResourceIT {
         restMockMvc.perform(get("/api/tekninen-paakayttaja/erikoistuvat-laakarit"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$[0].id").exists())
+            .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.content[0].kayttajaId").exists())
     }
 
     @Test
