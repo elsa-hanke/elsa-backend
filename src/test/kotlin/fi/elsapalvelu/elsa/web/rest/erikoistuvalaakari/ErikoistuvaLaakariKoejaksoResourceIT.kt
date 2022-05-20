@@ -103,6 +103,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
     private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
 
+    private lateinit var vastuuhenkilo: Kayttaja
+
     @BeforeEach
     fun setup() {
         MockitoAnnotations.openMocks(this)
@@ -172,8 +174,10 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
     @Test
     @Transactional
-    fun `test that koulutussopimuslomake vastuuhenkilo is returned without tehtavatyyppi defined if only one exists`() {
+    fun shouldReturnKoulutussopimusLomakeWithVastuuhenkiloByTehtavatyyppi() {
         initKoejakso()
+
+        createVastuuhenkilo(addTehtavatyyppiForKoejakso = false)
 
         restKoejaksoMockMvc.perform(
             get(
@@ -182,32 +186,13 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.vastuuhenkilo.id").value(koejaksonKoulutussopimus.vastuuhenkilo?.id))
+            .andExpect(jsonPath("$.vastuuhenkilo.id").value(vastuuhenkilo.id))
     }
 
     @Test
     @Transactional
-    fun `test that koulutussopimuslomake vastuuhenkilo is returned by tehtavatyyppi if multiple exists`() {
+    fun shouldThrowExceptionIfMultipleVastuuhenkiloWithSameYliopistoErikoisalaAndTehtavatyyppiExists() {
         initKoejakso()
-
-        val vastuuhenkiloWithTehtavatyyppi = createVastuuhenkilo(addTehtavatyyppiForKoejakso = true)
-
-        restKoejaksoMockMvc.perform(
-            get(
-                "/api/erikoistuva-laakari/koulutussopimus-lomake"
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.vastuuhenkilo.id").value(vastuuhenkiloWithTehtavatyyppi.id))
-    }
-
-    @Test
-    @Transactional
-    fun `test that first vastuuhenkilo with correct tehtavatyyppi is returned into koulutussopimuslomake`() {
-        initKoejakso()
-
-        val vastuuhenkiloWithTehtavatyyppi = createVastuuhenkilo(addTehtavatyyppiForKoejakso = true)
         createVastuuhenkilo(addTehtavatyyppiForKoejakso = true)
 
         restKoejaksoMockMvc.perform(
@@ -215,9 +200,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
                 "/api/erikoistuva-laakari/koulutussopimus-lomake"
             )
         )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.vastuuhenkilo.id").value(vastuuhenkiloWithTehtavatyyppi.id))
+            .andExpect(status().is5xxServerError)
     }
 
     @Test
@@ -912,6 +895,23 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
     @Test
     @Transactional
+    fun shouldReturnVastuuhenkilonArvioLomakeWithVastuuhenkiloByTehtavatyyppi() {
+        initKoejakso()
+
+        createVastuuhenkilo(addTehtavatyyppiForKoejakso = false)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/erikoistuva-laakari/vastuuhenkilonarvio-lomake"
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.vastuuhenkilo.id").value(vastuuhenkilo.id))
+    }
+
+    @Test
+    @Transactional
     fun shouldNotCreateVastuuhenkilonArvioWithDifferentVastuuhenkiloThanAllowed() {
         initKoejakso()
 
@@ -1005,7 +1005,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user)
         em.persist(erikoistuvaLaakari)
 
-        val vastuuhenkilo = createVastuuhenkilo()
+        vastuuhenkilo = createVastuuhenkilo()
 
         val kouluttaja = KayttajaHelper.createEntity(em)
         em.persist(kouluttaja)
@@ -1044,7 +1044,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     private fun createVastuuhenkilo(
         yliopisto: Yliopisto? = null,
         erikoisala: Erikoisala? = null,
-        addTehtavatyyppiForKoejakso: Boolean = false
+        addTehtavatyyppiForKoejakso: Boolean = true
     ): Kayttaja {
         val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity(
             authority = Authority(
@@ -1057,19 +1057,18 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         em.persist(vastuuhenkilo)
 
         val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
-        em.persist(
-            KayttajaYliopistoErikoisala(
+        val yliopistoErikoisala = KayttajaYliopistoErikoisala(
                 kayttaja = vastuuhenkilo,
                 yliopisto = yliopisto ?: opintooikeus?.yliopisto,
                 erikoisala = erikoisala ?: opintooikeus?.erikoisala
             )
-        )
+        em.persist(yliopistoErikoisala)
 
         if (addTehtavatyyppiForKoejakso) {
             em.findAll(VastuuhenkilonTehtavatyyppi::class)
                 .firstOrNull { it.nimi == VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN }
                 ?.let {
-                    vastuuhenkilo.vastuuhenkilonTehtavatyypit.add(it)
+                    yliopistoErikoisala.vastuuhenkilonTehtavat.add(it)
                 }
         }
 

@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.VastuuhenkilonTehtavatyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import java.io.Serializable
 import javax.persistence.Lob
@@ -33,9 +32,7 @@ data class KayttajaDTO(
 
     var yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisalaDTO>? = mutableSetOf(),
 
-    var yliopistot: MutableSet<YliopistoDTO>? = mutableSetOf(),
-
-    var vastuuhenkilonTehtavatyypit: MutableSet<VastuuhenkilonTehtavatyyppi>? = mutableSetOf()
+    var yliopistot: MutableSet<YliopistoDTO>? = mutableSetOf()
 
 ) : Serializable {
 
