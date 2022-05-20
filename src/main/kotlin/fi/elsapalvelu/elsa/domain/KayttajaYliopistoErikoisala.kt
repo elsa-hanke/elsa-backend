@@ -31,7 +31,17 @@ data class KayttajaYliopistoErikoisala(
     @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var erikoisala: Erikoisala? = null
+    var erikoisala: Erikoisala? = null,
+
+    @ManyToMany
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+    @JoinTable(
+        name = "rel_kayttaja_yliopisto_erikoisala__vastuuhenkilon_tehtavatyyppi",
+        joinColumns = [JoinColumn(name = "kayttaja_yliopisto_erikoisala_id", referencedColumnName = "id")],
+        inverseJoinColumns = [JoinColumn(name = "vastuuhenkilon_tehtavatyyppi_id", referencedColumnName = "id")]
+    )
+    var vastuuhenkilonTehtavat: MutableSet<VastuuhenkilonTehtavatyyppi> = mutableSetOf()
 
 ) : Serializable {
 

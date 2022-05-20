@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.repository
 
 import fi.elsapalvelu.elsa.domain.Kayttaja
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
@@ -31,6 +32,18 @@ interface KayttajaRepository : JpaRepository<Kayttaja, Long> {
         yliopistoId: Long?,
         erikoisalaId: Long?
     ): MutableList<Kayttaja>
+
+    @Query(
+        "select k from Kayttaja k join k.user u left join u.authorities a left join k.yliopistotAndErikoisalat ye " +
+            "left join ye.vastuuhenkilonTehtavat vt where a.name in :authorities and k.id = ye.kayttaja.id " +
+            "and ye.yliopisto.id = :yliopistoId and ye.erikoisala.id = :erikoisalaId and vt.nimi = :vastuuhenkilonTehtavatyyppi"
+    )
+    fun findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+        authorities: List<String>,
+        yliopistoId: Long?,
+        erikoisalaId: Long?,
+        vastuuhenkilonTehtavatyyppi: VastuuhenkilonTehtavatyyppiEnum
+    ): Kayttaja?
 
     @Query(
         "select k from Kayttaja k join k.user u left join u.authorities a left join k.yliopistotAndErikoisalat y " +

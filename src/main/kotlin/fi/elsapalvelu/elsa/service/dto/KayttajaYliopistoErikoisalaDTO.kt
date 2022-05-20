@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.domain.VastuuhenkilonTehtavatyyppi
 import java.io.Serializable
 
 data class KayttajaYliopistoErikoisalaDTO (
@@ -10,7 +11,9 @@ data class KayttajaYliopistoErikoisalaDTO (
 
     var yliopistoNimi: String? = null,
 
-    var erikoisalaNimi: String? = null
+    var erikoisalaNimi: String? = null,
+
+    var vastuuhenkilonTehtavat: MutableSet<VastuuhenkilonTehtavatyyppi>? = mutableSetOf()
 
 ) : Serializable {
 

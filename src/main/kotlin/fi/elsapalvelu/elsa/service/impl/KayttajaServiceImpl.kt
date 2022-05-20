@@ -110,24 +110,17 @@ class KayttajaServiceImpl(
         userId: String,
         tehtavatyyppi: VastuuhenkilonTehtavatyyppiEnum
     ): KayttajaDTO {
-        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+        return erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             val opintooikeus = it.getOpintooikeusKaytossa()
-            val vastuuhenkilot = kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
+            kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
                 listOf(VASTUUHENKILO),
                 opintooikeus?.yliopisto?.id,
-                opintooikeus?.erikoisala?.id
-            )
-            return if (vastuuhenkilot.size == 1) {
-                kayttajaMapper.toDto(vastuuhenkilot.first())
-            } else {
-                vastuuhenkilot.firstOrNull { v ->
-                    v.vastuuhenkilonTehtavatyypit.map { t -> t.nimi }.contains(tehtavatyyppi)
-                }?.let { v ->
-                    kayttajaMapper.toDto(v)
-                }
+                opintooikeus?.erikoisala?.id,
+                tehtavatyyppi
+            )?.let { v ->
+                kayttajaMapper.toDto(v)
             } ?: throw EntityNotFoundException("Vastuuhenkilöä ei löydy")
-        }
-        throw EntityNotFoundException("Erikoistuvaa lääkäriä ei löydy")
+        } ?: throw EntityNotFoundException("Erikoistuvaa lääkäriä ei löydy")
     }
 
     @Transactional(readOnly = true)
