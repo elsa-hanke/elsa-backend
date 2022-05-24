@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.YliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
+import fi.elsapalvelu.elsa.service.mapper.VastuuhenkilonTehtavatyyppiMapper
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
@@ -19,7 +20,8 @@ import javax.persistence.criteria.*
 @Service
 @Transactional(readOnly = true)
 class KayttajaQueryService(
-    private val kayttajaRepository: KayttajaRepository
+    private val kayttajaRepository: KayttajaRepository,
+    private val vastuuhenkilonTehtavatyyppiMapper: VastuuhenkilonTehtavatyyppiMapper
 ) : QueryService<Any>() {
 
     @Transactional(readOnly = true)
@@ -143,7 +145,12 @@ class KayttajaQueryService(
             yliopistotAndErikoisalat = kayttaja.yliopistotAndErikoisalat.map { ye ->
                 YliopistoErikoisalaDTO(
                     yliopisto = ye.yliopisto?.nimi,
-                    erikoisala = ye.erikoisala?.nimi
+                    erikoisala = ye.erikoisala?.nimi,
+                    vastuuhenkilonTehtavat = ye.vastuuhenkilonTehtavat.map {
+                        vastuuhenkilonTehtavatyyppiMapper.toDto(
+                            it
+                        )
+                    }.toSet()
                 )
             },
             kayttajatilinTila = kayttaja.tila

@@ -5,4 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface KayttajaYliopistoErikoisalaRepository : JpaRepository<KayttajaYliopistoErikoisala, Long>
+interface KayttajaYliopistoErikoisalaRepository : JpaRepository<KayttajaYliopistoErikoisala, Long> {
+
+    fun findAllByYliopistoIdAndErikoisalaId(yliopistoId: Long, erikoisalaId: Long): List<KayttajaYliopistoErikoisala>
+}

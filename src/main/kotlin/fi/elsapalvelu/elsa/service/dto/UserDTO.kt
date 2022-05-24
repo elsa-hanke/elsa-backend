@@ -35,6 +35,8 @@ open class UserDTO(
 
     var activated: Boolean = false,
 
+    var eppn: String? = null,
+
     @field:Size(min = 2, max = 10)
     var langKey: String? = null,
 
@@ -54,7 +56,7 @@ open class UserDTO(
         this(
             user.id, user.login, user.firstName, user.lastName, user.email, user.phoneNumber,
             user.avatar,
-            user.activated, user.langKey,
+            user.activated, user.eppn, user.langKey,
             user.createdBy, user.createdDate, user.lastModifiedBy, user.lastModifiedDate,
             user.authorities.map { it.name }.filterNotNullTo(mutableSetOf())
         )
@@ -69,6 +71,7 @@ open class UserDTO(
         ", phoneNumber='" + phoneNumber + '\'' +
         ", avatar=?" +
         ", activated=" + activated +
+        ", eppn=" + eppn +
         ", langKey='" + langKey + '\'' +
         ", createdBy=" + createdBy +
         ", createdDate=" + createdDate +

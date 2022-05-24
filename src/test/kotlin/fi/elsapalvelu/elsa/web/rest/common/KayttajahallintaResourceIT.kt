@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -15,6 +16,7 @@ import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper.Companion.D
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
@@ -60,11 +62,10 @@ class KayttajahallintaResourceIT {
         em.persist(yliopisto)
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Test
     @Transactional
-    fun getErikoistuvaLaakari(rolePath: String) {
-        initTest(getRole(rolePath))
+    fun getErikoistuvaLaakariForVirkailijaSameYliopisto() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA, true)
 
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
         em.persist(erikoistuvaLaakari)
@@ -72,10 +73,42 @@ class KayttajahallintaResourceIT {
 
         val id = erikoistuvaLaakari.kayttaja?.id
 
-        restMockMvc.perform(get("/api/$rolePath/erikoistuvat-laakarit/$id"))
+        restMockMvc.perform(get("/api/virkailija/erikoistuvat-laakarit/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.user.id").exists())
+            .andExpect(jsonPath("$.kayttaja.id").value(id))
+            .andExpect(jsonPath("$.erikoistuvaLaakari.id").exists())
+    }
+
+    @Test
+    @Transactional
+    fun getErikoistuvaLaakariForVirkailijaDifferentYliopisto() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA, false)
+
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
+        em.persist(erikoistuvaLaakari)
+        em.flush()
+
+        val id = erikoistuvaLaakari.kayttaja?.id
+
+        restMockMvc.perform(get("/api/virkailija/erikoistuvat-laakarit/$id"))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun getErikoistuvaLaakariForPaakayttaja() {
+        initTest(TEKNINEN_PAAKAYTTAJA, false)
+
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
+        em.persist(erikoistuvaLaakari)
+        em.flush()
+
+        val id = erikoistuvaLaakari.kayttaja?.id
+
+        restMockMvc.perform(get("/api/tekninen-paakayttaja/erikoistuvat-laakarit/$id"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
             .andExpect(jsonPath("$.erikoistuvaLaakari.id").exists())
     }
@@ -89,11 +122,7 @@ class KayttajahallintaResourceIT {
         val id = count.incrementAndGet()
 
         restMockMvc.perform(get("/api/$rolePath/erikoistuvat-laakarit/$id"))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.user").isEmpty)
-            .andExpect(jsonPath("$.kayttaja").isEmpty)
-            .andExpect(jsonPath("$.erikoistuvaLaakari").isEmpty)
+            .andExpect(status().isBadRequest)
     }
 
     @ParameterizedTest
@@ -104,7 +133,7 @@ class KayttajahallintaResourceIT {
 
         val erikoisalatCountByLiittynytElsaan = erikoisalaRepository.findAllByLiittynytElsaanTrue().count()
 
-        restMockMvc.perform(get("/api/$rolePath/kayttaja-lomake"))
+        restMockMvc.perform(get("/api/$rolePath/erikoistuva-laakari-lomake"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.yliopistot").value(Matchers.hasSize<Any>(1)))
@@ -115,7 +144,7 @@ class KayttajahallintaResourceIT {
     @ValueSource(strings = [tekninenPaakayttaja, virkailija])
     @Transactional
     fun getErikoistuvatLaakarit(rolePath: String) {
-        initTest(getRole(rolePath))
+        initTest(getRole(rolePath), true)
 
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
         em.persist(erikoistuvaLaakari)
@@ -135,17 +164,36 @@ class KayttajahallintaResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(expectedSize)))
-            .andExpect(jsonPath("$.content[0].kayttajaId").exists())
+            .andExpect(jsonPath("$.content[0].kayttajaId").value(erikoistuvaLaakari.kayttaja?.id))
     }
 
     @ParameterizedTest
     @ValueSource(strings = [tekninenPaakayttaja, virkailija])
     @Transactional
-    fun postErikoistuvaLaakari(rolePath: String) {
-        initTest(getRole(rolePath))
+    fun getVastuuhenkilot(rolePath: String) {
+        initTest(getRole(rolePath), true)
 
-        val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
-        em.persist(yliopisto)
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+
+        val yliopisto2 = Yliopisto(nimi = YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
+        em.persist(yliopisto2)
+        createVastuuhenkilo(yliopisto2, erikoisala)
+
+        // Virkailijalle listataan vain saman yliopiston vastuuhenkilöt.
+        val expectedSize = if (rolePath == tekninenPaakayttaja) 2 else 1
+
+        restMockMvc.perform(get("/api/$rolePath/vastuuhenkilot"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(expectedSize)))
+            .andExpect(jsonPath("$.content[0].kayttajaId").value(vastuuhenkilo.id))
+    }
+
+    @Test
+    @Transactional
+    fun postErikoistuvaLaakariByVirkailijaFromSameYliopisto() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA, true)
 
         val erikoisala = ErikoisalaHelper.createEntity()
         em.persist(erikoisala)
@@ -161,7 +209,7 @@ class KayttajahallintaResourceIT {
         kayttajahallintaErikoistuvaLaakariDTO.opintoopasId = opintoopas.id
 
         restMockMvc.perform(
-            post("/api/$rolePath/erikoistuvat-laakarit")
+            post("/api/virkailija/erikoistuvat-laakarit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaErikoistuvaLaakariDTO))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
@@ -172,14 +220,11 @@ class KayttajahallintaResourceIT {
     @ValueSource(strings = [tekninenPaakayttaja, virkailija])
     @Transactional
     fun postErikoistuvaLaakariWithExistingEmail(rolePath: String) {
-        initTest(getRole(rolePath))
+        initTest(getRole(rolePath), true)
 
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
         em.persist(erikoistuvaLaakari)
         em.flush()
-
-        val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
-        em.persist(yliopisto)
 
         val erikoisala = ErikoisalaHelper.createEntity()
         em.persist(erikoisala)
@@ -201,7 +246,7 @@ class KayttajahallintaResourceIT {
     @ValueSource(strings = [tekninenPaakayttaja, virkailija])
     @Transactional
     fun postErikoistuvaLaakariWithoutValidYliopisto(rolePath: String) {
-        initTest(getRole(rolePath))
+        initTest(getRole(rolePath), true)
 
         val erikoisala = ErikoisalaHelper.createEntity()
         em.persist(erikoisala)
@@ -222,10 +267,7 @@ class KayttajahallintaResourceIT {
     @ValueSource(strings = [tekninenPaakayttaja, virkailija])
     @Transactional
     fun postErikoistuvaLaakariWithoutValidErikoisala(rolePath: String) {
-        initTest(getRole(rolePath))
-
-        val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
-        em.persist(yliopisto)
+        initTest(getRole(rolePath), true)
 
         val kayttajahallintaErikoistuvaLaakariDTO = createKayttajahallintaErikoistuvaLaakariDTO()
         kayttajahallintaErikoistuvaLaakariDTO.yliopistoId = yliopisto.id
@@ -239,11 +281,10 @@ class KayttajahallintaResourceIT {
         ).andExpect(status().isBadRequest)
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Test
     @Transactional
-    fun resendErikoistuvaLaakariInvitation(rolePath: String) {
-        initTest(getRole(rolePath))
+    fun resendErikoistuvaLaakariInvitationByVirkailijaInSameYliopisto() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA, true)
 
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
         em.persist(erikoistuvaLaakari)
@@ -257,9 +298,79 @@ class KayttajahallintaResourceIT {
         em.persist(verificationToken)
 
         restMockMvc.perform(
-            put("/api/$rolePath/erikoistuvat-laakarit/$id/kutsu")
+            put("/api/virkailija/erikoistuvat-laakarit/$id/kutsu")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         ).andExpect(status().isNoContent)
+    }
+
+    @Test
+    @Transactional
+    fun resendErikoistuvaLaakariInvitationByVirkailijaDifferentYliopisto() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA, false)
+
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
+        em.persist(erikoistuvaLaakari)
+        em.flush()
+
+        val id = erikoistuvaLaakari.id
+
+        val verificationToken = VerificationToken(
+            user = User(id = erikoistuvaLaakari.kayttaja?.user?.id)
+        )
+        em.persist(verificationToken)
+
+        restMockMvc.perform(
+            put("/api/virkailija/erikoistuvat-laakarit/$id/kutsu")
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun resendErikoistuvaLaakariInvitationByPaakayttajaDifferentYliopisto() {
+        initTest(TEKNINEN_PAAKAYTTAJA, false)
+
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
+        em.persist(erikoistuvaLaakari)
+        em.flush()
+
+        val id = erikoistuvaLaakari.id
+
+        val verificationToken = VerificationToken(
+            user = User(id = erikoistuvaLaakari.kayttaja?.user?.id)
+        )
+        em.persist(verificationToken)
+
+        restMockMvc.perform(
+            put("/api/tekninen-paakayttaja/erikoistuvat-laakarit/$id/kutsu")
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isNoContent)
+    }
+
+    private fun createVastuuhenkilo(
+        yliopisto: Yliopisto? = null,
+        erikoisala: Erikoisala? = null
+    ): Kayttaja {
+        val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity(
+            authority = Authority(
+                VASTUUHENKILO
+            )
+        )
+        em.persist(vastuuhenkiloUser)
+
+        val vastuuhenkilo = KayttajaHelper.createEntity(em, vastuuhenkiloUser)
+        em.persist(vastuuhenkilo)
+
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
+            kayttaja = vastuuhenkilo,
+            yliopisto = yliopisto,
+            erikoisala = erikoisala
+        )
+
+        em.persist(yliopistoAndErikoisala)
+        vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
+
+        return vastuuhenkilo
     }
 
     fun getRole(rolePath: String): String {
@@ -268,7 +379,7 @@ class KayttajahallintaResourceIT {
         } else OPINTOHALLINNON_VIRKAILIJA
     }
 
-    fun initTest(role: String) {
+    fun initTest(role: String, addSameYliopistoForRole: Boolean = false) {
         val user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -282,7 +393,13 @@ class KayttajahallintaResourceIT {
 
         val kayttaja = KayttajaHelper.createEntity(em, user)
         if (role == OPINTOHALLINNON_VIRKAILIJA) {
-            kayttaja.yliopistot.add(yliopisto)
+            if (addSameYliopistoForRole) {
+                kayttaja.yliopistot.add(yliopisto)
+            } else {
+                val yliopisto = Yliopisto(nimi = YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
+                em.persist(yliopisto)
+                kayttaja.yliopistot.add(yliopisto)
+            }
         }
         em.persist(kayttaja)
 

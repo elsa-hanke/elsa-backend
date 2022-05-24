@@ -135,7 +135,7 @@ class VirkailijaEtusivuResourceIT {
 
     @Test
     @Transactional
-    fun shouldListErikoistuvatUnderSameYliopisto() {
+    fun shouldListErikoistuvatFromSameYliopisto() {
         initTest()
 
         erikoistuvaLaakari2.getOpintooikeusKaytossa()?.yliopisto = anotherYliopisto

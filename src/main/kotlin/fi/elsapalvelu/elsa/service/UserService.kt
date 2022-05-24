@@ -42,6 +42,8 @@ interface UserService {
 
     fun existsByEmail(email: String): Boolean
 
+    fun existsByEppn(eppn: String): Boolean
+
     fun findExistingUser(
         cipher: Cipher,
         originalKey: SecretKey,
