@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.domain
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
+import org.hibernate.envers.NotAudited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import javax.persistence.*
@@ -35,7 +36,7 @@ data class KayttajaYliopistoErikoisala(
 
     @ManyToMany
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+    @NotAudited
     @JoinTable(
         name = "rel_kayttaja_yliopisto_erikoisala__vastuuhenkilon_tehtavatyyppi",
         joinColumns = [JoinColumn(name = "kayttaja_yliopisto_erikoisala_id", referencedColumnName = "id")],

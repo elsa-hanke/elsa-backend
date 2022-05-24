@@ -136,7 +136,7 @@ class ErikoistuvaLaakariServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllUnderSameYliopisto(
+    override fun findAllFromSameYliopisto(
         userId: String,
         criteria: KayttajahallintaCriteria,
         pageable: Pageable

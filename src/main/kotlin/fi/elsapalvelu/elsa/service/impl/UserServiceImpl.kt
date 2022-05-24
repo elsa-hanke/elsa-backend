@@ -232,6 +232,11 @@ class UserServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun existsByEppn(eppn: String): Boolean {
+        return userRepository.findOneByEppn(eppn).isPresent
+    }
+
+    @Transactional(readOnly = true)
     override fun findExistingUser(
         cipher: Cipher,
         originalKey: SecretKey,

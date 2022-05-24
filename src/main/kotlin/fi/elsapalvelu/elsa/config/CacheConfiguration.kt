@@ -75,6 +75,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.Erikoisala::class.java.name + ".yliopistot")
             createCache(cm, fi.elsapalvelu.elsa.domain.Erikoisala::class.java.name + ".opintooppaat")
             createCache(cm, fi.elsapalvelu.elsa.domain.Erikoisala::class.java.name + ".sisuTutkintoohjelmat")
+            createCache(cm, fi.elsapalvelu.elsa.domain.Erikoisala::class.java.name + ".vastuuhenkilonTehtavatyypit")
             createCache(cm, fi.elsapalvelu.elsa.domain.Erikoisala::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari::class.java.name + ".opintooikeudet")
             createCache(cm, fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari::class.java.name)
