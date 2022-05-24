@@ -1,19 +1,21 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.VastuuhenkilonTehtavatyyppi
 import java.io.Serializable
+import javax.validation.constraints.NotNull
 
-data class KayttajaYliopistoErikoisalaDTO (
+data class KayttajaYliopistoErikoisalaDTO   (
 
     var id: Long? = null,
 
     var kayttajaId: Long? = null,
 
-    var yliopistoNimi: String? = null,
+    @get: NotNull
+    var yliopisto: YliopistoDTO? = null,
 
-    var erikoisalaNimi: String? = null,
+    @get: NotNull
+    var erikoisala: ErikoisalaDTO? = null,
 
-    var vastuuhenkilonTehtavat: MutableSet<VastuuhenkilonTehtavatyyppi>? = mutableSetOf()
+    var vastuuhenkilonTehtavat: MutableSet<VastuuhenkilonTehtavatyyppiDTO> = mutableSetOf()
 
 ) : Serializable {
 

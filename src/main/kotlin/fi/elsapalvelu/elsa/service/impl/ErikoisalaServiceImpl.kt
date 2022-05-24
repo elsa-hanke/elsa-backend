@@ -3,7 +3,9 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
 import fi.elsapalvelu.elsa.service.ErikoisalaService
 import fi.elsapalvelu.elsa.service.dto.ErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.ErikoisalaWithTehtavatyypitDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.ErikoisalaWithTehtavatyypitMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -13,6 +15,7 @@ import java.util.*
 class ErikoisalaServiceImpl(
     private val erikoisalaRepository: ErikoisalaRepository,
     private val erikoisalaMapper: ErikoisalaMapper,
+    private val erikoisalaWithTehtavatyypitMapper: ErikoisalaWithTehtavatyypitMapper
 ) : ErikoisalaService {
 
     override fun save(erikoisalaDTO: ErikoisalaDTO): ErikoisalaDTO {
@@ -30,6 +33,11 @@ class ErikoisalaServiceImpl(
     override fun findAllByLiittynytElsaan(): List<ErikoisalaDTO> {
         return erikoisalaRepository.findAllByLiittynytElsaanTrue()
             .map(erikoisalaMapper::toDto)
+    }
+
+    override fun findAllByLiittynytElsaanWithTehtavatyypit(): List<ErikoisalaWithTehtavatyypitDTO> {
+        return erikoisalaRepository.findAllByLiittynytElsaanTrue()
+            .map(erikoisalaWithTehtavatyypitMapper::toDto)
     }
 
     @Transactional(readOnly = true)

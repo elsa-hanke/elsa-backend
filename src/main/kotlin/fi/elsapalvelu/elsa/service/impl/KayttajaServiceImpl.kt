@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala
+import fi.elsapalvelu.elsa.domain.VastuuhenkilonTehtavatyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
@@ -8,15 +10,25 @@ import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KayttajaService
+import fi.elsapalvelu.elsa.service.constants.erikoistuvaLaakariNotFoundError
 import fi.elsapalvelu.elsa.service.constants.kayttajaNotFoundError
+import fi.elsapalvelu.elsa.service.constants.vastuuhenkiloNotFoundError
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.ReassignedVastuuhenkilonTehtavaDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.VastuuhenkilonTehtavatyyppiDTO
+import fi.elsapalvelu.elsa.service.dto.enumeration.ReassignedVastuuhenkilonTehtavaTyyppi
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaWrapperDTO
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
+import fi.elsapalvelu.elsa.service.mapper.KayttajaYliopistoErikoisalaMapper
 import fi.elsapalvelu.elsa.service.mapper.UserMapper
+import fi.elsapalvelu.elsa.service.mapper.VastuuhenkilonTehtavatyyppiMapper
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -31,9 +43,12 @@ class KayttajaServiceImpl(
     private val userRepository: UserRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository,
+    private val kayttajaYliopistoErikoisalaMapper: KayttajaYliopistoErikoisalaMapper,
     private val kayttajaMapper: KayttajaMapper,
     private val userMapper: UserMapper,
-    private val kayttajaQueryService: KayttajaQueryService
+    private val kayttajaQueryService: KayttajaQueryService,
+    private val vastuuhenkilonTehtavatyyppiRepository: VastuuhenkilonTehtavatyyppiRepository,
+    private val vastuuhenkilonTehtavatyyppiMapper: VastuuhenkilonTehtavatyyppiMapper
 ) : KayttajaService {
 
     override fun save(kayttajaDTO: KayttajaDTO): KayttajaDTO {
@@ -99,7 +114,7 @@ class KayttajaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findKouluttajatUnderSameYliopisto(userId: String): List<KayttajaDTO> {
+    override fun findKouluttajatFromSameYliopisto(userId: String): List<KayttajaDTO> {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             val opintooikeus = it.getOpintooikeusKaytossa()
             return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
@@ -124,12 +139,17 @@ class KayttajaServiceImpl(
                 tehtavatyyppi
             )?.let { v ->
                 kayttajaMapper.toDto(v)
-            } ?: throw EntityNotFoundException("Vastuuhenkilöä ei löydy")
-        } ?: throw EntityNotFoundException("Erikoistuvaa lääkäriä ei löydy")
+            } ?: throw EntityNotFoundException(vastuuhenkiloNotFoundError)
+        } ?: throw EntityNotFoundException(erikoistuvaLaakariNotFoundError)
+    }
+
+    override fun findVastuuhenkilotByYliopisto(yliopistoId: Long): List<KayttajaDTO> {
+        return kayttajaRepository.findAllByAuthoritiesAndYliopisto(listOf(VASTUUHENKILO), yliopistoId)
+            .map(kayttajaMapper::toDto)
     }
 
     @Transactional(readOnly = true)
-    override fun findKouluttajatAndVastuuhenkilotUnderSameYliopisto(userId: String): List<KayttajaDTO> {
+    override fun findKouluttajatAndVastuuhenkilotFromSameYliopisto(userId: String): List<KayttajaDTO> {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             val opintooikeus = it.getOpintooikeusKaytossa()
             return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
@@ -183,17 +203,20 @@ class KayttajaServiceImpl(
         }
     }
 
-    override fun findVastuuhenkilotUnderSameYliopisto(userId: String): List<KayttajaDTO> {
+    override fun findVastuuhenkilotFromSameYliopistoAndErikoisala(kayttajaId: Long): List<KayttajaDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
-        val yliopisto = kayttaja.yliopistot.firstOrNull()
-            ?: throw EntityNotFoundException("Käyttäjälle ei ole määritelty yliopistoa")
+            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+        val yliopistoIds = kayttaja.yliopistotAndErikoisalat.map { it.yliopisto!!.id }
+        val erikoisalaIds = kayttaja.yliopistotAndErikoisalat.map { it.erikoisala!!.id }
 
-        return kayttajaRepository.findAllByAuthoritiesAndYliopisto(listOf(VASTUUHENKILO), yliopisto.id)
-            .map(kayttajaMapper::toDto)
+        return kayttajaRepository.findAllByAuthoritiesAndYliopistotAndErikoisalat(
+            listOf(VASTUUHENKILO),
+            yliopistoIds,
+            erikoisalaIds
+        ).filter { it.id != kayttajaId }.map(kayttajaMapper::toDto)
     }
 
-    override fun findByKayttajahallintaCriteriaUnderSameYliopisto(
+    override fun findByKayttajahallintaCriteriaFromSameYliopisto(
         userId: String,
         authority: String,
         criteria: KayttajahallintaCriteria,
@@ -240,4 +263,104 @@ class KayttajaServiceImpl(
             kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
         kayttaja.tila = KayttajatilinTila.PASSIIVINEN
     }
+
+    override fun saveVastuuhenkilo(
+        kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        kayttajaId: Long?
+    ): KayttajahallintaKayttajaWrapperDTO {
+        val kayttaja = kayttajaId?.let { id ->
+            kayttajaRepository.findByIdOrNull(id)?.let {
+                updateExistingVastuuhenkilo(kayttajahallintaKayttajaDTO, it)
+            }
+        } ?: createNewVastuuhenkilo(kayttajahallintaKayttajaDTO)
+
+        saveYliopistotAndErikoisalat(kayttajahallintaKayttajaDTO, kayttaja)
+        saveReassignedTehtavat(kayttajahallintaKayttajaDTO.reassignedTehtavat)
+
+        return KayttajahallintaKayttajaWrapperDTO(
+            kayttaja = kayttajaMapper.toDto(kayttaja)
+        )
+    }
+
+    private fun saveYliopistotAndErikoisalat(
+        kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        kayttaja: Kayttaja
+    ) {
+        kayttajahallintaKayttajaDTO.yliopistotAndErikoisalat.forEach {
+            if (it.id != null) {
+                val existingKayttajaYliopistoErikoisala =
+                    kayttajaYliopistoErikoisalaRepository.findById(it.id!!).orElseThrow {
+                        getKayttajaYliopistoErikoisalaNotFoundException()
+                    }
+                existingKayttajaYliopistoErikoisala.vastuuhenkilonTehtavat =
+                    mapVastuuhenkilonTehtavat(it.vastuuhenkilonTehtavat)
+            } else {
+                val kayttajaYliopistoErikoisala = kayttajaYliopistoErikoisalaMapper.toEntity(it).apply {
+                    this.kayttaja = kayttaja
+                }
+                kayttaja.yliopistotAndErikoisalat.add(kayttajaYliopistoErikoisala)
+            }
+        }
+
+        kayttaja.yliopistotAndErikoisalat.filter { existingErikoisala ->
+            existingErikoisala.id !in kayttajahallintaKayttajaDTO.yliopistotAndErikoisalat.map { it.id }
+        }.forEach {
+            kayttaja.yliopistotAndErikoisalat.remove(it)
+        }
+
+        kayttajaRepository.save(kayttaja)
+    }
+
+    private fun saveReassignedTehtavat(reassignedTehtavat: Set<ReassignedVastuuhenkilonTehtavaDTO>) {
+        reassignedTehtavat.forEach {
+            val kayttajaYliopistoErikoisala =
+                kayttajaYliopistoErikoisalaRepository.findById(it.kayttajaYliopistoErikoisala?.id!!)
+                    .orElseThrow { getKayttajaYliopistoErikoisalaNotFoundException() }
+            val tehtava = vastuuhenkilonTehtavatyyppiRepository.findById(it.tehtavaId!!)
+                .orElseThrow { EntityNotFoundException("Vastuuhenkilön tehtävää ei löydy") }
+            if (it.tyyppi == ReassignedVastuuhenkilonTehtavaTyyppi.ADD) {
+                kayttajaYliopistoErikoisala.vastuuhenkilonTehtavat.add(tehtava)
+            } else {
+                kayttajaYliopistoErikoisala.vastuuhenkilonTehtavat.remove(tehtava)
+            }
+        }
+    }
+
+    private fun mapVastuuhenkilonTehtavat(tehtavat: MutableSet<VastuuhenkilonTehtavatyyppiDTO>?): MutableSet<VastuuhenkilonTehtavatyyppi> =
+        tehtavat?.map { vastuuhenkilonTehtavatyyppiMapper.toEntity(it) }?.toMutableSet() ?: mutableSetOf()
+
+    private fun createNewVastuuhenkilo(kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO): Kayttaja {
+        val userDTO = UserDTO(
+            login = kayttajahallintaKayttajaDTO.sahkoposti,
+            firstName = kayttajahallintaKayttajaDTO.etunimi,
+            lastName = kayttajahallintaKayttajaDTO.sukunimi,
+            email = kayttajahallintaKayttajaDTO.sahkoposti,
+            activated = true,
+            eppn = kayttajahallintaKayttajaDTO.eppn,
+            authorities = setOf(VASTUUHENKILO)
+        )
+        val persistedUser = userRepository.save(userMapper.userDTOToUser(userDTO)!!)
+        val kayttajaDTO = KayttajaDTO(
+            tila = KayttajatilinTila.KUTSUTTU
+        )
+        val kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
+        kayttaja.user = persistedUser
+        return kayttajaRepository.save(kayttaja)
+    }
+
+    private fun updateExistingVastuuhenkilo(
+        kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        existingKayttaja: Kayttaja
+    ): Kayttaja {
+        existingKayttaja.user?.email = kayttajahallintaKayttajaDTO.sahkoposti
+
+        if (existingKayttaja.tila == KayttajatilinTila.KUTSUTTU) {
+            existingKayttaja.user?.eppn = kayttajahallintaKayttajaDTO.eppn
+        }
+
+        return existingKayttaja
+    }
+
+    private fun getKayttajaYliopistoErikoisalaNotFoundException() =
+        EntityNotFoundException("KayttajaYliopistoErikoisala entiteettiä ei löydy")
 }

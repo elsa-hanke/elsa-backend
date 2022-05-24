@@ -32,7 +32,11 @@ data class Kayttaja(
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var saadutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf(),
 
-    @OneToMany(mappedBy = "kayttaja")
+    @OneToMany(
+        mappedBy = "kayttaja",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisala> = mutableSetOf(),
 

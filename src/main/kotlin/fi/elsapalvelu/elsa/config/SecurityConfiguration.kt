@@ -284,7 +284,7 @@ class SecurityConfiguration(
             )
         }
 
-        var existingUser = userService.findExistingUser(cipher, originalKey, hetu, eppn)
+        var existingUser = userService.findExistingUser(cipher, originalKey, hetu, eppn )
 
         if (hetu != null) {
             if (existingUser == null) {
@@ -341,6 +341,11 @@ class SecurityConfiguration(
             throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
         }
 
+        if (hasVastuuhenkiloRole(existingUser) && kayttaja.tila == KayttajatilinTila.KUTSUTTU) {
+            kayttaja.tila = KayttajatilinTila.AKTIIVINEN
+            kayttajaRepository.save(kayttaja)
+        }
+
         return Saml2Authentication(createPrincipal(existingUser.id, principal),
             token.saml2Response,
             existingUser.authorities.map { SimpleGrantedAuthority(it.name) })
@@ -348,6 +353,9 @@ class SecurityConfiguration(
 
     private fun hasErikoistuvaLaakariRole(user: User): Boolean =
         user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))
+
+    private fun hasVastuuhenkiloRole(user: User): Boolean =
+        user.authorities.contains(Authority(name = VASTUUHENKILO))
 
     private fun createPrincipal(
         name: String?, principal: Saml2AuthenticatedPrincipal

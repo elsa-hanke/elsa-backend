@@ -28,7 +28,7 @@ class MuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<List<KayttajaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(kayttajaService.findKouluttajatUnderSameYliopisto(user.id!!))
+        return ResponseEntity.ok(kayttajaService.findKouluttajatFromSameYliopisto(user.id!!))
     }
 
     @GetMapping("/yliopistot")

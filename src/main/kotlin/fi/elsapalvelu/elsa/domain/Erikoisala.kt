@@ -3,6 +3,8 @@ package fi.elsapalvelu.elsa.domain
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import javax.persistence.*
 import javax.validation.constraints.NotNull
@@ -49,7 +51,21 @@ data class Erikoisala(
 
     @OneToMany(mappedBy = "erikoisala")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var opintooppaat: MutableSet<Opintoopas> = mutableSetOf()
+    var opintooppaat: MutableSet<Opintoopas> = mutableSetOf(),
+
+    @ManyToMany
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JoinTable(
+        name = "rel_erikoisala_vastuuhenkilon_tehtavatyyppi",
+        joinColumns = [
+            JoinColumn(name = "erikoisala_id")
+        ],
+        inverseJoinColumns = [
+            JoinColumn(name = "vastuuhenkilon_tehtavatyyppi_id")
+        ]
+    )
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+    var vastuuhenkilonTehtavatyypit: MutableSet<VastuuhenkilonTehtavatyyppi>? = mutableSetOf()
 
 ) : Serializable {
 

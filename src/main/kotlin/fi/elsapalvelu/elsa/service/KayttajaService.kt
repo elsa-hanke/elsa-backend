@@ -4,7 +4,9 @@ import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaWrapperDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.util.*
@@ -25,16 +27,20 @@ interface KayttajaService {
 
     fun findByUserId(id: String): Optional<KayttajaDTO>
 
-    fun findKouluttajatUnderSameYliopisto(userId: String): List<KayttajaDTO>
+    fun findKouluttajatFromSameYliopisto(userId: String): List<KayttajaDTO>
 
     fun findVastuuhenkiloByYliopistoErikoisalaAndTehtavatyyppi(
         userId: String,
         tehtavatyyppi: VastuuhenkilonTehtavatyyppiEnum
     ): KayttajaDTO
 
+    fun findVastuuhenkilotByYliopisto(
+        yliopistoId: Long
+    ): List<KayttajaDTO>
+
     fun findTeknisetPaakayttajat(): List<KayttajaDTO>
 
-    fun findKouluttajatAndVastuuhenkilotUnderSameYliopisto(userId: String): List<KayttajaDTO>
+    fun findKouluttajatAndVastuuhenkilotFromSameYliopisto(userId: String): List<KayttajaDTO>
 
     fun delete(id: Long)
 
@@ -43,9 +49,9 @@ interface KayttajaService {
         kouluttajaEmail: String
     ): KayttajaDTO?
 
-    fun findVastuuhenkilotUnderSameYliopisto(userId: String): List<KayttajaDTO>
+    fun findVastuuhenkilotFromSameYliopistoAndErikoisala(kayttajaId: Long): List<KayttajaDTO>
 
-    fun findByKayttajahallintaCriteriaUnderSameYliopisto(
+    fun findByKayttajahallintaCriteriaFromSameYliopisto(
         userId: String,
         authority: String,
         criteria: KayttajahallintaCriteria,
@@ -62,4 +68,9 @@ interface KayttajaService {
     fun activateKayttaja(kayttajaId: Long)
 
     fun passivateKayttaja(kayttajaId: Long)
+
+    fun saveVastuuhenkilo(
+        kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        kayttajaId: Long? = null
+    ): KayttajahallintaKayttajaWrapperDTO
 }

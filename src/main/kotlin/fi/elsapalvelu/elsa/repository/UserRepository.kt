@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
-import java.util.Optional
+import java.util.*
 
 /**
  * Spring Data JPA repository for the [User] entity.
@@ -31,6 +31,8 @@ interface UserRepository : JpaRepository<User, String> {
     fun findAllWithAuthorities(): List<User>
 
     fun findOneByEmail(email: String): Optional<User>
+
+    fun findOneByEppn(eppn: String): Optional<User>
 
     companion object {
 

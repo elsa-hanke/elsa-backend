@@ -21,6 +21,8 @@ data class KayttajaDTO(
 
     var tila: KayttajatilinTila? = null,
 
+    var eppn: String? = null,
+
     @Lob
     var avatar: ByteArray? = null,
 

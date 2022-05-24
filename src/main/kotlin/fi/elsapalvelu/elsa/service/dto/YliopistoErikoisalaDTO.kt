@@ -7,7 +7,9 @@ data class YliopistoErikoisalaDTO(
 
     var yliopisto: YliopistoEnum? = null,
 
-    var erikoisala: String? = null
+    var erikoisala: String? = null,
+
+    var vastuuhenkilonTehtavat: Set<VastuuhenkilonTehtavatyyppiDTO>? = setOf()
 
 ) : Serializable {
     override fun toString() = "YliopistoErikoisalaDTO"

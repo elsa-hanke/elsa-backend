@@ -37,6 +37,7 @@ class UserMapper {
                     email = userDTO.email,
                     phoneNumber = userDTO.phoneNumber,
                     avatar = userDTO.avatar,
+                    eppn = userDTO.eppn,
                     activated = userDTO.activated,
                     langKey = userDTO.langKey,
                     authorities = authoritiesFromStrings(userDTO.authorities)

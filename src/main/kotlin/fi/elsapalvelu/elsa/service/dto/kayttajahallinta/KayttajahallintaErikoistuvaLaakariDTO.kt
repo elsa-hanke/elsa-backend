@@ -2,17 +2,20 @@ package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
 import java.io.Serializable
 import java.time.LocalDate
+import javax.validation.constraints.Email
+import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.NotNull
 
 data class KayttajahallintaErikoistuvaLaakariDTO(
 
-    @get: NotNull
+    @get: NotEmpty
     var etunimi: String? = null,
 
-    @get: NotNull
+    @get: NotEmpty
     var sukunimi: String? = null,
 
-    @get: NotNull
+    @get: NotEmpty
+    @get: Email
     var sahkopostiosoite: String? = null,
 
     @get: NotNull
@@ -20,7 +23,7 @@ data class KayttajahallintaErikoistuvaLaakariDTO(
 
     @get: NotNull
     var erikoisalaId: Long? = null,
-    
+
     var opiskelijatunnus: String? = null,
 
     @get: NotNull
@@ -39,6 +42,6 @@ data class KayttajahallintaErikoistuvaLaakariDTO(
     var osaamisenArvioinninOppaanPvm: LocalDate? = null
 
 ) : Serializable {
-    override fun toString() = "ErikoistuvaLaakariDTO"
+    override fun toString() = "KayttajahallintaErikoistuvaLaakariDTO"
 }
 

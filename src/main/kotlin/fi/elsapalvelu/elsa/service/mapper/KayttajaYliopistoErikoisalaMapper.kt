@@ -12,7 +12,8 @@ import org.mapstruct.ReportingPolicy
     uses = [
         KayttajaMapper::class,
         YliopistoMapper::class,
-        ErikoisalaMapper::class
+        ErikoisalaMapper::class,
+        VastuuhenkilonTehtavatyyppiMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
@@ -20,9 +21,7 @@ interface KayttajaYliopistoErikoisalaMapper :
     EntityMapper<KayttajaYliopistoErikoisalaDTO, KayttajaYliopistoErikoisala> {
 
     @Mappings(
-        Mapping(source = "kayttaja.id", target = "kayttajaId"),
-        Mapping(source = "yliopisto.nimi", target = "yliopistoNimi"),
-        Mapping(source = "erikoisala.nimi", target = "erikoisalaNimi")
+        Mapping(source = "kayttaja.id", target = "kayttajaId")
     )
     override fun toDto(entity: KayttajaYliopistoErikoisala): KayttajaYliopistoErikoisalaDTO
 }
