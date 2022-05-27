@@ -1,17 +1,25 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.KoejaksonVastuuhenkilonArvio
+import com.itextpdf.html2pdf.HtmlConverter
+import com.itextpdf.kernel.pdf.PdfWriter
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
+import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.thymeleaf.context.Context
+import org.thymeleaf.spring5.SpringTemplateEngine
+import java.io.ByteArrayOutputStream
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.Period
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.persistence.EntityNotFoundException
 
@@ -33,7 +41,10 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService,
     private val opintooikeusService: OpintooikeusService,
     private val koulutussopimusRepository: KoejaksonKoulutussopimusRepository,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val templateEngine: SpringTemplateEngine,
+    private val asiakirjaRepository: AsiakirjaRepository,
+    private val sarakesignService: SarakesignService
 ) : KoejaksonVastuuhenkilonArvioService {
 
     override fun create(
@@ -196,7 +207,74 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 titleKey = "email.vastuuhenkilonarviokuitattava.title",
                 properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
             )
+            luoPdf(mapVastuuhenkilonArvio(result), result)
         }
+    }
+
+    private fun luoPdf(
+        vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
+        vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
+    ) {
+        val locale = Locale.forLanguageTag("fi")
+        val context = Context(locale).apply {
+            setVariable("arvio", vastuuhenkilonArvioDTO)
+            setVariable(
+                "yhteenlaskettuKesto",
+                Period.between(
+                    vastuuhenkilonArvioDTO.aloituskeskustelu?.koejaksonAlkamispaiva,
+                    vastuuhenkilonArvioDTO.aloituskeskustelu?.koejaksonPaattymispaiva
+                )
+            )
+            setVariable(
+                "erikoistuvanSyntymaaika",
+                vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.syntymaaika
+            )
+            setVariable(
+                "opintooikeudenPaattymispaiva",
+                vastuuhenkilonArvio.opintooikeus?.opintooikeudenPaattymispaiva
+            )
+        }
+        val content = templateEngine.process("pdf/vastuuhenkilonarvio.html", context)
+        val outputStream = ByteArrayOutputStream()
+        val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+        HtmlConverter.convertToPdf(content, PdfWriter(outputStream))
+        val asiakirja = asiakirjaRepository.save(
+            Asiakirja(
+                opintooikeus = vastuuhenkilonArvio.opintooikeus,
+                nimi = "koejakson_vastuuhenkilon_arvio_${timestamp}.pdf",
+                tyyppi = "application/pdf",
+                lisattypvm = LocalDateTime.now(),
+                asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
+            )
+        )
+
+        if (!sarakesignService.getApiUrl(vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!)
+                .isNullOrBlank()
+        ) {
+            lahetaAllekirjoitettavaksi(vastuuhenkilonArvio, asiakirja)
+        }
+
+    }
+
+    private fun lahetaAllekirjoitettavaksi(
+        vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio,
+        asiakirja: Asiakirja
+    ) {
+        val recipients: MutableList<User> = mutableListOf()
+        vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let {
+            if (vastuuhenkilonArvio.koejaksoHyvaksytty == true) {
+                recipients.add(it)
+            }
+        }
+        vastuuhenkilonArvio.vastuuhenkilo?.user?.let { recipients.add(it) }
+
+        vastuuhenkilonArvio.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
+            "Koejakson vastuuhenkilön arvio - " + vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
+            recipients,
+            asiakirja.id!!,
+            vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!
+        )
+        koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
     }
 
     @Transactional(readOnly = true)

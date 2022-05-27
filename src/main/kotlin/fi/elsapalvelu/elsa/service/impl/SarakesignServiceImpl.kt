@@ -1,13 +1,11 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.SarakesignService
-import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignDocumentMetadataDTO
-import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
-import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRequestDTO
-import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignResponseDTO
+import fi.elsapalvelu.elsa.service.dto.sarakesign.*
 import io.undertow.util.BadRequestException
 import org.json.simple.JSONObject
 import org.slf4j.LoggerFactory
@@ -34,12 +32,13 @@ class SarakesignServiceImpl(
 
     override fun lahetaAllekirjoitettavaksi(
         title: String,
-        recipients: List<SarakeSignRecipientDTO>,
+        recipients: List<User>,
         asiakirjaId: Long,
         yliopisto: YliopistoEnum
     ): String {
         val token = login(yliopisto)
-        val requestId = createRequest(title, recipients, token, yliopisto)
+        val requestId =
+            createRequest(title, recipients.map { lisaaVastaanottaja(it) }, token, yliopisto)
         uploadDocument(title, asiakirjaId, requestId, token, yliopisto)
         sendRequest(requestId, token, yliopisto)
         log.info("Lähetetty pyyntö $requestId asiakirjasta $asiakirjaId SarakeSigniin allekirjoitettavaksi")
@@ -241,5 +240,17 @@ class SarakesignServiceImpl(
                 return applicationProperties.getSarakesign().getUef().requestTemplateId
             }
         }
+    }
+
+    private fun lisaaVastaanottaja(user: User): SarakeSignRecipientDTO {
+        return SarakeSignRecipientDTO(
+            phaseNumber = 0,
+            recipient = user.email,
+            fields = SarakeSignRecipientFieldsDTO(
+                firstName = user.firstName,
+                lastName = user.lastName,
+                phoneNumber = user.phoneNumber
+            )
+        )
     }
 }

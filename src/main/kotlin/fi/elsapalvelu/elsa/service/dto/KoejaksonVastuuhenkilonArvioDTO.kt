@@ -42,7 +42,7 @@ data class KoejaksonVastuuhenkilonArvioDTO(
 
     var muokkauspaiva: LocalDate? = null,
 
-    var erikoistuvankuittausaika: LocalDate? = null,
+    var erikoistuvanKuittausaika: LocalDate? = null,
 
     var virkailija: KoejaksonKouluttajaDTO? = null,
 
