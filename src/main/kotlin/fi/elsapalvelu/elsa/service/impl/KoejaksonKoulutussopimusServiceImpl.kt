@@ -47,7 +47,10 @@ class KoejaksonKoulutussopimusServiceImpl(
         opintooikeusId: Long
     ): KoejaksonKoulutussopimusDTO? {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
-            validateVastuuhenkilo(it.erikoistuvaLaakari?.kayttaja?.user?.id!!, koejaksonKoulutussopimusDTO)
+            validateVastuuhenkilo(
+                it.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                koejaksonKoulutussopimusDTO
+            )
             var koulutussopimus =
                 koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
             koulutussopimus.opintooikeus = it
@@ -151,7 +154,10 @@ class KoejaksonKoulutussopimusServiceImpl(
         return dto
     }
 
-    private fun validateVastuuhenkilo(userId: String, koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO) {
+    private fun validateVastuuhenkilo(
+        userId: String,
+        koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO
+    ) {
         if (kayttajaService.findVastuuhenkiloByTehtavatyyppi(
                 userId,
                 VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
@@ -476,22 +482,16 @@ class KoejaksonKoulutussopimusServiceImpl(
         koulutussopimus: KoejaksonKoulutussopimus,
         asiakirja: Asiakirja
     ) {
-        val recipients: MutableList<SarakeSignRecipientDTO> = mutableListOf()
+        val recipients: MutableList<User> = mutableListOf()
         koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let {
-            recipients.add(
-                lisaaVastaanottaja(
-                    it
-                )
-            )
+            recipients.add(it)
         }
         koulutussopimus.kouluttajat?.forEach {
             it.kouluttaja?.user?.let { user ->
-                recipients.add(
-                    lisaaVastaanottaja(user)
-                )
+                recipients.add(user)
             }
         }
-        koulutussopimus.vastuuhenkilo?.user?.let { recipients.add(lisaaVastaanottaja(it)) }
+        koulutussopimus.vastuuhenkilo?.user?.let { recipients.add(it) }
 
         koulutussopimus.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
             "Koejakson koulutussopimus - " + koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
@@ -500,17 +500,5 @@ class KoejaksonKoulutussopimusServiceImpl(
             koulutussopimus.opintooikeus?.yliopisto?.nimi!!
         )
         koejaksonKoulutussopimusRepository.save(koulutussopimus)
-    }
-
-    private fun lisaaVastaanottaja(user: User): SarakeSignRecipientDTO {
-        return SarakeSignRecipientDTO(
-            phaseNumber = 0,
-            recipient = user.email,
-            fields = SarakeSignRecipientFieldsDTO(
-                firstName = user.firstName,
-                lastName = user.lastName,
-                phoneNumber = user.phoneNumber
-            )
-        )
     }
 }

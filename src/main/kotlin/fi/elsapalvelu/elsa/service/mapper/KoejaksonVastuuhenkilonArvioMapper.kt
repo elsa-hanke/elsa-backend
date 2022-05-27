@@ -43,6 +43,7 @@ interface KoejaksonVastuuhenkilonArvioMapper :
             target = "vastuuhenkilo.sopimusHyvaksytty"
         ),
         Mapping(source = "vastuuhenkilonKuittausaika", target = "vastuuhenkilo.kuittausaika"),
+        Mapping(source = "virkailija.id", target = "virkailija.id"),
         Mapping(
             source = "virkailijaHyvaksynyt",
             target = "virkailija.sopimusHyvaksytty"

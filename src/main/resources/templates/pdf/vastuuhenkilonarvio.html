@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>Koejakson vastuuhenkilön arvio</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+          rel="stylesheet" type="text/css"/>
+    <style>
+        hr {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 0;
+            border-top: 1px solid rgba(34, 34, 34, 0.1);
+        }
+
+        th {
+            text-align: left;
+        }
+
+        td {
+            padding-bottom: 2px;
+        }
+
+        table {
+            border-spacing: 0;
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .col-2 {
+            flex: 0 0 66.6666666667%;
+            max-width: 66.6666666667%;
+        }
+
+        .col-4 {
+            flex: 0 0 33.3333333333%;
+            max-width: 33.3333333333%;
+        }
+
+        h4 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            margin-top: 0;
+        }
+
+        .alert {
+            padding: 1rem;
+            background-color: #e8e9ec;
+            margin-bottom: 1rem;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .mb-0 {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1 th:text="#{vastuuhenkilonarvio.title}"></h1>
+    <hr/>
+    <div>
+        <table>
+            <caption></caption>
+            <tr>
+                <th style="width: 12rem" th:text="#{vastuuhenkilonarvio.erikoistuvalaakari}"></th>
+                <td th:text="${arvio.erikoistuvanNimi + ', ' + arvio.erikoistuvanErikoisala}"></td>
+            </tr>
+            <tr>
+                <th th:text="#{vastuuhenkilonarvio.opiskelijanumero}"></th>
+                <td th:text="${arvio.erikoistuvanOpiskelijatunnus}"></td>
+            </tr>
+            <tr>
+                <th th:text="#{vastuuhenkilonarvio.syntymaaika}"></th>
+                <td th:text="${#temporals.format(erikoistuvanSyntymaaika, 'dd.MM.yyyy')}"></td>
+            </tr>
+            <tr>
+                <th th:text="#{vastuuhenkilonarvio.yliopisto}"></th>
+                <td th:text="#{${arvio.erikoistuvanYliopisto}}"></td>
+            </tr>
+            <tr>
+                <th th:text="#{vastuuhenkilonarvio.yhteenaslkettuKesto}"></th>
+                <td>
+                    <span
+                        th:text="${yhteenlaskettuKesto.years} > 0 ? ${yhteenlaskettuKesto.years} + ' v ' : ''"></span>
+                    <span
+                        th:text="${yhteenlaskettuKesto.months} > 0 ? ${yhteenlaskettuKesto.months} + ' kk ' : ''"></span>
+                    <span
+                        th:text="${yhteenlaskettuKesto.days} > 0 ? ${yhteenlaskettuKesto.days} + ' pv' : ''"></span>
+                </td>
+            </tr>
+            <tr>
+                <th th:text="#{vastuuhenkilonarvio.opintooikeudenPaattymispaiva}"></th>
+                <td th:text="${#temporals.format(opintooikeudenPaattymispaiva, 'dd.MM.yyyy')}"></td>
+            </tr>
+        </table>
+    </div>
+    <hr/>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{vastuuhenkilonarvio.sahkoposti}"></h4>
+            <p class="mb-0" th:text="${arvio.erikoistuvanSahkoposti}"></p>
+        </div>
+        <div class="col-4">
+            <h4 th:text="#{vastuuhenkilonarvio.puhelinnumero}"></h4>
+            <p class="mb-0" th:text="${arvio.erikoistuvanPuhelinnumero}"></p>
+        </div>
+    </div>
+    <hr/>
+    <h3 th:text="#{vastuuhenkilonarvio.koejaksonSuorituspaikka}"></h3>
+    <div th:each="suorituspaikka: ${arvio.koejaksonSuorituspaikat}">
+        <h4 th:text="#{vastuuhenkilonarvio.tyyppi}"></h4>
+        <p th:text="#{${suorituspaikka.tyoskentelypaikka.tyyppi}}"></p>
+        <h4 th:text="#{vastuuhenkilonarvio.tyoskentelypaikka}"></h4>
+        <p th:text="${suorituspaikka.tyoskentelypaikka.nimi}"></p>
+        <h4 th:text="#{vastuuhenkilonarvio.kunta}"></h4>
+        <p th:text="${suorituspaikka.tyoskentelypaikka.kunta.abbreviation}"></p>
+        <h4 th:text="#{vastuuhenkilonarvio.tyoaikaTaydesta}"></h4>
+        <p th:text="${suorituspaikka.osaaikaprosentti}"></p>
+        <div class="row">
+            <div class="col-4">
+                <h4 th:text="#{vastuuhenkilonarvio.alkamispaiva}"></h4>
+                <p th:text="${#temporals.format(suorituspaikka.alkamispaiva, 'dd.MM.yyyy')}"></p>
+            </div>
+            <div class="col-4">
+                <h4 th:text="#{vastuuhenkilonarvio.paattymispaiva}"></h4>
+                <p th:text="${#temporals.format(suorituspaikka.paattymispaiva, 'dd.MM.yyyy')}"></p>
+            </div>
+        </div>
+        <h4 th:text="#{vastuuhenkilonarvio.kaytannonKoulutus}"></h4>
+        <p th:text="#{${suorituspaikka.kaytannonKoulutus}}"></p>
+        <div th:if="${suorituspaikka.hyvaksyttyAiempaanErikoisalaan}">
+            <h4 th:text="#{vastuuhenkilonarvio.lisatiedot}"></h4>
+            <p th:text="#{vastuuhenkilonarvio.hyvaksyttyToiselleErikoisalalle}"></p>
+        </div>
+        <hr/>
+    </div>
+    <h3 th:text="#{vastuuhenkilonarvio.aloituskeskustelu}"></h3>
+    <div class="alert">
+        <em class="fas fa-check-circle success"></em>
+        <span style="margin-left: 0.5rem"
+              th:text="#{vastuuhenkilonarvio.aloituskeskusteluHyvaksytty}"></span>
+    </div>
+    <h4 th:text="#{vastuuhenkilonarvio.koejaksonSuorituspaikka}"></h4>
+    <p th:text="${arvio.aloituskeskustelu.koejaksonSuorituspaikka}"></p>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{vastuuhenkilonarvio.alkamispaiva}"></h4>
+            <p th:text="${#temporals.format(arvio.aloituskeskustelu.koejaksonAlkamispaiva, 'dd.MM.yyyy')}"></p>
+        </div>
+        <div class="col-4">
+            <h4 th:text="#{vastuuhenkilonarvio.paattymispaiva}"></h4>
+            <p th:text="${#temporals.format(arvio.aloituskeskustelu.koejaksonPaattymispaiva, 'dd.MM.yyyy')}"></p>
+        </div>
+    </div>
+    <h4 th:text="#{vastuuhenkilonarvio.suoritettuKokoaikatyossa}"></h4>
+    <p th:text="${arvio.aloituskeskustelu.suoritettuKokoaikatyossa} ? #{vastuuhenkilonarvio.kylla} : #{vastuuhenkilonarvio.ei}"></p>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{vastuuhenkilonarvio.lahikouluttaja}"></h4>
+            <p th:text="${arvio.aloituskeskustelu.lahikouluttaja.nimi}"></p>
+        </div>
+        <div class="col-2">
+            <h4 th:text="#{vastuuhenkilonarvio.lahiesimiesTaiMuu}"></h4>
+            <p th:text="${arvio.aloituskeskustelu.lahiesimies.nimi}"></p>
+        </div>
+    </div>
+    <hr/>
+    <h3 th:text="#{vastuuhenkilonarvio.soveltuvuusValiarvioinninPerusteella}"></h3>
+    <div class="alert">
+        <em class="fas fa-check-circle success"></em>
+        <span style="margin-left: 0.5rem"
+              th:text="#{vastuuhenkilonarvio.valiarviointiHyvaksytty}"></span>
+    </div>
+    <h4 th:text="#{vastuuhenkilonarvio.edistyminenTavoitteidenMukaista}"></h4>
+    <p th:text="${arvio.valiarviointi.edistyminenTavoitteidenMukaista} ? #{vastuuhenkilonarvio.kylla} : #{vastuuhenkilonarvio.eiHuolenaiheitaOn}"></p>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{vastuuhenkilonarvio.lahikouluttaja}"></h4>
+            <p th:text="${arvio.valiarviointi.lahikouluttaja.nimi}"></p>
+        </div>
+        <div class="col-2">
+            <h4 th:text="#{vastuuhenkilonarvio.lahiesimiesTaiMuu}"></h4>
+            <p th:text="${arvio.valiarviointi.lahiesimies.nimi}"></p>
+        </div>
+    </div>
+    <hr/>
+    <h3 th:text="#{vastuuhenkilonarvio.loppukeskustelu}"></h3>
+    <div class="alert">
+        <em class="fas fa-check-circle success"></em>
+        <span style="margin-left: 0.5rem"
+              th:text="#{vastuuhenkilonarvio.loppukeskusteluHyvaksytty}"></span>
+    </div>
+    <h4 th:text="#{vastuuhenkilonarvio.tavoitteetKasiteltyLoppukeskustelussa}"></h4>
+    <p th:text="${arvio.loppukeskustelu.esitetaanKoejaksonHyvaksymista} ? #{vastuuhenkilonarvio.esitammeHyvaksymista} : #{vastuuhenkilonarvio.ohjausJatkotoimiin}"></p>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{vastuuhenkilonarvio.lahikouluttaja}"></h4>
+            <p th:text="${arvio.loppukeskustelu.lahikouluttaja.nimi}"></p>
+        </div>
+        <div class="col-2">
+            <h4 th:text="#{vastuuhenkilonarvio.lahiesimiesTaiMuu}"></h4>
+            <p th:text="${arvio.loppukeskustelu.lahiesimies.nimi}"></p>
+        </div>
+    </div>
+    <hr/>
+    <div th:unless="${#lists.isEmpty(arvio.muutOpintooikeudet)}">
+        <h3 th:text="#{vastuuhenkilonarvio.useampiOpintooikeus}"></h3>
+        <p th:text="#{vastuuhenkilonarvio.useampiOpintooikeusSuostumus}"></p>
+        <ul th:each="opintooikeus: ${arvio.muutOpintooikeudet}">
+            <li th:text="${opintooikeus.erikoisalaNimi} + ', ' + #{${opintooikeus.yliopistoNimi}}"></li>
+        </ul>
+    </div>
+    <div th:if="${!arvio.koulutussopimusHyvaksytty}">
+        <h3 th:text="#{vastuuhenkilonarvio.koejaksonKoulutussopimus}"></h3>
+        <p th:text="#{vastuuhenkilonarvio.koulutussopimusVakuutus}"></p>
+    </div>
+    <h3 th:text="#{vastuuhenkilonarvio.koulutussuunnitelma}"></h3>
+    <p th:text="#{vastuuhenkilonarvio.koulutussuunnitelmaLaadittu}"></p>
+    <hr/>
+    <h3 th:text="#{vastuuhenkilonarvio.vastuuhenkilo}"></h3>
+    <h4 th:text="#{vastuuhenkilonarvio.vastuuhenkilonNimi}"></h4>
+    <p th:text="${arvio.vastuuhenkilo.nimi}">
+        <span
+            th:text="${arvio.vastuuhenkilo.nimike != null} ? ', ' + ${arvio.vastuuhenkilo.nimike} : ''"></span>
+    </p>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{vastuuhenkilonarvio.sahkoposti}"></h4>
+            <p class="mb-0" th:text="${arvio.vastuuhenkilonSahkoposti}"></p>
+        </div>
+        <div class="col-2">
+            <h4 th:text="#{vastuuhenkilonarvio.puhelinnumero}"></h4>
+            <p class="mb-0" th:text="${arvio.vastuuhenkilonPuhelinnumero}"></p>
+        </div>
+    </div>
+    <hr/>
+    <h3 th:text="#{vastuuhenkilonarvio.tarkistanut}"></h3>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{vastuuhenkilonarvio.paivays}"></h4>
+            <p class="mb-0" th:text="${#temporals.format(arvio.virkailija.kuittausaika, 'dd.MM.yyyy')}"></p>
+        </div>
+        <div class="col-2">
+            <h4 th:text="#{vastuuhenkilonarvio.nimiJaNimike}"></h4>
+            <p class="mb-0" th:text="${arvio.virkailija.nimi} + ', ' + #{vastuuhenkilonarvio.virkailija}"></p>
+        </div>
+    </div>
+    <hr/>
+    <h3 th:text="#{vastuuhenkilonarvio.arvioKoejaksosta}"></h3>
+    <h4 th:text="#{vastuuhenkilonarvio.koejaksoOn}"></h4>
+    <p th:text="${arvio.koejaksoHyvaksytty} ? #{vastuuhenkilonarvio.hyvaksytty} : #{vastuuhenkilonarvio.hylatty}"></p>
+    <div th:unless="${arvio.koejaksoHyvaksytty}">
+        <h4 th:text="#{vastuuhenkilonarvio.perusteluHylkaamiselle}"></h4>
+        <p th:text="${arvio.perusteluHylkaamiselle}"></p>
+        <h4 th:text="#{vastuuhenkilonarvio.hylatynKoejaksonArviointiKaytyLapi}"></h4>
+        <p th:text="${arvio.hylattyArviointiKaytyLapiKeskustellen} ? #{vastuuhenkilonarvio.kylla} : #{vastuuhenkilonarvio.ei}"></p>
+    </div>
+    <hr/>
+    <h3 th:text="#{vastuuhenkilonarvio.hyvaksymispaivamaarat}"></h3>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{vastuuhenkilonarvio.paivays}"></h4>
+            <p th:text="${#temporals.format(arvio.erikoistuvanKuittausaika, 'dd.MM.yyyy')}"></p>
+        </div>
+        <div class="col-2">
+            <h4 th:text="#{vastuuhenkilonarvio.nimiJaNimike}"></h4>
+            <p th:text="${arvio.erikoistuvanNimi  + ', ' + arvio.erikoistuvanErikoisala}"></p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{vastuuhenkilonarvio.paivays}"></h4>
+            <p th:text="${#temporals.format(arvio.vastuuhenkilo.kuittausaika, 'dd.MM.yyyy')}"></p>
+        </div>
+        <div class="col-2">
+            <h4 th:text="#{vastuuhenkilonarvio.nimiJaNimike}"></h4>
+            <p th:text="${arvio.vastuuhenkilo.nimi}">
+                <span
+                    th:text="${arvio.vastuuhenkilo.nimike != null} ? ', ' + ${arvio.vastuuhenkilo.nimike} : ''"></span>
+            </p>
+        </div>
+    </div>
+    <hr/>
+</div>
+</body>
+</html>
