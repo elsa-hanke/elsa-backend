@@ -87,7 +87,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         userId: String,
         vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO
     ) {
-        if (kayttajaService.findVastuuhenkiloByTehtavatyyppi(
+        if (kayttajaService.findVastuuhenkiloByYliopistoErikoisalaAndTehtavatyyppi(
                 userId,
                 VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
             ).id != vastuuhenkilonArvioDTO.vastuuhenkilo?.id

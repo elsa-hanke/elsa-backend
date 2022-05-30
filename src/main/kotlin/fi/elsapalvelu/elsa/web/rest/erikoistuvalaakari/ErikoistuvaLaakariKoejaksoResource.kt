@@ -117,7 +117,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     fun getKoulutussopimusForm(principal: Principal?): ResponseEntity<KoulutussopimusFormDTO> {
         val form = KoulutussopimusFormDTO().apply {
             val user = userService.getAuthenticatedUser(principal)
-            vastuuhenkilo = kayttajaService.findVastuuhenkiloByTehtavatyyppi(
+            vastuuhenkilo = kayttajaService.findVastuuhenkiloByYliopistoErikoisalaAndTehtavatyyppi(
                 user.id!!,
                 VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
             )
@@ -444,7 +444,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             val user = userService.getAuthenticatedUser(principal)
             val opintooikeusId =
                 opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
-            vastuuhenkilo = kayttajaService.findVastuuhenkiloByTehtavatyyppi(
+            vastuuhenkilo = kayttajaService.findVastuuhenkiloByYliopistoErikoisalaAndTehtavatyyppi(
                 user.id!!,
                 VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
             )

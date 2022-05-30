@@ -9,10 +9,14 @@ import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.constants.kayttajaNotFoundError
+import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.UserMapper
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -28,7 +32,8 @@ class KayttajaServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository,
     private val kayttajaMapper: KayttajaMapper,
-    private val userMapper: UserMapper
+    private val userMapper: UserMapper,
+    private val kayttajaQueryService: KayttajaQueryService
 ) : KayttajaService {
 
     override fun save(kayttajaDTO: KayttajaDTO): KayttajaDTO {
@@ -94,7 +99,7 @@ class KayttajaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findKouluttajat(userId: String): List<KayttajaDTO> {
+    override fun findKouluttajatUnderSameYliopisto(userId: String): List<KayttajaDTO> {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             val opintooikeus = it.getOpintooikeusKaytossa()
             return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
@@ -106,7 +111,7 @@ class KayttajaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findVastuuhenkiloByTehtavatyyppi(
+    override fun findVastuuhenkiloByYliopistoErikoisalaAndTehtavatyyppi(
         userId: String,
         tehtavatyyppi: VastuuhenkilonTehtavatyyppiEnum
     ): KayttajaDTO {
@@ -124,7 +129,7 @@ class KayttajaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findKouluttajatAndVastuuhenkilot(userId: String): List<KayttajaDTO> {
+    override fun findKouluttajatAndVastuuhenkilotUnderSameYliopisto(userId: String): List<KayttajaDTO> {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             val opintooikeus = it.getOpintooikeusKaytossa()
             return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
@@ -178,7 +183,7 @@ class KayttajaServiceImpl(
         }
     }
 
-    override fun findVastuuhenkilot(userId: String): List<KayttajaDTO> {
+    override fun findVastuuhenkilotUnderSameYliopisto(userId: String): List<KayttajaDTO> {
         val kayttaja =
             kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
         val yliopisto = kayttaja.yliopistot.firstOrNull()
@@ -186,6 +191,42 @@ class KayttajaServiceImpl(
 
         return kayttajaRepository.findAllByAuthoritiesAndYliopisto(listOf(VASTUUHENKILO), yliopisto.id)
             .map(kayttajaMapper::toDto)
+    }
+
+    override fun findByKayttajahallintaCriteriaUnderSameYliopisto(
+        userId: String,
+        authority: String,
+        criteria: KayttajahallintaCriteria,
+        pageable: Pageable
+    ): Page<KayttajahallintaKayttajaListItemDTO> {
+        val kayttaja =
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+        val yliopisto =
+            kayttaja.yliopistot.firstOrNull() ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
+
+        return kayttajaQueryService.findByAuthorityAndCriteriaAndYliopistoId(
+            criteria,
+            authority,
+            pageable,
+            yliopisto.id,
+            kayttaja.user?.langKey
+        )
+    }
+
+    override fun findByKayttajahallintaCriteria(
+        userId: String,
+        authority: String,
+        criteria: KayttajahallintaCriteria,
+        pageable: Pageable
+    ): Page<KayttajahallintaKayttajaListItemDTO> {
+        val kayttaja =
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+        return kayttajaQueryService.findByAuthorityAndCriteria(
+            criteria,
+            authority,
+            pageable,
+            kayttaja.user?.langKey
+        )
     }
 
     override fun activateKayttaja(kayttajaId: Long) {

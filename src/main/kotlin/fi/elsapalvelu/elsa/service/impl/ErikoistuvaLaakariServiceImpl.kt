@@ -28,7 +28,7 @@ import javax.persistence.EntityNotFoundException
 class ErikoistuvaLaakariServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val erikoistuvaLaakariMapper: ErikoistuvaLaakariMapper,
-    private val kayttajahallintaQueryService: KayttajahallintaQueryService,
+    private val erikoistuvaLaakariQueryService: ErikoistuvaLaakariQueryService,
     private val yliopistoService: YliopistoService,
     private val yliopistoMapper: YliopistoMapper,
     private val erikoisalaService: ErikoisalaService,
@@ -128,7 +128,7 @@ class ErikoistuvaLaakariServiceImpl(
     override fun findAll(userId:String, criteria: KayttajahallintaCriteria, pageable: Pageable): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
             kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
-        return kayttajahallintaQueryService.findErikoistuvatByCriteria(
+        return erikoistuvaLaakariQueryService.findErikoistuvatByCriteria(
             criteria,
             pageable,
             kayttaja.user?.langKey
@@ -136,7 +136,7 @@ class ErikoistuvaLaakariServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAllForVirkailija(
+    override fun findAllUnderSameYliopisto(
         userId: String,
         criteria: KayttajahallintaCriteria,
         pageable: Pageable
@@ -146,7 +146,7 @@ class ErikoistuvaLaakariServiceImpl(
         val yliopisto =
             kayttaja.yliopistot.firstOrNull() ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
 
-        return kayttajahallintaQueryService.findErikoistuvatByCriteriaAndYliopistoId(
+        return erikoistuvaLaakariQueryService.findErikoistuvatByCriteriaAndYliopistoId(
             criteria,
             pageable,
             yliopisto.id,
