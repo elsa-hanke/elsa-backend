@@ -1,8 +1,12 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.util.*
 
 interface KayttajaService {
@@ -21,13 +25,16 @@ interface KayttajaService {
 
     fun findByUserId(id: String): Optional<KayttajaDTO>
 
-    fun findKouluttajat(userId: String): List<KayttajaDTO>
+    fun findKouluttajatUnderSameYliopisto(userId: String): List<KayttajaDTO>
 
-    fun findVastuuhenkiloByTehtavatyyppi(userId: String, tehtavatyyppi: VastuuhenkilonTehtavatyyppiEnum): KayttajaDTO
+    fun findVastuuhenkiloByYliopistoErikoisalaAndTehtavatyyppi(
+        userId: String,
+        tehtavatyyppi: VastuuhenkilonTehtavatyyppiEnum
+    ): KayttajaDTO
 
     fun findTeknisetPaakayttajat(): List<KayttajaDTO>
 
-    fun findKouluttajatAndVastuuhenkilot(userId: String): List<KayttajaDTO>
+    fun findKouluttajatAndVastuuhenkilotUnderSameYliopisto(userId: String): List<KayttajaDTO>
 
     fun delete(id: Long)
 
@@ -36,7 +43,21 @@ interface KayttajaService {
         kouluttajaEmail: String
     ): KayttajaDTO?
 
-    fun findVastuuhenkilot(userId: String): List<KayttajaDTO>
+    fun findVastuuhenkilotUnderSameYliopisto(userId: String): List<KayttajaDTO>
+
+    fun findByKayttajahallintaCriteriaUnderSameYliopisto(
+        userId: String,
+        authority: String,
+        criteria: KayttajahallintaCriteria,
+        pageable: Pageable
+    ): Page<KayttajahallintaKayttajaListItemDTO>
+
+    fun findByKayttajahallintaCriteria(
+        userId: String,
+        authority: String,
+        criteria: KayttajahallintaCriteria,
+        pageable: Pageable
+    ): Page<KayttajahallintaKayttajaListItemDTO>
 
     fun activateKayttaja(kayttajaId: Long)
 

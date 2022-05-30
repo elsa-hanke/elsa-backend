@@ -20,7 +20,7 @@ interface ErikoistuvaLaakariService {
         pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO>
 
-    fun findAllForVirkailija(
+    fun findAllUnderSameYliopisto(
         userId: String,
         criteria: KayttajahallintaCriteria,
         pageable: Pageable
