@@ -63,7 +63,7 @@ class KayttajahallintaResourceIT {
     @ParameterizedTest
     @ValueSource(strings = [tekninenPaakayttaja, virkailija])
     @Transactional
-    fun getKayttaja(rolePath: String) {
+    fun getErikoistuvaLaakari(rolePath: String) {
         initTest(getRole(rolePath))
 
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
@@ -72,7 +72,7 @@ class KayttajahallintaResourceIT {
 
         val id = erikoistuvaLaakari.kayttaja?.id
 
-        restMockMvc.perform(get("/api/$rolePath/kayttajat/$id"))
+        restMockMvc.perform(get("/api/$rolePath/erikoistuvat-laakarit/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.user.id").exists())
@@ -83,12 +83,12 @@ class KayttajahallintaResourceIT {
     @ParameterizedTest
     @ValueSource(strings = [tekninenPaakayttaja, virkailija])
     @Transactional
-    fun getNonExistingKayttaja(rolePath: String) {
+    fun getNonExistingErikoistuvaLaakari(rolePath: String) {
         initTest(getRole(rolePath))
 
         val id = count.incrementAndGet()
 
-        restMockMvc.perform(get("/api/$rolePath/kayttajat/$id"))
+        restMockMvc.perform(get("/api/$rolePath/erikoistuvat-laakarit/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.user").isEmpty)

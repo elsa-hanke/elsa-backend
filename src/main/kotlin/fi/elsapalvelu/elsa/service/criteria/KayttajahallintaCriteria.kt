@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.criteria
 
-import fi.elsapalvelu.elsa.domain.VastuuhenkilonTehtavatyyppi
 import tech.jhipster.service.Criteria
 import tech.jhipster.service.filter.BooleanFilter
 import tech.jhipster.service.filter.LongFilter
@@ -15,7 +14,7 @@ data class KayttajahallintaCriteria(
 
     var useaOpintooikeus: BooleanFilter? = null,
 
-    var vastuuhenkilonVastuualue: VastuuhenkilonTehtavatyyppi? = null
+    var vastuuhenkilonTehtavatyyppiId: LongFilter? = null
 
 ) : Serializable, Criteria {
 
@@ -24,7 +23,7 @@ data class KayttajahallintaCriteria(
             other.nimi?.copy(),
             other.erikoisalaId?.copy(),
             other.useaOpintooikeus?.copy(),
-            other.vastuuhenkilonVastuualue?.copy()
+            other.vastuuhenkilonTehtavatyyppiId?.copy()
         )
 
     override fun copy() = KayttajahallintaCriteria(this)

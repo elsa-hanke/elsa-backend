@@ -4,9 +4,7 @@ import java.io.Serializable
 
 class KayttajahallintaKayttajatOptionsDTO(
 
-    var erikoisalat: Set<ErikoisalaDTO>? = setOf(),
-
-    var vastuuhenkilonVastuualueet: Set<VastuuhenkilonTehtavatyyppiDTO>? = setOf()
+    var erikoisalat: Set<ErikoisalaDTO>? = setOf()
 
 ): Serializable {
     override fun toString(): String {
@@ -22,7 +20,6 @@ class KayttajahallintaKayttajatOptionsDTO(
         other as KayttajahallintaKayttajatOptionsDTO
 
         if (erikoisalat != other.erikoisalat) return false
-        if (vastuuhenkilonVastuualueet != other.vastuuhenkilonVastuualueet) return false
 
         return true
     }

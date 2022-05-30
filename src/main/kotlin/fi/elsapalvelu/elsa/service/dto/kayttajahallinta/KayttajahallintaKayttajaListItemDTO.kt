@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
-import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.service.dto.YliopistoErikoisalaDTO
 import java.io.Serializable
 import java.time.LocalDate
@@ -23,12 +22,10 @@ data class KayttajahallintaKayttajaListItemDTO(
     @get: NotNull
     var yliopistotAndErikoisalat: List<YliopistoErikoisalaDTO> = listOf(),
 
-    var vastuuhenkilonVastuualueet: List<VastuuhenkilonTehtavatyyppiEnum> = listOf(),
-
     @get: NotNull
     var kayttajatilinTila: KayttajatilinTila? = null
 
 ) : Serializable {
-    override fun toString() = "KayttajahallintaErikoistuvaLaakariListItemDTO"
+    override fun toString() = "KayttajahallintaKayttajaListItemDTO"
 }
 

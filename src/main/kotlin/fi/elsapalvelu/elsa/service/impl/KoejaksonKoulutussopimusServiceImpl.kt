@@ -154,11 +154,8 @@ class KoejaksonKoulutussopimusServiceImpl(
         return dto
     }
 
-    private fun validateVastuuhenkilo(
-        userId: String,
-        koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO
-    ) {
-        if (kayttajaService.findVastuuhenkiloByTehtavatyyppi(
+    private fun validateVastuuhenkilo(userId: String, koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO) {
+        if (kayttajaService.findVastuuhenkiloByYliopistoErikoisalaAndTehtavatyyppi(
                 userId,
                 VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
             ).id != koejaksonKoulutussopimusDTO.vastuuhenkilo?.id

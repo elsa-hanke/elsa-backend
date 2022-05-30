@@ -55,7 +55,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         options.tapahtumat = suoritusarviointiService
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
         options.kouluttajatAndVastuuhenkilot =
-            kayttajaService.findKouluttajatAndVastuuhenkilot(user.id!!).toMutableSet()
+            kayttajaService.findKouluttajatAndVastuuhenkilotUnderSameYliopisto(user.id!!).toMutableSet()
 
         return ResponseEntity.ok(options)
     }
@@ -102,7 +102,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 }.toSet()
 
         form.kouluttajatAndVastuuhenkilot =
-            kayttajaService.findKouluttajatAndVastuuhenkilot(user.id!!).toSet()
+            kayttajaService.findKouluttajatAndVastuuhenkilotUnderSameYliopisto(user.id!!).toSet()
         return ResponseEntity.ok(form)
     }
 

@@ -19,7 +19,7 @@ import javax.persistence.criteria.*
 
 @Service
 @Transactional(readOnly = true)
-class KayttajahallintaQueryService(
+class ErikoistuvaLaakariQueryService(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
 ) : QueryService<Any>() {
 
