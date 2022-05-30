@@ -65,7 +65,7 @@ class SisuHyClientBuilderImpl(
 
         val apolloClient: ApolloClient by lazy {
             ApolloClient.Builder()
-                .serverUrl(applicationProperties.getSecurity().getSisuHy().graphQlEndpointUrl!!)
+                .serverUrl(applicationProperties.getSecurity().getSisuHy().graphqlEndpointUrl!!)
                 .okHttpClient(okHttpClient)
                 .build()
         }

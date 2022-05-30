@@ -83,7 +83,7 @@ class ApplicationProperties {
 
         class SisuHy {
             var apiKey: String? = null
-            var graphQlEndpointUrl: String? = null
+            var graphqlEndpointUrl: String? = null
             var tutkintoohjelmaExportUrl: String? = null
             var privateKeyLocation: String? = null
             var certificateLocation: String? = null
