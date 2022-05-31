@@ -116,7 +116,7 @@
     </div>
     <hr/>
     <h3 th:text="#{vastuuhenkilonarvio.koejaksonSuorituspaikka}"></h3>
-    <div th:each="suorituspaikka: ${arvio.koejaksonSuorituspaikat}">
+    <div th:each="suorituspaikka: ${arvio.koejaksonSuorituspaikat.tyoskentelyjaksot}">
         <h4 th:text="#{vastuuhenkilonarvio.tyyppi}"></h4>
         <p th:text="#{${suorituspaikka.tyoskentelypaikka.tyyppi}}"></p>
         <h4 th:text="#{vastuuhenkilonarvio.tyoskentelypaikka}"></h4>

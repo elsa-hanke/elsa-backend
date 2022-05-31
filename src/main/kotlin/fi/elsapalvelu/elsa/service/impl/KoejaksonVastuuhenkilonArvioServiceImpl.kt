@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
+import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTableDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
@@ -44,7 +45,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val templateEngine: SpringTemplateEngine,
     private val asiakirjaRepository: AsiakirjaRepository,
-    private val sarakesignService: SarakesignService
+    private val sarakesignService: SarakesignService,
+    private val keskeytysaikaService: KeskeytysaikaService
 ) : KoejaksonVastuuhenkilonArvioService {
 
     override fun create(
@@ -321,8 +323,13 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private fun mapVastuuhenkilonArvio(vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio): KoejaksonVastuuhenkilonArvioDTO {
         val result = koejaksonVastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvio)
         val opintoOikeusId = vastuuhenkilonArvio.opintooikeus?.id!!
-        result.koejaksonSuorituspaikat =
-            tyoskentelyjaksoService.findAllByOpintooikeusId(opintoOikeusId)
+        result.koejaksonSuorituspaikat = TyoskentelyjaksotTableDTO(
+            tyoskentelyjaksot = tyoskentelyjaksoService.findAllByOpintooikeusId(opintoOikeusId)
+                .toMutableSet(),
+            keskeytykset = keskeytysaikaService.findAllByTyoskentelyjaksoOpintooikeusId(
+                opintoOikeusId
+            ).toMutableSet()
+        )
         result.aloituskeskustelu =
             koejaksonAloituskeskusteluService.findByOpintooikeusId(opintoOikeusId)
                 .orElse(null)
