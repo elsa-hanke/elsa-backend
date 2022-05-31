@@ -50,7 +50,7 @@ data class KoejaksonVastuuhenkilonArvioDTO(
 
     var allekirjoitettu: Boolean? = null,
 
-    var koejaksonSuorituspaikat: List<TyoskentelyjaksoDTO> = listOf(),
+    var koejaksonSuorituspaikat: TyoskentelyjaksotTableDTO? = null,
 
     var aloituskeskustelu: KoejaksonAloituskeskusteluDTO? = null,
 
