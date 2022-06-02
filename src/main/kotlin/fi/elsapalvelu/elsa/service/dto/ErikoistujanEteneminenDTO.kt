@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 data class ErikoistujanEteneminenDTO(
 
-    var erikoistuvaLaakariId: Long? = null,
+    var opintooikeusId: Long? = null,
 
     var erikoistuvaLaakariEtuNimi: String? = null,
 
