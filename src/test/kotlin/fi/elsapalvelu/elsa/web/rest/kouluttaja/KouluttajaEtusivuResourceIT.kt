@@ -87,7 +87,8 @@ class KouluttajaEtusivuResourceIT {
     fun getErikoistujienSeurantaEmptyList() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
+        val yliopisto1 =
+            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.save(
             Erikoisala(
@@ -130,7 +131,8 @@ class KouluttajaEtusivuResourceIT {
     fun getErikoistujienSeuranta() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
+        val yliopisto1 =
+            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
@@ -167,7 +169,8 @@ class KouluttajaEtusivuResourceIT {
             )
         )
 
-        val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala1)
+        val arvioitavanKokonaisuudenKategoria =
+            ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala1)
         arvioitavanKokonaisuudenKategoriaRepository.save(arvioitavanKokonaisuudenKategoria)
 
         val arvioitavaKokonaisuus1 = ArvioitavaKokonaisuusHelper.createEntity(em)
@@ -224,8 +227,8 @@ class KouluttajaEtusivuResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoistujienEteneminen").value(hasSize<Int>(1)))
             .andExpect(
-                jsonPath("$.erikoistujienEteneminen[0].erikoistuvaLaakariId").value(
-                    erikoistuvaLaakari.id
+                jsonPath("$.erikoistujienEteneminen[0].opintooikeusId").value(
+                    erikoistuvaLaakari.getOpintooikeusKaytossa()?.id
                 )
             )
             .andExpect(
@@ -282,7 +285,8 @@ class KouluttajaEtusivuResourceIT {
     fun testImpersonation() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
+        val yliopisto1 =
+            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
@@ -313,7 +317,7 @@ class KouluttajaEtusivuResourceIT {
         )
 
         restEtusivuMockMvc.perform(
-            get("/api/login/impersonate?erikoistuvaLaakariId=${erikoistuvaLaakari.id}")
+            get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari.getOpintooikeusKaytossa()?.id}")
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isFound)
@@ -324,7 +328,8 @@ class KouluttajaEtusivuResourceIT {
     fun testImpersonationNotAllowed() {
         initTest()
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
+        val yliopisto1 =
+            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
@@ -344,7 +349,7 @@ class KouluttajaEtusivuResourceIT {
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
         restEtusivuMockMvc.perform(
-            get("/api/login/impersonate?erikoistuvaLaakariId=${erikoistuvaLaakari.id}")
+            get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari.getOpintooikeusKaytossa()?.id}")
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isUnauthorized)

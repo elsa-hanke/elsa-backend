@@ -101,7 +101,12 @@ class VirkailijaEtusivuResourceIT {
         em.persist(asetus2)
 
         val opintoopas =
-            OpintoopasHelper.createEntity(em, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(20L), erikoisala1)
+            OpintoopasHelper.createEntity(
+                em,
+                LocalDate.ofEpochDay(0L),
+                LocalDate.ofEpochDay(20L),
+                erikoisala1
+            )
         em.persist(opintoopas)
 
         erikoistuvaLaakari1 =
@@ -163,13 +168,16 @@ class VirkailijaEtusivuResourceIT {
             )
         )
 
-        val johtamisopinnotTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
+        val johtamisopinnotTyyppi =
+            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
         em.persist(johtamisopinnotTyyppi)
 
-        val sateilysuojakoulutusTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
+        val sateilysuojakoulutusTyyppi =
+            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
         em.persist(sateilysuojakoulutusTyyppi)
 
-        val kuulusteluTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
+        val kuulusteluTyyppi =
+            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
         em.persist(kuulusteluTyyppi)
 
         em.persist(
@@ -247,8 +255,8 @@ class VirkailijaEtusivuResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
             .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariId").value(
-                    erikoistuvaLaakari1.id
+                jsonPath("$.content[0].opintooikeusId").value(
+                    erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id
                 )
             )
             .andExpect(jsonPath("$.content[0].etunimi").value(erikoistuvaLaakari1.kayttaja?.user?.firstName))
@@ -310,8 +318,8 @@ class VirkailijaEtusivuResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
             .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariId").value(
-                    erikoistuvaLaakari1.id
+                jsonPath("$.content[0].opintooikeusId").value(
+                    erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id
                 )
             )
     }
@@ -328,8 +336,8 @@ class VirkailijaEtusivuResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
             .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariId").value(
-                    erikoistuvaLaakari2.id
+                jsonPath("$.content[0].opintooikeusId").value(
+                    erikoistuvaLaakari2.getOpintooikeusKaytossa()?.id
                 )
             )
     }
@@ -347,13 +355,13 @@ class VirkailijaEtusivuResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(hasSize<Int>(2)))
             .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariId").value(
-                    erikoistuvaLaakari1.id
+                jsonPath("$.content[0].opintooikeusId").value(
+                    erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id
                 )
             )
             .andExpect(
-                jsonPath("$.content[1].erikoistuvaLaakariId").value(
-                    erikoistuvaLaakari2.id
+                jsonPath("$.content[1].opintooikeusId").value(
+                    erikoistuvaLaakari2.getOpintooikeusKaytossa()?.id
                 )
             )
     }
@@ -384,8 +392,8 @@ class VirkailijaEtusivuResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
             .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariId").value(
-                    erikoistuvaLaakari1.id
+                jsonPath("$.content[0].opintooikeusId").value(
+                    erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id
                 )
             )
     }
@@ -402,8 +410,8 @@ class VirkailijaEtusivuResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
             .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariId").value(
-                    erikoistuvaLaakari1.id
+                jsonPath("$.content[0].opintooikeusId").value(
+                    erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id
                 )
             )
     }
@@ -412,12 +420,19 @@ class VirkailijaEtusivuResourceIT {
     @Transactional
     fun getErikoistujienSeurantaRajaimet() {
         initTest()
-        val erikoisalatCountByLiittynytElsaan = erikoisalaRepository.findAllByLiittynytElsaanTrue().count()
+        val erikoisalatCountByLiittynytElsaan =
+            erikoisalaRepository.findAllByLiittynytElsaanTrue().count()
 
         restEtusivuMockMvc.perform(get("/api/virkailija/etusivu/erikoistujien-seuranta-rajaimet"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.erikoisalat").value(hasSize<Int>(erikoisalatCountByLiittynytElsaan)))
+            .andExpect(
+                jsonPath("$.erikoisalat").value(
+                    hasSize<Int>(
+                        erikoisalatCountByLiittynytElsaan
+                    )
+                )
+            )
             .andExpect(jsonPath("$.asetukset").value(hasSize<Int>(7)))
     }
 
@@ -434,7 +449,7 @@ class VirkailijaEtusivuResourceIT {
         em.persist(tyoskentelyjakso)
 
         restEtusivuMockMvc.perform(
-            get("/api/login/impersonate?erikoistuvaLaakariId=${erikoistuvaLaakari1.id}")
+            get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id}")
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isFound)
@@ -454,7 +469,8 @@ class VirkailijaEtusivuResourceIT {
                 "nameID" to currentPrincipal.attributes["nameID"],
                 "nameIDFormat" to currentPrincipal.attributes["nameIDFormat"],
                 "nameIDQualifier" to currentPrincipal.attributes["nameIDQualifier"],
-                "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"]
+                "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"],
+                "opintooikeusId" to listOf(erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id)
             )
         )
         val context = TestSecurityContextHolder.getContext()
@@ -515,14 +531,16 @@ class VirkailijaEtusivuResourceIT {
         erikoistuvaLaakari1.getOpintooikeusKaytossa()?.yliopisto = anotherYliopisto
 
         restEtusivuMockMvc.perform(
-            get("/api/login/impersonate?erikoistuvaLaakariId=${erikoistuvaLaakari1.id}")
+            get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id}")
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isUnauthorized)
     }
 
     fun initTest() {
-        val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(OPINTOHALLINNON_VIRKAILIJA))
+        val user = KayttajaResourceWithMockUserIT.createEntity(
+            authority = Authority(OPINTOHALLINNON_VIRKAILIJA)
+        )
         em.persist(user)
         em.flush()
         val userDetails = mapOf<String, List<Any>>()

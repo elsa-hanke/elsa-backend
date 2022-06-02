@@ -248,8 +248,8 @@ class VastuuhenkiloEtusivuResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoistujienEteneminen").value(hasSize<Int>(1)))
             .andExpect(
-                jsonPath("$.erikoistujienEteneminen[0].erikoistuvaLaakariId").value(
-                    erikoistuvaLaakari.id
+                jsonPath("$.erikoistujienEteneminen[0].opintooikeusId").value(
+                    erikoistuvaLaakari.getOpintooikeusKaytossa()?.id
                 )
             )
             .andExpect(
@@ -508,7 +508,7 @@ class VastuuhenkiloEtusivuResourceIT {
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
         restEtusivuMockMvc.perform(
-            get("/api/login/impersonate?erikoistuvaLaakariId=${erikoistuvaLaakari.id}")
+            get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari.getOpintooikeusKaytossa()?.id}")
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isFound)
@@ -528,7 +528,8 @@ class VastuuhenkiloEtusivuResourceIT {
                 "nameID" to currentPrincipal.attributes["nameID"],
                 "nameIDFormat" to currentPrincipal.attributes["nameIDFormat"],
                 "nameIDQualifier" to currentPrincipal.attributes["nameIDQualifier"],
-                "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"]
+                "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"],
+                "opintooikeusId" to listOf(erikoistuvaLaakari.getOpintooikeusKaytossa()?.id)
             )
         )
         val context = TestSecurityContextHolder.getContext()
@@ -651,7 +652,7 @@ class VastuuhenkiloEtusivuResourceIT {
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
         restEtusivuMockMvc.perform(
-            get("/api/login/impersonate?erikoistuvaLaakariId=${erikoistuvaLaakari.id}")
+            get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari.getOpintooikeusKaytossa()?.id}")
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isUnauthorized)

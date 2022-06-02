@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.service.dto.OpintooikeusDTO
 
 interface OpintooikeusService {
-    fun findAllValidByErikoistuvaLaakariKayttajaUserId(userId: String) : List<OpintooikeusDTO>
+    fun findAllValidByErikoistuvaLaakariKayttajaUserId(userId: String): List<OpintooikeusDTO>
 
     fun findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId: String): OpintooikeusDTO
 

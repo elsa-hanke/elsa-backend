@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
@@ -11,6 +13,8 @@ import fi.elsapalvelu.elsa.service.impl.UserServiceImpl
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
@@ -37,6 +41,17 @@ class ErikoistuvaLaakariMuutToiminnotResource(
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
         val user = userService.getAuthenticatedUser(principal)
         erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let {
+            if (user.authorities?.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED) == true ||
+                user.authorities?.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA) == true
+            ) {
+                val samlPrincipal =
+                    (principal as Saml2Authentication).principal as Saml2AuthenticatedPrincipal
+                val opintooikeusId = samlPrincipal.getFirstAttribute("opintooikeusId") as Long
+                val opintooikeus = it.opintooikeudet?.find { oikeus -> oikeus.id == opintooikeusId }
+                it.erikoisalaNimi = opintooikeus?.erikoisalaNimi
+                it.yliopisto = opintooikeus?.yliopistoNimi
+                it.yliopistoId = opintooikeus?.id.toString()
+            }
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }

@@ -223,7 +223,8 @@ class KayttajaResourceIT {
         val vastuuhenkilo = KayttajaHelper.createEntity(em, user)
         kayttajaRepository.save(vastuuhenkilo)
 
-        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
+        val yliopisto1 =
+            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
@@ -243,7 +244,7 @@ class KayttajaResourceIT {
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
         restKayttajaMockMvc.perform(
-            MockMvcRequestBuilders.get("/api/login/impersonate?erikoistuvaLaakariId=${erikoistuvaLaakari.id}")
+            MockMvcRequestBuilders.get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari.getOpintooikeusKaytossa()?.id}")
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isFound)
