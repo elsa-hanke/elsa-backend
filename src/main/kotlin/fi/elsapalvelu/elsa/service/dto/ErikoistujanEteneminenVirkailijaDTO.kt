@@ -7,7 +7,7 @@ import java.util.*
 
 data class ErikoistujanEteneminenVirkailijaDTO(
 
-    var erikoistuvaLaakariId: Long? = null,
+    var opintooikeusId: Long? = null,
 
     var etunimi: String? = null,
 
@@ -45,11 +45,11 @@ data class ErikoistujanEteneminenVirkailijaDTO(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ErikoistujanEteneminenVirkailijaDTO) return false
-        if (this.erikoistuvaLaakariId == null) {
+        if (this.opintooikeusId == null) {
             return false
         }
-        return Objects.equals(this.erikoistuvaLaakariId, other.erikoistuvaLaakariId)
+        return Objects.equals(this.opintooikeusId, other.opintooikeusId)
     }
 
-    override fun hashCode() = Objects.hash(this.erikoistuvaLaakariId)
+    override fun hashCode() = Objects.hash(this.opintooikeusId)
 }

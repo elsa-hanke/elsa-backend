@@ -3,10 +3,7 @@ package fi.elsapalvelu.elsa.config
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
-import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
@@ -67,7 +64,7 @@ class SecurityConfiguration(
     private val opintotietodataPersistenceService: OpintotietodataPersistenceService,
     private val opintosuorituksetFetchingService: List<OpintosuorituksetFetchingService>,
     private val opintosuorituksetPersistenceService: OpintosuorituksetPersistenceService,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val opintooikeusRepository: OpintooikeusRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val userRepository: UserRepository,
     private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
@@ -121,7 +118,7 @@ class SecurityConfiguration(
             .addFilterBefore(corsFilter, CsrfFilter::class.java)
             .addFilterAfter(
                 ElsaSwitchUserFilter(
-                    erikoistuvaLaakariRepository,
+                    opintooikeusRepository,
                     kayttajaRepository,
                     userRepository,
                     kouluttajavaltuutusRepository
@@ -195,9 +192,11 @@ class SecurityConfiguration(
                 Saml2AuthenticationTokenConverter(
                     relyingPartyRegistrationResolver
                 )
-            ).authenticationManager(ProviderManager(authenticationProvider)).defaultSuccessUrl("/", true)
+            ).authenticationManager(ProviderManager(authenticationProvider))
+                .defaultSuccessUrl("/", true)
                 .failureUrl("/kirjaudu").and()
-                .addFilterBefore(ElsaUriFilter(applicationProperties), CsrfFilter::class.java).saml2Logout { saml2 ->
+                .addFilterBefore(ElsaUriFilter(applicationProperties), CsrfFilter::class.java)
+                .saml2Logout { saml2 ->
                     saml2.logoutRequest { request ->
                         request.logoutRequestResolver(
                             logoutRequestResolver(relyingPartyRegistrationResolver)
@@ -245,8 +244,9 @@ class SecurityConfiguration(
     }
 
     fun convertAuthentication(responseToken: OpenSaml4AuthenticationProvider.ResponseToken): Saml2Authentication? {
-        val token: Saml2Authentication = OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter()
-            .convert(responseToken) as Saml2Authentication
+        val token: Saml2Authentication =
+            OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter()
+                .convert(responseToken) as Saml2Authentication
         val principal = token.principal as Saml2AuthenticatedPrincipal
         val firstName = principal.attributes["urn:oid:2.5.4.42"]?.get(0) as String
         val lastName = principal.attributes["urn:oid:2.5.4.4"]?.get(0) as String
@@ -265,7 +265,8 @@ class SecurityConfiguration(
         principal.attributes["nameID"] = mutableListOf(nameID?.value) as List<*>?
         principal.attributes["nameIDFormat"] = mutableListOf(nameID?.format) as List<*>?
         principal.attributes["nameIDQualifier"] = mutableListOf(nameID?.nameQualifier) as List<*>?
-        principal.attributes["nameIDSPQualifier"] = mutableListOf(nameID?.spNameQualifier) as List<*>?
+        principal.attributes["nameIDSPQualifier"] =
+            mutableListOf(nameID?.spNameQualifier) as List<*>?
 
         val decodedKey = Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
         val originalKey: SecretKey = SecretKeySpec(
@@ -287,7 +288,13 @@ class SecurityConfiguration(
 
         if (hetu != null) {
             if (existingUser == null) {
-                fetchAndHandleOpintotietodataForFirstLogin(cipher, originalKey, hetu, firstName, lastName)
+                fetchAndHandleOpintotietodataForFirstLogin(
+                    cipher,
+                    originalKey,
+                    hetu,
+                    firstName,
+                    lastName
+                )
                 existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
 
                 // Lokaalissa ympäristössä luodaan uusi käyttäjä, jos sitä ei löydy.
@@ -357,14 +364,22 @@ class SecurityConfiguration(
             supervisorScope {
                 try {
                     val deferreds: List<Deferred<OpintotietodataDTO?>> =
-                        opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }.map { service ->
-                            async(Dispatchers.IO) {
-                                service.fetchOpintotietodata(hetu)
+                        opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }
+                            .map { service ->
+                                async(Dispatchers.IO) {
+                                    service.fetchOpintotietodata(hetu)
+                                }
                             }
-                        }
 
                     deferreds.awaitAll().filterNotNull().let {
-                        opintotietodataPersistenceService.create(cipher, originalKey, hetu, firstName, lastName, it)
+                        opintotietodataPersistenceService.create(
+                            cipher,
+                            originalKey,
+                            hetu,
+                            firstName,
+                            lastName,
+                            it
+                        )
                     }
                 } catch (ex: Exception) {
                     log.error("Virhe opintotietodatan haussa tai tallentamisessa: ${ex.message} ${ex.stackTrace}")
@@ -383,14 +398,20 @@ class SecurityConfiguration(
             supervisorScope {
                 try {
                     val deferreds: List<Deferred<OpintotietodataDTO?>> =
-                        opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }.map { service ->
-                            async(Dispatchers.IO) {
-                                service.fetchOpintotietodata(hetu)
+                        opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }
+                            .map { service ->
+                                async(Dispatchers.IO) {
+                                    service.fetchOpintotietodata(hetu)
+                                }
                             }
-                        }
 
                     deferreds.awaitAll().filterNotNull().let {
-                        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, firstName, lastName, it)
+                        opintotietodataPersistenceService.createOrUpdateIfChanged(
+                            userId,
+                            firstName,
+                            lastName,
+                            it
+                        )
                     }
                 } catch (ex: Exception) {
                     log.error("Virhe opintotietodatan haussa tai päivittämisessä: ${ex.message} ${ex.stackTrace}")
@@ -402,13 +423,14 @@ class SecurityConfiguration(
     private fun fetchAndHandleOpintosuorituksetNonBlocking(userId: String, hetu: String) {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         try {
-            opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }.map { service ->
-                scope.launch {
-                    service.fetchOpintosuoritukset(hetu)?.let {
-                        opintosuorituksetPersistenceService.createOrUpdateIfChanged(userId, it)
+            opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
+                .map { service ->
+                    scope.launch {
+                        service.fetchOpintosuoritukset(hetu)?.let {
+                            opintosuorituksetPersistenceService.createOrUpdateIfChanged(userId, it)
+                        }
                     }
                 }
-            }
         } catch (ex: Exception) {
             log.error("Virhe opintosuoritusten haussa tai tallentamisessa: ${ex.message} ${ex.stackTrace}")
         }

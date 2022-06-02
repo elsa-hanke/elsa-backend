@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.security
 
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
 import org.springframework.core.log.LogMessage
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletResponse
  * täytyy impersonoida. Toteutettu SwitchUserFilter pohjalta ja mukautettu toimimaan SAML kanssa.
  */
 class ElsaSwitchUserFilter(
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val opintooikeusRepository: OpintooikeusRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val userRepository: UserRepository,
     private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository
@@ -94,19 +94,20 @@ class ElsaSwitchUserFilter(
     }
 
     private fun attemptSwitchUser(request: HttpServletRequest): Authentication {
-        val erikoistuvaLaakariId = request.getParameter("erikoistuvaLaakariId")
-        val erikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findByIdWithOpintooikeudet(erikoistuvaLaakariId.toLong())
-                ?: throw InternalAuthenticationServiceException("Erikoistuvaa lääkäriä ei löydy")
+        val opintooikeusId = request.getParameter("opintooikeusId")
+        val opintooikeus = opintooikeusRepository.findById(opintooikeusId.toLong()).orElseThrow {
+            InternalAuthenticationServiceException("Erikoistuvaa lääkäriä ei löydy")
+        }
+        val erikoistuvaLaakari = opintooikeus.erikoistuvaLaakari
         val principal =
             SecurityContextHolder.getContext().authentication.principal as Saml2AuthenticatedPrincipal
 
-        val impersonatedRole = getImpersonatedRole(principal, erikoistuvaLaakari)
+        val impersonatedRole = getImpersonatedRole(principal, opintooikeus)
         if (impersonatedRole == null) {
-            SecurityLoggingWrapper.info("Denying access for user with id ${principal.name} to switch to user with id ${erikoistuvaLaakari.kayttaja?.user?.id}")
+            SecurityLoggingWrapper.info("Denying access for user with id ${principal.name} to switch to user with id ${erikoistuvaLaakari?.kayttaja?.user?.id}")
             throw BadCredentialsException("Käyttäjällä ei oikeuksia katsella erikoistujan tietoja")
         } else {
-            SecurityLoggingWrapper.info("User with id ${principal.name} switching to user with id ${erikoistuvaLaakari.kayttaja?.user?.id}")
+            SecurityLoggingWrapper.info("User with id ${principal.name} switching to user with id ${erikoistuvaLaakari?.kayttaja?.user?.id}")
         }
 
         // Annetaan käyttäjälle uusi rooli ja tallennetaan nykyinen autentikaatio, jotta käyttäjä
@@ -119,14 +120,15 @@ class ElsaSwitchUserFilter(
         )
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
         val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
-            erikoistuvaLaakari.kayttaja?.user?.id,
+            erikoistuvaLaakari?.kayttaja?.user?.id,
             mapOf(
-                "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari.kayttaja?.user?.firstName),
-                "urn:oid:2.5.4.4" to listOf(erikoistuvaLaakari.kayttaja?.user?.lastName),
+                "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari?.kayttaja?.user?.firstName),
+                "urn:oid:2.5.4.4" to listOf(erikoistuvaLaakari?.kayttaja?.user?.lastName),
                 "nameID" to currentPrincipal.attributes["nameID"],
                 "nameIDFormat" to currentPrincipal.attributes["nameIDFormat"],
                 "nameIDQualifier" to currentPrincipal.attributes["nameIDQualifier"],
-                "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"]
+                "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"],
+                "opintooikeusId" to listOf(opintooikeus.id)
             )
         )
         if (currentPrincipal.relyingPartyRegistrationId != null) {
@@ -143,7 +145,7 @@ class ElsaSwitchUserFilter(
     // henkilöt tai saman yliopiston opintohallinnon virkailijat voivat katsella erikoistujan tietoja.
     private fun getImpersonatedRole(
         principal: Saml2AuthenticatedPrincipal,
-        erikoistuvaLaakari: ErikoistuvaLaakari
+        opintooikeus: Opintooikeus
     ): String? {
         val userId = principal.name
         val kirjautunutKayttaja =
@@ -153,19 +155,20 @@ class ElsaSwitchUserFilter(
             }
 
         val authorityNames =
-            userRepository.findByIdWithAuthorities(kirjautunutKayttaja.user?.id!!).get().authorities.map { it.name }
+            userRepository.findByIdWithAuthorities(kirjautunutKayttaja.user?.id!!)
+                .get().authorities.map { it.name }
 
         if (authorityNames.contains(VASTUUHENKILO) && kirjautunutKayttaja.yliopistotAndErikoisalat.find {
-                it.erikoisala?.id == erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala?.id &&
-                    it.yliopisto?.id == erikoistuvaLaakari.getOpintooikeusKaytossa()?.yliopisto?.id
+                it.erikoisala?.id == opintooikeus.erikoisala?.id &&
+                    it.yliopisto?.id == opintooikeus.yliopisto?.id
             } != null) return ERIKOISTUVA_LAAKARI_IMPERSONATED
 
         if (authorityNames.contains(OPINTOHALLINNON_VIRKAILIJA) && kirjautunutKayttaja.yliopistot.find {
-                it.id == erikoistuvaLaakari.getYliopistoId()
+                it.id == opintooikeus.yliopisto?.id
             } != null) return ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 
         if (kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
-                erikoistuvaLaakari.getOpintooikeusKaytossa()?.id!!,
+                opintooikeus.id!!,
                 kirjautunutKayttaja.user?.id!!,
                 LocalDate.now().minusDays(1)
             ).isPresent
