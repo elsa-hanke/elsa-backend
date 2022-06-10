@@ -1,0 +1,908 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220610110333" author="jhipster" context="!test">
+
+        <dropForeignKeyConstraint baseTableName="suorite"
+            constraintName="fk_suorite_suoritteen_kategoria_id"/>
+        <dropNotNullConstraint tableName="suorite" columnName="kategoria_id"/>
+
+        <loadData
+            file="config/liquibase/data/erikoisala/lastentaudit/2022-06-06/suorite.csv"
+            separator=";"
+            tableName="suorite">
+            <column name="id" type="numeric"/>
+            <column name="nimi" type="string"/>
+            <column name="voimassaolon_alkamispaiva" type="date"/>
+        </loadData>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Pediatrian yleiset osaamistavoitteet' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Toimii eettisesti ja erilaisuutta (ikä, sukupuoli, etnisyys, uskonto, vammaisuus ym.) kunnioittaen',
+                'Noudattaa lääkäriprofession ohjeita (SLL:n kollegiaalisuusohje)',
+                'Ymmärtää lääkärin vastuut ja tehtävät',
+                'Toimii hyväksyttyjen periaatteiden mukaisesti',
+                'Osaa edistää lasten terveyttä ja hyvinvointia eri yhteyksissä',
+                'Osaa potilaan tutkimisen ja hoidon koordinoinnin omassa työympäristössään',
+                'Osallistuu laadunparannustyöhön',
+                'Osaa evaluoida omaa ja muiden tekemistä',
+                'Osaa johtaa moniammatillista tiimiä',
+                'Osaa konsultoida ja vastata konsultaatioon',
+                'Osaa välittää tietoa potilaan voinnista ja yksikön tilanteesta',
+                'Osaa toimia jäsenenä työryhmässä',
+                'Kykenee hyvään vuorovaikutukseen potilaiden ja perheiden kanssa',
+                'Osaa työskennellä kollegojen ja muiden ammattilaisten kanssa',
+                'Osaa käyttää tietojärjestelmiä ja tehdä selkeät merkinnät',
+                'Osaa toimia stressaavissa tilanteissa ja pyytää tarvittaessa apua',
+                'Osaa priorisoida oman tekemisen (esim. potilaiden tutkimisjärjestyksen)',
+                'Tekee itselleen jatkuvan kehittymisen suunnitelman',
+                'Pitää huolta omasta hyvinvoinnistaan',
+                'Hallitsee omaa ajankäyttöään')
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Aineenvaihdunta- ja luustosairaudet' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää perusasiat eri mekanismein syntyvistä synnynnäisistä aineenvaihduntasairauksista: mitokondriotaudit, peroksisomitaudit, lysosomaaliset sairaudet, sekä aminohappojen, rasvojen ja hiilihydraattien aineenvaihdunnan häiriöt',
+                'Tunnistaa osteoporoosin riskiryhmät ja tietää, milloin pitää epäillä luustodysplasiaa',
+                'Tunnistaa metabolisen kriisin ja osaa aloittaa sen hoidon',
+                'Tuntee vastasyntyneiden aineenvaihduntaseulan',
+                'Tietää erityisruokavalion merkityksen aineenvaihduntasairauksien hoidossa',
+                'Osaa valita tutkimukset metabolisen sairauden diagnosoimiseksi ja seurantaan',
+                'Osaa toimia ohjatusti vastasyntyneiden seulonnan hälytyksen tapahtuessa',
+                'Osaa epäillä aineenvaihduntasairautta mm. osteoporoosin, huonon kasvun, enkefalopatian, psykomotorisen regression ja organomegalian taustalla',
+                'Osaa ottaa huomioon aineenvaihduntasairauden vaikutuksen lapsen ja perheen elämään',
+                'Osaa toimia yhteistyössä fysio-, toiminta- ja ravitsemusterapeuttien sekä muiden ammattilaisten kanssa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Allergologia' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa immunologian perusteet allergologian näkökulmasta',
+                'Tietää perimän ja ympäristön vaikutuksen allergisten sairauksien synnyssä',
+                'Tuntee allergisten sairauksien erilaiset ilmiasut',
+                'Ymmärtää bronkioliitin ja obstruktiivisen bronkiitin jatkumon astmaan',
+                'Tuntee astman fenotyypit eri ikäkausina',
+                'Tuntee tavallisimmat siedätyshoidot',
+                'Osaa käyttää sopivia laboratoriotutkimuksia allergisten sairauksien diagnostiikassa',
+                'Osaa farmakologisen ja immunologisen hoidon yleisimpien allergisten sairauksien (astma, rinokonjunktiviitti, ekseema, allergiset reaktiot mukaan lukien anafylaksia) osalta',
+                'Osaa ottaa allergia-anamneesin',
+                'Osaa tehdä ja tulkita tavallisimmat kokeet: seerumin spesifisen IgE:n määritykset (tulkinta/yleisimmät allergeenit ja niiden komponentit) ja ihopistokokeet sekä ruoka-ainealtistukset',
+                'Osaa hoitaa lievän ja keskivaikean astman eri ikäkausina',
+                'Osaa diagnosoida ja hoitaa tavallisimmat ruoka-allergiat (maito, viljat, pähkinät, kananmuna)',
+                'Osaa tunnistaa siedätyshoidon indikaatiot ja aloittaa kielenalussiedätyksen',
+                'Osaa adrenaliini-injektorin käytön, sen indikaatiot ja perheen ohjaamisen',
+                'Osaa hoitaa akuutit allergiset reaktiot mukaan lukien anafylaksia',
+                'Osaa ohjata asianmukaisen allergian välttämisruokavalion välttämisen tarkkuuden tason huomioiden',
+                'Osaa keskustella perheiden kanssa lapsen oireiden ja sairauksien selvittelystä ja viestittää päätelmät',
+                'Noudattaa lääketieteellisiä hoitosuosituksia ja -käytäntöjä'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Avopediatria' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää, miten lasten terveydenhoito on järjestetty paikallisesti ja kansallisesti',
+                'Tietää tavallisimmat lapsen terveyteen vaikuttavat sosioekonomiset tekijät',
+                'Tietää, miten terveydenhuoltojärjestelmä varjelee lasten terveyttä ja estää heidän sairastumistaan',
+                'Tuntee hyvin kansallisen rokotusohjelman ja muut lapsille suunnatut rokotukset',
+                'Tietää kehitysvammahuollon ja muiden lasten terveyden kannalta tärkeiden toimijoiden kuten lastensuojelun, sosiaalityön, kouluterveydenhuollon ja kolmannen sektorin toimenkuvan',
+                'Tuntee lastensuojelulain',
+                'Osaa järjestää lapselle ja perheelle apua eri toimijoilta',
+                'Osaa toimia koulun, poliisin ja sosiaalitoimen kanssa',
+                'Osaa tehdä lastensuojelu- ja rikosilmoituksen',
+                'Toimii lasten parhaaksi'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Endokrinologia ja diabetes' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Ymmärtää kasvun eri vaiheet: imeväisiän, lapsuuden ja murrosiän kasvu ja niihin vaikuttavat tekijät',
+                'Tietää tavallisimmat kasvuun ja painoon vaikuttavat sairaudet kasvun eri vaiheissa ja ymmärtää, milloin tulee epäillä sairautta kasvukäyrän poikkeavuuden perusteella',
+                'Ymmärtää sikiön kasvuhäiriön merkityksen myöhemmälle kasvulle ja muulle terveydelle',
+                'Tunnistaa normaalin ja poikkeavan sukupuolisen ja puberteettikehityksen häiriöt ja osaa käynnistää diagnostiset selvitykset',
+                'Osaa hoitaa ja selittää tavallisimmat endokriiniset sairaudet: diabetes, hypotyreoosi, ennenaikainen adrenarke, lihavuus ja hyperlipidemia',
+                'Osaa epäillä ja pyytää ohjeita harvinaisempien endokriinisten sairauksien hoidosta',
+                'Ymmärtää yleissairauksien ja niiden hoitojen (esim. glukokortikoidien ja sytostaattien) vaikutukset endokriinisiin toimintoihin',
+                'Osaa mitata eri-ikäiset lapset (pituus, paino, päänympärys, vyötärönympärys, istumakorkeus)',
+                'Osaa tulkita ja selittää kasvukäyrän sekä sen poikkeamat ja tuntee seulasäännöt',
+                'Ymmärtää luustoikäkuvauksen indikaatiot ja tuloksen hyödyntämisen kasvun arviossa',
+                'Osaa määrittää nuoren puberteettiasteen ja arvioida sukuhormonien muita näkyviä vaikutuksia kehossa sekä ymmärtää adrenarken ja murrosiän eron',
+                'Osaa ohjata potilasta ja perhettä diabeteksen hoidossa ja tuntee glukoosisensoroinnin ja insuliinipumppuhoidon perusperiaatteet',
+                'Osaa hoitaa akuutit verensokeriongelmat',
+                'Ymmärtää ja osaa selittää potilaalle ja perheelle, että lyhytkasvuisen lapsen hoidon tavoitteena ei ole normaalius vaan terveyshyöty',
+                'Syyllistämisen sijaan osaa motivoida ja tukea lihavaa lasta ja tämän perhettä',
+                'Osaa tukea lapsen tervettä kehitystä perussairaudesta riippumatta',
+                'Osaa motivoida ja tukea kroonisesti sairaan lapsen hoitokomplianssia'
+                )
+            </where>
+        </update>
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Farmakologia ja toksikologia' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää lääkeaineiden metabolian erot eri-ikäisillä lapsilla',
+                'Tuntee eri-ikäisille sopivat lääkkeiden annostelumuodot',
+                'Tietää tavallisimmat lapsen ikään liittyvät rajoitukset lääkkeiden käytössä',
+                'Tuntee käsitteet: harvinaislääkkeet, tartuntatautilääkkeet',
+                'Tuntee lasten lääketutkimusten perusteet ja lastenlääkeasetuksen',
+                'Tuntee tavallisimmat lasten myrkytysten aiheuttajat ja oireet',
+                'Osaa laskea lääkeannokset suhteutettuna lapsen painoon tai pinta-alaan',
+                'Osaa hakea tietoa lääkkeiden yhteisvaikutuksista',
+                'Osaa tärkeimpien myrkytysten ensihoidon',
+                'Osaa hakea lisätietoa myrkytysten diagnostiikasta ja hoidosta',
+                'Ymmärtää, että lääkitysten kannalta lapsi ei ole pieni aikuinen'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Gastroenterologia ja hepatologia' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää ummetuksen diagnostiikan, hoidon ja seurannan perusteet',
+                'Tietää laktoosi-intoleranssin diagnostiikan, hoidon ja seurannan perusteet',
+                'Tietää toiminnallisten vatsavaivojen diagnostiikan (Rooma IV), hoidon ja seurannan perusteet',
+                'Tietää keliakian diagnostiikan, hoidon ja seurannan perusteet',
+                'Tietää tulehduksellisten suolistosairauksien diagnostiikan, hoidon ja seurannan perusteet',
+                'Tietää imeväisikäisen gastroesofagiaalisen refluksin diagnostiikan, hoidon ja seurannan perusteet',
+                'Tietää isomman lapsen refluksitaudin diagnostiikan, hoidon ja seurannan perusteet',
+                'Tuntee IBD:n pahenemisvaiheiden eri hoitomuodot',
+                'Osaa selvitellä kohonneiden maksa-arvojen etiologiaa ja suunnitella jatkotoimia sekä seurantaa',
+                'Osaa selvitellä imeväisen poikkeavan keltaisuuden etiologiaa ja suunnitella jatkotoimia sekä seurantaa',
+                'Osaa selvitellä pitkittyneen ripulin etiologiaa ja suunnitella jatkotoimia sekä seurantaa',
+                'Osaa selvitellä pitkittyneen vatsakivun etiologiaa ja suunnitella jatkotoimia sekä seurantaa',
+                'Osaa selvitellä imeväisen syömisongelmien etiologiaa ja suunnitella jatkotoimia sekä seurantaa',
+                'Osaa selvitellä koliikin etiologiaa ja suunnitella jatkotoimia sekä seurantaa',
+                'Pystyy arvioimaan lapsen ravitsemustilaa',
+                'Pystyy arvioimaan vatsan ultraäänen indikaatiot ja tekemään lähetteen',
+                'Pystyy arvioimaan gastroskopian ja ileo-kolonoskopian indikaatiot ja tekemään lähetteen',
+                'Pystyy arvioimaan kapseliendoskopian indikaatiot ja tekemään lähetteen',
+                'Pystyy arvioimaan ruokatorven pH-impedanssin indikaatiot ja tekemään lähetteen',
+                'Pystyy arvioimaan videofluorografian (nielemisfunktio) indikaatiot ja tekemään lähetteen',
+                'Pystyy arvioimaan ruokatorvipassagen indikaatiot ja tekemään lähetteen',
+                'Pystyy arvioimaan ohutsuolipassagen indikaatiot ja tekemään lähetteen',
+                'Pystyy arvioimaan anomanometrian indikaatiot ja tekemään lähetteen',
+                'Pystyy arvioimaan anografian indikaatiot ja tekemään lähetteen',
+                'Pystyy arvioimaan rektumin imubiopsian (Hirschsprungin tauti) indikaatiot ja tekemään lähetteen',
+                'Osaa suunnitella enteraalisen ja parenteraalisen ravitsemuksen eri-ikäisille lapsille',
+                'Suhtautuu supportoiden ja ratkaisukeskeisesti toiminnallisiin vatsavaivoihin'
+                )
+            </where>
+        </update>
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Aineenvaihdunta- ja luustosairaudet' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tuntee perustiedot ihmisen kromosomistosta ja geenien rakenteesta ja toiminnasta',
+                'Tuntee perustiedot periytymistavoista, kromosomitutkimusten ja tavallisimpien diagnostisten tutkimusten indikaatioista',
+                'Ymmärtää käsitteet kromosomitutkimus, molekyylikaryotyypitys, polymorfismi, geenitutkimus, eksomisekvensointi, koko genomin sekvensointi',
+                'Tietää milloin epäillä periytyvää sairautta',
+                'Osaa tunnistaa selkeästi dysmorfiset piirteet ja kuvailla ne',
+                'Osaa piirtää sukupuun',
+                'Osaa hyödyntää kansainvälisiä genetiikan tietokantoja diagnostiikassa (esim. OMIM, GeneTests, Orphanet, GeneReviews, EuroGenTest)',
+                'Osaa antaa perheelle perustietoja periytyvyydestä ja ohjata tarvittaessa geneetikon konsultaatioon'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Hematologia ja onkologia' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää perustiedot verta muodostavien elinten toiminnasta ja verenkuvan osista ja tunnistaa tavalliset löydökset perifeerisessä veressä',
+                'Tietää akuutin anemian differentiaalidiagnostiikan periaatteet ja osaa raudanpuuteanemian hoidon',
+                'Tietää leuko- ja neutropenian ja leukosytoosin tavallisimmat syyt ja osaa aloittaa erotusdiagnostiset tutkimukset',
+                'Tuntee trombosytopenian erotusdiagnostiikan ja hoidon perusperiaatteet',
+                'Tuntee hemostaasin perusmekanismit ja sen tavallisimmat häiriöt, osaa aloittaa vuoto- ja tukostaipumuksen selvittelyt ja toteuttaa antikoagulanttihoidon seurantoineen',
+                'Tunnistaa hemolyyttisen tilan',
+                'Tuntee maahanmuuttajapotilaiden tavallisimmat hematologiset ongelmat',
+                'Tietää verituotteiden käytön periaatteet',
+                'Tunnistaa tavallisimmat syöpään viittaavat oireet ja löydökset',
+                'Tuntee lapsuusiän tavallisimpien maligniteettien ilmaantuvuuden (leukemiat, solidit tuumorit, aivotuumorit) ja tietää miten toimia epäiltäessä niitä',
+                'Tuntee lapsisyöpäpotilaan tavallisimmat akuutit ongelmat (infektiot ja lääkkeiden sivuvaikutukset) ja tietää miten toimia epäiltäessä niitä',
+                'Tuntee immunosupressiopotilaan eristyskäytännöt',
+                'Tuntee maligniteettipotilaiden jälkiseurannan tarpeen ja perustiedot sen toteuttamisesta.',
+                'Osaa suorittaa luuydinpunktion',
+                'Osaa neulan laiton infuusioporttiin ja infuusioportin käytön',
+                'Osaa antaa IT-lääkkeet',
+                'Osaa suunnitella ja toteuttaa parenteraalisen ja enteraalisen ravitsemuksen',
+                'Osaa suunnitella syöpää sairastavan lapsen kivun hoidon',
+                'Pystyy olemaan asiantuntijan roolissa ja lapsen ja perheen tukena vaikeissa tilanteissa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Ihotaudit' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää tavalliset lasten ihotaudit ja ihottumat ja niiden patogeneesin'
+                'Tunnistaa tavalliset eksanteemat ja infektioihin liittyvät ihomuutokset',
+                'Tunnistaa ja osaa ohjata jatkoarviota tarvitsevat synnynnäiset luomet, hemangioomat ym.',
+                'Osaa diagnosoida ja hoitaa tavalliset ihotaudit, kuten akne, atooppinen ekseema, molluskat, urtikaria ja karvoituksen ongelmat',
+                'Tunnistaa Henoch-Schönleinin purpuran, lupuksen ja muiden systeemisairauksien ihomuutokset',
+                'Osaa epäillä herpestä ja hiivatulehdusta sekä ohjeistaa diagnostiset tutkimukset',
+                'Ymmärtää pitkäaikaisten ihosairauksien merkityksen lapsipotilaan elämänlaadulle'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Immunologia' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää luontaisen ja hankitun immuniteetin tärkeimmät komponentit',
+                'Tuntee terveen lapsen immunologisen kehityksen, sekä luontaisen että hankitun immuniteetin suhteen',
+                'Tietää milloin tulee epäillä tavallisimpia immuunipuutoksia',
+                'Tuntee tavallisimpien autoimmuunisairauksien ja autoinflammatoristen sairauksien keskeisimmän patofysiologian',
+                'Ymmärtää, mitä rokotuksessa tapahtuu',
+                'Ymmärtää, mitä allergisessa reaktiossa tapahtuu',
+                'Hallitsee perustiedot biologisten lääkkeiden vaikutuksista ja sivuvaikutusriskeistä',
+                'Osaa aloittaa perustutkimukset epäiltäessä agammaglobulinemiaa ja hypogammaglobulinemiaa',
+                'Osaa aloittaa perustutkimukset epäiltäessä primaaria T-soludefektiä',
+                'Osaa aloittaa perustutkimukset epäiltäessä kombinoitua immuunipuutosta',
+                'Osaa aloittaa perustutkimukset epäiltäessä komplementtipuutosta',
+                'Osaa tulkita iänmukaiset laboratoriotulokset immunoglobuliineista alaluokkineen',
+                'Osaa tulkita iänmukaiset laboratoriotulokset lymfosyyttien erittelylaskennasta',
+                'Osaa tulkita iänmukaiset laboratoriotulokset tavallisimmista rokotevasteista'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Infektiot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tuntee hengitysteiden virusinfektioiden etiologian, epidemiologian ja oireet ja osaa toteuttaa niiden diagnostiikan ja hoidon',
+                'Tuntee välikorvatulehduksen etiologian, epidemiologian ja oireet ja osaa toteuttaa niiden diagnostiikan ja hoidon',
+                'Tuntee keuhkokuumeen etiologian, epidemiologian ja oireet ja osaa toteuttaa niiden diagnostiikan ja hoidon',
+                'Tuntee hinkuyskän etiologian, epidemiologian ja oireet ja osaa toteuttaa niiden diagnostiikan ja hoidon',
+                'Tuntee ripulitautien etiologian, epidemiologian ja oireet ja osaa toteuttaa niiden diagnostiikan ja hoidon',
+                'Tuntee yleistyneiden virus- ja rokkotautien etiologian, epidemiologian ja oireet ja osaa toteuttaa niiden diagnostiikan ja hoidon',
+                'Tuntee virtsatieinfektioiden etiologian, epidemiologian ja oireet ja osaa toteuttaa niiden diagnostiikan ja hoidon',
+                'Tuntee ihoinfektioiden etiologian, epidemiologian ja oireet ja osaa toteuttaa niiden diagnostiikan ja hoidon',
+                'Tietää milloin yleisimmissä infektioissa tehdään mikrobiologista diagnostiikkaa ja osaa valita tarpeelliset tutkimukset',
+                'Tuntee Suomen yleisen rokotusohjelman ja osaa hakea ratkaisuja rokotuksia koskeviin ongelmatilanteisiin',
+                'Tietää tavallisimmat äkillisen ja pitkittyneen kuumeilun syyt ja osaa aloittaa niiden selvittelyn sekä imeväisellä että isommalla lapsella',
+                'Tuntee Kawasakin taudin ja Covid-19-infektioon liittyvään MIS-C-syndrooman kliiniset piirteet ja diagnostiset kriteerit ja pystyy aloittamaan ensilinjan hoidon',
+                'Tietää, milloin epäillä luu- ja nivelinfektioita ja osaa käynnistää niiden diagnostiikan ja hoidon',
+                'Tietää, milloin epäillä hepatiitteja ja osaa käynnistää niiden diagnostiikan ja hoidon',
+                'Tietää, milloin epäillä sepsistä ja osaa käynnistää niiden diagnostiikan ja hoidon',
+                'Tietää, milloin epäillä keskushermostoinfektioita ja osaa käynnistää niiden diagnostiikan ja hoidon',
+                'Tietää, milloin epäillä herpesryhmän virusten aiheuttamia infektioita ja osaa käynnistää niiden diagnostiikan ja hoidon',
+                'Tuntee tavallisimmat bakteeriääkkeet ja niiden käyttöindikaatiot avo- ja sairaalahoidossa',
+                'Tuntee tavallisimmat viruslääkkeet ja niiden käyttöindikaatiot avo- ja sairaalahoidossa',
+                'Tuntee tavallisimmat parasiittilääkkeet ja niiden käyttöindikaatiot avo- ja sairaalahoidossa',
+                'Tuntee tavallisimmat lasten sairaalainfektiot, niiden aiheuttajat ja tarttumistavat sekä pyrkii niiden ehkäisyyn',
+                'Tietää lasten infektiokierteen tavallisimmat syyt ja osaa suunnitella perustutkimukset',
+                'Tuntee maahanmuuttajalasten tavallisimmat infektio-ongelmat',
+                'Tietää, miten menetellään epäiltäessä tuberkuloosia tai sille altistumista',
+                'Tunnistaa infektioon liittyvän sisään- ja uloshengitysvaikeuden, osaa määritellä hengenahdistuksen vaikeusasteen ja valita tarvittavan hoidon ja seurannan',
+                'Osaa suorittaa laskimon kanyloinnin, rakkopunktion ja lumbaalipunktion',
+                'Osaa käsihygienian ja suojautumispukeutumisen käytännössä',
+                'Osaa ottaa huomioon tärkeimpien infektioiden epidemiologian työn resursoinnissa',
+                'Ymmärtää antimikrobihoidon kohdentamisen merkityksen resistenssin kehittymisen kannalta'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Kardiologia' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Ymmärtää sikiöaikaisen verenkierron ja siinä tapahtuvat muutokset syntymän jälkeen',
+                'Osaa tavallisimmat synnynnäiset rakenteelliset sydänviat, niiden oireet ja kliiniset löydökset sekä hoidon perusperiaatteet',
+                'Osaa tavallisimmat rytmi- ja johtumishäiriöt (SVT, VT, lisälyönnit, eteis-kammiokatkokset) ja niiden hoidon',
+                'Tietää sydämen vajaatoiminnan oireet ja löydökset ja osaa aloittaa akuutin lääkehoidon',
+                'Osaa tutkia toiminnallisten oireiden (rintapistos, muljahtelu, tykyttelyt, pyörtyminen) syitä ja tunnistaa lisätutkimuksia tarvitsevat potilaat',
+                'Osaa tärkeimmät verisuonianomaliat ja niiden oireet/löydökset',
+                'Osaa endo-, myo- ja perikardiitin etiologiat, oireet, diagnostiikan ja hoidon',
+                'Tunnistaa perinnöllisten rytmihäiriösairauksien ja sydänlihassairauksien oireet ja löydökset',
+                'Osaa auskultoida sydämen, mitata neliraajapaineet ja palpoida perifeeriset pulssit sekä tulkita tutkimusten tulokset',
+                'Osaa tulkita sydämestä kuuluvat äänet (S1, S2, S3 ja S4, jakaumat, sivuäänet)',
+                'Osaa aloittaa ensihoidon, järjestää lisätutkimukset sekä suunnitella jatkohoidon ja tarvittaessa kuljetuksen, kun lapsella epäillään verenkierrollisesti merkittävää sydänvikaa',
+                'Osaa tulkita sydämen tilaa thorax-röntgenkuvasta',
+                'Osaa tulkita lapsen EKG:n',
+                'Osaa perinnöllisten rytmi- ja sydänlihassairauksien seulonnan periaatteet ja hoitoon ohjaamisen',
+                'Osaa ottaa huomioon synnynnäisten rakenteellisten sydänvikojen sekä perinnöllisten sydänlihas- ja rytmihäiriösairauksien vaikutuksen lapsen ja perheen elämään',
+                'Osaa toimia osana ja tarvittaessa johtaa moniammatillista työryhmää'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Keuhkosairaudet' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa erotusdiagnostiset vaihtoehdot hengenahdistuksen, yskän ja hengitysäänten poikkeavuuden taustalla'
+                'Osaa astman diagnostiikan ja hoidon eri ikäkausina',
+                'Osaa bronkopulmonaalisen dysplasian (BPD) pitkäaikaishoidon ja seurannan',
+                'Ymmärtää allergian merkityksen hengitystiesairauksissa',
+                'Tunnistaa synnynnäiset ilmatie- ja keuhkoanomaliat',
+                'Osaa epäillä harvinaisia keuhkosairauksia ja tuntee niiden diagnostiikan (kystinen fibroosi, interstitiellit keuhkosairaudet, värekarvataudit)',
+                'Osaa neuromuskulaarisairauden vaikutukset keuhkofunktioon',
+                'Osaa uniapnean diagnostiikan ja hoidon',
+                'Osaa keuhkojen kuvantamistutkimusten käyttöindikaatiot',
+                'Osaa ilmateiden tähystystutkimusten käyttöindikaatiot',
+                'Ymmärtää säännöllistä hengitystukea tarvitsevan lapsen yleisimmät ongelmat',
+                'Tunnistaa hengitysmekaniikan ja auskultaatiolöydökset sekä osaa kuvailla ne potilaskertomuksessa',
+                'Osaa erotella äkillisen sisäänhengitys- ja uloshengitysvaikeuden ja aloittaa niihin sopivan hoidon',
+                'Osaa keuhkofunktiokokeiden tulkinnan (PEF, spirometria, IOS, juoksurasitus, altistuskokeet, NO-mittaus, impedanssipneumografia)',
+                'Tunnistaa hengitysvajauksen ja osaa happeutumisen sekä ventilaation tukemisen',
+                'Osaa arvioida hoitomyöntyvyyttä ja tukea lasta, nuorta ja perhettä kroonisten keuhkosairauksien hoidossa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Korva-, nenä- ja kurkkutaudit' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää ja tunnistaa tärkeimmät korvissa, nenässä ja kurkussa esiintyvät synnynnäiset rakenteelliset poikkeavuudet',
+                'Tuntee äkillisen ja toistuvan korvatulehduksen oireet, tärkeimmät aiheuttajat ja hoitoperiaatteet',
+                'Tuntee välikorvatulehduksen komplikaatiot',
+                'Tietää kuulonalenemaan viittaavat löydökset ja siihen liittyvät sairaudet lapsella',
+                'Tuntee allergisen nuhan oireet, diagnostiikan ja hoidon',
+                'Tuntee sinuiitin oireet, diagnostiikan, hoidon ja komplikaatiot',
+                'Tuntee tonsilliitin etiologian ja hoidon',
+                'Tuntee parotiitin etiologian ja hoidon',
+                'Tunnistaa syvän kaulainfektion ja osaa aloittaa hoidon',
+                'Osaa fasiaalipareesin erotusdiagnostiikan ja tutkimukset',
+                'Tunnistaa epiglottiitin ja osaa aloittaa hoidon',
+                'Osaa epäillä hengitysteiden ja ruokatorven vierasesinettä ja osaa järjestää hoidon yhteistyössä knk-lääkärin kanssa',
+                'Tunnistaa vaikean ilmatien ja osaa varautua ennakoiden ilmatien turvaamiseen',
+                'Tietää trakeostomian indikaatiot',
+                'Osaa diagnosoida PFAPA-jaksokuumeen ja kertoa vanhemmille tonsillektomiasta sen hoitona',
+                'Tuntee lasten kuorsauksen erotusdiagnostiikan, jatkotutkimukset ja hoidon',
+                'Tunnistaa kaulakystat ja -fistelit sekä osaa ohjelmoida niiden hoidon',
+                'Tuntee vastasyntyneen, neuvolan ja kouluterveydenhuollon kuuloseulat',
+                'Tuntee huuli-suulakihalkioihin liittyvät ongelmat',
+                'Osaa kireän kielijänteen oireet, löydökset ja hoidon',
+                'Osaa tutkia lapsen korvakäytävän, tehdä tärykalvostatuksen ja arvioida välikorvan tilaa (otoskopia ja tympanometria',
+                'Osaa puhdistaa korvakäytävän',
+                'Osaa ottaa näytteen välikorvaeritteestä',
+                'Osaa tehdä kuulonseulontatutkimuksen lapselle ja tarvittaessa ohjata jatkotutkimuksiin',
+                'Osaa tulkita audiometrin',
+                'Osaa tutkia nenän limakalvot ja ottaa pyyhkäisynäytteen nenäkuorikon pinnalta tai nenän kautta takanielusta',
+                'Osaa aloittaa nenäverenvuodon hoidon ja tarvittaessa ohjata jatkohoitoon',
+                'Osaa tutkia lapsen nielun ja ottaa pyyhkäisynäytteen nielusta',
+                'Osaa arvioida kurkunpään tilaa',
+                'Tunnistaa kurkunpään tasolta aiheutuvan hengitysvaikeuden ja osaa hoitaa sitä',
+                'Huomioi korvien, nenän ja kurkun tutkimisen haasteet lapsipotilaalla'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Kirurgisen potilaan pre-, peri- ja postoperatiivinen hoito' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa luu- ja nivelinfektioiden diagnostiikan ja hoidon',
+                'Osaa tunnistaa pleuraempyeeman kirurgisen hoidon tarpeen',
+                'Osaa arvioida syvän abskessin kirurgisen hoidon tarpeen',
+                'Osaa akuutin vatsan kirurgiset syyt eri ikäkausina',
+                'Osaa gastrointestinaalisen vuodon hoidon periaatteet',
+                'Tunnistaa pylorusstenoosin ja osaa ohjelmoida preoperatiivisen hoidon',
+                'Tuntee suolitukoksen oireet, etiologian, diagnostiikan ja hoidon periaatteet',
+                'Tuntee GE-leikattujen vastasyntyneiden ja imeväisten erityispiirteet ja ongelmat (esofagusatresia, duodenaaliatresia, gastroskiisi, omfaloseele)',
+                'Tunnistaa kraniosynostoosin',
+                'Tietää ventrikuloperitoneaalishunttipotilaan ongelmat',
+                'Osaa kallovammapotilaan seurannan ja hoidon periaatteet',
+                'Osaa postoperatiivisen kivun hoidon',
+                'Osaa akuutisti vuotavan potilaan hoidon perusperiaatteet',
+                'Osaa palovammapotilaan neste- ja kivun hoidon',
+                'Osaa tyhjentää pinnallisen abskessin',
+                'Osaa reponoida nivustyrän',
+                'Osaa antaa ohjeet tyypin 1 diabetesta sairastavan lapsen insuliinihoidosta ennen anestesiaa vaativaa toimenpidettä',
+                'Pyrkii tehokkaaseen ja turvalliseen kivun hoitoon',
+                'Huomioi yhteistyön ja tiedonkulun merkityksen lastahoitavan pediatrisen, kirurgisen ja anestesiologisen tiimin kesken',
+                'Hahmottaa kirurgisen hoidon tarpeen ja osaa informoida lasta ja perhettä'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Käytös- ja mielenterveysongelmat' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tuntee eri ikäkausina ilmenevät lapsen käyttäytymisen häiriöt
+                'Tietää kastelun taustatekijät ja erotusdiagnostiikan',
+                'Tietää ummetuksen taustatekijät ja erotusdiagnostiikan',
+                'Tunnistaa stereotyyppisen käytöksen',
+                'Tunnistaa TIC-oireen ja Touretten oireyhtymän',
+                'Tunnistaa ahdistuneisuushäiriöiden eri tyypit',
+                'Tunnistaa mielialahäiriöt',
+                'Tietää somaattisiin sairauksiin liittyvistä psykiatrisista ongelmista',
+                'Tietää itsemurhan riskitekijät lapsilla ja nuorilla',
+                'Tuntee syömishäiriöiden eri muodot',
+                'Tunnistaa autismikirjon häiriöihin viittaavan käytöksen',
+                'Osaa keskustella lasten ja nuorten ja heidän vanhempiensa kanssa',
+                'Osaa arvioida lapsen ja nuoren psykososiaalista tilaa keskustelun ja haastattelun perusteella',
+                'Tunnistaa käyttäytymisen oireet ja ongelmat, jotka vaativat jatkoselvittelyjä',
+                'Tunnistaa itsemurhariskissä olevan lapsen tai nuoren ja osaa ohjata oikea-aikaiseen hoitoon',
+                'Tunnistaa syömishäiriöpotilaan ja osaa ohjata jatkohoitoon',
+                'Osoittaa aitoa kiinnostusta potilaan ongelmiin',
+                'Varaa riittävästi aikaa psykososiaalisen tilanteen selvittelyyn'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Liikunta- ja urheilulääketiede' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää perusasiat liikuntavammoista ja liikuntaan/urheiluun liittyvien riskitekijöiden ennaltaehkäisystä, minimoinnista ja hoidosta',
+                'Osaa tukea ja kehittää lapsen ja nuoren terveitä elämäntapoja kannustamalla liikunnalliseen aktiivisuuteen',
+                'Tunnistaa aktiiviurheilijan jatkuvaan voimakkaaseen fyysiseen ja henkiseen kuormitukseen liittyvät oireet ja/tai vammat ja osaa pohtia erotusdiagnostiikkaa yhteistyössä esim. ortopedin, reumatologin ja psykologin kanssa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Nefrologia ja urologia' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tuntee yleisimmät virtsateiden ja genitaalien rakennepoikkeavuudet, niiden diagnostiikan ja merkityksen',
+                'Osaa nestetasapainon säätelyn fysiologian',
+                'Tuntee munuaisten toimintakokeet',
+                'Tuntee virtsanäytteen ottamisen erityispiirteet eri ikäkausina',
+                'Osaa korkean verenpaineen diagnostiikan ja tutkimukset',
+                'Tuntee glomeruluksen sairaudet',
+                'Tuntee tubuluksen ja tubulointerstitiaalikudoksen sairaudet',
+                'Osaa munuaisten rakkulatautien diagnostiikan, hoidon ja seurannan',
+                'Tietää hematurian määritelmän ja erilaiset syyt',
+                'Tietää proteinurian määritelmän ja erilaiset syyt',
+                'Tietää glomerulonefriitin erilaiset syyt',
+                'Osaa nefroosin ja nefriittien diagnostiikan sekä akuutin hoidon',
+                'Osaa akuutin ja kroonisen munuaisen vajaatoiminnan diagnostiikan ja hoitoperiaatteet',
+                'Tuntee dialyysin toteuttamisen yleisperiaatteet',
+                'Osaa IgA-vaskuliitin diagnostiikan, hoidon ja seurannan',
+                'Tunnistaa hemolyyttis-ureemisen syndrooman oireet ja löydökset ja osaa aloittaa akuutin hoidon',
+                'Tietää myrkytysten yleisimmät munuaisvaikutukset',
+                'Tietää munuaissiirron aiheet, jälkihoidon periaatteet sekä ongelmat',
+                'Osaa kastelun erotusdiagnostiikan, tutkimukset ja hoitoperiaatteet',
+                'Osaa arvioida nestetasapainoa kliinisesti',
+                'Osaa tehdä rakkopunktion',
+                'Osaa katetroida virtsarakon',
+                'Osaa tulkita virtsatutkimusten tulokset',
+                'Osaa mitata verenpaineen, tietää mittaukseen liittyvät haasteet ja virhelähteet ja osaa etsiä verenpaineen viitearvot',
+                'Osaa selittää perheelle virtsateiden rakennetta, virtsalöydöstä ja munuaisten toimintakokeita koskevat tulokset ja niiden merkityksen',
+                'Ymmärtää kasteluoireeseen liittyvät monitahoiset fyysiset, sosiaaliset ja psykologiset vaikutukset ja osaa tehdä hoitosuunnitelman yhdessä lapsen/nuoren ja hänen perheensä kanssa',
+                'Ymmärtää munuaisperäisten sairauksien merkityksen lapsen kasvuun ja kehitykseen ja kokonaisvaltaiseen hyvinvointiin',
+                'Ymmärtää munuaissiirtopotilaan hoitoon liittyvät erityispiirteet'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Neonatologia' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää tavallisimpien raskaudenaikaisten ongelmien vaikutukset vastasyntyneeseen, osaa ohjelmoida niiden vaatiman seurannan ja jatkotutkimukset',
+                'Osaa hoitaa vastasyntyneen vierihoidossa ilmaantuvat ongelmat',
+                'Hallitsee vastasyntyneen hengitysongelmien tavallisimmat syyt, erotusdiagnostiikan ja hoidon',
+                'Osaa suunnitella ja toteuttaa tarvittavat tutkimukset ja toimenpiteet epäiltäessä vastasyntyneen kriittistä sydänvikaa',
+                'Tunnistaa hypoksis-iskeemisen enkefalopatian (HIE), osaa arvioida viilennyshoidon tarpeen ja aloittaa hoidon',
+                'Tietää vastasyntyneiden kohtausoireiden syyt, erotusdiagnostiikan ja alkuhoidon',
+                'Osaa tunnistaa ja hoitaa vastasyntyneen kipua',
+                'Osaa diagnosoida ja hoitaa vastasyntyneen infektiot',
+                'Tunnistaa ja osaa hoitaa vastasyntyneen vieroitusoireita',
+                'Tietää vastasyntyneen enteraalisen ja parenteraalisen ravitsemuksen perusteet ja osaa suunnitella nestehoidon',
+                'Tietää imetyksen fysiologian sekä imetyksen ja rintamaidon merkityksen vastasyntyneelle',
+                'Tunnistaa alle 32. raskausviikolla syntyneiden pienten keskosten tavallisimmat diagnoosit ja hahmottaa niistä toipumisen kaaren',
+                'Tietää vastasyntyneen turvallisen kotiuttamisen perusteet ja osaa suunnitella tarvittavat seurannat',
+                'Tietää keskosen merkittävimmät pitkäaikaissairaudet, niiden hoidon ja seurannan',
+                'Osaa tutkia vastasyntyneen neurologinen status mukaan lukien',
+                'Perehtyy vastasyntyneiden yleisten hätätilanteiden hoitoon simulaation avulla',
+                'Osaa vastasyntyneen ilmatien hallinnan (maskiventilaatio, larynxmaski, intubaatio)',
+                'Osaa hengitystukilaitteiden käytön (HFNC, CPAP, SiPAP, konventionaalinen hengityskonehoito)',
+                'Osaa annostella surfaktantin',
+                'Osaa asettaa napalaskimokatetrin',
+                'Osaa asettaa perifeerisen valtimokanyylin',
+                'Osaa poissulkea ilmarinnan ja tehdä pleurapunktion',
+                'Osallistuu typpioksidihoidon toteutukseen',
+                'Osallistuu korkeataajuusrespiraattorihoidon toteutukseen',
+                'Osaa asettaa pleuradreenin',
+                'Osaa käyttää aEEG-laitetta ja tulkita aivosähkökäyrää',
+                'Osaa asettaa napavaltimokatetrin',
+                'Osaa asettaa perifeerisen keskuslaskimokatetrin',
+                'Hallitsee intraosseaalineulan käytön',
+                'Osaa tehdä aivojen UÄ-tutkimuksen',
+                'Osaa tehdä neonatologisen sydämen UÄ-tutkimuksen',
+                'Osallistuu vastasyntyneen siirtokuljetukseen',
+                'Ymmärtää perhekeskeisen ja vauvamyönteisen hoidon tärkeyden sekä sairailla että terveillä vastasyntyneillä ja osaa ottaa sen huomioon alkuhoidosta kotiutumiseen asti'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Nestehoito' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää perusasiat elimistön nestetiloista, nesteiden koostumuksesta ja näiden häiriöistä',
+                'Ymmärtää neste-, elektrolyytti- ja osmolaliteettitasapainon säätelymekanismit',
+                'Tietää sairauksien ja hoitojen vaikutuksista nestetasapainoon',
+                'Osaa arvioida potilaan kuivuman kliinisesti',
+                'Osaa ohjeistaa nesteytyksen kuivuman, ylläpidon ja korvausten osalta sekä enteraalisesti että parenteraalisesti',
+                'Osaa korjata tavallisimmat elektrolyytti- ja osmolaliteettihäiriöt',
+                'Osaa tulkita laboratoriovastauksia nestetasapainon osalta',
+                'Osaa kanyloida ja tietää milloin tarvitaan intraosseaalineulaa',
+                'Osaa ottaa huomioon nestetasapainon eri sairauksien hoidossa',
+                'Toimii potilaan edun mukaisesti nestetasapainon häiriötä korjatessaan',
+                'Käyttää ensisijaisesti enteraalista nesteytystä'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Neurologia ml. normaali kehitys' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tuntee pre-, peri- ja postnataalisten hankittujen ja perinnöllisten lastenneurologiset tilojen diagnostiikan, ehkäisyn ja hoidon periaatteet',
+                'Tuntee päänsäryn diagnostiikan, ehkäisyn ja hoidon periaatteet',
+                'Tuntee kohtausoireiden diagnostiikan, ehkäisyn ja hoidon periaatteet',
+                'Tuntee tajunnanhäiriöiden diagnostiikan, ehkäisyn ja hoidon periaatteet',
+                'Tuntee hermoston normaalin ja poikkeavan kehityksen, toiminnan ja rakenteet',
+                'Tuntee kehityksen eri osa-alueet ja niiden tyypilliset poikkeamat (karkea/hienomotoriikka, puhe/ kommunikaatio, vuorovaikutus/kognitio)',
+                'Tuntee lastenneurologisten palvelujen, etenkin kuntoutuksen suunnittelun ja periaatteet sekä hoidon porrastuksen, saatavuuden ja työnjaon',
+                'Osaa perhekeskeisen moniammatillisen yhteistyön',
+                'Osaa kohdata lapsen ja perheen vaikean vammautumisen ja/tai kuolemaan johtavien sairauksien hoidossa',
+                'Osaa tutkia lapsen neurologiaa eri ikäkausina',
+                'Osaa ottaa aivo-selkäydinnestenäytteen',
+                'Osaa kouristuksen ensihoidon',
+                'Osaa tehdä yhteistyötä lapsen/nuoren, perheen, moniammatillisen työryhmän, muiden erikoisalojen ja terveydenhuollon palvelujärjestelmän eri toimijoiden kanssa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Nuorisolääketiede - tiedot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tuntee HEADSS-haastattelutekniikan hyödyt nuoren kohtaamisessa vastaanotolla',
+                'Tuntee puberteettikehityksen, nuoruusiän normaalin somaattisen, psyykkisen ja sosiaalisen kehityksen ja tunnistaa hoitoa vaativat poikkeamat',
+                'On perehtynyt seksuaalisuuden kehitykseen ja nuorten seksuaaliterveyteen',
+                'Tuntee syömishäiriöiden hoidon periaatteet',
+                'On perehtynyt nuorten tyypillisiin mielenterveyden häiriöihin ja kykenee tunnistamaan ne',
+                'Tuntee psykosomaattisten oireiden tutkimusten ja hoidon periaatteet',
+                'On perehtynyt kroonisten somaattisten ja neuropsykiatristen sairauksien tyypilliseen kulkuun nuoruusiän aikana, tuntee transitiovaiheen käsitteen ja hoitosuositukset',
+                'Tuntee nuorisokulttuuria ja tunnistaa nuoren kulttuuritaustan merkityksen',
+                'Tuntee maamme koulutusjärjestelmän',
+                'On perehtynyt opiskelukyvyn käsitteeseen ja ymmärtää opiskelukykyyn vaikuttavia tekijöitä',
+                'Tuntee pääpiirteet nuorten päihteiden (ml. tupakka) kokeilu- ja käyttötavoista, päihteiden käytön riskeistä ja päihdevieroituksesta',
+                'Tuntee alan lainsäädännön'
+                )
+            </where>
+        </update>
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Nuorisolääketiede - taidot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa hyödyntää HEADSS-haastattelutekniikkaa vastaanotolla',
+                'Kykenee kommunikoimaan nuoren, hänen perheensä ja verkostonsa kanssa',
+                'Kykenee moniammatilliseen ja monitieteelliseen yhteistyöhön',
+                'Osaa tukea aikuistumista ja nuorten omahoitoa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Nuorisolääketiede - asenteet' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Kunnioittaa nuorta',
+                'Kuuntelee nuorta',
+                'Kannustaa nuorta',
+                'Ymmärtää nuoruusiän mukanaan tuomien suurten muutosten merkityksen nuoren elämälle'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Näyttöön perustuva lääketiede - tiedot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Ymmärtää näytön asteet',
+                'Tuntee tutkimusasetelmat artikkelien arvioinnissa',
+                'Tuntee otoskoon arvioinnin ja sen merkityksen artikkelien arvioinnissa',
+                'Tuntee satunnaistamisen ja sokkouttamisen artikkelien arvioinnissa',
+                'Tuntee tavallisimmat tilastotieteelliset menetelmät ja luottamusvälit artikkelien arvioinnissa',
+                'Tuntee meta-analyysien tulkinnan artikkelien arvioinnissa',
+                'Tuntee diagnostisten testien tunnusluvut artikkelien arvioinnissa',
+                'Tuntee tutkimustuloksen kliinisen merkityksen arvioimisen',
+                'Tuntee omiin potilaisiin yleistettävyyden arvioimisen'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Näyttöön perustuva lääketiede - taidot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa muotoilla potilaan ongelmasta vastattavissa olevan kysymyksen ja hakea kirjallisuudesta tietoa',
+                'Tuntee säännölliseen kirjallisuuden seuraamiseen liittyviä apuvälineitä ja osaa käyttää vähintään yhtä',
+                'Pystyy toimimaan asiantuntijana tekemällä kriittisiä päätelmiä potilaan hoitoon liittyvästä tieteellisestä näytöstä'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Näyttöön perustuva lääketiede - asenteet' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Ymmärtää elinikäisen oppimisen merkityksen',
+                'Ymmärtää näyttöön perustuvan lääketieteen periaatteet ja haasteet'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Ortopedia - tiedot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tuntee perustiedot tuki- ja liikuntaelinten anatomiasta ja fysiologiasta ja kasvusta',
+                'Tuntee perustiedot systeemisairauksien luu- ja nivelmanifestaatioista'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Ortopedia - taidot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa niveloireisen lapsen nivelien kliinisen tutkimisen',
+                'Osaa niveloireisen lapsen jatkotutkimusten ajoituksen',
+                'Osaa valita sopivan kuvantamistutkimuksen',
+                'Tunnistaa skolioosin',
+                'Tunnistaa tavallisimmat murtumat erotusdiagnostisena vaihtoehtona',
+                'Osaa tutkia vastasyntyneen lonkat ja tunnistaa lonkkaluksaation',
+                'Havaitsee jalkaterän virheasennot'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Päivystyspediatria - tiedot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Ymmärtää sokin, hengitysvajauksen ja sydämen vajaatoiminnan patofysiologian'
+                'Tietää päivystyksessä ja osastolla tehtävän invasiivisen ja non-invasiivisen monitoroinnin indikaatiot ja osaa tulkita tuloksia',
+                'Osaa aloittaa nestehoidon akuutisti sairaalle lapselle',
+                'Osaa järjestää potilassiirron sairaalan sisällä ja sairaaloiden välillä',
+                'Osaa toimia viranomaisten kanssa lastensuojelullisissa asioissa',
+                'Osaa tehdä triagen',
+                'Osaa huomioida erityislapset (kehitysviive, vaikea perussairaus) päivystystilanteissa',
+                'Osaa auttaa kirurgia ja muita toisen alan spesialisteja pediatrisissa asioissa (esim. antibiootin valinta ja nestehoito)',
+                'Osaa toimia elvytyksessä',
+                'Osaa toimia anafylaktisen reaktion hoidoossa',
+                'Osaa toimia hukuksiin joutuneen hoidossa',
+                'Osaa toimia hypotermiapotilaan hoidossa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Päivystyspediatria - taidot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa toimia paineen alla ja hoitaa useita asioita samanaikaisesti',
+                'Hallitsee työnsä ja osaa ohjata sitä',
+                'Kykenee moniammatilliseen yhteistyöhön',
+                'Osaa toimia tiimin johtajana',
+                'Kykenee neuvottelevaan vuorovaikutukseen'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Päivystyspediatria - asenteet' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Pyrkii toimimaan lapsen parhaaksi',
+                'Toimii potilaslähtöisesti',
+                'Suhtautuu kunnioittavasti ja arvostavasti työtovereihinsa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Ravitsemus - tiedot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tuntee imeväisten, lasten ja nuorten ravitsemussuositukset',
+                'Tuntee ravitsemuksen merkityksen lasten kasvulle ja kehitykselle',
+                'Tuntee lapsuusiän ravitsemuksen vaikutuksen aikuisiän terveyteen',
+                'Tuntee ravitsemushoidon tehostamisen moniammatillisena yhteistyönä diabeteksessa',
+                'Tuntee ravitsemushoidon tehostamisen moniammatillisena yhteistyönä keskosuudessa',
+                'Tuntee ravitsemushoidon tehostamisen moniammatillisena yhteistyönä kroonisessa munuaisten vajaatoiminnassa',
+                'Tuntee ravitsemushoidon tehostamisen moniammatillisena yhteistyönä kystisessä fibroosissa',
+                'Tuntee ravitsemushoidon tehostamisen moniammatillisena yhteistyönä ruoka-aineallergioissa',
+                'Tuntee ravitsemushoidon tehostamisen moniammatillisena yhteistyönä  ruoansulatuskanavan sairauksissa',
+                'Tuntee ravitsemushoidon tehostamisen moniammatillisena yhteistyönä synnynnäisissä aineenvaihduntasairauksissa',
+                'Tuntee ravitsemushoidon tehostamisen moniammatillisena yhteistyönä syömishäiriöissä',
+                'Tuntee ravitsemushoidon tehostamisen moniammatillisena yhteistyönä syöpätaudeissa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Ravitsemus - taidot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa toimia moniammatillisessa yhteistyössä konsultoiden muiden alojen edustajia',
+                'Osaa hyödyntää ravitsemusterapeutin asiantuntemuksen oikea-aikaisesti',
+                'Osaa tunnistaa vajaaravitsemusriskin',
+                'Osaa määrittää ravitsemustilan',
+                'Osaa diagnosoida ravitsemukseen liittyviä sairauksia'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Ravitsemus - asenteet' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Mieltää ravitsemuksen tärkeänä osana lasten ja perheiden hyvinvointia'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Reumatologia -tiedot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tuntee lasten tavallisimpien niveloireiden syyt ja erotusdiagnostiikan',
+                'Tietää, milloin lapsella tulee epäillä lastenreumaa tai sidekudossairautta',
+                'Tuntee tavallisimpien sidekudossairauksien (SLE ja juveniili dermatomyosiitti) ja vaskuliittien (ANCA-vaskuliitit, Kawasakin tauti, IgA-vaskuliitti) oireet ja löydökset',
+                'Tuntee lastenreuman alatyypit pääpiirteissään',
+                'Tuntee yleisimmät lastenreuman hoidossa käytettävät lääkkeet ja pääpiirteet hoidon monitoroinnista',
+                'Tuntee lastenreuman ja sidekudossairauksien hoidossa käytettävät biologiset lääkkeet pääpiirteissään sekä niiden käyttöön liittyvät rajoitukset ja erityispiirteet',
+                'Tuntee lastenreuman liitännäissairaudet (uveiitti)',
+                'Ymmärtää lastenreumapotilaan hoidossa tarvittavan eri erikoisalojen välisen (silmätaudit, hammaslääketiede, lastenkirurgia) yhteistyön merkityksen'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Reumatologia -taidot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa tehdä kliinisen niveltutkimuksen eri-ikäisille lapsille',
+                'Tuntee niveloireisen lapsen laboratoriotutkimusten indikaatiot ja osaa tulkita tulokset',
+                'Tuntee niveloireisen lapsen kuvantamistutkimusten indikaatiot ja osaa tulkita tulokset',
+                'Kykenee moniammatilliseen yhteistyöhön (kuntoutus, hoito)'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Reumatologia -asenteet' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa tukea pitkäaikaissairauteen sairastunutta lasta ja perhettä',
+                'Suhtautuu supportoiden ja ratkaisukeskeisesti pitkittyneistä kivuista kärsivän lapsen hoitoon'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Silmä- ja orbitasairaudet - tiedot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tietää lapsen näkökyvyn eri kehitysvaiheet',
+                'Tuntee konjunktiviitin, selluliitin ja keratiitin erotusdiagnostiikan ja hoidon',
+                'Tuntee yleisimpiin syndroomiin liittyvät silmäongelmat'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Silmä- ja orbitasairaudet - taidot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa tutkia lapsen näöntarkkuuden eri ikävaiheissa (lähi- ja kaukonäkö, puolierot)',
+                'Osaa tutkia punaheijasteen ja katsoa silmänpohjiin',
+                'Osaa tutkia silmien liikkeet ja tehdä peittokokeen sekä Hirschbergin testin',
+                'Tunnistaa päivystyksellistä hoitoa vaativan silmäsairauden ja -vamman',
+                'Tunnistaa keskushermostoperäisen silmä- ja näköongelman'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Sosiaalipediatria - tiedot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tuntee keskeiset osat lastensuojelulaista ja lapsen kaltoinkohteluun liittyvistä ilmoitusvelvollisuuksista ja muusta juridiikasta',
+                'Hallitsee lastensuojelun peruskäsitteet (palvelutarpeen arvio, lastensuojelun tai sosiaalihuollon asiakkuus, avohuollon tukitoimet, lapsen sijoittaminen joko avohuollon tukitoimena tai kiireellinen huostaanotto)',
+                'Ymmärtää sosiaalisten ja mielenterveyshaasteiden vaikutukset perheen kokonaisvaltaiseen hyvinvointiin',
+                'Tietää syrjäytymisen ja lapsen kaltoinkohtelun riskitekijöistä ja niiden ylisukupolvisuudesta',
+                'Tuntee Suomessa yleisimmin käytössä olevat päihteet, psyykenlääkkeet ja korvaushoidossa käytettävät lääkkeet sekä niiden vaikutukset sikiöön ja lapsen kasvuolosuhteisiin',
+                'Tuntee sikiöaikaisen alkoholialtistuksen lapselle aiheuttamia kasvun, kehityksen ja terveyden pulmia (mm. FASD)'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Sosiaalipediatria - taidot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Ottaa vaikean aiheen puheeksi lasta ja perhettä kunnioittaen, kun epäillään kaltoinkohtelua tai päihdealtistusta tai -ongelmaa, tarttuu arkaluontoisiinkin aiheisiin',
+                'Tunnistaa fyysisen, psyykkisen tai kemiallisen kaltoinkohtelun sekä lapsen laiminlyönnin',
+                'Kykenee moniammatilliseen yhteistyöhön lapsen ja perheen tukemiseksi',
+                'Kykenee moniammatilliseen yhteistyöhön viranomaistahojen kanssa kaltoinkohtelua epäiltäessä',
+                'Osaa laatia lastensuojeluilmoituksen ja tehdä siihen liittyvät akuutit tutkimukset ja lääkärinlausunnon',
+                'Osaa järjestää fyysisen väkivallan tai seksuaalirikoksen uhriksi joutuneen (tai joutuneeksi epäillyn) lapsen tai nuoren tutkimukset yhteistyössä moniammatillisen tiimin kanssa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Sosiaalipediatria - asenteet' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Pystyy luomaan lasta ja vanhempia arvostavan, vanhemmuutta tukevan vastaanottotilanteen',
+                'Hahmottaa perheen kokonaistilanteen, ei moralisoi eikä tuomitse, ymmärtää ja suvaitsee erilaisia perhekokonaisuuksia ja -tilanteita',
+                'Osaa tukea perhettä päihteettömyyteen ja erilaisiin tukitoimiin lapsen näkökulmasta',
+                'Kykenee keskustelevaan ja arvostavaan yhteistyöhön eri toimijoiden kanssa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Tehohoito - tiedot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tuntee lasten tehohoidon järjestelyt Suomessa ja osaa arvioida omassa sairaanhoitopiirissään kriittisesti sairaan lapsen tarkoituksenmukaisimman hoitopaikan',
+                'Tuntee lapsen tehohoitokuolleisuuteen liittyvät riskitekijät (esim. PIM2 -pistejärjestelmä)',
+                'Tunnistaa kriittisesti sairaan lapsen',
+                'Osaa suunnitella ja toteuttaa kriittisesti sairaan lapsen alkuhoidon (ABCD, näytteenotto, lääkitykset)',
+                'Osaa huolehtia kriittisesti sairaan lapsen peruselintoimintojen turvaamisesta',
+                'Osaa järjestää asiaankuuluvat diagnostiset ja erotusdiagnostiset tutkimukset kriittisesti sairaalle lapselle',
+                'Osaa laatia tehohoidossa olevan lapsen hoito- ja tutkimussuunnitelman sekä arvioida jatkotutkimusten tarpeen, järjestyksen ja aikataulun',
+                'Tietää tavallisimpien tehohoidossa käytettävien laitteiden ja kuvantamistutkimusten indikaatiot',
+                'Tuntee tehohoidossa olevan potilaan voinnin monitoroinnissa (hengitys, verenkierto, nestetasapaino, tajunnantaso, kipu, sedaatio) käytettävät mittarit',
+                'Ymmärtää varhaisen mobilisaation merkityksen',
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Tehohoito - taidot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa priorisoida potilaiden hoidon tarpeen ja järjestää kullekin potilaalle optimaalisen tilan ja hoitajaresurssin',
+                'Osaa reagoida potilaan tilassa tapahtuviin muutoksiin viiveettä',
+                'Osaa suunnitella potilaan siirron toiselle osastolle tai toiseen yksikköön turvallisesti, ennakoida siirron aikaiset haasteet ja toimia konsulttina siirron aikana',
+                'Osaa konsultoida eri alojen osaajia ja koordinoida hoitoa',
+                'Osaa tulkita yleisimpien kuvantamis- ja laboratoriotutkimusten tulokset ja säätää tai muuttaa hoitoa niiden perusteella',
+                'Osaa suorittaa perifeerisen laskimon kanyloinnin',
+                'Osaa suorittaa perifeerisen valtimon kanyloinnin',
+                'Osaa suorittaa lumbaalipunktion',
+                'Osaa maskiventiloida',
+                'Osaa intuboida',
+                'Osaa hoitaa tavallisimmat tehohoitoa vaativat ongelmat:',
+                'Osaa hoitaa hengitysvajeen (CPAP, NIV, happeutumishäiriön vaikeusasteen luokittelu (ARDS-kriteerit), keuhkoja säästävän ventilaation periaatteet)',
+                'Osaa hoitaa verenkierron ongelmat (hypovolemia, sepsis, vuoto, kardiomyopatia, vasoaktiivisten lääkkeiden käyttö, akuuttien rytmihäiriöiden hoito)',
+                'Osaa hoitaa akuutin uhkaavan munuaisvaurion (AKI)',
+                'Osaa hoitaa sepsispotilasta',
+                'Osaa hoitaa tajunnantason häiriöitä',
+                'Osaa hoitaa kouristuksia',
+                'Osaa hoitaa monielinvauriopotilasta',
+                'Osaa hoitaa traumapotilasta',
+                'Osaa hoitaa palovammapotilasta',
+                'Osaa hoitaa myrkytyspotilasta',
+                'Osaa hoitaa ketoasidoosipotilasta',
+                'Osaa hoitaa muut akuutit endokrinologiset ja metaboliset häiriöt',
+                'Osaa hoitaa nestehoitoon ja ravitsemukseen liittyvät ongelmat',
+                'Osaa kivunhoidon ja sedaation',
+                'Ymmärtää hoidon rajat',
+                'Osaa toimia simulaatioympäristössä, analysoida toimintaansa ja ottaa vastaan ja antaa palautetta'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Tehohoito - syventävät taidot' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Osaa tunnistaa ja hoitaa mahdollista elinluovuttajaa ja keskustella elinluovutuksesta perheen kanssa'
+                )
+            </where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = 'Tehohoito - asenteet' and erikoisala_id = 24)"/>
+            <where>kategoria_id is null and nimi in ('Tunnistaa oman osaamisensa rajat ja ymmärtää pyytää apua',
+                'Osaa toteuttaa tehohoitoa lasta ja perhettä kunnioittaen',
+                'Osaa toteuttaa tehohoitoa lapsen oikeuksia kunnioittaen (https://nobab.fi)',
+                'Osaa toteuttaa tehohoitoa lapsen ja perheen tarpeita huomioiden',
+                'Osaa keskustella lapsen ja perheen kanssa yksilöllisten tarpeiden mukaan',
+                'Osaa järjestää psyykkistä tukea',
+                'Kuoleman kohtaaminen perheen uskonnolliset, kulttuuriset ja sosiaaliset tekijät huomioon ottaen',
+                'Osaa toimia moniammatillisessa työyhteisössä muita työntekijöitä kunnioittaen ja arvostaen',
+                'Osaa pitää huolta omasta jaksamisestaan'
+                )
+            </where>
+        </update>
+
+        <addForeignKeyConstraint baseColumnNames="kategoria_id"
+            baseTableName="suorite"
+            constraintName="fk_suorite_suoritteen_kategoria_id"
+            referencedColumnNames="id"
+            referencedTableName="suoritteen_kategoria"/>
+        <addNotNullConstraint tableName="suorite" columnName="kategoria_id"/>
+
+    </changeSet>
+
+</databaseChangeLog>
