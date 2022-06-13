@@ -2,18 +2,30 @@ package fi.elsapalvelu.elsa.web.rest.common
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
+import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.ReassignedVastuuhenkilonTehtavaDTO
+import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
+import fi.elsapalvelu.elsa.service.dto.enumeration.ReassignedVastuuhenkilonTehtavaTyyppi
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
+import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.KayttajaYliopistoErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.VastuuhenkilonTehtavatyyppiMapper
+import fi.elsapalvelu.elsa.service.mapper.YliopistoMapper
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper.Companion.DEFAULT_YLIOPISTO
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -50,6 +62,21 @@ class KayttajahallintaResourceIT {
 
     @Autowired
     private lateinit var erikoisalaRepository: ErikoisalaRepository
+
+    @Autowired
+    private lateinit var kayttajaRepository: KayttajaRepository
+
+    @Autowired
+    private lateinit var yliopistoMapper: YliopistoMapper
+
+    @Autowired
+    private lateinit var erikoisalaMapper: ErikoisalaMapper
+
+    @Autowired
+    private lateinit var vastuuhenkilonTehtavatyyppiMapper: VastuuhenkilonTehtavatyyppiMapper
+
+    @Autowired
+    private lateinit var kayttajaYliopistoErikoisalaMapper: KayttajaYliopistoErikoisalaMapper
 
     @Autowired
     private lateinit var restMockMvc: MockMvc
@@ -122,6 +149,70 @@ class KayttajahallintaResourceIT {
         val id = count.incrementAndGet()
 
         restMockMvc.perform(get("/api/$rolePath/erikoistuvat-laakarit/$id"))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun getVastuuhenkiloForVirkailijaSameYliopisto() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA, true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        em.persist(vastuuhenkilo)
+        em.flush()
+
+        val id = vastuuhenkilo.id
+
+        restMockMvc.perform(get("/api/virkailija/vastuuhenkilot/$id"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.kayttaja.id").value(id))
+    }
+
+    @Test
+    @Transactional
+    fun getVastuuhenkiloForVirkailijaDifferentYliopisto() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA, false)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        em.persist(vastuuhenkilo)
+        em.flush()
+
+        val id = vastuuhenkilo.id
+
+        restMockMvc.perform(get("/api/virkailija/vastuuhenkilot/$id"))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun getVastuuhenkiloForPaakayttaja() {
+        initTest(TEKNINEN_PAAKAYTTAJA, false)
+
+       val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        em.persist(vastuuhenkilo)
+        em.flush()
+
+        val id = vastuuhenkilo.id
+
+        restMockMvc.perform(get("/api/tekninen-paakayttaja/vastuuhenkilot/$id"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.kayttaja.id").value(id))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun getNonExistingVastuuhenkilo(rolePath: String) {
+        initTest(getRole(rolePath))
+
+        val id = count.incrementAndGet()
+
+        restMockMvc.perform(get("/api/$rolePath/vastuuhenkilot/$id"))
             .andExpect(status().isBadRequest)
     }
 
@@ -202,7 +293,7 @@ class KayttajahallintaResourceIT {
 
         val opintoopas = em.findAll(Opintoopas::class).get(0)
 
-        val kayttajahallintaErikoistuvaLaakariDTO = createKayttajahallintaErikoistuvaLaakariDTO()
+        val kayttajahallintaErikoistuvaLaakariDTO = getDefaultErikoistuvaLaakariDTO()
         kayttajahallintaErikoistuvaLaakariDTO.yliopistoId = yliopisto.id
         kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId = erikoisala.id
         kayttajahallintaErikoistuvaLaakariDTO.asetusId = asetus.id
@@ -229,7 +320,7 @@ class KayttajahallintaResourceIT {
         val erikoisala = ErikoisalaHelper.createEntity()
         em.persist(erikoisala)
 
-        val kayttajahallintaErikoistuvaLaakariDTO = createKayttajahallintaErikoistuvaLaakariDTO()
+        val kayttajahallintaErikoistuvaLaakariDTO = getDefaultErikoistuvaLaakariDTO()
         kayttajahallintaErikoistuvaLaakariDTO.yliopistoId = yliopisto.id
         kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId = erikoisala.id
         kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite = erikoistuvaLaakari.kayttaja?.user?.email
@@ -251,7 +342,7 @@ class KayttajahallintaResourceIT {
         val erikoisala = ErikoisalaHelper.createEntity()
         em.persist(erikoisala)
 
-        val kayttajahallintaErikoistuvaLaakariDTO = createKayttajahallintaErikoistuvaLaakariDTO()
+        val kayttajahallintaErikoistuvaLaakariDTO = getDefaultErikoistuvaLaakariDTO()
         kayttajahallintaErikoistuvaLaakariDTO.yliopistoId = count.incrementAndGet()
         kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId = erikoisala.id
 
@@ -269,7 +360,7 @@ class KayttajahallintaResourceIT {
     fun postErikoistuvaLaakariWithoutValidErikoisala(rolePath: String) {
         initTest(getRole(rolePath), true)
 
-        val kayttajahallintaErikoistuvaLaakariDTO = createKayttajahallintaErikoistuvaLaakariDTO()
+        val kayttajahallintaErikoistuvaLaakariDTO = getDefaultErikoistuvaLaakariDTO()
         kayttajahallintaErikoistuvaLaakariDTO.yliopistoId = yliopisto.id
         kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId = count.incrementAndGet()
 
@@ -347,6 +438,460 @@ class KayttajahallintaResourceIT {
         ).andExpect(status().isNoContent)
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun postVastuuhenkiloWithoutYliopistotAndErikoisalat(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopisto = YliopistoDTO(id = 1000)
+        }
+
+        restMockMvc.perform(
+            post("/api/$rolePath/vastuuhenkilot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().is5xxServerError)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun postVastuuhenkiloWithoutYliopisto(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1000)))
+        }
+
+        restMockMvc.perform(
+            post("/api/$rolePath/vastuuhenkilot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().is5xxServerError)
+    }
+
+    @Test
+    @Transactional
+    fun postVastuuhenkiloAsTekninenPaakayttajaWithDifferentYliopistoInYliopistotAndErikoisalat() {
+        initTest(TEKNINEN_PAAKAYTTAJA)
+
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopisto = YliopistoDTO(id = 1000)
+            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1001)))
+        }
+
+        restMockMvc.perform(
+            post("/api/tekninen-paakayttaja/vastuuhenkilot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().is5xxServerError)
+    }
+
+    @Test
+    @Transactional
+    fun postVastuuhenkiloNotAllowedToCreateWithDifferentYliopistoThanAssignedToVirkailija() {
+        initTest(getRole(OPINTOHALLINNON_VIRKAILIJA))
+
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopisto = YliopistoDTO(id = 1000)
+            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1000)))
+        }
+
+        restMockMvc.perform(
+            post("/api/virkailija/vastuuhenkilot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun postVastuuhenkiloWithEmailAddressInUse(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        em.persist(vastuuhenkilo)
+        vastuuhenkilo.user?.email = KayttajaHelper.DEFAULT_EMAIL
+
+        val yliopistoDTO = yliopistoMapper.toDto(yliopisto)
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopisto = yliopistoDTO
+            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = yliopistoDTO))
+            sahkoposti = KayttajaHelper.DEFAULT_EMAIL
+        }
+
+        restMockMvc.perform(
+            post("/api/$rolePath/vastuuhenkilot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun postVastuuhenkiloWithEppnInUse(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        em.persist(vastuuhenkilo)
+        vastuuhenkilo.user?.eppn = DEFAULT_EPPN
+        vastuuhenkilo.user?.email = KayttajaHelper.DEFAULT_EMAIL
+
+        val yliopistoDTO = yliopistoMapper.toDto(yliopisto)
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopisto = yliopistoDTO
+            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = yliopistoDTO))
+            sahkoposti = KayttajaHelper.DEFAULT_EMAIL + "x"
+        }
+
+        restMockMvc.perform(
+            post("/api/$rolePath/vastuuhenkilot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun postVastuuhenkiloOnlyInCurrentErikoisalaNotAllTehtavatAssigned(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilonTehtavat = erikoisala.vastuuhenkilonTehtavatyypit!!.toList().dropLast(1)
+            .map { vastuuhenkilonTehtavatyyppiMapper.toDto(it) }
+
+        val yliopistoDTO = yliopistoMapper.toDto(yliopisto)
+        val erikoisalaDTO = erikoisalaMapper.toDto(erikoisala)
+        val kayttajaYliopistoErikoisalaDTO =
+            KayttajaYliopistoErikoisalaDTO(yliopisto = yliopistoDTO, erikoisala = erikoisalaDTO)
+        kayttajaYliopistoErikoisalaDTO.vastuuhenkilonTehtavat.addAll(vastuuhenkilonTehtavat)
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopisto = yliopistoDTO
+            yliopistotAndErikoisalat = setOf(kayttajaYliopistoErikoisalaDTO)
+        }
+
+        restMockMvc.perform(
+            post("/api/$rolePath/vastuuhenkilot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun postVastuuhenkiloOnlyInCurrentErikoisalaAllTehtavatAssigned(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilonTehtavat =
+            erikoisala.vastuuhenkilonTehtavatyypit!!.toList().map { vastuuhenkilonTehtavatyyppiMapper.toDto(it) }
+
+        val yliopistoDTO = yliopistoMapper.toDto(yliopisto)
+        val erikoisalaDTO = erikoisalaMapper.toDto(erikoisala)
+        val kayttajaYliopistoErikoisalaDTO =
+            KayttajaYliopistoErikoisalaDTO(yliopisto = yliopistoDTO, erikoisala = erikoisalaDTO)
+        kayttajaYliopistoErikoisalaDTO.vastuuhenkilonTehtavat.addAll(vastuuhenkilonTehtavat)
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopisto = yliopistoDTO
+            yliopistotAndErikoisalat = setOf(kayttajaYliopistoErikoisalaDTO)
+        }
+
+        restMockMvc.perform(
+            post("/api/$rolePath/vastuuhenkilot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isCreated)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun postVastuuhenkiloErikosalaTehtavaAlreadyAssignedButNotReassigned(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        em.persist(vastuuhenkilo)
+
+        val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
+        vastuuhenkilo.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat.add(vastuuhenkilonTehtava)
+
+        val yliopistoDTO = yliopistoMapper.toDto(yliopisto)
+        val erikoisalaDTO = erikoisalaMapper.toDto(erikoisala)
+        val kayttajaYliopistoErikoisalaDTO =
+            KayttajaYliopistoErikoisalaDTO(yliopisto = yliopistoDTO, erikoisala = erikoisalaDTO)
+        kayttajaYliopistoErikoisalaDTO.vastuuhenkilonTehtavat.add(
+            vastuuhenkilonTehtavatyyppiMapper.toDto(
+                vastuuhenkilonTehtava
+            )
+        )
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopisto = yliopistoDTO
+            yliopistotAndErikoisalat = setOf(kayttajaYliopistoErikoisalaDTO)
+        }
+
+        restMockMvc.perform(
+            post("/api/$rolePath/vastuuhenkilot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun postVastuuhenkiloErikosalaTehtavaAlreadyAssignedAndReassignedByRemove(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        em.persist(vastuuhenkilo)
+
+        val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
+        vastuuhenkilo.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat.add(vastuuhenkilonTehtava)
+
+        val yliopistoDTO = yliopistoMapper.toDto(yliopisto)
+        val erikoisalaDTO = erikoisalaMapper.toDto(erikoisala)
+        val kayttajaYliopistoErikoisalaDTO =
+            KayttajaYliopistoErikoisalaDTO(yliopisto = yliopistoDTO, erikoisala = erikoisalaDTO)
+        kayttajaYliopistoErikoisalaDTO.vastuuhenkilonTehtavat.add(
+            vastuuhenkilonTehtavatyyppiMapper.toDto(
+                vastuuhenkilonTehtava
+            )
+        )
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopisto = yliopistoDTO
+            yliopistotAndErikoisalat = setOf(kayttajaYliopistoErikoisalaDTO)
+            reassignedTehtavat = setOf(
+                ReassignedVastuuhenkilonTehtavaDTO(
+                    kayttajaYliopistoErikoisalaMapper.toDto(vastuuhenkilo.yliopistotAndErikoisalat.first()),
+                    vastuuhenkilonTehtava.id,
+                    ReassignedVastuuhenkilonTehtavaTyyppi.REMOVE
+                )
+            )
+        }
+
+        restMockMvc.perform(
+            post("/api/$rolePath/vastuuhenkilot")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isCreated)
+
+        val originalVastuuhenkilonTehtavat = kayttajaRepository.findById(vastuuhenkilo.id!!)
+            .get().yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat
+        assertThat(!originalVastuuhenkilonTehtavat.contains(vastuuhenkilonTehtava))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun putVastuuhenkiloTehtavaRemovedButNotReassigned(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        em.persist(vastuuhenkilo)
+
+        val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
+        vastuuhenkilo.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat.add(vastuuhenkilonTehtava)
+
+        val kayttajaYliopistoErikoisalaDTO =
+            kayttajaYliopistoErikoisalaMapper.toDto(vastuuhenkilo.yliopistotAndErikoisalat.first())
+        kayttajaYliopistoErikoisalaDTO.vastuuhenkilonTehtavat.clear()
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopistotAndErikoisalat = setOf(kayttajaYliopistoErikoisalaDTO)
+        }
+
+        restMockMvc.perform(
+            put("/api/$rolePath/vastuuhenkilot/${vastuuhenkilo.id}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun putVastuuhenkiloTehtavaRemovedAndReassigned(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkiloForReassignedTehtava = createVastuuhenkilo(yliopisto, erikoisala)
+        em.persist(vastuuhenkiloForReassignedTehtava)
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        vastuuhenkilo.tila = KayttajatilinTila.KUTSUTTU
+        em.persist(vastuuhenkilo)
+
+        val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
+        vastuuhenkilo.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat.add(vastuuhenkilonTehtava)
+
+        val kayttajaYliopistoErikoisalaDTO =
+            kayttajaYliopistoErikoisalaMapper.toDto(vastuuhenkilo.yliopistotAndErikoisalat.first())
+        kayttajaYliopistoErikoisalaDTO.vastuuhenkilonTehtavat.clear()
+        val updatedSahkoposti = KayttajaHelper.DEFAULT_EMAIL + "x"
+        val updatedEppn = DEFAULT_EPPN + "x"
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            sahkoposti = updatedSahkoposti
+            eppn = updatedEppn
+            yliopistotAndErikoisalat = setOf(kayttajaYliopistoErikoisalaDTO)
+            reassignedTehtavat = setOf(
+                ReassignedVastuuhenkilonTehtavaDTO(
+                    kayttajaYliopistoErikoisalaMapper.toDto(vastuuhenkiloForReassignedTehtava.yliopistotAndErikoisalat.first()),
+                    vastuuhenkilonTehtava.id,
+                    ReassignedVastuuhenkilonTehtavaTyyppi.ADD
+                )
+            )
+        }
+
+        restMockMvc.perform(
+            put("/api/$rolePath/vastuuhenkilot/${vastuuhenkilo.id}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isOk)
+
+        val updatedVastuuhenkilo = kayttajaRepository.findById(vastuuhenkilo.id!!).get()
+        assertThat(updatedVastuuhenkilo.user?.email).isEqualTo(updatedSahkoposti)
+        assertThat(updatedVastuuhenkilo.user?.eppn).isEqualTo(updatedEppn)
+        assertThat(updatedVastuuhenkilo.yliopistotAndErikoisalat).size().isEqualTo(1)
+        assertThat(updatedVastuuhenkilo.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat).size().isEqualTo(0)
+
+        val updatedVastuuhenkiloWithReassignedTehtava =
+            kayttajaRepository.findById(vastuuhenkiloForReassignedTehtava.id!!).get()
+        assertThat(
+            updatedVastuuhenkiloWithReassignedTehtava.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat.contains(
+                vastuuhenkilonTehtava
+            )
+        )
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun putVastuuhenkiloWithNewErikoisala(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val erikoisala2 = erikoisalaRepository.findById(2).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        em.persist(vastuuhenkilo)
+
+        val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
+        val yliopistotAndErikoisalatList = vastuuhenkilo.yliopistotAndErikoisalat.toList()
+        val existingKayttajaYliopistoErikoisalaDTO =
+            kayttajaYliopistoErikoisalaMapper.toDto(yliopistotAndErikoisalatList[0])
+        val newKayttajaYliopistoErikoisalaDTO = KayttajaYliopistoErikoisalaDTO(
+            erikoisala = erikoisalaMapper.toDto(erikoisala2),
+            yliopisto = yliopistoMapper.toDto(yliopisto),
+            vastuuhenkilonTehtavat = mutableSetOf(vastuuhenkilonTehtavatyyppiMapper.toDto(vastuuhenkilonTehtava))
+        )
+
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopistotAndErikoisalat = setOf(existingKayttajaYliopistoErikoisalaDTO, newKayttajaYliopistoErikoisalaDTO)
+        }
+
+        restMockMvc.perform(
+            put("/api/$rolePath/vastuuhenkilot/${vastuuhenkilo.id}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isOk)
+
+        val updatedVastuuhenkilo = kayttajaRepository.findById(vastuuhenkilo.id!!).get()
+        assertThat(updatedVastuuhenkilo.yliopistotAndErikoisalat).size().isEqualTo(2)
+        val newYliopistoAndErikoisala = updatedVastuuhenkilo.yliopistotAndErikoisalat.toList()[1]
+        assertThat(newYliopistoAndErikoisala.yliopisto).isEqualTo(yliopisto)
+        assertThat(newYliopistoAndErikoisala.erikoisala).isEqualTo(erikoisala2)
+        assertThat(newYliopistoAndErikoisala.vastuuhenkilonTehtavat).contains(vastuuhenkilonTehtava)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun putVastuuhenkiloWithRemovedErikoisala(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val erikoisala2 = erikoisalaRepository.findById(2).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
+            kayttaja = vastuuhenkilo,
+            yliopisto = yliopisto,
+            erikoisala = erikoisala2
+        )
+        em.persist(yliopistoAndErikoisala)
+        vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
+
+        val remainingKayttajaYliopistoErikoisalaDTO =
+            kayttajaYliopistoErikoisalaMapper.toDto(vastuuhenkilo.yliopistotAndErikoisalat.first())
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopistotAndErikoisalat = setOf(remainingKayttajaYliopistoErikoisalaDTO)
+        }
+
+        restMockMvc.perform(
+            put("/api/$rolePath/vastuuhenkilot/${vastuuhenkilo.id}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isOk)
+
+        val updatedVastuuhenkilo = kayttajaRepository.findById(vastuuhenkilo.id!!).get()
+        assertThat(updatedVastuuhenkilo.yliopistotAndErikoisalat).size().isEqualTo(1)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun putVastuuhenkiloWithRemovedErikoisalaTehtavaNotReassigned(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val erikoisala2 = erikoisalaRepository.findById(2).get()
+        val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
+        val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
+            kayttaja = vastuuhenkilo,
+            yliopisto = yliopisto,
+            erikoisala = erikoisala2
+        )
+        em.persist(yliopistoAndErikoisala)
+        yliopistoAndErikoisala.vastuuhenkilonTehtavat.add(vastuuhenkilonTehtava)
+        vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
+
+        val remainingKayttajaYliopistoErikoisalaDTO =
+            kayttajaYliopistoErikoisalaMapper.toDto(vastuuhenkilo.yliopistotAndErikoisalat.first())
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            yliopistotAndErikoisalat = setOf(remainingKayttajaYliopistoErikoisalaDTO)
+        }
+
+        restMockMvc.perform(
+            put("/api/$rolePath/vastuuhenkilot/${vastuuhenkilo.id}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
     private fun createVastuuhenkilo(
         yliopisto: Yliopisto? = null,
         erikoisala: Erikoisala? = null
@@ -379,7 +924,7 @@ class KayttajahallintaResourceIT {
         } else OPINTOHALLINNON_VIRKAILIJA
     }
 
-    fun initTest(role: String, addSameYliopistoForRole: Boolean = false) {
+    fun initTest(role: String, addDefaultYliopistoForRole: Boolean = false) {
         val user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -393,7 +938,7 @@ class KayttajahallintaResourceIT {
 
         val kayttaja = KayttajaHelper.createEntity(em, user)
         if (role == OPINTOHALLINNON_VIRKAILIJA) {
-            if (addSameYliopistoForRole) {
+            if (addDefaultYliopistoForRole) {
                 kayttaja.yliopistot.add(yliopisto)
             } else {
                 val yliopisto = Yliopisto(nimi = YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
@@ -409,18 +954,33 @@ class KayttajahallintaResourceIT {
     companion object {
         private val random: Random = SecureRandom()
         private val count: AtomicLong = AtomicLong(random.nextInt().toLong() + (2L * Integer.MAX_VALUE))
+        private const val DEFAULT_FIRST_NAME = "John"
+        private const val DEFAULT_LAST_NAME = "DOE"
+        private const val DEFAULT_EPPN = "johdoe"
 
         @JvmStatic
-        fun createKayttajahallintaErikoistuvaLaakariDTO(): KayttajahallintaErikoistuvaLaakariDTO {
+        fun getDefaultErikoistuvaLaakariDTO(): KayttajahallintaErikoistuvaLaakariDTO {
             return KayttajahallintaErikoistuvaLaakariDTO(
-                etunimi = "John",
-                sukunimi = "Doe",
-                sahkopostiosoite = "john.doe@example.com",
+                etunimi = DEFAULT_FIRST_NAME,
+                sukunimi = DEFAULT_LAST_NAME,
+                sahkopostiosoite = KayttajaHelper.DEFAULT_EMAIL,
                 opiskelijatunnus = "123456",
                 opintooikeusAlkaa = LocalDate.ofEpochDay(0L),
                 opintooikeusPaattyy = LocalDate.ofEpochDay(30L),
                 osaamisenArvioinninOppaanPvm = LocalDate.ofEpochDay(0L)
             )
         }
+
+        @JvmStatic
+        fun getDefaultKayttajaDTO(): KayttajahallintaKayttajaDTO {
+            return KayttajahallintaKayttajaDTO(
+                etunimi = DEFAULT_FIRST_NAME,
+                sukunimi = DEFAULT_LAST_NAME,
+                sahkoposti = KayttajaHelper.DEFAULT_EMAIL,
+                eppn = DEFAULT_EPPN
+            )
+        }
+
+
     }
 }
