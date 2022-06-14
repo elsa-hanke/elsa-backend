@@ -6,23 +6,9 @@
 
     <changeSet id="20220609235016" author="jhipster" context="!test">
 
-        <update tableName="arvioitavan_kokonaisuuden_kategoria">
-            <column name="voimassaolo_loppuu" value="2022-06-06"/>
-        </update>
-
-        <loadData
-            file="config/liquibase/data/erikoisala/ihotaudit/2022-06-06/arvioitavan_kokonaisuuden_kategoria.csv"
-            separator=";"
-            tableName="arvioitavan_kokonaisuuden_kategoria">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="jarjestysnumero" type="numeric"/>
-            <column name="voimassaolo_alkaa" type="date"/>
-            <column name="erikoisala_id" type="numeric"/>
-        </loadData>
-
         <update tableName="arvioitava_kokonaisuus">
-            <column name="voimassaolo_loppuu" value="2022-06-06"/>
+            <column name="voimassaolo_loppuu" value="2022-06-01"/>
+            <where>kategoria_id in (select id from arvioitavan_kokonaisuuden_kategoria where erikoisala_id = 9)</where>
         </update>
 
         <dropForeignKeyConstraint baseTableName="arvioitava_kokonaisuus"
@@ -39,39 +25,14 @@
             <column name="voimassaolo_alkaa" type="date"/>
         </loadData>
 
-        <!-- TODO: Kategoriat? -->
         <update tableName="arvioitava_kokonaisuus">
             <column name="kategoria_id"
-                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Koejakso' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null and nimi in (
-                '1. Koejakso EPA: ASA 1-2 potilaan yleisanestesia ja perioperatiivinen hoito')
-            </where>
-        </update>
-
-        <update tableName="arvioitava_kokonaisuus">
-            <column name="kategoria_id"
-                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Anestesiologinen hoito potilasryhmittäin' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null and nimi in (
-                '2. Keisarileikkauspotilaan perioperatiinen anestesiologinen hoito',
-                '6. Kraniotomiapotilaan anestesiologinen hoito',
-                '7. Keuhkoleikkauspotilaan anestesia')
-            </where>
-        </update>
-
-        <update tableName="arvioitava_kokonaisuus">
-            <column name="kategoria_id"
-                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Hoitoprosessi' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null and nimi in (
-                '3. Geriatrisen potilaan hoitoprosessi')
-            </where>
-        </update>
-
-        <update tableName="arvioitava_kokonaisuus">
-            <column name="kategoria_id"
-                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Päiväkirurgia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null and nimi in (
-                '4. Päiväkirurgisen lapsipotilaan anestesiologinen hoito',
-                '5. Päiväkirurgisen aikuispotilaan anestesiologinen hoito')
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Lääketieteellinen osaaminen' and erikoisala_id = 9)"/>
+            <where>kategoria_id is null and nimi in ('Allergiaepäilyn tutkiminen',
+                'Hyvänlaatuiset kasvaimet ja ihotoimenpiteet',
+                'Ihotautinen päivystyspotilas',
+                'Kroonista tulehduksellista ihotautia sairastava potilas',
+                'Seksitautia epäilevän potilaan diagnostiikka ja hoito')
             </where>
         </update>
 

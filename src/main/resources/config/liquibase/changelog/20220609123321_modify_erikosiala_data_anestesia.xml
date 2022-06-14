@@ -7,7 +7,8 @@
     <changeSet id="20220609123321" author="jhipster" context="!test">
 
         <update tableName="arvioitavan_kokonaisuuden_kategoria">
-            <column name="voimassaolo_loppuu" value="2022-06-06"/>
+            <column name="voimassaolo_loppuu" value="2022-06-01"/>
+            <where>erikoisala_id = 2 and nimi = 'Hoitoprosessi'</where>
         </update>
 
         <loadData
@@ -22,7 +23,8 @@
         </loadData>
 
         <update tableName="arvioitava_kokonaisuus">
-            <column name="voimassaolo_loppuu" value="2022-06-06"/>
+            <column name="voimassaolo_loppuu" value="2022-06-01"/>
+            <where>kategoria_id in (select id from arvioitavan_kokonaisuuden_kategoria where erikoisala_id = 2)</where>
         </update>
 
         <dropForeignKeyConstraint baseTableName="arvioitava_kokonaisuus"
@@ -39,12 +41,11 @@
             <column name="voimassaolo_alkaa" type="date"/>
         </loadData>
 
-        <!-- TODO: Kategoriat? -->
         <update tableName="arvioitava_kokonaisuus">
             <column name="kategoria_id"
                 valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Koejakso' and erikoisala_id = 2)"/>
             <where>kategoria_id is null and nimi in (
-                '1. Koejakso EPA: ASA 1-2 potilaan yleisanestesia ja perioperatiivinen hoito')
+                'Koejakso anestesiologiaan ja tehohoitoon erikoistuville lääkäreille')
             </where>
         </update>
 
@@ -52,17 +53,20 @@
             <column name="kategoria_id"
                 valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Anestesiologinen hoito potilasryhmittäin' and erikoisala_id = 2)"/>
             <where>kategoria_id is null and nimi in (
-                '2. Keisarileikkauspotilaan perioperatiinen anestesiologinen hoito',
-                '6. Kraniotomiapotilaan anestesiologinen hoito',
-                '7. Keuhkoleikkauspotilaan anestesia')
+                'Geriatrisen leikkauspotilaan perioperatiivinen anestesiologinen hoito',
+                'Keisarileikkauspotilaan perioperatiivinen anestesiologinen hoito',
+                'Keuhkoleikkauspotilaan perioperatiivinen anestesiologinen hoito',
+                'Kraniotomiapotilaan perioperatiivinen anestesiologinen hoito',
+                'Pienen lapsen (alle 5 v) vaativan anestesian hoito')
             </where>
         </update>
 
         <update tableName="arvioitava_kokonaisuus">
             <column name="kategoria_id"
-                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Hoitoprosessi' and erikoisala_id = 2)"/>
+                valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Tehohoito' and erikoisala_id = 2)"/>
             <where>kategoria_id is null and nimi in (
-                '3. Geriatrisen potilaan hoitoprosessi')
+                'Tehohoidon tarpeen ja hyödyllisyyden arviointi',
+                'Tehohoitopotilaan kiertäminen')
             </where>
         </update>
 
@@ -70,8 +74,8 @@
             <column name="kategoria_id"
                 valueComputed="(select id from arvioitavan_kokonaisuuden_kategoria where nimi = 'Päiväkirurgia' and erikoisala_id = 2)"/>
             <where>kategoria_id is null and nimi in (
-                '4. Päiväkirurgisen lapsipotilaan anestesiologinen hoito',
-                '5. Päiväkirurgisen aikuispotilaan anestesiologinen hoito')
+                'Päiväkirurgisen lapsipotilaan anestesiologinen hoito',
+                'Päiväkirurgisen aikuispotilaan anestesiologinen hoito')
             </where>
         </update>
 
@@ -83,7 +87,8 @@
         <addNotNullConstraint tableName="arvioitava_kokonaisuus" columnName="kategoria_id"/>
 
         <update tableName="suoritteen_kategoria">
-            <column name="voimassaolo_loppuu" value="2022-06-06"/>
+            <column name="voimassaolon_paattymispaiva" value="2022-06-01"/>
+            <where>erikoisala_id = 2</where>
         </update>
 
         <loadData
@@ -100,23 +105,13 @@
             constraintName="fk_suorite_suoritteen_kategoria_id"/>
         <dropNotNullConstraint tableName="suorite" columnName="kategoria_id"/>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_endokrinologia.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
-            <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Endokrinologisen potilaan anestesia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+            <column name="voimassaolon_paattymispaiva" value="2022-06-01"/>
+            <where>kategoria_id in (select id from suoritteen_kategoria where erikoisala_id = 2)</where>
         </update>
 
         <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_fiberskopia.csv"
+            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite.csv"
             separator=";"
             tableName="suorite">
             <column name="id" type="numeric"/>
@@ -126,248 +121,204 @@
 
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Fiberskopia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '1. Yleisanestesiat' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '1.1. Anestesian anto')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_kanylointi.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Kanylointi' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '2. Thoraxkirurgisen potilaan anestesia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '2.1. Yhden keuhkon anestesia',
+                '2.2. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito)')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_knk.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'KNK-potilaan anestesia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '3. Sydänanestesiologia (sydänanestesiologin työparina)' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '3.1. Sepelvaltimotauti',
+                '3.2. Läppäkirurgia',
+                '3.3. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito)')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_lasten_anestesiologia.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Lasten anestesiologia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '4. Neurokirurgisen potilaan anestesia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '4.1. Aivokasvaimet (supratentoriaalinen / infratentoriaalinen / intraspinaalinen)',
+                '4.2. SAV-potilaan hoito leikkausosastolla tai angiolaboratoriossa',
+                '4.3. AV-malformaatiopotilaan hoito leikkausosastolla tai angiolaboratoriossa',
+                '4.4. Korkeat kaularangan luudutusleikkaukset',
+                '4.5. Thorakaali- ja lannerangan luudutusleikkaukset',
+                '4.6. Vertebroplastiat')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_neurokirurginen_anestesia.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Neurokirurgisen potilaan anestesia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '5. Shuntti/aivoendoskopia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '5.1. Shunttipotilaat (akuutti vs. normaalipaineinen hydrokefalus) ja 3.kammion puhkaisu',
+                '5.2. Ventrikulostomia',
+                '5.3. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito)')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_neurokirurgiset_paivystyspotilaat.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Neurokirurgiset päivystyspotilaat' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '6. Neurokirurgiset päivystyspotilaat' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '6.1. vammapotilaat (akuutit subduraali-, epiduraali-, IC-vuodot)',
+                '6.2. akuutti discus prolapsi-potilas',
+                '6.3. laminektomiat (akuutit halvausoireet)',
+                '6.4. Neuronavigaatiobiopsiat',
+                '6.5. Akuutti neurokiruginen potilas päivystyspoliklinikalla ja rtg-osastolla',
+                '6.6. Postoperatiivinen valvonta',
+                '6.7. Trombektomia',
+                '6.8. MRI-kuvantaminen')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_obstetriikka.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Obstetriikka' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '7. Verisuonikirurgisen potilaan anestesia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '7.1. Infrainguinaalinen valtimokirurgian anestesiat',
+                '7.2. Karotiskirurgian anestesia',
+                '7.3. Vatsa-aortan kirurgian anestesia',
+                '7.4. Dialyysitiekirurgian anestesia',
+                '7.5. Hydriditoimenpiteiden anestesia',
+                '7.6. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_plastiikkakirurgia.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Plastiikkakirurgia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '8. Urologinen anestesia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '8.1. Urologinen PÄIKI-potilas',
+                '8.2. TURP',
+                '8.3. TURB erityispiirteet',
+                '8.4. Munuaistuumorikirurgia (B)',
+                '8.5. Prostatektomia, RALP, avoin',
+                '8.6. Rakkodiversiot (C)',
+                '8.7. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_puudutukset.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Puudutukset' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '9. Vatsakirurgia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '9.1. Anestesia ruokatorvikirurgiassa',
+                '9.2. Anestesia mahalaukun kirurgiassa',
+                '9.3. Anestesia sappirakon ja maksan kirurgiassa',
+                '9.4. Anestesia haimakirurgiassa',
+                '9.5. Anestesia kolorektaalikirurgiassa',
+                '9.6. Anestesia lihavuuskirurgiassa',
+                '9.7. Päivystystoimenpiteen anestesia, aspiraatioriskissä olevan potilaan anestesia',
+                '9.8. Obeesin potilaan anestesia',
+                '9.9. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_shuntti.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Shuntti/aivoendoskopia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '10. Plastiikkakirurgia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '10.1. Mikrovaskulaarikirurgian (esim. TRAM-leikkaukset) anestesiologiset periaatteet',
+                '10.2. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_sydananestesiologia.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Sydänanestesiologia (sydänanestesiologin työparina)' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '11. Traumatologia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '11.1. Ortopedis-traumatologisen potilaan yleisanestesia tai johtopuudutus (yläraaja, lonkka, sääri, nilkka)',
+                '11.2. Monivamman anestesia',
+                '11.3. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_thorax.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Thoraxkirurgisen potilaan anestesia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '12. KNK-potilaan anestesia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '12.1. Risakirurgian anestesia',
+                '12.2. Korvaleikkausten anestesia',
+                '12.3. FESS-toimenpiteiden ja muun rhinologisen kirurgian anestesia',
+                '12.4. Kurkunpäätoimenpiteiden anestesia yleisesti',
+                '12.5. Spontaanihengitystekniikoiden käyttö kurkunpäätoimenpiteissä',
+                '12.6. Bronkoskopioiden anestesia',
+                '12.7. Neuro-otologisten toimenpiteiden anestesia',
+                '12.8. Mikrovaskulaarisiirreleikkausten anestesia',
+                '12.9. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_traumatologia.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Traumatologia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '13. Puudutukset' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '13.1. Epiduraalipuudutus (L- ja Th-ranka)',
+                '13.2. Spinaalipuudutus',
+                '13.3. Hartiapunoksen interskaleeninen puudutus',
+                '13.4. Hartiapunoksen supra- tai infraklavikulaarinen puudutus',
+                '13.5. Alaraajan johtopuudutukset (poplitea, safena, femoralis)')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_urologia.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Urologinen anestesia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '14. Obstetriikka' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '14.1. Gynekologisten elektiivisten leikkausten (mukaan lukien radikaalisyöpä- ja endometrioosileikkaukset) anestesiat',
+                '14.2. Keisarileikkaus (yleisanestesia)',
+                '14.3. Keisarileikkaus (regionaalianestesia)',
+                '14.4. Epiduraalipuudutus synnytyskivun lievitykseen',
+                '14.5. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_vatsakirurgia.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Vatsakirurgia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '15. Endokrinologisen potilaan anestesia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '15.1. Conn/Cushing/Pheokromosytoomapotilaan anestesia',
+                '15.2. Lisäkilpirauhaspotilaan anestesia',
+                '15.3. Kilpirauhaspotilaan anestesia (erityishuomio tyreotoksikoosipotilaan anestesiologinen hoito)',
+                '15.4. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_verisuonikirurgia.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
-
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Verisuonikirurgisen potilaan anestesia' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '16. Ortopedia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '16.1. Keinonivelleikkausten anestesiat',
+                '16.2. Jalkateräkirurgian anestesia',
+                '16.3. Olkapääkirurgian anestesia',
+                '16.4. Selkäkirurgian anestesia',
+                '16.5. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito')</where>
         </update>
 
-        <loadData
-            file="config/liquibase/data/erikoisala/anestesia/2022-06-06/suorite_yleisanestesiat.csv"
-            separator=";"
-            tableName="suorite">
-            <column name="id" type="numeric"/>
-            <column name="nimi" type="string"/>
-            <column name="voimassaolon_alkamispaiva" type="date"/>
-        </loadData>
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = '17. Lasten anestesiologia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '17.1. Valtimon kanylointi (lapset)',
+                '17.2. Lasten anestesia (&lt; 1 v)',
+                '17.3. Lasten anestesia (1 – 5 v)',
+                '17.4. Epiduraalipuudutus',
+                '17.5. Postoperatiivisen hoidon suunnittelu (kivunhoito ja nestehoito')</where>
+        </update>
 
         <update tableName="suorite">
             <column name="kategoria_id"
-                valueComputed="(select id from suoritteen_kategoria where nimi = 'Yleisanestesiat' and erikoisala_id = 2)"/>
-            <where>kategoria_id is null</where>
+                valueComputed="(select id from suoritteen_kategoria where nimi = '18. Fiberskopia' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '18.1. Fiberoskooppinen intubaatio',
+                '18.2. Bronkoskopia')</where>
+        </update>
+
+        <update tableName="suorite">
+            <column name="kategoria_id"
+                valueComputed="(select id from suoritteen_kategoria where nimi = '19. Kanylointi' and erikoisala_id = 2)"/>
+            <where>kategoria_id is null and nimi in (
+                '19.1. Valtimon kanylointi (aikuiset)',
+                '19.2. Keskuslaskimon kanylointi',
+                '19.3. Infuusioportin laitto')</where>
         </update>
 
         <addForeignKeyConstraint baseColumnNames="kategoria_id"
