@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
+import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
@@ -216,6 +217,70 @@ class KayttajahallintaResourceIT {
             .andExpect(status().isBadRequest)
     }
 
+    @Test
+    @Transactional
+    fun getKouluttajaForVirkailijaSameYliopisto() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA, true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val kouluttaja = createKouluttaja(yliopisto, erikoisala)
+        em.persist(kouluttaja)
+        em.flush()
+
+        val id = kouluttaja.id
+
+        restMockMvc.perform(get("/api/virkailija/kouluttajat/$id"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.kayttaja.id").value(id))
+    }
+
+    @Test
+    @Transactional
+    fun getKouluttajaForVirkailijaDifferentYliopisto() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA, false)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val kouluttaja = createKouluttaja(yliopisto, erikoisala)
+        em.persist(kouluttaja)
+        em.flush()
+
+        val id = kouluttaja.id
+
+        restMockMvc.perform(get("/api/virkailija/kouluttajat/$id"))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun getKouluttajaForPaakayttaja() {
+        initTest(TEKNINEN_PAAKAYTTAJA, false)
+
+       val erikoisala = erikoisalaRepository.findById(1).get()
+        val kouluttaja = createKouluttaja(yliopisto, erikoisala)
+        em.persist(kouluttaja)
+        em.flush()
+
+        val id = kouluttaja.id
+
+        restMockMvc.perform(get("/api/tekninen-paakayttaja/kouluttajat/$id"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.kayttaja.id").value(id))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun getNonExistingKouluttaja(rolePath: String) {
+        initTest(getRole(rolePath))
+
+        val id = count.incrementAndGet()
+
+        restMockMvc.perform(get("/api/$rolePath/kouluttajat/$id"))
+            .andExpect(status().isBadRequest)
+    }
+
     @ParameterizedTest
     @ValueSource(strings = [tekninenPaakayttaja, virkailija])
     @Transactional
@@ -256,6 +321,29 @@ class KayttajahallintaResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(expectedSize)))
             .andExpect(jsonPath("$.content[0].kayttajaId").value(erikoistuvaLaakari.kayttaja?.id))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Transactional
+    fun getKouluttajat(rolePath: String) {
+        initTest(getRole(rolePath), true)
+
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilo = createKouluttaja(yliopisto, erikoisala)
+
+        val yliopisto2 = Yliopisto(nimi = YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
+        em.persist(yliopisto2)
+        createKouluttaja(yliopisto2, erikoisala)
+
+        // Virkailijalle listataan vain saman yliopiston kouluttajat.
+        val expectedSize = if (rolePath == tekninenPaakayttaja) 2 else 1
+
+        restMockMvc.perform(get("/api/$rolePath/kouluttajat"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(expectedSize)))
+            .andExpect(jsonPath("$.content[0].kayttajaId").value(vastuuhenkilo.id))
     }
 
     @ParameterizedTest
@@ -833,7 +921,6 @@ class KayttajahallintaResourceIT {
         val erikoisala = erikoisalaRepository.findById(1).get()
         val erikoisala2 = erikoisalaRepository.findById(2).get()
         val vastuuhenkilo = createVastuuhenkilo(yliopisto, erikoisala)
-        val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
         val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
             kayttaja = vastuuhenkilo,
             yliopisto = yliopisto,
@@ -892,9 +979,22 @@ class KayttajahallintaResourceIT {
         ).andExpect(status().isBadRequest)
     }
 
+    private fun createKouluttaja(
+        yliopisto: Yliopisto,
+        erikoisala: Erikoisala
+    ): Kayttaja {
+        val kouluttajaUser = KayttajaResourceWithMockUserIT.createEntity(
+            authority = Authority(
+                KOULUTTAJA
+            )
+        )
+        em.persist(kouluttajaUser)
+        return createKayttajaWithYliopistoAndErikoisala(kouluttajaUser, yliopisto, erikoisala)
+    }
+
     private fun createVastuuhenkilo(
-        yliopisto: Yliopisto? = null,
-        erikoisala: Erikoisala? = null
+        yliopisto: Yliopisto,
+        erikoisala: Erikoisala
     ): Kayttaja {
         val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity(
             authority = Authority(
@@ -902,20 +1002,23 @@ class KayttajahallintaResourceIT {
             )
         )
         em.persist(vastuuhenkiloUser)
+        return createKayttajaWithYliopistoAndErikoisala(vastuuhenkiloUser, yliopisto, erikoisala)
+    }
 
-        val vastuuhenkilo = KayttajaHelper.createEntity(em, vastuuhenkiloUser)
-        em.persist(vastuuhenkilo)
+    private fun createKayttajaWithYliopistoAndErikoisala(user: User, yliopisto: Yliopisto, erikoisala: Erikoisala): Kayttaja {
+        val kayttaja = KayttajaHelper.createEntity(em, user)
+        em.persist(kayttaja)
 
         val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
-            kayttaja = vastuuhenkilo,
+            kayttaja = kayttaja,
             yliopisto = yliopisto,
             erikoisala = erikoisala
         )
 
         em.persist(yliopistoAndErikoisala)
-        vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
+        kayttaja.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
-        return vastuuhenkilo
+        return kayttaja
     }
 
     fun getRole(rolePath: String): String {
