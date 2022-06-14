@@ -30,6 +30,7 @@ interface KayttajaMapper :
         Mapping(source = "user.firstName", target = "etunimi"),
         Mapping(source = "user.lastName", target = "sukunimi"),
         Mapping(source = "user.email", target = "sahkoposti"),
+        Mapping(source = "user.phoneNumber", target = "puhelin"),
         Mapping(source = "user.eppn", target = "eppn"),
         Mapping(source = "user.authorities", target = "authorities")
     )
