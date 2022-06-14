@@ -1,20 +1,20 @@
-nimi;voimassaolon_alkamispaiva;erikoisala_id
-Yleisanestesiat;2022-06-06;2
-Thoraxkirurgisen potilaan anestesia;2022-06-06;2
-Sydänanestesiologia (sydänanestesiologin työparina);2022-06-06;2
-Neurokirurgisen potilaan anestesia;2022-06-06;2
-Shuntti/aivoendoskopia;2022-06-06;2
-Neurokirurgiset päivystyspotilaat;2022-06-06;2
-Verisuonikirurgisen potilaan anestesia;2022-06-06;2
-Urologinen anestesia;2022-06-06;2
-Vatsakirurgia;2022-06-06;2
-Plastiikkakirurgia;2022-06-06;2
-Traumatologia;2022-06-06;2
-KNK-potilaan anestesia;2022-06-06;2
-Puudutukset;2022-06-06;2
-Obstetriikka;2022-06-06;2
-Endokrinologisen potilaan anestesia;2022-06-06;2
-Ortopedia;2022-06-06;2
-Lasten anestesiologia;2022-06-06;2
-Fiberskopia;2022-06-06;2
-Kanylointi;2022-06-06;2
+nimi;voimassaolon_alkamispaiva;erikoisala_id;jarjestysnumero
+1. Yleisanestesiat;2022-06-01;2;1
+2. Thoraxkirurgisen potilaan anestesia;2022-06-01;2;2
+3. Sydänanestesiologia (sydänanestesiologin työparina);2022-06-01;2;3
+4. Neurokirurgisen potilaan anestesia;2022-06-01;2;4
+5. Shuntti/aivoendoskopia;2022-06-01;2;5
+6. Neurokirurgiset päivystyspotilaat;2022-06-01;2;6
+7. Verisuonikirurgisen potilaan anestesia;2022-06-01;2;7
+8. Urologinen anestesia;2022-06-01;2;8
+9. Vatsakirurgia;2022-06-01;2;9
+10. Plastiikkakirurgia;2022-06-01;2;10
+11. Traumatologia;2022-06-01;2;11
+12. KNK-potilaan anestesia;2022-06-01;2;12
+13. Puudutukset;2022-06-01;2;13
+14. Obstetriikka;2022-06-01;2;14
+15. Endokrinologisen potilaan anestesia;2022-06-01;2;15
+16. Ortopedia;2022-06-01;2;16
+17. Lasten anestesiologia;2022-06-01;2;17
+18. Fiberskopia;2022-06-01;2;18
+19. Kanylointi;2022-06-01;2;19
