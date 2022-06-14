@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest
 
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
@@ -61,6 +62,23 @@ open class KayttajahallintaResource(
         return ResponseEntity.ok(vastuuhenkilot)
     }
 
+    @GetMapping("/kouluttajat")
+    fun getKouluttajat(
+        criteria: KayttajahallintaCriteria, pageable: Pageable, principal: Principal?
+    ): ResponseEntity<Page<KayttajahallintaKayttajaListItemDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val kouluttajat = if (hasVirkailijaRole(user)) {
+            kayttajaService.findByKayttajahallintaCriteriaFromSameYliopisto(
+                user.id!!, KOULUTTAJA, criteria, pageable
+            )
+        } else {
+            kayttajaService.findByKayttajahallintaCriteria(
+                user.id!!, KOULUTTAJA, criteria, pageable
+            )
+        }
+        return ResponseEntity.ok(kouluttajat)
+    }
+
     @GetMapping("/kayttajat/rajaimet")
     fun getKayttajahallintaRajaimet(): ResponseEntity<KayttajahallintaKayttajatOptionsDTO> {
         val form = KayttajahallintaKayttajatOptionsDTO()
@@ -79,6 +97,20 @@ open class KayttajahallintaResource(
         return ResponseEntity.ok(
             KayttajahallintaKayttajaWrapperDTO(
                 kayttaja = getKayttajaOrThrow(id), erikoistuvaLaakari = erikoistuvaLaakari
+            )
+        )
+    }
+
+    @GetMapping("/kouluttajat/{id}")
+    fun getKouluttaja(
+        @PathVariable id: Long, principal: Principal?
+    ): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
+        val kayttaja = getKayttajaOrThrow(id)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, id)
+
+        return ResponseEntity.ok(
+            KayttajahallintaKayttajaWrapperDTO(
+                kayttaja = kayttaja
             )
         )
     }
