@@ -19,6 +19,8 @@ data class KayttajaDTO(
 
     var sahkoposti: String? = null,
 
+    var puhelin: String? = null,
+
     var tila: KayttajatilinTila? = null,
 
     var eppn: String? = null,
