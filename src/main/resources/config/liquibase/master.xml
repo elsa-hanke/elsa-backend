@@ -210,5 +210,9 @@
     <include file="config/liquibase/changelog/20220512160015_modify_entity_Kayttaja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220520163734_modify_vastuuhenkilon_tehtavat_relation.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220520172134_map_vastuuhenkilon_tehtavat.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220609123321_modify_erikosiala_data_anestesia.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220609235016_modify_erikoisala_data_ihotaudit.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220610110333_modify_erikoisala_data_lastentaudit.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220614095433_modify_erikoisala_data_tyoterveys.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

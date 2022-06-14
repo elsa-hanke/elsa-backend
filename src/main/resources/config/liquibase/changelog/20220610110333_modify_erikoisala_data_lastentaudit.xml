@@ -6,9 +6,29 @@
 
     <changeSet id="20220610110333" author="jhipster" context="!test">
 
+        <update tableName="suoritteen_kategoria">
+            <column name="voimassaolon_paattymispaiva" value="2022-06-01"/>
+            <where>erikoisala_id = 24 and nimi in ('Päivystyspediatria ja infektiot', 'Tehohoito')</where>
+        </update>
+
+        <loadData
+            file="config/liquibase/data/erikoisala/lastentaudit/2022-06-06/suoritteen_kategoria.csv"
+            separator=";"
+            tableName="suoritteen_kategoria">
+            <column name="id" type="numeric"/>
+            <column name="nimi" type="string"/>
+            <column name="voimassaolon_alkamispaiva" type="date"/>
+            <column name="erikoisala_id" type="numeric"/>
+        </loadData>
+
         <dropForeignKeyConstraint baseTableName="suorite"
             constraintName="fk_suorite_suoritteen_kategoria_id"/>
         <dropNotNullConstraint tableName="suorite" columnName="kategoria_id"/>
+
+        <update tableName="suorite">
+            <column name="voimassaolon_paattymispaiva" value="2022-06-01"/>
+            <where>kategoria_id in (select id from suoritteen_kategoria where erikoisala_id = 24)</where>
+        </update>
 
         <loadData
             file="config/liquibase/data/erikoisala/lastentaudit/2022-06-06/suorite.csv"
@@ -222,7 +242,7 @@
         <update tableName="suorite">
             <column name="kategoria_id"
                 valueComputed="(select id from suoritteen_kategoria where nimi = 'Ihotaudit' and erikoisala_id = 24)"/>
-            <where>kategoria_id is null and nimi in ('Tietää tavalliset lasten ihotaudit ja ihottumat ja niiden patogeneesin'
+            <where>kategoria_id is null and nimi in ('Tietää tavalliset lasten ihotaudit ja ihottumat ja niiden patogeneesin',
                 'Tunnistaa tavalliset eksanteemat ja infektioihin liittyvät ihomuutokset',
                 'Tunnistaa ja osaa ohjata jatkoarviota tarvitsevat synnynnäiset luomet, hemangioomat ym.',
                 'Osaa diagnosoida ja hoitaa tavalliset ihotaudit, kuten akne, atooppinen ekseema, molluskat, urtikaria ja karvoituksen ongelmat',
@@ -316,7 +336,7 @@
         <update tableName="suorite">
             <column name="kategoria_id"
                 valueComputed="(select id from suoritteen_kategoria where nimi = 'Keuhkosairaudet' and erikoisala_id = 24)"/>
-            <where>kategoria_id is null and nimi in ('Osaa erotusdiagnostiset vaihtoehdot hengenahdistuksen, yskän ja hengitysäänten poikkeavuuden taustalla'
+            <where>kategoria_id is null and nimi in ('Osaa erotusdiagnostiset vaihtoehdot hengenahdistuksen, yskän ja hengitysäänten poikkeavuuden taustalla',
                 'Osaa astman diagnostiikan ja hoidon eri ikäkausina',
                 'Osaa bronkopulmonaalisen dysplasian (BPD) pitkäaikaishoidon ja seurannan',
                 'Ymmärtää allergian merkityksen hengitystiesairauksissa',
@@ -404,7 +424,7 @@
         <update tableName="suorite">
             <column name="kategoria_id"
                 valueComputed="(select id from suoritteen_kategoria where nimi = 'Käytös- ja mielenterveysongelmat' and erikoisala_id = 24)"/>
-            <where>kategoria_id is null and nimi in ('Tuntee eri ikäkausina ilmenevät lapsen käyttäytymisen häiriöt
+            <where>kategoria_id is null and nimi in ('Tuntee eri ikäkausina ilmenevät lapsen käyttäytymisen häiriöt',
                 'Tietää kastelun taustatekijät ja erotusdiagnostiikan',
                 'Tietää ummetuksen taustatekijät ja erotusdiagnostiikan',
                 'Tunnistaa stereotyyppisen käytöksen',
@@ -650,7 +670,7 @@
         <update tableName="suorite">
             <column name="kategoria_id"
                 valueComputed="(select id from suoritteen_kategoria where nimi = 'Päivystyspediatria - tiedot' and erikoisala_id = 24)"/>
-            <where>kategoria_id is null and nimi in ('Ymmärtää sokin, hengitysvajauksen ja sydämen vajaatoiminnan patofysiologian'
+            <where>kategoria_id is null and nimi in ('Ymmärtää sokin, hengitysvajauksen ja sydämen vajaatoiminnan patofysiologian',
                 'Tietää päivystyksessä ja osastolla tehtävän invasiivisen ja non-invasiivisen monitoroinnin indikaatiot ja osaa tulkita tuloksia',
                 'Osaa aloittaa nestehoidon akuutisti sairaalle lapselle',
                 'Osaa järjestää potilassiirron sairaalan sisällä ja sairaaloiden välillä',
@@ -833,7 +853,7 @@
                 'Osaa laatia tehohoidossa olevan lapsen hoito- ja tutkimussuunnitelman sekä arvioida jatkotutkimusten tarpeen, järjestyksen ja aikataulun',
                 'Tietää tavallisimpien tehohoidossa käytettävien laitteiden ja kuvantamistutkimusten indikaatiot',
                 'Tuntee tehohoidossa olevan potilaan voinnin monitoroinnissa (hengitys, verenkierto, nestetasapaino, tajunnantaso, kipu, sedaatio) käytettävät mittarit',
-                'Ymmärtää varhaisen mobilisaation merkityksen',
+                'Ymmärtää varhaisen mobilisaation merkityksen'
                 )
             </where>
         </update>

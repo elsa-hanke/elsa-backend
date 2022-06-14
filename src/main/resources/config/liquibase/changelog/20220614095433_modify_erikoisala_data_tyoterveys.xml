@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220614095433" author="jhipster" context="!test">
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kuvaus"><![CDATA[
+            <h3>EPA 1.1 Toimintasuunnitelman laatiminen</h3>
+            <p>Arvioitavan kokonaisuuden yläotsikko/kategoria: 1 Työterveyshuoltotoiminnan suunnittelu</p>
+            <h4>Lyhyt kuvaus</h4>
+            <p>Työterveyslääkäri osallistuu työpaikkaselvityksen (TPS) pohjalta laadittavan toimintasuunnitelman
+            laadintaan yhteistyössä työterveyshuollon (tth) moniammatillisen tiimin ja työpaikan edustajien kesken.
+            Toimintasuunnitelma laaditaan työterveysyhteistyön perustaksi ja se sisältää tavoitteet, käytännön
+            menettelyt ja kuvauksen vaikuttavuuden arvioinnista.</p>
+            <h4>Määritelmä ja rajoitukset</h4>
+            <p>Toimintasuunnitelman laatimisessa huomioidaan asiakasyrityksen oman riskinarvioinnin esiin tuomat
+            tarpeet työturvallisuuden ja työterveyden edistämiseksi sekä yrityksen muut tavoitteet ja toiveet.
+            Työterveyslääkäri huolehtii osaltaan Hyvä työterveyshuoltokäytäntö -asetuksen (HTTHK) ja muiden
+            säädösten huomioimisesta toimintojen suunnittelussa. Toimintasuunnitelmassa kuvataan
+            käytännönläheisesti tavoitteet työterveysyhteistyölle toimikaudella, suunnitellut toiminnot
+            (terveystarkastukset, työpaikkaselvitykset, neuvonta ja ohjaus, muut palvelut, työkyvyn tuen yhteistyö)
+            aikatauluineen ja käytännön menettelyineen, suorite- ja tulosmittarit sekä vaikuttavuuden arvioinnin
+            menettelyt. Toteutumia arvioidaan suunnitelmakauden kuluessa työterveyshuollon ohjausryhmissä ja
+            viimeistään seuraavaa toimintasuunnitelmaa laadittaessa. Toimintasuunnitelmaa päivitetään toiminnasta
+            tehtyjen koosteiden ja jatkuvan TPS:n pohjalta, tarvittaessa myös kesken kauden, millä varmistetaan
+            korvaukset HTTHK:n mukaisesta toiminnasta.</p>
+            <h4>Mahdolliset riskit ja komplikaatiot</h4>
+            <p>Erikoistuva lääkäri ei tunnista työterveystarpeita tai ei osaa ehdottaa ja perustella tarpeellisia
+            työterveyshuollon toimenpiteitä toimintasuunnitelmaan, tai esittää epätarkoituksenmukaisia
+            toimenpiteitä. Tämä voi johtaa puutteellisiin tai tarpeita vastaamattomiin toimenpiteisiin, työperäiseen
+            sairastavuuteen, työkykyongelmiin, tuottavuuden laskuun ja ennenaikaisiin työkyvyttömyyksiin.</p>
+            <p>Ongelmia voi syntyä haastavissa vuorovaikutustilanteissa käsiteltäessä näkemyksiä yhteistyön raameista,
+            tavoitteista ja arvioinneista. Nämä voivat johtaa lakisääteisten toimintojen toteutumatta jäämiseen,
+            väärinymmärryksiin, voimavaroja sitoviin ristiriitoihin, taloudellisiin menetyksiin ja tarpeettomiin
+            selvittelyihin.</p>
+            <h4>Keskeiset CanMEDS-osaamisalueet</h4>
+            <p>Lääketieteellinen osaaminen, Vuorovaikutustaidot, Yhteistyötaidot, Johtamistaidot, Oma osaaminen ja
+            tiedonhallinta, Terveyden edistäminen, Ammatillisuus.</p>
+            <h4>Suoritusta koskevat odotukset (tiedot, taidot ja asenteet)</h4>
+            <p>Tiedot: Työterveyshuollon toimintaa ohjaava lainsäädäntö, työterveyshuollon palvelusopimusten
+            käytännöt. Työlääketieteellinen tieto altisteista, kuormitus ja voimavaratekijöistä, tiedot keskeisistä
+            työterveyden, työturvallisuuden ja työkyvyn haasteista toimialakohtaisesti. Liiketoiminnan tai julkisen
+            sektorin talouden perusteet. Tiedot yhteistyöverkostoista työelämän ja terveydenhuollon puolella.
+            </p>
+            <p>Taidot: Tiedonhankintataidot yrityksen toiminnasta ja tarpeista. Vaarojen ja riskien terveydellisen
+            merkityksen arvioinnin taidot. Vuorovaikutus- ja neuvottelutaidot, joiden kautta päästään muotoilemaan
+            yhteiset tavoitteet, sitoutumaan niiden mukaiseen toimintaan ja arvioimaan toteumia. Toimijoiden roolien
+            ja vastuiden tunnistamisen taidot, verkostotaidot. Työterveyshuollon moniammatillisen tiimin toimintojen
+            kokonaisuuden hyödyntämisen, keskinäisen linkittämisen ja yhteistyökumppaneille sanoittamisen taidot.
+            Raporttien koostamisen ja tulkinnan taidot, vaikuttavuuden arvioinnin taidot.</p>
+            <p>Ajattelutavat/asenteet: Toimintasuunnitelma ohjaa arjen toimintaa. Työhyvinvoinnin rakentamisessa
+            strategiseen kumppanuuteen pyrkivä tapa ajatella ja toimia. Kiinnostunut, arvostava, kunnioittava asenne,
+            joustava tapa toimia kohti yhteisiä päämääriä, tahto edistää terveyttä ja työkykyä laadukkaalla
+            työterveysyhteistyöllä.</p>
+            <h4>Ohjaus- ja harjoittelumenetelmät</h4>
+            <p>Tavoitteiden tunnistaminen ja henkilökohtainen oppimisen suunnittelu. Itseohjautuva aktiivinen
+            työssäoppiminen, monipuolisiin työtehtäviin hakeutuminen, suoritteiden dokumentointi ja reflektoinnit.
+            Kirjallisuus, kurssit, toimipaikka- ja muut koulutukset, erilaiset kurssi- ja tehtäväpalautteet.
+            Kouluttajalääkärin kanssa käydyt ohjauskeskustelut ja arvioinnit.</p>
+            <h4>Arviointimenetelmät</h4>
+            <p>Itsearviointi. Jäsentynyt reflektoinnin tarkastelu. Tapauspohjainen keskustelu. Erilaisten työssä ja työstä
+            syntyneiden dokumenttien tarkastelu. Toiminnasta saadun palautteen tarkastelu (esim. työyhteisö ja
+            asiakaspalautteet).</p>]]></column>
+            <where>nimi = '1.1. Toimintasuunnitelman laatiminen'</where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kuvaus"><![CDATA[
+            <h3>EPA 2.1 Erilaisten työpaikkaselvitysten toteuttaminen ja raportointi</h3>
+            <p>Arvioitavan kokonaisuuden yläotsikko/kategoria: 2 Työpaikkaselvitys</p>
+            <h4>Lyhyt kuvaus</h4>
+            <p>Työpaikkaselvitys (TPS) on yksi työterveyshuollon ydintoiminnoista. Siinä tunnistetaan työn terveellisyyden
+            ja turvallisuuden vaara- ja riskitekijät, kuormitustekijät, samoin kuin työn voimavaratekijät sekä
+            mahdollisuudet työkyvyn tukemiseen. Työterveysyhteistyön sisältö suunnitellaan TPS:n keinoin havaittujen
+            tarpeiden perusteella.</p>
+            <h4>Määritelmä ja rajoitukset</h4>
+            <p>Työpaikkaselvitys alkaa esiselvityksellä, jossa työterveystiimi perehtyy asiakastyöpaikan tilanteeseen,
+            aiempiin raportteihin, kemikaalilistoihin, mittaustuloksiin ja alaan liittyvään tietoon. Siihen voi kuulua
+            esikyselyjä johdolle ja/ tai henkilöstölle. Perusselvityksessä työterveyshuolto tunnistaa koko työpaikan
+            merkittävät altisteet, vaaratekijät, kuormitustekijät ja myös voimavarat. Tärkein menetelmä on
+            työpaikkakäynti, jossa työterveystiimi havainnoi työtä ja haastattelee työntekijöitä. Selvitys voi sisältää
+            myös erilaisia mittauksia ja asiantuntijakonsultaatioita. Työpaikkaselvityksessä työterveyshuolto ottaa
+            kantaa altisteiden ja muiden vaara- ja kuormitustekijöiden merkitykseen työntekijöiden terveydelle,
+            turvallisuudelle ja työkyvylle. Sen perusteella suunnitellaan työterveystoiminta vastaamaan työpaikan
+            tarpeisiin. Työpaikkaselvitys voi olla myös suunnattu- tai erityisselvitys, jolloin kysymyksenasettelu ja
+            vastaavat menetelmät täsmennetään ja selvitys suunnataan osaan työpaikasta tai kohdennetaan
+            yksittäiseen näkökulmaan, kuten kemikaaleihin, työskentelyyn raskauden aikana tai työyhteisön
+            toimintaan, joihin perehdytään syvemmin. Työpaikkaselvityksestä kirjoitetaan kirjallinen raportti, jossa
+            kuvataan selvityksen tavoite tai kysymyksenasettelu, havaitut asiat, mittaustulokset sekä niiden merkitys
+            terveydelle ja työkyvylle. Työterveyshuolto antaa myös toimenpide-ehdotuksia työn terveellisyyden ja
+            turvallisuuden parantamiseksi sekä mahdollisten jäännösriskien hallitsemiseksi. Suunnittelu yhdessä
+            työpaikan kanssa tukee toteutumista.</p>
+            <h4>Mahdolliset riskit ja komplikaatiot</h4>
+            <p>Erikoistuva lääkäri ei tunnista työn vaara- tai kuormitustekijöitä tai ei osaa arvioida niiden terveydellistä
+            merkitystä asianmukaisesti, jolloin tarpeellisiin toimenpiteisiin ei ryhdytä ja voi seurata liiallista altistumista,
+            työperäistä oireilua ja sairastuvuutta. Erikoistuva lääkäri ei tunnista työn voimavaratekijöitä tai
+            mahdollisuuksia työkyvyn tukemiseen työterveysyhteistyössä, jolloin voi seurata tarpeetonta
+            työkyvyttömyyttä. Erikoistuva ei riittävästi osallista työpaikkaselvitykseen tarpeellisia tahoja tai ongelmat
+            haastavissa vuorovaikutustilanteissa johtavat väärinymmärryksiin, voimavaroja sitoviin ristiriitoihin,
+            taloudellisiin menetyksiin ja tarpeettomiin selvittelyihin.</p>
+            <h4>Keskeiset CanMEDS-osaamisalueet</h4>
+            <p>Lääketieteellinen osaaminen, Vuorovaikutustaidot, Yhteistyötaidot, Johtamistaidot, Oma osaaminen ja
+            tiedonhallinta, Terveyden edistäminen, Ammatillisuus.</p>
+            <h4>Suoritusta koskevat odotukset (tiedot, taidot ja asenteet)</h4>
+            <p>Tiedot: Työlääketiede ja työhygienia: keskeisimmät altisteet, terveysvaikutukset ja työturvallisuuden
+            perusteet. Toimialatuntemus. Työturvallisuus- ja työterveyslainsäädäntö. Toiminnan tavoitteet ja prosessit.
+            Erilaiset työpaikkaselvitystyypit sekä menetelmät.
+            </p>
+            <p>Taidot: Osaa suunnitella ja toteuttaa erilaisia työpaikkaselvityksiä eri tarpeisiin. Osaa arvioida erilaisten
+            altisteiden, vaara- ja kuormitustekijöiden terveydellisen merkityksen. Osaa hyödyntää
+            työpaikkaselvityksestä saatua tietoa työterveysyhteistyön suunnitteluun, jäännösriskien hallintaan sekä
+            työkyvyn tuen vaihtoehtoihin varautumiseen tavallisissa tilanteissa. Moniammatillisen tiimin
+            hyödyntämisen taidot, muiden asiantuntijoiden konsultoinnin taidot, lisätietojen hankkimisen taidot. Osaa
+            ottaa roolinsa ja vastuunsa moniammatillisen tiimin lääketieteellisenä asiantuntijana. Osaa kirjoittaa
+            selkeän ja ymmärrettävän raportin työpaikkaselvityksestä ja osaa kommunikoida löydökset
+            asiakastyöpaikkojen osapuolille.</p>
+            <p>Ajattelutavat ja asenteet: Ymmärtää työpaikkaselvityksen tärkeyden työterveysyhteistyön perustana.
+            Ymmärtää roolinsa ja vastuunsa lääketieteellisenä asiantuntijana suunnittelusta raportointiin saakka.
+            Haluaa edistää työn terveellisyyttä ja turvallisuutta, tukea työntekijöiden työkykyä, työyhteisön toimivuutta
+            ja työpaikan toimintaa. Toimii ammatillisesti riippumattomana asiantuntijana työpaikan osapuolille.</p>
+            <h4>Ohjaus- ja harjoittelumenetelmät</h4>
+            <p>Tavoitteiden tunnistaminen ja henkilökohtainen oppimisen suunnittelu. Itseohjautuva aktiivinen
+            työssäoppiminen, monipuolisiin työtehtäviin hakeutuminen, suoritteiden dokumentointi ja reflektoinnit.
+            Kirjallisuus, kurssit, toimipaikka- ja muut koulutukset, erilaiset kurssi- ja tehtäväpalautteet.
+            Kouluttajalääkärin kanssa käydyt ohjauskeskustelut ja arvioinnit.</p>
+            <h4>Arviointimenetelmät</h4>
+            <p>Itsearviointi. Jäsentynyt reflektoinnin tarkastelu. Tapauspohjainen keskustelu. Erilaisten työssä ja työstä
+            syntyneiden dokumenttien tarkastelu. Toiminnasta saadun palautteen tarkastelu (esim. työyhteisö ja
+            asiakaspalautteet).</p>]]></column>
+            <where>nimi = '2.1. Erilaisten työpaikkaselvitysten toteuttaminen ja raportointi'</where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kuvaus"><![CDATA[
+            <h3>EPA 3.1 Erilaisten työterveystarkastusten tarpeen arviointi, suunnittelu ja toteuttaminen</h3>
+            <p>Arvioitavan kokonaisuuden yläotsikko/kategoria: 3 Työterveystarkastukset</p>
+            <h4>Lyhyt kuvaus</h4>
+            <p>Työterveystarkastukset ovat yksi työterveyshuollon ydintoiminnoista. Erilaisilla tarkastuksilla on omat
+            määritellyt tavoitteet, kysymyksenasettelut ja menettelyt. Niiden suunnittelu perustuu
+            työpaikkaselvitykseen ja täsmennetään toimintasuunnitelmaan. Terveystarkastuksia toteutetaan paitsi lähija etävastaanotoilla myös kyselytyökalujen avulla.</p>
+            <h4>Määritelmä ja rajoitukset</h4>
+            <p>Pakollisia, altistelähtöisiä tarkastuksia tehdään työterveyshuoltolainsäädännön mukaisesti töissä, joissa
+            työntekijä altistuu merkittävästi kemialliselle, fysikaaliselle tai biologiselle vaaratekijälle (ESV-työt sekä
+            yötyö ja väkivallan uhkaa sisältävä työ). Niiden tarkoitus on mm. alkutarkastuksissa selvittää työntekijän
+            sopivuus altisteisiin töihin ja neuvoa suojautumaan työn vaaroilta, määräaikaistarkastuksissa seurata onko
+            tämä saanut oireita työstä ja työsuhteen päättyessä ohjeistaa seuranta.</p>
+            <p>Myös työn terveysvaatimuksiin perustuvat terveystarkastukset ovat pakollisia pohjautuen
+            työturvallisuuslainsäädäntöön. Niitä tehdään töissä, jotka asettavat työturvallisuuden kannalta
+            erityisvaatimuksia terveydelle.</p>
+            <p>Lisäksi tehdään esim. sairausvaiheiden yhteydessä ja sosiaalivakuutuksen tarpeisiin terveystarkastuksia työja toimintakyvyn arvioimiseksi ja tukemiseksi. Erilaisia työnantajille vapaaehtoisia terveystarkastuksia
+            tehdään myös terveyden edistämiseksi ja työkyvyn tukemiseksi.</p>
+            <p>Työterveyslääkäri osallistuu toimintasuunnitelmakauden terveystarkastusten suunnitteluun,
+            moniammatillisen tiimin työnjakojen sekä käytettävien menetelmien ja tutkimusten määrittelyyn,
+            perustuen työpaikan todettuihin tarpeisiin. Tarkastusten yhteenvetoja tehdään
+            toimintasuunnitelmakausittain, työpaikkaselvitystä ja työn terveellisyyteen ja turvallisuuteen vaikuttamista
+            tukien. Tarkastusten perusteita ja vaikuttavuutta pitää säännöllisesti arvioida.</p>
+            <h4>Mahdolliset riskit ja komplikaatiot</h4>
+            <p>Erikoistuva lääkäri ei altistelähtöisten terveystarkastusten suunnittelussa varmista työpaikan altisteiden
+            tunnistamista tai ajankohtaisten altistumistasojen ja jäännösriskin asianmukaista arviointia omassa
+            toiminnassaan ja työterveystiimin toiminnassa, mikä voi johtaa ehkäistävissä oleviin työperäisiin sairauksiin,
+            ammattitauteihin ja työkyvyn menetyksiin.</p>
+            <p>Erikoistuva ei tunnista tai osaa arvioida työn terveydellisiä erityisvaatimuksia, jotka edellyttävät
+            terveystarkastuksia, mikä voi johtaa työturvallisuuden ja työpaikan asiakkaiden turvallisuuden
+            vaarantumiseen.</p>
+            <p>Erikoistuva ei tunnista tarvetta tai osaa mitoittaa tarpeen mukaisia toimenpiteitä työkyvyn tukemiseksi
+            tehtäviin terveystarkastuksiin työterveysyhteistyössä ja terveydenhuollon ja sosiaalivakuutuksen
+            hyödyntämisessä, mikä voi johtaa työkykyongelmiin ja taloudellisiin menetyksiin niin yksilön, työpaikan kuin
+            yhteiskunnankin näkökulmista. Ongelmat haastavissa vuorovaikutustilanteissa voivat johtaa
+            väärinymmärryksiin, voimavaroja sitoviin ristiriitoihin, taloudellisiin menetyksiin ja tarpeettomiin
+            selvittelyihin.</p>
+            <h4>Keskeiset CanMEDS-osaamisalueet</h4>
+            <p>Lääketieteellinen osaaminen, Vuorovaikutustaidot, Yhteistyötaidot, Johtamistaidot, Oma osaaminen ja
+            tiedonhallinta, Terveyden edistäminen, Ammatillisuus.</p>
+            <h4>Suoritusta koskevat odotukset (tiedot, taidot ja asenteet)</h4>
+            <p>Tiedot: Terveystarkastuksia koskeva lainsäädäntö ja ohjeistukset. Erilaisten terveystarkastusten
+            tarkoitukset ja tavoitteet. Keskeiset altisteet ja työperäiset sairaudet toimialoittain. Terveyden edistämisen
+            keskeiset käsitteet ja menettelyt vastaanotoilla. Seulonnan etiikan käsitteet. Tiedot, millainen
+            terveystarkastustoiminta on näyttöön perustuvaa ja vaikuttavaa.</p>
+            <p>Taidot: Osaa erottaa pakolliset ja vapaaehtoiset tarkastukset toisistaan, kommunikoida tämän
+            asiakastyöpaikoille, sekä suunnitella ja toteuttaa erilaisia työterveystarkastuksia työpaikan tarpeiden
+            mukaan. Osaa valita, ohjeistaa tiimille ja itse toteuttaa näyttöön perustuvat metodit tavoitteiden
+            saavuttamiseksi. Kliiniset taidot. Osaa arvioida tarkastustoiminnan laatua ja vaikuttavuutta. Osaa
+            työterveyshuollon toimintojen kokonaisuudessa hyödyntää terveystarkastuksia ennakoimattomien
+            työkykyyn liittyvien kysymyksenasettelujen ratkaisemisessa. Osaa tukea terveyttä edistävien elintapojen
+            valintoja.</p>
+            <p>Ajattelutavat/asenteet: Ymmärtää terveystarkastusten aseman työterveyden ydintoimintona ja työkaluna
+            työterveysyhteistyön tavoitteiden saavuttamiseksi. Mieltää työntekijöiden työ- ja toimintakyvyn
+            turvaamisen merkityksen ja kunnioittaa yksilön itsemääräämisoikeutta.</p>
+            <h4>Ohjaus- ja harjoittelumenetelmät</h4>
+            <p>Tavoitteiden tunnistaminen ja henkilökohtainen oppimisen suunnittelu. Itseohjautuva aktiivinen
+            työssäoppiminen, monipuolisiin työtehtäviin hakeutuminen, suoritteiden dokumentointi ja reflektoinnit.
+            Kirjallisuus, kurssit, toimipaikka- ja muut koulutukset, erilaiset kurssi- ja tehtäväpalautteet.
+            Kouluttajalääkärin kanssa käydyt ohjauskeskustelut ja arvioinnit.</p>
+            <h4>Arviointimenetelmät</h4>
+            <p>Itsearviointi. Jäsentynyt reflektoinnin tarkastelu. Tapauspohjainen keskustelu. Erilaisten työssä ja työstä
+            syntyneiden dokumenttien tarkastelu. Toiminnasta saadun palautteen tarkastelu (esim. työyhteisö ja
+            asiakaspalautteet).</p>]]></column>
+            <where>nimi = '3.1. Erilaisten työterveystarkastusten tarpeen arviointi, suunnittelu ja toteuttaminen'</where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kuvaus"><![CDATA[
+            <h3>EPA 4.1 Työterveysneuvottelun toteuttaminen</h3>
+            <p>Arvioitavan kokonaisuuden yläotsikko/kategoria: 4 Neuvonta ja ohjaus sekä erilaiset yhteistyö- ja
+            asiantuntijatoiminnot</p>
+            <h4>Lyhyt kuvaus</h4>
+            <p>Työterveysneuvottelu (TTN) on työntekijän, työnantajan ja työterveyshuollon edustajien neuvottelu, joka
+            järjestetään, kun toiminta terveydenhuollon sisällä ei riitä, vaan työntekijän työkykyä tukevien ratkaisujen
+            tueksi tarvitaan tietoa työpaikan näkökulmasta ja/tai yhteistä suunnittelua. TTN:n voi toteuttaa
+            perinteisenä neuvotteluna tai verkkokokouksena.</p>
+            <h4>Määritelmä ja rajoitukset</h4>
+            <p>Työterveyslääkäri kutsuu koolle TTN:n tai kutsusta osallistuu TTN erilaisissa tilanteissa, kuten varhaisen
+            tuen mallien mukaisissa ja työhön paluun tuen selvittelyissä tai kun muutoin kartoitetaan mahdollisuuksia
+            työkyvyn tukemiseksi ja laaditaan yhteistyösuunnitelmia, tai kun selvitellään oireiden ja sairauksien
+            liittymistä työn altisteisiin, kuormitukseen tai työyhteisön toimintaan. Työterveyslääkäri huolehtii osaltaan,
+            että tarkoituksenmukaiset henkilöt tth:n moniammatillisesta tiimistä osallistuvat neuvotteluun. TTN on
+            suunnitelmallinen ja tavoitteellinen tilanne. Eettinen tarkastelu on tärkeä osa valmistautumista ja
+            toteutusta. Suunnitteluvaiheessa huolehditaan olennaisten tahojen osallistuminen ja ohjeistetaan
+            osapuolet tarvittavassa määrin. Neuvottelun alussa sovitaan roolit (pj, muistiontekijä) ja kerrataan
+            osapuolten tavoitteet, mielellään myös vaihtoehtoja. Keskustelu käydään työn ja toimintakyvyn
+            näkökulmasta. Varmistetaan, että osapuolet tulevat kuulluiksi ja että lopussa on yhteinen ymmärrys
+            neuvottelun tuloksista. Sovitaan tarvittavasta seurannasta työterveyshuollossa ja otetaan opitut asiat
+            tarvittaessa huomioon työterveyshuollon muussa toiminnassa. TTN tulos työpaikalla voi olla, että työtä
+            muokataan lyhytaikaisesti tai pysyvästi. Samalla päästään sopimaan, miten asiaa käsitellään työyhteisössä.
+            Neuvottelusta laaditaan muistio työpaikkakohtaisesti täsmennetyin ohjein.</p>
+            <h4>Mahdolliset riskit ja komplikaatiot</h4>
+            <p>Ongelmat haastavissa vuorovaikutustilanteissa voivat johtaa väärinymmärryksiin, voimavaroja sitoviin
+            ristiriitoihin, taloudellisiin menetyksiin ja tarpeettomiin selvittelyihin. Osaamattomuus salassa pidettävien
+            asioiden käsittelyssä voi johtaa potilaan tai työpaikka-asiakkaan luottamuksen menettämiseen.</p>
+            <h4>Keskeiset CanMEDS-osaamisalueet</h4>
+            <p>Lääketieteellinen osaaminen, Vuorovaikutustaidot, Yhteistyötaidot, Johtamistaidot, Oma osaaminen ja
+            tiedonhallinta, Terveyden edistäminen, Ammatillisuus.</p>
+            <h4>Suoritusta koskevat odotukset (tiedot, taidot ja asenteet)</h4>
+            <p>Tiedot: Keskeisten sairausryhmien vaikutukset työ- ja toimintakykyyn. Tyypilliset työn vaatimukset ja työn
+            muokkaamisen mahdollisuudet yleisesti ko. toimialalla. Sosiaalivakuutuksen mahdollisuudet rahoittaa
+            työkyvyn tukemista. Ammatillisen kuntoutuksen järjestelyt. Vaihtoehtojen taloudellinen ja käytännön
+            merkitys osapuolille.</p>
+            <p>Taidot: Kokonaiskuvan muodostamisen ja näkemyksen viestimisen taidot. Verkostotyön ja
+            moniammatillisen yhteistyön taidot. Neuvottelu- ja sovittelutaidot. Toteuttamiskelpoisten suunnitelmien
+            syntymistä tukevan neuvonnan ja ohjauksen taidot. Kannustamisen taidot. Kyky laatia muistiot ja lausunnot
+            suunnitelmia tukien. Työterveyshuollon muihin toimintoihin linkittämisen taidot.</p>
+            <p>Ajattelutavat/asenteet: Työ terveyden ja työkyvyn tukena. Työurien tukeminen. Aloitteellisuus,
+            ratkaisukeskeisyys, tasapuolisuus, objektiivisuus. Suunnitelmallisuus, pitkäjänteisyys. Toiminnan
+            eettisyyden varmistaminen. Ymmärrys, että työpaikalla toteutuvat toimet ovat neuvottelutuloksia
+            työnantajan ja työntekijän välillä ja että TTN käytännöt luodaan paikallisesti. Työpaikan tukeminen
+            työntekijöiden työkyvyn ylläpitämisessä.</p>
+            <h4>Ohjaus- ja harjoittelumenetelmät</h4>
+            <p>Tavoitteiden tunnistaminen ja henkilökohtainen oppimisen suunnittelu. Itseohjautuva aktiivinen
+            työssäoppiminen, monipuolisiin työtehtäviin hakeutuminen, suoritteiden dokumentointi ja reflektoinnit.
+            Kirjallisuus, kurssit, toimipaikka- ja muut koulutukset, erilaiset kurssi- ja tehtäväpalautteet.
+            Kouluttajalääkärin kanssa käydyt ohjauskeskustelut ja arvioinnit.</p>
+            <h4>Arviointimenetelmät</h4>
+            <p>Itsearviointi. Jäsentynyt reflektoinnin tarkastelu. Tapauspohjainen keskustelu. Erilaisten työssä ja työstä
+            syntyneiden dokumenttien tarkastelu. Toiminnasta saadun palautteen tarkastelu (esim. työyhteisö ja
+            asiakaspalautteet).</p>]]></column>
+            <where>nimi = '4.1. Työterveysneuvottelun toteuttaminen'</where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kuvaus"><![CDATA[
+            <h3>EPA 5.1 Sairauksien työperäisyyden selvittäminen</h3>
+            <p>Arvioitavan kokonaisuuden yläotsikko/kategoria: 5 Työterveyspainotteinen sairaanhoito</p>
+            <h4>Lyhyt kuvaus</h4>
+            <p>Työterveyshuoltopainotteisessa sairaanhoidossa työterveyslääkäri ottaa diagnostiikassaan aina työn ja
+            työolot huomioon.</p>
+            <h4>Määritelmä ja rajoitukset</h4>
+            <p>Työterveyshuoltopainotteisessa sairaanhoidossa työterveyslääkäri ottaa aina työn ja työolot huomioon.
+            Hän arvioi systemaattisesti työn terveyttä kuormittavien ja tukevien tekijöiden merkityksen oireiden ja
+            sairauksien taustalla, hankkien tarvittavat lisätiedot työstä, erotellen näin työhön liittymättömät,
+            työperäiset ja ammattitaudit. Hän arvioi työtä ja siihen vaikuttamista myös selviteltäessä työuupumusta,
+            mahdollista epäasiallista kohtelua työssä, työtapaturmia ja työliikekipeytymisiä. Hän tavoittelee
+            työperäisten ja ammattitautien varhaista diagnostiikkaa, edistäen tarvittaessa työympäristöön vaikuttavia
+            toimia lisäsairastumisten ehkäisemiseksi.</p>
+            <p>Työperäisyyden selvittelyssä hän tarkentaa aluksi työ- ja altisteanamneesin, arvioi altistuksen
+            merkittävyyden työterveyshuollon muita tietoja hyödyntäen, huolehtii perustason erotusdiagnostiset
+            selvittelyt, arvion ja hoidon, ja tekee tarvittaessa lähetteen ammattitautitutkimuksiin sekä laatii
+            ammattitauti-ilmoituksen. Hän hyödyntää moniammatillisen tiimin osaamisia selvittelyissä.
+            Hän hyödyntää ja koostaa aktiivisesti sairausvastaanotolla kertyvää tietoa myös tarkempien
+            terveystarkastusten ja työpaikkaselvitysten tarpeen arvioimiseksi ja käynnistämiseksi ja koostaa
+            selvityksistä yhteenvetoja seuraavien työpaikkaselvitysten ja toimintasuunnitelmien pohjaksi.
+            Mahdolliset riskit ja komplikaatiot</p>
+            <p>Erikoistuva lääkäri ei tunnista työhön, altisteisiin, työolosuhteisiin ja kuormituksiin liittyviä terveysvaaroja,
+            jolloin sairauksien eriasteinen työperäisyys voi jäädä tunnistamatta, mikä vaarantaa asianmukaisen
+            diagnostiikan ja vaikeuttaa osuvien hoito- ja kuntoutustoimien suunnittelua. Tällöin myöskään ei tunnisteta
+            tarvetta käynnistää selvittelyä työpaikan olosuhteista eikä käynnistetä ennaltaehkäiseviä toimia vastaavien
+            terveysriskien minimoimiseksi muiden työntekijöiden osalta.</p>
+            <h4>Keskeiset CanMEDS-osaamisalueet</h4>
+            <p>Lääketieteellinen osaaminen, Vuorovaikutustaidot, Yhteistyötaidot, Johtamistaidot, Oma osaaminen ja
+            tiedonhallinta, Terveyden edistäminen, Ammatillisuus.</p>
+            <h4>Suoritusta koskevat odotukset (tiedot, taidot ja asenteet)</h4>
+            <p>Tiedot: Ammattitautilainsäädäntö. Keskeiset ammatti- ja toimialakohtaiset altisteet, kuormitus- ja
+            voimavaratekijät sekä niiden työlääketieteelliset vaikutukset. Keskeisten ammattitautien ja työperäisten
+            sairauksien seulonnan, perustason diagnostiikan ja erotusdiagnostiikan käytännöt sekä
+            lähettämiskäytännöt jatkotutkimuksiin ja hoitoon. Työikäisten sairauksien Käypä hoito.</p>
+            <p>Taidot: Työ- ja altisteanamneesin ottaminen, tarvittavan ajankäytön varmistaminen siihen, altistumisen
+            merkittävyyden arvioiminen, valmiudet hankkia lisää tietoja vieraammista altisteista. Kliinisen tutkimisen
+            taidot. Konsultoinnin taidot. Alustavan arvion muodostaminen työperäisyydestä. Taidot hyödyntää
+            työterveyshuollon terveystarkastuksia, työpaikkaselvityksiä sekä moniammatillisen tiimin osaamisia
+            työperäisyyden tarkemmassa arvioinnissa. Yhteistyötaidot työpaikkojen kanssa yksilöiden tietosuojasta
+            huolehtien. Vuorovaikutus- ja viestintätaidot suullisesti ja kirjallisesti lähetteissä ja lausunnoissa. Työkyvyn
+            arvioinnin ja tukemisen taidot EPA6 myös työperäisten sairauksien kohdalla.</p>
+            <p>Ajattelutavat/asenteet: Ymmärrys työn merkityksestä sekä terveyden voimavarana että kuormitus- ja
+            riskitekijänä. Työstä johtuvan sairastumisen ennaltaehkäiseminen, tahto tukea yhteistyössä työn
+            terveellisyyttä ja turvallisuutta. Ymmärrys että näiden tavoitteiden edistämiseksi työhön voi vaikuttaa.
+            Tahto tukea työperäisistä oireista ja sairauksista kärsivien terveyttä, työkykyä ja työllistymiskykyä ja omalta
+            osaltaan varmistaa sosiaalivakuutuksen tukimahdollisuuksien ja korvauksien toteutuminen.</p>
+            <h4>Ohjaus- ja harjoittelumenetelmät</h4>
+            <p>Tavoitteiden tunnistaminen ja henkilökohtainen oppimisen suunnittelu. Itseohjautuva aktiivinen
+            työssäoppiminen, monipuolisiin työtehtäviin hakeutuminen, suoritteiden dokumentointi ja reflektoinnit.
+            Kirjallisuus, kurssit, toimipaikka- ja muut koulutukset, erilaiset kurssi- ja tehtäväpalautteet.
+            Kouluttajalääkärin kanssa käydyt ohjauskeskustelut ja arvioinnit.</p>
+            <h4>Arviointimenetelmät</h4>
+            <p>Itsearviointi. Jäsentynyt reflektoinnin tarkastelu. Tapauspohjainen keskustelu. Erilaisten työssä ja työstä
+            syntyneiden dokumenttien tarkastelu. Toiminnasta saadun palautteen tarkastelu (esim. työyhteisö ja
+            asiakaspalautteet).</p>"]]></column>
+            <where>nimi = '5.1. Sairauksien työperäisyyden selvittäminen'</where>
+        </update>
+
+        <update tableName="arvioitava_kokonaisuus">
+            <column name="kuvaus"><![CDATA[
+            <h3>EPA 5.2 Sairauspoissaolotarpeen arviointi ja työkyvyn tukeminen</h3>
+            <p>Arvioitavan kokonaisuuden yläotsikko/kategoria: 5 Työterveyspainotteinen sairaanhoito</p>
+            <h4>Lyhyt kuvaus</h4>
+            <p>Työterveyslääkäri arvioi työkyvyttömyyttä, olemassa olevaa työkykyä, sairauspoissaolon tarvetta ja työhön
+            paluun mahdollisuuksia suhteuttaen toimintakykyä työn vaatimuksiin ja työpaikan mahdollisuuksiin
+            muokata työtä toipumisen tueksi.</p>
+            <h4>Määritelmä ja rajoitukset</h4>
+            <p>Työterveyslääkäri arvioi automaattisesti sairauteen tai vammaan mahdollisesti liittyvää työkyvyn alenemaa,
+            suhteuttaen toimintakyvyn alenemaa työn vaatimuksiin, arvioiden samalla jäljellä olevaa työkykyä ja
+            mahdollista työkyvyttömyyttä ja kaikkien edellä kuvattujen ennustetta. Hän arvioi aina myös vaihtoehtoja
+            jatkaa työssä tai palata työhön sairaus huomioon ottaen. Hän pyrkii yhteistyössä laadittuun hoito- ja
+            kuntoutussuunnitelmaan työhön paluun tukemiseksi ja antaa toipumista tukevaa neuvontaa ja ohjausta
+            toimenpiteistä sairauspoissaolon ajalle. Hän laatii tarpeelliset lausunnot toimitettavaksi työpaikalle
+            (Atodistus) ja sosiaalivakuutuksen tarpeisiin (A-todistus, B-lausunto, joskus E-lausunto, muut) sekä huolehtii
+            potilaan/työntekijän luvalla tarvittavat yhteydenotot työpaikalle työssä jatkamista tukevista
+            työjärjestelyistä sopimiseksi, työpaikkakohtaisten käytäntöjen mukaan.</p>
+            <p>Työterveyslääkäri organisoi tarpeen mukaan tarkempia työkyvyn selvittelyjä hyödyntäen
+            erikoislääkärikonsultaatioita ja muun terveydenhuollon palveluja sekä työterveyshuollon omia muita
+            toimintoja kuten terveystarkastuksia, suunnattuja työpaikkaselvityksiä ja työterveysneuvotteluja.
+            Työterveyslääkäri voi näitä toimintoja hyödyntäen myös vastata muiden erikoisalojen konsultaatioihin
+            työkyvystä ja sairauspoissaolotarpeesta.</p>
+            <h4>Mahdolliset riskit ja komplikaatiot</h4>
+            <p>Osaamisvaje työkyvyn arvioinnissa, työhön paluun suunnittelussa ja sitä tukevassa sosiaalivakuutuksen
+            hyödyntämisessä voi johtaa merkittäviin taloudellisiin menetyksiin niin yksilön, työpaikan kuin
+            yhteiskunnankin näkökulmista. Ongelmat haastavissa vuorovaikutustilanteissa voivat johtaa
+            väärinymmärryksiin, voimavaroja sitoviin ristiriitoihin, taloudellisiin menetyksiin ja tarpeettomiin
+            selvittelyihin.</p>
+            <h4>Keskeiset CanMEDS-osaamisalueet</h4>
+            <p>Lääketieteellinen osaaminen, Vuorovaikutustaidot, Yhteistyötaidot, Johtamistaidot, Oma osaaminen ja
+            tiedonhallinta, Terveyden edistäminen, Ammatillisuus.</p>
+            <h4>Suoritusta koskevat odotukset (tiedot, taidot ja asenteet)</h4>
+            <p>Tiedot: keskeisten työikäisten sairauksien hoito- ja kuntoutusmahdollisuudet ja vaikutukset toimintakykyyn.
+            Merkitys työkykyyn suhteuttaen tietoon eri ammattien ja toimialojen tyypillisistä työn vaatimuksista,
+            kuormitustekijöistä ja voimavaratekijöistä. Sairauspoissaoloja ja sosiaalivakuutusta koskeva lainsäädäntö
+            kuten 30-60-90 päivän säännöt, lääkärintodistuksia koskevat säädökset, keskeinen aihepiiriin liittyvä
+            työlainsäädäntö sekä työelämän sopimuskäytännöt, sisältäen korvaavan työn ja yksilöllisten työn
+            muokkausten erot. Työpaikkojen sairauspoissaolojen hallinnan ja työkyvyn tuen mallit, hyvät käytännöt
+            työhön paluun tukemiseksi, kuvaukset työterveysneuvottelujen hyödyntämisestä näissä. Kelan
+            sairauspoissaolojen kirjoittamisohjeet, osasairauspäivärahasta sopimisen käytännöt, eri rahoittajien
+            ammatillisen kuntoutuksen vaihtoehdot, muut osa-aikatyön mahdollisuudet. Sairauspoissaolojen
+            kustannukset yhteiskunnalle, yrityksille ja työntekijöille itselleen.</p>
+            <p>Taidot: Taidot muodostaa lääketieteelliseen arvioon pohjautuvia osuvia kokonaisarvioita sairauspoissaolon
+            tarpeesta, vuorovaikutuksessa potilaan/työntekijän kanssa, selvittäen juuri hänen työnsä vaatimukset ja
+            työpaikan mahdollisuudet. Taidot viestiä työkyvystä ja sairauksien vaikutuksesta hoito- ja
+            kuntoutussuunnitelmia tukien sekä suullisessa viestinnässä että kirjallisissa lausunnoissa. Taidot hyödyntää
+            oikea-aikaisesti työterveyshuollon moniammatillista tiimiä (myös sosiaalialan asiantuntijoita), muun
+            terveydenhuollon palvelujärjestelmää sekä lääkinnällistä kuntoutusta. Taidot viestiä tietosuojan puitteissa
+            työpaikan suuntaan tarvittavien tukitoimien järjestämiseksi.</p>
+            <p>Ajattelutavat/asenteet: Sairauspoissaolo on osa suunnitelmallista hoitoa, ei irrallinen arvio.
+            Mahdollisimman nopea työhön paluu oireet huomioon ottaen usein tukee toipumista. Pitkittyvissä
+            sairauspoissaoloissa aktiivinen oikea-aikaisen työhön paluun suunnittelu ja tuki.</p>
+            <h4>Ohjaus- ja harjoittelumenetelmät</h4>
+            <p>Tavoitteiden tunnistaminen ja henkilökohtainen oppimisen suunnittelu. Itseohjautuva aktiivinen
+            työssäoppiminen, monipuolisiin työtehtäviin hakeutuminen, suoritteiden dokumentointi ja reflektoinnit.
+            Kirjallisuus, kurssit, toimipaikka- ja muut koulutukset, erilaiset kurssi- ja tehtäväpalautteet.
+            Kouluttajalääkärin kanssa käydyt ohjauskeskustelut ja arvioinnit.</p>
+            <h4>Arviointimenetelmät</h4>
+            <p>Itsearviointi. Jäsentynyt reflektoinnin tarkastelu. Tapauspohjainen keskustelu. Erilaisten työssä ja työstä
+            syntyneiden dokumenttien tarkastelu. Toiminnasta saadun palautteen tarkastelu (esim. työyhteisö ja
+            asiakaspalautteet).</p>"]]></column>
+            <where>nimi = '5.2. Sairauspoissaolotarpeen arviointi ja työkyvyn tukeminen'</where>
+        </update>
+
+    </changeSet>
+
+</databaseChangeLog>
