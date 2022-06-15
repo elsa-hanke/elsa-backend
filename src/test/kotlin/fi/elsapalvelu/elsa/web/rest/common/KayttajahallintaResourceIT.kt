@@ -165,7 +165,7 @@ class KayttajahallintaResourceIT {
 
         val id = vastuuhenkilo.id
 
-        restMockMvc.perform(get("/api/virkailija/vastuuhenkilot/$id"))
+        restMockMvc.perform(get("/api/virkailija/kayttajat/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
@@ -183,7 +183,7 @@ class KayttajahallintaResourceIT {
 
         val id = vastuuhenkilo.id
 
-        restMockMvc.perform(get("/api/virkailija/vastuuhenkilot/$id"))
+        restMockMvc.perform(get("/api/virkailija/kayttajat/$id"))
             .andExpect(status().isBadRequest)
     }
 
@@ -199,7 +199,7 @@ class KayttajahallintaResourceIT {
 
         val id = vastuuhenkilo.id
 
-        restMockMvc.perform(get("/api/tekninen-paakayttaja/vastuuhenkilot/$id"))
+        restMockMvc.perform(get("/api/tekninen-paakayttaja/kayttajat/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
@@ -213,7 +213,7 @@ class KayttajahallintaResourceIT {
 
         val id = count.incrementAndGet()
 
-        restMockMvc.perform(get("/api/$rolePath/vastuuhenkilot/$id"))
+        restMockMvc.perform(get("/api/$rolePath/kayttajat/$id"))
             .andExpect(status().isBadRequest)
     }
 
@@ -229,7 +229,7 @@ class KayttajahallintaResourceIT {
 
         val id = kouluttaja.id
 
-        restMockMvc.perform(get("/api/virkailija/kouluttajat/$id"))
+        restMockMvc.perform(get("/api/virkailija/kayttajat/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
@@ -247,7 +247,7 @@ class KayttajahallintaResourceIT {
 
         val id = kouluttaja.id
 
-        restMockMvc.perform(get("/api/virkailija/kouluttajat/$id"))
+        restMockMvc.perform(get("/api/virkailija/kayttajat/$id"))
             .andExpect(status().isBadRequest)
     }
 
@@ -263,7 +263,7 @@ class KayttajahallintaResourceIT {
 
         val id = kouluttaja.id
 
-        restMockMvc.perform(get("/api/tekninen-paakayttaja/kouluttajat/$id"))
+        restMockMvc.perform(get("/api/tekninen-paakayttaja/kayttajat/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
@@ -277,7 +277,7 @@ class KayttajahallintaResourceIT {
 
         val id = count.incrementAndGet()
 
-        restMockMvc.perform(get("/api/$rolePath/kouluttajat/$id"))
+        restMockMvc.perform(get("/api/$rolePath/kayttajat/$id"))
             .andExpect(status().isBadRequest)
     }
 
