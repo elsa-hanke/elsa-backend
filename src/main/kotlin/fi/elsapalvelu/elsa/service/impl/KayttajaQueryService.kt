@@ -3,8 +3,9 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
+import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
-import fi.elsapalvelu.elsa.service.dto.YliopistoErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.KayttajahallintaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import fi.elsapalvelu.elsa.service.mapper.VastuuhenkilonTehtavatyyppiMapper
 import org.springframework.data.domain.Page
@@ -21,7 +22,7 @@ import javax.persistence.criteria.*
 @Transactional(readOnly = true)
 class KayttajaQueryService(
     private val kayttajaRepository: KayttajaRepository,
-    private val vastuuhenkilonTehtavatyyppiMapper: VastuuhenkilonTehtavatyyppiMapper
+    private val vastuuhenkilonTehtavatyyppiMapper: VastuuhenkilonTehtavatyyppiMapper,
 ) : QueryService<Any>() {
 
     @Transactional(readOnly = true)
@@ -35,10 +36,16 @@ class KayttajaQueryService(
         val specification: Specification<Kayttaja> = Specification.where { root, cq, cb ->
             val predicates: MutableList<Predicate> = mutableListOf()
 
-            getAuthorityPredicate(authority, root, cb).let {
-                predicates.add(it)
+            if (authority == OPINTOHALLINNON_VIRKAILIJA) {
+                getKayttajaYliopistoPredicate(yliopistoId, root, cb)?.let {
+                    predicates.add(it)
+                }
+            } else {
+                getKayttajaYliopistoErikoisalaPredicate(yliopistoId, root, cq, cb)?.let {
+                    predicates.add(it)
+                }
             }
-            getYliopistoPredicate(yliopistoId, root, cq, cb)?.let {
+            getAuthorityPredicate(authority, root, cb).let {
                 predicates.add(it)
             }
             getNimiPredicate(criteria?.nimi, root, cb, langkey)?.let {
@@ -97,7 +104,7 @@ class KayttajaQueryService(
         return nimiFilter.toNimiPredicate(user, cb, langkey)
     }
 
-    private fun getYliopistoPredicate(
+    private fun getKayttajaYliopistoErikoisalaPredicate(
         yliopistoId: Long?,
         root: Root<Kayttaja>,
         cq: CriteriaQuery<*>,
@@ -114,6 +121,17 @@ class KayttajaQueryService(
                 cb.equal(root.get(Kayttaja_.id), rootJoin.get(Kayttaja_.id))
             )
             return cb.exists(subquery)
+        }
+    }
+
+    private fun getKayttajaYliopistoPredicate(
+        yliopistoId: Long?,
+        root: Root<Kayttaja>,
+        cb: CriteriaBuilder
+    ): Predicate? {
+        return yliopistoId?.let {
+            val rootJoin = root.join(Kayttaja_.yliopistot)
+            return cb.`in`(rootJoin.get(Yliopisto_.id)).value(yliopistoId)
         }
     }
 
@@ -142,8 +160,8 @@ class KayttajaQueryService(
             kayttajaId = kayttaja.id,
             etunimi = kayttaja.user?.firstName,
             sukunimi = kayttaja.user?.lastName,
-            yliopistotAndErikoisalat = kayttaja.yliopistotAndErikoisalat.map { ye ->
-                YliopistoErikoisalaDTO(
+            yliopistotAndErikoisalat = kayttaja.yliopistotAndErikoisalat.takeIf { it.isNotEmpty() }?.map { ye ->
+                KayttajahallintaYliopistoErikoisalaDTO(
                     yliopisto = ye.yliopisto?.nimi,
                     erikoisala = ye.erikoisala?.nimi,
                     vastuuhenkilonTehtavat = ye.vastuuhenkilonTehtavat.map {
@@ -151,6 +169,10 @@ class KayttajaQueryService(
                             it
                         )
                     }.toSet()
+                )
+            } ?: kayttaja.yliopistot.map { y ->
+                KayttajahallintaYliopistoErikoisalaDTO(
+                    yliopisto = y.nimi
                 )
             },
             kayttajatilinTila = kayttaja.tila
