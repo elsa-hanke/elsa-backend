@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
-import fi.elsapalvelu.elsa.service.dto.YliopistoErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.KayttajahallintaYliopistoErikoisalaDTO
 import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
@@ -20,7 +20,7 @@ data class KayttajahallintaKayttajaListItemDTO(
     var syntymaaika: LocalDate? = null,
 
     @get: NotNull
-    var yliopistotAndErikoisalat: List<YliopistoErikoisalaDTO> = listOf(),
+    var yliopistotAndErikoisalat: List<KayttajahallintaYliopistoErikoisalaDTO> = listOf(),
 
     @get: NotNull
     var kayttajatilinTila: KayttajatilinTila? = null

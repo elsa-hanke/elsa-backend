@@ -79,6 +79,24 @@ open class KayttajahallintaResource(
         return ResponseEntity.ok(kouluttajat)
     }
 
+    @GetMapping("/virkailijat")
+    fun getVirkailijat(
+        criteria: KayttajahallintaCriteria, pageable: Pageable, principal: Principal?
+    ): ResponseEntity<Page<KayttajahallintaKayttajaListItemDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val virkailijat = if (hasVirkailijaRole(user)) {
+            kayttajaService.findByKayttajahallintaCriteriaFromSameYliopisto(
+                user.id!!, OPINTOHALLINNON_VIRKAILIJA, criteria, pageable
+            )
+        } else {
+            kayttajaService.findByKayttajahallintaCriteria(
+                user.id!!, OPINTOHALLINNON_VIRKAILIJA, criteria, pageable
+            )
+        }
+        return ResponseEntity.ok(virkailijat)
+    }
+
+
     @GetMapping("/kayttajat/rajaimet")
     fun getKayttajahallintaRajaimet(): ResponseEntity<KayttajahallintaKayttajatOptionsDTO> {
         val form = KayttajahallintaKayttajatOptionsDTO()

@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.dto
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import java.io.Serializable
 
-data class YliopistoErikoisalaDTO(
+data class KayttajahallintaYliopistoErikoisalaDTO(
 
     var yliopisto: YliopistoEnum? = null,
 
