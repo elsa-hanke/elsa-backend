@@ -96,27 +96,14 @@ open class KayttajahallintaResource(
 
         return ResponseEntity.ok(
             KayttajahallintaKayttajaWrapperDTO(
-                kayttaja = getKayttajaOrThrow(id), erikoistuvaLaakari = erikoistuvaLaakari
+                kayttaja = getKayttajaOrThrow(id),
+                erikoistuvaLaakari = erikoistuvaLaakari
             )
         )
     }
 
-    @GetMapping("/kouluttajat/{id}")
-    fun getKouluttaja(
-        @PathVariable id: Long, principal: Principal?
-    ): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
-        val kayttaja = getKayttajaOrThrow(id)
-        validateCurrentUserIsAllowedToManageKayttaja(principal, id)
-
-        return ResponseEntity.ok(
-            KayttajahallintaKayttajaWrapperDTO(
-                kayttaja = kayttaja
-            )
-        )
-    }
-
-    @GetMapping("/vastuuhenkilot/{id}")
-    fun getVastuuhenkilo(
+    @GetMapping("/kayttajat/{id}")
+    fun getKayttaja(
         @PathVariable id: Long, principal: Principal?
     ): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
         val kayttaja = getKayttajaOrThrow(id)
