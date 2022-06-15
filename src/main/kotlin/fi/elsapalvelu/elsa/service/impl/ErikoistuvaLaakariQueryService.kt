@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
-import fi.elsapalvelu.elsa.service.dto.YliopistoErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.KayttajahallintaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -82,7 +82,7 @@ class ErikoistuvaLaakariQueryService(
             sukunimi = erikoistuvaLaakari.kayttaja?.user?.lastName,
             syntymaaika = erikoistuvaLaakari.syntymaaika,
             yliopistotAndErikoisalat = erikoistuvaLaakari.opintooikeudet.map { o ->
-                YliopistoErikoisalaDTO(
+                KayttajahallintaYliopistoErikoisalaDTO(
                     yliopisto = o.yliopisto?.nimi,
                     erikoisala = o.erikoisala?.nimi
                 )
