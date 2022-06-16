@@ -3,12 +3,15 @@ package fi.elsapalvelu.elsa.domain
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import javax.persistence.*
 import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "kayttaja")
+@Audited
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Kayttaja(
 
@@ -25,6 +28,7 @@ data class Kayttaja(
 
     @NotNull
     @OneToOne(optional = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     @JoinColumn(unique = true)
     var user: User? = null,
 

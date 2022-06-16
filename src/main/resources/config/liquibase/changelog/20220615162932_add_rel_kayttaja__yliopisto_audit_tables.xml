@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220615162932" author="jhipster">
+        <renameTable oldTableName="rel_kayttaja_yliopisto_erikoisala__vastuuhenkilon_tehtavatyyppi"
+                     newTableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi"/>
+
+        <dropAllForeignKeyConstraints baseTableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi"/>
+
+        <addForeignKeyConstraint baseTableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi"
+                                 baseColumnNames="kayttaja_yliopisto_erikoisala_id"
+                                 constraintName="fk_tehtavatyyppi_kayttaja_yliopisto_erikoisala_id"
+                                 referencedTableName="kayttaja_yliopisto_erikoisala"
+                                 referencedColumnNames="id"/>
+
+         <addForeignKeyConstraint baseTableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi"
+                                 baseColumnNames="vastuuhenkilon_tehtavatyyppi_id"
+                                 constraintName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi_tehtavatyyppi_id"
+                                 referencedTableName="vastuuhenkilon_tehtavatyyppi"
+                                 referencedColumnNames="id"/>
+
+        <createTable tableName="kayttaja_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="user_id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nimike" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="tila" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi_audit">
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="kayttaja_yliopisto_erikoisala_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="rel_kayttaja__yliopisto_audit">
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="kayttaja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yliopisto_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="kayttaja_audit"
+                                 constraintName="fk_kayttaja_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi_audit"
+                                 constraintName="fk_rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="rel_kayttaja__yliopisto_audit"
+                                 constraintName="fk_rel_kayttaja__yliopisto_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+</databaseChangeLog>
