@@ -3,12 +3,14 @@ package fi.elsapalvelu.elsa.domain
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
 import java.io.Serializable
 import javax.persistence.*
 import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "vastuuhenkilon_tehtavatyyppi")
+@Audited
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class VastuuhenkilonTehtavatyyppi(
 

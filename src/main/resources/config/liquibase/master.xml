@@ -214,5 +214,6 @@
     <include file="config/liquibase/changelog/20220609235016_modify_erikoisala_data_ihotaudit.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220610110333_modify_erikoisala_data_lastentaudit.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220614095433_modify_erikoisala_data_tyoterveys.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220615162932_add_rel_kayttaja__yliopisto_audit_tables.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
