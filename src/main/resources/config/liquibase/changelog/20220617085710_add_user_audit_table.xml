@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220617085710" author="jhipster">
+        <createTable tableName="jhi_user_audit">
+            <column name="id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="login" type="varchar(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="first_name" type="varchar(50)"/>
+            <column name="last_name" type="varchar(50)"/>
+            <column name="email" type="varchar(191)">
+                <constraints nullable="true" />
+            </column>
+            <column name="activated" type="boolean">
+                <constraints nullable="false" />
+            </column>
+            <column name="lang_key" type="varchar(10)"/>
+            <column name="created_by" type="varchar(50)">
+            </column>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+            <column name="hetu" type="bytea"/>
+            <column name="init_vector" type="bytea"/>
+            <column name="phone_number" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="avatar" type="longblob">
+                <constraints nullable="true" />
+            </column>
+            <column name="eppn" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="jhi_user_audit"
+                                 constraintName="fk_jhi_user_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+
+    </changeSet>
+</databaseChangeLog>
