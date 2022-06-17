@@ -6,6 +6,9 @@ import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.GenericGenerator
+import org.hibernate.envers.Audited
+import org.hibernate.envers.NotAudited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.Instant
 import javax.persistence.*
@@ -16,6 +19,7 @@ import javax.validation.constraints.Size
 
 @Entity
 @Table(name = "jhi_user")
+@Audited
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 class User(
 
@@ -56,12 +60,14 @@ class User(
     var activated: Boolean = false,
 
     @Column
+    @NotAudited
     var hetu: ByteArray? = null,
 
     @field:Size(max = 254)
     @Column(name = "eppn", length = 254)
     var eppn: String? = null,
 
+    @NotAudited
     @Column(name = "init_vector")
     var initVector: ByteArray? = null,
 
@@ -71,6 +77,7 @@ class User(
 
     @JsonIgnore
     @ManyToMany
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     @JoinTable(
         name = "jhi_user_authority",
         joinColumns = [JoinColumn(name = "user_id", referencedColumnName = "id")],
