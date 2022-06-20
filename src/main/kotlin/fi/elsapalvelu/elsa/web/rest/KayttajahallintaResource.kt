@@ -147,14 +147,10 @@ open class KayttajahallintaResource(
         return ResponseEntity.ok(form)
     }
 
-    @GetMapping("/vastuuhenkilo-lomake")
-    fun getVastuuhenkiloForm(principal: Principal?): ResponseEntity<KayttajahallintaKayttajaFormDTO> {
-        val form = KayttajahallintaKayttajaFormDTO()
+    @GetMapping("/yliopistot")
+    fun getYliopistotByRole(principal: Principal?): ResponseEntity<Set<YliopistoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-
-        form.yliopistot = getYliopistotByRole(user)
-
-        return ResponseEntity.ok(form)
+        return ResponseEntity.ok(getYliopistotByRole(user))
     }
 
     @GetMapping("/vastuuhenkilon-tehtavat-lomake/{yliopistoId}")
@@ -180,13 +176,7 @@ open class KayttajahallintaResource(
         @Valid @RequestBody kayttajahallintaErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariDTO,
         principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
-        if (userService.existsByEmail(kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite!!)) {
-            throw BadRequestAlertException(
-                "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
-                KAYTTAJA_ENTITY_NAME,
-                "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
-            )
-        }
+        validateEmailNotExists(kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite!!)
 
         if (yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).isEmpty) {
             throw BadRequestAlertException(
@@ -218,7 +208,7 @@ open class KayttajahallintaResource(
 
         val result = erikoistuvaLaakariService.save(kayttajahallintaErikoistuvaLaakariDTO)
 
-        return ResponseEntity.created(URI("/api/tekninen-paakayttaja/erikoistuvat-laakarit/${result.kayttajaId}"))
+        return ResponseEntity.created(URI("/api/${resolveRolePath(principal)}/erikoistuvat-laakarit/${result.kayttajaId}"))
             .body(result)
 
     }
@@ -274,21 +264,66 @@ open class KayttajahallintaResource(
         val sahkoposti = updateErikoistuvaLaakariDTO.sahkoposti
 
         val userDTO = userService.getUser(userId)
-        if (userDTO.email != sahkoposti && userService.existsByEmail(sahkoposti)) {
-            throw BadRequestAlertException(
-                "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
-                KAYTTAJA_ENTITY_NAME,
-                "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
-            )
-        }
+        validateEmailNotExists(sahkoposti, userDTO)
         userService.updateEmail(sahkoposti, userId)
 
         return ResponseEntity.ok().build()
     }
 
+    @PostMapping("/virkailijat")
+    fun createVirkailija(
+        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        principal: Principal?
+    ): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
+        val yliopistoId = kayttajahallintaKayttajaDTO.yliopisto?.id
+        requireNotNull(yliopistoId)
+        validateCurrentUserIsAllowedToCreateKayttajaByYliopistoId(
+            principal, yliopistoId
+        )
+
+        val etunimi = kayttajahallintaKayttajaDTO.etunimi
+        val sukunimi = kayttajahallintaKayttajaDTO.sukunimi
+        val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
+        val eppn = kayttajahallintaKayttajaDTO.eppn
+
+        requireNotNull(listOf(etunimi, sukunimi))
+
+        validateEmailNotExists(sahkoposti)
+        validateEppnNotExists(eppn)
+
+        val result = kayttajaService.saveKayttajahallintaKayttaja(
+            kayttajahallintaKayttajaDTO, setOf(
+                OPINTOHALLINNON_VIRKAILIJA
+            )
+        )
+        return ResponseEntity.created(URI("/api/${resolveRolePath(principal)}/vastuuhenkilot/${result.kayttaja?.id}"))
+            .body(result)
+    }
+
+    @PatchMapping("/virkailijat/{kayttajaId}")
+    fun patchVirkailija(
+        @PathVariable kayttajaId: Long,
+        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+
+        val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
+        val eppn = kayttajahallintaKayttajaDTO.eppn
+        val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
+
+        validateEmailNotExists(sahkoposti, userDTO)
+        validateEppnNotExists(eppn, userDTO)
+
+        kayttajaService.saveKayttajahallintaKayttaja(kayttajahallintaKayttajaDTO, kayttajaId = kayttajaId)
+        return ResponseEntity.ok().build()
+    }
+
     @PostMapping("/vastuuhenkilot")
     fun createVastuuhenkilo(
-        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO, principal: Principal?
+        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        principal: Principal?
     ): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
         val yliopistoId = kayttajahallintaKayttajaDTO.yliopisto?.id
         requireNotNull(yliopistoId)
@@ -304,21 +339,8 @@ open class KayttajahallintaResource(
 
         requireNotNull(listOf(etunimi, sukunimi))
 
-        if (userService.existsByEmail(sahkoposti)) {
-            throw BadRequestAlertException(
-                "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
-                KAYTTAJA_ENTITY_NAME,
-                "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
-            )
-        }
-
-        if (userService.existsByEppn(eppn)) {
-            throw BadRequestAlertException(
-                "Samalla yliopiston käyttäjätunnuksella löytyy jo toinen käyttäjä.",
-                KAYTTAJA_ENTITY_NAME,
-                "dataillegal.samalla-eppn-tunnuksella-loytyy-jo-toinen-kayttaja"
-            )
-        }
+        validateEmailNotExists(sahkoposti)
+        validateEppnNotExists(eppn)
 
         if (!kayttajahallintaValidationService.validateNewVastuuhenkiloYliopistotAndErikoisalat(
                 kayttajahallintaKayttajaDTO
@@ -334,7 +356,7 @@ open class KayttajahallintaResource(
             properties = mapOf()
         )
 
-        return ResponseEntity.created(URI("/api/tekninen-paakayttaja/vastuuhenkilot/${result.kayttaja?.id}"))
+        return ResponseEntity.created(URI("/api/${resolveRolePath(principal)}/vastuuhenkilot/${result.kayttaja?.id}"))
             .body(result)
     }
 
@@ -357,23 +379,10 @@ open class KayttajahallintaResource(
 
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
-
         val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
-        if (userDTO.email != sahkoposti && userService.existsByEmail(sahkoposti)) {
-            throw BadRequestAlertException(
-                "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
-                KAYTTAJA_ENTITY_NAME,
-                "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
-            )
-        }
 
-        if (userDTO.eppn != eppn && userService.existsByEppn(eppn)) {
-            throw BadRequestAlertException(
-                "Samalla yliopiston käyttäjätunnuksella löytyy jo toinen käyttäjä.",
-                KAYTTAJA_ENTITY_NAME,
-                "dataillegal.samalla-eppn-tunnuksella-loytyy-jo-toinen-kayttaja"
-            )
-        }
+        validateEmailNotExists(sahkoposti, userDTO)
+        validateEppnNotExists(eppn, userDTO)
 
         if (!kayttajahallintaValidationService.validateExistingVastuuhenkiloYliopistotAndErikoisalat(
                 kayttajahallintaKayttajaDTO,
@@ -395,6 +404,26 @@ open class KayttajahallintaResource(
         return yliopistoService.findAll().toMutableSet()
     }
 
+    private fun validateEppnNotExists(eppn: String, userDTO: UserDTO? = null) {
+        if ((userDTO == null || userDTO.eppn != eppn) && userService.existsByEppn(eppn)) {
+            throw BadRequestAlertException(
+                "Samalla yliopiston käyttäjätunnuksella löytyy jo toinen käyttäjä.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.samalla-eppn-tunnuksella-loytyy-jo-toinen-kayttaja"
+            )
+        }
+    }
+
+    private fun validateEmailNotExists(sahkoposti: String, userDTO: UserDTO? = null) {
+        if ((userDTO == null || userDTO.email != sahkoposti) && userService.existsByEmail(sahkoposti)) {
+            throw BadRequestAlertException(
+                "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
+            )
+        }
+    }
+
     private fun validateCurrentUserIsAllowedToCreateKayttajaByYliopistoId(
         principal: Principal?, yliopistoId: Long
     ) {
@@ -407,6 +436,11 @@ open class KayttajahallintaResource(
                 throw getVirkailijaException()
             }
         }
+    }
+
+    private fun resolveRolePath(principal: Principal?): String {
+        val virkailijaOrPaakayttajaUser = userService.getAuthenticatedUser(principal)
+        return if (hasVirkailijaRole(virkailijaOrPaakayttajaUser)) "virkailija" else "tekninen-paakayttaja"
     }
 
     private fun validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
