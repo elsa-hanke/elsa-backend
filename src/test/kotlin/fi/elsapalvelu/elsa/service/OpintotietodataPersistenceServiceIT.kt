@@ -194,7 +194,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(opintooikeus.asetus).isEqualTo(asetus)
         assertThat(opintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultOpintopasVoimassaoloAlkaa)
         assertThat(opintooikeus.opintoopas?.voimassaoloPaattyy).isEqualTo(defaultOpintopasVoimassaoloPaattyy)
-        //assertThat(opintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(defaultOpintooikeudenMyontamispaiva)
+        assertThat(opintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
         assertThat(opintooikeus.kaytossa).isEqualTo(true)
         assertThat(opintooikeus.muokkausaika).isNotNull
         assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
@@ -240,7 +240,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(firstOpintooikeus.asetus).isEqualTo(asetus)
         assertThat(firstOpintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultOpintopasVoimassaoloAlkaa)
         assertThat(firstOpintooikeus.opintoopas?.voimassaoloPaattyy).isEqualTo(defaultOpintopasVoimassaoloPaattyy)
-        //assertThat(firstOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(defaultOpintooikeudenMyontamispaiva)
+        assertThat(firstOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
         assertThat(firstOpintooikeus.kaytossa).isEqualTo(false)
         assertThat(firstOpintooikeus.muokkausaika).isNotNull
         assertThat(firstOpintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
@@ -255,7 +255,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(secondOpintooikeus.asetus).isEqualTo(secondAsetus)
         assertThat(secondOpintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
         assertThat(secondOpintooikeus.opintoopas?.voimassaoloPaattyy).isNull()
-        //assertThat(secondOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(defaultSecondOpintooikeudenMyontamispaiva)
+        assertThat(secondOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
         assertThat(secondOpintooikeus.kaytossa).isEqualTo(true)
         assertThat(secondOpintooikeus.muokkausaika).isNotNull
         assertThat(secondOpintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
@@ -305,7 +305,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(firstOpintooikeus.asetus).isEqualTo(asetus)
         assertThat(firstOpintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultOpintopasVoimassaoloAlkaa)
         assertThat(firstOpintooikeus.opintoopas?.voimassaoloPaattyy).isEqualTo(defaultOpintopasVoimassaoloPaattyy)
-        //assertThat(firstOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(defaultOpintooikeudenMyontamispaiva)
+        assertThat(firstOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
         assertThat(firstOpintooikeus.kaytossa).isEqualTo(false)
         assertThat(firstOpintooikeus.muokkausaika).isNotNull
         assertThat(firstOpintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
@@ -320,7 +320,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(secondOpintooikeus.asetus).isEqualTo(secondAsetus)
         assertThat(secondOpintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
         assertThat(secondOpintooikeus.opintoopas?.voimassaoloPaattyy).isNull()
-        //assertThat(secondOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(defaultSecondOpintooikeudenMyontamispaiva)
+        assertThat(secondOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
         assertThat(secondOpintooikeus.kaytossa).isEqualTo(true)
         assertThat(secondOpintooikeus.muokkausaika).isNotNull
         assertThat(secondOpintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
@@ -676,7 +676,7 @@ class OpintotietodataPersistenceServiceIT {
 
         assertThat(opintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
         assertThat(opintooikeus.opintoopas?.voimassaoloPaattyy).isNull()
-        //assertThat(opintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(defaultSecondOpintooikeudenMyontamispaiva)
+        assertThat(opintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
         assertThat(opintooikeus.kaytossa).isEqualTo(true)
         assertThat(opintooikeus.muokkausaika).isNotNull
         assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)

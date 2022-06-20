@@ -254,7 +254,7 @@ class OpintotietodataPersistenceServiceImpl(
             opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
             opiskelijatunnus = opintooikeusDTO.opiskelijatunnus,
             asetus = asetus,
-            osaamisenArvioinninOppaanPvm = LocalDate.now(),
+            osaamisenArvioinninOppaanPvm = LocalDate.now(clock),
             erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = yliopisto,
             erikoisala = erikoisala,
