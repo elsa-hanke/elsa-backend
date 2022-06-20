@@ -8,7 +8,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.GenericGenerator
 import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
-import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.Instant
 import javax.persistence.*
@@ -77,7 +76,7 @@ class User(
 
     @JsonIgnore
     @ManyToMany
-    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+    @NotAudited
     @JoinTable(
         name = "jhi_user_authority",
         joinColumns = [JoinColumn(name = "user_id", referencedColumnName = "id")],

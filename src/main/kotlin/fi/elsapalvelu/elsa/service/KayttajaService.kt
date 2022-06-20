@@ -73,4 +73,10 @@ interface KayttajaService {
         kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
         kayttajaId: Long? = null
     ): KayttajahallintaKayttajaWrapperDTO
+
+    fun saveKayttajahallintaKayttaja(
+        kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        authorities: Set<String>? = null,
+        kayttajaId: Long? = null
+    ): KayttajahallintaKayttajaWrapperDTO
 }

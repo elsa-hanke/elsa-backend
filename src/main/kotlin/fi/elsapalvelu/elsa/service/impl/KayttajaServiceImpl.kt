@@ -270,15 +270,31 @@ class KayttajaServiceImpl(
     ): KayttajahallintaKayttajaWrapperDTO {
         val kayttaja = kayttajaId?.let { id ->
             kayttajaRepository.findByIdOrNull(id)?.let {
-                updateExistingVastuuhenkilo(kayttajahallintaKayttajaDTO, it)
+                updateExistingKayttajahallintaKayttaja(kayttajahallintaKayttajaDTO, it)
             }
-        } ?: createNewVastuuhenkilo(kayttajahallintaKayttajaDTO)
+        } ?: createNewKayttaja(kayttajahallintaKayttajaDTO, setOf(VASTUUHENKILO))
 
         saveYliopistotAndErikoisalat(kayttajahallintaKayttajaDTO, kayttaja)
         saveReassignedTehtavat(kayttajahallintaKayttajaDTO.reassignedTehtavat)
 
         return KayttajahallintaKayttajaWrapperDTO(
             kayttaja = kayttajaMapper.toDto(kayttaja)
+        )
+    }
+
+    override fun saveKayttajahallintaKayttaja(
+        kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        authorities: Set<String>?,
+        kayttajaId: Long?
+    ): KayttajahallintaKayttajaWrapperDTO {
+        val kayttaja = kayttajaId?.let { id ->
+            kayttajaRepository.findByIdOrNull(id)?.let {
+                updateExistingKayttajahallintaKayttaja(kayttajahallintaKayttajaDTO, it)
+            }
+        } ?: authorities?.let { createNewKayttaja(kayttajahallintaKayttajaDTO, it) }
+
+        return KayttajahallintaKayttajaWrapperDTO(
+            kayttaja = kayttaja?.let { kayttajaMapper.toDto(it) }
         )
     }
 
@@ -329,7 +345,10 @@ class KayttajaServiceImpl(
     private fun mapVastuuhenkilonTehtavat(tehtavat: MutableSet<VastuuhenkilonTehtavatyyppiDTO>?): MutableSet<VastuuhenkilonTehtavatyyppi> =
         tehtavat?.map { vastuuhenkilonTehtavatyyppiMapper.toEntity(it) }?.toMutableSet() ?: mutableSetOf()
 
-    private fun createNewVastuuhenkilo(kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO): Kayttaja {
+    private fun createNewKayttaja(
+        kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        authorities: Set<String>
+    ): Kayttaja {
         val userDTO = UserDTO(
             login = kayttajahallintaKayttajaDTO.sahkoposti,
             firstName = kayttajahallintaKayttajaDTO.etunimi,
@@ -337,18 +356,19 @@ class KayttajaServiceImpl(
             email = kayttajahallintaKayttajaDTO.sahkoposti,
             activated = true,
             eppn = kayttajahallintaKayttajaDTO.eppn,
-            authorities = setOf(VASTUUHENKILO)
+            authorities = authorities
         )
         val persistedUser = userRepository.save(userMapper.userDTOToUser(userDTO)!!)
         val kayttajaDTO = KayttajaDTO(
-            tila = KayttajatilinTila.KUTSUTTU
+            tila = KayttajatilinTila.KUTSUTTU,
+            yliopistot = kayttajahallintaKayttajaDTO.yliopisto?.let { mutableSetOf(it) }
         )
         val kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
         kayttaja.user = persistedUser
         return kayttajaRepository.save(kayttaja)
     }
 
-    private fun updateExistingVastuuhenkilo(
+    private fun updateExistingKayttajahallintaKayttaja(
         kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
         existingKayttaja: Kayttaja
     ): Kayttaja {
