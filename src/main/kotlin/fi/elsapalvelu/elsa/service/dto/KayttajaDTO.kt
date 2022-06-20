@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import java.io.Serializable
 import javax.persistence.Lob
+import javax.validation.constraints.Email
 import javax.validation.constraints.NotNull
 
 data class KayttajaDTO(
@@ -17,6 +18,7 @@ data class KayttajaDTO(
 
     var sukunimi: String? = null,
 
+    @get: Email
     var sahkoposti: String? = null,
 
     var puhelin: String? = null,
