@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.VastuuhenkilonTehtavatyyppi
@@ -7,6 +8,7 @@ import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KayttajaYliopistoErikoisalaRepository
+import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.service.KayttajahallintaValidationService
 import fi.elsapalvelu.elsa.service.constants.erikoistuvaLaakariNotFoundError
 import fi.elsapalvelu.elsa.service.constants.kayttajaNotFoundError
@@ -117,9 +119,13 @@ class KayttajahallintaValidationServiceImpl(
 
     @Transactional
     override fun validateVirkailijaIsAllowedToManageKayttaja(virkailijaUserDTO: UserDTO, kayttajaId: Long): Boolean {
+        val kayttaja = findKayttajaById(kayttajaId)
+        if (kayttaja.user?.authorities?.contains(Authority(TEKNINEN_PAAKAYTTAJA)) == true) {
+            return false
+        }
+
         val virkailijaKayttaja = findKayttajaByUserId(virkailijaUserDTO.id!!)
         val virkailijaYliopisto = getVirkailijaYliopisto(virkailijaKayttaja)
-        val kayttaja = findKayttajaById(kayttajaId)
         val kayttajaYliopistot = kayttaja.yliopistot
         val kayttajaYliopistotAndErikoisalat = kayttaja.yliopistotAndErikoisalat
         val yliopistotContains = kayttajaYliopistot.map { it.id }.contains(virkailijaYliopisto.id)
@@ -137,7 +143,7 @@ class KayttajahallintaValidationServiceImpl(
             val assignedTehtavatForErikoisala = getAssignedTehtavatForErikoisala(newErikoisalaDTO, newErikoisalaDTO.id)
             // Mikään vastuuhenkilölle määritellyistä tehtävistä ei saa löytyä toiselta vastuuhenkilöltä saman
             // erikoisalan sisällä.
-            newErikoisalaDTO.vastuuhenkilonTehtavat?.forEach {
+            newErikoisalaDTO.vastuuhenkilonTehtavat.forEach {
                 if (persistedTehtavatContains(assignedTehtavatForErikoisala, it.id) && !isReassignedTehtava(
                         reassignedTehtavat,
                         newErikoisalaDTO.erikoisala?.id!!,
@@ -162,7 +168,7 @@ class KayttajahallintaValidationServiceImpl(
             val assignedTehtavatForErikoisala =
                 getAssignedTehtavatForErikoisala(removedErikoisalaDTO, removedErikoisalaDTO.id)
             // Kaikki poistetun erikoisalan tehtävät täytyy löytyä joltain saman erikoisalan vastuuhenkilöltä.
-            removedErikoisalaDTO.vastuuhenkilonTehtavat?.forEach {
+            removedErikoisalaDTO.vastuuhenkilonTehtavat.forEach {
                 if (!persistedTehtavatContains(assignedTehtavatForErikoisala, it.id) && !isReassignedTehtava(
                         reassignedTehtavat,
                         removedErikoisalaDTO.id!!,
