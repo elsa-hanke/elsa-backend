@@ -361,7 +361,7 @@ class KayttajaServiceImpl(
         val persistedUser = userRepository.save(userMapper.userDTOToUser(userDTO)!!)
         val kayttajaDTO = KayttajaDTO(
             tila = KayttajatilinTila.KUTSUTTU,
-            yliopistot = kayttajahallintaKayttajaDTO.yliopisto?.let { mutableSetOf(it) }
+            yliopistot = kayttajahallintaKayttajaDTO.yliopisto?.let { mutableSetOf(it) } ?: mutableSetOf()
         )
         val kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
         kayttaja.user = persistedUser

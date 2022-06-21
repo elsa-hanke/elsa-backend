@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
+import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.erikoistuvaLaakariNotFoundError
@@ -12,6 +13,7 @@ import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URI
@@ -96,6 +98,21 @@ open class KayttajahallintaResource(
         return ResponseEntity.ok(virkailijat)
     }
 
+    @GetMapping("/paakayttajat")
+    fun getPaakayttajat(
+        criteria: KayttajahallintaCriteria, pageable: Pageable, principal: Principal?
+    ): ResponseEntity<Page<KayttajahallintaKayttajaListItemDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+
+        if (hasVirkailijaRole(user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        val paakayttajat = kayttajaService.findByKayttajahallintaCriteria(
+            user.id!!, TEKNINEN_PAAKAYTTAJA, criteria, pageable
+        )
+        return ResponseEntity.ok(paakayttajat)
+    }
 
     @GetMapping("/kayttajat/rajaimet")
     fun getKayttajahallintaRajaimet(): ResponseEntity<KayttajahallintaKayttajatOptionsDTO> {
@@ -298,6 +315,55 @@ open class KayttajahallintaResource(
         )
         return ResponseEntity.created(URI("/api/${resolveRolePath(principal)}/vastuuhenkilot/${result.kayttaja?.id}"))
             .body(result)
+    }
+
+    @PostMapping("/paakayttajat")
+    fun createPaakayttaja(
+        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        principal: Principal?
+    ): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        if (hasVirkailijaRole(user)) {
+            throw getVirkailijaException()
+        }
+
+        val etunimi = kayttajahallintaKayttajaDTO.etunimi
+        val sukunimi = kayttajahallintaKayttajaDTO.sukunimi
+        val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
+        val eppn = kayttajahallintaKayttajaDTO.eppn
+
+        requireNotNull(listOf(etunimi, sukunimi))
+
+        validateEmailNotExists(sahkoposti)
+        validateEppnNotExists(eppn)
+
+        val result = kayttajaService.saveKayttajahallintaKayttaja(
+            kayttajahallintaKayttajaDTO, setOf(
+                TEKNINEN_PAAKAYTTAJA
+            )
+        )
+        return ResponseEntity.created(URI("/api/tekninen-paakayttaja/paakayttajat/${result.kayttaja?.id}"))
+            .body(result)
+    }
+
+    @PatchMapping("/paakayttajat/{kayttajaId}")
+    fun patchPaakayttaja(
+        @PathVariable kayttajaId: Long,
+        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+
+        val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
+        val eppn = kayttajahallintaKayttajaDTO.eppn
+        val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
+
+        validateEmailNotExists(sahkoposti, userDTO)
+        validateEppnNotExists(eppn, userDTO)
+
+        kayttajaService.saveKayttajahallintaKayttaja(kayttajahallintaKayttajaDTO, kayttajaId = kayttajaId)
+        return ResponseEntity.ok().build()
     }
 
     @PatchMapping("/virkailijat/{kayttajaId}")
@@ -505,7 +571,7 @@ open class KayttajahallintaResource(
     private fun hasVirkailijaRole(user: UserDTO): Boolean {
         return user.authorities?.contains(OPINTOHALLINNON_VIRKAILIJA) == true
     }
-
+    
     private fun getVirkailijaYliopistoOrThrow(virkailijaDTO: KayttajaDTO) =
         virkailijaDTO.yliopistot?.firstOrNull() ?: throw BadRequestAlertException(
             "Virkailijalle ei ole määritetty yliopistoa",
