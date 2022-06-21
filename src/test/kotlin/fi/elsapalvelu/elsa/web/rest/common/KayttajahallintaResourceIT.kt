@@ -52,8 +52,8 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 import javax.persistence.EntityManager
 
-private const val tekninenPaakayttaja = "tekninen-paakayttaja"
-private const val virkailija = "virkailija"
+private const val tekninenPaakayttajaRolePath = "tekninen-paakayttaja"
+private const val virkailijaRolePath = "virkailija"
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
@@ -102,7 +102,7 @@ class KayttajahallintaResourceIT {
 
         val id = erikoistuvaLaakari.kayttaja?.id
 
-        restMockMvc.perform(get("/api/virkailija/erikoistuvat-laakarit/$id"))
+        restMockMvc.perform(get("/api/$virkailijaRolePath/erikoistuvat-laakarit/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
@@ -120,7 +120,7 @@ class KayttajahallintaResourceIT {
 
         val id = erikoistuvaLaakari.kayttaja?.id
 
-        restMockMvc.perform(get("/api/virkailija/erikoistuvat-laakarit/$id"))
+        restMockMvc.perform(get("/api/$virkailijaRolePath/erikoistuvat-laakarit/$id"))
             .andExpect(status().isBadRequest)
     }
 
@@ -135,7 +135,7 @@ class KayttajahallintaResourceIT {
 
         val id = erikoistuvaLaakari.kayttaja?.id
 
-        restMockMvc.perform(get("/api/tekninen-paakayttaja/erikoistuvat-laakarit/$id"))
+        restMockMvc.perform(get("/api/$tekninenPaakayttajaRolePath/erikoistuvat-laakarit/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
@@ -143,7 +143,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun getNonExistingErikoistuvaLaakari(rolePath: String) {
         initTest(getRole(rolePath))
@@ -166,7 +166,7 @@ class KayttajahallintaResourceIT {
 
         val id = vastuuhenkilo.id
 
-        restMockMvc.perform(get("/api/virkailija/kayttajat/$id"))
+        restMockMvc.perform(get("/api/$virkailijaRolePath/kayttajat/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
@@ -184,7 +184,7 @@ class KayttajahallintaResourceIT {
 
         val id = vastuuhenkilo.id
 
-        restMockMvc.perform(get("/api/virkailija/kayttajat/$id"))
+        restMockMvc.perform(get("/api/$virkailijaRolePath/kayttajat/$id"))
             .andExpect(status().isBadRequest)
     }
 
@@ -200,16 +200,16 @@ class KayttajahallintaResourceIT {
 
         val id = vastuuhenkilo.id
 
-        restMockMvc.perform(get("/api/tekninen-paakayttaja/kayttajat/$id"))
+        restMockMvc.perform(get("/api/$tekninenPaakayttajaRolePath/kayttajat/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
-    fun getNonExistingVastuuhenkilo(rolePath: String) {
+    fun getNonExistingKayttaja(rolePath: String) {
         initTest(getRole(rolePath))
 
         val id = count.incrementAndGet()
@@ -230,7 +230,7 @@ class KayttajahallintaResourceIT {
 
         val id = kouluttaja.id
 
-        restMockMvc.perform(get("/api/virkailija/kayttajat/$id"))
+        restMockMvc.perform(get("/api/$virkailijaRolePath/kayttajat/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
@@ -248,7 +248,7 @@ class KayttajahallintaResourceIT {
 
         val id = kouluttaja.id
 
-        restMockMvc.perform(get("/api/virkailija/kayttajat/$id"))
+        restMockMvc.perform(get("/api/$virkailijaRolePath/kayttajat/$id"))
             .andExpect(status().isBadRequest)
     }
 
@@ -264,22 +264,10 @@ class KayttajahallintaResourceIT {
 
         val id = kouluttaja.id
 
-        restMockMvc.perform(get("/api/tekninen-paakayttaja/kayttajat/$id"))
+        restMockMvc.perform(get("/api/$tekninenPaakayttajaRolePath/kayttajat/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
-    @Transactional
-    fun getNonExistingKouluttaja(rolePath: String) {
-        initTest(getRole(rolePath))
-
-        val id = count.incrementAndGet()
-
-        restMockMvc.perform(get("/api/$rolePath/kayttajat/$id"))
-            .andExpect(status().isBadRequest)
     }
 
     @Test
@@ -293,7 +281,7 @@ class KayttajahallintaResourceIT {
 
         val id = virkailija.id
 
-        restMockMvc.perform(get("/api/virkailija/kayttajat/$id"))
+        restMockMvc.perform(get("/api/$virkailijaRolePath/kayttajat/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
@@ -310,7 +298,7 @@ class KayttajahallintaResourceIT {
 
         val id = virkailija.id
 
-        restMockMvc.perform(get("/api/virkailija/kayttajat/$id"))
+        restMockMvc.perform(get("/api/$virkailijaRolePath/kayttajat/$id"))
             .andExpect(status().isBadRequest)
     }
 
@@ -325,26 +313,46 @@ class KayttajahallintaResourceIT {
 
         val id = virkailija.id
 
-        restMockMvc.perform(get("/api/tekninen-paakayttaja/kayttajat/$id"))
+        restMockMvc.perform(get("/api/$tekninenPaakayttajaRolePath/kayttajat/$id"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttaja.id").value(id))
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @Test
     @Transactional
-    fun getNonExistingVirkailija(rolePath: String) {
-        initTest(getRole(rolePath))
+    fun getPaakayttajaForPaakayttaja() {
+        initTest(TEKNINEN_PAAKAYTTAJA, false)
 
-        val id = count.incrementAndGet()
+        val paakayttaja = createPaakayttaja()
+        em.persist(paakayttaja)
+        em.flush()
 
-        restMockMvc.perform(get("/api/$rolePath/kayttajat/$id"))
-            .andExpect(status().isBadRequest)
+        val id = paakayttaja.id
+
+        restMockMvc.perform(get("/api/$tekninenPaakayttajaRolePath/kayttajat/$id"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.kayttaja.id").value(id))
+    }
+
+    @Test
+    @Transactional
+    fun tryToGetPaakayttajaForVirkailija() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA, false)
+
+        val paakayttaja = createPaakayttaja()
+        em.persist(paakayttaja)
+        em.flush()
+
+        val id = paakayttaja.id
+
+        restMockMvc.perform(get("/api/$tekninenPaakayttajaRolePath/kayttajat/$id"))
+            .andExpect(status().isForbidden)
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun getKayttajaForm(rolePath: String) {
         initTest(getRole(rolePath))
@@ -359,7 +367,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun getErikoistuvatLaakarit(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -376,7 +384,7 @@ class KayttajahallintaResourceIT {
         em.flush()
 
         // Virkailijalle listataan vain saman yliopiston erikoistujat.
-        val expectedSize = if (rolePath == tekninenPaakayttaja) 2 else 1
+        val expectedSize = if (rolePath == tekninenPaakayttajaRolePath) 2 else 1
 
         restMockMvc.perform(get("/api/$rolePath/erikoistuvat-laakarit"))
             .andExpect(status().isOk)
@@ -386,7 +394,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun getKouluttajat(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -399,7 +407,7 @@ class KayttajahallintaResourceIT {
         createKouluttaja(yliopisto2, erikoisala)
 
         // Virkailijalle listataan vain saman yliopiston kouluttajat.
-        val expectedSize = if (rolePath == tekninenPaakayttaja) 2 else 1
+        val expectedSize = if (rolePath == tekninenPaakayttajaRolePath) 2 else 1
 
         restMockMvc.perform(get("/api/$rolePath/kouluttajat"))
             .andExpect(status().isOk)
@@ -409,7 +417,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun getVastuuhenkilot(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -422,7 +430,7 @@ class KayttajahallintaResourceIT {
         createVastuuhenkilo(yliopisto2, erikoisala)
 
         // Virkailijalle listataan vain saman yliopiston vastuuhenkilöt.
-        val expectedSize = if (rolePath == tekninenPaakayttaja) 2 else 1
+        val expectedSize = if (rolePath == tekninenPaakayttajaRolePath) 2 else 1
 
         restMockMvc.perform(get("/api/$rolePath/vastuuhenkilot"))
             .andExpect(status().isOk)
@@ -432,25 +440,49 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun getVirkailijat(rolePath: String) {
         initTest(getRole(rolePath), true)
 
-        val virkailija = createVirkailija(yliopisto)
+        createVirkailija(yliopisto)
 
         val yliopisto2 = Yliopisto(nimi = YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
         em.persist(yliopisto2)
         createVirkailija(yliopisto2)
+        createVirkailija(yliopisto2)
 
-        // Virkailijalle listataan vain saman yliopiston vastuuhenkilöt.
-        val expectedSize = if (rolePath == tekninenPaakayttaja) 2 else 1
+        // Virkailijalle listataan vain saman yliopiston virkailijat.
+        val expectedSize = if (rolePath == tekninenPaakayttajaRolePath) 3 else 2
 
         restMockMvc.perform(get("/api/$rolePath/virkailijat"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(expectedSize)))
-            .andExpect(jsonPath("$.content[0].kayttajaId").value(virkailija.id))
+    }
+
+    @Test
+    @Transactional
+    fun getPaakayttajatForPaakayttaja() {
+        initTest(TEKNINEN_PAAKAYTTAJA, false)
+
+        createPaakayttaja()
+
+        restMockMvc.perform(get("/api/$tekninenPaakayttajaRolePath/paakayttajat"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(2)))
+    }
+
+    @Test
+    @Transactional
+    fun getPaakayttajatForVirkailijaForbidden() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA, true)
+
+        createPaakayttaja()
+
+        restMockMvc.perform(get("/api/$virkailijaRolePath/paakayttajat"))
+            .andExpect(status().isForbidden)
     }
 
     @Test
@@ -472,7 +504,7 @@ class KayttajahallintaResourceIT {
         kayttajahallintaErikoistuvaLaakariDTO.opintoopasId = opintoopas.id
 
         restMockMvc.perform(
-            post("/api/virkailija/erikoistuvat-laakarit")
+            post("/api/$virkailijaRolePath/erikoistuvat-laakarit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaErikoistuvaLaakariDTO))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
@@ -480,7 +512,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postErikoistuvaLaakariWithExistingEmail(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -506,7 +538,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postErikoistuvaLaakariWithoutValidYliopisto(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -527,7 +559,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postErikoistuvaLaakariWithoutValidErikoisala(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -556,15 +588,15 @@ class KayttajahallintaResourceIT {
             KayttajahallintaErikoistuvaLaakariUpdateDTO(sahkoposti = KayttajaHelper.DEFAULT_EMAIL + "x")
         val userId = erikoistuvaLaakari.kayttaja?.user?.id
         restMockMvc.perform(
-            patch("/api/virkailija/erikoistuvat-laakarit/$userId")
+            patch("/api/$virkailijaRolePath/erikoistuvat-laakarit/$userId")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaErikoistuvaLaakariDTO))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         ).andExpect(status().isBadRequest)
     }
-    
+
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun patchErikoistuvaLaakari(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -603,7 +635,7 @@ class KayttajahallintaResourceIT {
         em.persist(verificationToken)
 
         restMockMvc.perform(
-            put("/api/virkailija/erikoistuvat-laakarit/$id/kutsu")
+            put("/api/$virkailijaRolePath/erikoistuvat-laakarit/$id/kutsu")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         ).andExpect(status().isNoContent)
     }
@@ -625,7 +657,7 @@ class KayttajahallintaResourceIT {
         em.persist(verificationToken)
 
         restMockMvc.perform(
-            put("/api/virkailija/erikoistuvat-laakarit/$id/kutsu")
+            put("/api/$virkailijaRolePath/erikoistuvat-laakarit/$id/kutsu")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         ).andExpect(status().isBadRequest)
     }
@@ -647,13 +679,13 @@ class KayttajahallintaResourceIT {
         em.persist(verificationToken)
 
         restMockMvc.perform(
-            put("/api/tekninen-paakayttaja/erikoistuvat-laakarit/$id/kutsu")
+            put("/api/$tekninenPaakayttajaRolePath/erikoistuvat-laakarit/$id/kutsu")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         ).andExpect(status().isNoContent)
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVastuuhenkiloWithoutYliopistotAndErikoisalat(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -671,7 +703,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVastuuhenkiloWithoutYliopisto(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -699,7 +731,7 @@ class KayttajahallintaResourceIT {
         }
 
         restMockMvc.perform(
-            post("/api/tekninen-paakayttaja/vastuuhenkilot")
+            post("/api/$tekninenPaakayttajaRolePath/vastuuhenkilot")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
@@ -717,7 +749,7 @@ class KayttajahallintaResourceIT {
         }
 
         restMockMvc.perform(
-            post("/api/virkailija/vastuuhenkilot")
+            post("/api/$virkailijaRolePath/vastuuhenkilot")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
@@ -725,7 +757,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVastuuhenkiloWithEmailAddressInUse(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -751,7 +783,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVastuuhenkiloWithEppnInUse(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -778,7 +810,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVastuuhenkiloOnlyInCurrentErikoisalaNotAllTehtavatAssigned(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -806,7 +838,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVastuuhenkiloOnlyInCurrentErikoisalaAllTehtavatAssigned(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -834,7 +866,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVastuuhenkiloErikosalaTehtavaAlreadyAssignedButNotReassigned(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -869,7 +901,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVastuuhenkiloErikosalaTehtavaAlreadyAssignedAndReassignedByRemove(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -915,7 +947,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun putVastuuhenkiloTehtavaRemovedButNotReassigned(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -943,7 +975,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun putVastuuhenkiloTehtavaRemovedAndReassigned(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -999,7 +1031,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun putVastuuhenkiloWithNewErikoisala(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -1039,7 +1071,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun putVastuuhenkiloWithRemovedErikoisala(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -1073,7 +1105,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun putVastuuhenkiloWithRemovedErikoisalaTehtavaNotReassigned(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -1106,7 +1138,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVirkailijaWithoutYliopisto(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -1131,7 +1163,7 @@ class KayttajahallintaResourceIT {
         }
 
         restMockMvc.perform(
-            post("/api/virkailija/virkailijat")
+            post("/api/$virkailijaRolePath/virkailijat")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
@@ -1139,7 +1171,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVirkailijaWithEmailAddressInUse(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -1163,7 +1195,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVirkailijaWithEppnInUse(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -1188,7 +1220,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun postVirkailija(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -1208,6 +1240,79 @@ class KayttajahallintaResourceIT {
 
     @Test
     @Transactional
+    fun tryToPostPaakayttajaAsVirkailija() {
+        initTest(getRole(OPINTOHALLINNON_VIRKAILIJA))
+
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO()
+
+        restMockMvc.perform(
+            post("/api/$virkailijaRolePath/paakayttajat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun postPaakayttajaWithEmailAddressInUse() {
+        initTest(TEKNINEN_PAAKAYTTAJA, false)
+
+        val paakayttaja = createPaakayttaja()
+        em.persist(paakayttaja)
+        paakayttaja.user?.email = KayttajaHelper.DEFAULT_EMAIL
+
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            sahkoposti = KayttajaHelper.DEFAULT_EMAIL
+        }
+
+        restMockMvc.perform(
+            post("/api/$tekninenPaakayttajaRolePath/paakayttajat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun postPaakayttajaWithEppnInUse() {
+        initTest(TEKNINEN_PAAKAYTTAJA, false)
+
+        val paakayttaja = createPaakayttaja()
+        em.persist(paakayttaja)
+        paakayttaja.user?.eppn = DEFAULT_EPPN
+        paakayttaja.user?.email = KayttajaHelper.DEFAULT_EMAIL
+
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
+            sahkoposti = KayttajaHelper.DEFAULT_EMAIL + "x"
+        }
+
+        restMockMvc.perform(
+            post("/api/$tekninenPaakayttajaRolePath/paakayttajat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun postPaakayttaja() {
+        initTest(TEKNINEN_PAAKAYTTAJA, false)
+
+        val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO()
+
+        restMockMvc.perform(
+            post("/api/$tekninenPaakayttajaRolePath/paakayttajat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isCreated)
+    }
+    
+    @Test
+    @Transactional
     fun patchVirkailijaNotAllowedToModifyDifferentYliopistoAssignedToVirkailija() {
         initTest(getRole(OPINTOHALLINNON_VIRKAILIJA), false)
 
@@ -1220,7 +1325,7 @@ class KayttajahallintaResourceIT {
         )
 
         restMockMvc.perform(
-            patch("/api/virkailija/virkailijat/${virkailija.id}")
+            patch("/api/$virkailijaRolePath/virkailijat/${virkailija.id}")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
@@ -1228,7 +1333,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun patchVirkailijaOnlyEmailUpdated(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -1254,7 +1359,7 @@ class KayttajahallintaResourceIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [tekninenPaakayttaja, virkailija])
+    @ValueSource(strings = [tekninenPaakayttajaRolePath, virkailijaRolePath])
     @Transactional
     fun patchVirkailija(rolePath: String) {
         initTest(getRole(rolePath), true)
@@ -1278,6 +1383,78 @@ class KayttajahallintaResourceIT {
         val updatedVirkailija = kayttajaRepository.findById(virkailija.id!!).get()
         assertThat(updatedVirkailija.user?.email).isEqualTo(kayttajahallintaKayttajaDTO.sahkoposti)
         assertThat(updatedVirkailija.user?.eppn).isEqualTo(kayttajahallintaKayttajaDTO.eppn)
+    }
+
+    @Test
+    @Transactional
+    fun tryToPatchPaakayttajaAsVirkailija() {
+        initTest(getRole(OPINTOHALLINNON_VIRKAILIJA), true)
+
+        val paakayttaja = createPaakayttaja().apply { user?.eppn = DEFAULT_EPPN }
+        em.persist(paakayttaja)
+
+        val kayttajahallintaKayttajaDTO = KayttajahallintaKayttajaDTO(
+            sahkoposti = paakayttaja.user?.email + "x",
+            eppn = paakayttaja.user?.eppn + "x"
+        )
+
+        restMockMvc.perform(
+            patch("/api/$virkailijaRolePath/paakayttajat/${paakayttaja.id}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun patchPaakayttajaOnlyEmailUpdated() {
+        initTest(TEKNINEN_PAAKAYTTAJA, false)
+
+        val paakayttaja = createPaakayttaja().apply { user?.eppn = DEFAULT_EPPN }
+        em.persist(paakayttaja)
+
+        val kayttajahallintaKayttajaDTO = KayttajahallintaKayttajaDTO(
+            sahkoposti = paakayttaja.user?.email + "x",
+            eppn = paakayttaja.user?.eppn + "x"
+        )
+
+        restMockMvc.perform(
+            patch("/api/$tekninenPaakayttajaRolePath/virkailijat/${paakayttaja.id}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isOk)
+
+        val updatedPaakayttaja = kayttajaRepository.findById(paakayttaja.id!!).get()
+        assertThat(updatedPaakayttaja.user?.email).isEqualTo(kayttajahallintaKayttajaDTO.sahkoposti)
+        assertThat(updatedPaakayttaja.user?.eppn).isEqualTo(paakayttaja.user?.eppn)
+    }
+
+    @Test
+    @Transactional
+    fun patchPaakayttaja() {
+        initTest(TEKNINEN_PAAKAYTTAJA, false)
+
+        val paakayttaja = createVirkailija(yliopisto).apply { user?.eppn = DEFAULT_EPPN }
+        paakayttaja.tila = KayttajatilinTila.KUTSUTTU
+        em.persist(paakayttaja)
+
+        val kayttajahallintaKayttajaDTO = KayttajahallintaKayttajaDTO(
+            sahkoposti = paakayttaja.user?.email + "x",
+            eppn = paakayttaja.user?.eppn + "x"
+        )
+
+        restMockMvc.perform(
+            patch("/api/$tekninenPaakayttajaRolePath/virkailijat/${paakayttaja.id}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isOk)
+
+        val updatedPaakayttaja = kayttajaRepository.findById(paakayttaja.id!!).get()
+        assertThat(updatedPaakayttaja.user?.email).isEqualTo(kayttajahallintaKayttajaDTO.sahkoposti)
+        assertThat(updatedPaakayttaja.user?.eppn).isEqualTo(kayttajahallintaKayttajaDTO.eppn)
     }
 
     private fun createKouluttaja(
@@ -1318,6 +1495,20 @@ class KayttajahallintaResourceIT {
         return createKayttajaWithYliopisto(virkailijaUser, yliopisto)
     }
 
+    private fun createPaakayttaja(): Kayttaja {
+        val paakayttajaUser = KayttajaResourceWithMockUserIT.createEntity(
+            authority = Authority(
+                TEKNINEN_PAAKAYTTAJA
+            )
+        )
+        em.persist(paakayttajaUser)
+
+        val kayttaja = KayttajaHelper.createEntity(em, paakayttajaUser)
+        em.persist(kayttaja)
+
+        return kayttaja
+    }
+
     private fun createKayttajaWithYliopistoAndErikoisala(
         user: User,
         yliopisto: Yliopisto,
@@ -1351,13 +1542,13 @@ class KayttajahallintaResourceIT {
     }
 
     fun getRole(rolePath: String): String {
-        return if (rolePath == tekninenPaakayttaja) {
+        return if (rolePath == tekninenPaakayttajaRolePath) {
             TEKNINEN_PAAKAYTTAJA
         } else OPINTOHALLINNON_VIRKAILIJA
     }
 
     fun initTest(role: String, addDefaultYliopistoForRole: Boolean = false) {
-        val user = KayttajaResourceWithMockUserIT.createEntity()
+        val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(role))
         em.persist(user)
         em.flush()
         val userDetails = mapOf<String, List<Any>>()
