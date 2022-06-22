@@ -34,10 +34,28 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
 
     @Query(
         "select ks " +
+            "from KoejaksonKoulutussopimus ks join ks.kouluttajat ko join ko.kouluttaja k " +
+            "where k.user.id = :userId and ks.lahetetty = true and ko.sopimusHyvaksytty = false"
+    )
+    fun findAllAvoinByKouluttajatKouluttajaUserId(
+        userId: String
+    ): List<KoejaksonKoulutussopimus>
+
+    @Query(
+        "select ks " +
             "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt " +
             "where ks.vastuuhenkilo.user.id = :userId and (ks.korjausehdotus != null or not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false))"
     )
     fun findAllByVastuuhenkiloUserId(
+        userId: String
+    ): List<KoejaksonKoulutussopimus>
+
+    @Query(
+        "select ks " +
+            "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt " +
+            "where ks.vastuuhenkilo.user.id = :userId and ks.vastuuhenkiloHyvaksynyt = false and not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false)"
+    )
+    fun findAllAvoinByVastuuhenkiloUserId(
         userId: String
     ): List<KoejaksonKoulutussopimus>
 

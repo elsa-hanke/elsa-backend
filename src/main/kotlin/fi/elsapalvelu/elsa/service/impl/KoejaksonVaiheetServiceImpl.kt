@@ -34,10 +34,14 @@ class KoejaksonVaiheetServiceImpl(
     private val vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
     private val vastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper,
     private val kayttajaRepository: KayttajaRepository,
-    private val koejaksonVastuuhenkilonArvioQueryService: KoejaksonVastuuhenkilonArvioQueryService
+    private val koejaksonVastuuhenkilonArvioQueryService: KoejaksonVastuuhenkilonArvioQueryService,
+    private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
 ) : KoejaksonVaiheetService {
 
-    override fun findAllByKouluttajaKayttajaUserId(userId: String): List<KoejaksonVaiheDTO> {
+    override fun findAllByKouluttajaKayttajaUserId(
+        userId: String,
+        vainAvoimet: Boolean
+    ): List<KoejaksonVaiheDTO> {
         val resultMap = HashMap<Long, MutableList<KoejaksonVaiheDTO>>()
 
         // Haetaan ja lisätään listaan kukin koejakson vaihe sekä siihen liittyvät aiemmat vaiheet vain kerran.
@@ -47,20 +51,38 @@ class KoejaksonVaiheetServiceImpl(
         // Aloituskeskustelulle ei kuitenkaan lisätä aiempaa vaihetta (koulutussopimus) hyväksytyksi vaiheeksi.
         val kayttajaId = kayttajaRepository.findOneByUserId(userId).get().id
 
-        applyKoejaksonVaiheetStartingFromLoppukeskustelut(userId, resultMap, kayttajaId)
-        applyKoejaksonVaiheetStartingFromKehittamistoimenpiteet(userId, resultMap, kayttajaId)
-        applyKoejaksonVaiheetStartingFromValiarvioinnit(userId, resultMap, kayttajaId)
-        applyKoejaksonVaiheetStartingFromAloituskeskustelut(userId, resultMap, kayttajaId)
-        applyKoulutussopimuksetForKouluttaja(userId, resultMap, kayttajaId!!)
+        applyKoejaksonVaiheetStartingFromLoppukeskustelut(
+            userId,
+            resultMap,
+            kayttajaId,
+            vainAvoimet
+        )
+        applyKoejaksonVaiheetStartingFromKehittamistoimenpiteet(
+            userId,
+            resultMap,
+            kayttajaId,
+            vainAvoimet
+        )
+        applyKoejaksonVaiheetStartingFromValiarvioinnit(userId, resultMap, kayttajaId, vainAvoimet)
+        applyKoejaksonVaiheetStartingFromAloituskeskustelut(
+            userId,
+            resultMap,
+            kayttajaId,
+            vainAvoimet
+        )
+        applyKoulutussopimuksetForKouluttaja(userId, resultMap, kayttajaId!!, vainAvoimet)
 
         return sortKoejaksonVaiheet(resultMap)
     }
 
-    override fun findAllByVastuuhenkiloKayttajaUserId(userId: String): List<KoejaksonVaiheDTO> {
+    override fun findAllByVastuuhenkiloKayttajaUserId(
+        userId: String,
+        vainAvoimet: Boolean
+    ): List<KoejaksonVaiheDTO> {
         val resultMap = HashMap<Long, MutableList<KoejaksonVaiheDTO>>()
 
-        applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(userId, resultMap)
-        applyKoulutussopimuksetForVastuuhenkilo(userId, resultMap)
+        applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(userId, resultMap, vainAvoimet)
+        applyKoulutussopimuksetForVastuuhenkilo(userId, resultMap, vainAvoimet)
 
         return sortKoejaksonVaiheet(resultMap)
     }
@@ -93,11 +115,37 @@ class KoejaksonVaiheetServiceImpl(
         return null
     }
 
+    override fun findAllAvoinByVirkailijaKayttajaUserId(userId: String): List<KoejaksonVaiheDTO>? {
+        kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
+            k.yliopistot.firstOrNull()?.let {
+                return koejaksonVastuuhenkilonArvioRepository.findAllAvoinByVirkailija(it.id!!)
+                    .map { arvio ->
+                        KoejaksonVaiheDTO(
+                            arvio.id,
+                            KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
+                            KoejaksoTila.fromVastuuhenkilonArvio(arvio),
+                            arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
+                            arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getAvatar(),
+                            arvio.muokkauspaiva
+                        )
+                    }
+            }
+        }
+        return null
+    }
+
     private fun applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(
         userId: String,
-        resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>
+        resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>,
+        vainAvoimet: Boolean
     ) {
-        vastuuhenkilonArvioRepository.findAllByVastuuhenkiloUserId(userId).associate {
+        val vastuuhenkilonArviot =
+            if (vainAvoimet) vastuuhenkilonArvioRepository.findAllByVastuuhenkiloUserIdAndVastuuhenkiloHyvaksynytFalse(
+                userId
+            ) else vastuuhenkilonArvioRepository.findAllByVastuuhenkiloUserId(
+                userId
+            )
+        vastuuhenkilonArviot.associate {
             getOpintooikeusIdOrElseThrow(it.opintooikeus) to vastuuhenkilonArvioMapper.toDto(it)
         }.forEach {
             val opintooikeusId = it.key
@@ -105,37 +153,48 @@ class KoejaksonVaiheetServiceImpl(
                 return@forEach
             }
             resultMap[opintooikeusId] = mutableListOf()
+            val result = mapVastuuhenkilonArvio(it.value)
 
-            mapVastuuhenkilonArvio(it.value).apply {
-                hyvaksytytVaiheet.add(getLoppukeskusteluHyvaksytty(opintooikeusId))
-                getKehittamistoimenpiteetHyvaksytty(opintooikeusId).ifPresent { hyvaksytty ->
-                    hyvaksytytVaiheet.add(hyvaksytty)
+            if (!vainAvoimet) {
+                result.apply {
+                    hyvaksytytVaiheet.add(getLoppukeskusteluHyvaksytty(opintooikeusId))
+                    getKehittamistoimenpiteetHyvaksytty(opintooikeusId).ifPresent { hyvaksytty ->
+                        hyvaksytytVaiheet.add(hyvaksytty)
+                    }
+                    hyvaksytytVaiheet.add(getValiarviointiHyvaksytty(opintooikeusId))
+                    hyvaksytytVaiheet.add(getAloituskeskusteluHyvaksytty(opintooikeusId))
                 }
-                hyvaksytytVaiheet.add(getValiarviointiHyvaksytty(opintooikeusId))
-                hyvaksytytVaiheet.add(getAloituskeskusteluHyvaksytty(opintooikeusId))
-            }.let { mappedKoejaksonVaihe ->
-                resultMap[opintooikeusId]!!.add(mappedKoejaksonVaihe)
             }
+
+            resultMap[opintooikeusId]!!.add(result)
         }
     }
 
     private fun applyKoejaksonVaiheetStartingFromLoppukeskustelut(
         userId: String,
         resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>,
-        kayttajaId: Long? = null
+        kayttajaId: Long? = null,
+        vainAvoimet: Boolean
     ) {
-        koejaksonLoppukeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
-            .associate {
-                getOpintooikeusIdOrElseThrow(it.opintooikeus) to koejaksonLoppukeskusteluMapper.toDto(
-                    it
-                )
-            }.forEach {
-                val opintooikeusId = it.key
-                if (resultMap[opintooikeusId] != null) {
-                    return@forEach
-                }
-                resultMap[opintooikeusId] = mutableListOf()
+        val loppukeskustelut =
+            if (vainAvoimet) koejaksonLoppukeskusteluRepository.findAllAvoinByLahikouluttajaUserIdOrLahiesimiesUserId(
+                userId
+            ) else koejaksonLoppukeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
+                userId
+            )
+        loppukeskustelut.associate {
+            getOpintooikeusIdOrElseThrow(it.opintooikeus) to koejaksonLoppukeskusteluMapper.toDto(
+                it
+            )
+        }.forEach {
+            val opintooikeusId = it.key
+            if (resultMap[opintooikeusId] != null) {
+                return@forEach
+            }
+            resultMap[opintooikeusId] = mutableListOf()
+            val result = mapLoppukeskustelu(it.value, kayttajaId)
 
+            if (!vainAvoimet) {
                 val mappedAloituskeskusteluHyvaksytty =
                     applyAloituskeskustelu(opintooikeusId)
                 val mappedValiarviointiHyvaksytty = applyValiarviointi(
@@ -148,35 +207,45 @@ class KoejaksonVaiheetServiceImpl(
                     mappedValiarviointiHyvaksytty
                 )
 
-                mapLoppukeskustelu(it.value, kayttajaId).apply {
+                result.apply {
                     mappedKehittamistoimenpiteetHyvaksytty.ifPresent { hyvaksytty ->
                         hyvaksytytVaiheet.add(hyvaksytty)
                     }
                     hyvaksytytVaiheet.add(mappedValiarviointiHyvaksytty)
                     hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
-                }.let { mappedKoejaksonVaihe ->
-                    resultMap[opintooikeusId]!!.add(mappedKoejaksonVaihe)
                 }
             }
+
+            resultMap[opintooikeusId]!!.add(result)
+
+        }
     }
 
     private fun applyKoejaksonVaiheetStartingFromKehittamistoimenpiteet(
         userId: String,
         resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>,
-        kayttajaId: Long? = null
+        kayttajaId: Long? = null,
+        vainAvoimet: Boolean
     ) {
-        kehittamistoimenpiteetRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
-            .associate {
-                getOpintooikeusIdOrElseThrow(it.opintooikeus) to kehittamistoimenpiteetMapper.toDto(
-                    it
-                )
-            }.forEach {
-                val opintooikeusId = it.key
-                if (resultMap[opintooikeusId] != null) {
-                    return@forEach
-                }
-                resultMap[opintooikeusId] = mutableListOf()
+        val kehittamistoimenpiteet =
+            if (vainAvoimet) kehittamistoimenpiteetRepository.findAllAvoinByLahikouluttajaUserIdOrLahiesimiesUserId(
+                userId
+            ) else kehittamistoimenpiteetRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
+                userId
+            )
+        kehittamistoimenpiteet.associate {
+            getOpintooikeusIdOrElseThrow(it.opintooikeus) to kehittamistoimenpiteetMapper.toDto(
+                it
+            )
+        }.forEach {
+            val opintooikeusId = it.key
+            if (resultMap[opintooikeusId] != null) {
+                return@forEach
+            }
+            resultMap[opintooikeusId] = mutableListOf()
+            val result = mapKehittamistoimenpiteet(it.value, kayttajaId)
 
+            if (!vainAvoimet) {
                 val mappedAloituskeskusteluHyvaksytty =
                     applyAloituskeskustelu(opintooikeusId)
                 val mappedValiarviointiHyvaksytty = applyValiarviointi(
@@ -184,21 +253,29 @@ class KoejaksonVaiheetServiceImpl(
                     mappedAloituskeskusteluHyvaksytty
                 )
 
-                mapKehittamistoimenpiteet(it.value, kayttajaId).apply {
+                result.apply {
                     hyvaksytytVaiheet.add(mappedValiarviointiHyvaksytty)
                     hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
-                }.let { mappedKoejaksonVaihe ->
-                    resultMap[opintooikeusId]!!.add(mappedKoejaksonVaihe)
                 }
             }
+
+            resultMap[opintooikeusId]!!.add(result)
+        }
     }
 
     private fun applyKoejaksonVaiheetStartingFromValiarvioinnit(
         userId: String,
         resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>,
-        kayttajaId: Long? = null
+        kayttajaId: Long? = null,
+        vainAvoimet: Boolean
     ) {
-        valiarviointiRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId).associate {
+        val valiarvioinnit =
+            if (vainAvoimet) valiarviointiRepository.findAllAvoinByLahikouluttajaUserIdOrLahiesimiesUserId(
+                userId
+            ) else valiarviointiRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
+                userId
+            )
+        valiarvioinnit.associate {
             getOpintooikeusIdOrElseThrow(it.opintooikeus) to valiarviointiMapper.toDto(it)
         }.forEach {
             val opintooikeusId = it.key
@@ -206,49 +283,66 @@ class KoejaksonVaiheetServiceImpl(
                 return@forEach
             }
             resultMap[opintooikeusId] = mutableListOf()
+            val result = mapValiarviointi(it.value, kayttajaId)
 
-            val mappedAloituskeskusteluHyvaksytty =
-                applyAloituskeskustelu(opintooikeusId)
+            if (!vainAvoimet) {
+                val mappedAloituskeskusteluHyvaksytty =
+                    applyAloituskeskustelu(opintooikeusId)
 
-            mapValiarviointi(it.value, kayttajaId).apply {
-                hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
-            }.let { mappedKoejaksonVaihe ->
-                resultMap[opintooikeusId]!!.add(mappedKoejaksonVaihe)
+                result.apply {
+                    hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
+                }
             }
+
+            resultMap[opintooikeusId]!!.add(result)
         }
     }
 
     private fun applyKoejaksonVaiheetStartingFromAloituskeskustelut(
         userId: String,
         resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>,
-        kayttajaId: Long? = null
+        kayttajaId: Long? = null,
+        vainAvoimet: Boolean
     ) {
-        aloituskeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(userId)
-            .associate {
-                getOpintooikeusIdOrElseThrow(it.opintooikeus) to aloituskeskusteluMapper.toDto(it)
-            }.forEach {
-                val opintooikeusId = it.key
-                if (resultMap[opintooikeusId] != null) {
-                    return@forEach
-                }
-                resultMap[opintooikeusId] = mutableListOf()
-                resultMap[opintooikeusId]!!.add(
-                    mapAloituskeskustelu(
-                        it.value,
-                        kayttajaId
-                    )
-                )
+        val aloituskeskustelu =
+            if (vainAvoimet) aloituskeskusteluRepository.findAllAvoinByLahikouluttajaUserIdOrLahiesimiesUserId(
+                userId
+            ) else aloituskeskusteluRepository.findAllByLahikouluttajaUserIdOrLahiesimiesUserId(
+                userId
+            )
+        aloituskeskustelu.associate {
+            getOpintooikeusIdOrElseThrow(it.opintooikeus) to aloituskeskusteluMapper.toDto(
+                it
+            )
+        }.forEach {
+            val opintooikeusId = it.key
+            if (resultMap[opintooikeusId] != null) {
+                return@forEach
             }
+            resultMap[opintooikeusId] = mutableListOf()
+            resultMap[opintooikeusId]!!.add(
+                mapAloituskeskustelu(it.value, kayttajaId)
+            )
+        }
     }
 
     private fun applyKoulutussopimuksetForKouluttaja(
         userId: String,
         resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>,
-        kayttajaId: Long
+        kayttajaId: Long,
+        vainAvoimet: Boolean
     ) {
-        koejaksonKoulutussopimusRepository.findAllByKouluttajatKouluttajaUserId(userId).associate {
+        val koulutussopimukset =
+            if (vainAvoimet) koejaksonKoulutussopimusRepository.findAllAvoinByKouluttajatKouluttajaUserId(
+                userId
+            ) else koejaksonKoulutussopimusRepository.findAllByKouluttajatKouluttajaUserId(
+                userId
+            )
+        koulutussopimukset.associate {
             koejaksonKoulutussopimusService.tarkistaAllekirjoitus(it)
-            getOpintooikeusIdOrElseThrow(it.opintooikeus) to koejaksonKoulutussopimusMapper.toDto(it)
+            getOpintooikeusIdOrElseThrow(it.opintooikeus) to koejaksonKoulutussopimusMapper.toDto(
+                it
+            )
         }.forEach {
             val opintooikeusId = it.key
             resultMap.putIfAbsent(opintooikeusId, mutableListOf())
@@ -258,11 +352,18 @@ class KoejaksonVaiheetServiceImpl(
 
     private fun applyKoulutussopimuksetForVastuuhenkilo(
         userId: String,
-        resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>
+        resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>,
+        vainAvoimet: Boolean
     ) {
-        koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(userId).associate {
+        val koulutussopimukset =
+            if (vainAvoimet) koejaksonKoulutussopimusRepository.findAllAvoinByVastuuhenkiloUserId(
+                userId
+            ) else koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(userId)
+        koulutussopimukset.associate {
             koejaksonKoulutussopimusService.tarkistaAllekirjoitus(it)
-            getOpintooikeusIdOrElseThrow(it.opintooikeus) to koejaksonKoulutussopimusMapper.toDto(it)
+            getOpintooikeusIdOrElseThrow(it.opintooikeus) to koejaksonKoulutussopimusMapper.toDto(
+                it
+            )
         }.forEach {
             val opintooikeusId = it.key
             resultMap.putIfAbsent(opintooikeusId, mutableListOf())
