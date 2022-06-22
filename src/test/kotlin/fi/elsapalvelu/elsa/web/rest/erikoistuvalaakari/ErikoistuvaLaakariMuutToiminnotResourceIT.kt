@@ -96,7 +96,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         assertThat(testLahikouluttaja?.getNimi()).isEqualTo(DEFAULT_NIMI)
         assertThat(testLahikouluttaja?.user?.email).isEqualTo(DEFAULT_EMAIL)
         assertThat(testLahikouluttaja?.user?.login).isEqualTo(DEFAULT_EMAIL)
-        assertThat(testLahikouluttaja?.user?.activated).isEqualTo(false)
+        assertThat(testLahikouluttaja?.user?.activated).isEqualTo(true)
         assertThat(
             testLahikouluttaja?.user?.authorities?.contains(
                 Authority(name = KOULUTTAJA)
@@ -131,7 +131,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         assertThat(testLahikouluttaja?.getNimi()).isEqualTo(DEFAULT_NIMI)
         assertThat(testLahikouluttaja?.user?.email).isEqualTo(DEFAULT_EMAIL)
         assertThat(testLahikouluttaja?.user?.login).isEqualTo(DEFAULT_EMAIL)
-        assertThat(testLahikouluttaja?.user?.activated).isEqualTo(false)
+        assertThat(testLahikouluttaja?.user?.activated).isEqualTo(true)
         assertThat(
             testLahikouluttaja?.user?.authorities?.contains(
                 Authority(name = KOULUTTAJA)
