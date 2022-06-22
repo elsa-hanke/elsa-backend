@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
@@ -84,12 +85,12 @@ class ErikoistuvaLaakariMuutToiminnotResource(
 
                 val result = kayttajaService.saveKouluttaja(
                     user.id!!,
-                    KayttajaDTO(nimi = uusiLahikouluttajaDTO.nimi),
+                    KayttajaDTO(nimi = uusiLahikouluttajaDTO.nimi, tila = KayttajatilinTila.KUTSUTTU),
                     UserDTO(
                         id = UUID.randomUUID().toString(),
                         login = uusiLahikouluttajaDTO.sahkoposti,
                         email = uusiLahikouluttajaDTO.sahkoposti,
-                        activated = false,
+                        activated = true,
                         authorities = setOf(KOULUTTAJA)
                     )
                 )

@@ -72,7 +72,6 @@ class KayttajaServiceImpl(
             user.firstName = names?.dropLast(1)?.joinToString()
             user.lastName = names?.last()
             user = userRepository.save(user)
-            kayttajaDTO.tila = KayttajatilinTila.AKTIIVINEN
             var kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
             kayttaja.user = user
             val opintooikeus =
