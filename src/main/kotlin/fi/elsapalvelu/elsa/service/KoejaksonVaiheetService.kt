@@ -6,13 +6,23 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
 interface KoejaksonVaiheetService {
-    fun findAllByKouluttajaKayttajaUserId(userId: String): List<KoejaksonVaiheDTO>
+    fun findAllByKouluttajaKayttajaUserId(
+        userId: String,
+        vainAvoimet: Boolean = false
+    ): List<KoejaksonVaiheDTO>
 
-    fun findAllByVastuuhenkiloKayttajaUserId(userId: String): List<KoejaksonVaiheDTO>
+    fun findAllByVastuuhenkiloKayttajaUserId(
+        userId: String,
+        vainAvoimet: Boolean = false
+    ): List<KoejaksonVaiheDTO>
 
     fun findAllByVirkailijaKayttajaUserId(
         userId: String,
         criteria: KoejaksoCriteria,
         pageable: Pageable
     ): Page<KoejaksonVaiheDTO>?
+
+    fun findAllAvoinByVirkailijaKayttajaUserId(
+        userId: String
+    ): List<KoejaksonVaiheDTO>?
 }

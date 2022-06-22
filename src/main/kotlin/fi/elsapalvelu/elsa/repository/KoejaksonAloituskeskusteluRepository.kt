@@ -43,6 +43,14 @@ interface KoejaksonAloituskeskusteluRepository : JpaRepository<KoejaksonAloitusk
         userId: String
     ): List<KoejaksonAloituskeskustelu>
 
+    @Query(
+        "select a from KoejaksonAloituskeskustelu a left join a.lahikouluttaja lk left join a.lahiesimies le " +
+            "where (lk.user.id = :userId and a.lahetetty = true and a.lahikouluttajaHyvaksynyt = false) or (le.user.id = :userId and a.lahikouluttajaHyvaksynyt = true and a.lahiesimiesHyvaksynyt = false)"
+    )
+    fun findAllAvoinByLahikouluttajaUserIdOrLahiesimiesUserId(
+        userId: String
+    ): List<KoejaksonAloituskeskustelu>
+
     @Transactional
     @Modifying
     @Query("update KoejaksonAloituskeskustelu a set a.lahikouluttaja.id = :newKayttaja where a.lahikouluttaja.id = :currentKayttaja")
