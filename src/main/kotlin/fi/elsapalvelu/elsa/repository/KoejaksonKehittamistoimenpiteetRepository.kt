@@ -43,6 +43,14 @@ interface KoejaksonKehittamistoimenpiteetRepository :
         userId: String
     ): List<KoejaksonKehittamistoimenpiteet>
 
+    @Query(
+        "select k from KoejaksonKehittamistoimenpiteet k left join k.lahikouluttaja lk left join k.lahiesimies le " +
+            "where (lk.user.id = :userId and k.lahikouluttajaHyvaksynyt = false) or (le.user.id = :userId and k.lahikouluttajaHyvaksynyt = true and k.lahiesimiesHyvaksynyt = false)"
+    )
+    fun findAllAvoinByLahikouluttajaUserIdOrLahiesimiesUserId(
+        userId: String
+    ): List<KoejaksonKehittamistoimenpiteet>
+
     @Transactional
     @Modifying
     @Query("update KoejaksonKehittamistoimenpiteet k set k.lahikouluttaja.id = :newKayttaja where k.lahikouluttaja.id = :currentKayttaja")

@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistujanEteneminenVirkailijaDTO
 import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaOptionsVirkailijaDTO
+import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
@@ -19,7 +20,8 @@ class VirkailijaEtusivuResource(
     private val kayttajaService: KayttajaService,
     private val erikoisalaService: ErikoisalaService,
     private val asetusService: AsetusService,
-    private val etusivuService: EtusivuService
+    private val etusivuService: EtusivuService,
+    private val koejaksonVaiheetService: KoejaksonVaiheetService
 ) {
     @GetMapping("/erikoistujien-seuranta-rajaimet")
     fun getErikoistujienSeurantaRajaimet(): ResponseEntity<ErikoistujienSeurantaOptionsVirkailijaDTO> {
@@ -45,7 +47,20 @@ class VirkailijaEtusivuResource(
     @GetMapping("/yliopisto")
     fun getYliopisto(principal: Principal?): ResponseEntity<String> {
         val userId = userService.getAuthenticatedUser(principal).id!!
-        val yliopistoNimi = kayttajaService.findByUserId(userId).get().yliopistot?.firstOrNull()?.nimi
+        val yliopistoNimi =
+            kayttajaService.findByUserId(userId).get().yliopistot?.firstOrNull()?.nimi
         return ResponseEntity.ok(yliopistoNimi)
+    }
+
+    @GetMapping("/koejaksot")
+    fun getKoejaksot(
+        principal: Principal?
+    ): ResponseEntity<List<KoejaksonVaiheDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(
+            koejaksonVaiheetService.findAllAvoinByVirkailijaKayttajaUserId(
+                user.id!!
+            )
+        )
     }
 }
