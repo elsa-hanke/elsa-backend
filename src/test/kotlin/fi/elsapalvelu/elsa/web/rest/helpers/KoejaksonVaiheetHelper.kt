@@ -139,5 +139,18 @@ class KoejaksonVaiheetHelper {
                 koulutussopimus = koejaksonKoulutussopimus
             )
         }
+
+        @JvmStatic
+        fun createVastuuhenkilonArvio(
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            vastuuhenkilo: Kayttaja
+        ): KoejaksonVastuuhenkilonArvio {
+            val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
+            return KoejaksonVastuuhenkilonArvio(
+                opintooikeus = opintooikeus,
+                muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
+                vastuuhenkilo = vastuuhenkilo,
+            )
+        }
     }
 }

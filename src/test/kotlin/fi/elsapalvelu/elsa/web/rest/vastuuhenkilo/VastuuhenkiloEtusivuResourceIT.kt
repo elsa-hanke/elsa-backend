@@ -85,6 +85,15 @@ class VastuuhenkiloEtusivuResourceIT {
     private lateinit var koulutussuunnitelmaRepository: KoulutussuunnitelmaRepository
 
     @Autowired
+    private lateinit var koulutussopimusRepository: KoejaksonKoulutussopimusRepository
+
+    @Autowired
+    private lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
+
+    @Autowired
+    private lateinit var kayttajaRepository: KayttajaRepository
+
+    @Autowired
     private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
 
     @Autowired
@@ -656,6 +665,105 @@ class VastuuhenkiloEtusivuResourceIT {
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    @Transactional
+    fun getKoejaksotEmptyList() {
+        initTest()
+
+        restEtusivuMockMvc.perform(
+            get("/api/vastuuhenkilo/etusivu/koejaksot")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
+    }
+
+    @Test
+    @Transactional
+    fun getKoejaksotList() {
+        initTest()
+
+        val erikoistuvaLaakari =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+
+        val kouluttaja = KayttajaHelper.createEntity(em)
+        kayttajaRepository.save(kouluttaja)
+
+        val koulutussopimus =
+            KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
+        koulutussopimus.lahetetty = true
+        koulutussopimus.kouluttajat =
+            mutableSetOf(
+                KoejaksonVaiheetHelper.createKoulutussopimuksenKouluttaja(
+                    koulutussopimus,
+                    kouluttaja
+                )
+            )
+        koulutussopimusRepository.save(koulutussopimus)
+
+        val vastuuhenkilonArvio =
+            KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+        vastuuhenkilonArvio.virkailijaHyvaksynyt = true
+        vastuuhenkilonArvio.virkailijanKuittausaika = LocalDate.now()
+        vastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
+
+        restEtusivuMockMvc.perform(
+            get("/api/vastuuhenkilo/etusivu/koejaksot")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(2)))
+    }
+
+    @Test
+    @Transactional
+    fun getKoejaksotListWrongState() {
+        initTest()
+
+        val erikoistuvaLaakari =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+
+        val kouluttaja = KayttajaHelper.createEntity(em)
+        kayttajaRepository.save(kouluttaja)
+
+        val koulutussopimus =
+            KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
+        koulutussopimus.lahetetty = true
+        koulutussopimus.kouluttajat =
+            mutableSetOf(
+                KoejaksonVaiheetHelper.createKoulutussopimuksenKouluttaja(
+                    koulutussopimus,
+                    kouluttaja
+                )
+            )
+        koulutussopimus.vastuuhenkiloHyvaksynyt = true
+        koulutussopimus.vastuuhenkilonKuittausaika = LocalDate.now()
+        koulutussopimusRepository.save(koulutussopimus)
+
+        val vastuuhenkilonArvio =
+            KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+        vastuuhenkilonArvio.virkailijaHyvaksynyt = false
+        vastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
+
+        restEtusivuMockMvc.perform(
+            get("/api/vastuuhenkilo/etusivu/koejaksot")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
     }
 
     fun initTest(createVastuuhenkilonArvio: Boolean? = true) {
