@@ -23,7 +23,14 @@ interface KoejaksonVastuuhenkilonArvioRepository :
         userId: String
     ): List<KoejaksonVastuuhenkilonArvio>
 
-    fun findAllByVastuuhenkiloUserIdAndVastuuhenkiloHyvaksynytFalse(
+    @Query(
+        """
+        select a
+        from KoejaksonVastuuhenkilonArvio a join a.vastuuhenkilo v
+        where v.user.id = :userId and a.virkailijaHyvaksynyt = true and a.vastuuhenkiloHyvaksynyt = false
+        """
+    )
+    fun findAllAvoinByVastuuhenkilo(
         userId: String
     ): List<KoejaksonVastuuhenkilonArvio>
 

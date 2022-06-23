@@ -68,6 +68,21 @@ class KouluttajaEtusivuResourceIT {
     private lateinit var kouluttajavaltuutusRepository: KouluttajavaltuutusRepository
 
     @Autowired
+    private lateinit var aloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository
+
+    @Autowired
+    private lateinit var valiarviointiRepository: KoejaksonValiarviointiRepository
+
+    @Autowired
+    private lateinit var kehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository
+
+    @Autowired
+    private lateinit var loppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
+
+    @Autowired
+    private lateinit var kayttajaRepository: KayttajaRepository
+
+    @Autowired
     private lateinit var em: EntityManager
 
     @Autowired
@@ -321,6 +336,131 @@ class KouluttajaEtusivuResourceIT {
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isFound)
+    }
+
+    @Test
+    @Transactional
+    fun getKoejaksotEmptyList() {
+        initTest()
+
+        restEtusivuMockMvc.perform(
+            get("/api/kouluttaja/etusivu/koejaksot")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
+    }
+
+    @Test
+    @Transactional
+    fun getKoejaksotList() {
+        initTest()
+
+        val erikoistuvaLaakari1 =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari1)
+
+        val esimies = KayttajaHelper.createEntity(em)
+        kayttajaRepository.save(esimies)
+
+        aloituskeskusteluRepository.save(
+            KoejaksonVaiheetHelper.createAloituskeskustelu(
+                erikoistuvaLaakari1,
+                kouluttaja,
+                esimies
+            )
+        )
+
+        val erikoistuvaLaakari2 =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari2)
+
+        valiarviointiRepository.save(
+            KoejaksonVaiheetHelper.createValiarviointi(
+                erikoistuvaLaakari2,
+                kouluttaja,
+                esimies
+            )
+        )
+
+        val erikoistuvaLaakari3 =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari3)
+
+        kehittamistoimenpiteetRepository.save(
+            KoejaksonVaiheetHelper.createKehittamistoimenpiteet(
+                erikoistuvaLaakari3,
+                kouluttaja,
+                esimies
+            )
+        )
+
+        val erikoistuvaLaakari4 =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari4)
+
+        loppukeskusteluRepository.save(
+            KoejaksonVaiheetHelper.createLoppukeskustelu(
+                erikoistuvaLaakari4,
+                kouluttaja,
+                esimies
+            )
+        )
+
+        restEtusivuMockMvc.perform(
+            get("/api/kouluttaja/etusivu/koejaksot")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(4)))
+    }
+
+    @Test
+    @Transactional
+    fun getKoejaksotListHyvaksytty() {
+        initTest()
+
+        val erikoistuvaLaakari =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+
+        val esimies = KayttajaHelper.createEntity(em)
+        kayttajaRepository.save(esimies)
+
+        val aloituskeskustelu = KoejaksonVaiheetHelper.createAloituskeskustelu(
+            erikoistuvaLaakari,
+            kouluttaja,
+            esimies
+        )
+        aloituskeskustelu.lahikouluttajaHyvaksynyt = true
+        aloituskeskustelu.lahikouluttajanKuittausaika = LocalDate.now()
+
+        aloituskeskusteluRepository.save(aloituskeskustelu)
+
+        restEtusivuMockMvc.perform(
+            get("/api/kouluttaja/etusivu/koejaksot")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
     }
 
     @Test
