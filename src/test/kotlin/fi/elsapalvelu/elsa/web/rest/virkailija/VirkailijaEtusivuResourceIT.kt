@@ -6,6 +6,9 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
@@ -13,6 +16,7 @@ import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.hamcrest.Matchers.hasSize
+import org.hamcrest.collection.IsCollectionWithSize
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -53,6 +57,15 @@ class VirkailijaEtusivuResourceIT {
 
     @Autowired
     private lateinit var erikoisalaRepository: ErikoisalaRepository
+
+    @Autowired
+    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
+
+    @Autowired
+    private lateinit var kayttajaRepository: KayttajaRepository
+
+    @Autowired
+    private lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
 
     @Autowired
     private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
@@ -535,6 +548,79 @@ class VirkailijaEtusivuResourceIT {
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    @Transactional
+    fun getKoejaksotEmptyList() {
+        initTest()
+
+        restEtusivuMockMvc.perform(
+            get("/api/virkailija/etusivu/koejaksot")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(IsCollectionWithSize.hasSize<Int>(0)))
+    }
+
+    @Test
+    @Transactional
+    fun getKoejaksotList() {
+        initTest()
+
+        val erikoistuvaLaakari =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+
+        val vastuuhenkilo = KayttajaHelper.createEntity(em)
+        kayttajaRepository.save(vastuuhenkilo)
+
+        val vastuuhenkilonArvio =
+            KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+        vastuuhenkilonArvio.virkailijaHyvaksynyt = false
+        vastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
+
+        restEtusivuMockMvc.perform(
+            get("/api/virkailija/etusivu/koejaksot")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(IsCollectionWithSize.hasSize<Int>(1)))
+    }
+
+    @Test
+    @Transactional
+    fun getKoejaksotListWrongState() {
+        initTest()
+
+        val erikoistuvaLaakari =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+
+        val vastuuhenkilo = KayttajaHelper.createEntity(em)
+        kayttajaRepository.save(vastuuhenkilo)
+
+        val vastuuhenkilonArvio =
+            KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+        vastuuhenkilonArvio.virkailijaHyvaksynyt = true
+        vastuuhenkilonArvio.virkailijanKuittausaika = LocalDate.now()
+        vastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
+
+        restEtusivuMockMvc.perform(
+            get("/api/virkailija/etusivu/koejaksot")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(IsCollectionWithSize.hasSize<Int>(0)))
     }
 
     fun initTest() {

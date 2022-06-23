@@ -140,7 +140,7 @@ class KoejaksonVaiheetServiceImpl(
         vainAvoimet: Boolean
     ) {
         val vastuuhenkilonArviot =
-            if (vainAvoimet) vastuuhenkilonArvioRepository.findAllByVastuuhenkiloUserIdAndVastuuhenkiloHyvaksynytFalse(
+            if (vainAvoimet) vastuuhenkilonArvioRepository.findAllAvoinByVastuuhenkilo(
                 userId
             ) else vastuuhenkilonArvioRepository.findAllByVastuuhenkiloUserId(
                 userId
