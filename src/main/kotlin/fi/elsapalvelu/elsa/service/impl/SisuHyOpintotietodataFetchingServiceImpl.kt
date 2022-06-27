@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
-import fi.elsapalvelu.elsa.extensions.tryParse
+import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.SisuHyClientBuilder
@@ -32,18 +32,19 @@ class SisuHyOpintotietodataFetchingServiceImpl(
 
             return response.data?.private_person_by_personal_identity_code?.let {
                 OpintotietodataDTO(
-                    syntymaaika = it.dateOfBirth?.tryParse(),
+                    syntymaaika = it.dateOfBirth?.tryParseToLocalDate(),
                     opintooikeudet = it.studyRights?.filter { opintooikeus ->
                         (opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_LAAKARI_SISU_KOULUTUS ||
                             opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS)
                     }?.map { opintooikeus ->
+                        val erikoisalaTunniste = opintooikeus.acceptedSelectionPath?.educationPhase1GroupId
                         OpintotietoOpintooikeusDataDTO(
                             id = opintooikeus.id,
                             tila = mapOpintooikeudenTila(opintooikeus.state),
-                            opintooikeudenAlkamispaiva = opintooikeus.valid?.startDate?.tryParse(),
-                            opintooikeudenPaattymispaiva = opintooikeus.valid?.endDate?.tryParse(),
+                            opintooikeudenAlkamispaiva = opintooikeus.valid?.startDate?.tryParseToLocalDate(),
+                            opintooikeudenPaattymispaiva = opintooikeus.valid?.endDate?.tryParseToLocalDate(),
                             asetus = opintooikeus.decreeOnUniversityDegrees?.shortName?.fi,
-                            erikoisalaTunniste = opintooikeus.acceptedSelectionPath?.educationPhase1GroupId,
+                            erikoisalaTunnisteList = if (erikoisalaTunniste != null) listOf(erikoisalaTunniste) else null,
                             opiskelijatunnus = it.studentNumber,
                             yliopisto = YliopistoEnum.HELSINGIN_YLIOPISTO
                         )

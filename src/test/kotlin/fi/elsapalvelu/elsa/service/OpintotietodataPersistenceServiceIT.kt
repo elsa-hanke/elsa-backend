@@ -412,7 +412,35 @@ class OpintotietodataPersistenceServiceIT {
     fun shouldNotPersistOpintotietodataWithMissingErikoisalaTunniste(yliopisto: YliopistoEnum) {
         val opintotietodataDTO = OpintotietodataDTO(
             syntymaaika,
-            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply { erikoisalaTunniste = null })
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply { erikoisalaTunnisteList = listOf() })
+        )
+
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO)
+        )
+
+        val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
+        assertNotNull(existingUser)
+        assertUserProperties(existingUser)
+
+        val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(existingUser.id!!)
+        assertThat(opintooikeudet).size().isEqualTo(0)
+    }
+
+    @ParameterizedTest
+    @EnumSource(YliopistoEnum::class)
+    @Transactional
+    fun shouldNotPersistOpintooikeusWithMultipleErikoisala(yliopisto: YliopistoEnum) {
+        val opintotietodataDTO = OpintotietodataDTO(
+            syntymaaika,
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply {
+                erikoisalaTunnisteList = listOf(virtaKoodi, secondVirtaKoodi)
+            })
         )
 
         opintotietodataPersistenceService.create(
@@ -829,7 +857,7 @@ class OpintotietodataPersistenceServiceIT {
                 defaultOpintooikeudenMyontamispaiva,
                 defaultOpintooikeudenPaattymispaiva,
                 asetusNimi,
-                erikoisalaTunniste,
+                listOf(erikoisalaTunniste),
                 OpintooikeudenTila.AKTIIVINEN,
                 yliopisto,
                 opiskelijatunnus
@@ -846,7 +874,7 @@ class OpintotietodataPersistenceServiceIT {
                 defaultSecondOpintooikeudenMyontamispaiva,
                 defaultSecondOpintooikeudenPaattymispaiva,
                 secondAsetusNimi,
-                erikoisalaTunniste,
+                listOf(erikoisalaTunniste),
                 OpintooikeudenTila.AKTIIVINEN,
                 yliopisto,
                 opiskelijatunnus

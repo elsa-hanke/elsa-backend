@@ -15,7 +15,7 @@ data class OpintotietoOpintooikeusDataDTO(
 
     var asetus: String? = null,
 
-    var erikoisalaTunniste: String? = null,
+    var erikoisalaTunnisteList: List<String>? = listOf(),
 
     var tila: OpintooikeudenTila? = null,
 

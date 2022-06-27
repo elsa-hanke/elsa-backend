@@ -53,6 +53,7 @@ class ApplicationProperties {
         private val suomifi = Suomifi()
         private val haka = Haka()
         private val sisuHy = SisuHy()
+        private val peppiTurku = PeppiTurku()
 
         fun getSuomifi(): Suomifi {
             return suomifi
@@ -64,6 +65,10 @@ class ApplicationProperties {
 
         fun getSisuHy(): SisuHy {
             return sisuHy
+        }
+
+        fun getPeppiTurku(): PeppiTurku {
+            return peppiTurku
         }
 
         class Suomifi {
@@ -87,6 +92,12 @@ class ApplicationProperties {
             var tutkintoohjelmaExportUrl: String? = null
             var privateKeyLocation: String? = null
             var certificateLocation: String? = null
+        }
+
+        class PeppiTurku {
+            var apiKey: String? = null
+            var basicAuthEncodedKey: String? = null
+            var endpointUrl: String? = null
         }
     }
 
