@@ -106,10 +106,10 @@ class OpintotietodataPersistenceServiceIT {
         secondAsetus = Asetus(nimi = secondAsetusNimi)
         em.persist(secondAsetus)
 
-        erikoisala = ErikoisalaHelper.createEntity()
+        erikoisala = ErikoisalaHelper.createEntity(virtaPatevyyskoodi = virtaKoodi)
         em.persist(erikoisala)
 
-        secondErikoisala = ErikoisalaHelper.createEntity()
+        secondErikoisala = ErikoisalaHelper.createEntity(virtaPatevyyskoodi = secondVirtaKoodi)
         em.persist(secondErikoisala)
 
         setupDegreeProgrammeIdsForHYSisu()
@@ -811,18 +811,25 @@ class OpintotietodataPersistenceServiceIT {
 
         private const val secondAsetusNimi = "02/test"
 
+        private const val virtaKoodi = "abc"
+
+        private const val secondVirtaKoodi = "dce"
+
         private const val tutkintoohjelmaId = "int-test-DP-1"
 
         private const val secondTutkintoohjelmaId = "int-test-DP-2"
 
         @JvmStatic
         fun createOpintooikeusData(yliopisto: YliopistoEnum): OpintotietoOpintooikeusDataDTO {
+            val erikoisalaTunniste =
+                if (yliopisto == YliopistoEnum.HELSINGIN_YLIOPISTO) tutkintoohjelmaId
+                else virtaKoodi
             return OpintotietoOpintooikeusDataDTO(
                 opintooikeusId,
                 defaultOpintooikeudenMyontamispaiva,
                 defaultOpintooikeudenPaattymispaiva,
                 asetusNimi,
-                tutkintoohjelmaId,
+                erikoisalaTunniste,
                 OpintooikeudenTila.AKTIIVINEN,
                 yliopisto,
                 opiskelijatunnus
@@ -831,12 +838,15 @@ class OpintotietodataPersistenceServiceIT {
 
         @JvmStatic
         fun createSecondOpintooikeusData(yliopisto: YliopistoEnum): OpintotietoOpintooikeusDataDTO {
+            val erikoisalaTunniste =
+                if (yliopisto == YliopistoEnum.HELSINGIN_YLIOPISTO) secondTutkintoohjelmaId
+                else secondVirtaKoodi
             return OpintotietoOpintooikeusDataDTO(
                 secondOpintooikeusId,
                 defaultSecondOpintooikeudenMyontamispaiva,
                 defaultSecondOpintooikeudenPaattymispaiva,
                 secondAsetusNimi,
-                secondTutkintoohjelmaId,
+                erikoisalaTunniste,
                 OpintooikeudenTila.AKTIIVINEN,
                 yliopisto,
                 opiskelijatunnus
