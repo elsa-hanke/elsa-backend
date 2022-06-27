@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import com.apollographql.apollo3.exception.ApolloException
 import fi.elsapalvelu.elsa.OpintosuorituksetSisuHyQuery
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
-import fi.elsapalvelu.elsa.extensions.tryParse
+import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.SisuHyClientBuilder
@@ -36,7 +36,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
                     yliopisto = YliopistoEnum.HELSINGIN_YLIOPISTO,
                     items = it.map { a ->
                         OpintosuoritusDTO(
-                            suorituspaiva = a.attainmentDate.tryParse(),
+                            suorituspaiva = a.attainmentDate.tryParseToLocalDate(),
                             opintopisteet = a.credits,
                             nimi_fi = a.name?.fi ?: a.courseUnit?.name?.fi ?: a.module?.name?.fi,
                             nimi_sv = a.name?.sv ?: a.courseUnit?.name?.sv ?: a.module?.name?.fi,
@@ -44,7 +44,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
                             hyvaksytty = a.grade?.passed,
                             arvio_fi = a.grade?.name?.fi,
                             arvio_sv = a.grade?.name?.sv,
-                            vanhenemispaiva = a.expiryDate?.tryParse(),
+                            vanhenemispaiva = a.expiryDate?.tryParseToLocalDate(),
                             yliopistoOpintooikeusId = a.studyRightId,
                             osakokonaisuudet = a.childAttainments?.filter { c -> c.state == attainedState }
                                 ?.map { c -> mapOsakokonaisuus(c) }
@@ -60,7 +60,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
 
     private fun mapOsakokonaisuus(osakokonaisuus: OpintosuorituksetSisuHyQuery.ChildAttainment): OpintosuoritusOsakokonaisuusDTO {
         return OpintosuoritusOsakokonaisuusDTO(
-            suorituspaiva = osakokonaisuus.attainmentDate.tryParse(),
+            suorituspaiva = osakokonaisuus.attainmentDate.tryParseToLocalDate(),
             opintopisteet = osakokonaisuus.credits,
             nimi_fi = osakokonaisuus.name?.fi ?: osakokonaisuus.courseUnit?.name?.fi,
             nimi_sv = osakokonaisuus.name?.sv ?: osakokonaisuus.courseUnit?.name?.sv,
@@ -68,7 +68,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
             hyvaksytty = osakokonaisuus.grade?.passed,
             arvio_fi = osakokonaisuus.grade?.name?.fi,
             arvio_sv = osakokonaisuus.grade?.name?.sv,
-            vanhenemispaiva = osakokonaisuus.expiryDate?.tryParse()
+            vanhenemispaiva = osakokonaisuus.expiryDate?.tryParseToLocalDate()
         )
     }
 
