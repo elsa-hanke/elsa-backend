@@ -440,6 +440,7 @@ type StudyRight {
   personalizedSelectionPath: PersonalizedSelectionPath
   statePeriods: [StudyRightStatePeriod!]
   enrolmentRights: [EnrolmentRight!]
+  virtaPatevyyskoodi: String
 }
 
 type SelectionPath {
