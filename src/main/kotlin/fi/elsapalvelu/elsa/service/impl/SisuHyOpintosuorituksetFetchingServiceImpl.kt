@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import com.apollographql.apollo3.exception.ApolloException
-import fi.elsapalvelu.elsa.OpintosuorituksetQuery
+import fi.elsapalvelu.elsa.OpintosuorituksetSisuHyQuery
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParse
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
@@ -26,7 +26,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
     override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetDTO? {
         return try {
             val response =
-                sisuHyClientBuilder.apolloClient().query(OpintosuorituksetQuery(id = hetu))
+                sisuHyClientBuilder.apolloClient().query(OpintosuorituksetSisuHyQuery(id = hetu))
                     .execute()
 
             return response.data?.private_person_by_personal_identity_code?.attainments?.filter {
@@ -58,7 +58,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
         }
     }
 
-    private fun mapOsakokonaisuus(osakokonaisuus: OpintosuorituksetQuery.ChildAttainment): OpintosuoritusOsakokonaisuusDTO {
+    private fun mapOsakokonaisuus(osakokonaisuus: OpintosuorituksetSisuHyQuery.ChildAttainment): OpintosuoritusOsakokonaisuusDTO {
         return OpintosuoritusOsakokonaisuusDTO(
             suorituspaiva = osakokonaisuus.attainmentDate.tryParse(),
             opintopisteet = osakokonaisuus.credits,

@@ -1,4 +1,4 @@
-query OpintotietodataQuery($id: ID!) {
+query OpintotietodataSisuHy($id: ID!) {
     private_person_by_personal_identity_code(id: $id) {
         studentNumber
         dateOfBirth

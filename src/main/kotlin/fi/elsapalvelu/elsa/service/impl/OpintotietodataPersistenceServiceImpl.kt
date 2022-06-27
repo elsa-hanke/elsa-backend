@@ -455,18 +455,23 @@ class OpintotietodataPersistenceServiceImpl(
     private fun findErikoisalaOrLogError(
         erikoisalaTunniste: String?, yliopisto: YliopistoEnum, userId: String
     ): Erikoisala? {
-        // TODO: Toteuta erikoisalan tunnistaminen yliopistokohtaisesti.
-        return erikoisalaTunniste?.let {
-            erikoisalaSisuTutkintoohjelmaRepository.findOneByTutkintoohjelmaId(
-                erikoisalaTunniste
-            )?.erikoisala
-        } ?: run {
+        val erikoisala = erikoisalaTunniste?.let {
+            if (yliopisto == YliopistoEnum.HELSINGIN_YLIOPISTO) {
+                erikoisalaSisuTutkintoohjelmaRepository.findOneByTutkintoohjelmaId(
+                    erikoisalaTunniste
+                )?.erikoisala
+            } else {
+                erikoisalaRepository.findOneByVirtaPatevyyskoodi(erikoisalaTunniste)
+            }
+        }
+        if (erikoisala == null) {
             log.error(
                 "$yliopisto, user id: $userId. Erikoisalaa ei tunnistettu opintotietojärjestelmästä saadun " +
                     "tunnisteen $erikoisalaTunniste perusteella."
             )
-            return null
         }
+
+        return erikoisala
     }
 
     private fun findLatestOpintoopasByErikoisalaOrLogError(erikoisalaId: Long): Opintoopas? {

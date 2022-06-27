@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import com.apollographql.apollo3.exception.ApolloException
-import fi.elsapalvelu.elsa.OpintotietodataQuery
+import fi.elsapalvelu.elsa.OpintotietodataSisuHyQuery
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
@@ -27,7 +27,7 @@ class SisuHyOpintotietodataFetchingServiceImpl(
     override suspend fun fetchOpintotietodata(hetu: String): OpintotietodataDTO? {
         try {
             val response =
-                sisuHyClientBuilder.apolloClient().query(OpintotietodataQuery(id = hetu))
+                sisuHyClientBuilder.apolloClient().query(OpintotietodataSisuHyQuery(id = hetu))
                     .execute()
 
             return response.data?.private_person_by_personal_identity_code?.let {
@@ -59,7 +59,7 @@ class SisuHyOpintotietodataFetchingServiceImpl(
         return yliopistoRepository.findOneByNimi(YliopistoEnum.HELSINGIN_YLIOPISTO)?.haeOpintotietodata == true
     }
 
-    fun mapOpintooikeudenTila(sisuOpintooikeudenTila: String?): OpintooikeudenTila? {
+    private fun mapOpintooikeudenTila(sisuOpintooikeudenTila: String?): OpintooikeudenTila? {
         return when (sisuOpintooikeudenTila) {
             SisuOpintooikeudenTila.ACTIVE.toString() -> OpintooikeudenTila.AKTIIVINEN
             SisuOpintooikeudenTila.ACTIVE_NONATTENDING.toString() -> OpintooikeudenTila.AKTIIVINEN_EI_LASNA

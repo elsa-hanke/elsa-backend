@@ -3,10 +3,9 @@ package fi.elsapalvelu.elsa.service.impl
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.network.okHttpClient
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
 import fi.elsapalvelu.elsa.service.SisuHyClientBuilder
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Response
 import okhttp3.tls.HandshakeCertificates
 import okhttp3.tls.HeldCertificate
 import org.opensaml.security.x509.X509Support
@@ -56,7 +55,13 @@ class SisuHyClientBuilderImpl(
                 .build()
             OkHttpClient.Builder()
                 .sslSocketFactory(certificates.sslSocketFactory(), certificates.trustManager)
-                .addInterceptor(ApiKeyInterceptor(applicationProperties.getSecurity().getSisuHy().apiKey!!))
+                .addInterceptor(
+                    OkHttp3RequestInterceptor(
+                        mapOf(
+                            "X-Api-Key" to applicationProperties.getSecurity().getSisuHy().apiKey!!
+                        )
+                    )
+                )
                 .connectTimeout(5, TimeUnit.SECONDS)
                 .readTimeout(5, TimeUnit.SECONDS)
                 .writeTimeout(5, TimeUnit.SECONDS)
@@ -77,15 +82,5 @@ class SisuHyClientBuilderImpl(
 
     override fun okHttpClient(): OkHttpClient {
         return okHttpClient
-    }
-}
-
-private class ApiKeyInterceptor(private val apiKey: String) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): Response {
-        val request = chain.request().newBuilder()
-            .addHeader("X-Api-Key", apiKey)
-            .build()
-
-        return chain.proceed(request)
     }
 }
