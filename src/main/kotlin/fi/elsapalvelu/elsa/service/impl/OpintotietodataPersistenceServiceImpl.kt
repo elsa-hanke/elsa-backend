@@ -230,7 +230,7 @@ class OpintotietodataPersistenceServiceImpl(
         ) ?: return
         val erikoisala =
             findErikoisalaOrLogError(
-                opintooikeusDTO.erikoisalaTunniste,
+                opintooikeusDTO.erikoisalaTunnisteList,
                 opintooikeusDTO.yliopisto,
                 userId
             ) ?: return
@@ -280,7 +280,7 @@ class OpintotietodataPersistenceServiceImpl(
                 ?: return
         val yliopisto = findYliopistoOrLogError(opintooikeusDTO.yliopisto) ?: return
         val erikoisala = findErikoisalaOrLogError(
-            opintooikeusDTO.erikoisalaTunniste,
+            opintooikeusDTO.erikoisalaTunnisteList,
             opintooikeusDTO.yliopisto,
             userId
         ) ?: return
@@ -453,25 +453,37 @@ class OpintotietodataPersistenceServiceImpl(
     }
 
     private fun findErikoisalaOrLogError(
-        erikoisalaTunniste: String?, yliopisto: YliopistoEnum, userId: String
+        erikoisalaTunnisteList: List<String>?, yliopisto: YliopistoEnum, userId: String
     ): Erikoisala? {
-        val erikoisala = erikoisalaTunniste?.let {
-            if (yliopisto == YliopistoEnum.HELSINGIN_YLIOPISTO) {
-                erikoisalaSisuTutkintoohjelmaRepository.findOneByTutkintoohjelmaId(
-                    erikoisalaTunniste
-                )?.erikoisala
-            } else {
-                erikoisalaRepository.findOneByVirtaPatevyyskoodi(erikoisalaTunniste)
-            }
-        }
-        if (erikoisala == null) {
+        if (erikoisalaTunnisteList.isNullOrEmpty()) {
             log.error(
-                "$yliopisto, user id: $userId. Erikoisalaa ei tunnistettu opintotietojärjestelmästä saadun " +
-                    "tunnisteen $erikoisalaTunniste perusteella."
+                "$yliopisto, user id: $userId. Erikoisalatietoa ei saatu opintotietojärjestelmästä."
             )
+            return null
         }
 
-        return erikoisala
+        if (yliopisto == YliopistoEnum.HELSINGIN_YLIOPISTO) {
+            return erikoisalaSisuTutkintoohjelmaRepository.findOneByTutkintoohjelmaId(
+                erikoisalaTunnisteList.first()
+            )?.erikoisala ?: run {
+                log.error(
+                    "$yliopisto, user id: $userId. Erikoisalaa ei löydy Elsan tietokannasta tutkinto-ohjelma id:n " +
+                        "${erikoisalaTunnisteList.first()} perusteella."
+                )
+                return null
+            }
+        } else {
+            val erikoisalat = erikoisalaTunnisteList.mapNotNull {
+                erikoisalaRepository.findOneByVirtaPatevyyskoodi(it)
+            }
+            return erikoisalat.takeIf { it.size == 1 }?.first() ?: run {
+                log.error(
+                    "$yliopisto, user id: $userId. Yhtäkään erikoisalaa ei löytynyt Elsan tietokannasta tai erikoisaloja " +
+                        "oli enemmän kuin yksi per opinto-oikeus. Erikoisalat: $erikoisalaTunnisteList"
+                )
+                return null
+            }
+        }
     }
 
     private fun findLatestOpintoopasByErikoisalaOrLogError(erikoisalaId: Long): Opintoopas? {

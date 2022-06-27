@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.SisuHyClientBuilder
 import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaFetchingService
+import fi.elsapalvelu.elsa.web.rest.errors.JSON_DATA_PROSESSING_ERROR
+import fi.elsapalvelu.elsa.web.rest.errors.JSON_FETCHING_ERROR
+import fi.elsapalvelu.elsa.web.rest.errors.JSON_MAPPING_ERROR
 import okhttp3.Request
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -22,30 +25,25 @@ class SisuTutkintoohjelmaFetchingServiceImpl(
 
     override suspend fun fetch(): Qualifications? {
         val endpointUrl = applicationProperties.getSecurity().getSisuHy().tutkintoohjelmaExportUrl!!
-        val request =
-            Request.Builder().url(endpointUrl).build()
+        val request = Request.Builder().url(endpointUrl).build()
         try {
             log.info("Haetaan erikoisalojen Sisu tutkinto-ohjelma id:t rajapinnasta $endpointUrl")
-            return sisuHyClientBuilder.okHttpClient().newCall(request).execute().use {
-                if (!it.isSuccessful) {
-                    log.error("Erikoisalojen Sisu tutkinto-ohjelma id:tä ei saatu haettua rajapinnasta $endpointUrl. " +
-                        "Response: $it")
+            return sisuHyClientBuilder.okHttpClient().newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    log.error("$JSON_FETCHING_ERROR $endpointUrl ${response.body}")
                     return null
                 }
-                it.body!!.string().let { body ->
-                    objectMapper.readValue(body, Qualifications::class.java)
+                response.body?.string().let {
+                    objectMapper.readValue(it, Qualifications::class.java)
                 }
             }
 
         } catch (e: IOException) {
-            log.error("Erikoisalojen Sisu tutkinto-ohjelma id:tä ei saatu haettua rajapinnasta $endpointUrl. " +
-                "Virhe: ${e.message}")
+            log.error("$JSON_FETCHING_ERROR $endpointUrl ${e.message}")
         } catch (e: JsonProcessingException) {
-            log.error("Rajapinnasta $endpointUrl haetun datan prosessointi epäonnistui. Virhe: ${e.message} " +
-                "Virhe: ${e.message}")
+            log.error("$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message} ")
         } catch (e: JsonMappingException) {
-            log.error("Rajapinnasta $endpointUrl haetun datan mäppäys epäonnistui. Virhe: ${e.message} " +
-                "Virhe: ${e.message}")
+            log.error("$JSON_MAPPING_ERROR: $endpointUrl ${e.message} ")
         }
         return null
     }

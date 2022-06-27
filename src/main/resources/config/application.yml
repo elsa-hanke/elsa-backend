@@ -210,6 +210,10 @@ application:
       tutkintoohjelma-export-url: https://gw-api-test.it.helsinki.fi/secure/sisu/kori/api/qualifications/v1/export?since=0&limit=10000
       private-key-location: classpath:sisu/hy-sisu.key
       certificate-location: classpath:sisu/hy-sisu.crt
+    peppiturku:
+      api-key:
+      basic-auth-encoded-key:
+      endpoint-url: https://api-ext.utu.fi/peppi/test/opendata/r1/elsa/search
   feedback:
     to: matti.hiitola@oulu.fi
   opintohallintoemail:

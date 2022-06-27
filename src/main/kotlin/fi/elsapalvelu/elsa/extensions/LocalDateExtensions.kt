@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.extensions
 
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 
@@ -35,9 +36,19 @@ fun Int.endOfYearDate(): LocalDate {
     return YearMonth.of(this, 12).atEndOfMonth()
 }
 
-fun String.tryParse(): LocalDate? {
+fun String.tryParseToLocalDate(): LocalDate? {
     return try {
         LocalDate.parse(this)
+    }
+    catch(ex: Exception) {
+        log.warn("$this ei ole kelvollinen päivämäärä." )
+        null
+    }
+}
+
+fun String.tryParseToLocalDateTime(): LocalDateTime? {
+    return try {
+        LocalDateTime.parse(this)
     }
     catch(ex: Exception) {
         log.warn("$this ei ole kelvollinen päivämäärä." )
