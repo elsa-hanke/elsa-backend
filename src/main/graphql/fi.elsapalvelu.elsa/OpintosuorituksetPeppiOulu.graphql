@@ -1,0 +1,19 @@
+query OpintosuorituksetPeppiOulu($id: ID!){
+    private_person_by_personal_identity_code(id: $id) {
+        attainments {
+            state
+            attainmentDate
+            credits
+            courseUnit {
+                code
+                name { fi, sv }
+            }
+            grade {
+                name { fi, sv }
+                passed
+            }
+            expiryDate
+            studyRightId
+        }
+    }
+}
