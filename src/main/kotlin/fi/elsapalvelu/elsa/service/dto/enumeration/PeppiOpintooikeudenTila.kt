@@ -7,5 +7,6 @@ enum class PeppiOpintooikeudenTila {
     ABSENT_NON_EXPENDING,
     RESIGNED,
     OTHER_NON_EXPENDING,
+    COMPLETED,
     GRADUATED
 }

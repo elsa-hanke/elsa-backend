@@ -1,0 +1,19 @@
+query OpintotietodataPeppiOulu($id: ID!) {
+    private_person_by_personal_identity_code(id: $id) {
+        dateOfBirth
+        studentNumber
+        studyRights {
+            id
+            valid {
+                startDate
+                endDate
+            }
+            state
+            phase1EducationClassificationUrn
+            decreeOnUniversityDegrees {
+                shortName {fi}
+            }
+            virtaPatevyyskoodi
+        }
+    }
+}

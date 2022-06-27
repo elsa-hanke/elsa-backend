@@ -101,8 +101,9 @@ class PeppiTurkuOpintotietodataFetchingServiceImpl(
         return "${splittedAsetus[1]}/${splittedAsetus[0]}"
     }
 
-    private fun mapOpintooikeudenTila(sisuOpintooikeudenTila: PeppiOpintooikeudenTila?): OpintooikeudenTila? {
-        return when (sisuOpintooikeudenTila) {
+    private fun mapOpintooikeudenTila(tila: PeppiOpintooikeudenTila?): OpintooikeudenTila? {
+        return when (tila) {
+            PeppiOpintooikeudenTila.COMPLETED,
             PeppiOpintooikeudenTila.ATTENDING -> OpintooikeudenTila.AKTIIVINEN
             PeppiOpintooikeudenTila.ABSENT,
             PeppiOpintooikeudenTila.ABSENT_EXPENDING,
