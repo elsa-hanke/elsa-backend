@@ -1,4 +1,4 @@
-query OpintosuorituksetQuery($id: ID!){
+query OpintosuorituksetSisuHy($id: ID!){
     private_person_by_personal_identity_code(id: $id) {
         attainments {
             state
