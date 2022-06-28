@@ -22,6 +22,12 @@ class StringWildcardMatchTest {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = ["abcdefg", "abc"])
+    fun testStringsMatchingIntoInputWithWildcardAsLastCharacterShouldMatch(input: String) {
+        assertThat(input.match(inputWithWildcardAsLastCharacter)).isTrue
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = ["abcx-defy", "abcc-deff"])
     fun testStringsMatchingIntoWildcardAnyCharacterWithSameAmountShouldMatch(input: String) {
         assertThat(input.match(inputWithWildcardAnyCharacterWithSameAmount)).isTrue
@@ -59,6 +65,7 @@ class StringWildcardMatchTest {
 
     companion object {
         private const val inputWithWildcardAnyCharactersWithAnyAmount = "abc*-defg"
+        private const val inputWithWildcardAsLastCharacter = "abc*"
         private const val inputWithWildcardAnyCharacterWithSameAmount = "abc?-def?"
         private const val secondInputWithWildcardAnyCharacterWithSameAmount = "abc-???def"
         private const val inputWithBothWildcardCharacters = "ab*cd-??e*f"
