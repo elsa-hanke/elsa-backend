@@ -3,9 +3,7 @@ package fi.elsapalvelu.elsa.service.dto
 import java.io.Serializable
 import java.time.LocalDate
 
-data class OpintosuoritusDTO (
-
-    var id: Long? = null,
+data class OpintosuoritusDTO(
 
     var nimi_fi: String? = null,
 
@@ -33,7 +31,6 @@ data class OpintosuoritusDTO (
 
 ) : Serializable {
     override fun toString() = "OpintosuoritusDTO{" +
-        "id=$id" +
         ", nimi_fi='$nimi_fi'" +
         ", nimi_sv='$nimi_sv'" +
         ", kurssikoodi='$kurssikoodi'" +

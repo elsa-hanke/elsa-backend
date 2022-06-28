@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220628142654" author="jhipster">
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="MOJO????"/>
+            <column name="tyyppi_id" value="1"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TURUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="ELOP0003"/>
+            <column name="tyyppi_id" value="2"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TURUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="ELOP0001"/>
+            <column name="tyyppi_id" value="3"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TURUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="EHLO0001"/>
+            <column name="tyyppi_id" value="3"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TURUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="ELOP0002"/>
+            <column name="tyyppi_id" value="4"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TURUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="YLÄÄ0057"/>
+            <column name="tyyppi_id" value="5"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TURUN_YLIOPISTO')"/>
+        </insert>
+
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="MOJOP???"/>
+            <column name="tyyppi_id" value="1"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="MEDATEORSÄT"/>
+            <column name="tyyppi_id" value="2"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="MEDATEN"/>
+            <column name="tyyppi_id" value="2"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="MEDA???KUU"/>
+            <column name="tyyppi_id" value="3"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="MEDA???KOE"/>
+            <column name="tyyppi_id" value="4"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="MEDATK"/>
+            <column name="tyyppi_id" value="5"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="MEDATK2020"/>
+            <column name="tyyppi_id" value="5"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
+        </insert>
+
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="4411090"/>
+            <column name="tyyppi_id" value="1"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'ITA_SUOMEN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="4415450"/>
+            <column name="tyyppi_id" value="2"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'ITA_SUOMEN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="4415200"/>
+            <column name="tyyppi_id" value="3"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'ITA_SUOMEN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="4415100"/>
+            <column name="tyyppi_id" value="3"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'ITA_SUOMEN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="4415350"/>
+            <column name="tyyppi_id" value="4"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'ITA_SUOMEN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="4415400"/>
+            <column name="tyyppi_id" value="5"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'ITA_SUOMEN_YLIOPISTO')"/>
+        </insert>
+
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="046024J"/>
+            <column name="tyyppi_id" value="1"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'OULUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="EL2020-1003"/>
+            <column name="tyyppi_id" value="1"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'OULUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="046040J"/>
+            <column name="tyyppi_id" value="2"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'OULUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="046100J"/>
+            <column name="tyyppi_id" value="3"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'OULUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="046200J"/>
+            <column name="tyyppi_id" value="4"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'OULUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="046300J"/>
+            <column name="tyyppi_id" value="5"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'OULUN_YLIOPISTO')"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
