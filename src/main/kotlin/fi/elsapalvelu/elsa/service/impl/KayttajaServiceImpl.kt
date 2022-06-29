@@ -10,9 +10,9 @@ import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KayttajaService
-import fi.elsapalvelu.elsa.service.constants.erikoistuvaLaakariNotFoundError
-import fi.elsapalvelu.elsa.service.constants.kayttajaNotFoundError
-import fi.elsapalvelu.elsa.service.constants.vastuuhenkiloNotFoundError
+import fi.elsapalvelu.elsa.service.constants.ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR
+import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
+import fi.elsapalvelu.elsa.service.constants.VASTUUHENKILO_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.ReassignedVastuuhenkilonTehtavaDTO
@@ -138,8 +138,8 @@ class KayttajaServiceImpl(
                 tehtavatyyppi
             )?.let { v ->
                 kayttajaMapper.toDto(v)
-            } ?: throw EntityNotFoundException(vastuuhenkiloNotFoundError)
-        } ?: throw EntityNotFoundException(erikoistuvaLaakariNotFoundError)
+            } ?: throw EntityNotFoundException(VASTUUHENKILO_NOT_FOUND_ERROR)
+        } ?: throw EntityNotFoundException(ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR)
     }
 
     override fun findVastuuhenkilotByYliopisto(yliopistoId: Long): List<KayttajaDTO> {
@@ -204,7 +204,7 @@ class KayttajaServiceImpl(
 
     override fun findVastuuhenkilotFromSameYliopistoAndErikoisala(kayttajaId: Long): List<KayttajaDTO> {
         val kayttaja =
-            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         val yliopistoIds = kayttaja.yliopistotAndErikoisalat.map { it.yliopisto!!.id }
         val erikoisalaIds = kayttaja.yliopistotAndErikoisalat.map { it.erikoisala!!.id }
 
@@ -222,7 +222,7 @@ class KayttajaServiceImpl(
         pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         val yliopisto =
             kayttaja.yliopistot.firstOrNull() ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
 
@@ -242,7 +242,7 @@ class KayttajaServiceImpl(
         pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         return kayttajaQueryService.findByAuthorityAndCriteria(
             criteria,
             authority,
@@ -253,13 +253,13 @@ class KayttajaServiceImpl(
 
     override fun activateKayttaja(kayttajaId: Long) {
         val kayttaja =
-            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         kayttaja.tila = KayttajatilinTila.AKTIIVINEN
     }
 
     override fun passivateKayttaja(kayttajaId: Long) {
         val kayttaja =
-            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         kayttaja.tila = KayttajatilinTila.PASSIIVINEN
     }
 

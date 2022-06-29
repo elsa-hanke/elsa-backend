@@ -12,9 +12,9 @@ import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.PeppiTurkuClientBuilder
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
-import fi.elsapalvelu.elsa.web.rest.errors.JSON_DATA_PROSESSING_ERROR
-import fi.elsapalvelu.elsa.web.rest.errors.JSON_FETCHING_ERROR
-import fi.elsapalvelu.elsa.web.rest.errors.JSON_MAPPING_ERROR
+import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
+import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
+import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory

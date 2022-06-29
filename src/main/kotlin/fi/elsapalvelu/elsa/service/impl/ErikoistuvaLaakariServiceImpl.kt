@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.constants.kayttajaNotFoundError
+import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
@@ -127,7 +127,7 @@ class ErikoistuvaLaakariServiceImpl(
     @Transactional(readOnly = true)
     override fun findAll(userId:String, criteria: KayttajahallintaCriteria, pageable: Pageable): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         return erikoistuvaLaakariQueryService.findErikoistuvatByCriteria(
             criteria,
             pageable,
@@ -142,7 +142,7 @@ class ErikoistuvaLaakariServiceImpl(
         pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         val yliopisto =
             kayttaja.yliopistot.firstOrNull() ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
 
