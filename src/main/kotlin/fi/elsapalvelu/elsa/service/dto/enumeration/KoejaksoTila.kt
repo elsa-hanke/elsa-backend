@@ -86,21 +86,25 @@ enum class KoejaksoTila {
 
         fun fromVastuuhenkilonArvio(
             loppukeskusteluHyvaksytty: Boolean,
-            vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO?
+            vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO?,
+            userId: String? = null
         ): KoejaksoTila {
             return if (!loppukeskusteluHyvaksytty) EI_AKTIIVINEN
             else if (vastuuhenkilonArvioDTO == null) UUSI
             else if (vastuuhenkilonArvioDTO.allekirjoitettu == true) ALLEKIRJOITETTU
             else if (!vastuuhenkilonArvioDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true) ODOTTAA_ALLEKIRJOITUKSIA
-            else if (vastuuhenkilonArvioDTO.virkailija?.sopimusHyvaksytty == true) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
+            else if (vastuuhenkilonArvioDTO.virkailija?.sopimusHyvaksytty == true && vastuuhenkilonArvioDTO.vastuuhenkilo?.kayttajaUserId != userId) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
             else ODOTTAA_HYVAKSYNTAA
         }
 
-        fun fromVastuuhenkilonArvio(vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio?): KoejaksoTila {
+        fun fromVastuuhenkilonArvio(
+            vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio?,
+            userId: String? = null
+        ): KoejaksoTila {
             return if (vastuuhenkilonArvio?.allekirjoitettu == true) ALLEKIRJOITETTU
             else if (vastuuhenkilonArvio?.vastuuhenkiloHyvaksynyt == true) ODOTTAA_ALLEKIRJOITUKSIA
-            else if (vastuuhenkilonArvio?.virkailijaHyvaksynyt == true) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
+            else if (vastuuhenkilonArvio?.virkailijaHyvaksynyt == true && vastuuhenkilonArvio.vastuuhenkilo?.user?.id != userId) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
             else if (!vastuuhenkilonArvio?.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else ODOTTAA_HYVAKSYNTAA
         }

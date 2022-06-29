@@ -123,7 +123,7 @@ class KoejaksonVaiheetServiceImpl(
                         KoejaksonVaiheDTO(
                             arvio.id,
                             KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
-                            KoejaksoTila.fromVastuuhenkilonArvio(arvio),
+                            KoejaksoTila.ODOTTAA_HYVAKSYNTAA,
                             arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
                             arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getAvatar(),
                             arvio.muokkauspaiva
@@ -142,7 +142,7 @@ class KoejaksonVaiheetServiceImpl(
         val vastuuhenkilonArviot =
             if (vainAvoimet) vastuuhenkilonArvioRepository.findAllAvoinByVastuuhenkilo(
                 userId
-            ) else vastuuhenkilonArvioRepository.findAllByVastuuhenkiloUserId(
+            ) else vastuuhenkilonArvioRepository.findAllByVastuuhenkiloUserIdAndVirkailijaHyvaksynytTrue(
                 userId
             )
         vastuuhenkilonArviot.associate {
@@ -153,7 +153,7 @@ class KoejaksonVaiheetServiceImpl(
                 return@forEach
             }
             resultMap[opintooikeusId] = mutableListOf()
-            val result = mapVastuuhenkilonArvio(it.value)
+            val result = mapVastuuhenkilonArvio(it.value, userId)
 
             if (!vainAvoimet) {
                 result.apply {
@@ -561,11 +561,14 @@ class KoejaksonVaiheetServiceImpl(
         )
     }
 
-    private fun mapVastuuhenkilonArvio(vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO): KoejaksonVaiheDTO {
+    private fun mapVastuuhenkilonArvio(
+        vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
+        userId: String
+    ): KoejaksonVaiheDTO {
         return KoejaksonVaiheDTO(
             vastuuhenkilonArvioDTO.id,
             KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
-            KoejaksoTila.fromVastuuhenkilonArvio(true, vastuuhenkilonArvioDTO),
+            KoejaksoTila.fromVastuuhenkilonArvio(true, vastuuhenkilonArvioDTO, userId),
             vastuuhenkilonArvioDTO.erikoistuvanNimi,
             vastuuhenkilonArvioDTO.erikoistuvanAvatar,
             vastuuhenkilonArvioDTO.muokkauspaiva
