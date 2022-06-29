@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.constants.erikoistuvaLaakariNotFoundError
+import fi.elsapalvelu.elsa.service.constants.ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.*
@@ -571,7 +571,7 @@ open class KayttajahallintaResource(
     private fun hasVirkailijaRole(user: UserDTO): Boolean {
         return user.authorities?.contains(OPINTOHALLINNON_VIRKAILIJA) == true
     }
-    
+
     private fun getVirkailijaYliopistoOrThrow(virkailijaDTO: KayttajaDTO) =
         virkailijaDTO.yliopistot?.firstOrNull() ?: throw BadRequestAlertException(
             "Virkailijalle ei ole määritetty yliopistoa",
@@ -596,7 +596,7 @@ open class KayttajahallintaResource(
     private fun getErikoistuvaLaakariByIdOrThrow(id: Long): ErikoistuvaLaakariDTO =
         erikoistuvaLaakariService.findOne(id).orElseThrow {
             BadRequestAlertException(
-                erikoistuvaLaakariNotFoundError,
+                ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR,
                 ERIKOISTUVA_LAAKARI_ENTITY_NAME,
                 "dataillegal.erikoistuvaa-laakaria-ei-loydy"
             )
@@ -605,7 +605,7 @@ open class KayttajahallintaResource(
     private fun getErikoistuvaLaakariByKayttajaIdOrThrow(kayttajaId: Long): ErikoistuvaLaakariDTO =
         erikoistuvaLaakariService.findOneByKayttajaId(kayttajaId) ?: throw
         BadRequestAlertException(
-            erikoistuvaLaakariNotFoundError,
+            ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR,
             ERIKOISTUVA_LAAKARI_ENTITY_NAME,
             "dataillegal.erikoistuvaa-laakaria-ei-loydy"
         )
@@ -613,7 +613,7 @@ open class KayttajahallintaResource(
     private fun getErikoistuvaLaakariByUserIdOrThrow(userId: String): ErikoistuvaLaakariDTO =
         erikoistuvaLaakariService.findOneByKayttajaUserId(userId) ?: throw
         BadRequestAlertException(
-            erikoistuvaLaakariNotFoundError,
+            ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR,
             ERIKOISTUVA_LAAKARI_ENTITY_NAME,
             "dataillegal.erikoistuvaa-laakaria-ei-loydy"
         )

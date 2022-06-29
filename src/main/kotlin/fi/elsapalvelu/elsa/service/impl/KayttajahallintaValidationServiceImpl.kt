@@ -10,8 +10,8 @@ import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KayttajaYliopistoErikoisalaRepository
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.service.KayttajahallintaValidationService
-import fi.elsapalvelu.elsa.service.constants.erikoistuvaLaakariNotFoundError
-import fi.elsapalvelu.elsa.service.constants.kayttajaNotFoundError
+import fi.elsapalvelu.elsa.service.constants.ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR
+import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ReassignedVastuuhenkilonTehtavaTyyppi
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
@@ -274,16 +274,16 @@ class KayttajahallintaValidationServiceImpl(
 
     private fun findErikoistuvaLaakariByKayttajaId(kayttajaId: Long): ErikoistuvaLaakari {
         return erikoistuvaLaakariRepository.findOneByKayttajaId(kayttajaId) ?: throw EntityNotFoundException(
-            erikoistuvaLaakariNotFoundError
+            ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR
         )
     }
 
     private fun findKayttajaByUserId(userId: String): Kayttaja {
         return kayttajaRepository.findOneByUserId(userId)
-            .orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+            .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
     }
 
     private fun findKayttajaById(id: Long): Kayttaja {
-        return kayttajaRepository.findById(id).orElseThrow { EntityNotFoundException(kayttajaNotFoundError) }
+        return kayttajaRepository.findById(id).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
     }
 }
