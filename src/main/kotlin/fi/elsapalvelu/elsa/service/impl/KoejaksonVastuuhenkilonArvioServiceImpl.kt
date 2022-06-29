@@ -8,9 +8,12 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTableDTO
+import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.security.core.AuthenticatedPrincipal
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
@@ -165,6 +168,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             vastuuhenkilonArvio.virkailija = virkailija
             vastuuhenkilonArvio.virkailijaHyvaksynyt = true
             vastuuhenkilonArvio.virkailijanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            vastuuhenkilonArvio.lisatiedotVirkailijalta = updated.lisatiedotVirkailijalta
         }
         // Palautettu korjattavaksi
         else {
@@ -323,6 +327,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private fun mapVastuuhenkilonArvio(vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio): KoejaksonVastuuhenkilonArvioDTO {
         val result = koejaksonVastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvio)
         val opintoOikeusId = vastuuhenkilonArvio.opintooikeus?.id!!
+        val principal =
+            SecurityContextHolder.getContext().authentication.principal as AuthenticatedPrincipal
         result.koejaksonSuorituspaikat = TyoskentelyjaksotTableDTO(
             tyoskentelyjaksot = tyoskentelyjaksoService.findAllByOpintooikeusId(opintoOikeusId)
                 .toMutableSet(),
@@ -345,6 +351,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val koulutussopimus = koulutussopimusRepository.findByOpintooikeusId(opintoOikeusId)
         result.koulutussopimusHyvaksytty =
             koulutussopimus.isPresent && koulutussopimus.get().vastuuhenkiloHyvaksynyt == true
+        result.tila = KoejaksoTila.fromVastuuhenkilonArvio(vastuuhenkilonArvio, principal.name)
         return result
     }
 }

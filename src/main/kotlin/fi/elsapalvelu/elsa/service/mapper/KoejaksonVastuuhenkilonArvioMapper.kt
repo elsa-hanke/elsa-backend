@@ -38,6 +38,7 @@ interface KoejaksonVastuuhenkilonArvioMapper :
             target = "erikoistuvanPuhelinnumero"
         ),
         Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo.id"),
+        Mapping(source = "vastuuhenkilo.user.id", target = "vastuuhenkilo.kayttajaUserId"),
         Mapping(
             source = "vastuuhenkiloHyvaksynyt",
             target = "vastuuhenkilo.sopimusHyvaksytty"
