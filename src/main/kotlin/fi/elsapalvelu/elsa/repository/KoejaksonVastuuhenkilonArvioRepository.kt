@@ -19,7 +19,7 @@ interface KoejaksonVastuuhenkilonArvioRepository :
 
     fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonVastuuhenkilonArvio>
 
-    fun findAllByVastuuhenkiloUserId(
+    fun findAllByVastuuhenkiloUserIdAndVirkailijaHyvaksynytTrue(
         userId: String
     ): List<KoejaksonVastuuhenkilonArvio>
 

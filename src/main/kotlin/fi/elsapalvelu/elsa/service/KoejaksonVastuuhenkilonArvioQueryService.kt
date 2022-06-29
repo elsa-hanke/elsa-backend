@@ -10,11 +10,8 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tech.jhipster.service.QueryService
-import tech.jhipster.service.filter.Filter
-import javax.persistence.criteria.Join
-import javax.persistence.criteria.Path
-import javax.persistence.criteria.Root
-import javax.persistence.criteria.SetJoin
+import javax.persistence.criteria.*
+
 
 @Service
 @Transactional(readOnly = true)
@@ -48,7 +45,7 @@ class KoejaksonVastuuhenkilonArvioQueryService(
             if (criteria?.avoin != null) {
                 val avoinExpr = cb.and(
                     cb.equal(root.get(KoejaksonVastuuhenkilonArvio_.virkailijaHyvaksynyt), false),
-                    cb.equal(root.get(KoejaksonVastuuhenkilonArvio_.korjausehdotus), null)
+                    cb.isNull(root.get(KoejaksonVastuuhenkilonArvio_.korjausehdotus))
                 )
                 result = if (criteria.avoin == true) {
                     cb.and(result, avoinExpr)
@@ -68,19 +65,21 @@ class KoejaksonVastuuhenkilonArvioQueryService(
     ): Specification<KoejaksonVastuuhenkilonArvio?> {
         var specification: Specification<KoejaksonVastuuhenkilonArvio?> = Specification.where(spec)
         criteria?.let {
-            it.erikoisalaId?.let {
+            it.erikoisalaId?.let { erikoisalaId ->
                 specification = specification.and(
-                    buildReferringEntitySpecification(
-                        criteria.erikoisalaId as Filter<Long>,
-                        { root: Root<KoejaksonVastuuhenkilonArvio> ->
-                            root.join(KoejaksonVastuuhenkilonArvio_.opintooikeus)
-                                .join(Opintooikeus_.erikoisala) as SetJoin
-                        },
-                        { entity: SetJoin<Opintooikeus, Erikoisala> -> entity.get(Erikoisala_.id) }
-                    )
+                    buildErikoisalaSpecification(erikoisalaId.equals)
                 )
             }
         }
         return specification
+    }
+
+    fun buildErikoisalaSpecification(erikoisalaId: Long): Specification<KoejaksonVastuuhenkilonArvio?>? {
+        return Specification<KoejaksonVastuuhenkilonArvio?> { root: Root<KoejaksonVastuuhenkilonArvio?>, _: CriteriaQuery<*>?, criteriaBuilder: CriteriaBuilder ->
+            val opintooikeus: Join<KoejaksonVastuuhenkilonArvio, Opintooikeus> =
+                root.join("opintooikeus")
+            val erikoisala: Join<Opintooikeus, Erikoisala> = opintooikeus.join("erikoisala")
+            criteriaBuilder.equal(erikoisala.get<Long>("id"), erikoisalaId)
+        }
     }
 }

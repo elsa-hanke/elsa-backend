@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.Lob
@@ -60,7 +61,9 @@ data class KoejaksonVastuuhenkilonArvioDTO(
 
     var loppukeskustelu: KoejaksonLoppukeskusteluDTO? = null,
 
-    var korjausehdotus: String? = null
+    var korjausehdotus: String? = null,
+
+    var tila: KoejaksoTila? = null
 
 ) : Serializable {
     override fun toString() = "KoejaksonVastuuhenkilonArvioDTO"

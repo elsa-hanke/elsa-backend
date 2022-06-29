@@ -90,6 +90,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt = true
         koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
 
+        koejaksonVastuuhenkilonArvio.virkailijaHyvaksynyt = true
         koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
         vastuuhenkilonArvioRepository.saveAndFlush(koejaksonVastuuhenkilonArvio)
 
