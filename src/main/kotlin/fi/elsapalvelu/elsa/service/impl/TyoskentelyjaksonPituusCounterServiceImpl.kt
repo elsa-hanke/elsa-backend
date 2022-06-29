@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.extensions.duringYears
 import fi.elsapalvelu.elsa.extensions.endOfYearDate
 import fi.elsapalvelu.elsa.extensions.startOfYearDate
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
-import fi.elsapalvelu.elsa.service.constants.hyvaksiluettavatDays
+import fi.elsapalvelu.elsa.service.constants.HYVAKSILUETTAVAT_DAYS
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -99,7 +99,7 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
         val duringYears = min.duringYears(max)
 
         duringYears.forEach {
-            hyvaksiLuettavatPerYearMap[it] = hyvaksiluettavatDays
+            hyvaksiLuettavatPerYearMap[it] = HYVAKSILUETTAVAT_DAYS
         }
 
         return hyvaksiLuettavatPerYearMap

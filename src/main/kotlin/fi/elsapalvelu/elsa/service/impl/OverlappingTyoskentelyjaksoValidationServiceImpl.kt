@@ -7,7 +7,7 @@ import fi.elsapalvelu.elsa.repository.KeskeytysaikaRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.OverlappingTyoskentelyjaksoValidationService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
-import fi.elsapalvelu.elsa.service.constants.hyvaksiluettavatDays
+import fi.elsapalvelu.elsa.service.constants.HYVAKSILUETTAVAT_DAYS
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
@@ -176,7 +176,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                             val counterData =
                                 getHyvaksiluettavatCounterData(tyoskentelyjaksot, date.minusDays(1))
                             if (!counterData.hyvaksiluettavatPerYearMap.keys.contains(date.year)) {
-                                counterData.hyvaksiluettavatPerYearMap[date.year] = hyvaksiluettavatDays
+                                counterData.hyvaksiluettavatPerYearMap[date.year] = HYVAKSILUETTAVAT_DAYS
                             }
                             val reducedFactor =
                                 counterData.hyvaksiluettavatPerYearMap[date.year]!! - keskeytysaikaFactor
