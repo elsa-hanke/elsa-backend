@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.collection.IsCollectionWithSize
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
@@ -146,6 +147,21 @@ class KouluttajaSuoritusarviointiResourceIT {
         restSuoritusarviointiMockMvc.perform(get("/api/kouluttaja/suoritusarvioinnit"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+    }
+
+    @Test
+    @Transactional
+    fun getArviointipyynnot() {
+        initTest()
+
+        suoritusarviointi.arviointiAika = LocalDate.ofEpochDay(0L)
+        suoritusarviointiRepository.saveAndFlush(suoritusarviointi)
+        suoritusarviointiRepository.saveAndFlush(createEntity(em, user))
+
+        restSuoritusarviointiMockMvc.perform(get("/api/kouluttaja/arviointipyynnot"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(IsCollectionWithSize.hasSize<Int>(1)))
     }
 
     @Test
