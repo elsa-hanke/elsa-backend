@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.service.SuoritusarviointiQueryService
 import fi.elsapalvelu.elsa.service.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.EtusivuArviointipyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpHeaders
@@ -47,6 +48,24 @@ open class SuoritusarviointiResource(
             avoimet.sortedBy { it.tapahtumanAjankohta } + muut.sortedByDescending { it.tapahtumanAjankohta }
 
         return ResponseEntity.ok(sortedSuoritusarvioinnit)
+    }
+
+    @GetMapping("/arviointipyynnot")
+    fun getEtusivuArviointipyynnot(
+        principal: Principal?
+    ): ResponseEntity<List<EtusivuArviointipyyntoDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val arviointipyynnot =
+            suoritusarviointiService.findAvoimetByKouluttajaOrVastuuhenkiloUserId(user.id!!)
+                .sortedBy { it.tapahtumanAjankohta }.map {
+                    EtusivuArviointipyyntoDTO(
+                        id = it.id,
+                        erikoistujanNimi = it.arvioinninSaaja?.nimi,
+                        pyynnonAika = it.pyynnonAika
+                    )
+                }
+
+        return ResponseEntity.ok(arviointipyynnot)
     }
 
     @GetMapping("/suoritusarvioinnit/{id}")
