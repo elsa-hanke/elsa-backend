@@ -3,7 +3,10 @@ package fi.elsapalvelu.elsa.domain
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.annotations.NotFound
+import org.hibernate.annotations.NotFoundAction
 import org.hibernate.envers.Audited
+import org.hibernate.envers.NotAudited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import javax.persistence.*
@@ -28,12 +31,14 @@ data class Kayttaja(
 
     @NotNull
     @OneToOne(optional = false)
+    @NotFound(action = NotFoundAction.IGNORE)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     @JoinColumn(unique = true)
     var user: User? = null,
 
     @OneToMany(mappedBy = "valtuutettu")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @NotAudited
     var saadutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf(),
 
     @OneToMany(
