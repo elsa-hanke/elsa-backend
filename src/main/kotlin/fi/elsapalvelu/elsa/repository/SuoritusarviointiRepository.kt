@@ -56,4 +56,6 @@ interface SuoritusarviointiRepository :
     @Modifying
     @Query("update Suoritusarviointi s set s.arvioinninAntaja.id = :newKayttaja where s.arvioinninAntaja.id = :currentKayttaja")
     fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+
+    fun findAllByArvioinninAntajaUserIdAndArviointiAikaNull(userId: String): List<Suoritusarviointi>
 }

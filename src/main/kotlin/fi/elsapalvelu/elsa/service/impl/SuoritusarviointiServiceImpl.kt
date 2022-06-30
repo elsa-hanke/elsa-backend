@@ -252,4 +252,9 @@ class SuoritusarviointiServiceImpl(
             }
         }
     }
+
+    override fun findAvoimetByKouluttajaOrVastuuhenkiloUserId(userId: String): List<SuoritusarviointiDTO> {
+        return suoritusarviointiRepository.findAllByArvioinninAntajaUserIdAndArviointiAikaNull(userId)
+            .map(suoritusarviointiMapper::toDto)
+    }
 }
