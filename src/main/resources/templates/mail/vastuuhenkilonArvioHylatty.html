@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
 <head>
-    <title>[ELSA-palvelu] Koejakson arviointilomake C on allekirjoitettu</title>
+    <title>[ELSA-palvelu] Koejakso hylätty</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
 </head>
@@ -10,13 +10,12 @@
     Hei,
 </p>
 <p>
-    Erikoistuja <span th:text="${name}"></span> on allekirjoittanut koejakson
-    arviointilomake C:n.
+    Koejakso on hylätty vastuuhenkilön toimesta.
 
-    Pääset katsomaan koejakson arviointilomaketta C alla olevan linkin kautta:
+    Pääset katsomaan koejakson arviointilomaketta E alla olevan linkin kautta:
 </p>
 <p>
-    <a th:with="url=(@{|${baseUrl}/koejakso/kehittamistoimenpiteet/${id}|})" th:href="${url}"
+    <a th:with="url=(@{|${baseUrl}/koejakso/vastuuhenkilonarvio/${id}|})" th:href="${url}"
        th:text="${url}"></a>
 </p>
 <p>

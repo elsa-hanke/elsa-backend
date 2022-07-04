@@ -74,14 +74,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 userRepository.save(user)
             }
 
-            // Sähköposti vastuuhenkilölle
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(vastuuhenkilonArvio.vastuuhenkilo?.id!!).get().user!!,
-                templateName = "vastuuhenkilonArvioKuitattava.html",
-                titleKey = "email.vastuuhenkilonarviokuitattava.title",
-                properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
-            )
-
             koejaksonVastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvio)
         }
     }
@@ -179,6 +171,16 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         }
 
         koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
+
+        // Sähköposti vastuuhenkilölle
+        if (vastuuhenkilonArvio.virkailijanKuittausaika != null) {
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(vastuuhenkilonArvio.vastuuhenkilo?.id!!).get().user!!,
+                templateName = "vastuuhenkilonArvioKuitattava.html",
+                titleKey = "email.vastuuhenkilonarviokuitattava.title",
+                properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
+            )
+        }
     }
 
     private fun handleVastuuhenkilo(
@@ -204,15 +206,17 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             userRepository.save(user)
         }
 
-        // Sähköposti erikoistuvalle vastuuhenkilon kuittaamasta arviosta
         if (vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!,
-                templateName = "vastuuhenkilonArvioKuitattava.html",
-                titleKey = "email.vastuuhenkilonarviokuitattava.title",
-                properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
-            )
+            // Sähköposti erikoistuvalle jos koejakso hylätty. Hyväksytystä koejaksosta tulee allekirjoituspyyntö.
+            if (vastuuhenkilonArvio.koejaksoHyvaksytty == false) {
+                mailService.sendEmailFromTemplate(
+                    kayttajaRepository.findById(vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
+                        .get().user!!,
+                    templateName = "vastuuhenkilonArvioHylatty.html",
+                    titleKey = "email.vastuuhenkilonarviohylatty.title",
+                    properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
+                )
+            }
             luoPdf(mapVastuuhenkilonArvio(result), result)
         }
     }
