@@ -495,6 +495,33 @@ class KouluttajaEtusivuResourceIT {
             .andExpect(status().isUnauthorized)
     }
 
+    @Test
+    @Transactional
+    fun getSeurantajaksot() {
+        initTest()
+
+        val erikoistuvaLaakari =
+            ErikoistuvaLaakariHelper.createEntity(
+                em,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+            )
+        erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
+
+        val seurantajakso1 = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, kouluttaja)
+        seurantajaksoRepository.save(seurantajakso1)
+
+        val seurantajakso2 = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, kouluttaja)
+        seurantajaksoRepository.save(seurantajakso2)
+
+        restEtusivuMockMvc.perform(
+            get("/api/kouluttaja/etusivu/seurantajaksot")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(2)))
+    }
+
     fun initTest(createVastuuhenkilonArvio: Boolean? = true) {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
