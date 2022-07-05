@@ -241,7 +241,7 @@ class KouluttajaSeurantakeskustelutResourceIT {
             DEFAULT_TYOSKENTELYVALMIUDET
         )
         assertThat(testSeurantajakso.jatkotoimetJaRaportointi).isEqualTo(DEFAULT_JATKOTOIMET)
-        assertThat(testSeurantajakso.hyvaksytty).isNull()
+        assertThat(testSeurantajakso.hyvaksytty).isFalse
     }
 
     @Test
@@ -332,7 +332,7 @@ class KouluttajaSeurantakeskustelutResourceIT {
         assertThat(seurantajaksoList).hasSize(databaseSizeBeforeUpdate)
         val testSeurantajakso = seurantajaksoList[seurantajaksoList.size - 1]
         assertThat(testSeurantajakso.korjausehdotus).isEqualTo(DEFAULT_KORJAUSEHDOTUS)
-        assertThat(testSeurantajakso.hyvaksytty).isNull()
+        assertThat(testSeurantajakso.hyvaksytty).isFalse
     }
 
     fun initTest() {

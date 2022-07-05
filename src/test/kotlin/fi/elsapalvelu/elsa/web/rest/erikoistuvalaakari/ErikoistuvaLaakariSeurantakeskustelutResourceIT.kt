@@ -98,6 +98,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
         seurantajakso.koulutusjaksot = mutableSetOf(koulutusjakso)
 
         val seurantajaksoDTO = seurantajaksoMapper.toDto(seurantajakso)
+        seurantajaksoDTO.hyvaksytty = null
         restSeurantajaksoMockMvc.perform(
             post("$ENTITY_API_URL/seurantajakso")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -230,7 +231,8 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
         initTest()
         seurantajaksoRepository.saveAndFlush(seurantajakso)
 
-        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        val newOpintooikeus =
+            OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
         OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
 
         val seurantajaksoForAnotherOpintooikeus = createEntity(erikoistuvaLaakari, kouluttaja)
