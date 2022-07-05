@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.service.dto.EtusivuSeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.SeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.SeurantajaksonTiedotDTO
 import java.time.LocalDate
@@ -21,6 +22,8 @@ interface SeurantajaksoService {
     ): List<SeurantajaksoDTO>
 
     fun findByKouluttajaUserId(userId: String): List<SeurantajaksoDTO>
+
+    fun findAvoinByKouluttajaUserId(userId: String): List<EtusivuSeurantajaksoDTO>
 
     fun findByIdAndKouluttajaUserId(id: Long, userId: String): SeurantajaksoDTO?
 

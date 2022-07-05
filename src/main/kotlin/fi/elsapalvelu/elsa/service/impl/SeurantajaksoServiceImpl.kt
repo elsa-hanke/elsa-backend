@@ -190,6 +190,21 @@ class SeurantajaksoServiceImpl(
         return result
     }
 
+    override fun findAvoinByKouluttajaUserId(userId: String): List<EtusivuSeurantajaksoDTO> {
+        val result = seurantajaksoRepository.findAvoinByKouluttajaUserId(userId)
+            .map { sj ->
+                EtusivuSeurantajaksoDTO(
+                    id = sj.id,
+                    erikoistujanNimi = sj.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
+                    tallennettu = sj.tallennettu,
+                    alkamispaiva = sj.alkamispaiva,
+                    paattymispaiva = sj.paattymispaiva,
+                    tila = SeurantajaksoTila.fromSeurantajakso(sj)
+                )
+            }
+        return result
+    }
+
     @Transactional(readOnly = true)
     override fun findByIdAndKouluttajaUserId(id: Long, userId: String): SeurantajaksoDTO? {
         val result = seurantajaksoRepository

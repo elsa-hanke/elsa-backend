@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220705104249" author="jhipster">
+        <update tableName="seurantajakso">
+            <column name="hyvaksytty" value="false"/>
+            <where>hyvaksytty is null</where>
+        </update>
+        <addNotNullConstraint tableName="seurantajakso" columnName="hyvaksytty"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -2,8 +2,10 @@ package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
 import fi.elsapalvelu.elsa.service.EtusivuService
 import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
+import fi.elsapalvelu.elsa.service.SeurantajaksoService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaDTO
+import fi.elsapalvelu.elsa.service.dto.EtusivuSeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,7 +18,8 @@ import java.security.Principal
 class KouluttajaEtusivuResource(
     private val userService: UserService,
     private val etusivuService: EtusivuService,
-    private val koejaksonVaiheetService: KoejaksonVaiheetService
+    private val koejaksonVaiheetService: KoejaksonVaiheetService,
+    private val seurantajaksoService: SeurantajaksoService
 ) {
 
     @GetMapping("/erikoistujien-seuranta")
@@ -37,6 +40,16 @@ class KouluttajaEtusivuResource(
                 user.id!!,
                 true
             )
+        )
+    }
+
+    @GetMapping("/seurantajaksot")
+    fun getSeurantajaksot(
+        principal: Principal?
+    ): ResponseEntity<List<EtusivuSeurantajaksoDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(
+            seurantajaksoService.findAvoinByKouluttajaUserId(user.id!!)
         )
     }
 }

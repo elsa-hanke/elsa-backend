@@ -57,7 +57,7 @@ data class Seurantajakso(
     var jatkotoimetJaRaportointi: String? = null,
 
     @Column(name = "hyvaksytty")
-    var hyvaksytty: Boolean? = null,
+    var hyvaksytty: Boolean = false,
 
     @Column(name = "seurantakeskustelun_yhteiset_merkinnat")
     var seurantakeskustelunYhteisetMerkinnat: String? = null,
