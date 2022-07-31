@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.repository.ArviointiasteikkoRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.ArviointiasteikkoService
 import fi.elsapalvelu.elsa.service.dto.ArviointiasteikkoDTO
@@ -11,7 +12,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class ArviointiasteikkoServiceImpl(
     private val arviointiasteikkoMapper: ArviointiasteikkoMapper,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val arviointiasteikkoRepository: ArviointiasteikkoRepository
 ) : ArviointiasteikkoService {
 
     @Transactional(readOnly = true)
@@ -21,5 +23,9 @@ class ArviointiasteikkoServiceImpl(
                 arviointiasteikkoMapper.toDto(arviointiasteikko)
             }
         }
+    }
+
+    override fun findAll(): List<ArviointiasteikkoDTO> {
+        return arviointiasteikkoRepository.findAllWithTasot().map(arviointiasteikkoMapper::toDto)
     }
 }
