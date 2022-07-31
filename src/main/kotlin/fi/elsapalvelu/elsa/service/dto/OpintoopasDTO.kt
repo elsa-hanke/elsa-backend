@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.domain.enumeration.ArviointiasteikkoTyyppi
 import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
@@ -11,24 +12,32 @@ data class OpintoopasDTO(
     @get: NotNull
     var nimi: String? = null,
 
+    var nimiSv: String? = null,
+
     @get: NotNull
     var voimassaoloAlkaa: LocalDate? = null,
 
     var voimassaoloPaattyy: LocalDate? = null,
 
-    @get: NotNull
-    var kaytannonKoulutuksenVahimmaispituus: Double? = null,
+    var kaytannonKoulutuksenVahimmaispituusVuodet: Int? = null,
 
-    @get: NotNull
-    var terveyskeskuskoulutusjaksonVahimmaispituus: Double? = null,
+    var kaytannonKoulutuksenVahimmaispituusKuukaudet: Int? = null,
 
-    var terveyskeskuskoulutusjaksonMaksimipituus: Double? = null,
+    var terveyskeskuskoulutusjaksonVahimmaispituusVuodet: Int? = null,
 
-    @get: NotNull
-    var yliopistosairaalajaksonVahimmaispituus: Double? = null,
+    var terveyskeskuskoulutusjaksonVahimmaispituusKuukaudet: Int? = null,
 
-    @get: NotNull
-    var yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus: Double? = null,
+    var terveyskeskuskoulutusjaksonMaksimipituusVuodet: Int? = null,
+
+    var terveyskeskuskoulutusjaksonMaksimipituusKuukaudet: Int? = null,
+
+    var yliopistosairaalajaksonVahimmaispituusVuodet: Int? = null,
+
+    var yliopistosairaalajaksonVahimmaispituusKuukaudet: Int? = null,
+
+    var yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusVuodet: Int? = null,
+
+    var yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusKuukaudet: Int? = null,
 
     @get: NotNull
     var erikoisalanVaatimaTeoriakoulutustenVahimmaismaara: Double? = null,
@@ -39,7 +48,9 @@ data class OpintoopasDTO(
     @get: NotNull
     var erikoisalanVaatimaJohtamisopintojenVahimmaismaara: Double? = null,
 
-    var arviointiasteikko: ArviointiasteikkoDTO? = null,
+    var arviointiasteikkoId: Long? = null,
+
+    var arviointiasteikkoNimi: ArviointiasteikkoTyyppi? = null,
 
     @get: NotNull
     var erikoisala: ErikoisalaDTO? = null

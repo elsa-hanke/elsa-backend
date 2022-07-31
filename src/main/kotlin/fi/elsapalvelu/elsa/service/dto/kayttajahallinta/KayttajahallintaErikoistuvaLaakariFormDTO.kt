@@ -1,9 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
-import fi.elsapalvelu.elsa.service.dto.AsetusDTO
-import fi.elsapalvelu.elsa.service.dto.ErikoisalaDTO
-import fi.elsapalvelu.elsa.service.dto.OpintoopasDTO
-import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
+import fi.elsapalvelu.elsa.service.dto.*
 import java.io.Serializable
 
 class KayttajahallintaErikoistuvaLaakariFormDTO(
@@ -14,7 +11,7 @@ class KayttajahallintaErikoistuvaLaakariFormDTO(
 
     var asetukset: MutableSet<AsetusDTO> = mutableSetOf(),
 
-    var opintooppaat: MutableSet<OpintoopasDTO> = mutableSetOf()
+    var opintooppaat: MutableSet<OpintoopasSimpleDTO> = mutableSetOf()
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaErikoistuvaLaakariFormDTO"
