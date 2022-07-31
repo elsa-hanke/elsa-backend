@@ -219,5 +219,6 @@
     <include file="config/liquibase/changelog/20220621161234_insert_paakayttaja_role_for_tests.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220628142654_insert_opintosuoritus_kurssikoodit.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220705104249_modify_entity_Seurantajakso.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220712141852_modify_entity_Opintoopas.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

@@ -20,6 +20,9 @@ data class Opintoopas(
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
 
+    @Column(name = "nimi_sv")
+    var nimiSv: String? = null,
+
     @get: NotNull
     @Column(name = "voimassaolo_alkaa", nullable = false)
     var voimassaoloAlkaa: LocalDate? = null,
