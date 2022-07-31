@@ -19,5 +19,12 @@ interface OpintoopasRepository : JpaRepository<Opintoopas, Long> {
         where e.id = :erikoisalaId and :voimassaDate between o.voimassaoloAlkaa and o.voimassaoloPaattyy
         """
     )
-    fun findOneByErikoisalaIdAndVoimassaDate(erikoisalaId: Long, voimassaDate: LocalDate): Opintoopas?
+    fun findOneByErikoisalaIdAndVoimassaDate(
+        erikoisalaId: Long,
+        voimassaDate: LocalDate
+    ): Opintoopas?
+
+    fun findFirstByErikoisalaIdOrderByVoimassaoloAlkaaDesc(
+        erikoisalaId: Long
+    ): Opintoopas?
 }
