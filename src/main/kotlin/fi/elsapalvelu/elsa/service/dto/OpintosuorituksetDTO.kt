@@ -1,14 +1,20 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import java.io.Serializable
 
 data class OpintosuorituksetDTO(
 
-    var yliopisto: YliopistoEnum,
+    var opintosuoritukset: List<OpintosuoritusDTO>? = null,
 
-    var items: List<OpintosuoritusDTO>? = null
+    var johtamisopinnotSuoritettu: Double? = null,
 
-) : Serializable {
+    var johtamisopinnotVaadittu: Double? = null,
+
+    var sateilysuojakoulutuksetSuoritettu: Double? = null,
+
+    var sateilysuojakoulutuksetVaadittu: Double? = null
+
+): Serializable {
     override fun toString() = "OpintosuorituksetDTO"
 }
+

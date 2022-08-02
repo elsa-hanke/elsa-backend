@@ -7,7 +7,7 @@ import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.SisuHyClientBuilder
-import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetDTO
+import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusOsakokonaisuusDTO
 import org.slf4j.LoggerFactory
@@ -23,7 +23,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetDTO? {
+    override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
         return try {
             val response =
                 sisuHyClientBuilder.apolloClient().query(OpintosuorituksetSisuHyQuery(id = hetu))
@@ -32,7 +32,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
             return response.data?.private_person_by_personal_identity_code?.attainments?.filter {
                 it.state == attainedState
             }?.let {
-                OpintosuorituksetDTO(
+                OpintosuorituksetPersistenceDTO(
                     yliopisto = YliopistoEnum.HELSINGIN_YLIOPISTO,
                     items = it.map { a ->
                         OpintosuoritusDTO(
