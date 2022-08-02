@@ -10,7 +10,7 @@ import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.OpintosuoritusKurssikoodiRepository
 import fi.elsapalvelu.elsa.repository.OpintosuoritusRepository
 import fi.elsapalvelu.elsa.service.OpintosuorituksetPersistenceService
-import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetDTO
+import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusOsakokonaisuusDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusMapper
@@ -36,7 +36,7 @@ class OpintosuorituksetPersistenceServiceImpl(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun createOrUpdateIfChanged(userId: String, opintosuoritukset: OpintosuorituksetDTO) {
+    override fun createOrUpdateIfChanged(userId: String, opintosuoritukset: OpintosuorituksetPersistenceDTO) {
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         val kurssikoodit =
             opintosuoritusKurssikoodiRepository.findAllByYliopistoNimi(opintosuoritukset.yliopisto)

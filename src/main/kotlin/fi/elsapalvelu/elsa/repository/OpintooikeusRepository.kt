@@ -73,4 +73,6 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>, JpaSpecifi
         """
     )
     fun findByKouluttajaValtuutus(kayttajaId: Long): List<Opintooikeus>
+
+    fun findOneById(id: Long): Opintooikeus?
 }

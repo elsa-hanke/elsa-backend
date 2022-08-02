@@ -5,6 +5,8 @@ import java.time.LocalDate
 
 data class OpintosuoritusDTO(
 
+    var id: Long? = null,
+
     var nimi_fi: String? = null,
 
     var nimi_sv: String? = null,
@@ -30,16 +32,12 @@ data class OpintosuoritusDTO(
     var osakokonaisuudet: List<OpintosuoritusOsakokonaisuusDTO>? = null
 
 ) : Serializable {
-    override fun toString() = "OpintosuoritusDTO{" +
-        ", nimi_fi='$nimi_fi'" +
-        ", nimi_sv='$nimi_sv'" +
-        ", kurssikoodi='$kurssikoodi'" +
-        ", suorituspaiva='$suorituspaiva'" +
-        ", opintopisteet='$opintopisteet'" +
-        ", hyvaksytty='$hyvaksytty'" +
-        ", arvio_fi='$arvio_fi'" +
-        ", arvio_sv='${arvio_sv}v'" +
-        ", vanhenemispaiva='$vanhenemispaiva'" +
-        ", yliopistoOpintooikeusId='$yliopistoOpintooikeusId'" +
-        "}"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SuoritusarviointiDTO) return false
+        return id != null && id == other.id
+    }
+
+    override fun hashCode() = 31
 }

@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.domain.Yliopisto
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.OpintosuoritusRepository
-import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetDTO
+import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusOsakokonaisuusDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusMapper
@@ -101,14 +101,14 @@ class OpintosuorituksetPersistenceServiceIT {
             osakokonaisuudet = listOf(createOpintosuoritusOsakokonaisuusDTO())
         }
         val opintosuoritusDTO2 = createOpintosuoritus2DTO()
-        val opintosuorituksetDTO =
-            OpintosuorituksetDTO(yliopisto = yliopistoEnum, items = listOf(opintosuoritusDTO1, opintosuoritusDTO2))
+        val opintosuorituksetPersistenceDTO =
+            OpintosuorituksetPersistenceDTO(yliopisto = yliopistoEnum, items = listOf(opintosuoritusDTO1, opintosuoritusDTO2))
 
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -167,13 +167,13 @@ class OpintosuorituksetPersistenceServiceIT {
             kurssikoodi = null
         }
 
-        val opintosuorituksetDTO =
-            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val opintosuorituksetPersistenceDTO =
+            OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(opintosuoritusDTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -187,13 +187,13 @@ class OpintosuorituksetPersistenceServiceIT {
             kurssikoodi = "ZZZ-ZZZ"
         }
 
-        val opintosuorituksetDTO =
-            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val opintosuorituksetPersistenceDTO =
+            OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(opintosuoritusDTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -207,13 +207,13 @@ class OpintosuorituksetPersistenceServiceIT {
             nimi_fi = null
         }
 
-        val opintosuorituksetDTO =
-            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val opintosuorituksetPersistenceDTO =
+            OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(opintosuoritusDTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -227,13 +227,13 @@ class OpintosuorituksetPersistenceServiceIT {
             suorituspaiva = null
         }
 
-        val opintosuorituksetDTO =
-            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val opintosuorituksetPersistenceDTO =
+            OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(opintosuoritusDTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -247,13 +247,13 @@ class OpintosuorituksetPersistenceServiceIT {
             yliopistoOpintooikeusId = null
         }
 
-        val opintosuorituksetDTO =
-            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val opintosuorituksetPersistenceDTO =
+            OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(opintosuoritusDTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -267,13 +267,13 @@ class OpintosuorituksetPersistenceServiceIT {
             this.yliopistoOpintooikeusId = "hgfedcba"
         }
 
-        val opintosuorituksetDTO =
-            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val opintosuorituksetPersistenceDTO =
+            OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(opintosuoritusDTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -287,13 +287,13 @@ class OpintosuorituksetPersistenceServiceIT {
             hyvaksytty = null
         }
 
-        val opintosuorituksetDTO =
-            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val opintosuorituksetPersistenceDTO =
+            OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(opintosuoritusDTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -309,13 +309,13 @@ class OpintosuorituksetPersistenceServiceIT {
             })
         }
 
-        val opintosuorituksetDTO =
-            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val opintosuorituksetPersistenceDTO =
+            OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(opintosuoritusDTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -331,13 +331,13 @@ class OpintosuorituksetPersistenceServiceIT {
             })
         }
 
-        val opintosuorituksetDTO =
-            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val opintosuorituksetPersistenceDTO =
+            OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(opintosuoritusDTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -353,13 +353,13 @@ class OpintosuorituksetPersistenceServiceIT {
             })
         }
 
-        val opintosuorituksetDTO =
-            OpintosuorituksetDTO(yliopistoEnum, listOf(opintosuoritusDTO))
+        val opintosuorituksetPersistenceDTO =
+            OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(opintosuoritusDTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -376,12 +376,12 @@ class OpintosuorituksetPersistenceServiceIT {
             osakokonaisuudet = listOf(createUpdatedOpintosuoritusOsakokonaisuusDTO())
         }
         val opintosuoritusDTO2 = createOpintosuoritus2DTO()
-        val opintosuorituksetDTO = OpintosuorituksetDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO, opintosuoritusDTO2))
+        val opintosuorituksetPersistenceDTO = OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO, opintosuoritusDTO2))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -437,12 +437,12 @@ class OpintosuorituksetPersistenceServiceIT {
         val updatedOpintosuoritus1DTO = createUpdatedOpintosuoritus1DTO().apply {
             osakokonaisuudet = listOf(createOpintosuoritusOsakokonaisuusDTO())
         }
-        val opintosuorituksetDTO = OpintosuorituksetDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
+        val opintosuorituksetPersistenceDTO = OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTO
+            opintosuorituksetPersistenceDTO
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -485,12 +485,12 @@ class OpintosuorituksetPersistenceServiceIT {
             nimi_fi = null
         }
 
-        val opintosuorituksetDTOs = OpintosuorituksetDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
+        val opintosuorituksetPersistenceDTOs = OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTOs
+            opintosuorituksetPersistenceDTOs
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -510,12 +510,12 @@ class OpintosuorituksetPersistenceServiceIT {
             nimi_fi = opintosuoritus1UpdatedNimiFi
         }
 
-        val opintosuorituksetDTOs = OpintosuorituksetDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
+        val opintosuorituksetPersistenceDTOs = OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTOs
+            opintosuorituksetPersistenceDTOs
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -534,12 +534,12 @@ class OpintosuorituksetPersistenceServiceIT {
             kurssikoodi = null
         }
 
-        val opintosuorituksetDTOs = OpintosuorituksetDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
+        val opintosuorituksetPersistenceDTOs = OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTOs
+            opintosuorituksetPersistenceDTOs
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -558,12 +558,12 @@ class OpintosuorituksetPersistenceServiceIT {
             hyvaksytty = null
         }
 
-        val opintosuorituksetDTOs = OpintosuorituksetDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
+        val opintosuorituksetPersistenceDTOs = OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTOs
+            opintosuorituksetPersistenceDTOs
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -584,12 +584,12 @@ class OpintosuorituksetPersistenceServiceIT {
             })
         }
 
-        val opintosuorituksetDTOs = OpintosuorituksetDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
+        val opintosuorituksetPersistenceDTOs = OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTOs
+            opintosuorituksetPersistenceDTOs
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
@@ -610,12 +610,12 @@ class OpintosuorituksetPersistenceServiceIT {
             })
         }
 
-        val opintosuorituksetDTOs = OpintosuorituksetDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
+        val opintosuorituksetPersistenceDTOs = OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(updatedOpintosuoritus1DTO))
         val databaseSizeBeforeCreate = opintosuoritusRepository.findAll().size
 
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(
             erikoistuvaLaakari.kayttaja?.user?.id!!,
-            opintosuorituksetDTOs
+            opintosuorituksetPersistenceDTOs
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()

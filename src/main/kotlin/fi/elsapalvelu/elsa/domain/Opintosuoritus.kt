@@ -93,6 +93,7 @@ data class Opintosuoritus(
         ", arvio_sv='${arvio_sv}v'" +
         ", vanhenemispaiva='$vanhenemispaiva'" +
         ", muokkausaika='$muokkausaika'" +
+        ", tyyppi='$tyyppi'" +
         "}"
 
     companion object {
