@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.service.SeurantajaksoService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaDTO
 import fi.elsapalvelu.elsa.service.dto.EtusivuSeurantajaksoDTO
+import fi.elsapalvelu.elsa.service.dto.KatseluoikeusDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -41,6 +42,14 @@ class KouluttajaEtusivuResource(
                 true
             )
         )
+    }
+
+    @GetMapping("/vanhenevat-katseluoikeudet")
+    fun getVanhenevatKatseluoikeudet(
+        principal: Principal?
+    ): ResponseEntity<List<KatseluoikeusDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(etusivuService.getVanhenevatKatseluoikeudetForKouluttaja(user.id!!))
     }
 
     @GetMapping("/seurantajaksot")

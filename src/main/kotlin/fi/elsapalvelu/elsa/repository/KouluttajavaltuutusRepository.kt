@@ -14,6 +14,18 @@ interface KouluttajavaltuutusRepository : JpaRepository<Kouluttajavaltuutus, Lon
         pvm: LocalDate
     ): List<Kouluttajavaltuutus>
 
+    fun findAllByValtuuttajaOpintooikeusIdAndPaattymispaivaBeforeAndPaattymispaivaAfter(
+        valtuuttajaOpintooikeusId: Long,
+        before: LocalDate,
+        after: LocalDate,
+    ): List<Kouluttajavaltuutus>
+
+    fun findAllByValtuutettuUserIdAndPaattymispaivaBeforeAndPaattymispaivaAfter(
+        valtuutettuUserId: String,
+        before: LocalDate,
+        after: LocalDate,
+    ): List<Kouluttajavaltuutus>
+
     fun findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
         valtuuttajaOpintooikeusId: Long,
         valtuutettuId: String,
