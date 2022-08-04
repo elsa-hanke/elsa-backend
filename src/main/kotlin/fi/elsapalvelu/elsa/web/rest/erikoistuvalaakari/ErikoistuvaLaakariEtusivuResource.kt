@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.EtusivuService
 import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.dto.AvoinAsiaDTO
 import fi.elsapalvelu.elsa.service.dto.ErikoistumisenEdistyminenDTO
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,6 +16,14 @@ class ErikoistuvaLaakariEtusivuResource(
     private val userService: UserService,
     private val etusivuService: EtusivuService
 ) {
+
+    @GetMapping("/avoimet-asiat")
+    fun getAvoimetAsiat(
+        principal: Principal?
+    ): ResponseEntity<List<AvoinAsiaDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(etusivuService.getAvoimetAsiatForErikoistuja(user.id!!))
+    }
 
     @GetMapping("/erikoistumisen-edistyminen")
     fun getErikoistumisenEdistyminen(
