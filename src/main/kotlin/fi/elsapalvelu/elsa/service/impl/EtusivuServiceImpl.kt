@@ -1,26 +1,33 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.AvoinAsiaTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.ErikoistujienSeurantaQueryService
 import fi.elsapalvelu.elsa.service.EtusivuService
 import fi.elsapalvelu.elsa.service.OpintooikeusService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
+import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.mapper.ArviointiasteikkoMapper
+import org.springframework.context.MessageSource
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
 import java.time.LocalDate
+import java.util.*
+import javax.persistence.EntityNotFoundException
 
 @Service
 @Transactional
 class EtusivuServiceImpl(
     private val kayttajaRepository: KayttajaRepository,
+    private val userRepository: UserRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
@@ -35,7 +42,10 @@ class EtusivuServiceImpl(
     private val teoriakoulutusRepository: TeoriakoulutusRepository,
     private val opintosuoritusRepository: OpintosuoritusRepository,
     private val arviointiasteikkoMapper: ArviointiasteikkoMapper,
-    private val opintooikeusService: OpintooikeusService
+    private val opintooikeusService: OpintooikeusService,
+    private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
+    private val clock: Clock,
+    private val messageSource: MessageSource
 ) : EtusivuService {
 
     override fun getErikoistujienSeurantaForVastuuhenkilo(userId: String): ErikoistujienSeurantaDTO {
@@ -235,6 +245,65 @@ class EtusivuServiceImpl(
                 )
             }
     }
+
+    override fun getAvoimetAsiatForErikoistuja(userId: String): List<AvoinAsiaDTO>? {
+        val avoimetAsiatList = mutableListOf<AvoinAsiaDTO>()
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+        val user = userRepository.findById(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+        var locale = Locale.forLanguageTag("fi")
+        if (user.langKey != null) locale = Locale.forLanguageTag(user.langKey)
+
+        mapVanhenevatKatseluoikeudetToAvoimetAsiat(
+            avoimetAsiatList,
+            opintooikeusId,
+            locale
+        )
+
+        return avoimetAsiatList
+    }
+
+    override fun getVanhenevatKatseluoikeudetForKouluttaja(userId: String): List<KatseluoikeusDTO>? {
+        return kouluttajavaltuutusRepository.findAllByValtuutettuUserIdAndPaattymispaivaBeforeAndPaattymispaivaAfter(
+            userId,
+            getVanhenevatKatseluoikeudetPaattymispaivaBeforeDate(),
+            getVanhenevatKatseluoikeudetPaattymispaivaAfterDate()
+        ).map {
+            KatseluoikeusDTO(
+                it.valtuuttajaOpintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
+                it.paattymispaiva
+            )
+        }
+    }
+
+    private fun mapVanhenevatKatseluoikeudetToAvoimetAsiat(
+        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
+        opintooikeusId: Long,
+        locale: Locale
+    ) {
+        kouluttajavaltuutusRepository.findAllByValtuuttajaOpintooikeusIdAndPaattymispaivaBeforeAndPaattymispaivaAfter(
+            opintooikeusId,
+            getVanhenevatKatseluoikeudetPaattymispaivaBeforeDate(),
+            getVanhenevatKatseluoikeudetPaattymispaivaAfterDate()
+        ).map {
+            val avoinAsia = AvoinAsiaDTO(
+                it.id,
+                AvoinAsiaTyyppiEnum.KOULUTTAJAVALTUUTUS,
+                messageSource.getMessage(
+                    "avoimetasiat.kouluttajavaltuutus",
+                    arrayOf("${it.valtuutettu?.user?.firstName} ${it.valtuutettu?.user?.lastName}"),
+                    locale
+                ),
+                it.paattymispaiva
+            )
+            avoimetAsiatList.add(avoinAsia)
+        }
+    }
+
+    private fun getVanhenevatKatseluoikeudetPaattymispaivaBeforeDate() =
+        LocalDate.now(clock).plusMonths(1).plusDays(1)
+
+    private fun getVanhenevatKatseluoikeudetPaattymispaivaAfterDate() = LocalDate.now(clock).minusDays(1)
 
     private fun getSuoritusarvioinnitMap(opintooikeusId: Long): Map<ArvioitavaKokonaisuus, Int> {
         return suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
