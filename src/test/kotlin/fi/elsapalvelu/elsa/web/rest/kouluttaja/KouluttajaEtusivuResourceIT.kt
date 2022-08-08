@@ -12,10 +12,12 @@ import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.hamcrest.collection.IsCollectionWithSize.hasSize
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
@@ -25,8 +27,10 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.persistence.EntityManager
 
@@ -91,6 +95,12 @@ class KouluttajaEtusivuResourceIT {
     private lateinit var user: User
 
     private lateinit var kouluttaja: Kayttaja
+
+    @MockBean
+    private lateinit var clock: Clock
+
+    // 1 kuukausi = 31.1.1970
+    private val now = 2592000L
 
     @BeforeEach
     fun setup() {
@@ -522,12 +532,97 @@ class KouluttajaEtusivuResourceIT {
             .andExpect(jsonPath("$").value(hasSize<Int>(2)))
     }
 
-    fun initTest(createVastuuhenkilonArvio: Boolean? = true) {
+    @Test
+    @Transactional
+    fun getVanhenevatKatseluoikeudet() {
+        initTest()
+        initMockTime()
+
+        // Katseluoikeus päättyy 28.2.1970
+        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(58L))
+        em.persist(katseluoikeus)
+
+        restEtusivuMockMvc.perform(
+            get("/api/kouluttaja/etusivu/vanhenevat-katseluoikeudet")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(1)))
+    }
+
+    @Test
+    @Transactional
+    fun testKatseluoikeusEndingOverOneMonth() {
+        initTest()
+        initMockTime()
+
+        // Katseluoikeus päättyy 1.3.1970
+        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(59L))
+        em.persist(katseluoikeus)
+
+        restEtusivuMockMvc.perform(
+            get("/api/kouluttaja/etusivu/vanhenevat-katseluoikeudet")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
+    }
+
+    @Test
+    @Transactional
+    fun testKatseluoikeusAlreadyEnded() {
+        initTest()
+        initMockTime()
+
+        // Katseluoikeus päättyy 1.3.1970
+        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(29L))
+        em.persist(katseluoikeus)
+
+        restEtusivuMockMvc.perform(
+            get("/api/kouluttaja/etusivu/vanhenevat-katseluoikeudet")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
+    }
+
+    @Test
+    @Transactional
+    fun testKatseluoikeusForAnotherKouluttajaNotReturned() {
+        initTest()
+        initMockTime()
+
+        val anotherKouluttajaUser =
+            KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = KOULUTTAJA))
+        em.persist(anotherKouluttajaUser)
+        val anotherKouluttaja = KayttajaHelper.createEntity(em, anotherKouluttajaUser)
+        em.persist(anotherKouluttaja)
+
+        // Katseluoikeus päättyy 28.2.1970
+        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(
+            em,
+            paattymispaiva = LocalDate.ofEpochDay(58L),
+            valtuutettu = anotherKouluttaja
+        )
+        em.persist(katseluoikeus)
+
+        restEtusivuMockMvc.perform(
+            get("/api/kouluttaja/etusivu/vanhenevat-katseluoikeudet")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
+    }
+
+    private fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
-        val userDetails = mapOf<String, List<Any>>(
-        )
+        val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(KOULUTTAJA))
         val authentication = Saml2Authentication(
             DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
@@ -538,6 +633,10 @@ class KouluttajaEtusivuResourceIT {
 
         kouluttaja = KayttajaHelper.createEntity(em, user)
         em.persist(kouluttaja)
+    }
 
+    private fun initMockTime() {
+        `when`(clock.instant()).thenReturn(Instant.ofEpochSecond(now))
+        `when`(clock.zone).thenReturn(ZoneId.systemDefault())
     }
 }
