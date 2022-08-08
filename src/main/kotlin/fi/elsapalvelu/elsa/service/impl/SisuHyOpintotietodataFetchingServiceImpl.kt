@@ -8,17 +8,18 @@ import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
-import fi.elsapalvelu.elsa.service.SisuHyClientBuilder
 import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.SisuOpintooikeudenTila
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
 @Service
 class SisuHyOpintotietodataFetchingServiceImpl(
-    private val sisuHyClientBuilder: SisuHyClientBuilder,
+    @Qualifier("SisuHy") private val sisuHyClientBuilder: GraphQLClientBuilder,
     private val yliopistoRepository: YliopistoRepository
 ) : OpintotietodataFetchingService {
 
