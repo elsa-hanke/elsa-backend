@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.Opintoopas
 import fi.elsapalvelu.elsa.repository.OpintoopasRepository
 import fi.elsapalvelu.elsa.service.OpintoopasService
 import fi.elsapalvelu.elsa.service.dto.OpintoopasDTO
@@ -23,36 +24,7 @@ class OpintoopasServiceImpl(
 
     override fun findOne(id: Long): OpintoopasDTO? {
         return opintoopasRepository.findByIdOrNull(id)?.let {
-            val result = opintoopasMapper.toDto(it)
-
-            result.kaytannonKoulutuksenVahimmaispituusVuodet =
-                getYears(it.kaytannonKoulutuksenVahimmaispituus)
-            result.kaytannonKoulutuksenVahimmaispituusKuukaudet =
-                getMonths(it.kaytannonKoulutuksenVahimmaispituus)
-
-            result.terveyskeskuskoulutusjaksonVahimmaispituusVuodet =
-                getYears(it.terveyskeskuskoulutusjaksonVahimmaispituus)
-            result.terveyskeskuskoulutusjaksonVahimmaispituusKuukaudet =
-                getMonths(it.terveyskeskuskoulutusjaksonVahimmaispituus)
-
-            if (it.terveyskeskuskoulutusjaksonMaksimipituus != null) {
-                result.terveyskeskuskoulutusjaksonMaksimipituusVuodet =
-                    getYears(it.terveyskeskuskoulutusjaksonMaksimipituus)
-                result.terveyskeskuskoulutusjaksonMaksimipituusKuukaudet =
-                    getMonths(it.terveyskeskuskoulutusjaksonMaksimipituus)
-            }
-
-            result.yliopistosairaalajaksonVahimmaispituusVuodet =
-                getYears(it.yliopistosairaalajaksonVahimmaispituus)
-            result.yliopistosairaalajaksonVahimmaispituusKuukaudet =
-                getMonths(it.yliopistosairaalajaksonVahimmaispituus)
-
-            result.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusVuodet =
-                getYears(it.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus)
-            result.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusKuukaudet =
-                getMonths(it.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus)
-
-            return result
+            return mapOpintoopas(it)
         }
     }
 
@@ -64,6 +36,13 @@ class OpintoopasServiceImpl(
     override fun findAllByErikoisala(erikoisalaId: Long): List<OpintoopasSimpleDTO> {
         return opintoopasRepository.findAllByErikoisalaId(erikoisalaId)
             .map(opintoopasSimpleMapper::toDto)
+    }
+
+    override fun findUusinByErikoisala(erikoisalaId: Long): OpintoopasDTO? {
+        opintoopasRepository.findFirstByErikoisalaIdOrderByVoimassaoloAlkaaDesc(erikoisalaId)?.let {
+            return mapOpintoopas(it)
+        }
+        return null
     }
 
     override fun update(opintoopasDTO: OpintoopasDTO): OpintoopasDTO? {
@@ -102,6 +81,37 @@ class OpintoopasServiceImpl(
         val result = opintoopasRepository.save(opintoopas)
 
         return opintoopasMapper.toDto(result)
+    }
+
+    private fun mapOpintoopas(opas: Opintoopas): OpintoopasDTO {
+        val dto = opintoopasMapper.toDto(opas)
+        dto.kaytannonKoulutuksenVahimmaispituusVuodet =
+            getYears(opas.kaytannonKoulutuksenVahimmaispituus)
+        dto.kaytannonKoulutuksenVahimmaispituusKuukaudet =
+            getMonths(opas.kaytannonKoulutuksenVahimmaispituus)
+
+        dto.terveyskeskuskoulutusjaksonVahimmaispituusVuodet =
+            getYears(opas.terveyskeskuskoulutusjaksonVahimmaispituus)
+        dto.terveyskeskuskoulutusjaksonVahimmaispituusKuukaudet =
+            getMonths(opas.terveyskeskuskoulutusjaksonVahimmaispituus)
+
+        if (opas.terveyskeskuskoulutusjaksonMaksimipituus != null) {
+            dto.terveyskeskuskoulutusjaksonMaksimipituusVuodet =
+                getYears(opas.terveyskeskuskoulutusjaksonMaksimipituus)
+            dto.terveyskeskuskoulutusjaksonMaksimipituusKuukaudet =
+                getMonths(opas.terveyskeskuskoulutusjaksonMaksimipituus)
+        }
+
+        dto.yliopistosairaalajaksonVahimmaispituusVuodet =
+            getYears(opas.yliopistosairaalajaksonVahimmaispituus)
+        dto.yliopistosairaalajaksonVahimmaispituusKuukaudet =
+            getMonths(opas.yliopistosairaalajaksonVahimmaispituus)
+
+        dto.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusVuodet =
+            getYears(opas.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus)
+        dto.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusKuukaudet =
+            getMonths(opas.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus)
+        return dto
     }
 
     private fun getYears(days: Double?): Int? {

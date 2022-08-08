@@ -109,6 +109,36 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
 
     @Test
     @Transactional
+    fun getUusinOpas() {
+        initTest()
+
+        val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
+        val opintoopas1 = opintoopasRepository.saveAndFlush(
+            OpintoopasHelper.createEntity(
+                em,
+                erikoisala = erikoisala
+            )
+        )
+        val opintoopas2 = OpintoopasHelper.createEntity(
+            em,
+            erikoisala = erikoisala
+        )
+        opintoopas2.voimassaoloAlkaa = opintoopas1.voimassaoloPaattyy?.plusDays(1)
+        opintoopas2.voimassaoloPaattyy = opintoopas2.voimassaoloAlkaa?.plusYears(1)
+        opintoopasRepository.saveAndFlush(opintoopas2)
+
+        restOpetussuunnitelmatMockMvc.perform(
+            get("/api/tekninen-paakayttaja/erikoisalat/${erikoisala.id}/uusinopas")
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(opintoopas2.id))
+            .andExpect(jsonPath("$.nimi").value(opintoopas2.nimi))
+    }
+
+    @Test
+    @Transactional
     fun getOpintoopas() {
         initTest()
 
