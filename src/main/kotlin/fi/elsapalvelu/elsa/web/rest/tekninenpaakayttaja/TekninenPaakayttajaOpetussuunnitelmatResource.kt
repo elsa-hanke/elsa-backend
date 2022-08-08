@@ -39,6 +39,11 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
         return ResponseEntity.ok(opintoopasService.findAllByErikoisala(id))
     }
 
+    @GetMapping("/erikoisalat/{id}/uusinopas")
+    fun getUusinOpintoopas(@PathVariable id: Long): ResponseEntity<OpintoopasDTO> {
+        return ResponseEntity.ok(opintoopasService.findUusinByErikoisala(id))
+    }
+
     @GetMapping("/opintoopas/{id}")
     fun getOpintoopas(@PathVariable id: Long): ResponseEntity<OpintoopasDTO> {
         return ResponseEntity.ok(opintoopasService.findOne(id))
