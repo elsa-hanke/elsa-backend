@@ -217,6 +217,9 @@ application:
       api-key:
       basic-auth-encoded-key:
       endpoint-url: https://api-ext.utu.fi/peppi/test/opendata/r1/elsa/search
+    peppiuef:
+      api-key:
+      endpoint-url: https://mixqa.uef.fi/api/v1/elsa
   feedback:
     to: julia.sillanpaa@tuni.fi
   opintohallintoemail:
