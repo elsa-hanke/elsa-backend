@@ -2,15 +2,17 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
-import fi.elsapalvelu.elsa.service.PeppiTurkuClientBuilder
+import fi.elsapalvelu.elsa.service.OkHttpClientBuilder
 import okhttp3.OkHttpClient
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
 
+@Qualifier("PeppiTurku")
 @Service
 class PeppiTurkuClientBuilderImpl(
     applicationProperties: ApplicationProperties
-) : PeppiTurkuClientBuilder {
+) : OkHttpClientBuilder {
 
     init {
         Companion.applicationProperties = applicationProperties

@@ -11,17 +11,18 @@ import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDateTime
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.OkHttpClientBuilder
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
-import fi.elsapalvelu.elsa.service.PeppiTurkuClientBuilder
-import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
-import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
-import fi.elsapalvelu.elsa.service.dto.enumeration.PeppiOpintooikeudenTila
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR
+import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
+import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import fi.elsapalvelu.elsa.service.dto.enumeration.PeppiOpintooikeudenTila
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.io.IOException
 
@@ -29,7 +30,7 @@ private const val studentEndpoint = "student"
 
 @Service
 class PeppiTurkuOpintotietodataFetchingServiceImpl(
-    private val peppiTurkuClientBuilder: PeppiTurkuClientBuilder,
+    @Qualifier("PeppiTurku") private val peppiTurkuClientBuilder: OkHttpClientBuilder,
     private val applicationProperties: ApplicationProperties,
     private val objectMapper: ObjectMapper,
     private val yliopistoRepository: YliopistoRepository
