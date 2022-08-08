@@ -2,6 +2,6 @@ package fi.elsapalvelu.elsa.service
 
 import okhttp3.OkHttpClient
 
-interface PeppiTurkuClientBuilder {
+interface OkHttpClientBuilder {
     fun okHttpClient(): OkHttpClient
 }

@@ -4,19 +4,20 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.service.SisuHyClientBuilder
+import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
 import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaFetchingService
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR
 import okhttp3.Request
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.io.IOException
 
 @Service
 class SisuTutkintoohjelmaFetchingServiceImpl(
-    private val sisuHyClientBuilder: SisuHyClientBuilder,
+    @Qualifier("SisuHy") private val sisuHyClientBuilder: GraphQLClientBuilder,
     private val applicationProperties: ApplicationProperties,
     private val objectMapper: ObjectMapper
 ) : SisuTutkintoohjelmaFetchingService {

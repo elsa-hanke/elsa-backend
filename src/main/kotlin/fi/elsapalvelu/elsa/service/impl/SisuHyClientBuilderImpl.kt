@@ -4,11 +4,12 @@ import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.network.okHttpClient
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
-import fi.elsapalvelu.elsa.service.SisuHyClientBuilder
+import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
 import okhttp3.OkHttpClient
 import okhttp3.tls.HandshakeCertificates
 import okhttp3.tls.HeldCertificate
 import org.opensaml.security.x509.X509Support
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.Resource
 import org.springframework.core.io.ResourceLoader
 import org.springframework.security.converter.RsaKeyConverters
@@ -18,11 +19,12 @@ import java.security.cert.X509Certificate
 import java.security.interfaces.RSAPrivateKey
 import java.util.concurrent.TimeUnit
 
+@Qualifier("SisuHy")
 @Service
 class SisuHyClientBuilderImpl(
     applicationProperties: ApplicationProperties,
     resourceLoader: ResourceLoader
-) : SisuHyClientBuilder {
+) : GraphQLClientBuilder {
 
     init {
         Companion.applicationProperties = applicationProperties
