@@ -7,8 +7,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila.Companion.fromPeppiOpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
-import fi.elsapalvelu.elsa.extensions.tryParseToLocalDateTime
+import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.service.PeppiCommonOpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
@@ -48,20 +49,18 @@ class PeppiCommonOpintotietodataFetchingServiceImpl(
                 response.body?.string().let { body ->
                     objectMapper.readValue(body, Student::class.java)?.let { student ->
                         OpintotietodataDTO(
-                            syntymaaika = student.birthDate?.tryParseToLocalDateTime()?.toLocalDate(),
+                            syntymaaika = student.birthDate?.tryParseToLocalDate(),
                             opintooikeudet = student.entitlements?.filter { e ->
                                 e.koulutusKoodi == ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS ||
                                     e.koulutusKoodi == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS
                             }?.map {
                                 OpintotietoOpintooikeusDataDTO(
                                     id = it.opiskeluoikeusNumero,
-                                    opintooikeudenAlkamispaiva = it.alkamispaiva?.tryParseToLocalDateTime()
-                                        ?.toLocalDate(),
-                                    opintooikeudenPaattymispaiva = it.paattymispaiva?.tryParseToLocalDateTime()
-                                        ?.toLocalDate(),
+                                    opintooikeudenAlkamispaiva = it.alkamispaiva?.tryParseToLocalDate(),
+                                    opintooikeudenPaattymispaiva = it.paattymispaiva?.tryParseToLocalDate(),
                                     erikoisalaTunnisteList = it.erikoisalat?.map { e -> e.avain },
                                     asetus = convertPeppiAsetusString(it.asetus, endpointUrl),
-                                    tila = mapOpintooikeudenTila(it.tila),
+                                    tila = fromPeppiOpintooikeudenTila(it.tila),
                                     yliopisto = yliopistoEnum
                                 )
                             }
@@ -69,10 +68,6 @@ class PeppiCommonOpintotietodataFetchingServiceImpl(
                     }
                 }
             }
-        } catch (e: IOException) {
-            log.error(
-                "$JSON_FETCHING_ERROR: $endpointUrl ${e.message}"
-            )
         } catch (e: JsonProcessingException) {
             log.error(
                 "$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}"
@@ -80,6 +75,10 @@ class PeppiCommonOpintotietodataFetchingServiceImpl(
         } catch (e: JsonMappingException) {
             log.error(
                 "$JSON_MAPPING_ERROR: $endpointUrl ${e.message} "
+            )
+        } catch (e: IOException) {
+            log.error(
+                "$JSON_FETCHING_ERROR: $endpointUrl ${e.message}"
             )
         }
         return null
@@ -92,19 +91,6 @@ class PeppiCommonOpintotietodataFetchingServiceImpl(
             return null
         }
         return "${splittedAsetus[1]}/${splittedAsetus[0]}"
-    }
-
-    private fun mapOpintooikeudenTila(sisuOpintooikeudenTila: PeppiOpintooikeudenTila?): OpintooikeudenTila? {
-        return when (sisuOpintooikeudenTila) {
-            PeppiOpintooikeudenTila.ATTENDING -> OpintooikeudenTila.AKTIIVINEN
-            PeppiOpintooikeudenTila.ABSENT,
-            PeppiOpintooikeudenTila.ABSENT_EXPENDING,
-            PeppiOpintooikeudenTila.ABSENT_NON_EXPENDING,
-            PeppiOpintooikeudenTila.OTHER_NON_EXPENDING -> OpintooikeudenTila.PASSIIVINEN
-            PeppiOpintooikeudenTila.GRADUATED -> OpintooikeudenTila.VALMISTUNUT
-            PeppiOpintooikeudenTila.RESIGNED -> OpintooikeudenTila.PERUUTETTU
-            else -> null
-        }
     }
 }
 

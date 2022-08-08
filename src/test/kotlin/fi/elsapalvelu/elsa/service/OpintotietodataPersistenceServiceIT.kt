@@ -228,9 +228,9 @@ class OpintotietodataPersistenceServiceIT {
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(existingUser.id!!)
         assertThat(erikoistuvaLaakari?.syntymaaika).isEqualTo(syntymaaika)
 
-        val firstOpintooikeus = opintooikeudet[0]
-        assertThat(firstOpintooikeus.erikoistuvaLaakari).isNotNull
-        assertThat(firstOpintooikeus.erikoistuvaLaakari!!.id).isEqualTo(erikoistuvaLaakari!!.id)
+        val firstOpintooikeus = opintooikeudet.find { it.yliopistoOpintooikeusId == opintooikeusId }
+        assertThat(firstOpintooikeus?.erikoistuvaLaakari).isNotNull
+        assertThat(firstOpintooikeus?.erikoistuvaLaakari!!.id).isEqualTo(erikoistuvaLaakari!!.id)
         assertThat(firstOpintooikeus.yliopistoOpintooikeusId).isEqualTo(opintooikeusId)
         assertThat(firstOpintooikeus.yliopisto?.nimi).isEqualTo(yliopisto)
         assertThat(firstOpintooikeus.opiskelijatunnus).isEqualTo(opiskelijatunnus)
@@ -241,24 +241,24 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(firstOpintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultOpintopasVoimassaoloAlkaa)
         assertThat(firstOpintooikeus.opintoopas?.voimassaoloPaattyy).isEqualTo(defaultOpintopasVoimassaoloPaattyy)
         assertThat(firstOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
-        assertThat(firstOpintooikeus.kaytossa).isEqualTo(false)
+        assertThat(firstOpintooikeus.kaytossa).isEqualTo(true)
         assertThat(firstOpintooikeus.muokkausaika).isNotNull
         assertThat(firstOpintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
 
-        val secondOpintooikeus = opintooikeudet[1]
-        assertThat(secondOpintooikeus.yliopistoOpintooikeusId).isEqualTo(secondOpintooikeusId)
-        assertThat(secondOpintooikeus.yliopisto?.nimi).isEqualTo(yliopisto)
-        assertThat(secondOpintooikeus.opiskelijatunnus).isEqualTo(opiskelijatunnus)
-        assertThat(secondOpintooikeus.erikoisala).isEqualTo(secondErikoisala)
-        assertThat(secondOpintooikeus.opintooikeudenMyontamispaiva).isEqualTo(defaultSecondOpintooikeudenMyontamispaiva)
-        assertThat(secondOpintooikeus.opintooikeudenPaattymispaiva).isEqualTo(defaultSecondOpintooikeudenPaattymispaiva)
-        assertThat(secondOpintooikeus.asetus).isEqualTo(secondAsetus)
-        assertThat(secondOpintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
-        assertThat(secondOpintooikeus.opintoopas?.voimassaoloPaattyy).isNull()
-        assertThat(secondOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
-        assertThat(secondOpintooikeus.kaytossa).isEqualTo(true)
-        assertThat(secondOpintooikeus.muokkausaika).isNotNull
-        assertThat(secondOpintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
+        val secondOpintooikeus = opintooikeudet.find { it.yliopistoOpintooikeusId == secondOpintooikeusId }
+        assertThat(secondOpintooikeus?.yliopistoOpintooikeusId).isEqualTo(secondOpintooikeusId)
+        assertThat(secondOpintooikeus?.yliopisto?.nimi).isEqualTo(yliopisto)
+        assertThat(secondOpintooikeus?.opiskelijatunnus).isEqualTo(opiskelijatunnus)
+        assertThat(secondOpintooikeus?.erikoisala).isEqualTo(secondErikoisala)
+        assertThat(secondOpintooikeus?.opintooikeudenMyontamispaiva).isEqualTo(defaultSecondOpintooikeudenMyontamispaiva)
+        assertThat(secondOpintooikeus?.opintooikeudenPaattymispaiva).isEqualTo(defaultSecondOpintooikeudenPaattymispaiva)
+        assertThat(secondOpintooikeus?.asetus).isEqualTo(secondAsetus)
+        assertThat(secondOpintooikeus?.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
+        assertThat(secondOpintooikeus?.opintoopas?.voimassaoloPaattyy).isNull()
+        assertThat(secondOpintooikeus?.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
+        assertThat(secondOpintooikeus?.kaytossa).isEqualTo(false)
+        assertThat(secondOpintooikeus?.muokkausaika).isNotNull
+        assertThat(secondOpintooikeus?.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
     }
 
     @Test
@@ -293,9 +293,9 @@ class OpintotietodataPersistenceServiceIT {
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(existingUser.id!!)
         assertThat(erikoistuvaLaakari?.syntymaaika).isEqualTo(syntymaaika)
 
-        val firstOpintooikeus = opintooikeudet[0]
-        assertThat(firstOpintooikeus.erikoistuvaLaakari).isNotNull
-        assertThat(firstOpintooikeus.erikoistuvaLaakari!!.id).isEqualTo(erikoistuvaLaakari!!.id)
+        val firstOpintooikeus = opintooikeudet.find { it.yliopistoOpintooikeusId == opintooikeusId }
+        assertThat(firstOpintooikeus?.erikoistuvaLaakari).isNotNull
+        assertThat(firstOpintooikeus?.erikoistuvaLaakari!!.id).isEqualTo(erikoistuvaLaakari!!.id)
         assertThat(firstOpintooikeus.yliopistoOpintooikeusId).isEqualTo(opintooikeusId)
         assertThat(firstOpintooikeus.yliopisto?.nimi).isEqualTo(YliopistoEnum.HELSINGIN_YLIOPISTO)
         assertThat(firstOpintooikeus.opiskelijatunnus).isEqualTo(opiskelijatunnus)
@@ -306,24 +306,24 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(firstOpintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultOpintopasVoimassaoloAlkaa)
         assertThat(firstOpintooikeus.opintoopas?.voimassaoloPaattyy).isEqualTo(defaultOpintopasVoimassaoloPaattyy)
         assertThat(firstOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
-        assertThat(firstOpintooikeus.kaytossa).isEqualTo(false)
+        assertThat(firstOpintooikeus.kaytossa).isEqualTo(true)
         assertThat(firstOpintooikeus.muokkausaika).isNotNull
         assertThat(firstOpintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
 
-        val secondOpintooikeus = opintooikeudet[1]
-        assertThat(secondOpintooikeus.yliopistoOpintooikeusId).isEqualTo(secondOpintooikeusId)
-        assertThat(secondOpintooikeus.yliopisto?.nimi).isEqualTo(YliopistoEnum.TAMPEREEN_YLIOPISTO)
-        assertThat(secondOpintooikeus.opiskelijatunnus).isEqualTo(opiskelijatunnus)
-        assertThat(secondOpintooikeus.erikoisala).isEqualTo(secondErikoisala)
-        assertThat(secondOpintooikeus.opintooikeudenMyontamispaiva).isEqualTo(defaultSecondOpintooikeudenMyontamispaiva)
-        assertThat(secondOpintooikeus.opintooikeudenPaattymispaiva).isEqualTo(defaultSecondOpintooikeudenPaattymispaiva)
-        assertThat(secondOpintooikeus.asetus).isEqualTo(secondAsetus)
-        assertThat(secondOpintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
-        assertThat(secondOpintooikeus.opintoopas?.voimassaoloPaattyy).isNull()
-        assertThat(secondOpintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
-        assertThat(secondOpintooikeus.kaytossa).isEqualTo(true)
-        assertThat(secondOpintooikeus.muokkausaika).isNotNull
-        assertThat(secondOpintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
+        val secondOpintooikeus = opintooikeudet.find { it.yliopistoOpintooikeusId == secondOpintooikeusId }
+        assertThat(secondOpintooikeus?.yliopistoOpintooikeusId).isEqualTo(secondOpintooikeusId)
+        assertThat(secondOpintooikeus?.yliopisto?.nimi).isEqualTo(YliopistoEnum.TAMPEREEN_YLIOPISTO)
+        assertThat(secondOpintooikeus?.opiskelijatunnus).isEqualTo(opiskelijatunnus)
+        assertThat(secondOpintooikeus?.erikoisala).isEqualTo(secondErikoisala)
+        assertThat(secondOpintooikeus?.opintooikeudenMyontamispaiva).isEqualTo(defaultSecondOpintooikeudenMyontamispaiva)
+        assertThat(secondOpintooikeus?.opintooikeudenPaattymispaiva).isEqualTo(defaultSecondOpintooikeudenPaattymispaiva)
+        assertThat(secondOpintooikeus?.asetus).isEqualTo(secondAsetus)
+        assertThat(secondOpintooikeus?.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
+        assertThat(secondOpintooikeus?.opintoopas?.voimassaoloPaattyy).isNull()
+        assertThat(secondOpintooikeus?.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
+        assertThat(secondOpintooikeus?.kaytossa).isEqualTo(false)
+        assertThat(secondOpintooikeus?.muokkausaika).isNotNull
+        assertThat(secondOpintooikeus?.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
     }
 
     @Test

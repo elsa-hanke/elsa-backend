@@ -39,12 +39,18 @@ class SisuTutkintoohjelmaFetchingServiceImpl(
                 }
             }
 
-        } catch (e: IOException) {
-            log.error("$JSON_FETCHING_ERROR $endpointUrl ${e.message}")
         } catch (e: JsonProcessingException) {
-            log.error("$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message} ")
+            log.error(
+                "$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}"
+            )
         } catch (e: JsonMappingException) {
-            log.error("$JSON_MAPPING_ERROR: $endpointUrl ${e.message} ")
+            log.error(
+                "$JSON_MAPPING_ERROR: $endpointUrl ${e.message} "
+            )
+        } catch (e: IOException) {
+            log.error(
+                "$JSON_FETCHING_ERROR: $endpointUrl ${e.message}"
+            )
         }
         return null
     }
