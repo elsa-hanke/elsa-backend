@@ -11,5 +11,7 @@ interface OpintoopasService {
 
     fun findAllByErikoisala(erikoisalaId: Long): List<OpintoopasSimpleDTO>
 
+    fun findUusinByErikoisala(erikoisalaId: Long): OpintoopasDTO?
+
     fun update(opintoopasDTO: OpintoopasDTO): OpintoopasDTO?
 }
