@@ -122,7 +122,12 @@ class ApplicationProperties {
 
         class SisuTre {
             var endpointUrl: String? = null
-            var basicAuthEncodedKey: String? = null
+            var tokenEndpointUrl: String? = null
+            var tenantId: String? = null
+            var clientId: String? = null
+            var scopeId: String? = null
+            var clientSecret: String? = null
+            var subscriptionKey: String? = null
         }
 
         class PeppiUef {

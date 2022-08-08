@@ -334,10 +334,10 @@ class OpintotietodataPersistenceServiceImpl(
         yliopistoId: Long,
         erikoisalaId: Long
     ): Opintooikeus? {
-        // Päivitetään olemassaolevaa opinto-oikeutta jos sellainen löytyy Sisun opinto-oikeuden id:llä
-        // (haettu ja tallennettu aiemmin opintotietojärjestelmästä) tai erikoisalan ja yliopiston id:llä
+        // Päivitetään olemassaolevaa opinto-oikeutta jos sellainen löytyy Sisun/Pepin opinto-oikeuden id:llä
+        // samasta yliopistosta (haettu ja tallennettu aiemmin) tai erikoisalan ja yliopiston id:llä
         // (erikoistuva kutsuttu aiemmin teknisen pääkäyttäjän toimesta).
-        return existingOpintooikeudet.find { it.yliopistoOpintooikeusId == opintooikeusId }
+        return existingOpintooikeudet.find { it.yliopistoOpintooikeusId == opintooikeusId && it.yliopisto?.id == yliopistoId }
             ?: opintooikeusRepository.findOneByErikoistuvaLaakariIdAndYliopistoIdAndErikoisalaIdAndYliopistoOpintooikeusIdIsNull(
                 erikoistuvaLaakariId,
                 yliopistoId,

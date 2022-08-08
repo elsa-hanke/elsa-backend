@@ -210,6 +210,14 @@ application:
       tutkintoohjelma-export-url: https://gw-api-test.it.helsinki.fi/secure/sisu/kori/api/qualifications/v1/export?since=0&limit=10000
       private-key-location: classpath:sisu/hy-sisu.key
       certificate-location: classpath:sisu/hy-sisu.crt
+    sisutre:
+      endpoint-url: https://test.apis.tuni.fi/elsa
+      token-endpoint-url: https://login.microsoftonline.com
+      tenant-id:
+      client-id:
+      scope-id:
+      client-secret:
+      subscription-key:
     peppioulu:
       token:
       graphql-endpoint-url: https://api-proxy-dev.oulu.fi/graphqldendev
