@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
-import fi.elsapalvelu.elsa.extensions.tryParseToLocalDateTime
+import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.service.PeppiCommonOpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
@@ -48,7 +48,7 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
                                 yliopisto = yliopistoEnum,
                                 items = accomplishments.map {
                                     OpintosuoritusDTO(
-                                        suorituspaiva = it.suoritusPvm?.tryParseToLocalDateTime()?.toLocalDate(),
+                                        suorituspaiva = it.suoritusPvm?.tryParseToLocalDate(),
                                         opintopisteet = it.opintopisteet,
                                         nimi_fi = it.nimi?.fi,
                                         nimi_sv = it.nimi?.sv,
@@ -63,10 +63,6 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
                         }
                 }
             }
-        } catch (e: IOException) {
-            log.error(
-                "$JSON_FETCHING_ERROR: $endpointUrl ${e.message}"
-            )
         } catch (e: JsonProcessingException) {
             log.error(
                 "$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}"
@@ -74,6 +70,10 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
         } catch (e: JsonMappingException) {
             log.error(
                 "$JSON_MAPPING_ERROR: $endpointUrl ${e.message} "
+            )
+        } catch (e: IOException) {
+            log.error(
+                "$JSON_FETCHING_ERROR: $endpointUrl ${e.message}"
             )
         }
         return null

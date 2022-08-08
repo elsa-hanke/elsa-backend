@@ -9,6 +9,6 @@ const val OPINTOOIKEUS_NOT_FOUND_ERROR = "Opinto-oikeutta ei löydy"
 const val VALMISTUMISPYYNTO_NOT_FOUND_ERROR = "Valmistumispyyntöä ei löydy"
 const val KAYTTAJA_YLIOPISTO_ERIKOISALA_NOT_FOUND_ERROR = "Käyttäjälle ei löydy yliopistoa eikä erikoisalaa"
 const val JSON_FETCHING_ERROR = "Datan hakeminen epäonnistui"
-const val JSON_DATA_PROSESSING_ERROR = "Datan prosessointio epäonnistui"
-const val JSON_MAPPING_ERROR = "Data mäppäys epäonnistui"
+const val JSON_DATA_PROSESSING_ERROR = "Datan prosessointi epäonnistui"
+const val JSON_MAPPING_ERROR = "Datan mäppäys epäonnistui"
 
