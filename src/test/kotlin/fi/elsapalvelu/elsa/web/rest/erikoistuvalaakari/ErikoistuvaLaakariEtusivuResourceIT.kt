@@ -3,16 +3,20 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ArviointiasteikkoTyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.AvoinAsiaTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.*
+import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
@@ -22,11 +26,13 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import javax.persistence.EntityManager
 
-private const val ENDPOINT_URL: String =
-    "/api/erikoistuva-laakari/etusivu/erikoistumisen-edistyminen"
+private const val ENDPOINT_URL: String = "/api/erikoistuva-laakari/etusivu"
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
@@ -53,6 +59,12 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     private lateinit var suoritemerkinta: Suoritemerkinta
 
     private lateinit var suoritteenKategoria: SuoritteenKategoria
+
+    @MockBean
+    private lateinit var clock: Clock
+
+    // 1 kuukausi = 31.1.1970
+    private val now = 2592000L
 
     @BeforeEach
     fun setup() {
@@ -249,7 +261,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     fun getErikoistumisenEdistyminen() {
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.arviointienKeskiarvo").value(2.5))
@@ -320,7 +332,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
 
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.arviointienKeskiarvo").value(5.0))
@@ -332,7 +344,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         arvioitavaKokonaisuus1.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.arvioitavatKokonaisuudetVahintaanYksiArvioLkm").value(2))
@@ -344,7 +356,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         arvioitavanKokonaisuudenKategoria.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.arvioitavatKokonaisuudetVahintaanYksiArvioLkm").value(2))
@@ -356,7 +368,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         arvioitavaKokonaisuus1.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.arvioitavienKokonaisuuksienLkm").value(2))
@@ -368,7 +380,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         arvioitavanKokonaisuudenKategoria.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.arvioitavienKokonaisuuksienLkm").value(2))
@@ -380,7 +392,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.suoritemerkinnatLkm").value(2))
@@ -393,7 +405,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         em.remove(suoritemerkinta)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.suoritemerkinnatLkm").value(1))
@@ -405,7 +417,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         suorite1.kategoria?.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.suoritemerkinnatLkm").value(2))
@@ -418,7 +430,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         em.remove(suoritemerkinta)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.suoritemerkinnatLkm").value(1))
@@ -430,7 +442,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.vaaditutSuoritemerkinnatLkm").value(6))
@@ -442,7 +454,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         suorite1.kategoria?.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.vaaditutSuoritemerkinnatLkm").value(2))
@@ -454,7 +466,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.osaalueetSuoritettuLkm").value(1))
@@ -466,7 +478,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         suorite1.kategoria?.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             // Koska kummallekin suoritteelle käytetty kategoria ei ole enää voimassa, lasketaan myös toinen osa-alue
@@ -480,7 +492,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.osaalueetVaadittuLkm").value(2))
@@ -493,7 +505,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         em.remove(suoritemerkinta)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.osaalueetVaadittuLkm").value(1))
@@ -505,7 +517,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         suorite1.kategoria?.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.osaalueetVaadittuLkm").value(2))
@@ -518,10 +530,82 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         em.remove(suoritemerkinta)
         flushAndClear()
 
-        restEtusivuMockMvc.perform(get(ENDPOINT_URL))
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.osaalueetVaadittuLkm").value(1))
+    }
+
+    @Test
+    @Transactional
+    fun getVanhenevatKatseluoikeudet() {
+        initMockTime()
+
+        // Katseluoikeus päättyy 28.2.1970
+        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(58L))
+        em.persist(katseluoikeus)
+
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/avoimet-asiat"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(1)))
+            .andExpect(jsonPath("$[0].tyyppi").value(AvoinAsiaTyyppiEnum.KOULUTTAJAVALTUUTUS.toString()))
+    }
+
+    @Test
+    @Transactional
+    fun testKatseluoikeusEndingOverOneMonth() {
+        initMockTime()
+
+        // Katseluoikeus päättyy 1.3.1970
+        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(59L))
+        em.persist(katseluoikeus)
+
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/avoimet-asiat"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
+    }
+
+    @Test
+    @Transactional
+    fun testKatseluoikeusAlreadyEnded() {
+        initMockTime()
+
+        // Katseluoikeus päättyy 1.3.1970
+        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(29L))
+        em.persist(katseluoikeus)
+
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/avoimet-asiat"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
+    }
+
+    @Test
+    @Transactional
+    fun testKatseluoikeusForAnotherOpintooikeusNotReturned() {
+        initMockTime()
+
+        val anotherOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+
+        // Katseluoikeus päättyy 28.2.1970
+        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(
+            em,
+            paattymispaiva = LocalDate.ofEpochDay(58L),
+            opintooikeus = anotherOpintooikeus
+        )
+        em.persist(katseluoikeus)
+
+        restEtusivuMockMvc.perform(get("$ENDPOINT_URL/avoimet-asiat"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
+    }
+
+    private fun initMockTime() {
+        `when`(clock.instant()).thenReturn(Instant.ofEpochSecond(now))
+        `when`(clock.zone).thenReturn(ZoneId.systemDefault())
     }
 
     private fun flushAndClear() {

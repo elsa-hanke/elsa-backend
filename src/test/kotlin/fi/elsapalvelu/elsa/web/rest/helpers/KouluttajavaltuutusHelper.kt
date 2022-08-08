@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus
+import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.Instant
 import java.time.LocalDate
@@ -27,68 +28,94 @@ class KouluttajavaltuutusHelper {
         private val UPDATED_VALTUUTUKSEN_MUOKKAUSAIKA: Instant = Instant.now().truncatedTo(ChronoUnit.MILLIS)
 
         @JvmStatic
-        fun createEntity(em: EntityManager): Kouluttajavaltuutus {
+        fun createEntity(
+            em: EntityManager,
+            alkamispaiva: LocalDate? = DEFAULT_ALKAMISPAIVA,
+            paattymispaiva: LocalDate? = DEFAULT_PAATTYMISPAIVA,
+            opintooikeus: Opintooikeus? = null,
+            valtuutettu: Kayttaja? = null
+        ): Kouluttajavaltuutus {
             val kouluttajavaltuutus = Kouluttajavaltuutus(
-                alkamispaiva = DEFAULT_ALKAMISPAIVA,
-                paattymispaiva = DEFAULT_PAATTYMISPAIVA,
+                alkamispaiva = alkamispaiva,
+                paattymispaiva = paattymispaiva,
                 valtuutuksenLuontiaika = DEFAULT_VALTUUTUKSEN_LUONTIAIKA,
                 valtuutuksenMuokkausaika = DEFAULT_VALTUUTUKSEN_MUOKKAUSAIKA
             )
 
-            // Lisätään pakollinen tieto
-            val erikoistuvaLaakari: ErikoistuvaLaakari
-            if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
-                erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
-                em.persist(erikoistuvaLaakari)
-                em.flush()
+            if (opintooikeus == null) {
+                val erikoistuvaLaakari: ErikoistuvaLaakari
+                if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
+                    erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
+                    em.persist(erikoistuvaLaakari)
+                    em.flush()
+                } else {
+                    erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
+                }
+                kouluttajavaltuutus.valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             } else {
-                erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
+                kouluttajavaltuutus.valtuuttajaOpintooikeus = opintooikeus
             }
-            kouluttajavaltuutus.valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
 
-            // Lisätään pakollinen tieto
-            val kayttaja: Kayttaja
-            if (em.findAll(Kayttaja::class).isEmpty()) {
-                kayttaja = KayttajaHelper.createEntity(em)
-                em.persist(kayttaja)
-                em.flush()
+            if (valtuutettu == null) {
+                val kayttaja: Kayttaja
+                if (em.findAll(Kayttaja::class).isEmpty()) {
+                    kayttaja = KayttajaHelper.createEntity(em)
+                    em.persist(kayttaja)
+                    em.flush()
+                } else {
+                    kayttaja = em.findAll(Kayttaja::class).get(0)
+                }
+                kouluttajavaltuutus.valtuutettu = kayttaja
             } else {
-                kayttaja = em.findAll(Kayttaja::class).get(0)
+                kouluttajavaltuutus.valtuutettu = valtuutettu
             }
-            kouluttajavaltuutus.valtuutettu = kayttaja
 
             return kouluttajavaltuutus
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): Kouluttajavaltuutus {
+        fun createUpdatedEntity(
+            em: EntityManager,
+            alkamispaiva: LocalDate? = UPDATED_ALKAMISPAIVA,
+            paattymispaiva: LocalDate? = UPDATED_PAATTYMISPAIVA,
+            opintooikeus: Opintooikeus? = null,
+            valtuutettu: Kayttaja? = null
+        ): Kouluttajavaltuutus {
             val kouluttajavaltuutus = Kouluttajavaltuutus(
-                alkamispaiva = UPDATED_ALKAMISPAIVA,
-                paattymispaiva = UPDATED_PAATTYMISPAIVA,
+                alkamispaiva = alkamispaiva,
+                paattymispaiva = paattymispaiva,
                 valtuutuksenLuontiaika = UPDATED_VALTUUTUKSEN_LUONTIAIKA,
                 valtuutuksenMuokkausaika = UPDATED_VALTUUTUKSEN_MUOKKAUSAIKA
             )
 
-            // Lisätään pakollinen tieto
-            val erikoistuvaLaakari: ErikoistuvaLaakari
-            if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
-                erikoistuvaLaakari = ErikoistuvaLaakariHelper.createUpdatedEntity(em)
-                em.persist(erikoistuvaLaakari)
-                em.flush()
+            if (opintooikeus == null) {
+                val erikoistuvaLaakari: ErikoistuvaLaakari
+                if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
+                    erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
+                    em.persist(erikoistuvaLaakari)
+                    em.flush()
+                } else {
+                    erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
+                }
+                kouluttajavaltuutus.valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             } else {
-                erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
+                kouluttajavaltuutus.valtuuttajaOpintooikeus = opintooikeus
             }
-            kouluttajavaltuutus.valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
-            // Lisätään pakollinen tieto
-            val kayttaja: Kayttaja
-            if (em.findAll(Kayttaja::class).isEmpty()) {
-                kayttaja = KayttajaHelper.createUpdatedEntity(em)
-                em.persist(kayttaja)
-                em.flush()
+
+            if (valtuutettu == null) {
+                val kayttaja: Kayttaja
+                if (em.findAll(Kayttaja::class).isEmpty()) {
+                    kayttaja = KayttajaHelper.createEntity(em)
+                    em.persist(kayttaja)
+                    em.flush()
+                } else {
+                    kayttaja = em.findAll(Kayttaja::class).get(0)
+                }
+                kouluttajavaltuutus.valtuutettu = kayttaja
             } else {
-                kayttaja = em.findAll(Kayttaja::class).get(0)
+                kouluttajavaltuutus.valtuutettu = valtuutettu
             }
-            kouluttajavaltuutus.valtuutettu = kayttaja
+
             return kouluttajavaltuutus
         }
     }
