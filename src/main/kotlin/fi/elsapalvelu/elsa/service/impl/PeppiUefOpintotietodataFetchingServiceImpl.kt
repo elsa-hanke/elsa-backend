@@ -9,27 +9,27 @@ import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
-private const val studentEndpoint = "student"
+private const val studentEndpoint = "elsa-1"
 
 @Service
-class PeppiTurkuOpintotietodataFetchingServiceImpl(
-    @Qualifier("PeppiTurku") private val peppiTurkuClientBuilder: OkHttpClientBuilder,
+class PeppiUefOpintotietodataFetchingServiceImpl(
+    @Qualifier("PeppiUef") private val peppiUefClientBuilder: OkHttpClientBuilder,
     private val commonOpintotietodataFetchingServiceImpl: PeppiCommonOpintotietodataFetchingServiceImpl,
     private val applicationProperties: ApplicationProperties,
     private val yliopistoRepository: YliopistoRepository
 ) : OpintotietodataFetchingService {
 
     override suspend fun fetchOpintotietodata(hetu: String): OpintotietodataDTO? {
-        val endpointBaseUrl = "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl!!}/$studentEndpoint"
+        val endpointBaseUrl = "${applicationProperties.getSecurity().getPeppiUef().endpointUrl!!}/$studentEndpoint"
         return commonOpintotietodataFetchingServiceImpl.fetchOpintotietodata(
             endpointBaseUrl,
-            peppiTurkuClientBuilder.okHttpClient(),
+            peppiUefClientBuilder.okHttpClient(),
             hetu,
-            YliopistoEnum.TURUN_YLIOPISTO
+            YliopistoEnum.ITA_SUOMEN_YLIOPISTO
         )
     }
 
     override fun shouldFetchOpintotietodata(): Boolean {
-        return yliopistoRepository.findOneByNimi(YliopistoEnum.TURUN_YLIOPISTO)?.haeOpintotietodata == true
+        return yliopistoRepository.findOneByNimi(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)?.haeOpintotietodata == true
     }
 }

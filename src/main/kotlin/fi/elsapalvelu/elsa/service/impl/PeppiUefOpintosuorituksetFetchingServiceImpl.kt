@@ -10,11 +10,11 @@ import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
-private const val studyAccomplishmentsEndpoint = "study_accomplishments"
+private const val studyAccomplishmentsEndpoint = "elsa-2"
 
 @Service
-class PeppiTurkuOpintosuorituksetFetchingServiceImpl(
-    @Qualifier("PeppiTurku") private val peppiTurkuClientBuilder: OkHttpClientBuilder,
+class PeppiUefOpintosuorituksetFetchingServiceImpl(
+    @Qualifier("PeppiUef") private val peppiUefClientBuilder: OkHttpClientBuilder,
     private val commonOpintosuorituksetFetchingService: PeppiCommonOpintosuorituksetFetchingService,
     private val applicationProperties: ApplicationProperties,
     private val yliopistoRepository: YliopistoRepository
@@ -22,16 +22,16 @@ class PeppiTurkuOpintosuorituksetFetchingServiceImpl(
 
     override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
         val endpointBaseUrl =
-            "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl!!}/${studyAccomplishmentsEndpoint}"
+            "${applicationProperties.getSecurity().getPeppiUef().endpointUrl!!}/${studyAccomplishmentsEndpoint}"
         return commonOpintosuorituksetFetchingService.fetchOpintosuoritukset(
             endpointBaseUrl,
-            peppiTurkuClientBuilder.okHttpClient(),
+            peppiUefClientBuilder.okHttpClient(),
             hetu,
-            YliopistoEnum.TURUN_YLIOPISTO
+            YliopistoEnum.ITA_SUOMEN_YLIOPISTO
         )
     }
 
     override fun shouldFetchOpintosuoritukset(): Boolean {
-        return yliopistoRepository.findOneByNimi(YliopistoEnum.TURUN_YLIOPISTO)?.haeOpintotietodata == true
+        return yliopistoRepository.findOneByNimi(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)?.haeOpintotietodata == true
     }
 }

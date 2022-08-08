@@ -55,6 +55,8 @@ class ApplicationProperties {
         private val sisuHy = SisuHy()
         private val peppiOulu = PeppiOulu()
         private val peppiTurku = PeppiTurku()
+        private val sisuTre = SisuTre()
+        private val peppiUef = PeppiUef()
 
         fun getSuomifi(): Suomifi {
             return suomifi
@@ -74,6 +76,14 @@ class ApplicationProperties {
 
         fun getPeppiTurku(): PeppiTurku {
             return peppiTurku
+        }
+
+        fun getSisuTre(): SisuTre {
+            return sisuTre
+        }
+
+        fun getPeppiUef(): PeppiUef {
+            return peppiUef
         }
 
         class Suomifi {
@@ -107,6 +117,16 @@ class ApplicationProperties {
         class PeppiTurku {
             var apiKey: String? = null
             var basicAuthEncodedKey: String? = null
+            var endpointUrl: String? = null
+        }
+
+        class SisuTre {
+            var endpointUrl: String? = null
+            var basicAuthEncodedKey: String? = null
+        }
+
+        class PeppiUef {
+            var apiKey: String? = null
             var endpointUrl: String? = null
         }
     }
