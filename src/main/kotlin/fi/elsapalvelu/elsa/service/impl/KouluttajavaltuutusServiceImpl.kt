@@ -101,7 +101,7 @@ class KouluttajavaltuutusServiceImpl(
         return kouluttajavaltuutusRepository.findAllByValtuuttajaOpintooikeusIdAndPaattymispaivaAfter(
             erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id!!,
             LocalDate.now().minusDays(1)
-        ).map(kouluttajavaltuutusMapper::toDto)
+        ).sortedBy { it.paattymispaiva }.map(kouluttajavaltuutusMapper::toDto)
     }
 
     @Transactional(readOnly = true)
