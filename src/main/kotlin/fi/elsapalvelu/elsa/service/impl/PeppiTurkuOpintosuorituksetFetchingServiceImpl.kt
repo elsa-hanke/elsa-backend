@@ -10,7 +10,7 @@ import fi.elsapalvelu.elsa.extensions.tryParseToLocalDateTime
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.PeppiTurkuClientBuilder
-import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetDTO
+import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
@@ -33,7 +33,7 @@ class PeppiTurkuOpintosuorituksetFetchingServiceImpl(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetDTO? {
+    override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
         val endpointUrl =
             "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl!!}/$studyAccomplishmentsEndpoint"
         val postBody = "{\"hetu\": \"$hetu\"}"
@@ -47,7 +47,7 @@ class PeppiTurkuOpintosuorituksetFetchingServiceImpl(
                 response.body?.string().let { body ->
                     objectMapper.readValue(body, object : TypeReference<List<StudyAccomplishment>>() {})
                         ?.let { accomplishments ->
-                            OpintosuorituksetDTO(
+                            OpintosuorituksetPersistenceDTO(
                                 yliopisto = YliopistoEnum.TURUN_YLIOPISTO,
                                 items = accomplishments.map {
                                     OpintosuoritusDTO(

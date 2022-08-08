@@ -26,18 +26,14 @@ data class OpintosuoritusOsakokonaisuusDTO(
     var vanhenemispaiva: LocalDate? = null
 
 ) : Serializable {
-    override fun toString() = "OpintosuoritusDTO{" +
-        "id=$id" +
-        ", nimi_fi='$nimi_fi'" +
-        ", nimi_sv='$nimi_sv'" +
-        ", kurssikoodi='$kurssikoodi'" +
-        ", suorituspaiva='$suorituspaiva'" +
-        ", opintopisteet='$opintopisteet'" +
-        ", hyvaksytty='$hyvaksytty'" +
-        ", arvio_fi='$arvio_fi'" +
-        ", arvio_sv='${arvio_sv}v'" +
-        ", vanhenemispaiva='$vanhenemispaiva'" +
-        "}"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SuoritusarviointiDTO) return false
+        return id != null && id == other.id
+    }
+
+    override fun hashCode() = 31
 }
 
 
