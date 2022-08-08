@@ -250,7 +250,7 @@ class EtusivuServiceImpl(
             locale
         )
 
-        return avoimetAsiatList
+        return avoimetAsiatList.sortedBy { it.pvm }
     }
 
     override fun getVanhenevatKatseluoikeudetForKouluttaja(userId: String): List<KatseluoikeusDTO>? {
