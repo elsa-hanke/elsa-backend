@@ -41,7 +41,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.let {
+        erikoistuvaLaakariService.findOneByKayttajaUserIdWithValidOpintooikeudet(user.id!!)?.let {
             if (user.authorities?.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED) == true ||
                 user.authorities?.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA) == true
             ) {

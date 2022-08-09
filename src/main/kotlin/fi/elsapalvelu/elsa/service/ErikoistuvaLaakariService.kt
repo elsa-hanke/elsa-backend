@@ -32,6 +32,8 @@ interface ErikoistuvaLaakariService {
 
     fun findOneByKayttajaUserId(userId: String): ErikoistuvaLaakariDTO?
 
+    fun findOneByKayttajaUserIdWithValidOpintooikeudet(userId: String): ErikoistuvaLaakariDTO?
+
     fun findOneByKayttajaId(kayttajaId: Long): ErikoistuvaLaakariDTO?
 
     fun findAllForVastuuhenkilo(kayttajaId: Long): List<ErikoistuvaLaakariDTO>

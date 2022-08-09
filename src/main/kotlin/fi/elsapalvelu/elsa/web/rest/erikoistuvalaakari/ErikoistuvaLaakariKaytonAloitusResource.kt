@@ -38,9 +38,9 @@ class ErikoistuvaLaakariKaytonAloitusResource(
             userService.updateEmail(it, user.id!!)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
 
-        val opintooikeudetVoimassa = opintooikeusService.findAllValidByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val validOpintooikeudet = opintooikeusService.findAllValidByErikoistuvaLaakariKayttajaUserId(user.id!!)
         val opintooikeusId = kaytonAloitusDTO.opintooikeusId
-        val shouldSelectOpintooikeusKaytossa = opintooikeudetVoimassa.count() > 1
+        val shouldSelectOpintooikeusKaytossa = validOpintooikeudet.count() > 1
 
         if ((opintooikeusId == null && shouldSelectOpintooikeusKaytossa) ||
             (opintooikeusId != null && !shouldSelectOpintooikeusKaytossa)
@@ -49,7 +49,7 @@ class ErikoistuvaLaakariKaytonAloitusResource(
         }
 
         opintooikeusId?.let { id ->
-            if (opintooikeudetVoimassa.find { it.id == id } == null) {
+            if (validOpintooikeudet.find { it.id == id } == null) {
                 throw ResponseStatusException(HttpStatus.BAD_REQUEST)
             }
             opintooikeusService.setOpintooikeusKaytossa(user.id!!, id)

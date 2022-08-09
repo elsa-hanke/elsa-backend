@@ -3,7 +3,10 @@ package fi.elsapalvelu.elsa.config
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
-import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.repository.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
@@ -284,7 +287,7 @@ class SecurityConfiguration(
             )
         }
 
-        var existingUser = userService.findExistingUser(cipher, originalKey, hetu, eppn )
+        var existingUser = userService.findExistingUser(cipher, originalKey, hetu, eppn)
 
         if (hetu != null) {
             if (existingUser == null) {
@@ -311,6 +314,7 @@ class SecurityConfiguration(
             } else if (hasErikoistuvaLaakariRole(existingUser)) {
                 fetchAndUpdateOpintotietodataIfChanged(existingUser.id!!, hetu, firstName, lastName)
                 fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id!!, hetu)
+                opintooikeusService.checkOpintooikeusKaytossaValid(existingUser)
             }
         }
 
