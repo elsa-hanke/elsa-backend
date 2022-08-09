@@ -23,7 +23,8 @@ class ErikoisalaHelper {
             return Erikoisala(
                 nimi = nimi,
                 tyyppi = DEFAULT_TYYPPI,
-                virtaPatevyyskoodi = virtaPatevyyskoodi
+                virtaPatevyyskoodi = virtaPatevyyskoodi,
+                liittynytElsaan = true
             )
         }
 
@@ -35,7 +36,8 @@ class ErikoisalaHelper {
             return Erikoisala(
                 nimi = nimi,
                 tyyppi = UPDATED_TYYPPI,
-                virtaPatevyyskoodi = virtaPatevyyskoodi
+                virtaPatevyyskoodi = virtaPatevyyskoodi,
+                liittynytElsaan = true
             )
         }
     }

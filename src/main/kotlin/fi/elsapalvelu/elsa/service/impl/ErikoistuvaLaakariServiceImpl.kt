@@ -20,6 +20,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.EntityNotFoundException
 
@@ -125,7 +126,11 @@ class ErikoistuvaLaakariServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findAll(userId:String, criteria: KayttajahallintaCriteria, pageable: Pageable): Page<KayttajahallintaKayttajaListItemDTO> {
+    override fun findAll(
+        userId: String,
+        criteria: KayttajahallintaCriteria,
+        pageable: Pageable
+    ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
             kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         return erikoistuvaLaakariQueryService.findErikoistuvatByCriteria(
@@ -168,6 +173,20 @@ class ErikoistuvaLaakariServiceImpl(
         userId: String
     ): ErikoistuvaLaakariDTO? {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+            return erikoistuvaLaakariMapper.toDto(it)
+        }
+
+        return null
+    }
+
+    override fun findOneByKayttajaUserIdWithValidOpintooikeudet(
+        userId: String
+    ): ErikoistuvaLaakariDTO? {
+        erikoistuvaLaakariRepository.findOneByKayttajaUserIdWithValidOpintooikeudet(
+            userId,
+            LocalDate.now(),
+            OpintooikeusServiceImpl.allowedOpintooikeusTilat()
+        )?.let {
             return erikoistuvaLaakariMapper.toDto(it)
         }
 
