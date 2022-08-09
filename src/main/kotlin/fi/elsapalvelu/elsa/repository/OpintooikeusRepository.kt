@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.repository
 
 import fi.elsapalvelu.elsa.domain.Opintooikeus
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
@@ -31,12 +32,14 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>, JpaSpecifi
         join o.erikoistuvaLaakari e
         join e.kayttaja k
         join k.user u
-        where :paiva between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva and u.id = :userId
+        where :betweenDate between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        and o.tila in :validStates and o.erikoisala.liittynytElsaan = true and u.id = :userId
         """
     )
-    fun findByErikoistuvaLaakariKayttajaUserIdAndBetweenDate(
+    fun findAllValidByErikoistuvaLaakariKayttajaUserId(
         userId: String,
-        paiva: LocalDate
+        betweenDate: LocalDate,
+        validStates: List<OpintooikeudenTila>
     ): List<Opintooikeus>
 
     @Query(
