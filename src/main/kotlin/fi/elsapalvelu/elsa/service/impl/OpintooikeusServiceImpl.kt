@@ -69,7 +69,10 @@ class OpintooikeusServiceImpl(
         val opintooikeusKaytossa =
             opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(user.id!!)
                 ?: throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
-        if (opintooikeusKaytossa.opintooikeudenPaattymispaiva!! < LocalDate.now()) {
+        if (opintooikeusKaytossa.opintooikeudenPaattymispaiva!! < LocalDate.now() || !allowedOpintooikeusTilat().contains(
+                opintooikeusKaytossa.tila
+            ) || opintooikeusKaytossa.erikoisala?.liittynytElsaan == false
+        ) {
             opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
                 user.id!!, LocalDate.now(clock), allowedOpintooikeusTilat()
             ).elementAtOrNull(0)?.let {
