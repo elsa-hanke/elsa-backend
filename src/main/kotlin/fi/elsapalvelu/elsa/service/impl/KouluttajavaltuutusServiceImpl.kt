@@ -36,11 +36,9 @@ class KouluttajavaltuutusServiceImpl(
         val opintooikeus = erikoistuvaLaakari?.getOpintooikeusKaytossa()
 
         if (kouluttajavaltuutus.id == null) {
-            kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
+            kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserId(
                 opintooikeus?.id!!,
-                kayttajaRepository.findById(kouluttajavaltuutusDTO.valtuutettu?.id!!)
-                    .get().user?.id!!,
-                LocalDate.now().minusDays(1)
+                kayttajaRepository.findById(kouluttajavaltuutusDTO.valtuutettu?.id!!).get().user?.id!!
             ).ifPresentOrElse({
                 kouluttajavaltuutus = it
                 kouluttajavaltuutus.paattymispaiva = kouluttajavaltuutusDTO.paattymispaiva
