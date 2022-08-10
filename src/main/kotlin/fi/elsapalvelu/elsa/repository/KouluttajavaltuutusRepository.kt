@@ -31,4 +31,9 @@ interface KouluttajavaltuutusRepository : JpaRepository<Kouluttajavaltuutus, Lon
         valtuutettuId: String,
         pvm: LocalDate
     ): Optional<Kouluttajavaltuutus>
+
+    fun findByValtuuttajaOpintooikeusIdAndValtuutettuUserId(
+        valtuuttajaOpintooikeusId: Long,
+        valtuutettuId: String
+    ): Optional<Kouluttajavaltuutus>
 }
