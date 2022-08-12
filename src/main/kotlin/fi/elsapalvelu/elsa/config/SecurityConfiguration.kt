@@ -3,10 +3,7 @@ package fi.elsapalvelu.elsa.config
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
-import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
@@ -67,6 +64,7 @@ class SecurityConfiguration(
     private val opintotietodataPersistenceService: OpintotietodataPersistenceService,
     private val opintosuorituksetFetchingService: List<OpintosuorituksetFetchingService>,
     private val opintosuorituksetPersistenceService: OpintosuorituksetPersistenceService,
+    private val verificationTokenRepository: VerificationTokenRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val userRepository: UserRepository,
@@ -279,17 +277,23 @@ class SecurityConfiguration(
         val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
         val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
         val verificationToken = attr.request.getParameter("RelayState")
+        var tokenUser: User? = null
 
         // Kutsuttu käyttäjä
         if (verificationToken != null) {
-            userService.createOrUpdateUserWithToken(
-                verificationToken, cipher, originalKey, hetu, eppn, firstName, lastName
-            )
+            verificationTokenRepository.findById(verificationToken).ifPresent {
+                tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
+                userService.createOrUpdateUserWithToken(
+                    tokenUser, it, cipher, originalKey, hetu, eppn, firstName, lastName
+                )
+            }
         }
 
         var existingUser = userService.findExistingUser(cipher, originalKey, hetu, eppn)
 
-        if (hetu != null) {
+        if (shouldFetchOpintotietodata(existingUser, tokenUser, hetu)) {
+            requireNotNull(hetu)
+
             if (existingUser == null) {
                 fetchAndHandleOpintotietodataForFirstLogin(
                     cipher,
@@ -354,6 +358,11 @@ class SecurityConfiguration(
             token.saml2Response,
             existingUser.authorities.map { SimpleGrantedAuthority(it.name) })
     }
+
+    private fun shouldFetchOpintotietodata(existingUser: User?, tokenUser: User?, hetu: String?): Boolean =
+        (existingUser == null || existingUser.authorities.contains(Authority(ERIKOISTUVA_LAAKARI))) && (tokenUser == null || tokenUser.authorities.contains(
+            Authority(ERIKOISTUVA_LAAKARI)
+        )) && hetu != null
 
     private fun hasErikoistuvaLaakariRole(user: User): Boolean =
         user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))
