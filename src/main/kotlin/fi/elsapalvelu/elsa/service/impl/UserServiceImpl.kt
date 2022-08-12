@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.config.LoginException
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.VerificationToken
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.UserService
@@ -142,7 +143,8 @@ class UserServiceImpl(
     }
 
     override fun createOrUpdateUserWithToken(
-        verificationToken: String,
+        tokenUser: User?,
+        token: VerificationToken,
         cipher: Cipher,
         originalKey: SecretKey,
         hetu: String?,
@@ -150,80 +152,77 @@ class UserServiceImpl(
         firstName: String,
         lastName: String
     ) {
-        verificationTokenRepository.findById(verificationToken)
-            .ifPresent {
-                val tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
-
-                // Kutsutun käyttäjä etu- ja sukunimi tulee olla tarpeeksi lähellä
-                // kutsussa syötettyjä tietoja
-                val distance = LevenshteinDistance()
-                val firstNameDistFirst = distance.apply(tokenUser.firstName, firstName)
-                val firstNameDistLast = distance.apply(tokenUser.firstName, lastName)
-                val lastNameDistFirst = distance.apply(tokenUser.lastName, firstName)
-                val lastNameDistLast = distance.apply(tokenUser.lastName, lastName)
-                val treshhold = 2
-                if ((firstNameDistFirst > treshhold && firstNameDistLast > treshhold)
-                    || (lastNameDistFirst > treshhold && lastNameDistLast > treshhold)
-                ) {
-                    log.error(
-                        "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
-                            "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole" +
-                            "tarpeeksi lähellä käyttäjän nimeä."
-                    )
-                    throw Exception(LoginException.VIRHEELLINEN_NIMI.name)
-                }
-
-                val existingUser =
-                    findExistingUser(cipher, originalKey, hetu, eppn)
-
-                // Yhdistä käyttäjä jos löytyy
-                if (existingUser != null) {
-                    val existingKayttaja =
-                        kayttajaRepository.findOneByUserId(existingUser.id!!)
-                            .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
-                    val tokenKayttaja =
-                        kayttajaRepository.findOneByUserId(tokenUser.id!!)
-                            .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
-
-                    existingKayttaja.takeIf { t -> t.tila == KayttajatilinTila.KUTSUTTU }
-                        ?.apply { KayttajatilinTila.AKTIIVINEN }
-
-                    updateKouluttajaReferences(
-                        tokenKayttaja.id!!,
-                        existingKayttaja.id!!
-                    )
-
-                    existingUser.email = tokenUser.email
-                    existingUser.authorities.clear()
-                    existingUser.authorities.addAll(tokenUser.authorities)
-
-                    kayttajaRepository.delete(tokenKayttaja)
-                    verificationTokenRepository.delete(it)
-                    userRepository.delete(tokenUser)
-                    userRepository.save(existingUser)
-                } else {
-                    cipher.init(Cipher.ENCRYPT_MODE, originalKey)
-                    val params = cipher.parameters
-                    val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
-                    val ciphertext = if (hetu != null)
-                        cipher.doFinal(
-                            hetu.toString().toByteArray(StandardCharsets.UTF_8)
-                        ) else null
-
-                    tokenUser.hetu = ciphertext
-                    tokenUser.eppn = eppn
-                    tokenUser.initVector = iv
-                    tokenUser.firstName = firstName
-                    tokenUser.lastName = lastName
-
-                    userRepository.save(tokenUser)
-                    val kayttaja =
-                        kayttajaRepository.findOneByUserId(tokenUser.id!!)
-                            .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
-                    kayttaja.tila = KayttajatilinTila.AKTIIVINEN
-                    verificationTokenRepository.delete(it)
-                }
+        tokenUser?.let {
+            // Kutsutun käyttäjä etu- ja sukunimi tulee olla tarpeeksi lähellä
+            // kutsussa syötettyjä tietoja
+            val distance = LevenshteinDistance()
+            val firstNameDistFirst = distance.apply(tokenUser.firstName, firstName)
+            val firstNameDistLast = distance.apply(tokenUser.firstName, lastName)
+            val lastNameDistFirst = distance.apply(tokenUser.lastName, firstName)
+            val lastNameDistLast = distance.apply(tokenUser.lastName, lastName)
+            val treshhold = 2
+            if ((firstNameDistFirst > treshhold && firstNameDistLast > treshhold)
+                || (lastNameDistFirst > treshhold && lastNameDistLast > treshhold)
+            ) {
+                log.error(
+                    "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
+                        "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole" +
+                        "tarpeeksi lähellä käyttäjän nimeä."
+                )
+                throw Exception(LoginException.VIRHEELLINEN_NIMI.name)
             }
+
+            val existingUser =
+                findExistingUser(cipher, originalKey, hetu, eppn)
+
+            // Yhdistä käyttäjä jos löytyy
+            if (existingUser != null) {
+                val existingKayttaja =
+                    kayttajaRepository.findOneByUserId(existingUser.id!!)
+                        .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+                val tokenKayttaja =
+                    kayttajaRepository.findOneByUserId(tokenUser.id!!)
+                        .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+
+                existingKayttaja.takeIf { t -> t.tila == KayttajatilinTila.KUTSUTTU }
+                    ?.apply { KayttajatilinTila.AKTIIVINEN }
+
+                updateKouluttajaReferences(
+                    tokenKayttaja.id!!,
+                    existingKayttaja.id!!
+                )
+
+                existingUser.email = tokenUser.email
+                existingUser.authorities.clear()
+                existingUser.authorities.addAll(tokenUser.authorities)
+
+                kayttajaRepository.delete(tokenKayttaja)
+                verificationTokenRepository.delete(token)
+                userRepository.delete(tokenUser)
+                userRepository.save(existingUser)
+            } else {
+                cipher.init(Cipher.ENCRYPT_MODE, originalKey)
+                val params = cipher.parameters
+                val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
+                val ciphertext = if (hetu != null)
+                    cipher.doFinal(
+                        hetu.toString().toByteArray(StandardCharsets.UTF_8)
+                    ) else null
+
+                tokenUser.hetu = ciphertext
+                tokenUser.eppn = eppn
+                tokenUser.initVector = iv
+                tokenUser.firstName = firstName
+                tokenUser.lastName = lastName
+
+                userRepository.save(tokenUser)
+                val kayttaja =
+                    kayttajaRepository.findOneByUserId(tokenUser.id!!)
+                        .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+                kayttaja.tila = KayttajatilinTila.AKTIIVINEN
+                verificationTokenRepository.delete(token)
+            }
+        }
     }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.VerificationToken
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import org.springframework.data.domain.Page
@@ -31,7 +32,8 @@ interface UserService {
     fun updateEmail(email: String, userId: String)
 
     fun createOrUpdateUserWithToken(
-        verificationToken: String,
+        tokenUser: User?,
+        token: VerificationToken,
         cipher: Cipher,
         originalKey: SecretKey,
         hetu: String?,
