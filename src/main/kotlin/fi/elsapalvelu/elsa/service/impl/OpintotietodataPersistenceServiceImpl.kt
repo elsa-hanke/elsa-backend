@@ -58,6 +58,14 @@ class OpintotietodataPersistenceServiceImpl(
         sukunimi: String,
         opintotietodataDTOs: List<OpintotietodataDTO>
     ) {
+        val filteredOpintotietodataOpintooikeudet =
+            filterOpintooikeudetByVoimassaDate(opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten())
+
+        if (filteredOpintotietodataOpintooikeudet.isEmpty()) {
+            log.info("Voimassaolevia opinto-oikeuksia ei löytynyt käyttäjälle $etunimi $sukunimi")
+            return
+        }
+
         val syntymaaika = checkSyntymaaikaValidDateExistsOrLogError(
             opintotietodataDTOs,
             etunimi,
@@ -65,8 +73,6 @@ class OpintotietodataPersistenceServiceImpl(
         ) ?: return
         val erikoistuvaLaakari = createErikoistuvaLaakari(cipher, originalKey, hetu, etunimi, sukunimi, syntymaaika)
         val userId = erikoistuvaLaakari.kayttaja?.user?.id!!
-        val filteredOpintotietodataOpintooikeudet =
-            filterOpintooikeudetByVoimassaDate(opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten())
 
         checkOpintooikeudetAmount(filteredOpintotietodataOpintooikeudet, erikoistuvaLaakari)
 
