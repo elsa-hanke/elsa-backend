@@ -17,7 +17,9 @@ data class OpintoopasSimpleDTO(
     @get: NotNull
     var voimassaoloAlkaa: LocalDate? = null,
 
-    var voimassaoloPaattyy: LocalDate? = null
+    var voimassaoloPaattyy: LocalDate? = null,
+
+    var erikoisalaId: Long? = null
 
 ) : Serializable {
 
