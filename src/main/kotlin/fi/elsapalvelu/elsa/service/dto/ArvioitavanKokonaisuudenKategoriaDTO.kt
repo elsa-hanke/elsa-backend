@@ -11,12 +11,9 @@ data class ArvioitavanKokonaisuudenKategoriaDTO(
     @get: NotNull
     var nimi: String? = null,
 
+    var nimiSv: String? = null,
+
     var jarjestysnumero: Int? = null,
-
-    @get: NotNull
-    var voimassaoloAlkaa: LocalDate? = null,
-
-    var voimassaoloLoppuu: LocalDate? = null,
 
     var arvioitavatKokonaisuudet: Set<ArvioitavaKokonaisuusDTO>? = null
 
@@ -29,4 +26,6 @@ data class ArvioitavanKokonaisuudenKategoriaDTO(
     }
 
     override fun hashCode() = 31
+
+    override fun toString() = "ArvioitavanKokonaisuudenKategoriaDTO"
 }

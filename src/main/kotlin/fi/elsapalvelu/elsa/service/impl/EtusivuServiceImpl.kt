@@ -171,7 +171,8 @@ class EtusivuServiceImpl(
                     k.user?.langKey
                 ).map { opintooikeus ->
                     val opintosuoritukset =
-                        opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!).asSequence()
+                        opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!)
+                            .asSequence()
                     ErikoistujanEteneminenVirkailijaDTO(
                         opintooikeus.id,
                         opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName,
@@ -208,7 +209,8 @@ class EtusivuServiceImpl(
                 val arvioitavatKokonaisuudetWithArviointi = suoritusarvioinnitMap.keys
                 val suoritemerkinnatMap = getSuoritemerkinnatMap(it.id!!)
                 val suoritemerkinnat = suoritemerkinnatMap.values.flatten()
-                val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it.id!!).asSequence()
+                val opintosuoritukset =
+                    opintosuoritusRepository.findAllByOpintooikeusId(it.id!!).asSequence()
                 val arviointiasteikko =
                     it.opintoopas?.arviointiasteikko?.let { arviointiasteikkoMapper.toDto(it) }
 
@@ -245,7 +247,8 @@ class EtusivuServiceImpl(
         val avoimetAsiatList = mutableListOf<AvoinAsiaDTO>()
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
-        val user = userRepository.findById(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+        val user = userRepository.findById(userId)
+            .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         var locale = Locale.forLanguageTag("fi")
         if (user.langKey != null) locale = Locale.forLanguageTag(user.langKey)
 
@@ -298,7 +301,8 @@ class EtusivuServiceImpl(
     private fun getVanhenevatKatseluoikeudetPaattymispaivaBeforeDate() =
         LocalDate.now(clock).plusMonths(1).plusDays(1)
 
-    private fun getVanhenevatKatseluoikeudetPaattymispaivaAfterDate() = LocalDate.now(clock).minusDays(1)
+    private fun getVanhenevatKatseluoikeudetPaattymispaivaAfterDate() =
+        LocalDate.now(clock).minusDays(1)
 
     private fun getSuoritusarvioinnitMap(opintooikeusId: Long): Map<ArvioitavaKokonaisuus, Int> {
         return suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
@@ -333,12 +337,7 @@ class EtusivuServiceImpl(
                 it.voimassaoloLoppuu,
                 opintooikeus.osaamisenArvioinninOppaanPvm!!
             )
-            val kategoriaVoimassa = isValidByVoimassaDate(
-                it.kategoria?.voimassaoloAlkaa!!,
-                it.kategoria?.voimassaoloLoppuu,
-                opintooikeus.osaamisenArvioinninOppaanPvm!!
-            )
-            if (!arvioitavaKokonaisuusVoimassa || !kategoriaVoimassa) {
+            if (!arvioitavaKokonaisuusVoimassa) {
                 arvioitavatKokonaisuudetLkm++
             }
         }

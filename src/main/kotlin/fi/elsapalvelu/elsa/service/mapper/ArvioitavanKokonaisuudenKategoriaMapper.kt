@@ -22,6 +22,8 @@ interface ArvioitavanKokonaisuudenKategoriaMapper :
     )
     override fun toEntity(dto: ArvioitavanKokonaisuudenKategoriaDTO): ArvioitavanKokonaisuudenKategoria
 
+    override fun toDto(entity: ArvioitavanKokonaisuudenKategoria): ArvioitavanKokonaisuudenKategoriaDTO
+
     fun fromId(id: Long?) = id?.let {
         val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoria()
         arvioitavanKokonaisuudenKategoria.id = id

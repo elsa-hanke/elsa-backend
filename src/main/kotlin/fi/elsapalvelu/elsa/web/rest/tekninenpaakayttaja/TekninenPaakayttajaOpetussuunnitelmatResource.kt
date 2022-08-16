@@ -1,9 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
 import fi.elsapalvelu.elsa.extensions.isInRange
-import fi.elsapalvelu.elsa.service.ArviointiasteikkoService
-import fi.elsapalvelu.elsa.service.ErikoisalaService
-import fi.elsapalvelu.elsa.service.OpintoopasService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpStatus
@@ -16,13 +14,18 @@ import javax.validation.Valid
 
 private const val OPINTOOPAS_ENTITY_NAME = "opintoopas"
 private const val ERIKOISALA_ENTITY_NAME = "erikoisala"
+private const val KATEGORIA_ENTITY_NAME = "arvioitavankokonaisuudenkategoria"
+private const val ARVIOITAVA_KOKONAISUUS_ENTITY_NAME = "arvioitavakokonaisuus"
 
 @RestController
 @RequestMapping("/api/tekninen-paakayttaja")
 class TekninenPaakayttajaOpetussuunnitelmatResource(
     private val erikoisalaService: ErikoisalaService,
     private val opintoopasService: OpintoopasService,
-    private val arviointiasteikkoService: ArviointiasteikkoService
+    private val arviointiasteikkoService: ArviointiasteikkoService,
+    private val arvioitavanKokonaisuudenKategoriaService: ArvioitavanKokonaisuudenKategoriaService,
+    private val arvioitavaKokonaisuusService: ArvioitavaKokonaisuusService,
+    private val suoritusarviointiService: SuoritusarviointiService
 ) {
     @GetMapping("/erikoisalat")
     fun getErikoisalat(): ResponseEntity<List<ErikoisalaDTO>> {
@@ -84,6 +87,86 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
         return ResponseEntity.ok(arviointiasteikkoService.findAll())
     }
 
+    @GetMapping("/erikoisalat/{id}/arvioitavankokonaisuudenkategoriat")
+    fun getArvioitavatKokonaisuudenKategoriat(@PathVariable id: Long): ResponseEntity<List<ArvioitavanKokonaisuudenKategoriaSimpleDTO>> {
+        return ResponseEntity.ok(arvioitavanKokonaisuudenKategoriaService.findAllByErikoisalaId(id))
+    }
+
+    @GetMapping("/erikoisalat/{id}/arvioitavatkokonaisuudet")
+    fun getArvioitavatKokonaisuudet(@PathVariable id: Long): ResponseEntity<List<ArvioitavanKokonaisuudenKategoriaDTO>> {
+        return ResponseEntity.ok(
+            arvioitavanKokonaisuudenKategoriaService.findAllByErikoisalaIdWithKokonaisuudet(
+                id
+            )
+        )
+    }
+
+    @GetMapping("/arvioitavankokonaisuudenkategoria/{id}")
+    fun getArvioitavanKokonaisuudenKategoria(@PathVariable id: Long): ResponseEntity<ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO> {
+        return ResponseUtil.wrapOrNotFound(arvioitavanKokonaisuudenKategoriaService.findOne(id))
+    }
+
+    @PostMapping("/arvioitavankokonaisuudenkategoria")
+    fun createArvioitavanKokonaisuudenKategoria(@Valid @RequestBody arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO): ResponseEntity<ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO> {
+        if (arvioitavanKokonaisuudenKategoriaDTO.id != null) {
+            throw BadRequestAlertException(
+                "Uusi kategoria ei saa sisältää id:tä",
+                KATEGORIA_ENTITY_NAME,
+                "idexists"
+            )
+        }
+        arvioitavanKokonaisuudenKategoriaService.save(arvioitavanKokonaisuudenKategoriaDTO).let {
+            return ResponseEntity
+                .created(URI("/api/tekninen-paakayttaja/arvioitavankokonaisuudenkategoria/${it.id}"))
+                .body(it)
+        }
+    }
+
+    @PutMapping("/arvioitavankokonaisuudenkategoria")
+    fun updateArvioitavanKokonaisuudenKategoria(@Valid @RequestBody arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO): ResponseEntity<ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO> {
+        if (arvioitavanKokonaisuudenKategoriaDTO.id == null) {
+            throw BadRequestAlertException(
+                "Virheellinen id",
+                OPINTOOPAS_ENTITY_NAME,
+                "idnull"
+            )
+        }
+        return ResponseEntity.ok(
+            arvioitavanKokonaisuudenKategoriaService.save(
+                arvioitavanKokonaisuudenKategoriaDTO
+            )
+        )
+    }
+
+    @GetMapping("/arvioitavakokonaisuus/{id}")
+    fun getArvioitavaKokonaisuus(@PathVariable id: Long): ResponseEntity<ArvioitavaKokonaisuusWithErikoisalaDTO> {
+        return ResponseUtil.wrapOrNotFound(arvioitavaKokonaisuusService.findOne(id))
+    }
+
+    @PostMapping("/arvioitavakokonaisuus")
+    fun createArvioitavaKokonaisuus(@Valid @RequestBody arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ResponseEntity<ArvioitavaKokonaisuusDTO> {
+        validateArvioitavaKokonaisuusVoimassaolo(arvioitavaKokonaisuusDTO)
+        arvioitavaKokonaisuusService.create(arvioitavaKokonaisuusDTO).let {
+            return ResponseEntity
+                .created(URI("/api/tekninen-paakayttaja/arvioitavankokonaisuudenkategoria/${it.id}"))
+                .body(it)
+        }
+    }
+
+    @PutMapping("/arvioitavakokonaisuus")
+    fun updateArvioitavaKokonaisuus(@Valid @RequestBody arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ResponseEntity<ArvioitavaKokonaisuusDTO> {
+        if (arvioitavaKokonaisuusDTO.id == null) {
+            throw BadRequestAlertException(
+                "Virheellinen id",
+                ARVIOITAVA_KOKONAISUUS_ENTITY_NAME,
+                "idnull"
+            )
+        }
+        validateArvioitavaKokonaisuusVoimassaolo(arvioitavaKokonaisuusDTO)
+        validateArvioitavaKokonaisuusArvioinnit(arvioitavaKokonaisuusDTO)
+        return ResponseEntity.ok(arvioitavaKokonaisuusService.update(arvioitavaKokonaisuusDTO))
+    }
+
     private fun validateOpintoopas(opintoopasDTO: OpintoopasDTO) {
         val erikoisalaId = opintoopasDTO.erikoisala?.id
             ?: throw BadRequestAlertException(
@@ -140,6 +223,36 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
                     OPINTOOPAS_ENTITY_NAME,
                     "dataillegal.opinto-oppaan-voimassaolo-ei-saa-olla-paallekkainen"
                 )
+            }
+        }
+    }
+
+    private fun validateArvioitavaKokonaisuusVoimassaolo(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO) {
+        if (arvioitavaKokonaisuusDTO.voimassaoloLoppuu != null && arvioitavaKokonaisuusDTO.voimassaoloLoppuu!!.isBefore(
+                arvioitavaKokonaisuusDTO.voimassaoloAlkaa
+            )
+        ) {
+            throw BadRequestAlertException(
+                "Arvioitavan kokonaisuuden voimassaolon päättymispäivä ei saa olla ennen alkamisaikaa",
+                ARVIOITAVA_KOKONAISUUS_ENTITY_NAME,
+                "dataillegal.arvioitavan-kokonaisuuden-voimassaolon-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa"
+            )
+        }
+    }
+
+    private fun validateArvioitavaKokonaisuusArvioinnit(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO) {
+        if (suoritusarviointiService.existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusDTO.id!!)) {
+            arvioitavaKokonaisuusService.findOne(arvioitavaKokonaisuusDTO.id!!).orElse(null)?.let {
+                if (arvioitavaKokonaisuusDTO.voimassaoloAlkaa!!.isAfter(it.voimassaoloAlkaa) || arvioitavaKokonaisuusDTO.voimassaoloLoppuu?.isBefore(
+                        it.voimassaoloLoppuu
+                    ) == true
+                ) {
+                    throw BadRequestAlertException(
+                        "Arvioitavan kokonaisuuden voimassaoloa ei saa lyhentää, jos siihen liittyy suoritusarviointeja",
+                        ARVIOITAVA_KOKONAISUUS_ENTITY_NAME,
+                        "dataillegal.arvioitavan-kokonaisuuden-voimassaoloa-ei-saa-lyhentaa"
+                    )
+                }
             }
         }
     }
