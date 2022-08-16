@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
+import fi.elsapalvelu.elsa.service.dto.OpintosuoritusOsakokonaisuusDTO
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -41,7 +42,8 @@ class PeppiOuluOpintosuorituksetFetchingServiceImpl(
                             arvio_fi = a.grade?.name?.fi,
                             arvio_sv = a.grade?.name?.sv,
                             vanhenemispaiva = a.expiryDate?.tryParseToLocalDate(),
-                            yliopistoOpintooikeusId = a.studyRightId
+                            yliopistoOpintooikeusId = a.studyRightId,
+                            osakokonaisuudet = a.childAttainments?.map { c -> mapOsakokonaisuus(c) }
                         )
                     }
                 )
@@ -50,6 +52,20 @@ class PeppiOuluOpintosuorituksetFetchingServiceImpl(
             log.error("Opintosuoritustietoja ei saatu haettua Oulun Pepistä. Virhe: ${exception.message}")
             null
         }
+    }
+
+    private fun mapOsakokonaisuus(osakokonaisuus: OpintosuorituksetPeppiOuluQuery.ChildAttainment): OpintosuoritusOsakokonaisuusDTO {
+        return OpintosuoritusOsakokonaisuusDTO(
+            suorituspaiva = osakokonaisuus.attainmentDate.tryParseToLocalDate(),
+            opintopisteet = osakokonaisuus.credits,
+            nimi_fi = osakokonaisuus.courseUnit?.name?.fi,
+            nimi_sv = osakokonaisuus.courseUnit?.name?.sv,
+            kurssikoodi = osakokonaisuus.courseUnit?.code,
+            hyvaksytty = osakokonaisuus.grade?.passed,
+            arvio_fi = osakokonaisuus.grade?.name?.fi,
+            arvio_sv = osakokonaisuus.grade?.name?.sv,
+            vanhenemispaiva = osakokonaisuus.expiryDate?.tryParseToLocalDate(),
+        )
     }
 
     override fun shouldFetchOpintosuoritukset(): Boolean {
