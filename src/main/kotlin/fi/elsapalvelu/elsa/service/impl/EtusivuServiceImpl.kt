@@ -232,6 +232,7 @@ class EtusivuServiceImpl(
                     getSateilysuojakoulutuksetSuoritettu(opintosuoritukset),
                     it.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara,
                     getKoejaksoTila(it, opintosuoritukset),
+                    koejaksonSuoritusmerkintaExists(opintosuoritukset),
                     getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset),
                     it.opintooikeudenMyontamispaiva,
                     it.opintooikeudenPaattymispaiva,
@@ -500,10 +501,7 @@ class EtusivuServiceImpl(
         opintooikeus: Opintooikeus,
         opintosuoritukset: Sequence<Opintosuoritus>
     ): KoejaksoTila {
-        val koejaksoSuoritettu =
-            opintosuoritukset.any { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.KOEJAKSO && it.hyvaksytty }
-
-        if (koejaksoSuoritettu) {
+        if (koejaksonSuoritusmerkintaExists(opintosuoritukset)) {
             return KoejaksoTila.HYVAKSYTTY
         }
 
@@ -527,6 +525,9 @@ class EtusivuServiceImpl(
             KoejaksoTila.EI_AKTIIVINEN
         }
     }
+
+    private fun koejaksonSuoritusmerkintaExists(opintosuoritukset: Sequence<Opintosuoritus>) =
+        opintosuoritukset.any { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.KOEJAKSO && it.hyvaksytty }
 
     private fun getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset: Sequence<Opintosuoritus>): Boolean {
         return opintosuoritukset.any { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO && it.hyvaksytty }
