@@ -38,6 +38,8 @@ data class ErikoistujanEteneminenDTO(
 
     var asetus: String? = null,
 
-    var erikoisala: String? = null
+    var erikoisala: String? = null,
+
+    var terveyskeskuskoulutusjaksoSuoritettu: Boolean? = null
 
 ) : Serializable

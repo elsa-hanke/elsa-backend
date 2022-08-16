@@ -39,7 +39,9 @@ data class ErikoistujanEteneminenVirkailijaDTO(
 
     var sateilysuojakoulutuksetVaadittu: Double? = null,
 
-    var valtakunnallisetKuulustelutSuoritettuLkm: Int? = null
+    var valtakunnallisetKuulustelutSuoritettuLkm: Int? = null,
+
+    var terveyskeskuskoulutusjaksoSuoritettu: Boolean? = null
 
 ): Serializable {
     override fun equals(other: Any?): Boolean {

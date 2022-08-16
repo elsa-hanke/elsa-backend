@@ -149,7 +149,9 @@ class EtusivuServiceImpl(
         eteneminen.vaaditutSuoritemerkinnatLkm =
             getVaaditutSuoritemerkinnatLkm(opintooikeus, suoritemerkinnatMap.values.flatten())
 
-        eteneminen.koejaksoTila = getKoejaksoTila(opintooikeus)
+        val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!).asSequence()
+        eteneminen.koejaksoTila = getKoejaksoTila(opintooikeus, opintosuoritukset)
+        eteneminen.terveyskeskuskoulutusjaksoSuoritettu = getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
 
         return eteneminen
     }
@@ -177,7 +179,7 @@ class EtusivuServiceImpl(
                         opintooikeus.erikoistuvaLaakari?.syntymaaika,
                         opintooikeus.erikoisala?.nimi,
                         opintooikeus.asetus?.nimi,
-                        getKoejaksoTila(opintooikeus),
+                        getKoejaksoTila(opintooikeus, opintosuoritukset),
                         opintooikeus.opintooikeudenMyontamispaiva,
                         opintooikeus.opintooikeudenPaattymispaiva,
                         tyoskentelyjaksoService.getTilastot(opintooikeus),
@@ -187,7 +189,8 @@ class EtusivuServiceImpl(
                         opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
                         getSateilysuojakoulutuksetSuoritettu(opintosuoritukset),
                         opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara,
-                        getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset)
+                        getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset),
+                        getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
                     )
                 }
             }
@@ -228,10 +231,11 @@ class EtusivuServiceImpl(
                     it.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
                     getSateilysuojakoulutuksetSuoritettu(opintosuoritukset),
                     it.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara,
-                    getKoejaksoTila(it),
+                    getKoejaksoTila(it, opintosuoritukset),
                     getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset),
                     it.opintooikeudenMyontamispaiva,
-                    it.opintooikeudenPaattymispaiva
+                    it.opintooikeudenPaattymispaiva,
+                    getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
                 )
             }
     }
@@ -493,8 +497,16 @@ class EtusivuServiceImpl(
         }
 
     private fun getKoejaksoTila(
-        opintooikeus: Opintooikeus
+        opintooikeus: Opintooikeus,
+        opintosuoritukset: Sequence<Opintosuoritus>
     ): KoejaksoTila {
+        val koejaksoSuoritettu =
+            opintosuoritukset.any { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.KOEJAKSO && it.hyvaksytty }
+
+        if (koejaksoSuoritettu) {
+            return KoejaksoTila.HYVAKSYTTY
+        }
+
         val koulutussopimus =
             koejaksonKoulutussopimusRepository.findByOpintooikeusId(opintooikeus.id!!)
         val vastuuhenkilonArvio =
@@ -514,5 +526,9 @@ class EtusivuServiceImpl(
         } else {
             KoejaksoTila.EI_AKTIIVINEN
         }
+    }
+
+    private fun getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset: Sequence<Opintosuoritus>): Boolean {
+        return opintosuoritukset.any { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO && it.hyvaksytty }
     }
 }
