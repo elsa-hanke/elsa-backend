@@ -38,6 +38,8 @@ data class ErikoistumisenEdistyminenDTO (
 
     var koejaksoTila: KoejaksoTila? = null,
 
+    var koejaksonSuoritusmerkintaExists: Boolean? = null,
+
     var valtakunnallisetKuulustelutSuoritettuLkm: Int? = null,
 
     var opintooikeudenMyontamispaiva: LocalDate? = null,
