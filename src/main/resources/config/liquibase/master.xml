@@ -222,5 +222,7 @@
     <include file="config/liquibase/changelog/20220712141852_modify_entity_Opintoopas.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220816104134_add_osakokonaisuus_kurssikoodit_oulu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220816131623_update_kurssikoodi_turku.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220810170542_modify_entity_ArvioitavanKokonaisuudenKategoria.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220816123221_modify_entity_ArvioitavaKokonaisuus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
