@@ -11,7 +11,11 @@ data class ArvioitavaKokonaisuusDTO(
     @get: NotNull
     var nimi: String? = null,
 
+    var nimiSv: String? = null,
+
     var kuvaus: String? = null,
+
+    var kuvausSv: String? = null,
 
     @get: NotNull
     var voimassaoloAlkaa: LocalDate? = null,
@@ -20,6 +24,7 @@ data class ArvioitavaKokonaisuusDTO(
 
     var erikoisalaId: Long? = null,
 
+    @get: NotNull
     var kategoria: ArvioitavanKokonaisuudenKategoriaSimpleDTO? = null
 
 ) : Serializable {

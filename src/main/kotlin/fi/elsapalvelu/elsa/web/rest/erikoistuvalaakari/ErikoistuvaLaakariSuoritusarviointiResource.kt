@@ -55,7 +55,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         options.tapahtumat = suoritusarviointiService
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
         options.kouluttajatAndVastuuhenkilot =
-            kayttajaService.findKouluttajatAndVastuuhenkilotFromSameYliopisto(user.id!!).toMutableSet()
+            kayttajaService.findKouluttajatAndVastuuhenkilotFromSameYliopisto(user.id!!)
+                .toMutableSet()
 
         return ResponseEntity.ok(options)
     }
@@ -92,12 +93,11 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
             arvioitavaKokonaisuusService.findAllByOpintooikeusId(opintooikeusId)
                 .groupBy { it.kategoria }.map {
                     ArvioitavanKokonaisuudenKategoriaDTO(
-                        it.key?.id,
-                        it.key?.nimi,
-                        it.key?.jarjestysnumero,
-                        it.key?.voimassaoloAlkaa,
-                        it.key?.voimassaoloLoppuu,
-                        it.value.toSet()
+                        id = it.key?.id,
+                        nimi = it.key?.nimi,
+                        nimiSv = it.key?.nimiSv,
+                        jarjestysnumero = it.key?.jarjestysnumero,
+                        arvioitavatKokonaisuudet = it.value.toSet()
                     )
                 }.toSet()
 

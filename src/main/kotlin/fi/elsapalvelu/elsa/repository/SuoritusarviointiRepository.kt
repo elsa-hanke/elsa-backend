@@ -58,4 +58,6 @@ interface SuoritusarviointiRepository :
     fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
 
     fun findAllByArvioinninAntajaUserIdAndArviointiAikaNull(userId: String): List<Suoritusarviointi>
+
+    fun existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusId: Long): Boolean
 }

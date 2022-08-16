@@ -257,4 +257,8 @@ class SuoritusarviointiServiceImpl(
         return suoritusarviointiRepository.findAllByArvioinninAntajaUserIdAndArviointiAikaNull(userId)
             .map(suoritusarviointiMapper::toDto)
     }
+
+    override fun existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusId: Long): Boolean {
+        return suoritusarviointiRepository.existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusId)
+    }
 }

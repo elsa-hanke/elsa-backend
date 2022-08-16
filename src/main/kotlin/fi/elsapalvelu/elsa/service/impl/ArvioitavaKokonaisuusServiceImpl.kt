@@ -4,7 +4,9 @@ import fi.elsapalvelu.elsa.repository.ArvioitavaKokonaisuusRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.ArvioitavaKokonaisuusService
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusDTO
+import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusWithErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusMapper
+import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusWithErikoisalaMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -16,13 +18,41 @@ import java.util.*
 class ArvioitavaKokonaisuusServiceImpl(
     private val arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository,
     private val arvioitavaKokonaisuusMapper: ArvioitavaKokonaisuusMapper,
+    private val arvioitavaKokonaisuusWithErikoisalaMapper: ArvioitavaKokonaisuusWithErikoisalaMapper,
     private val opintooikeusRepository: OpintooikeusRepository
 ) : ArvioitavaKokonaisuusService {
 
-    override fun save(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO {
+    override fun create(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO {
+
+        // Korvataan edellinen
+        if (arvioitavaKokonaisuusDTO.id != null) {
+            arvioitavaKokonaisuusRepository.findById(arvioitavaKokonaisuusDTO.id!!).orElse(null)
+                ?.let {
+                    it.voimassaoloLoppuu = arvioitavaKokonaisuusDTO.voimassaoloAlkaa?.minusDays(1)
+                    arvioitavaKokonaisuusRepository.save(it)
+                }
+        }
+
+        arvioitavaKokonaisuusDTO.id = null
         var arvioitavaKokonaisuus = arvioitavaKokonaisuusMapper.toEntity(arvioitavaKokonaisuusDTO)
         arvioitavaKokonaisuus = arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus)
         return arvioitavaKokonaisuusMapper.toDto(arvioitavaKokonaisuus)
+    }
+
+    override fun update(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO? {
+        return arvioitavaKokonaisuusRepository.findById(arvioitavaKokonaisuusDTO.id!!).orElse(null)
+            ?.let {
+                it.nimi = arvioitavaKokonaisuusDTO.nimi
+                it.nimiSv = arvioitavaKokonaisuusDTO.nimiSv
+                it.voimassaoloAlkaa = arvioitavaKokonaisuusDTO.voimassaoloAlkaa
+                it.voimassaoloLoppuu = arvioitavaKokonaisuusDTO.voimassaoloLoppuu
+                it.kuvaus = arvioitavaKokonaisuusDTO.kuvaus
+                it.kuvausSv = arvioitavaKokonaisuusDTO.kuvausSv
+
+                val result = arvioitavaKokonaisuusRepository.save(it)
+
+                arvioitavaKokonaisuusMapper.toDto(result)
+            }
     }
 
     @Transactional(readOnly = true)
@@ -37,9 +67,9 @@ class ArvioitavaKokonaisuusServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findOne(id: Long): Optional<ArvioitavaKokonaisuusDTO> {
+    override fun findOne(id: Long): Optional<ArvioitavaKokonaisuusWithErikoisalaDTO> {
         return arvioitavaKokonaisuusRepository.findById(id)
-            .map(arvioitavaKokonaisuusMapper::toDto)
+            .map(arvioitavaKokonaisuusWithErikoisalaMapper::toDto)
     }
 
     override fun delete(id: Long) {
