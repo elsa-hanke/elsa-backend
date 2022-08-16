@@ -14,6 +14,20 @@ query OpintosuorituksetPeppiOulu($id: ID!){
             }
             expiryDate
             studyRightId
+            childAttainments {
+                state
+                attainmentDate
+                credits
+                courseUnit {
+                    code
+                    name { fi, sv }
+                }
+                grade {
+                    name { fi, sv }
+                    passed
+                }
+                expiryDate
+            }
         }
     }
 }

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220816104134" author="jhipster">
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="046021J"/>
+            <column name="tyyppi_id" value="1"/>
+            <column name="osakokonaisuus" value="true"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'OULUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="046022J"/>
+            <column name="tyyppi_id" value="1"/>
+            <column name="osakokonaisuus" value="true"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'OULUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="046023J"/>
+            <column name="tyyppi_id" value="1"/>
+            <column name="osakokonaisuus" value="true"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'OULUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="046024J"/>
+            <column name="tyyppi_id" value="1"/>
+            <column name="osakokonaisuus" value="true"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'OULUN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="046025J"/>
+            <column name="tyyppi_id" value="1"/>
+            <column name="osakokonaisuus" value="true"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'OULUN_YLIOPISTO')"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
