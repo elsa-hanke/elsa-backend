@@ -20,15 +20,11 @@ data class ArvioitavanKokonaisuudenKategoria(
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
 
-    @Column(name = "jarjestysnumero", nullable = false)
+    @Column(name = "nimi_sv")
+    var nimiSv: String? = null,
+
+    @Column(name = "jarjestysnumero")
     var jarjestysnumero: Int? = null,
-
-    @get: NotNull
-    @Column(name = "voimassaolo_alkaa", nullable = false)
-    var voimassaoloAlkaa: LocalDate? = null,
-
-    @Column(name = "voimassaolo_loppuu")
-    var voimassaoloLoppuu: LocalDate? = null,
 
     @NotNull
     @ManyToOne(optional = false)
@@ -53,8 +49,6 @@ data class ArvioitavanKokonaisuudenKategoria(
         "id=$id" +
         ", nimi='$nimi'" +
         ", jarjestysnumero=$jarjestysnumero" +
-        ", voimassaoloAlkaa='$voimassaoloAlkaa'" +
-        ", voimassaoloLoppuu='$voimassaoloLoppuu'" +
         "}"
 
     companion object {
