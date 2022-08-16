@@ -1,15 +1,18 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusDTO
+import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusWithErikoisalaDTO
 import java.util.*
 
 interface ArvioitavaKokonaisuusService {
 
-    fun save(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO
+    fun create(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO
+
+    fun update(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO?
 
     fun findAllByOpintooikeusId(opintooikeusId: Long): List<ArvioitavaKokonaisuusDTO>
 
-    fun findOne(id: Long): Optional<ArvioitavaKokonaisuusDTO>
+    fun findOne(id: Long): Optional<ArvioitavaKokonaisuusWithErikoisalaDTO>
 
     fun delete(id: Long)
 }

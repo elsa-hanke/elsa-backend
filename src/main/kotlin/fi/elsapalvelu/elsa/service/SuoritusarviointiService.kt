@@ -43,4 +43,6 @@ interface SuoritusarviointiService {
     fun delete(id: Long, opintooikeusId: Long)
 
     fun findAvoimetByKouluttajaOrVastuuhenkiloUserId(userId: String): List<SuoritusarviointiDTO>
+
+    fun existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusId: Long): Boolean
 }

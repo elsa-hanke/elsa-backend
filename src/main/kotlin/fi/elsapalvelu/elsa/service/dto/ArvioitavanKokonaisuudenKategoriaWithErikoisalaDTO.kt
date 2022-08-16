@@ -1,10 +1,9 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
-import java.time.LocalDate
 import javax.validation.constraints.NotNull
 
-class ArvioitavanKokonaisuudenKategoriaSimpleDTO(
+data class ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO(
 
     var id: Long? = null,
 
@@ -13,19 +12,16 @@ class ArvioitavanKokonaisuudenKategoriaSimpleDTO(
 
     var nimiSv: String? = null,
 
-    @get: NotNull
     var jarjestysnumero: Int? = null,
 
     @get: NotNull
-    var voimassaoloAlkaa: LocalDate? = null,
-
-    var voimassaoloLoppuu: LocalDate? = null
+    var erikoisala: ErikoisalaDTO? = null
 
 ) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ArvioitavanKokonaisuudenKategoriaSimpleDTO) return false
+        if (other !is ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO) return false
         return id != null && id == other.id
     }
 

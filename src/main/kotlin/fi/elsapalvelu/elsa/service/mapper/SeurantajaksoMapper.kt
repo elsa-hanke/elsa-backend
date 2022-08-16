@@ -10,14 +10,17 @@ import org.mapstruct.ReportingPolicy
 
 @Mapper(
     componentModel = "spring",
-    uses = [KayttajaMapper::class],
+    uses = [KayttajaMapper::class, KoulutusjaksoMapper::class],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
 interface SeurantajaksoMapper :
     EntityMapper<SeurantajaksoDTO, Seurantajakso> {
 
     @Mappings(
-        Mapping(source = "opintooikeus.erikoistuvaLaakari.kayttaja.nimi", target = "erikoistuvanNimi"),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.nimi",
+            target = "erikoistuvanNimi"
+        ),
         Mapping(source = "opintooikeus.erikoisala.nimi", target = "erikoistuvanErikoisalaNimi"),
         Mapping(source = "opintooikeus.opiskelijatunnus", target = "erikoistuvanOpiskelijatunnus"),
         Mapping(source = "opintooikeus.yliopisto.nimi", target = "erikoistuvanYliopistoNimi"),
