@@ -27,9 +27,7 @@ interface ArvioitavanKokonaisuudenKategoriaRepository :
     @Query(
         "select distinct akk from ArvioitavanKokonaisuudenKategoria akk " +
             "left join fetch akk.arvioitavatKokonaisuudet ak " +
-            "left join akk.erikoisala e " +
-            "where e.id = ?1 " +
-            "and ak.kategoria.id = akk.id"
+            "where akk.erikoisala.id = ?1"
     )
     fun findAllByErikoisalaId(id: Long): List<ArvioitavanKokonaisuudenKategoria>
 }
