@@ -68,7 +68,8 @@ class ErikoistuvaLaakariEtusivuResourceIT {
 
     @BeforeEach
     fun setup() {
-        val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI))
+        val user =
+            KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI))
         em.persist(user)
         em.flush()
         val userDetails = mapOf<String, List<Any>>()
@@ -83,7 +84,8 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         val erikoisala = ErikoisalaHelper.createEntity()
         em.persist(erikoisala)
 
-        erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user, erikoisala = erikoisala)
+        erikoistuvaLaakari =
+            ErikoistuvaLaakariHelper.createEntity(em, user, erikoisala = erikoisala)
 
         em.persist(
             TyoskentelyjaksoHelper.createEntity(
@@ -92,15 +94,22 @@ class ErikoistuvaLaakariEtusivuResourceIT {
             )
         )
 
-        arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala)
+        arvioitavanKokonaisuudenKategoria =
+            ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala)
         em.persist(arvioitavanKokonaisuudenKategoria)
 
         arvioitavaKokonaisuus1 =
-            ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvioitavanKokonaisuudenKategoria)
+            ArvioitavaKokonaisuusHelper.createEntity(
+                em,
+                existingKategoria = arvioitavanKokonaisuudenKategoria
+            )
         em.persist(arvioitavaKokonaisuus1)
 
         arvioitavaKokonaisuus2 =
-            ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvioitavanKokonaisuudenKategoria)
+            ArvioitavaKokonaisuusHelper.createEntity(
+                em,
+                existingKategoria = arvioitavanKokonaisuudenKategoria
+            )
         em.persist(arvioitavaKokonaisuus2)
 
         val suoritusarviointi1 = SuoritusarviointiHelper.createEntity(
@@ -176,13 +185,16 @@ class ErikoistuvaLaakariEtusivuResourceIT {
             )
         )
 
-        val johtamisopinnotTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
+        val johtamisopinnotTyyppi =
+            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
         em.persist(johtamisopinnotTyyppi)
 
-        val sateilysuojakoulutusTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
+        val sateilysuojakoulutusTyyppi =
+            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
         em.persist(sateilysuojakoulutusTyyppi)
 
-        val kuulusteluTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
+        val kuulusteluTyyppi =
+            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
         em.persist(kuulusteluTyyppi)
 
         em.persist(
@@ -353,7 +365,8 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     @Test
     @Transactional
     fun `test that arvioitavaKokonaisuus is calculated into amount of suoritettu if has arviointi and kategoria not valid`() {
-        arvioitavanKokonaisuudenKategoria.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
+        arvioitavaKokonaisuus1.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
+        arvioitavaKokonaisuus2.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
@@ -377,7 +390,8 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     @Test
     @Transactional
     fun `test that arvioitavaKokonaisuus is calculated into total amount if has arviointi and kategoria not valid`() {
-        arvioitavanKokonaisuudenKategoria.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
+        arvioitavaKokonaisuus1.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
+        arvioitavaKokonaisuus2.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
         flushAndClear()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
@@ -542,7 +556,8 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         initMockTime()
 
         // Katseluoikeus päättyy 28.2.1970
-        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(58L))
+        val katseluoikeus =
+            KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(58L))
         em.persist(katseluoikeus)
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/avoimet-asiat"))
@@ -558,7 +573,8 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         initMockTime()
 
         // Katseluoikeus päättyy 1.3.1970
-        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(59L))
+        val katseluoikeus =
+            KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(59L))
         em.persist(katseluoikeus)
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/avoimet-asiat"))
@@ -573,7 +589,8 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         initMockTime()
 
         // Katseluoikeus päättyy 1.3.1970
-        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(29L))
+        val katseluoikeus =
+            KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(29L))
         em.persist(katseluoikeus)
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/avoimet-asiat"))
@@ -587,7 +604,8 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     fun testKatseluoikeusForAnotherOpintooikeusNotReturned() {
         initMockTime()
 
-        val anotherOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        val anotherOpintooikeus =
+            OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
 
         // Katseluoikeus päättyy 28.2.1970
         val katseluoikeus = KouluttajavaltuutusHelper.createEntity(
