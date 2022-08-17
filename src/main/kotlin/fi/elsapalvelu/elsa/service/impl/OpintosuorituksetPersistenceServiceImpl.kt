@@ -73,7 +73,7 @@ class OpintosuorituksetPersistenceServiceImpl(
                         opintosuoritus.osakokonaisuudet?.find { it.kurssikoodi == osakokonaisuusDTO.kurssikoodi }?.let {
                             updateOpintosuoritusOsakokonaisuusDetailsIfChanged(it, osakokonaisuusDTO)
                         } ?: addNewOpintosuoritusOsakokonaisuus(opintosuoritus, osakokonaisuusDTO)
-                    } ?: return
+                    } ?: return@opintosuoritukset
                 } ?: addNewOpintosuoritus(opintosuoritusDTO, erikoistuvaLaakari, userId)
         }
     }
