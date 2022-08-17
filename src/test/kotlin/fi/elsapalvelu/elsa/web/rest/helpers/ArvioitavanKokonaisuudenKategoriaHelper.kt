@@ -17,19 +17,14 @@ class ArvioitavanKokonaisuudenKategoriaHelper {
         private const val DEFAULT_JARJESTYSNUMERO: Int = 1
         private const val UPDATED_JARJESTYSNUMERO: Int = 2
 
-        private val DEFAULT_VOIMASSAOLO_ALKAA: LocalDate = LocalDate.ofEpochDay(0L)
-        private val UPDATED_VOIMASSAOLO_ALKAA: LocalDate = LocalDate.now(ZoneId.systemDefault())
-
-        private val DEFAULT_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.ofEpochDay(30L)
-        private val UPDATED_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.now(ZoneId.systemDefault())
-
         @JvmStatic
-        fun createEntity(em: EntityManager, existingErikoisala: Erikoisala? = null): ArvioitavanKokonaisuudenKategoria {
+        fun createEntity(
+            em: EntityManager,
+            existingErikoisala: Erikoisala? = null
+        ): ArvioitavanKokonaisuudenKategoria {
             val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoria(
                 nimi = DEFAULT_NIMI,
-                jarjestysnumero = DEFAULT_JARJESTYSNUMERO,
-                voimassaoloAlkaa = DEFAULT_VOIMASSAOLO_ALKAA,
-                voimassaoloLoppuu = DEFAULT_VOIMASSAOLO_LOPPUU
+                jarjestysnumero = DEFAULT_JARJESTYSNUMERO
             )
 
             // Lisätään pakollinen tieto
@@ -52,9 +47,7 @@ class ArvioitavanKokonaisuudenKategoriaHelper {
         fun createUpdatedEntity(em: EntityManager): ArvioitavanKokonaisuudenKategoria {
             val kategoria = ArvioitavanKokonaisuudenKategoria(
                 nimi = UPDATED_NIMI,
-                jarjestysnumero = UPDATED_JARJESTYSNUMERO,
-                voimassaoloAlkaa = UPDATED_VOIMASSAOLO_ALKAA,
-                voimassaoloLoppuu = UPDATED_VOIMASSAOLO_LOPPUU
+                jarjestysnumero = UPDATED_JARJESTYSNUMERO
             )
 
             // Lisätään pakollinen tieto
