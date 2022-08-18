@@ -218,7 +218,7 @@ application:
       basic-auth-encoded-key:
       endpoint-url: https://api-ext.utu.fi/peppi/test/opendata/r1/elsa/search
   feedback:
-    to: matti.hiitola@oulu.fi
+    to: julia.sillanpaa@tuni.fi
   opintohallintoemail:
     hki:
     oulu:
