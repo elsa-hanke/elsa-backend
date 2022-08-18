@@ -14,8 +14,11 @@ import javax.validation.Valid
 
 private const val OPINTOOPAS_ENTITY_NAME = "opintoopas"
 private const val ERIKOISALA_ENTITY_NAME = "erikoisala"
-private const val KATEGORIA_ENTITY_NAME = "arvioitavankokonaisuudenkategoria"
+private const val ARVIOITAVAN_KOKONAISUUDEN_KATEGORIA_ENTITY_NAME =
+    "arvioitavankokonaisuudenkategoria"
 private const val ARVIOITAVA_KOKONAISUUS_ENTITY_NAME = "arvioitavakokonaisuus"
+private const val SUORITTEEN_KATEGORIA_ENTITY_NAME = "suoritteenkategoria"
+private const val SUORITE_ENTITY_NAME = "suorite"
 
 @RestController
 @RequestMapping("/api/tekninen-paakayttaja")
@@ -25,7 +28,10 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     private val arviointiasteikkoService: ArviointiasteikkoService,
     private val arvioitavanKokonaisuudenKategoriaService: ArvioitavanKokonaisuudenKategoriaService,
     private val arvioitavaKokonaisuusService: ArvioitavaKokonaisuusService,
-    private val suoritusarviointiService: SuoritusarviointiService
+    private val suoritusarviointiService: SuoritusarviointiService,
+    private val suoritteenKategoriaService: SuoritteenKategoriaService,
+    private val suoriteService: SuoriteService,
+    private val suoritemerkintaService: SuoritemerkintaService
 ) {
     @GetMapping("/erikoisalat")
     fun getErikoisalat(): ResponseEntity<List<ErikoisalaDTO>> {
@@ -111,7 +117,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
         if (arvioitavanKokonaisuudenKategoriaDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi kategoria ei saa sisältää id:tä",
-                KATEGORIA_ENTITY_NAME,
+                ARVIOITAVAN_KOKONAISUUDEN_KATEGORIA_ENTITY_NAME,
                 "idexists"
             )
         }
@@ -127,7 +133,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
         if (arvioitavanKokonaisuudenKategoriaDTO.id == null) {
             throw BadRequestAlertException(
                 "Virheellinen id",
-                OPINTOOPAS_ENTITY_NAME,
+                ARVIOITAVAN_KOKONAISUUDEN_KATEGORIA_ENTITY_NAME,
                 "idnull"
             )
         }
@@ -148,7 +154,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
         validateArvioitavaKokonaisuusVoimassaolo(arvioitavaKokonaisuusDTO)
         arvioitavaKokonaisuusService.create(arvioitavaKokonaisuusDTO).let {
             return ResponseEntity
-                .created(URI("/api/tekninen-paakayttaja/arvioitavankokonaisuudenkategoria/${it.id}"))
+                .created(URI("/api/tekninen-paakayttaja/arvioitavakokonaisuus/${it.id}"))
                 .body(it)
         }
     }
@@ -165,6 +171,84 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
         validateArvioitavaKokonaisuusVoimassaolo(arvioitavaKokonaisuusDTO)
         validateArvioitavaKokonaisuusArvioinnit(arvioitavaKokonaisuusDTO)
         return ResponseEntity.ok(arvioitavaKokonaisuusService.update(arvioitavaKokonaisuusDTO))
+    }
+
+    @GetMapping("/erikoisalat/{id}/suoritteenkategoriat")
+    fun getSuoritteenKategoriat(@PathVariable id: Long): ResponseEntity<List<SuoritteenKategoriaSimpleDTO>> {
+        return ResponseEntity.ok(suoritteenKategoriaService.findAllByErikoisalaId(id))
+    }
+
+    @GetMapping("/erikoisalat/{id}/suoritteet")
+    fun getSuoritteet(@PathVariable id: Long): ResponseEntity<List<SuoritteenKategoriaDTO>> {
+        return ResponseEntity.ok(
+            suoritteenKategoriaService.findAllByErikoisalaIdWithKokonaisuudet(
+                id
+            )
+        )
+    }
+
+    @GetMapping("/suoritteenkategoria/{id}")
+    fun getSuoritteenKategoria(@PathVariable id: Long): ResponseEntity<SuoritteenKategoriaWithErikoisalaDTO> {
+        return ResponseUtil.wrapOrNotFound(suoritteenKategoriaService.findOne(id))
+    }
+
+    @PostMapping("/suoritteenkategoria")
+    fun createSuoritteenKategoria(@Valid @RequestBody suoritteenKategoriaDTO: SuoritteenKategoriaWithErikoisalaDTO): ResponseEntity<SuoritteenKategoriaWithErikoisalaDTO> {
+        if (suoritteenKategoriaDTO.id != null) {
+            throw BadRequestAlertException(
+                "Uusi kategoria ei saa sisältää id:tä",
+                SUORITTEEN_KATEGORIA_ENTITY_NAME,
+                "idexists"
+            )
+        }
+        suoritteenKategoriaService.save(suoritteenKategoriaDTO).let {
+            return ResponseEntity
+                .created(URI("/api/tekninen-paakayttaja/suoritteenkategoria/${it.id}"))
+                .body(it)
+        }
+    }
+
+    @PutMapping("/suoritteenkategoria")
+    fun updateSuoritteenKategoria(@Valid @RequestBody suoritteenKategoriaDTO: SuoritteenKategoriaWithErikoisalaDTO): ResponseEntity<SuoritteenKategoriaWithErikoisalaDTO> {
+        if (suoritteenKategoriaDTO.id == null) {
+            throw BadRequestAlertException(
+                "Virheellinen id",
+                SUORITTEEN_KATEGORIA_ENTITY_NAME,
+                "idnull"
+            )
+        }
+        return ResponseEntity.ok(
+            suoritteenKategoriaService.save(suoritteenKategoriaDTO)
+        )
+    }
+
+    @GetMapping("/suorite/{id}")
+    fun getSuorite(@PathVariable id: Long): ResponseEntity<SuoriteWithErikoisalaDTO> {
+        return ResponseUtil.wrapOrNotFound(suoriteService.findOne(id))
+    }
+
+    @PostMapping("/suorite")
+    fun createSuorite(@Valid @RequestBody suoriteDTO: SuoriteWithErikoisalaDTO): ResponseEntity<SuoriteWithErikoisalaDTO> {
+        validateSuoritteenVoimassaolo(suoriteDTO)
+        suoriteService.create(suoriteDTO).let {
+            return ResponseEntity
+                .created(URI("/api/tekninen-paakayttaja/suorite/${it.id}"))
+                .body(it)
+        }
+    }
+
+    @PutMapping("/suorite")
+    fun updateSuorite(@Valid @RequestBody suoriteDTO: SuoriteWithErikoisalaDTO): ResponseEntity<SuoriteWithErikoisalaDTO> {
+        if (suoriteDTO.id == null) {
+            throw BadRequestAlertException(
+                "Virheellinen id",
+                SUORITE_ENTITY_NAME,
+                "idnull"
+            )
+        }
+        validateSuoritteenVoimassaolo(suoriteDTO)
+        validateSuoritemerkinnat(suoriteDTO)
+        return ResponseEntity.ok(suoriteService.update(suoriteDTO))
     }
 
     private fun validateOpintoopas(opintoopasDTO: OpintoopasDTO) {
@@ -251,6 +335,36 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
                         "Arvioitavan kokonaisuuden voimassaoloa ei saa lyhentää, jos siihen liittyy suoritusarviointeja",
                         ARVIOITAVA_KOKONAISUUS_ENTITY_NAME,
                         "dataillegal.arvioitavan-kokonaisuuden-voimassaoloa-ei-saa-lyhentaa"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun validateSuoritteenVoimassaolo(suoriteDTO: SuoriteWithErikoisalaDTO) {
+        if (suoriteDTO.voimassaolonPaattymispaiva != null && suoriteDTO.voimassaolonPaattymispaiva!!.isBefore(
+                suoriteDTO.voimassaolonAlkamispaiva
+            )
+        ) {
+            throw BadRequestAlertException(
+                "Suoritteen voimassaolon päättymispäivä ei saa olla ennen alkamisaikaa",
+                SUORITE_ENTITY_NAME,
+                "dataillegal.suoritteen-voimassaolon-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa"
+            )
+        }
+    }
+
+    private fun validateSuoritemerkinnat(suoriteDTO: SuoriteWithErikoisalaDTO) {
+        if (suoritemerkintaService.existsBySuoriteId(suoriteDTO.id!!)) {
+            suoriteService.findOne(suoriteDTO.id!!).orElse(null)?.let {
+                if (suoriteDTO.voimassaolonAlkamispaiva!!.isAfter(it.voimassaolonAlkamispaiva) || suoriteDTO.voimassaolonPaattymispaiva?.isBefore(
+                        it.voimassaolonPaattymispaiva
+                    ) == true
+                ) {
+                    throw BadRequestAlertException(
+                        "Suoritteen voimassaoloa ei saa lyhentää, jos siihen liittyy suoritemerkintöjä",
+                        SUORITE_ENTITY_NAME,
+                        "dataillegal.suoritteen-voimassaoloa-ei-saa-lyhentaa"
                     )
                 }
             }

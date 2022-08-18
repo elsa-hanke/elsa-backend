@@ -26,4 +26,6 @@ interface SuoritemerkintaRepository : JpaRepository<Suoritemerkinta, Long> {
     ): List<Suoritemerkinta>
 
     fun findOneById(id: Long): Optional<Suoritemerkinta>
+
+    fun existsBySuoriteId(suoriteId: Long): Boolean
 }

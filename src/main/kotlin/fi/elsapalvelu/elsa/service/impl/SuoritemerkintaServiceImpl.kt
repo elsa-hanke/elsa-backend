@@ -34,7 +34,8 @@ class SuoritemerkintaServiceImpl(
                         val suoritemerkintaOptional =
                             suoritemerkintaRepository.findOneById(suoritemerkinta.id!!)
                         if (suoritemerkintaOptional.isPresent && !suoritemerkintaOptional.get().lukittu) {
-                            suoritemerkinta.arviointiasteikko = suoritemerkintaOptional.get().arviointiasteikko
+                            suoritemerkinta.arviointiasteikko =
+                                suoritemerkintaOptional.get().arviointiasteikko
                             return suoritemerkintaMapper.toDto(
                                 suoritemerkintaRepository.save(
                                     suoritemerkinta
@@ -66,7 +67,11 @@ class SuoritemerkintaServiceImpl(
         alkamispaiva: LocalDate,
         paattymispaiva: LocalDate
     ): List<SuoritemerkintaDTO> {
-        return suoritemerkintaRepository.findForSeurantajakso(opintooikeusId, alkamispaiva, paattymispaiva)
+        return suoritemerkintaRepository.findForSeurantajakso(
+            opintooikeusId,
+            alkamispaiva,
+            paattymispaiva
+        )
             .map(suoritemerkintaMapper::toDto)
     }
 
@@ -99,5 +104,9 @@ class SuoritemerkintaServiceImpl(
                     }
             }
         }
+    }
+
+    override fun existsBySuoriteId(suoriteId: Long): Boolean {
+        return suoritemerkintaRepository.existsBySuoriteId(suoriteId)
     }
 }

@@ -11,10 +11,7 @@ data class SuoritteenKategoriaDTO(
     @get: NotNull
     var nimi: String? = null,
 
-    @get: NotNull
-    var voimassaolonAlkamispaiva: LocalDate? = null,
-
-    var voimassaolonPaattymispaiva: LocalDate? = null,
+    var nimiSv: String? = null,
 
     var erikoisalaId: Long? = null,
 

@@ -4,7 +4,9 @@ import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.SuoriteRepository
 import fi.elsapalvelu.elsa.service.SuoriteService
 import fi.elsapalvelu.elsa.service.dto.SuoriteDTO
+import fi.elsapalvelu.elsa.service.dto.SuoriteWithErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoriteMapper
+import fi.elsapalvelu.elsa.service.mapper.SuoriteWithErikoisalaMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,16 +17,41 @@ import java.util.*
 @Transactional
 class SuoriteServiceImpl(
     private val suoriteRepository: SuoriteRepository,
+    private val opintooikeusRepository: OpintooikeusRepository,
     private val suoriteMapper: SuoriteMapper,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val suoriteWithErikoisalaMapper: SuoriteWithErikoisalaMapper
 ) : SuoriteService {
 
-    override fun save(
-        suoriteDTO: SuoriteDTO
-    ): SuoriteDTO {
-        var suorite = suoriteMapper.toEntity(suoriteDTO)
+    override fun create(suoriteDTO: SuoriteWithErikoisalaDTO): SuoriteWithErikoisalaDTO {
+        // Korvataan edellinen
+        if (suoriteDTO.id != null) {
+            suoriteRepository.findById(suoriteDTO.id!!).orElse(null)
+                ?.let {
+                    it.voimassaolonPaattymispaiva =
+                        suoriteDTO.voimassaolonAlkamispaiva?.minusDays(1)
+                    suoriteRepository.save(it)
+                }
+        }
+
+        suoriteDTO.id = null
+        var suorite = suoriteWithErikoisalaMapper.toEntity(suoriteDTO)
         suorite = suoriteRepository.save(suorite)
-        return suoriteMapper.toDto(suorite)
+        return suoriteWithErikoisalaMapper.toDto(suorite)
+    }
+
+    override fun update(suoriteDTO: SuoriteWithErikoisalaDTO): SuoriteWithErikoisalaDTO? {
+        return suoriteRepository.findById(suoriteDTO.id!!).orElse(null)
+            ?.let {
+                it.nimi = suoriteDTO.nimi
+                it.nimiSv = suoriteDTO.nimiSv
+                it.voimassaolonAlkamispaiva = suoriteDTO.voimassaolonAlkamispaiva
+                it.voimassaolonPaattymispaiva = suoriteDTO.voimassaolonPaattymispaiva
+                it.vaadittulkm = suoriteDTO.vaadittulkm
+
+                val result = suoriteRepository.save(it)
+
+                suoriteWithErikoisalaMapper.toDto(result)
+            }
     }
 
     @Transactional(readOnly = true)
@@ -39,16 +66,12 @@ class SuoriteServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findOne(
-        id: Long
-    ): Optional<SuoriteDTO> {
+    override fun findOne(id: Long): Optional<SuoriteWithErikoisalaDTO> {
         return suoriteRepository.findById(id)
-            .map(suoriteMapper::toDto)
+            .map(suoriteWithErikoisalaMapper::toDto)
     }
 
-    override fun delete(
-        id: Long
-    ) {
+    override fun delete(id: Long) {
         suoriteRepository.deleteById(id)
     }
 }
