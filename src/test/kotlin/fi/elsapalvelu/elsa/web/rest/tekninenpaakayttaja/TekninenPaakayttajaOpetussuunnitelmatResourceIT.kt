@@ -4,9 +4,7 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
-import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusMapper
-import fi.elsapalvelu.elsa.service.mapper.ArvioitavanKokonaisuudenKategoriaWithErikoisalaMapper
-import fi.elsapalvelu.elsa.service.mapper.OpintoopasMapper
+import fi.elsapalvelu.elsa.service.mapper.*
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.*
@@ -50,6 +48,15 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
     private lateinit var suoritusarviointiRepository: SuoritusarviointiRepository
 
     @Autowired
+    private lateinit var suoritteenKategoriaRepository: SuoritteenKategoriaRepository
+
+    @Autowired
+    private lateinit var suoriteRepository: SuoriteRepository
+
+    @Autowired
+    private lateinit var suoritemerkintaRepository: SuoritemerkintaRepository
+
+    @Autowired
     private lateinit var opintoopasMapper: OpintoopasMapper
 
     @Autowired
@@ -57,6 +64,12 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
 
     @Autowired
     private lateinit var arvioitavaKokonaisuusMapper: ArvioitavaKokonaisuusMapper
+
+    @Autowired
+    private lateinit var suoritteenKategoriaWithErikoisalaMapper: SuoritteenKategoriaWithErikoisalaMapper
+
+    @Autowired
+    private lateinit var suoriteWithErikoisalaMapper: SuoriteWithErikoisalaMapper
 
     @Autowired
     private lateinit var em: EntityManager
@@ -772,6 +785,293 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
             put("/api/tekninen-paakayttaja/arvioitavakokonaisuus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kokonaisuusDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun getSuoritteenKategoriat() {
+        initTest()
+
+        val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
+        val kategoria = suoritteenKategoriaRepository.saveAndFlush(
+            SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+        )
+
+        restOpetussuunnitelmatMockMvc.perform(
+            get("/api/tekninen-paakayttaja/erikoisalat/${erikoisala.id}/suoritteenkategoriat")
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(Matchers.hasSize<Int>(1)))
+            .andExpect(jsonPath("$[0].id").value(kategoria.id))
+    }
+
+    @Test
+    @Transactional
+    fun getSuoritteet() {
+        initTest()
+
+        val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
+        val kategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+        suoritteenKategoriaRepository.saveAndFlush(kategoria)
+
+        suoriteRepository.saveAndFlush(
+            SuoriteHelper.createEntity(
+                em,
+                existingKategoria = kategoria
+            )
+        )
+
+        suoriteRepository.saveAndFlush(
+            SuoriteHelper.createEntity(
+                em,
+                existingKategoria = kategoria
+            )
+        )
+
+        flushAndClear()
+
+        restOpetussuunnitelmatMockMvc.perform(
+            get("/api/tekninen-paakayttaja/erikoisalat/${erikoisala.id}/suoritteet")
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(Matchers.hasSize<Int>(1)))
+            .andExpect(jsonPath("$[0].id").value(kategoria.id))
+            .andExpect(jsonPath("$[0].nimi").value(kategoria.nimi))
+            .andExpect(jsonPath("$[0].suoritteet").value(Matchers.hasSize<Int>(2)))
+    }
+
+    @Test
+    @Transactional
+    fun getSuoritteenKategoria() {
+        initTest()
+
+        val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
+        val kategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+        suoritteenKategoriaRepository.saveAndFlush(kategoria)
+
+        restOpetussuunnitelmatMockMvc.perform(
+            get("/api/tekninen-paakayttaja/suoritteenkategoria/${kategoria.id}")
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(kategoria.id))
+            .andExpect(jsonPath("$.nimi").value(kategoria.nimi))
+            .andExpect(jsonPath("$.nimiSv").value(kategoria.nimiSv))
+            .andExpect(jsonPath("$.jarjestysnumero").value(kategoria.jarjestysnumero))
+            .andExpect(jsonPath("$.erikoisala.id").value(kategoria.erikoisala?.id))
+    }
+
+    @Test
+    @Transactional
+    fun createSuoritteenKategoria() {
+        initTest()
+
+        val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
+        val kategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+        val kategoriaDTO = suoritteenKategoriaWithErikoisalaMapper.toDto(kategoria)
+
+        val databaseSizeBeforeCreate = suoritteenKategoriaRepository.findAll().size
+
+        restOpetussuunnitelmatMockMvc.perform(
+            post("/api/tekninen-paakayttaja/suoritteenkategoria")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kategoriaDTO))
+                .with(csrf())
+        ).andExpect(status().isCreated)
+
+        val kategoriaList = suoritteenKategoriaRepository.findAll()
+        assertThat(kategoriaList).hasSize(databaseSizeBeforeCreate + 1)
+        val result = kategoriaList[kategoriaList.size - 1]
+        assertThat(result.nimi).isEqualTo(kategoriaDTO.nimi)
+        assertThat(result.nimiSv).isEqualTo(kategoriaDTO.nimiSv)
+        assertThat(result.jarjestysnumero).isEqualTo(kategoriaDTO.jarjestysnumero)
+    }
+
+    @Test
+    @Transactional
+    fun updateSuoritteenKategoria() {
+        initTest()
+
+        val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
+        val kategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+        suoritteenKategoriaRepository.saveAndFlush(kategoria)
+
+        val kategoriaDTO = suoritteenKategoriaWithErikoisalaMapper.toDto(kategoria)
+        kategoriaDTO.nimi = "updated"
+        kategoriaDTO.nimiSv = "updated sv"
+        kategoriaDTO.jarjestysnumero = 15
+
+        restOpetussuunnitelmatMockMvc.perform(
+            put("/api/tekninen-paakayttaja/suoritteenkategoria")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kategoriaDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val kategoriaList = suoritteenKategoriaRepository.findAll()
+        val result = kategoriaList[kategoriaList.size - 1]
+        assertThat(result.nimi).isEqualTo(kategoriaDTO.nimi)
+        assertThat(result.nimiSv).isEqualTo(kategoriaDTO.nimiSv)
+        assertThat(result.jarjestysnumero).isEqualTo(kategoriaDTO.jarjestysnumero)
+    }
+
+    @Test
+    @Transactional
+    fun getSuorite() {
+        initTest()
+
+        val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
+        val kategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+        suoritteenKategoriaRepository.saveAndFlush(kategoria)
+
+        val kokonaisuus = suoriteRepository.saveAndFlush(
+            SuoriteHelper.createEntity(
+                em,
+                existingKategoria = kategoria
+            )
+        )
+
+        restOpetussuunnitelmatMockMvc.perform(
+            get("/api/tekninen-paakayttaja/suorite/${kokonaisuus.id}")
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(kokonaisuus.id))
+            .andExpect(jsonPath("$.nimi").value(kokonaisuus.nimi))
+            .andExpect(jsonPath("$.nimiSv").value(kokonaisuus.nimiSv))
+            .andExpect(jsonPath("$.vaadittulkm").value(kokonaisuus.vaadittulkm))
+            .andExpect(jsonPath("$.voimassaolonAlkamispaiva").value(kokonaisuus.voimassaolonAlkamispaiva.toString()))
+            .andExpect(jsonPath("$.voimassaolonPaattymispaiva").value(kokonaisuus.voimassaolonPaattymispaiva.toString()))
+            .andExpect(jsonPath("$.kategoria.id").value(kokonaisuus.kategoria?.id))
+    }
+
+    @Test
+    @Transactional
+    fun createSuorite() {
+        initTest()
+
+        val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
+        val kategoria = suoritteenKategoriaRepository.saveAndFlush(
+            SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+        )
+
+        val suorite =
+            SuoriteHelper.createEntity(em, existingKategoria = kategoria)
+        val suoriteDTO = suoriteWithErikoisalaMapper.toDto(suorite)
+
+        val databaseSizeBeforeCreate = suoriteRepository.findAll().size
+
+        restOpetussuunnitelmatMockMvc.perform(
+            post("/api/tekninen-paakayttaja/suorite")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(suoriteDTO))
+                .with(csrf())
+        ).andExpect(status().isCreated)
+
+        val suoriteList = suoriteRepository.findAll()
+        assertThat(suoriteList).hasSize(databaseSizeBeforeCreate + 1)
+        val result = suoriteList[suoriteList.size - 1]
+        assertThat(result.nimi).isEqualTo(suoriteDTO.nimi)
+        assertThat(result.nimiSv).isEqualTo(suoriteDTO.nimiSv)
+        assertThat(result.vaadittulkm).isEqualTo(suoriteDTO.vaadittulkm)
+        assertThat(result.voimassaolonAlkamispaiva).isEqualTo(suoriteDTO.voimassaolonAlkamispaiva)
+        assertThat(result.voimassaolonPaattymispaiva).isEqualTo(suoriteDTO.voimassaolonPaattymispaiva)
+        assertThat(result.kategoria?.id).isEqualTo(suoriteDTO.kategoria?.id)
+    }
+
+    @Test
+    @Transactional
+    fun updateSuorite() {
+        initTest()
+
+        val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
+        val kategoria = suoritteenKategoriaRepository.saveAndFlush(
+            SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+        )
+
+        val suorite = suoriteRepository.saveAndFlush(
+            SuoriteHelper.createEntity(em, existingKategoria = kategoria)
+        )
+
+        val suoriteDTO = suoriteWithErikoisalaMapper.toDto(suorite)
+        suoriteDTO.nimi = "updated"
+        suoriteDTO.nimiSv = "updated sv"
+        suoriteDTO.vaadittulkm = 15
+        suoriteDTO.voimassaolonAlkamispaiva = suoriteDTO.voimassaolonAlkamispaiva?.plusDays(1)
+        suoriteDTO.voimassaolonPaattymispaiva = suoriteDTO.voimassaolonPaattymispaiva?.plusDays(1)
+
+        restOpetussuunnitelmatMockMvc.perform(
+            put("/api/tekninen-paakayttaja/suorite")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(suoriteDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val suoriteList = suoriteRepository.findAll()
+        val result = suoriteList[suoriteList.size - 1]
+        assertThat(result.nimi).isEqualTo(suoriteDTO.nimi)
+        assertThat(result.nimiSv).isEqualTo(suoriteDTO.nimiSv)
+        assertThat(result.vaadittulkm).isEqualTo(suoriteDTO.vaadittulkm)
+        assertThat(result.voimassaolonAlkamispaiva).isEqualTo(suoriteDTO.voimassaolonAlkamispaiva.toString())
+        assertThat(result.voimassaolonPaattymispaiva).isEqualTo(suoriteDTO.voimassaolonPaattymispaiva.toString())
+        assertThat(result.kategoria?.id).isEqualTo(suoriteDTO.kategoria?.id)
+    }
+
+    @Test
+    @Transactional
+    fun createSuoriteWithIncorrectVoimassaolo() {
+        initTest()
+
+        val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
+        val kategoria = suoritteenKategoriaRepository.saveAndFlush(
+            SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+        )
+
+        val suorite =
+            SuoriteHelper.createEntity(em, existingKategoria = kategoria)
+        val suoriteDTO = suoriteWithErikoisalaMapper.toDto(suorite)
+        suoriteDTO.voimassaolonAlkamispaiva = suoriteDTO.voimassaolonAlkamispaiva?.plusYears(1)
+
+        restOpetussuunnitelmatMockMvc.perform(
+            post("/api/tekninen-paakayttaja/suorite")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(suoriteDTO))
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun updateSuoriteWithSuoritusarviointi() {
+        initTest()
+
+        val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
+        val kategoria = suoritteenKategoriaRepository.saveAndFlush(
+            SuoritteenKategoriaHelper.createEntity(em, erikoisala)
+        )
+
+        val suorite = suoriteRepository.saveAndFlush(
+            SuoriteHelper.createEntity(em, existingKategoria = kategoria)
+        )
+
+        suoritemerkintaRepository.saveAndFlush(
+            SuoritemerkintaHelper.createEntity(
+                em,
+                existingSuorite = suorite
+            )
+        )
+
+        val suoriteDTO = suoriteWithErikoisalaMapper.toDto(suorite)
+        suoriteDTO.voimassaolonAlkamispaiva = suoriteDTO.voimassaolonAlkamispaiva?.plusDays(1)
+
+        restOpetussuunnitelmatMockMvc.perform(
+            put("/api/tekninen-paakayttaja/suorite")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(suoriteDTO))
                 .with(csrf())
         ).andExpect(status().isBadRequest)
     }
