@@ -18,4 +18,6 @@ interface SuoritemerkintaService {
     fun findOne(id: Long, userId: String): SuoritemerkintaDTO?
 
     fun delete(id: Long, userId: String)
+
+    fun existsBySuoriteId(suoriteId: Long): Boolean
 }

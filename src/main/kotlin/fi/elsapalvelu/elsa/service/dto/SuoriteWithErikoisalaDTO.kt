@@ -4,7 +4,7 @@ import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
 
-data class ArvioitavaKokonaisuusWithErikoisalaDTO(
+data class SuoriteWithErikoisalaDTO(
 
     var id: Long? = null,
 
@@ -13,27 +13,23 @@ data class ArvioitavaKokonaisuusWithErikoisalaDTO(
 
     var nimiSv: String? = null,
 
-    var kuvaus: String? = null,
+    @get: NotNull
+    var voimassaolonAlkamispaiva: LocalDate? = null,
 
-    var kuvausSv: String? = null,
+    var voimassaolonPaattymispaiva: LocalDate? = null,
+
+    var vaadittulkm: Int? = null,
 
     @get: NotNull
-    var voimassaoloAlkaa: LocalDate? = null,
-
-    var voimassaoloLoppuu: LocalDate? = null,
-
-    @get: NotNull
-    var kategoria: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO? = null
+    var kategoria: SuoritteenKategoriaWithErikoisalaDTO? = null
 
 ) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ArvioitavaKokonaisuusWithErikoisalaDTO) return false
+        if (other !is SuoriteWithErikoisalaDTO) return false
         return id != null && id == other.id
     }
 
     override fun hashCode() = 31
-
-    override fun toString() = "ArvioitavaKokonaisuusWithErikoisala{id=$id, nimi=$nimi}"
 }

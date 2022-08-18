@@ -18,10 +18,17 @@ interface SuoritteenKategoriaRepository : JpaRepository<SuoritteenKategoria, Lon
             "where e.id = ?1 " +
             "and s.kategoria.id = sk.id " +
             "and s.voimassaolonAlkamispaiva <= ?2 " +
-            "and (s.voimassaolonPaattymispaiva is null or s.voimassaolonPaattymispaiva >= ?2) " +
-            "and sk.voimassaolonAlkamispaiva <= ?2 " +
-            "and (sk.voimassaolonPaattymispaiva is null or sk.voimassaolonPaattymispaiva >= ?2)"
+            "and (s.voimassaolonPaattymispaiva is null or s.voimassaolonPaattymispaiva >= ?2)"
     )
     fun findAllByErikoisalaIdAndValid(id: Long?, valid: LocalDate): List<SuoritteenKategoria>
+
+    @Query(
+        """
+    select distinct sk from SuoritteenKategoria sk
+    left join fetch sk.suoritteet s
+    where sk.erikoisala.id = ?1
+    """
+    )
+    fun findAllByErikoisalaId(erikoisalaId: Long): List<SuoritteenKategoria>
 
 }
