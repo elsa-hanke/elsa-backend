@@ -69,36 +69,28 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         em.persist(
             SuoritteenKategoriaHelper.createEntity(
                 em,
-                erikoisala,
-                LocalDate.ofEpochDay(0L),
-                null
+                erikoisala
             )
         )
         // Lisätään voimassaoleva suoritteen kategoria ja päättyminen määritetty
         em.persist(
             SuoritteenKategoriaHelper.createEntity(
                 em,
-                erikoisala,
-                LocalDate.ofEpochDay(0L),
-                LocalDate.ofEpochDay(20L)
+                erikoisala
             )
         )
         // Lisätään suoritteen kategoria, jonka voimassaolo ei ole alkanut vielä
         em.persist(
             SuoritteenKategoriaHelper.createEntity(
                 em,
-                erikoisala,
-                LocalDate.ofEpochDay(15L),
-                LocalDate.ofEpochDay(20L)
+                erikoisala
             )
         )
         // Lisätään suoritteen kategoria, jonka voimassaolo on jo päättynyt
         em.persist(
             SuoritteenKategoriaHelper.createEntity(
                 em,
-                erikoisala,
-                LocalDate.ofEpochDay(0L),
-                LocalDate.ofEpochDay(5L)
+                erikoisala
             )
         )
 

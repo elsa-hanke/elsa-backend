@@ -14,23 +14,13 @@ class SuoritteenKategoriaHelper {
         private const val DEFAULT_NIMI = "AAAAAAAAAA"
         private const val UPDATED_NIMI = "BBBBBBBBBB"
 
-        private val DEFAULT_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
-        private val UPDATED_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
-
-        private val DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(30L)
-        private val UPDATED_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
-
         @JvmStatic
         fun createEntity(
             em: EntityManager,
-            existingErikoisala: Erikoisala? = null,
-            voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
-            voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA
+            existingErikoisala: Erikoisala? = null
         ): SuoritteenKategoria {
             val suoritteenKategoria = SuoritteenKategoria(
-                nimi = DEFAULT_NIMI,
-                voimassaolonAlkamispaiva = voimassaoloAlkaa,
-                voimassaolonPaattymispaiva = voimassaoloPaattyy
+                nimi = DEFAULT_NIMI
             )
 
             var erikoisala = existingErikoisala
@@ -51,9 +41,7 @@ class SuoritteenKategoriaHelper {
         @JvmStatic
         fun createUpdatedEntity(em: EntityManager): SuoritteenKategoria {
             val suoritteenKategoria = SuoritteenKategoria(
-                nimi = UPDATED_NIMI,
-                voimassaolonAlkamispaiva = UPDATED_VOIMASSAOLON_ALKAMISPAIVA,
-                voimassaolonPaattymispaiva = UPDATED_VOIMASSAOLON_PAATTYMISPAIVA
+                nimi = UPDATED_NIMI
             )
 
             // Lisätään pakollinen tieto
