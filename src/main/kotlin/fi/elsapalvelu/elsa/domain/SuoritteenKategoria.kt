@@ -20,12 +20,8 @@ class SuoritteenKategoria(
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
 
-    @get: NotNull
-    @Column(name = "voimassaolon_alkamispaiva", nullable = false)
-    var voimassaolonAlkamispaiva: LocalDate? = null,
-
-    @Column(name = "voimassaolon_paattymispaiva")
-    var voimassaolonPaattymispaiva: LocalDate? = null,
+    @Column(name = "nimi_sv")
+    var nimiSv: String? = null,
 
     @OneToMany(mappedBy = "kategoria")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -52,8 +48,6 @@ class SuoritteenKategoria(
     override fun toString() = "Suorite{" +
         "id=$id" +
         ", nimi='$nimi'" +
-        ", voimassaolonAlkamispaiva='$voimassaolonAlkamispaiva'" +
-        ", voimassaolonPaattymispaiva='$voimassaolonPaattymispaiva'" +
         "}"
 
     companion object {
