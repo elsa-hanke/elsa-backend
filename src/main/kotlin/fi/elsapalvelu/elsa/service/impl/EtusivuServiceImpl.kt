@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.AvoinAsiaTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
+import fi.elsapalvelu.elsa.extensions.pattern
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.ErikoistujienSeurantaQueryService
 import fi.elsapalvelu.elsa.service.EtusivuService
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.persistence.EntityNotFoundException
 
@@ -254,11 +256,11 @@ class EtusivuServiceImpl(
         var locale = Locale.forLanguageTag("fi")
         if (user.langKey != null) locale = Locale.forLanguageTag(user.langKey)
 
-        mapVanhenevatKatseluoikeudetToAvoimetAsiat(
-            avoimetAsiatList,
-            opintooikeusId,
-            locale
-        )
+        mapVanhenevatKatseluoikeudetToAvoimetAsiatIfExists(avoimetAsiatList, opintooikeusId, locale)
+        mapKoulutussopimusPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
+        mapAloituskeskusteluPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
+        mapVastuuhenkilonarvioPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
+        mapSeurantajaksotPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
 
         return avoimetAsiatList.sortedBy { it.pvm }
     }
@@ -276,7 +278,7 @@ class EtusivuServiceImpl(
         }
     }
 
-    private fun mapVanhenevatKatseluoikeudetToAvoimetAsiat(
+    private fun mapVanhenevatKatseluoikeudetToAvoimetAsiatIfExists(
         avoimetAsiatList: MutableList<AvoinAsiaDTO>,
         opintooikeusId: Long,
         locale: Locale
@@ -527,5 +529,97 @@ class EtusivuServiceImpl(
 
     private fun getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset: Sequence<Opintosuoritus>): Boolean {
         return opintosuoritukset.any { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO && it.hyvaksytty }
+    }
+
+    private fun mapKoulutussopimusPalautettuIfExists(
+        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
+        opintooikeusId: Long,
+        locale: Locale
+    ) {
+        koejaksonKoulutussopimusRepository.findByOpintooikeusId(opintooikeusId).ifPresent {
+            if (!it.korjausehdotus.isNullOrBlank()) {
+                avoimetAsiatList.add(
+                    AvoinAsiaDTO(
+                        tyyppi = AvoinAsiaTyyppiEnum.KOULUTUSSOPIMUS,
+                        asia = messageSource.getMessage(
+                            "avoimetasiat.koulutussopimus",
+                            null,
+                            locale
+                        ),
+                        pvm = it.muokkauspaiva
+                    )
+                )
+            }
+        }
+    }
+
+    private fun mapAloituskeskusteluPalautettuIfExists(
+        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
+        opintooikeusId: Long,
+        locale: Locale
+    ) {
+        koejaksonAloituskeskusteluRepository.findByOpintooikeusId(opintooikeusId).ifPresent {
+            if (!it.korjausehdotus.isNullOrBlank()) {
+                avoimetAsiatList.add(
+                    AvoinAsiaDTO(
+                        tyyppi = AvoinAsiaTyyppiEnum.ALOITUSKESKUSTELU,
+                        asia = messageSource.getMessage(
+                            "avoimetasiat.aloituskeskustelu",
+                            null,
+                            locale
+                        ),
+                        pvm = it.muokkauspaiva
+                    )
+                )
+            }
+        }
+    }
+
+    private fun mapVastuuhenkilonarvioPalautettuIfExists(
+        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
+        opintooikeusId: Long,
+        locale: Locale
+    ) {
+        koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(opintooikeusId).ifPresent {
+            if (!it.korjausehdotus.isNullOrBlank()) {
+                avoimetAsiatList.add(
+                    AvoinAsiaDTO(
+                        tyyppi = AvoinAsiaTyyppiEnum.VASTUUHENKILON_ARVIO,
+                        asia = messageSource.getMessage(
+                            "avoimetasiat.vastuuhenkilonarvio",
+                            null,
+                            locale
+                        ),
+                        pvm = it.muokkauspaiva
+                    )
+                )
+            }
+        }
+    }
+
+    private fun mapSeurantajaksotPalautettuIfExists(
+        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
+        opintooikeusId: Long,
+        locale: Locale
+    ) {
+        seurantajaksoRepository.findByOpintooikeusId(opintooikeusId).forEach {
+            if (!it.korjausehdotus.isNullOrBlank()) {
+                avoimetAsiatList.add(
+                    AvoinAsiaDTO(
+                        id = it.id,
+                        tyyppi = AvoinAsiaTyyppiEnum.SEURANTAJAKSO,
+                        asia = messageSource.getMessage(
+                            "avoimetasiat.seurantajakso",
+                            arrayOf(
+                                "${it.alkamispaiva?.format(DateTimeFormatter.ofPattern(locale.pattern()))}",
+                                "${it.paattymispaiva?.format(DateTimeFormatter.ofPattern(locale.pattern()))}"
+                            ),
+                            locale
+                        ),
+                        pvm = it.tallennettu
+                    )
+                )
+            }
+        }
     }
 }
