@@ -149,9 +149,11 @@ class EtusivuServiceImpl(
         eteneminen.vaaditutSuoritemerkinnatLkm =
             getVaaditutSuoritemerkinnatLkm(opintooikeus, suoritemerkinnatMap.values.flatten())
 
-        val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!).asSequence()
+        val opintosuoritukset =
+            opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!).asSequence()
         eteneminen.koejaksoTila = getKoejaksoTila(opintooikeus, opintosuoritukset)
-        eteneminen.terveyskeskuskoulutusjaksoSuoritettu = getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
+        eteneminen.terveyskeskuskoulutusjaksoSuoritettu =
+            getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
 
         return eteneminen
     }
@@ -450,12 +452,7 @@ class EtusivuServiceImpl(
             suorite.voimassaolonPaattymispaiva,
             osaamisenArvioinninOppaanPvm
         )
-        val kategoriaVoimassa = isValidByVoimassaDate(
-            suorite.kategoria?.voimassaolonAlkamispaiva!!,
-            suorite.kategoria?.voimassaolonPaattymispaiva,
-            osaamisenArvioinninOppaanPvm
-        )
-        return !suoriteVoimassa || !kategoriaVoimassa
+        return !suoriteVoimassa
     }
 
     private fun isValidByVoimassaDate(
