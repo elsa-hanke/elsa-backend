@@ -20,6 +20,9 @@ class Suorite(
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
 
+    @Column(name = "nimi_sv")
+    var nimiSv: String? = null,
+
     @get: NotNull
     @Column(name = "voimassaolon_alkamispaiva", nullable = false)
     var voimassaolonAlkamispaiva: LocalDate? = null,
