@@ -109,7 +109,11 @@ data class Opintooikeus(
         fetch = FetchType.LAZY
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var annetutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf()
+    var annetutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf(),
+
+    @NotNull
+    @Column(name = "terveyskeskuskoulutusjakso_suoritettu")
+    var terveyskoulutusjaksoSuoritettu: Boolean = false
 
 ) : Serializable {
 

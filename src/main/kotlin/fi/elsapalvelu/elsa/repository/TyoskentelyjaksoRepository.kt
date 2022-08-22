@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.repository
 
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
@@ -38,5 +39,10 @@ interface TyoskentelyjaksoRepository : JpaRepository<Tyoskentelyjakso, Long> {
     fun findOneByIdAndOpintooikeusId(id: Long, opintooikeusId: Long): Tyoskentelyjakso?
 
     fun findAllByOpintooikeusIdAndLiitettyKoejaksoonTrue(opintooikeusId: Long): List<Tyoskentelyjakso>
+
+    fun findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
+        id: Long,
+        tyyppi: TyoskentelyjaksoTyyppi
+    ): List<Tyoskentelyjakso>
 
 }
