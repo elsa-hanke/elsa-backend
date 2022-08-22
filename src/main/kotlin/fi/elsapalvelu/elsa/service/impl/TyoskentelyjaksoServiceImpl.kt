@@ -330,6 +330,31 @@ class TyoskentelyjaksoServiceImpl(
         )
     }
 
+    override fun getTerveyskoulutusjaksoSuoritettu(opintooikeus: Opintooikeus): Boolean {
+        val tyoskentelyjaksot =
+            tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
+                opintooikeus.id!!,
+                TERVEYSKESKUS
+            )
+        val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
+            hyvaksiluettavatPerYearMap =
+                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(
+                    tyoskentelyjaksot
+                )
+        }
+        var suoritettuPituus = 0.0
+
+        tyoskentelyjaksot.forEach {
+            val tyoskentelyjaksonPituus =
+                tyoskentelyjaksonPituusCounterService.calculateInDays(it, hyvaksiluettavatCounter)
+            if (tyoskentelyjaksonPituus > 0) {
+                suoritettuPituus += tyoskentelyjaksonPituus
+            }
+        }
+
+        return suoritettuPituus >= opintooikeus.opintoopas!!.terveyskeskuskoulutusjaksonVahimmaispituus!!
+    }
+
     override fun updateLiitettyKoejaksoon(
         id: Long,
         opintooikeusId: Long,

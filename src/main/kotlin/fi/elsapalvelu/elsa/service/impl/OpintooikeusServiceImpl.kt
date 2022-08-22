@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
@@ -38,20 +39,28 @@ class OpintooikeusServiceImpl(
                 opintooikeusRepository.findById(it).get()
             )
         }
-        opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId)?.let {
-            return opintooikeusMapper.toDto(it)
-        }
+        opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId)
+            ?.let {
+                return opintooikeusMapper.toDto(it)
+            }
 
         throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
     }
 
     override fun findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId: String): Long {
         getImpersonatedOpintooikeusId()?.let { return it }
-        opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId)?.let {
-            return it.id!!
-        }
+        opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId)
+            ?.let {
+                return it.id!!
+            }
 
         throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
+    }
+
+    override fun findAllByTerveyskoulutusjaksoSuorittamatta(): List<Opintooikeus> {
+        return opintooikeusRepository.findAllByTerveyskoulutusjaksoSuorittamatta(
+            LocalDate.now(clock), allowedOpintooikeusTilat()
+        )
     }
 
     override fun onOikeus(user: User): Boolean {
@@ -97,7 +106,8 @@ class OpintooikeusServiceImpl(
 
     private fun getImpersonatedOpintooikeusId(): Long? {
         val authentication = SecurityContextHolder.getContext().authentication
-        val principal: Saml2AuthenticatedPrincipal = authentication.principal as Saml2AuthenticatedPrincipal
+        val principal: Saml2AuthenticatedPrincipal =
+            authentication.principal as Saml2AuthenticatedPrincipal
         val authorities = authentication.authorities.map { it.authority }
         if (authorities.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED) || authorities.contains(
                 ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA

@@ -226,5 +226,6 @@
     <include file="config/liquibase/changelog/20220816123221_modify_entity_ArvioitavaKokonaisuus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220818130154_modify_entity_SuoritteenKategoria.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220818130250_modify_entity_Suorite.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220822140527_modify_entity_Opintooikeus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

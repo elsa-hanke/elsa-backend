@@ -32,6 +32,8 @@ interface TyoskentelyjaksoService {
 
     fun getTilastot(opintooikeus: Opintooikeus): TyoskentelyjaksotTilastotDTO
 
+    fun getTerveyskoulutusjaksoSuoritettu(opintooikeus: Opintooikeus): Boolean
+
     fun updateLiitettyKoejaksoon(
         id: Long,
         opintooikeusId: Long,
