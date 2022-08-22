@@ -9,7 +9,8 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 @Repository
-interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>, JpaSpecificationExecutor<Opintooikeus> {
+interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>,
+    JpaSpecificationExecutor<Opintooikeus> {
 
     fun findAllByErikoistuvaLaakariKayttajaUserId(userId: String): List<Opintooikeus>
 
@@ -78,4 +79,17 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>, JpaSpecifi
     fun findByKouluttajaValtuutus(kayttajaId: Long): List<Opintooikeus>
 
     fun findOneById(id: Long): Opintooikeus?
+
+    @Query(
+        """
+        select o from Opintooikeus o
+        where :betweenDate between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        and o.tila in :validStates and o.erikoisala.liittynytElsaan = true
+        and o.terveyskoulutusjaksoSuoritettu = false
+        """
+    )
+    fun findAllByTerveyskoulutusjaksoSuorittamatta(
+        betweenDate: LocalDate,
+        validStates: List<OpintooikeudenTila>
+    ): List<Opintooikeus>
 }

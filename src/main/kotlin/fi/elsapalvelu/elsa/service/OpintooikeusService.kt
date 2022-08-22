@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.service.dto.OpintooikeusDTO
 
@@ -9,6 +10,8 @@ interface OpintooikeusService {
     fun findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId: String): OpintooikeusDTO
 
     fun findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId: String): Long
+
+    fun findAllByTerveyskoulutusjaksoSuorittamatta(): List<Opintooikeus>
 
     fun onOikeus(user: User): Boolean
 
