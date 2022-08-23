@@ -230,7 +230,7 @@ type Query {
   private_person_by_student_number(id: ID!): PrivatePerson!
   private_person_by_employee_number(id: ID!): PrivatePerson!
   private_person_by_oppija_id(id: ID!): PrivatePerson!
-  private_person_by_personal_identity_code(id: ID!): PrivatePerson!
+  private_person_by_personal_identity_code(id: ID!): PrivatePerson
   public_persons(ids: [ID!]!): [PublicPerson!]!
   public_person(id: ID!): PublicPerson!
   student_payments(studentId: ID!): [StudentPayment!]!
