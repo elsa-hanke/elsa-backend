@@ -2,7 +2,10 @@ package fi.elsapalvelu.elsa.repository
 
 import fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.*
 
@@ -36,4 +39,9 @@ interface KouluttajavaltuutusRepository : JpaRepository<Kouluttajavaltuutus, Lon
         valtuuttajaOpintooikeusId: Long,
         valtuutettuId: String
     ): Optional<Kouluttajavaltuutus>
+
+    @Transactional
+    @Modifying
+    @Query("update Kouluttajavaltuutus k set k.valtuutettu.id = :newKayttajaId where k.valtuutettu.id = :currentKayttajaId")
+    fun changeKouluttaja(currentKayttajaId: Long, newKayttajaId: Long)
 }
