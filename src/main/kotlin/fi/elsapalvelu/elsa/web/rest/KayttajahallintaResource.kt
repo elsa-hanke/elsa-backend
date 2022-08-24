@@ -481,7 +481,7 @@ open class KayttajahallintaResource(
     }
 
     private fun validateEmailNotExists(sahkoposti: String, userDTO: UserDTO? = null) {
-        if ((userDTO == null || userDTO.email != sahkoposti) && userService.existsByEmail(sahkoposti)) {
+        if ((userDTO == null || userDTO.email?.lowercase() != sahkoposti.lowercase()) && userService.existsByEmail(sahkoposti)) {
             throw BadRequestAlertException(
                 "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
                 KAYTTAJA_ENTITY_NAME,

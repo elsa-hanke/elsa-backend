@@ -49,10 +49,10 @@ class KayttajaResource(
         principal: Principal?
     ): UserDTO {
         val userId = userService.getAuthenticatedUser(principal).id!!
-        val email = omatTiedotDTO.email!!
+        val email = omatTiedotDTO.email!!.lowercase()
 
         val userDTO = userService.getUser(userId)
-        if (userDTO.email != email && userService.existsByEmail(email)) {
+        if (userDTO.email?.lowercase() != email && userService.existsByEmail(email)) {
             throw BadRequestAlertException(
                 "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
                 KAYTTAJA_ENTITY_NAME,

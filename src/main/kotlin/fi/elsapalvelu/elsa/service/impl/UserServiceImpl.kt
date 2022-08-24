@@ -192,7 +192,7 @@ class UserServiceImpl(
                     existingKayttaja.id!!
                 )
 
-                existingUser.email = tokenUser.email
+                existingUser.email = tokenUser.email?.lowercase()
                 existingUser.authorities.clear()
                 existingUser.authorities.addAll(tokenUser.authorities)
 

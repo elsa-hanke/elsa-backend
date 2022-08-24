@@ -89,7 +89,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                     UserDTO(
                         id = UUID.randomUUID().toString(),
                         login = uusiLahikouluttajaDTO.sahkoposti,
-                        email = uusiLahikouluttajaDTO.sahkoposti,
+                        email = uusiLahikouluttajaDTO.sahkoposti?.lowercase(),
                         activated = true,
                         authorities = setOf(KOULUTTAJA)
                     )
