@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.config.LoginException
 import fi.elsapalvelu.elsa.domain.Authority
+import fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.VerificationToken
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
@@ -29,6 +30,7 @@ import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
+import javax.persistence.EntityManager
 import javax.persistence.EntityNotFoundException
 
 
@@ -38,12 +40,15 @@ class UserServiceImpl(
     private val userRepository: UserRepository,
     private val verificationTokenRepository: VerificationTokenRepository,
     private val kayttajaRepository: KayttajaRepository,
+    private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
+    private val kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository,
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
     private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
-    private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
+    private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
+    private val entityManager: EntityManager
 ) : UserService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -192,13 +197,25 @@ class UserServiceImpl(
                     existingKayttaja.id!!
                 )
 
-                existingUser.email = tokenUser.email?.lowercase()
                 existingUser.authorities.clear()
                 existingUser.authorities.addAll(tokenUser.authorities)
 
                 kayttajaRepository.delete(tokenKayttaja)
                 verificationTokenRepository.delete(token)
                 userRepository.delete(tokenUser)
+                entityManager.flush()
+
+                existingUser.email = tokenUser.email?.lowercase()
+                tokenKayttaja.yliopistotAndErikoisalat.map {
+                    val movedKayttajaYliopistoErikoisala = KayttajaYliopistoErikoisala(
+                        kayttaja = existingKayttaja,
+                        yliopisto = it.yliopisto,
+                        erikoisala = it.erikoisala
+                    )
+                    kayttajaYliopistoErikoisalaRepository.save(movedKayttajaYliopistoErikoisala)
+                    existingKayttaja.yliopistotAndErikoisalat.add(movedKayttajaYliopistoErikoisala)
+                }
+                kayttajaRepository.save(existingKayttaja)
                 userRepository.save(existingUser)
             } else {
                 cipher.init(Cipher.ENCRYPT_MODE, originalKey)
@@ -262,6 +279,7 @@ class UserServiceImpl(
     }
 
     private fun updateKouluttajaReferences(oldId: Long, newId: Long) {
+        kouluttajavaltuutusRepository.changeKouluttaja(oldId, newId)
         suoritusarviointiRepository.changeKouluttaja(oldId, newId)
         koejaksonKoulutussopimusRepository.changeKouluttaja(oldId, newId)
         koejaksonAloituskeskusteluRepository.changeKouluttaja(oldId, newId)
