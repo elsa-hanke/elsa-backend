@@ -752,6 +752,58 @@ class OpintotietodataPersistenceServiceIT {
         assertOpintooikeusDataNotUpdated(opintooikeus)
     }
 
+    @ParameterizedTest
+    @EnumSource(YliopistoEnum::class)
+    @Transactional
+    fun shouldPersistOpintotietodataWithLatestOpintoopasWithPaattymispaivaNull(yliopisto: YliopistoEnum) {
+        val opintooikeudenMyontamispaiva = LocalDate.ofEpochDay(25L)
+        val opintotietodataDTO = OpintotietodataDTO(
+            syntymaaika,
+            opintooikeudet = listOf(
+                createOpintooikeusData(
+                    yliopisto = yliopisto,
+                    opintooikeudenMyontamispaiva = opintooikeudenMyontamispaiva
+                )
+            )
+        )
+
+        opintotietodataPersistenceService.create(
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            listOf(opintotietodataDTO)
+        )
+
+        val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
+        assertNotNull(existingUser)
+        assertUserProperties(existingUser)
+
+        val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(existingUser.id!!)
+        assertThat(opintooikeudet).size().isEqualTo(1)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(existingUser.id!!)
+        assertThat(erikoistuvaLaakari?.syntymaaika).isEqualTo(syntymaaika)
+
+        val opintooikeus = opintooikeudet.first()
+        assertThat(opintooikeus.erikoistuvaLaakari).isNotNull
+        assertThat(opintooikeus.erikoistuvaLaakari!!.id).isEqualTo(erikoistuvaLaakari!!.id)
+        assertThat(opintooikeus.yliopistoOpintooikeusId).isEqualTo(opintooikeusId)
+        assertThat(opintooikeus.yliopisto?.nimi).isEqualTo(yliopisto)
+        assertThat(opintooikeus.opiskelijatunnus).isEqualTo(opiskelijatunnus)
+        assertThat(opintooikeus.erikoisala).isEqualTo(erikoisala)
+        assertThat(opintooikeus.opintooikeudenMyontamispaiva).isEqualTo(opintooikeudenMyontamispaiva)
+        assertThat(opintooikeus.opintooikeudenPaattymispaiva).isEqualTo(defaultOpintooikeudenPaattymispaiva)
+        assertThat(opintooikeus.asetus).isEqualTo(asetus)
+        assertThat(opintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
+        assertThat(opintooikeus.opintoopas?.voimassaoloPaattyy).isNull()
+        assertThat(opintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
+        assertThat(opintooikeus.kaytossa).isEqualTo(true)
+        assertThat(opintooikeus.muokkausaika).isNotNull
+        assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
+    }
+
     private fun initUserWithOpintooikeus(
         opintooikeusId: String? = null,
         opintooikeudenMyontamispaiva: LocalDate = defaultOpintooikeudenMyontamispaiva,
@@ -848,14 +900,18 @@ class OpintotietodataPersistenceServiceIT {
         private const val secondTutkintoohjelmaId = "int-test-DP-2"
 
         @JvmStatic
-        fun createOpintooikeusData(yliopisto: YliopistoEnum): OpintotietoOpintooikeusDataDTO {
+        fun createOpintooikeusData(
+            yliopisto: YliopistoEnum,
+            opintooikeudenMyontamispaiva: LocalDate = defaultOpintooikeudenMyontamispaiva,
+            opintooikeudenPaattymispaiva: LocalDate = defaultOpintooikeudenPaattymispaiva
+        ): OpintotietoOpintooikeusDataDTO {
             val erikoisalaTunniste =
                 if (yliopisto == YliopistoEnum.HELSINGIN_YLIOPISTO) tutkintoohjelmaId
                 else virtaKoodi
             return OpintotietoOpintooikeusDataDTO(
                 opintooikeusId,
-                defaultOpintooikeudenMyontamispaiva,
-                defaultOpintooikeudenPaattymispaiva,
+                opintooikeudenMyontamispaiva,
+                opintooikeudenPaattymispaiva,
                 asetusNimi,
                 listOf(erikoisalaTunniste),
                 OpintooikeudenTila.AKTIIVINEN,
@@ -865,14 +921,18 @@ class OpintotietodataPersistenceServiceIT {
         }
 
         @JvmStatic
-        fun createSecondOpintooikeusData(yliopisto: YliopistoEnum): OpintotietoOpintooikeusDataDTO {
+        fun createSecondOpintooikeusData(
+            yliopisto: YliopistoEnum,
+            opintooikeudenMyontamispaiva: LocalDate = defaultSecondOpintooikeudenMyontamispaiva,
+            opintooikeudenPaattymispaiva: LocalDate = defaultSecondOpintooikeudenPaattymispaiva
+        ): OpintotietoOpintooikeusDataDTO {
             val erikoisalaTunniste =
                 if (yliopisto == YliopistoEnum.HELSINGIN_YLIOPISTO) secondTutkintoohjelmaId
                 else secondVirtaKoodi
             return OpintotietoOpintooikeusDataDTO(
                 secondOpintooikeusId,
-                defaultSecondOpintooikeudenMyontamispaiva,
-                defaultSecondOpintooikeudenPaattymispaiva,
+                opintooikeudenMyontamispaiva,
+                opintooikeudenPaattymispaiva,
                 secondAsetusNimi,
                 listOf(erikoisalaTunniste),
                 OpintooikeudenTila.AKTIIVINEN,
