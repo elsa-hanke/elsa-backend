@@ -315,7 +315,7 @@ class SecurityConfiguration(
                 existingUser?.let { user ->
                     fetchAndHandleOpintosuorituksetNonBlocking(user.id!!, hetu)
                 }
-            } else if (hasErikoistuvaLaakariRole(existingUser)) {
+            } else {
                 fetchAndUpdateOpintotietodataIfChanged(existingUser.id!!, hetu, firstName, lastName)
                 fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id!!, hetu)
                 opintooikeusService.checkOpintooikeusKaytossaValid(existingUser)
@@ -360,9 +360,8 @@ class SecurityConfiguration(
     }
 
     private fun shouldFetchOpintotietodata(existingUser: User?, tokenUser: User?, hetu: String?): Boolean =
-        (existingUser == null || existingUser.authorities.contains(Authority(ERIKOISTUVA_LAAKARI))) && (tokenUser == null || tokenUser.authorities.contains(
-            Authority(ERIKOISTUVA_LAAKARI)
-        )) && hetu != null
+        (existingUser == null || hasErikoistuvaLaakariRole(existingUser)) && (tokenUser == null ||
+            hasErikoistuvaLaakariRole(tokenUser)) && hetu != null
 
     private fun hasErikoistuvaLaakariRole(user: User): Boolean =
         user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))
