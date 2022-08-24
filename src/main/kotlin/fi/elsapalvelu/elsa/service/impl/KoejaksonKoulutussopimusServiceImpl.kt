@@ -7,8 +7,6 @@ import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
-import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
-import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
@@ -127,7 +125,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                 val kouluttaja =
                     koejaksonKoulutussopimusDTO.kouluttajat?.first { it.kayttajaUserId == userId }
                 user.phoneNumber = kouluttaja?.puhelin
-                user.email = kouluttaja?.sahkoposti
+                user.email = kouluttaja?.sahkoposti?.lowercase()
                 kayttaja.nimike = kouluttaja?.nimike
                 userRepository.save(user)
                 kayttajaRepository.save(kayttaja)
