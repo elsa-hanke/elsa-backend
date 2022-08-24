@@ -509,8 +509,8 @@ class OpintotietodataPersistenceServiceImpl(
         return opintoopasRepository.findOneByErikoisalaIdAndVoimassaDate(erikoisalaId, voimassaDate)
             ?: run {
                 log.warn(
-                    "$yliopisto, user id: $userId. $voimassaDate voimassaolevaa opinto-opasta " +
-                        "ei löytynyt erikoisalalle $erikoisalaId"
+                    "$yliopisto, user id: $userId. Voimassaolevaa opinto-opasta " +
+                        "ei löytynyt erikoisalalle $erikoisalaId. Opinto-oikeuden alkamispäivä: $voimassaDate"
                 )
                 return null
             }
