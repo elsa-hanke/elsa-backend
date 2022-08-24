@@ -16,7 +16,8 @@ interface OpintoopasRepository : JpaRepository<Opintoopas, Long> {
         """
         select o from Opintoopas o
         join o.erikoisala e
-        where e.id = :erikoisalaId and :voimassaDate between o.voimassaoloAlkaa and o.voimassaoloPaattyy
+        where e.id = :erikoisalaId and ((:voimassaDate between o.voimassaoloAlkaa and o.voimassaoloPaattyy)
+        or (:voimassaDate >= o.voimassaoloAlkaa and o.voimassaoloPaattyy is null))
         """
     )
     fun findOneByErikoisalaIdAndVoimassaDate(
