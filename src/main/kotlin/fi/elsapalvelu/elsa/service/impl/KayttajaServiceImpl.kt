@@ -173,7 +173,7 @@ class KayttajaServiceImpl(
         erikoistuvaUserId: String,
         kouluttajaEmail: String
     ): KayttajaDTO? {
-        return kayttajaRepository.findOneByUserEmail(kouluttajaEmail).orElse(null)?.let {
+        return kayttajaRepository.findOneByUserEmail(kouluttajaEmail.lowercase()).orElse(null)?.let {
             val opintooikeus =
                 requireNotNull(
                     opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(
