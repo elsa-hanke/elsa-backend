@@ -2,10 +2,7 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.config.LoginException
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.VerificationToken
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.UserService
@@ -158,25 +155,7 @@ class UserServiceImpl(
         lastName: String
     ) {
         tokenUser?.let {
-            // Kutsutun käyttäjä etu- ja sukunimi tulee olla tarpeeksi lähellä
-            // kutsussa syötettyjä tietoja
-            val distance = LevenshteinDistance()
-            val firstNameDistFirst = distance.apply(tokenUser.firstName, firstName)
-            val firstNameDistLast = distance.apply(tokenUser.firstName, lastName)
-            val lastNameDistFirst = distance.apply(tokenUser.lastName, firstName)
-            val lastNameDistLast = distance.apply(tokenUser.lastName, lastName)
-            val treshhold = 2
-            if ((firstNameDistFirst > treshhold && firstNameDistLast > treshhold)
-                || (lastNameDistFirst > treshhold && lastNameDistLast > treshhold)
-            ) {
-                log.error(
-                    "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
-                        "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole" +
-                        "tarpeeksi lähellä käyttäjän nimeä."
-                )
-                throw Exception(LoginException.VIRHEELLINEN_NIMI.name)
-            }
-
+            validateUserFirstAndLastName(tokenUser, firstName, lastName, eppn)
             val existingUser =
                 findExistingUser(cipher, originalKey, hetu, eppn)
 
@@ -197,24 +176,10 @@ class UserServiceImpl(
                     existingKayttaja.id!!
                 )
 
-                existingUser.authorities.clear()
-                existingUser.authorities.addAll(tokenUser.authorities)
-
-                kayttajaRepository.delete(tokenKayttaja)
-                verificationTokenRepository.delete(token)
-                userRepository.delete(tokenUser)
-                entityManager.flush()
-
+                copyTokenUserAuthorities(existingUser, tokenUser)
+                deleteTokenUser(tokenKayttaja, token, tokenUser)
                 existingUser.email = tokenUser.email?.lowercase()
-                tokenKayttaja.yliopistotAndErikoisalat.map {
-                    val movedKayttajaYliopistoErikoisala = KayttajaYliopistoErikoisala(
-                        kayttaja = existingKayttaja,
-                        yliopisto = it.yliopisto,
-                        erikoisala = it.erikoisala
-                    )
-                    kayttajaYliopistoErikoisalaRepository.save(movedKayttajaYliopistoErikoisala)
-                    existingKayttaja.yliopistotAndErikoisalat.add(movedKayttajaYliopistoErikoisala)
-                }
+                copyTokenUserYliopistotAndErikoisalat(tokenKayttaja, existingKayttaja)
                 kayttajaRepository.save(existingKayttaja)
                 userRepository.save(existingUser)
             } else {
@@ -290,5 +255,65 @@ class UserServiceImpl(
         koejaksonKehittamistoimenpiteetRepository.changeEsimies(oldId, newId)
         koejaksonLoppukeskusteluRepository.changeKouluttaja(oldId, newId)
         koejaksonLoppukeskusteluRepository.changeEsimies(oldId, newId)
+    }
+
+    private fun validateUserFirstAndLastName(
+        tokenUser: User,
+        firstName: String,
+        lastName: String,
+        eppn: String?
+    ) {
+        // Kutsutun käyttäjä etu- ja sukunimi tulee olla tarpeeksi lähellä
+        // kutsussa syötettyjä tietoja
+        val distance = LevenshteinDistance()
+        val firstNameDistFirst = distance.apply(tokenUser.firstName, firstName)
+        val firstNameDistLast = distance.apply(tokenUser.firstName, lastName)
+        val lastNameDistFirst = distance.apply(tokenUser.lastName, firstName)
+        val lastNameDistLast = distance.apply(tokenUser.lastName, lastName)
+        val treshhold = 2
+        if ((firstNameDistFirst > treshhold && firstNameDistLast > treshhold)
+            || (lastNameDistFirst > treshhold && lastNameDistLast > treshhold)
+        ) {
+            log.error(
+                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
+                    "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole" +
+                    "tarpeeksi lähellä käyttäjän nimeä."
+            )
+            throw Exception(LoginException.VIRHEELLINEN_NIMI.name)
+        }
+    }
+
+    private fun copyTokenUserAuthorities(
+        existingUser: User,
+        tokenUser: User
+    ) {
+        existingUser.authorities.clear()
+        existingUser.authorities.addAll(tokenUser.authorities)
+    }
+
+    private fun deleteTokenUser(
+        tokenKayttaja: Kayttaja,
+        token: VerificationToken,
+        tokenUser: User
+    ) {
+        kayttajaRepository.delete(tokenKayttaja)
+        verificationTokenRepository.delete(token)
+        userRepository.delete(tokenUser)
+        entityManager.flush()
+    }
+
+    private fun copyTokenUserYliopistotAndErikoisalat(
+        tokenKayttaja: Kayttaja,
+        existingKayttaja: Kayttaja
+    ) {
+        tokenKayttaja.yliopistotAndErikoisalat.map {
+            val movedKayttajaYliopistoErikoisala = KayttajaYliopistoErikoisala(
+                kayttaja = existingKayttaja,
+                yliopisto = it.yliopisto,
+                erikoisala = it.erikoisala
+            )
+            kayttajaYliopistoErikoisalaRepository.save(movedKayttajaYliopistoErikoisala)
+            existingKayttaja.yliopistotAndErikoisalat.add(movedKayttajaYliopistoErikoisala)
+        }
     }
 }
