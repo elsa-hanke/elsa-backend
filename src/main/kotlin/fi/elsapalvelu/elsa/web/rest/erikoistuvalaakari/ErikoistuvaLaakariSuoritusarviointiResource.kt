@@ -270,4 +270,12 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
             .noContent()
             .build()
     }
+
+    @GetMapping("/arvioitavatkokonaisuudet")
+    fun getArvioitavatKokonaisuudet(principal: Principal?): ResponseEntity<List<ArvioitavaKokonaisuusDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        return ResponseEntity.ok(arvioitavaKokonaisuusService.findAllByOpintooikeusId(opintooikeusId))
+    }
 }
