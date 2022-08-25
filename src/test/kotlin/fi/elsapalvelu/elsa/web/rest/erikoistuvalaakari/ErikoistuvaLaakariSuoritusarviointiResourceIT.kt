@@ -2,17 +2,13 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
-import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavaKokonaisuusHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
@@ -175,7 +171,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
         requireNotNull(erikoistuvaLaakari)
-        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        val newOpintooikeus =
+            OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
         OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
 
         val suoritusarviointiForAnotherOpintooikeus = createEntity(em)
@@ -183,7 +180,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         em.persist(tyoskentelyjakso)
 
         suoritusarviointiForAnotherOpintooikeus.tyoskentelyjakso = tyoskentelyjakso
-        suoritusarviointiForAnotherOpintooikeus.arviointiasteikko = erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintoopas?.arviointiasteikko
+        suoritusarviointiForAnotherOpintooikeus.arviointiasteikko =
+            erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintoopas?.arviointiasteikko
 
         em.persist(suoritusarviointiForAnotherOpintooikeus)
 
@@ -283,6 +281,17 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.kouluttajatAndVastuuhenkilot").value(Matchers.hasSize<Any>(0)))
     }
 
+    @Test
+    @Transactional
+    fun getArvioitavatKokonaisuudet() {
+        initTest()
+
+        restSuoritusarviointiMockMvc.perform(get("/api/erikoistuva-laakari/arvioitavatkokonaisuudet"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(Matchers.hasSize<Int>(2)))
+    }
+
     fun initTest(userId: String? = DEFAULT_ID) {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
@@ -309,7 +318,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).get(0)
         }
         suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
-        suoritusarviointi.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
+        suoritusarviointi.arviointiasteikko =
+            tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
     }
 
     companion object {
