@@ -35,7 +35,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
 ) {
     @GetMapping("/erikoisalat")
     fun getErikoisalat(): ResponseEntity<List<ErikoisalaDTO>> {
-        return ResponseEntity.ok(erikoisalaService.findAllByLiittynytElsaan())
+        return ResponseEntity.ok(erikoisalaService.findAll())
     }
 
     @GetMapping("/erikoisalat/{id}")
