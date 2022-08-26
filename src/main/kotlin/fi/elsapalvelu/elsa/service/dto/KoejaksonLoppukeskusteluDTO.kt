@@ -16,7 +16,6 @@ data class KoejaksonLoppukeskusteluDTO(
     @get: NotNull
     var erikoistuvanErikoisala: String? = null,
 
-    @get: NotNull
     var erikoistuvanOpiskelijatunnus: String? = null,
 
     @get: NotNull
