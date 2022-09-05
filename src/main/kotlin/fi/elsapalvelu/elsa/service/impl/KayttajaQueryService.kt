@@ -30,7 +30,7 @@ class KayttajaQueryService(
         criteria: KayttajahallintaCriteria?,
         authority: String,
         pageable: Pageable,
-        yliopistoId: Long?,
+        yliopistoId: Long,
         langkey: String?
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val specification: Specification<Kayttaja> = Specification.where { root, cq, cb ->
@@ -105,34 +105,30 @@ class KayttajaQueryService(
     }
 
     private fun getKayttajaYliopistoErikoisalaPredicate(
-        yliopistoId: Long?,
+        yliopistoId: Long,
         root: Root<Kayttaja>,
         cq: CriteriaQuery<*>,
         cb: CriteriaBuilder
     ): Predicate? {
-        return yliopistoId?.let {
-            val subquery = cq.subquery(Long::class.java)
-            val subRoot = subquery.from(KayttajaYliopistoErikoisala::class.java)
-            val rootJoin = subRoot.join(KayttajaYliopistoErikoisala_.kayttaja)
-            val yliopistoJoin = subRoot.join(KayttajaYliopistoErikoisala_.yliopisto)
-            subquery.select(subRoot.get(KayttajaYliopistoErikoisala_.id))
-            subquery.where(
-                cb.equal(yliopistoJoin.get(Yliopisto_.id), yliopistoId),
-                cb.equal(root.get(Kayttaja_.id), rootJoin.get(Kayttaja_.id))
-            )
-            return cb.exists(subquery)
-        }
+        val subquery = cq.subquery(Long::class.java)
+        val subRoot = subquery.from(KayttajaYliopistoErikoisala::class.java)
+        val rootJoin = subRoot.join(KayttajaYliopistoErikoisala_.kayttaja)
+        val yliopistoJoin = subRoot.join(KayttajaYliopistoErikoisala_.yliopisto)
+        subquery.select(subRoot.get(KayttajaYliopistoErikoisala_.id))
+        subquery.where(
+            cb.equal(yliopistoJoin.get(Yliopisto_.id), yliopistoId),
+            cb.equal(root.get(Kayttaja_.id), rootJoin.get(Kayttaja_.id))
+        )
+        return cb.exists(subquery)
     }
 
     private fun getKayttajaYliopistoPredicate(
-        yliopistoId: Long?,
+        yliopistoId: Long,
         root: Root<Kayttaja>,
         cb: CriteriaBuilder
     ): Predicate? {
-        return yliopistoId?.let {
-            val rootJoin = root.join(Kayttaja_.yliopistot)
-            return cb.`in`(rootJoin.get(Yliopisto_.id)).value(yliopistoId)
-        }
+        val rootJoin = root.join(Kayttaja_.yliopistot)
+        return cb.`in`(rootJoin.get(Yliopisto_.id)).value(yliopistoId)
     }
 
     private fun getErikoisalaPredicate(
