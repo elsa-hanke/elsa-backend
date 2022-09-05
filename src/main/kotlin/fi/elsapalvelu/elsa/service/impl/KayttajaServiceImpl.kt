@@ -230,7 +230,7 @@ class KayttajaServiceImpl(
             criteria,
             authority,
             pageable,
-            yliopisto.id,
+            yliopisto.id!!,
             kayttaja.user?.langKey
         )
     }
