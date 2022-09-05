@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220826163921" author="jhipster">
+        <addColumn tableName="erikoistuva_laakari">
+            <column name="laillistamispaiva" type="date"/>
+            <column name="laillistamispaivan_liitetiedosto" type="longblob"/>
+            <column name="laillistamispaivan_liitetiedoston_nimi" type="text"/>
+            <column name="laillistamispaivan_liitetiedoston_tyyppi" type="text"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
