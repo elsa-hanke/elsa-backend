@@ -228,5 +228,6 @@
     <include file="config/liquibase/changelog/20220818130250_modify_entity_Suorite.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220822140527_modify_entity_Opintooikeus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220826163921_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220830141758_added_entity_TerveyskeskusKoulutusjaksonHyvaksynta.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
