@@ -335,9 +335,10 @@ class OpintosuorituksetPersistenceServiceImpl(
             erikoistuvaLaakariId,
             opintosuoritusDTO.yliopistoOpintooikeusId!!
         ) ?: run {
-            log.error(
+            log.warn(
                 "${javaClass.name}: user id: $userId. Opinto-oikeutta ei löydy Elsasta" +
-                    " opintosuoritukselle $opintosuoritusDTO."
+                    " opintosuoritukselle $opintosuoritusDTO. Kyseessä voi olla vanhentunut opinto-oikeus, " +
+                    "jota ei ole tallennettu Elsaan tai suorituksen opinto-oikeus id on virheellinen."
             )
             return null
         }
