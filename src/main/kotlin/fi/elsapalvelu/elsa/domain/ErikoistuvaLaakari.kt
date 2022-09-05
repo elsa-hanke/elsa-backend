@@ -28,7 +28,20 @@ data class ErikoistuvaLaakari(
     @NotEmpty
     @OneToMany(mappedBy = "erikoistuvaLaakari")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var opintooikeudet: MutableSet<Opintooikeus> = mutableSetOf()
+    var opintooikeudet: MutableSet<Opintooikeus> = mutableSetOf(),
+
+    @Column(name = "laillistamispaiva")
+    var laillistamispaiva: LocalDate? = null,
+
+    @Lob
+    @Column(name = "laillistamispaivan_liitetiedosto")
+    var laillistamispaivanLiitetiedosto: ByteArray? = null,
+
+    @Column(name = "laillistamispaivan_liitetiedoston_nimi")
+    var laillistamispaivanLiitetiedostonNimi: String? = null,
+
+    @Column(name = "laillistamispaivan_liitetiedoston_tyyppi")
+    var laillistamispaivanLiitetiedostonTyyppi: String? = null
 
 ) : Serializable {
 
