@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
+import java.time.LocalDate
 import javax.persistence.EntityNotFoundException
 import javax.validation.Valid
 import javax.validation.ValidationException
@@ -37,7 +38,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val overlappingTyoskentelyjaksoValidationService: OverlappingTyoskentelyjaksoValidationService,
     private val overlappingKeskeytysaikaValidationService: OverlappingKeskeytysaikaValidationService,
     private val opintooikeusService: OpintooikeusService,
-    private val koulutusjaksoService: KoulutusjaksoService
+    private val koulutusjaksoService: KoulutusjaksoService,
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
+    private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -116,6 +119,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         table.keskeytykset = keskeytysaikaService
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
         table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeusId)
+        terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)?.let {
+            table.terveyskeskuskoulutusjaksoLahetetty = it.vastuuhenkiloHyvaksynyt != true
+        }
 
         return ResponseEntity.ok(table)
     }
@@ -144,6 +150,26 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         tyoskentelyjaksoService.findOne(id, opintooikeusId)?.let {
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+    }
+
+    @PutMapping("/tyoskentelyjaksot/{id}/asiakirjat")
+    fun updateTyoskentelyjaksoAsiakirjat(
+        @PathVariable id: Long,
+        @Valid @RequestParam addedFiles: List<MultipartFile>?,
+        @RequestParam deletedFiles: List<Int>?,
+        principal: Principal?
+    ): ResponseEntity<TyoskentelyjaksoDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        tyoskentelyjaksoService.updateAsiakirjat(
+            id,
+            getMappedFiles(addedFiles, opintooikeusId),
+            deletedFiles?.toSet()
+        )?.let {
+            return ResponseEntity.ok(it)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @DeleteMapping("/tyoskentelyjaksot/{id}")
@@ -352,12 +378,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     }
 
     @GetMapping("/tyoskentelyjaksot/terveyskeskuskoulutusjakso")
-    fun getTerveyskeskuskoulutusjakso(principal: Principal?): ResponseEntity<TerveyskeskuskoulutusjaksoDTO> {
+    fun getTerveyskeskuskoulutusjakso(principal: Principal?): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         try {
-            tyoskentelyjaksoService.getTerveyskeskuskoulutusjakso(opintooikeusId).let {
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusIdOrCreateNew(
+                opintooikeusId
+            ).let {
                 return ResponseEntity.ok(it)
             }
         } catch (e: EntityNotFoundException) {
@@ -372,6 +400,37 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 TYOSKENTELYJAKSO_ENTITY_NAME,
                 "dataillegal.terveyskeskuskoulutusjakson-vahimmaispituus-ei-tayty"
             )
+        }
+    }
+
+    @PostMapping("/tyoskentelyjaksot/terveyskeskuskoulutusjakson-hyvaksynta")
+    fun createTerveyskeskuskoulutusjaksonHyvaksynta(
+        @RequestParam(required = false) laillistamispaiva: LocalDate?,
+        @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
+        principal: Principal?
+    ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        if (terveyskeskuskoulutusjaksonHyvaksyntaService.existsByOpintooikeusId(opintooikeusId)) {
+            throw BadRequestAlertException(
+                "Terveyskeskuskoulutusjakson hyväksyntä on jo lähetetty",
+                "terveyskeskuskoulutusjakso",
+                "dataillegal.terveyskeskuskoulutusjakson-hyvaksynta-on-jo-lahetetty"
+            )
+        }
+
+        erikoistuvaLaakariService.updateLaillistamispaiva(
+            user.id!!,
+            laillistamispaiva,
+            laillistamispaivanLiite?.bytes,
+            laillistamispaivanLiite?.name,
+            laillistamispaivanLiite?.contentType
+        )
+
+        terveyskeskuskoulutusjaksonHyvaksyntaService.create(opintooikeusId).let {
+            return ResponseEntity.ok(it)
         }
     }
 

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
     private val opintooikeusService: OpintooikeusService,
-    private val tyoskentelyjaksoService: TyoskentelyjaksoService,
+    private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
     private val opintooikeusRepository: OpintooikeusRepository
@@ -29,7 +29,10 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
         runBlocking {
             try {
                 opintooikeusService.findAllByTerveyskoulutusjaksoSuorittamatta().forEach {
-                    if (tyoskentelyjaksoService.getTerveyskoulutusjaksoSuoritettu(it)) {
+                    if (terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(
+                            it
+                        )
+                    ) {
                         it.terveyskoulutusjaksoSuoritettu = true
                         opintooikeusRepository.save(it)
 

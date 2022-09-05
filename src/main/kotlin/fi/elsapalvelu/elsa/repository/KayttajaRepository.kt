@@ -56,6 +56,17 @@ interface KayttajaRepository : JpaRepository<Kayttaja, Long>, JpaSpecificationEx
     ): Kayttaja?
 
     @Query(
+        "select k from Kayttaja k join k.user u left join u.authorities a left join k.yliopistotAndErikoisalat ye " +
+            "left join ye.vastuuhenkilonTehtavat vt where a.name in :authorities and k.id = ye.kayttaja.id " +
+            "and ye.yliopisto.id = :yliopistoId and vt.nimi = :vastuuhenkilonTehtavatyyppi"
+    )
+    fun findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
+        authorities: List<String>,
+        yliopistoId: Long?,
+        vastuuhenkilonTehtavatyyppi: VastuuhenkilonTehtavatyyppiEnum
+    ): Kayttaja?
+
+    @Query(
         "select k from Kayttaja k join k.user u left join u.authorities a left join k.yliopistotAndErikoisalat y " +
             "where a.name in :authorities and k.id = y.kayttaja.id and y.yliopisto.id in :yliopistoIds " +
             "and y.erikoisala.id in :erikoisalaIds"

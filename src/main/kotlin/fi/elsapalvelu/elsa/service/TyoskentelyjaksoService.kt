@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotDTO
 
@@ -33,10 +32,6 @@ interface TyoskentelyjaksoService {
 
     fun getTilastot(opintooikeus: Opintooikeus): TyoskentelyjaksotTilastotDTO
 
-    fun getTerveyskoulutusjaksoSuoritettu(opintooikeus: Opintooikeus): Boolean
-
-    fun getTerveyskeskuskoulutusjakso(opintooikeusId: Long): TerveyskeskuskoulutusjaksoDTO?
-
     fun updateLiitettyKoejaksoon(
         id: Long,
         opintooikeusId: Long,
@@ -47,4 +42,10 @@ interface TyoskentelyjaksoService {
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         opintooikeusId: Long,
     ): Boolean
+
+    fun updateAsiakirjat(
+        id: Long,
+        addedFiles: Set<AsiakirjaDTO>?,
+        deletedFiles: Set<Int>?
+    ): TyoskentelyjaksoDTO?
 }

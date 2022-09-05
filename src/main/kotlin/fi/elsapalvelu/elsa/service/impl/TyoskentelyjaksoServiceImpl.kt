@@ -5,23 +5,20 @@ import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi.*
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi.*
-import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
-import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
+import fi.elsapalvelu.elsa.repository.KuntaRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
-import fi.elsapalvelu.elsa.service.constants.VASTUUHENKILO_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
-import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import javax.persistence.EntityNotFoundException
-import javax.validation.ValidationException
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
@@ -35,9 +32,7 @@ class TyoskentelyjaksoServiceImpl(
     private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper,
     private val asiakirjaMapper: AsiakirjaMapper,
     private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
-    private val opintooikeusRepository: OpintooikeusRepository,
-    private val kayttajaRepository: KayttajaRepository,
-    private val kayttajaMapper: KayttajaMapper
+    private val opintooikeusRepository: OpintooikeusRepository
 
 ) : TyoskentelyjaksoService {
 
@@ -133,8 +128,8 @@ class TyoskentelyjaksoServiceImpl(
 
     private fun mapAsiakirjat(
         tyoskentelyjakso: Tyoskentelyjakso,
-        newAsiakirjat: MutableSet<AsiakirjaDTO>,
-        deletedAsiakirjaIds: MutableSet<Int>?,
+        newAsiakirjat: Set<AsiakirjaDTO>,
+        deletedAsiakirjaIds: Set<Int>?,
         opintooikeus: Opintooikeus
     ): Tyoskentelyjakso {
         newAsiakirjat.let {
@@ -335,56 +330,6 @@ class TyoskentelyjaksoServiceImpl(
         )
     }
 
-    override fun getTerveyskoulutusjaksoSuoritettu(opintooikeus: Opintooikeus): Boolean {
-        val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
-                opintooikeus.id!!,
-                TERVEYSKESKUS
-            )
-        val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
-
-        return suoritettuPituus >= opintooikeus.opintoopas!!.terveyskeskuskoulutusjaksonVahimmaispituus!!
-    }
-
-    override fun getTerveyskeskuskoulutusjakso(opintooikeusId: Long): TerveyskeskuskoulutusjaksoDTO? {
-        opintooikeusRepository.findById(opintooikeusId).orElse(null)?.let {
-            val tyoskentelyjaksot =
-                tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
-                    opintooikeusId,
-                    TERVEYSKESKUS
-                )
-            val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
-
-            if (suoritettuPituus < it.opintoopas!!.terveyskeskuskoulutusjaksonVahimmaispituus!!) {
-                throw ValidationException()
-            }
-
-            val vastuuhenkilo =
-                kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
-                    listOf(VASTUUHENKILO),
-                    it.yliopisto?.id,
-                    it.erikoisala?.id,
-                    VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
-                )?.let { v ->
-                    kayttajaMapper.toDto(v)
-                } ?: throw EntityNotFoundException(VASTUUHENKILO_NOT_FOUND_ERROR)
-
-            return TerveyskeskuskoulutusjaksoDTO(
-                erikoistuvanAvatar = it.erikoistuvaLaakari?.kayttaja?.getAvatar(),
-                erikoistuvanErikoisala = it.erikoistuvaLaakari?.getErikoisalaNimi(),
-                erikoistuvanNimi = it.erikoistuvaLaakari?.kayttaja?.getNimi(),
-                erikoistuvanOpiskelijatunnus = it.opiskelijatunnus,
-                erikoistuvanSyntymaaika = it.erikoistuvaLaakari?.syntymaaika,
-                asetus = it.asetus?.nimi,
-                terveyskoulutusjaksonKesto = suoritettuPituus,
-                tyoskentelyjaksot = tyoskentelyjaksot.map(tyoskentelyjaksoMapper::toDto),
-                vastuuhenkilonNimi = vastuuhenkilo.nimi,
-                vastuuhenkilonNimike = vastuuhenkilo.nimike
-            )
-        }
-        return null
-    }
-
     override fun updateLiitettyKoejaksoon(
         id: Long,
         opintooikeusId: Long,
@@ -489,24 +434,22 @@ class TyoskentelyjaksoServiceImpl(
         } ?: return true
     }
 
-    private fun getKokonaispituus(tyoskentelyjaksot: List<Tyoskentelyjakso>): Double {
-        val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
-            hyvaksiluettavatPerYearMap =
-                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(
-                    tyoskentelyjaksot
-                )
+    override fun updateAsiakirjat(
+        id: Long,
+        addedFiles: Set<AsiakirjaDTO>?,
+        deletedFiles: Set<Int>?
+    ): TyoskentelyjaksoDTO? {
+        tyoskentelyjaksoRepository.findById(id).orElse(null)?.let {
+            mapAsiakirjat(
+                it,
+                addedFiles.orEmpty(),
+                deletedFiles,
+                it.opintooikeus!!
+            )
+            val result = tyoskentelyjaksoRepository.save(it)
+            return tyoskentelyjaksoMapper.toDto(result)
         }
-        var suoritettuPituus = 0.0
-
-        tyoskentelyjaksot.forEach {
-            val tyoskentelyjaksonPituus =
-                tyoskentelyjaksonPituusCounterService.calculateInDays(it, hyvaksiluettavatCounter)
-            if (tyoskentelyjaksonPituus > 0) {
-                suoritettuPituus += tyoskentelyjaksonPituus
-            }
-        }
-
-        return suoritettuPituus
+        return null
     }
 
     data class TilastotCounter(
