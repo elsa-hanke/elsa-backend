@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220830141758" author="jhipster">
+        <createTable tableName="terveyskeskuskoulutusjakson_hyvaksynta">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="virkailija_hyvaksynyt" type="boolean" defaultValue="false">
+                <constraints nullable="true"/>
+            </column>
+            <column name="vastuuhenkilo_hyvaksynyt" type="boolean" defaultValue="false">
+                <constraints nullable="true"/>
+            </column>
+            <column name="korjausehdotus" type="text">
+            </column>
+        </createTable>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="terveyskeskuskoulutusjakson_hyvaksynta"/>
+
+        <addForeignKeyConstraint baseTableName="terveyskeskuskoulutusjakson_hyvaksynta"
+            baseColumnNames="opintooikeus_id"
+            constraintName="fk_terveyskeskuskoulutusjakson_hyvaksynta_opintooikeus_id"
+            referencedTableName="opintooikeus"
+            referencedColumnNames="id"/>
+
+        <createTable tableName="terveyskeskuskoulutusjakson_hyvaksynta_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="virkailija_hyvaksynyt" type="boolean" defaultValue="false">
+                <constraints nullable="true"/>
+            </column>
+            <column name="vastuuhenkilo_hyvaksynyt" type="boolean" defaultValue="false">
+                <constraints nullable="true"/>
+            </column>
+            <column name="korjausehdotus" type="text">
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+            baseTableName="terveyskeskuskoulutusjakson_hyvaksynta_audit"
+            constraintName="fk_terveyskeskuskoulutusjakson_hyvaksynta_audit_revinfo_id"
+            referencedColumnNames="id"
+            referencedTableName="revinfo"/>
+
+    </changeSet>
+
+</databaseChangeLog>
