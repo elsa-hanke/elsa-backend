@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoist
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.time.LocalDate
 import java.util.*
 
 interface ErikoistuvaLaakariService {
@@ -39,4 +40,12 @@ interface ErikoistuvaLaakariService {
     fun findAllForVastuuhenkilo(kayttajaId: Long): List<ErikoistuvaLaakariDTO>
 
     fun resendInvitation(id: Long)
+
+    fun updateLaillistamispaiva(
+        userId: String,
+        laillistamispaiva: LocalDate?,
+        laillistamispaivanLiitetiedosto: ByteArray?,
+        laillistamispaivanLiitetiedostonNimi: String?,
+        laillistamispaivanLiitetiedostonTyyppi: String?
+    )
 }
