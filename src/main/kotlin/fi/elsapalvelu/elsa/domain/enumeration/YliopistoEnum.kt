@@ -15,7 +15,7 @@ enum class YliopistoEnum {
             TAMPEREEN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().tre
             TURUN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().turku
             ITA_SUOMEN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().uef
-            else -> null
+            HELSINGIN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().hki
         }
     }
 }

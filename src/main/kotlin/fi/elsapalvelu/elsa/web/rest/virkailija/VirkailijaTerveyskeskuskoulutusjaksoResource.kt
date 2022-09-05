@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.virkailija
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.TerveyskeskuskoulutusjaksonHyvaksyntaService
 import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.criteria.TerveyskeskuskoulutusjaksoCriteria
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksonHyvaksyntaDTO
@@ -29,7 +29,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
     @GetMapping("/terveyskeskuskoulutusjaksot")
     fun getTerveyskeskuskoulutusjaksot(
         principal: Principal?,
-        criteria: TerveyskeskuskoulutusjaksoCriteria,
+        criteria: NimiErikoisalaAndAvoinCriteria,
         pageable: Pageable
     ): ResponseEntity<Page<TerveyskeskuskoulutusjaksoSimpleDTO>> {
         val user = userService.getAuthenticatedUser(principal)

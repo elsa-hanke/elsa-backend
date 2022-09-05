@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
-import fi.elsapalvelu.elsa.service.criteria.KoejaksoCriteria
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
@@ -21,7 +21,7 @@ class KoejaksonVastuuhenkilonArvioQueryService(
 
     @Transactional(readOnly = true)
     fun findByCriteriaAndYliopistoId(
-        criteria: KoejaksoCriteria?,
+        criteria: NimiErikoisalaAndAvoinCriteria?,
         pageable: Pageable,
         yliopistoId: Long,
         langkey: String?
@@ -60,7 +60,7 @@ class KoejaksonVastuuhenkilonArvioQueryService(
     }
 
     protected fun createSpecification(
-        criteria: KoejaksoCriteria?,
+        criteria: NimiErikoisalaAndAvoinCriteria?,
         spec: Specification<KoejaksonVastuuhenkilonArvio?>? = null
     ): Specification<KoejaksonVastuuhenkilonArvio?> {
         var specification: Specification<KoejaksonVastuuhenkilonArvio?> = Specification.where(spec)

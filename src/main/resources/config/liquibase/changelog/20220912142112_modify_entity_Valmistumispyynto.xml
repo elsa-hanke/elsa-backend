@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220912142112" author="jhipster">
+        <dropForeignKeyConstraint baseTableName="valmistumispyynto"
+                                  constraintName="fk_virkailija_hyvaksyja_id__kayttaja_id"/>
+        <renameColumn tableName="valmistumispyynto" oldColumnName="virkailija_hyvaksyja_id" newColumnName="virkailija_id"/>
+        <renameColumn tableName="valmistumispyynto_audit" oldColumnName="virkailija_hyvaksyja_id" newColumnName="virkailija_id"/>
+
+        <addForeignKeyConstraint baseColumnNames="virkailija_id"
+                                 baseTableName="valmistumispyynto"
+                                 constraintName="fk_virkailija_id__kayttaja_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="kayttaja"/>
+
+    </changeSet>
+</databaseChangeLog>

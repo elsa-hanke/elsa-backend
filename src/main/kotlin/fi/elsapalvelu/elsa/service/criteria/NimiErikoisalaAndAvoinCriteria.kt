@@ -5,7 +5,7 @@ import tech.jhipster.service.filter.LongFilter
 import tech.jhipster.service.filter.StringFilter
 import java.io.Serializable
 
-data class TerveyskeskuskoulutusjaksoCriteria(
+data class NimiErikoisalaAndAvoinCriteria(
 
     var erikoistujanNimi: StringFilter? = null,
 
@@ -15,14 +15,14 @@ data class TerveyskeskuskoulutusjaksoCriteria(
 
 ) : Serializable, Criteria {
 
-    constructor(other: TerveyskeskuskoulutusjaksoCriteria) :
+    constructor(other: NimiErikoisalaAndAvoinCriteria) :
         this(
             other.erikoistujanNimi?.copy(),
             other.erikoisalaId?.copy(),
             other.avoin
         )
 
-    override fun copy() = TerveyskeskuskoulutusjaksoCriteria(this)
+    override fun copy() = NimiErikoisalaAndAvoinCriteria(this)
 
     companion object {
         private const val serialVersionUID: Long = 1L

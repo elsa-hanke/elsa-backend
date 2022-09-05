@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.Opintooikeus
-import fi.elsapalvelu.elsa.service.criteria.TerveyskeskuskoulutusjaksoCriteria
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksonHyvaksyntaDTO
 import org.springframework.data.domain.Page
@@ -19,13 +19,13 @@ interface TerveyskeskuskoulutusjaksonHyvaksyntaService {
 
     fun findByVirkailijaUserId(
         userId: String,
-        criteria: TerveyskeskuskoulutusjaksoCriteria,
+        criteria: NimiErikoisalaAndAvoinCriteria,
         pageable: Pageable
     ): Page<TerveyskeskuskoulutusjaksoSimpleDTO>?
 
     fun findByVastuuhenkiloUserId(
         userId: String,
-        criteria: TerveyskeskuskoulutusjaksoCriteria,
+        criteria: NimiErikoisalaAndAvoinCriteria,
         pageable: Pageable
     ): Page<TerveyskeskuskoulutusjaksoSimpleDTO>?
 
