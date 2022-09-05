@@ -8,7 +8,9 @@ class TyoskentelyjaksotTableDTO(
 
     var keskeytykset: MutableSet<KeskeytysaikaDTO> = mutableSetOf(),
 
-    var tilastot: TyoskentelyjaksotTilastotDTO? = null
+    var tilastot: TyoskentelyjaksotTilastotDTO? = null,
+
+    var terveyskeskuskoulutusjaksoLahetetty: Boolean? = null
 
 ) : Serializable {
     override fun toString() = "TyoskentelyjaksotTableDTO"

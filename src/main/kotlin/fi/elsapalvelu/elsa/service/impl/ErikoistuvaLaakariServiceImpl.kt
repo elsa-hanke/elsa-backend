@@ -132,7 +132,8 @@ class ErikoistuvaLaakariServiceImpl(
         pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+            kayttajaRepository.findOneByUserId(userId)
+                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         return erikoistuvaLaakariQueryService.findErikoistuvatByCriteria(
             criteria,
             pageable,
@@ -147,9 +148,11 @@ class ErikoistuvaLaakariServiceImpl(
         pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+            kayttajaRepository.findOneByUserId(userId)
+                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         val yliopisto =
-            kayttaja.yliopistot.firstOrNull() ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
+            kayttaja.yliopistot.firstOrNull()
+                ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
 
         return erikoistuvaLaakariQueryService.findErikoistuvatByCriteriaAndYliopistoId(
             criteria,
@@ -231,6 +234,28 @@ class ErikoistuvaLaakariServiceImpl(
                         )
                     )
                 }
+        }
+    }
+
+    override fun updateLaillistamispaiva(
+        userId: String,
+        laillistamispaiva: LocalDate?,
+        laillistamispaivanLiitetiedosto: ByteArray?,
+        laillistamispaivanLiitetiedostonNimi: String?,
+        laillistamispaivanLiitetiedostonTyyppi: String?
+    ) {
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+            if (laillistamispaiva != null) {
+                it.laillistamispaiva = laillistamispaiva
+            }
+
+            if (laillistamispaivanLiitetiedosto != null) {
+                it.laillistamispaivanLiitetiedosto = laillistamispaivanLiitetiedosto
+                it.laillistamispaivanLiitetiedostonNimi = laillistamispaivanLiitetiedostonNimi
+                it.laillistamispaivanLiitetiedostonTyyppi = laillistamispaivanLiitetiedostonTyyppi
+            }
+
+            erikoistuvaLaakariRepository.save(it)
         }
     }
 }
