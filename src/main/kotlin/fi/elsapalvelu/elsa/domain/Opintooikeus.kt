@@ -113,7 +113,14 @@ data class Opintooikeus(
 
     @NotNull
     @Column(name = "terveyskeskuskoulutusjakso_suoritettu")
-    var terveyskoulutusjaksoSuoritettu: Boolean = false
+    var terveyskoulutusjaksoSuoritettu: Boolean = false,
+
+    @OneToOne(
+        mappedBy = "opintooikeus",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    )
+    var terveyskeskuskoulutusjaksonHyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta? = null
 
 ) : Serializable {
 
