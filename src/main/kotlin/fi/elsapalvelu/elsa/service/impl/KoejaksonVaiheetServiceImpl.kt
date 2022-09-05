@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioQueryService
-import fi.elsapalvelu.elsa.service.criteria.KoejaksoCriteria
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
@@ -89,7 +89,7 @@ class KoejaksonVaiheetServiceImpl(
 
     override fun findAllByVirkailijaKayttajaUserId(
         userId: String,
-        criteria: KoejaksoCriteria,
+        criteria: NimiErikoisalaAndAvoinCriteria,
         pageable: Pageable
     ): Page<KoejaksonVaiheDTO>? {
         kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->

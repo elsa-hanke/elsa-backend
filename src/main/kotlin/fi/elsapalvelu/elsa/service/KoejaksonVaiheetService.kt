@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.service.criteria.KoejaksoCriteria
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -18,7 +18,7 @@ interface KoejaksonVaiheetService {
 
     fun findAllByVirkailijaKayttajaUserId(
         userId: String,
-        criteria: KoejaksoCriteria,
+        criteria: NimiErikoisalaAndAvoinCriteria,
         pageable: Pageable
     ): Page<KoejaksonVaiheDTO>?
 

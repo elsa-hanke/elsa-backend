@@ -632,7 +632,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKISTUSTA.toString()))
+            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKASTUSTA.toString()))
             .andExpect(jsonPath("$.erikoistujanNimi").value(opintooikeus.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.erikoistujanOpiskelijatunnus").value(opintooikeus.opiskelijatunnus))
             .andExpect(jsonPath("$.erikoistujanSyntymaaika").value(opintooikeus.erikoistuvaLaakari?.syntymaaika.toString()))
@@ -664,14 +664,14 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.VASTUUHENKILON_TARKISTUS_PALAUTETTU.toString()))
+            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.VASTUUHENKILON_TARKASTUS_PALAUTETTU.toString()))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaKorjausehdotus").value(korjausehdotus))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaPalautusaika").value(LocalDate.now().toString()))
     }
 
     @Test
     @Transactional
-    fun getValmistumispyyntoOdottaaVirkailijanTarkistusta() {
+    fun getValmistumispyyntoOdottaaVirkailijanTarkastusta() {
         initTestWithVoimassaolevatSuoritukset()
         initValmistumispyynnonHyvaksyjat()
 
@@ -689,7 +689,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKISTUSTA.toString()))
+            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKASTUSTA.toString()))
             .andExpect(jsonPath("$.erikoistujanKuittausaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaKuittausaika").value(LocalDate.now().toString()))
     }
@@ -715,7 +715,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.VIRKAILIJAN_TARKISTUS_PALAUTETTU.toString()))
+            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU.toString()))
             .andExpect(jsonPath("$.virkailijanPalautusaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.virkailijanKorjausehdotus").value(korjausehdotus))
     }
@@ -796,7 +796,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUSTA.toString()))
+            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA.toString()))
             .andExpect(jsonPath("$.erikoistujanKuittausaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaKuittausaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.virkailijanKuittausaika").value(LocalDate.now().toString()))
@@ -825,7 +825,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUSTA.toString()))
+            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA.toString()))
             .andExpect(jsonPath("$.erikoistujanKuittausaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaKuittausaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.virkailijanKuittausaika").value(LocalDate.now().toString()))

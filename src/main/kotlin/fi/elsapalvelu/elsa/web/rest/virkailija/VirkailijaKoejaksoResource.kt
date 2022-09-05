@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.virkailija
 import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
 import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.criteria.KoejaksoCriteria
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -28,7 +28,7 @@ class VirkailijaKoejaksoResource(
     @GetMapping("/koejaksot")
     fun getKoejaksot(
         principal: Principal?,
-        criteria: KoejaksoCriteria,
+        criteria: NimiErikoisalaAndAvoinCriteria,
         pageable: Pageable
     ): ResponseEntity<Page<KoejaksonVaiheDTO>> {
         val user = userService.getAuthenticatedUser(principal)

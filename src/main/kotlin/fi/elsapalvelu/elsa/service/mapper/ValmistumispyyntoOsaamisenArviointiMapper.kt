@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.Valmistumispyynto
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoDTO
+import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoOsaamisenArviointiDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
@@ -16,8 +16,7 @@ import org.mapstruct.ReportingPolicy
         UserMapper::class
     ], unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
-interface ValmistumispyyntoMapper : EntityMapper<ValmistumispyyntoDTO, Valmistumispyynto> {
-
+interface ValmistumispyyntoOsaamisenArviointiMapper : EntityMapper<ValmistumispyyntoOsaamisenArviointiDTO, Valmistumispyynto> {
     @Mappings(
         Mapping(source = "opintooikeus.erikoistuvaLaakari.kayttaja.nimi", target = "erikoistujanNimi"),
         Mapping(source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar", target = "erikoistujanAvatar"),
@@ -45,10 +44,7 @@ interface ValmistumispyyntoMapper : EntityMapper<ValmistumispyyntoDTO, Valmistum
         Mapping(source = "opintooikeus.id", target = "opintooikeusId"),
         Mapping(source = "opintooikeus.opintooikeudenMyontamispaiva", target = "opintooikeudenMyontamispaiva"),
         Mapping(target = "vastuuhenkiloOsaamisenArvioijaNimi", source = "vastuuhenkiloOsaamisenArvioija.nimi"),
-        Mapping(target = "vastuuhenkiloOsaamisenArvioijaNimike", source = "vastuuhenkiloOsaamisenArvioija.nimike"),
-        Mapping(target = "virkailijaNimi", source = "virkailija.nimi"),
-        Mapping(target = "vastuuhenkiloHyvaksyjaNimi", source = "virkailija.nimi"),
-        Mapping(target = "vastuuhenkiloHyvaksyjaNimike", source = "virkailija.nimike")
+        Mapping(target = "vastuuhenkiloOsaamisenArvioijaNimike", source = "vastuuhenkiloOsaamisenArvioija.nimike")
     )
-    override fun toDto(entity: Valmistumispyynto): ValmistumispyyntoDTO
+    override fun toDto(entity: Valmistumispyynto): ValmistumispyyntoOsaamisenArviointiDTO
 }

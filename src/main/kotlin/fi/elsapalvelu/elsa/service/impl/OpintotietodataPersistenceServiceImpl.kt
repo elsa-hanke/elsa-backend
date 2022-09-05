@@ -162,7 +162,8 @@ class OpintotietodataPersistenceServiceImpl(
         }?.let {
             mailService.sendEmailFromTemplate(
                 user,
-                getOpintohallintoEmailAddresses(yliopistot),
+                // Ei lähetetä Helsingin yliopiston virkailijoille: https://jira.eduuni.fi/browse/UOELSA-1156
+                getOpintohallintoEmailAddresses(yliopistot.filter { it != YliopistoEnum.HELSINGIN_YLIOPISTO }.toSet()),
                 "useaOpintooikeus.html",
                 "useaopintooikeus.title",
                 properties = mapOf(

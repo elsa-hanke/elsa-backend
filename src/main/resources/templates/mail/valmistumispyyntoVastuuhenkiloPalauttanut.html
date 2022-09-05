@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fi" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>[ELSA-palvelu] Olet saanut uuden valmistumispyynnön </title>
+    <title>[ELSA-palvelu] Valmistumispyyntö on palautettu muokattavaksi</title>
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
     <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
 </head>
@@ -10,12 +10,13 @@
     Hei,
 </p>
 <p>
-    Erikoistuva lääkäri/hammaslääkäri <span th:text="${name}"></span> on lähettänyt valmistumispyynnön.
-    Pääset tarkastelemaan valmistumispyyntöä ja arvioimaan erikoistujan osaamisen alla olevan linkin kautta:
+    Olet saanut ELSA-palveluun valmistumispyynnön korjattavaksi.
+
+    Pääset korjaamaan valmistumispyynnön alla olevan linkin kautta:
 </p>
 <p>
-    <a th:with="url=(@{|${baseUrl}/valmistumispyynnon-arviointi/${id}|})" th:href="${url}"
-       th:text="${url}"></a>
+    <a th:href="${url}" th:text="${url}"
+       th:with="url=(@{|${baseUrl}/valmistumispyynto|})"></a>
 </p>
 <p>
     HUOM! Tähän sähköpostiviestiin ei voi vastata.
