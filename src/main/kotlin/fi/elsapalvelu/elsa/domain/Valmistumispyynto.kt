@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
+import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
@@ -53,7 +54,7 @@ data class Valmistumispyynto(
 
     @ManyToOne(optional = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var virkailijaHyvaksyja: Kayttaja? = null,
+    var virkailija: Kayttaja? = null,
 
     @Column(name = "virkailijan_saate")
     var virkailijanSaate: String? = null,
@@ -115,7 +116,7 @@ data class Valmistumispyynto(
         ", virkailijanKuittausaika='$virkailijanKuittausaika'" +
         ", virkailijanPalautusaika='$virkailijanPalautusaika'" +
         ", virkailijanKorjausehdotus='$virkailijanKorjausehdotus'" +
-        ", virkailijaHyvaksyja='$virkailijaHyvaksyja'" +
+        ", virkailija='$virkailija'" +
         ", virkailijanSaate='$virkailijanSaate'" +
         ", vastuuhenkiloHyvaksyjaKuittausaika='$vastuuhenkiloHyvaksyjaKuittausaika'" +
         ", vastuuhenkiloHyvaksyjaPalautusaika='$vastuuhenkiloHyvaksyjaPalautusaika'" +
@@ -129,6 +130,85 @@ data class Valmistumispyynto(
 
     companion object {
         private const val serialVersionUID = 1L
+
+        fun fromValmistumispyyntoErikoistuja(valmistumispyynto: Valmistumispyynto?): ValmistumispyynnonTila {
+            return if (valmistumispyynto?.erikoistujanKuittausaika != null) fromValmistumispyyntoNotReturned(
+                valmistumispyynto
+            )
+            else if (valmistumispyynto?.vastuuhenkiloOsaamisenArvioijaPalautusaika != null)
+                ValmistumispyynnonTila.VASTUUHENKILON_TARKASTUS_PALAUTETTU
+            else if (valmistumispyynto?.virkailijanPalautusaika != null)
+                ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU
+            else if (valmistumispyynto?.vastuuhenkiloHyvaksyjaPalautusaika != null)
+                ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU
+            else ValmistumispyynnonTila.UUSI
+        }
+
+        fun fromValmistumispyyntoArvioija(
+            valmistumispyynto: Valmistumispyynto,
+            isAvoin: Boolean
+        ): ValmistumispyynnonTila {
+            return if (isAvoin || valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika != null)
+                fromValmistumispyyntoNotReturned(valmistumispyynto)
+            else if (valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika != null)
+                ValmistumispyynnonTila.VASTUUHENKILON_TARKASTUS_PALAUTETTU
+            else if (valmistumispyynto.virkailijanPalautusaika != null)
+                ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU
+            else if (valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika != null)
+                ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU
+            else fromValmistumispyyntoNotReturned(valmistumispyynto)
+        }
+
+        fun fromValmistumispyyntoVirkailija(
+            valmistumispyynto: Valmistumispyynto,
+            isAvoin: Boolean
+        ): ValmistumispyynnonTila {
+            return if (isAvoin || valmistumispyynto.virkailijanKuittausaika != null)
+                fromValmistumispyyntoNotReturned(valmistumispyynto)
+            else if (valmistumispyynto.virkailijanPalautusaika != null)
+                ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU
+            else if (valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika != null)
+                ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU
+            else fromValmistumispyyntoNotReturned(valmistumispyynto)
+        }
+
+        fun fromValmistumispyyntoHyvaksyja(
+            valmistumispyynto: Valmistumispyynto,
+            isAvoin: Boolean
+        ): ValmistumispyynnonTila {
+            return if (isAvoin || valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika != null)
+                fromValmistumispyyntoNotReturned(valmistumispyynto)
+            else if (valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika != null)
+                ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU
+            else fromValmistumispyyntoNotReturned(valmistumispyynto)
+        }
+
+        fun fromValmistumispyyntoArvioijaHyvaksyja(
+            valmistumispyynto: Valmistumispyynto,
+            isAvoin: Boolean
+        ): ValmistumispyynnonTila {
+            return if (isAvoin) fromValmistumispyyntoNotReturned(valmistumispyynto)
+            else if (valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika != null)
+                ValmistumispyynnonTila.VASTUUHENKILON_TARKASTUS_PALAUTETTU
+            else if (valmistumispyynto.virkailijanPalautusaika != null)
+                ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU
+            else if (valmistumispyynto.erikoistujanKuittausaika == null &&
+                valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika != null
+            )
+                ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU
+            else fromValmistumispyyntoNotReturned(valmistumispyynto)
+        }
+
+        private fun fromValmistumispyyntoNotReturned(valmistumispyynto: Valmistumispyynto): ValmistumispyynnonTila {
+            return if (valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika == null)
+                ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKASTUSTA
+            else if (valmistumispyynto.virkailijanKuittausaika == null)
+                ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKASTUSTA
+            else if (valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika == null)
+                ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
+            else if (valmistumispyynto.allekirjoitusaika == null) ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA
+            else ValmistumispyynnonTila.ALLEKIRJOITETTU
+        }
     }
 }
 

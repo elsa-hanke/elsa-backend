@@ -14,7 +14,7 @@ import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.VASTUUHENKILO_NOT_FOUND_ERROR
-import fi.elsapalvelu.elsa.service.criteria.TerveyskeskuskoulutusjaksoCriteria
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksonHyvaksyntaDTO
@@ -76,7 +76,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
     override fun findByVirkailijaUserId(
         userId: String,
-        criteria: TerveyskeskuskoulutusjaksoCriteria,
+        criteria: NimiErikoisalaAndAvoinCriteria,
         pageable: Pageable
     ): Page<TerveyskeskuskoulutusjaksoSimpleDTO>? {
         kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
@@ -100,7 +100,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
     override fun findByVastuuhenkiloUserId(
         userId: String,
-        criteria: TerveyskeskuskoulutusjaksoCriteria,
+        criteria: NimiErikoisalaAndAvoinCriteria,
         pageable: Pageable
     ): Page<TerveyskeskuskoulutusjaksoSimpleDTO>? {
         kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->

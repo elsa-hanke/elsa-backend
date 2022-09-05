@@ -6,7 +6,7 @@ import java.io.Serializable
 import java.time.LocalDate
 import javax.persistence.Lob
 
-data class ValmistumispyyntoDTO(
+data class ValmistumispyyntoOsaamisenArviointiDTO (
 
     var id: Long? = null,
 
@@ -36,15 +36,11 @@ data class ValmistumispyyntoDTO(
 
     var erikoistujanLaillistamistodistusTyyppi: String? = null,
 
-    var selvitysVanhentuneistaSuorituksista: String? = null,
-
     var erikoistujanAsetus: String? = null,
 
     var opintooikeusId: Long? = null,
 
     var opintooikeudenMyontamispaiva: LocalDate? = null,
-
-    var erikoistujanKuittausaika: LocalDate? = null,
 
     var vastuuhenkiloOsaamisenArvioijaNimi: String? = null,
 
@@ -56,29 +52,12 @@ data class ValmistumispyyntoDTO(
 
     var vastuuhenkiloOsaamisenArvioijaKorjausehdotus: String? = null,
 
-    var virkailijaNimi: String? = null,
-
-    var virkailijanKuittausaika: LocalDate? = null,
-
-    var virkailijanPalautusaika: LocalDate? = null,
-
     var virkailijanKorjausehdotus: String? = null,
 
-    var vastuuhenkiloHyvaksyjaNimi: String? = null,
+    var vastuuhenkiloHyvaksyjaKorjausehdotus: String? = null
 
-    var vastuuhenkiloHyvaksyjaNimike: String? = null,
-
-    var vastuuhenkiloHyvaksyjaKuittausaika: LocalDate? = null,
-
-    var vastuuhenkiloHyvaksyjaPalautusaika: LocalDate? = null,
-
-    var vastuuhenkiloHyvaksyjaKorjausehdotus: String? = null,
-
-    var allekirjoitusaika: LocalDate? = null,
-
-    ) : Serializable {
-    override fun toString() = "ValmistumispyyntoDTO"
-
+) : Serializable {
+    override fun toString() = "ValmistumispyyntoOsaamisenArviointiDTO"
 
     override fun hashCode(): Int {
         return erikoistujanLaillistamistodistus?.contentHashCode() ?: 0
@@ -88,7 +67,7 @@ data class ValmistumispyyntoDTO(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as ValmistumispyyntoDTO
+        other as ValmistumispyyntoOsaamisenArviointiDTO
 
         if (erikoistujanAvatar != null) {
             if (other.erikoistujanAvatar == null) return false
@@ -102,3 +81,4 @@ data class ValmistumispyyntoDTO(
         return true
     }
 }
+

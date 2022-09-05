@@ -1,9 +1,11 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
-import fi.elsapalvelu.elsa.service.dto.UusiValmistumispyyntoDTO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoDTO
-import fi.elsapalvelu.elsa.service.dto.VanhentuneetSuorituksetDTO
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
+import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
 interface ValmistumispyyntoService {
     fun findErikoisalaTyyppiByOpintooikeusId(opintooikeusId: Long): ErikoisalaTyyppi
@@ -15,6 +17,17 @@ interface ValmistumispyyntoService {
         erikoisalaTyyppi: ErikoisalaTyyppi
     ): VanhentuneetSuorituksetDTO
 
+    fun findAllForVastuuhenkiloByCriteria(
+        userId: String,
+        valmistumispyyntoCriteria: NimiErikoisalaAndAvoinCriteria,
+        pageable: Pageable
+    ): Page<ValmistumispyyntoListItemDTO>
+
+    fun findOneByIdAndVastuuhenkiloOsaamisenArvioijaUserId(
+        id: Long,
+        userId: String
+    ): ValmistumispyyntoOsaamisenArviointiDTO?
+
     fun create(
         opintooikeusId: Long,
         uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
@@ -25,5 +38,18 @@ interface ValmistumispyyntoService {
         uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
     ): ValmistumispyyntoDTO
 
+    fun updateOsaamisenArviointiByOsaamisenArvioijaUserId(
+        id: Long,
+        userId: String,
+        osaamisenArviointiDTO: ValmistumispyyntoOsaamisenArviointiFormDTO
+    ): ValmistumispyyntoDTO
+
     fun existsByOpintooikeusId(opintooikeusId: Long): Boolean
+
+    fun findArviointienTilaByIdAndOsaamisenArvioijaUserId(
+        id: Long,
+        userId: String
+    ): ValmistumispyyntoArviointienTilaDTO?
+
+    fun getValmistumispyynnonHyvaksyjaRole(userId: String): ValmistumispyynnonHyvaksyjaRole?
 }

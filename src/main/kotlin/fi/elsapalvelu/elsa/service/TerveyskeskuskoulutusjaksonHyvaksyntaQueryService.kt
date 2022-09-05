@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.TerveyskeskuskoulutusjaksonHyvaksyntaRepository
-import fi.elsapalvelu.elsa.service.criteria.TerveyskeskuskoulutusjaksoCriteria
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tech.jhipster.service.QueryService
 import javax.persistence.criteria.*
-import kotlin.math.exp
 
 
 @Service
@@ -22,7 +21,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
 
     @Transactional(readOnly = true)
     fun findByCriteriaAndYliopistoId(
-        criteria: TerveyskeskuskoulutusjaksoCriteria?,
+        criteria: NimiErikoisalaAndAvoinCriteria?,
         pageable: Pageable,
         yliopistoIds: List<Long>,
         isVirkailija: Boolean,
@@ -83,7 +82,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
     }
 
     protected fun createSpecification(
-        criteria: TerveyskeskuskoulutusjaksoCriteria?,
+        criteria: NimiErikoisalaAndAvoinCriteria?,
         spec: Specification<TerveyskeskuskoulutusjaksonHyvaksynta?>? = null
     ): Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> {
         var specification: Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> =
