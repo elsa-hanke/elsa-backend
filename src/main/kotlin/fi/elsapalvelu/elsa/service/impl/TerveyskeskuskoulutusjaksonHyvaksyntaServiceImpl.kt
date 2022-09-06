@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.TerveyskeskuskoulutusjaksonHyvaksynta
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
@@ -10,6 +11,8 @@ import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.TerveyskeskuskoulutusjaksonHyvaksyntaRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.service.MailProperty
+import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.TerveyskeskuskoulutusjaksonHyvaksyntaService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
 import fi.elsapalvelu.elsa.service.constants.VASTUUHENKILO_NOT_FOUND_ERROR
@@ -34,7 +37,9 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     private val terveyskeskuskoulutusjaksonHyvaksyntaMapper: TerveyskeskuskoulutusjaksonHyvaksyntaMapper,
     private val kayttajaMapper: KayttajaMapper,
     private val tyoskentelyjaksoMapper: TyoskentelyjaksoWithKeskeytysajatMapper,
-    private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService
+    private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
+    private val mailService: MailService,
+    private val applicationProperties: ApplicationProperties
 
 ) : TerveyskeskuskoulutusjaksonHyvaksyntaService {
 
@@ -115,6 +120,14 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
             val hyvaksynta = TerveyskeskuskoulutusjaksonHyvaksynta(opintooikeus = it)
             terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(hyvaksynta)
+
+            mailService.sendEmailFromTemplate(
+                to = it.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
+                templateName = "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
+                titleKey = "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
+                properties = mapOf(Pair(MailProperty.ID, hyvaksynta.id.toString()))
+            )
+
             return terveyskeskuskoulutusjaksonHyvaksyntaMapper.toDto(hyvaksynta)
         }
 

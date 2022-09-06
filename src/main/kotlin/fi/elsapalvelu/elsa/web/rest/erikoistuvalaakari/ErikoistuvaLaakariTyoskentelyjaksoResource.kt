@@ -425,7 +425,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             user.id!!,
             laillistamispaiva,
             laillistamispaivanLiite?.bytes,
-            laillistamispaivanLiite?.name,
+            laillistamispaivanLiite?.originalFilename,
             laillistamispaivanLiite?.contentType
         )
 
