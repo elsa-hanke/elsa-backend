@@ -179,17 +179,7 @@ class OpintotietodataPersistenceServiceImpl(
     }
 
     private fun getOpintohallintoEmailAddresses(yliopistot: Set<YliopistoEnum>): List<String> {
-        return yliopistot.mapNotNull { getOpintohallintoEmailAddress(it) }
-    }
-
-    private fun getOpintohallintoEmailAddress(yliopisto: YliopistoEnum): String? {
-        return when (yliopisto) {
-            YliopistoEnum.OULUN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().oulu
-            YliopistoEnum.TAMPEREEN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().tre
-            YliopistoEnum.TURUN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().turku
-            YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> applicationProperties.getOpintohallintoemail().uef
-            else -> null
-        }
+        return yliopistot.mapNotNull { it.getOpintohallintoEmailAddress(applicationProperties) }
     }
 
     private fun createErikoistuvaLaakari(
