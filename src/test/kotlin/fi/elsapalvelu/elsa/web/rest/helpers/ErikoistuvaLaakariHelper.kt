@@ -36,7 +36,7 @@ class ErikoistuvaLaakariHelper {
             opintoopas: Opintoopas? = null,
             yliopisto: Yliopisto? = null,
             asetus: Asetus? = null,
-            yliopistoOpintooikeusId: String? = RandomStringUtils.randomAlphabetic(8),
+            yliopistoOpintooikeusId: String? = RandomStringUtils.randomAlphabetic(8)
         ): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari()
 
@@ -66,7 +66,7 @@ class ErikoistuvaLaakariHelper {
             if (erikoistuvanErikoisala == null) {
                 if (em.findAll(Erikoisala::class).isEmpty()) {
                     erikoistuvanErikoisala = ErikoisalaHelper.createEntity()
-                    em.persist(erikoisala)
+                    em.persist(erikoistuvanErikoisala)
                     em.flush()
                 } else {
                     erikoistuvanErikoisala = em.findAll(Erikoisala::class).get(0)

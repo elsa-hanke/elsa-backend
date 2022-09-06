@@ -28,7 +28,8 @@ class OpintosuoritusHelper {
             user: User? = null,
             kurssikoodi: String? = DEFAULT_KURSSIKOODI,
             tyyppiEnum: OpintosuoritusTyyppiEnum? = DEFAULT_OPINTOSUORITUSTYYPPI,
-            opintooikeus: Opintooikeus? = null
+            opintooikeus: Opintooikeus? = null,
+            suorituspaiva: LocalDate = DEFAULT_SUORITUSPAIVA
         ): Opintosuoritus {
             val tyyppi = OpintosuoritusTyyppi(nimi = tyyppiEnum)
             em.persist(tyyppi)
@@ -37,7 +38,7 @@ class OpintosuoritusHelper {
                 nimi_fi = DEFAULT_NIMI_FI,
                 nimi_sv = DEFAULT_NIMI_SV,
                 kurssikoodi = kurssikoodi,
-                suorituspaiva = DEFAULT_SUORITUSPAIVA,
+                suorituspaiva = suorituspaiva,
                 opintopisteet = DEFAULT_OPINTOPISTEET,
                 hyvaksytty = true,
                 arvio_fi = DEFAULT_ARVIO_FI,
