@@ -18,10 +18,13 @@ class TyoskentelypaikkaHelper {
         const val UPDATED_MUU_TYYPPI = "CCCCCCCCCC"
 
         @JvmStatic
-        fun createEntity(em: EntityManager): Tyoskentelypaikka {
+        fun createEntity(
+            em: EntityManager,
+            tyyppi: TyoskentelyjaksoTyyppi = DEFAULT_TYYPPI
+        ): Tyoskentelypaikka {
             val tyoskentelypaikka = Tyoskentelypaikka(
                 nimi = DEFAULT_NIMI,
-                tyyppi = DEFAULT_TYYPPI,
+                tyyppi = tyyppi,
                 muuTyyppi = null
             )
 
@@ -40,10 +43,13 @@ class TyoskentelypaikkaHelper {
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): Tyoskentelypaikka {
+        fun createUpdatedEntity(
+            em: EntityManager,
+            tyyppi: TyoskentelyjaksoTyyppi = UPDATED_TYYPPI
+        ): Tyoskentelypaikka {
             val tyoskentelypaikka = Tyoskentelypaikka(
                 nimi = UPDATED_NIMI,
-                tyyppi = UPDATED_TYYPPI,
+                tyyppi = tyyppi,
                 muuTyyppi = UPDATED_MUU_TYYPPI
             )
 
