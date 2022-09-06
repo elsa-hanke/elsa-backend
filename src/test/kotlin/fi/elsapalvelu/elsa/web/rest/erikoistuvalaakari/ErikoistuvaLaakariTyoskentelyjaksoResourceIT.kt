@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
@@ -38,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.io.File
 import java.time.LocalDate
 import javax.persistence.EntityManager
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 
@@ -56,6 +58,18 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
     @Autowired
     private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
+
+    @Autowired
+    private lateinit var userRepository: UserRepository
+
+    @Autowired
+    private lateinit var kayttajaRepository: KayttajaRepository
+
+    @Autowired
+    private lateinit var kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository
+
+    @Autowired
+    private lateinit var opintooikeusRepository: OpintooikeusRepository
 
     @Autowired
     private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
@@ -102,11 +116,26 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         // Lisätään voimassaoleva poissaolon syy ja päättymistä ei määritetty
         em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), null))
         // Lisätään voimassaoleva poissaolon syy ja päättyminen määritetty
-        em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(20L)))
+        em.persist(
+            PoissaolonSyyHelper.createEntity(
+                LocalDate.ofEpochDay(0L),
+                LocalDate.ofEpochDay(20L)
+            )
+        )
         // Lisätään poissaolon syy, jonka voimassaolo ei ole alkanut vielä
-        em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(15L), LocalDate.ofEpochDay(20L)))
+        em.persist(
+            PoissaolonSyyHelper.createEntity(
+                LocalDate.ofEpochDay(15L),
+                LocalDate.ofEpochDay(20L)
+            )
+        )
         // Lisätään poissaolon syy, jonka voimassaolo on jo päättynyt
-        em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
+        em.persist(
+            PoissaolonSyyHelper.createEntity(
+                LocalDate.ofEpochDay(0L),
+                LocalDate.ofEpochDay(5L)
+            )
+        )
 
         em.flush()
     }
@@ -1079,7 +1108,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
         requireNotNull(erikoistuvaLaakari)
-        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        val newOpintooikeus =
+            OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
         OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
 
         val tyoskentelyjaksoForAnotherOpintooikeus = createEntity(
@@ -1100,7 +1130,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.keskeytykset").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.tyoskentelyjaksot[0].id").value(tyoskentelyjaksoForAnotherOpintooikeus.id))
+            .andExpect(
+                jsonPath("$.tyoskentelyjaksot[0].id").value(
+                    tyoskentelyjaksoForAnotherOpintooikeus.id
+                )
+            )
     }
 
     @Test
@@ -1128,6 +1162,201 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.liitettyKoejaksoon").value(true))
+    }
+
+    @Test
+    @Transactional
+    fun updateTyoskentelyjaksoAsiakirjat() {
+        initTest()
+        initMockFiles()
+
+        val asiakirja = AsiakirjaHelper.createEntity(
+            em,
+            user,
+            tyoskentelyjakso
+        )
+        tyoskentelyjakso.asiakirjat.add(asiakirja)
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        restTyoskentelyjaksoMockMvc.perform(
+            multipart("/api/erikoistuva-laakari/tyoskentelyjaksot/${tyoskentelyjakso.id}/asiakirjat")
+                .file(
+                    MockMultipartFile(
+                        "addedFiles",
+                        AsiakirjaHelper.ASIAKIRJA_PNG_NIMI,
+                        AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI,
+                        tempFile2.readBytes()
+                    )
+                )
+                .param("deletedFiles", asiakirja.id!!.toString())
+                .with { it.method = "PUT"; it }
+                .with(csrf())
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.asiakirjat").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.asiakirjat[0].nimi").value(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI))
+    }
+
+    @Test
+    @Transactional
+    fun getTerveyskeskuskoulutusjaksoTooShort() {
+        initTest()
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot/terveyskeskuskoulutusjakso"))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun getTerveyskeskuskoulutusjaksoWithoutVastuuhenkilo() {
+        initTest()
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        tyoskentelyjaksoRepository.saveAndFlush(
+            createEntity(
+                em,
+                user = user,
+                paattymispaiva = DEFAULT_ALKAMISPAIVA.plusYears(1)
+            )
+        )
+
+        restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot/terveyskeskuskoulutusjakso"))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun getTerveyskeskuskoulutusjakso() {
+        initTest()
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        tyoskentelyjaksoRepository.saveAndFlush(
+            createEntity(
+                em,
+                user = user,
+                paattymispaiva = DEFAULT_ALKAMISPAIVA.plusYears(1)
+            )
+        )
+        val opintooikeus = opintooikeusRepository.findAll().first()
+
+        val vastuuhenkiloUser = userRepository.saveAndFlush(
+            KayttajaResourceWithMockUserIT.createEntity(
+                authority = Authority(
+                    VASTUUHENKILO
+                )
+            )
+        )
+        val vastuuhenkiloKayttaja = kayttajaRepository.saveAndFlush(
+            KayttajaHelper.createEntity(
+                em,
+                user = vastuuhenkiloUser
+            )
+        )
+        kayttajaYliopistoErikoisalaRepository.saveAndFlush(
+            KayttajaYliopistoErikoisala(
+                kayttaja = vastuuhenkiloKayttaja,
+                yliopisto = opintooikeus.yliopisto,
+                erikoisala = Erikoisala(50),
+                vastuuhenkilonTehtavat = mutableSetOf(VastuuhenkilonTehtavatyyppi(2))
+            )
+        )
+
+        restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot/terveyskeskuskoulutusjakso"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").doesNotExist())
+            .andExpect(jsonPath("$.erikoistuvanErikoisala").value(opintooikeus.erikoisala?.nimi))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(opintooikeus.erikoistuvaLaakari?.kayttaja?.getNimi()))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(opintooikeus.opiskelijatunnus))
+            .andExpect(jsonPath("$.erikoistuvanSyntymaaika").value(opintooikeus.erikoistuvaLaakari?.syntymaaika.toString()))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(opintooikeus.yliopisto?.nimi.toString()))
+            .andExpect(jsonPath("$.laillistamispaiva").doesNotExist())
+            .andExpect(jsonPath("$.laillistamispaivanLiite").doesNotExist())
+            .andExpect(jsonPath("$.laillistamispaivanLiitteenNimi").doesNotExist())
+            .andExpect(jsonPath("$.laillistamispaivanLiitteenTyyppi").doesNotExist())
+            .andExpect(jsonPath("$.asetus").value(opintooikeus.asetus?.nimi))
+            .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
+            .andExpect(jsonPath("$.vastuuhenkilonNimi").value(vastuuhenkiloKayttaja.getNimi()))
+            .andExpect(jsonPath("$.vastuuhenkilonNimike").value(vastuuhenkiloKayttaja.nimike))
+    }
+
+    @Test
+    @Transactional
+    fun createTerveyskeskuskoulutusjakso() {
+        initTest()
+        initMockFiles()
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        tyoskentelyjaksoRepository.saveAndFlush(
+            createEntity(
+                em,
+                user = user,
+                paattymispaiva = DEFAULT_ALKAMISPAIVA.plusYears(1)
+            )
+        )
+        val opintooikeus = opintooikeusRepository.findAll().first()
+
+        val vastuuhenkiloUser = userRepository.saveAndFlush(
+            KayttajaResourceWithMockUserIT.createEntity(
+                authority = Authority(
+                    VASTUUHENKILO
+                )
+            )
+        )
+        val vastuuhenkiloKayttaja = kayttajaRepository.saveAndFlush(
+            KayttajaHelper.createEntity(
+                em,
+                user = vastuuhenkiloUser
+            )
+        )
+        kayttajaYliopistoErikoisalaRepository.saveAndFlush(
+            KayttajaYliopistoErikoisala(
+                kayttaja = vastuuhenkiloKayttaja,
+                yliopisto = opintooikeus.yliopisto,
+                erikoisala = Erikoisala(50),
+                vastuuhenkilonTehtavat = mutableSetOf(VastuuhenkilonTehtavatyyppi(2))
+            )
+        )
+
+        val laillistamispaiva = LocalDate.now()
+
+        restTyoskentelyjaksoMockMvc.perform(
+            multipart("/api/erikoistuva-laakari/tyoskentelyjaksot/terveyskeskuskoulutusjakson-hyvaksynta")
+                .file(
+                    MockMultipartFile(
+                        "laillistamispaivanLiite",
+                        AsiakirjaHelper.ASIAKIRJA_PNG_NIMI,
+                        AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI,
+                        tempFile2.readBytes()
+                    )
+                )
+                .param("laillistamispaiva", laillistamispaiva.toString())
+                .with { it.method = "POST"; it }
+                .with(csrf())
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").exists())
+            .andExpect(jsonPath("$.virkailijaHyvaksynyt").value(false))
+            .andExpect(jsonPath("$.vastuuhenkiloHyvaksynyt").value(false))
+            .andExpect(jsonPath("$.korjausehdotus").doesNotExist())
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+
+        assertEquals(laillistamispaiva, erikoistuvaLaakari?.laillistamispaiva)
+        assertThat(erikoistuvaLaakari?.laillistamispaivanLiitetiedosto).isNotNull
+        assertEquals(
+            AsiakirjaHelper.ASIAKIRJA_PNG_NIMI,
+            erikoistuvaLaakari?.laillistamispaivanLiitetiedostonNimi
+        )
+        assertEquals(
+            AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI,
+            erikoistuvaLaakari?.laillistamispaivanLiitetiedostonTyyppi
+        )
     }
 
     fun initTest(userId: String? = null) {
