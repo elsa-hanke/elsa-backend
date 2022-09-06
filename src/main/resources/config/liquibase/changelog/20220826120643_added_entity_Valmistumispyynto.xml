@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220826120643" author="jhipster">
+
+        <createTable tableName="valmistumispyynto">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="opintooikeus_id" type="bigint">
+                <constraints unique="true" nullable="false"
+                    uniqueConstraintName="ux_valmistumispyynto_opintooikeus_id"/>
+            </column>
+            <column name="selvitys_vanhentuneista_suorituksista" type="text"/>
+            <column name="erikoistujan_kuittausaika" type="date"/>
+            <column name="vastuuhenkilo_osaamisen_arvioija_kuittausaika" type="date"/>
+            <column name="vastuuhenkilo_osaamisen_arvioija_palautusaika" type="date"/>
+            <column name="vastuuhenkilo_osaamisen_arvioija_korjausehdotus" type="text"/>
+            <column name="vastuuhenkilo_osaamisen_arvioija_id" type="bigint"/>
+            <column name="virkailijan_kuittausaika" type="date"/>
+            <column name="virkailijan_palautusaika" type="date"/>
+            <column name="virkailijan_korjausehdotus" type="text"/>
+            <column name="virkailija_hyvaksyja_id" type="bigint"/>
+            <column name="virkailijan_saate" type="text"/>
+            <column name="vastuuhenkilo_hyvaksyja_kuittausaika" type="date"/>
+            <column name="vastuuhenkilo_hyvaksyja_palautusaika" type="date"/>
+            <column name="vastuuhenkilo_hyvaksyja_korjausehdotus" type="text"/>
+            <column name="vastuuhenkilo_hyvaksyja_id" type="bigint"/>
+            <column name="muokkauspaiva" type="date"/>
+            <column name="sarakesign_request_id" type="text"/>
+            <column name="allekirjoitusaika" type="date"/>
+        </createTable>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="valmistumispyynto"/>
+
+         <addForeignKeyConstraint baseColumnNames="opintooikeus_id"
+                                 baseTableName="valmistumispyynto"
+                                 constraintName="fk_valmistumispyynto__opintooikeus_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="opintooikeus"/>
+
+        <addForeignKeyConstraint baseColumnNames="vastuuhenkilo_osaamisen_arvioija_id"
+                                 baseTableName="valmistumispyynto"
+                                 constraintName="fk_vastuuhenkilo_osaamisen_arvioija_id__kayttaja_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="kayttaja"/>
+
+        <addForeignKeyConstraint baseColumnNames="virkailija_hyvaksyja_id"
+                                 baseTableName="valmistumispyynto"
+                                 constraintName="fk_virkailija_hyvaksyja_id__kayttaja_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="kayttaja"/>
+
+        <addForeignKeyConstraint baseColumnNames="vastuuhenkilo_hyvaksyja_id"
+                                 baseTableName="valmistumispyynto"
+                                 constraintName="fk_vastuuhenkilo_hyvaksyja_id__kayttaja_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="kayttaja"/>
+
+        <createTable tableName="valmistumispyynto_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="opintooikeus_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="selvitys_vanhentuneista_suorituksista" type="text"/>
+            <column name="erikoistujan_kuittausaika" type="date"/>
+            <column name="vastuuhenkilo_osaamisen_arvioija_kuittausaika" type="date"/>
+            <column name="vastuuhenkilo_osaamisen_arvioija_palautusaika" type="date"/>
+            <column name="vastuuhenkilo_osaamisen_arvioija_korjausehdotus" type="text"/>
+            <column name="vastuuhenkilo_osaamisen_arvioija_id" type="bigint"/>
+            <column name="virkailijan_kuittausaika" type="date"/>
+            <column name="virkailijan_palautusaika" type="date"/>
+            <column name="virkailijan_korjausehdotus" type="text"/>
+            <column name="virkailija_hyvaksyja_id" type="bigint"/>
+            <column name="virkailijan_saate" type="text"/>
+            <column name="vastuuhenkilo_hyvaksyja_kuittausaika" type="date"/>
+            <column name="vastuuhenkilo_hyvaksyja_palautusaika" type="date"/>
+            <column name="vastuuhenkilo_hyvaksyja_korjausehdotus" type="text"/>
+            <column name="vastuuhenkilo_hyvaksyja_id" type="bigint"/>
+            <column name="muokkauspaiva" type="date"/>
+            <column name="sarakesign_request_id" type="text"/>
+            <column name="allekirjoitusaika" type="date"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+                                 baseTableName="valmistumispyynto_audit"
+                                 constraintName="fk_valmistumispyynto_audit_revinfo_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+</databaseChangeLog>

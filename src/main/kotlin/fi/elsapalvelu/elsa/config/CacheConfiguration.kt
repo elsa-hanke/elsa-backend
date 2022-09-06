@@ -142,6 +142,7 @@ class CacheConfiguration(
             createCache(cm, fi.elsapalvelu.elsa.domain.OpintosuoritusOsakokonaisuus::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.OpintooikeusHerate::class.java.name)
             createCache(cm, fi.elsapalvelu.elsa.domain.VastuuhenkilonTehtavatyyppi::class.java.name)
+            createCache(cm, fi.elsapalvelu.elsa.domain.Valmistumispyynto::class.java.name)
         }
         // @formatter:on
     }
