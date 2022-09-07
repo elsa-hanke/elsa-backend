@@ -6,6 +6,8 @@ import org.hibernate.annotations.Type
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.persistence.*
 import javax.validation.constraints.NotNull
 
@@ -89,9 +91,23 @@ data class Koulutussuunnitelma(
 
     @OneToMany(mappedBy = "koulutussuunnitelma")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf()
+    var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf(),
+
+    @NotNull
+    @Column(name = "muokkauspaiva", nullable = false)
+    var muokkauspaiva: LocalDate? = null
 
 ) : Serializable {
+
+    @PrePersist
+    protected fun onCreate() {
+        muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
+    }
+
+    @PreUpdate
+    protected fun onUpdate() {
+        muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
