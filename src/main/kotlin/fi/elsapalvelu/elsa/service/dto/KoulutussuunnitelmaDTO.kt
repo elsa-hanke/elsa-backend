@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
+import java.time.LocalDate
 import javax.persistence.Lob
 import javax.validation.constraints.NotNull
 
@@ -44,7 +45,10 @@ data class KoulutussuunnitelmaDTO(
 
     var motivaatiokirjeAsiakirja: AsiakirjaDTO? = null,
 
-    var motivaatiokirjeAsiakirjaUpdated: Boolean = false
+    var motivaatiokirjeAsiakirjaUpdated: Boolean = false,
+
+    var muokkauspaiva: LocalDate? = null
+
 ) : Serializable {
 
     override fun equals(other: Any?): Boolean {
