@@ -35,8 +35,8 @@ class ErikoisalaServiceImpl(
             .map(erikoisalaMapper::toDto)
     }
 
-    override fun findAllByLiittynytElsaanWithTehtavatyypit(): List<ErikoisalaWithTehtavatyypitDTO> {
-        return erikoisalaRepository.findAllByLiittynytElsaanTrue()
+    override fun findAllWithTehtavatyypit(): List<ErikoisalaWithTehtavatyypitDTO> {
+        return erikoisalaRepository.findAll()
             .map(erikoisalaWithTehtavatyypitMapper::toDto)
     }
 
