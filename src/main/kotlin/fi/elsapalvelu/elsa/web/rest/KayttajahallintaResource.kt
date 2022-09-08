@@ -175,7 +175,7 @@ open class KayttajahallintaResource(
         @PathVariable yliopistoId: Long
     ): ResponseEntity<KayttajahallintaVastuuhenkilonTehtavatFormDTO> {
         val form = KayttajahallintaVastuuhenkilonTehtavatFormDTO(
-            erikoisalat = erikoisalaService.findAllByLiittynytElsaanWithTehtavatyypit().toSet(),
+            erikoisalat = erikoisalaService.findAllWithTehtavatyypit().toSet(),
             vastuuhenkilot = kayttajaService.findVastuuhenkilotByYliopisto(yliopistoId).map {
                 KayttajahallintaFormVastuuhenkiloDTO(
                     id = it.id,

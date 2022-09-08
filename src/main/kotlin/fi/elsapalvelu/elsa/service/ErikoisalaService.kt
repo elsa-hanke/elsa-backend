@@ -12,7 +12,7 @@ interface ErikoisalaService {
 
     fun findAllByLiittynytElsaan(): List<ErikoisalaDTO>
 
-    fun findAllByLiittynytElsaanWithTehtavatyypit(): List<ErikoisalaWithTehtavatyypitDTO>
+    fun findAllWithTehtavatyypit(): List<ErikoisalaWithTehtavatyypitDTO>
 
     fun findOne(id: Long): Optional<ErikoisalaDTO>
 
