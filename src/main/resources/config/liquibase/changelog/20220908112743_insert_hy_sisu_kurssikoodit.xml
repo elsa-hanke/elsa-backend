@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220908112743" author="jhipster">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*)
+                from opintosuoritus_kurssikoodi
+                where tunniste = 'ELMED-TENTTI????' or tunniste = 'EDENT-TENTTI????' or tunniste = 'EDENT-SIVU????'
+                or tunniste = 'ELMED-????KOE' or tunniste = 'EDENT-????KOE'
+            </sqlCheck>
+        </preConditions>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="ELMED-TENTTI????"/>
+            <column name="tyyppi_id" value="3"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'HELSINGIN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="ELDENT-TENTTI????"/>
+            <column name="tyyppi_id" value="3"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'HELSINGIN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="ELDENT-TENTTI????"/>
+            <column name="tyyppi_id" value="3"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'HELSINGIN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="ELMED-????KOE"/>
+            <column name="tyyppi_id" value="4"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'HELSINGIN_YLIOPISTO')"/>
+        </insert>
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="EDENT-????KOE"/>
+            <column name="tyyppi_id" value="4"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'HELSINGIN_YLIOPISTO')"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
+
