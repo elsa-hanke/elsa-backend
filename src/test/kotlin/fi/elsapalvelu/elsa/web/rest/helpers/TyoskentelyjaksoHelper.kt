@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.Tyoskentelypaikka
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
@@ -32,16 +33,22 @@ class TyoskentelyjaksoHelper {
         private const val UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN: Boolean = true
 
         @JvmStatic
-        fun createEntity(em: EntityManager, user: User? = null): Tyoskentelyjakso {
+        fun createEntity(
+            em: EntityManager,
+            user: User? = null,
+            alkamispaiva: LocalDate = DEFAULT_ALKAMISPAIVA,
+            paattymispaiva: LocalDate = DEFAULT_PAATTYMISPAIVA,
+            tyoskentelyjaksoTyyppi: TyoskentelyjaksoTyyppi = TyoskentelypaikkaHelper.DEFAULT_TYYPPI
+        ): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
-                alkamispaiva = DEFAULT_ALKAMISPAIVA,
-                paattymispaiva = DEFAULT_PAATTYMISPAIVA,
+                alkamispaiva = alkamispaiva,
+                paattymispaiva = paattymispaiva,
                 osaaikaprosentti = DEFAULT_OSAAIKAPROSENTTI,
                 kaytannonKoulutus = DEFAULT_KAYTANNON_KOULUTUS,
                 hyvaksyttyAiempaanErikoisalaan = DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
             )
 
-            val tyoskentelypaikka = TyoskentelypaikkaHelper.createEntity(em)
+            val tyoskentelypaikka = TyoskentelypaikkaHelper.createEntity(em, tyoskentelyjaksoTyyppi)
             em.persist(tyoskentelypaikka)
             em.flush()
 
@@ -63,10 +70,15 @@ class TyoskentelyjaksoHelper {
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): Tyoskentelyjakso {
+        fun createUpdatedEntity(
+            em: EntityManager,
+            alkamispaiva: LocalDate = UPDATED_ALKAMISPAIVA,
+            paattymispaiva: LocalDate = UPDATED_PAATTYMISPAIVA,
+            tyoskentelyjaksoTyyppi: TyoskentelyjaksoTyyppi = TyoskentelypaikkaHelper.UPDATED_TYYPPI
+        ): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
-                alkamispaiva = UPDATED_ALKAMISPAIVA,
-                paattymispaiva = UPDATED_PAATTYMISPAIVA,
+                alkamispaiva = alkamispaiva,
+                paattymispaiva = paattymispaiva,
                 osaaikaprosentti = UPDATED_OSAAIKAPROSENTTI,
                 kaytannonKoulutus = UPDATED_KAYTANNON_KOULUTUS,
                 hyvaksyttyAiempaanErikoisalaan = UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
@@ -75,7 +87,7 @@ class TyoskentelyjaksoHelper {
             // Lisätään pakollinen tieto
             val tyoskentelypaikka: Tyoskentelypaikka
             if (em.findAll(Tyoskentelypaikka::class).isEmpty()) {
-                tyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em)
+                tyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em, tyoskentelyjaksoTyyppi)
                 em.persist(tyoskentelypaikka)
                 em.flush()
             } else {

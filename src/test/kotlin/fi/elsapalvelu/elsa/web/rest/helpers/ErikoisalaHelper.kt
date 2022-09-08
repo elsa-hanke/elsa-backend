@@ -18,11 +18,12 @@ class ErikoisalaHelper {
         @JvmStatic
         fun createEntity(
             nimi: String = DEFAULT_NIMI,
-            virtaPatevyyskoodi: String? = DEFAULT_VIRTAPATEVYYSKOODI
+            virtaPatevyyskoodi: String? = DEFAULT_VIRTAPATEVYYSKOODI,
+            tyyppi: ErikoisalaTyyppi = DEFAULT_TYYPPI
         ): Erikoisala {
             return Erikoisala(
                 nimi = nimi,
-                tyyppi = DEFAULT_TYYPPI,
+                tyyppi = tyyppi,
                 virtaPatevyyskoodi = virtaPatevyyskoodi,
                 liittynytElsaan = true
             )
@@ -31,11 +32,12 @@ class ErikoisalaHelper {
         @JvmStatic
         fun createUpdatedEntity(
             nimi: String = UPDATED_NIMI,
-            virtaPatevyyskoodi: String? = UPDATED_VIRTAPATEVYYSKOODI
+            virtaPatevyyskoodi: String? = UPDATED_VIRTAPATEVYYSKOODI,
+            tyyppi: ErikoisalaTyyppi = UPDATED_TYYPPI
         ): Erikoisala {
             return Erikoisala(
                 nimi = nimi,
-                tyyppi = UPDATED_TYYPPI,
+                tyyppi = tyyppi,
                 virtaPatevyyskoodi = virtaPatevyyskoodi,
                 liittynytElsaan = true
             )
