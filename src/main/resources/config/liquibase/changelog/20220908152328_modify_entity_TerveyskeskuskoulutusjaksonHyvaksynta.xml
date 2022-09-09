@@ -10,7 +10,9 @@
             <column name="lisatiedot_virkailijalta" type="text"/>
             <column name="korjausehdotus_vastuuhenkilolta" type="text"/>
             <column name="virkailija_id" type="bigint"/>
+            <column name="virkailijan_kuittausaika" type="date"/>
             <column name="vastuuhenkilo_id" type="bigint"/>
+            <column name="vastuuhenkilon_kuittausaika" type="date"/>
         </addColumn>
 
         <dropColumn tableName="terveyskeskuskoulutusjakson_hyvaksynta_audit" columnName="opintooikeus_id"/>
@@ -21,7 +23,9 @@
             <column name="lisatiedot_virkailijalta" type="text"/>
             <column name="korjausehdotus_vastuuhenkilolta" type="text"/>
             <column name="virkailija_id" type="bigint"/>
+            <column name="virkailijan_kuittausaika" type="date"/>
             <column name="vastuuhenkilo_id" type="bigint"/>
+            <column name="vastuuhenkilon_kuittausaika" type="date"/>
         </addColumn>
 
         <addForeignKeyConstraint baseColumnNames="virkailija_id"
