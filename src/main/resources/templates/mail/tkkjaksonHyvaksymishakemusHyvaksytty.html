@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fi" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>[ELSA-palvelu] Olet saanut terveyskeskuskoulutusjakson hyväksymishakemuksen tarkastettavaksi</title>
+    <title>[ELSA-palvelu] terveyskeskuskoulutusjakso on hyväksytty vastuuhenkilön toimesta</title>
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
     <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
 </head>
@@ -10,13 +10,13 @@
     Hei,
 </p>
 <p>
-    Olet saanut ELSA-palveluun uuden terveyskeskuskoulutusjakson hyväksymishakemuksen.
+    Terveyskeskuskoulutusjakso on hyväksytty vastuuhenkilön toimesta.
 
-    Pääset tarkastamaan uuden terveyskeskuskoulutusjakson alla olevan linkin kautta:
+    Pääset katsomaan terveyskeskuskoulutusjaksoa alla olevan linkin kautta:
 </p>
 <p>
     <a th:href="${url}" th:text="${url}"
-       th:with="url=(@{|${baseUrl}/terveyskeskuskoulutusjakso/${id}|})"></a>
+       th:with="url=(@{|${baseUrl}/{urlPath}|})"></a>
 </p>
 <p>
     HUOM! Tähän sähköpostiviestiin ei voi vastata.

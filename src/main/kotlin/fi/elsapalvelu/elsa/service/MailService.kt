@@ -25,7 +25,8 @@ enum class MailProperty(val property: String) {
     TEXT("text"),
     DATE("date"),
     FEEDBACK("feedback"),
-    FEEDBACK_TOPIC("feedbackTopic")
+    FEEDBACK_TOPIC("feedbackTopic"),
+    URL_PATH("urlPath")
 }
 
 @Service
