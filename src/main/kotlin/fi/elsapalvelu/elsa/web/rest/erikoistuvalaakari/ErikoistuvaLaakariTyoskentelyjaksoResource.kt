@@ -19,6 +19,7 @@ import javax.validation.Valid
 import javax.validation.ValidationException
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
+private const val TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME = "terveyskeskuskoulutusjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
 private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
 private const val TYOSKENTELYPAIKKA_ENTITY_NAME = "tyoskentelypaikka"
@@ -413,6 +414,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
+        validateLaillistamispaivaAndTodistus(user, laillistamispaiva, laillistamispaivanLiite)
         if (terveyskeskuskoulutusjaksonHyvaksyntaService.existsByOpintooikeusId(opintooikeusId)) {
             throw BadRequestAlertException(
                 "Terveyskeskuskoulutusjakson hyväksyntä on jo lähetetty",
@@ -450,6 +452,24 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         }
 
         return null
+    }
+
+    private fun validateLaillistamispaivaAndTodistus(
+        user: UserDTO,
+        laillistamispaiva: LocalDate?,
+        laillistamistodistus: MultipartFile?
+    ) {
+        if ((laillistamispaiva == null || laillistamistodistus == null) &&
+            !erikoistuvaLaakariService.laillistamispaivaAndTodistusExists(
+                user.id!!
+            )
+        ) {
+            throw BadRequestAlertException(
+                "Laillistamispaiva ja todistus vaaditaan",
+                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
+                "dataillegal.laillistamispaiva-ja-todistus-vaaditaan"
+            )
+        }
     }
 
     private fun validateNewTyoskentelyjaksoDTO(it: TyoskentelyjaksoDTO) {
