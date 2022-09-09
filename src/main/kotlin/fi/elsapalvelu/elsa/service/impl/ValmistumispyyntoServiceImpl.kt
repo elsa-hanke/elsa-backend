@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.Opintooikeus
+import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.Valmistumispyynto
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
@@ -14,8 +15,8 @@ import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.service.constants.ERIKOISALA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.constants.OPINTOOIKEUS_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.constants.VALMISTUMISPYYNTO_NOT_FOUND_ERROR
+import fi.elsapalvelu.elsa.service.dto.UusiValmistumispyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoDTO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoErikoistujaSaveDTO
 import fi.elsapalvelu.elsa.service.dto.VanhentuneetSuorituksetDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.service.mapper.ValmistumispyyntoMapper
@@ -102,16 +103,17 @@ class ValmistumispyyntoServiceImpl(
 
     override fun create(
         opintooikeusId: Long,
-        valmistumispyyntoDTO: ValmistumispyyntoErikoistujaSaveDTO
-    ): ValmistumispyyntoDTO? {
+        uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
+    ): ValmistumispyyntoDTO {
         getOpintooikeus(opintooikeusId).let { opintooikeus ->
             val valmistumispyynto = Valmistumispyynto(
                 opintooikeus = opintooikeus,
-                selvitysVanhentuneistaSuorituksista = valmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista,
+                selvitysVanhentuneistaSuorituksista = uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista,
                 erikoistujanKuittausaika = LocalDate.now()
             )
+            val vastuuhenkiloOsaamisenArvioijaUser = getVastuuhenkiloOsaamisenArvioija(opintooikeus).user!!
             valmistumispyyntoRepository.save(valmistumispyynto).let { saved ->
-                sendMailNotificationUusiValmistumispyynto(opintooikeus, saved)
+                sendMailNotificationUusiValmistumispyynto(vastuuhenkiloOsaamisenArvioijaUser, saved)
                 return valmistumispyyntoMapper.toDto(saved)
                     .apply { tila = ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKISTUSTA }
             }
@@ -120,22 +122,27 @@ class ValmistumispyyntoServiceImpl(
 
     override fun update(
         opintooikeusId: Long,
-        valmistumispyyntoDTO: ValmistumispyyntoErikoistujaSaveDTO
-    ): ValmistumispyyntoDTO? {
+        uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
+    ): ValmistumispyyntoDTO {
         getOpintooikeus(opintooikeusId).let { opintooikeus ->
+            val vastuuhenkiloOsaamisenArvioijaUser = getVastuuhenkiloOsaamisenArvioija(opintooikeus).user!!
             getValmistumispyynto(opintooikeusId).apply {
                 vastuuhenkiloOsaamisenArvioijaKorjausehdotus = null
                 vastuuhenkiloOsaamisenArvioijaPalautusaika = null
                 erikoistujanKuittausaika = LocalDate.now()
-                selvitysVanhentuneistaSuorituksista = valmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista
+                this.selvitysVanhentuneistaSuorituksista = uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista
             }.let {
                 valmistumispyyntoRepository.save(it).let { saved ->
-                    sendMailNotificationUusiValmistumispyynto(opintooikeus, saved)
+                    sendMailNotificationUusiValmistumispyynto(vastuuhenkiloOsaamisenArvioijaUser, saved)
                     return valmistumispyyntoMapper.toDto(saved)
                         .apply { tila = ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKISTUSTA }
                 }
             }
         }
+    }
+
+    override fun existsByOpintooikeusId(opintooikeusId: Long): Boolean {
+        return valmistumispyyntoRepository.existsByOpintooikeusId(opintooikeusId)
     }
 
     private fun getOpintooikeus(id: Long) =
@@ -163,11 +170,11 @@ class ValmistumispyyntoServiceImpl(
         ) ?: throw EntityNotFoundException("Vastuuhenkilöä, joka hyväksyisi valmistumispyynnon, ei löydy.")
 
     private fun sendMailNotificationUusiValmistumispyynto(
-        opintooikeus: Opintooikeus,
+        vastuuhenkiloOsaamisenArvioijaUser: User,
         valmistumispyynto: Valmistumispyynto
     ) {
         mailService.sendEmailFromTemplate(
-            getVastuuhenkiloOsaamisenArvioija(opintooikeus).user!!,
+            vastuuhenkiloOsaamisenArvioijaUser,
             templateName = "uusivalmistumispyynto.html",
             titleKey = "email.uusivalmistumispyynto.title",
             properties = mapOf(
