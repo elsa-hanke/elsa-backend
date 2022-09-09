@@ -51,7 +51,7 @@ data class TerveyskeskuskoulutusjaksonHyvaksynta(
     @Column(name = "lisatiedot_virkailijalta")
     var lisatiedotVirkailijalta: String? = null,
 
-    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(unique = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var opintooikeus: Opintooikeus? = null,

@@ -47,6 +47,14 @@ interface TerveyskeskuskoulutusjaksonHyvaksyntaMapper :
         Mapping(
             source = "opintooikeus.erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi",
             target = "laillistamispaivanLiitteenTyyppi"
+        ),
+        Mapping(
+            source = "virkailija.nimi",
+            target = "virkailijanNimi"
+        ),
+        Mapping(
+            source = "virkailija.nimike",
+            target = "virkailijanNimike"
         )
     )
     override fun toDto(entity: TerveyskeskuskoulutusjaksonHyvaksynta): TerveyskeskuskoulutusjaksonHyvaksyntaDTO

@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.TerveyskeskuskoulutusjaksonHyvaksynta
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import javax.persistence.EntityNotFoundException
 import javax.validation.ValidationException
 
@@ -179,33 +181,126 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
         return terveyskeskuskoulutusjaksonHyvaksyntaRepository.findById(id)
             .orElse(null)?.let {
-                if (it.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId) {
-                    it.korjausehdotus = null
-                } else if (isVirkailija) {
-                    it.virkailija = kayttaja
-                    if (korjausehdotus != null) {
-                        it.korjausehdotus = korjausehdotus
-                    } else {
-                        it.virkailijaHyvaksynyt = true
-                        it.lisatiedotVirkailijalta = lisatiedotVirkailijalta
-                    }
-                } else if (kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
+                val vastuuhenkilo =
+                    kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
                         listOf(VASTUUHENKILO),
                         it.opintooikeus?.yliopisto?.id,
                         VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
-                    )?.id == kayttaja.id
-                ) {
-                    it.vastuuhenkilo = kayttaja
-                    if (korjausehdotus != null) {
-                        it.korjausehdotus = korjausehdotus
-                        it.korjausehdotusVastuuhenkilolta = korjausehdotus
-                    } else {
-                        it.vastuuhenkiloHyvaksynyt = true
-                    }
+                    )
+                if (it.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId) {
+                    return handleErikoistuja(it)
+                } else if (isVirkailija) {
+                    return handleVirkailija(
+                        it,
+                        kayttaja,
+                        korjausehdotus,
+                        lisatiedotVirkailijalta,
+                        vastuuhenkilo
+                    )
+                } else if (vastuuhenkilo?.id == kayttaja.id) {
+                    return handleVastuuhenkilo(it, kayttaja, korjausehdotus)
                 }
-                val result = terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(it)
-                return terveyskeskuskoulutusjaksonHyvaksyntaMapper.toDto(result)
+                return null
             }
+    }
+
+    private fun handleErikoistuja(hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
+        hyvaksynta.korjausehdotus = null
+        hyvaksynta.virkailija = null
+        hyvaksynta.vastuuhenkilo = null
+        val result = terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(hyvaksynta)
+        return terveyskeskuskoulutusjaksonHyvaksyntaMapper.toDto(result)
+    }
+
+    private fun handleVirkailija(
+        hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta,
+        kayttaja: Kayttaja,
+        korjausehdotus: String?,
+        lisatiedotVirkailijalta: String?,
+        vastuuhenkilo: Kayttaja?
+    ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO {
+        hyvaksynta.virkailija = kayttaja
+        if (korjausehdotus != null) {
+            hyvaksynta.korjausehdotus = korjausehdotus
+        } else {
+            hyvaksynta.virkailijaHyvaksynyt = true
+            hyvaksynta.virkailijanKuittausaika = LocalDate.now()
+            hyvaksynta.lisatiedotVirkailijalta = lisatiedotVirkailijalta
+        }
+
+        val result = terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(hyvaksynta)
+
+        if (result.virkailijaHyvaksynyt) {
+            mailService.sendEmailFromTemplate(
+                to = vastuuhenkilo?.user?.email,
+                templateName = "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
+                titleKey = "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
+                properties = mapOf(Pair(MailProperty.ID, result.id.toString()))
+            )
+        } else {
+            mailService.sendEmailFromTemplate(
+                to = hyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email,
+                templateName = "tkkjaksonHyvaksymishakemusPalautettu.html",
+                titleKey = "email.tkkjaksonhyvaksymishakemuspalautettu.title",
+                properties = mapOf()
+            )
+        }
+
+        return terveyskeskuskoulutusjaksonHyvaksyntaMapper.toDto(result)
+    }
+
+    private fun handleVastuuhenkilo(
+        hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta,
+        kayttaja: Kayttaja,
+        korjausehdotus: String?
+    ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO {
+        hyvaksynta.vastuuhenkilo = kayttaja
+        if (korjausehdotus != null) {
+            hyvaksynta.korjausehdotus = korjausehdotus
+            hyvaksynta.korjausehdotusVastuuhenkilolta = korjausehdotus
+            hyvaksynta.virkailija = null
+            hyvaksynta.virkailijanKuittausaika = null
+            hyvaksynta.virkailijaHyvaksynyt = false
+        } else {
+            hyvaksynta.vastuuhenkiloHyvaksynyt = true
+            hyvaksynta.vastuuhenkilonKuittausaika = LocalDate.now()
+        }
+
+        val result = terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(hyvaksynta)
+
+        if (result.vastuuhenkiloHyvaksynyt) {
+            mailService.sendEmailFromTemplate(
+                to = hyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email,
+                templateName = "tkkjaksonHyvaksymishakemusHyvaksytty.html",
+                titleKey = "email.tkkjaksonhyvaksymishakemushyvaksytty.title",
+                properties = mapOf(
+                    Pair(
+                        MailProperty.URL_PATH,
+                        "tyoskentelyjaksot/terveyskeskuskoulutusjakso"
+                    )
+                )
+            )
+            mailService.sendEmailFromTemplate(
+                to = hyvaksynta.virkailija?.user?.email,
+                templateName = "tkkjaksonHyvaksymishakemusHyvaksytty.html",
+                titleKey = "email.tkkjaksonhyvaksymishakemushyvaksytty.title",
+                properties = mapOf(
+                    Pair(
+                        MailProperty.URL_PATH,
+                        "terveyskeskuskoulutusjakso/${hyvaksynta.id}"
+                    )
+                )
+            )
+        } else {
+            mailService.sendEmailFromTemplate(
+                to = hyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email,
+                templateName = "tkkjaksonHyvaksymishakemusPalautettu.html",
+                titleKey = "email.tkkjaksonhyvaksymishakemuspalautettu.title",
+                properties = mapOf()
+            )
+        }
+
+        return terveyskeskuskoulutusjaksonHyvaksyntaMapper.toDto(result)
     }
 
     override fun existsByOpintooikeusId(opintooikeusId: Long): Boolean {
