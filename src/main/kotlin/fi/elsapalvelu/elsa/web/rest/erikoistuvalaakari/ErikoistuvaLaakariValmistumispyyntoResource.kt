@@ -1,17 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.service.OpintooikeusService
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoDTO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoErikoistujaSaveDTO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoSuoritustenTilaDTO
-import fi.elsapalvelu.elsa.service.dto.VanhentuneetSuorituksetDTO
+import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.multipart.MultipartFile
 import java.net.URI
 import java.security.Principal
 import javax.validation.Valid
@@ -23,7 +17,9 @@ private const val VALMISTUMISPYYNTO_ENTITY_NAME = "valmistumispyyntö"
 class ErikoistuvaLaakariValmistumispyyntoResource(
     private val userService: UserService,
     private val opintooikeusService: OpintooikeusService,
-    private val valmistumispyyntoService: ValmistumispyyntoService
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
+    private val valmistumispyyntoService: ValmistumispyyntoService,
+    private val fileValidationService: FileValidationService
 ) {
 
     @GetMapping("/valmistumispyynto")
@@ -52,7 +48,8 @@ class ErikoistuvaLaakariValmistumispyyntoResource(
 
     @PostMapping("/valmistumispyynto")
     fun createValmistumispyynto(
-        @Valid @RequestBody valmistumispyyntoDTO: ValmistumispyyntoErikoistujaSaveDTO,
+        @Valid uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
+        @RequestParam(required = false) laillistamistodistus: MultipartFile?,
         principal: Principal?
     ): ResponseEntity<ValmistumispyyntoDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -61,26 +58,30 @@ class ErikoistuvaLaakariValmistumispyyntoResource(
         val vanhatSuorituksetDTO =
             valmistumispyyntoService.findSuoritustenTila(opintooikeusId, erikoisalaTyyppi)
 
-        validateVanhentuneetSuoritukset(valmistumispyyntoDTO, vanhatSuorituksetDTO)
+        validateLaillistamispaivaAndTodistus(user, uusiValmistumispyyntoDTO, laillistamistodistus)
+        validateVanhentuneetSuoritukset(uusiValmistumispyyntoDTO, vanhatSuorituksetDTO)
+        validateValmistumispyyntoNotExists(opintooikeusId)
+        validateLaillistamistodistusIfExists(laillistamistodistus)
 
-        try {
-            valmistumispyyntoService.create(opintooikeusId, valmistumispyyntoDTO)?.let { result ->
-                return ResponseEntity
-                    .created(URI("/api/valmistumispyynto"))
-                    .body(result)
-            } ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)
-        } catch (ex: Exception) {
-            throw BadRequestAlertException(
-                ex.message ?: "",
-                VALMISTUMISPYYNTO_ENTITY_NAME,
-                "dataillegal.kaikkia-valmistumispyynnon-tarvitsemia-tietoja-ei-loytynyt"
-            )
+        erikoistuvaLaakariService.updateLaillistamispaiva(
+            user.id!!,
+            uusiValmistumispyyntoDTO.laillistamispaiva,
+            laillistamistodistus?.bytes,
+            laillistamistodistus?.originalFilename,
+            laillistamistodistus?.contentType
+        )
+
+        valmistumispyyntoService.create(opintooikeusId, uusiValmistumispyyntoDTO).let { result ->
+            return ResponseEntity
+                .created(URI("/api/valmistumispyynto"))
+                .body(result)
         }
     }
 
     @PutMapping("/valmistumispyynto")
     fun updateValmistumispyynto(
-        @Valid @RequestBody valmistumispyyntoDTO: ValmistumispyyntoErikoistujaSaveDTO,
+        @Valid uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
+        @RequestParam(required = false) laillistamistodistus: MultipartFile?,
         principal: Principal?
     ): ResponseEntity<ValmistumispyyntoDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -89,34 +90,76 @@ class ErikoistuvaLaakariValmistumispyyntoResource(
         val vanhatSuorituksetDTO =
             valmistumispyyntoService.findSuoritustenTila(opintooikeusId, erikoisalaTyyppi)
 
-        validateVanhentuneetSuoritukset(valmistumispyyntoDTO, vanhatSuorituksetDTO)
+        validateLaillistamispaivaAndTodistus(user, uusiValmistumispyyntoDTO, laillistamistodistus)
+        validateVanhentuneetSuoritukset(uusiValmistumispyyntoDTO, vanhatSuorituksetDTO)
+        validateLaillistamistodistusIfExists(laillistamistodistus)
 
-        try {
-            valmistumispyyntoService.update(opintooikeusId, valmistumispyyntoDTO)?.let { result ->
-                return ResponseEntity.ok(result)
-            } ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)
-        } catch (ex: Exception) {
+        erikoistuvaLaakariService.updateLaillistamispaiva(
+            user.id!!,
+            uusiValmistumispyyntoDTO.laillistamispaiva,
+            laillistamistodistus?.bytes,
+            laillistamistodistus?.originalFilename,
+            laillistamistodistus?.contentType
+        )
+
+        valmistumispyyntoService.update(opintooikeusId, uusiValmistumispyyntoDTO).let { result ->
+            return ResponseEntity.ok(result)
+        }
+    }
+
+    private fun validateValmistumispyyntoNotExists(opintooikeusId: Long) {
+        if (valmistumispyyntoService.existsByOpintooikeusId(opintooikeusId)) {
             throw BadRequestAlertException(
-                ex.message ?: "",
+                "Valmistumispyyntö on jo lähetetty",
                 VALMISTUMISPYYNTO_ENTITY_NAME,
-                "dataillegal.valmistumispyyntoa-ei-voitu-paivittaa"
+                "dataillegal.valmistumispyynto-on-jo-lahetetty"
+            )
+        }
+    }
+
+    private fun validateLaillistamispaivaAndTodistus(
+        user: UserDTO,
+        uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
+        laillistamistodistus: MultipartFile?
+    ) {
+        if ((uusiValmistumispyyntoDTO.laillistamispaiva == null || laillistamistodistus == null) &&
+            !erikoistuvaLaakariService.laillistamispaivaAndTodistusExists(
+                user.id!!
+            )
+        ) {
+            throw BadRequestAlertException(
+                "Laillistamispaiva ja todistus vaaditaan",
+                VALMISTUMISPYYNTO_ENTITY_NAME,
+                "dataillegal.laillistamispaiva-ja-todistus-vaaditaan"
             )
         }
     }
 
     private fun validateVanhentuneetSuoritukset(
-        valmistumispyyntoDTO: ValmistumispyyntoErikoistujaSaveDTO,
+        uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
         vanhatSuorituksetDTO: VanhentuneetSuorituksetDTO
     ) {
-        if (valmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista == null &&
+        if (uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista == null &&
             (vanhatSuorituksetDTO.vanhojaTyoskentelyjaksojaOrSuorituksiaExists == true
-                    || vanhatSuorituksetDTO.kuulusteluVanhentunut == true)
+                || vanhatSuorituksetDTO.kuulusteluVanhentunut == true)
         ) {
             throw BadRequestAlertException(
                 "Selvitys vanhentuneista suorituksista vaaditaan",
                 VALMISTUMISPYYNTO_ENTITY_NAME,
                 "dataillegal.selvitys-vanhentuneista-suorituksista-vaaditaan"
             )
+        }
+    }
+
+    private fun validateLaillistamistodistusIfExists(laillistamistodistus: MultipartFile?) {
+        laillistamistodistus?.let {
+            if (!fileValidationService.validate(listOf(it))) {
+                throw BadRequestAlertException(
+                    "Tiedosto ei ole kelvollinen.",
+                    VALMISTUMISPYYNTO_ENTITY_NAME,
+                    "dataillegal.tiedosto-ei-ole-kelvollinen"
+                )
+            }
         }
     }
 }

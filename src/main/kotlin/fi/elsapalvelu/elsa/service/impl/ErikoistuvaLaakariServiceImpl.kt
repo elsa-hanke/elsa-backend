@@ -66,8 +66,7 @@ class ErikoistuvaLaakariServiceImpl(
 
 
         var kayttaja = Kayttaja(
-            user = user,
-            tila = KayttajatilinTila.KUTSUTTU
+            user = user, tila = KayttajatilinTila.KUTSUTTU
         )
         kayttaja = kayttajaRepository.save(kayttaja)
 
@@ -76,10 +75,8 @@ class ErikoistuvaLaakariServiceImpl(
         )
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        val asetus =
-            asetusRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!)
-        val opintoopas =
-            opintoopasRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!)
+        val asetus = asetusRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!)
+        val opintoopas = opintoopasRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!)
 
         // Asetetaan mahdollisesti muille olemassaoleville opinto-oikeuksille kaytossa = false, koska käytössä voi
         // olla vain yksi kerrallaan.
@@ -94,12 +91,10 @@ class ErikoistuvaLaakariServiceImpl(
             osaamisenArvioinninOppaanPvm = kayttajahallintaErikoistuvaLaakariDTO.osaamisenArvioinninOppaanPvm,
             erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = yliopistoMapper.toEntity(
-                yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!)
-                    .orElse(null)
+                yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).orElse(null)
             ),
             erikoisala = erikoisalaMapper.toEntity(
-                erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!)
-                    .orElse(null)
+                erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!).orElse(null)
             ),
             asetus = asetus,
             opintoopas = opintoopas,
@@ -127,45 +122,32 @@ class ErikoistuvaLaakariServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findAll(
-        userId: String,
-        criteria: KayttajahallintaCriteria,
-        pageable: Pageable
+        userId: String, criteria: KayttajahallintaCriteria, pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId)
-                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         return erikoistuvaLaakariQueryService.findErikoistuvatByCriteria(
-            criteria,
-            pageable,
-            kayttaja.user?.langKey
+            criteria, pageable, kayttaja.user?.langKey
         )
     }
 
     @Transactional(readOnly = true)
     override fun findAllFromSameYliopisto(
-        userId: String,
-        criteria: KayttajahallintaCriteria,
-        pageable: Pageable
+        userId: String, criteria: KayttajahallintaCriteria, pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId)
-                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         val yliopisto =
-            kayttaja.yliopistot.firstOrNull()
-                ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
+            kayttaja.yliopistot.firstOrNull() ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
 
         return erikoistuvaLaakariQueryService.findErikoistuvatByCriteriaAndYliopistoId(
-            criteria,
-            pageable,
-            yliopisto.id,
-            kayttaja.user?.langKey
+            criteria, pageable, yliopisto.id, kayttaja.user?.langKey
         )
     }
 
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<ErikoistuvaLaakariDTO> {
-        return erikoistuvaLaakariRepository.findById(id)
-            .map(erikoistuvaLaakariMapper::toDto)
+        return erikoistuvaLaakariRepository.findById(id).map(erikoistuvaLaakariMapper::toDto)
     }
 
     override fun delete(id: Long) {
@@ -182,13 +164,24 @@ class ErikoistuvaLaakariServiceImpl(
         return null
     }
 
+    override fun laillistamispaivaAndTodistusExists(
+        userId: String
+    ): Boolean {
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+            return it.laillistamispaiva != null &&
+                it.laillistamispaivanLiitetiedosto != null &&
+                it.laillistamispaivanLiitetiedostonNimi != null
+                && it.laillistamispaivanLiitetiedostonTyyppi != null
+        }
+
+        return false
+    }
+
     override fun findOneByKayttajaUserIdWithValidOpintooikeudet(
         userId: String
     ): ErikoistuvaLaakariDTO? {
         erikoistuvaLaakariRepository.findOneByKayttajaUserIdWithValidOpintooikeudet(
-            userId,
-            LocalDate.now(),
-            OpintooikeusServiceImpl.allowedOpintooikeusTilat()
+            userId, LocalDate.now(), OpintooikeusServiceImpl.allowedOpintooikeusTilat()
         )?.let {
             return erikoistuvaLaakariMapper.toDto(it)
         }
@@ -212,10 +205,8 @@ class ErikoistuvaLaakariServiceImpl(
         kayttaja?.yliopistotAndErikoisalat?.forEach {
             erikoistuvatLaakarit.addAll(
                 erikoistuvaLaakariRepository.findAllForVastuuhenkilo(
-                    it.erikoisala?.id!!,
-                    it.yliopisto?.id!!
-                )
-                    .map(erikoistuvaLaakariMapper::toDto)
+                    it.erikoisala?.id!!, it.yliopisto?.id!!
+                ).map(erikoistuvaLaakariMapper::toDto)
             )
         }
         return erikoistuvatLaakarit.toList()
@@ -223,17 +214,16 @@ class ErikoistuvaLaakariServiceImpl(
 
     override fun resendInvitation(id: Long) {
         erikoistuvaLaakariRepository.findByIdOrNull(id)?.let { erikoistuvaLaakari ->
-            verificationTokenService.findOne(erikoistuvaLaakari.kayttaja?.user?.id!!)
-                ?.let { token ->
-                    mailService.sendEmailFromTemplate(
-                        erikoistuvaLaakari.kayttaja?.user!!,
-                        templateName = "uusiErikoistuvaLaakari.html",
-                        titleKey = "email.uusierikoistuvalaakari.title",
-                        properties = mapOf(
-                            Pair(MailProperty.ID, token),
-                        )
+            verificationTokenService.findOne(erikoistuvaLaakari.kayttaja?.user?.id!!)?.let { token ->
+                mailService.sendEmailFromTemplate(
+                    erikoistuvaLaakari.kayttaja?.user!!,
+                    templateName = "uusiErikoistuvaLaakari.html",
+                    titleKey = "email.uusierikoistuvalaakari.title",
+                    properties = mapOf(
+                        Pair(MailProperty.ID, token),
                     )
-                }
+                )
+            }
         }
     }
 
@@ -245,17 +235,23 @@ class ErikoistuvaLaakariServiceImpl(
         laillistamispaivanLiitetiedostonTyyppi: String?
     ) {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+            var updated = false
+
             if (laillistamispaiva != null) {
                 it.laillistamispaiva = laillistamispaiva
+                updated = true
             }
 
             if (laillistamispaivanLiitetiedosto != null) {
                 it.laillistamispaivanLiitetiedosto = laillistamispaivanLiitetiedosto
                 it.laillistamispaivanLiitetiedostonNimi = laillistamispaivanLiitetiedostonNimi
                 it.laillistamispaivanLiitetiedostonTyyppi = laillistamispaivanLiitetiedostonTyyppi
+                updated = true
             }
 
-            erikoistuvaLaakariRepository.save(it)
+            if (updated) {
+                erikoistuvaLaakariRepository.save(it)
+            }
         }
     }
 }

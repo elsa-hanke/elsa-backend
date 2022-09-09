@@ -33,6 +33,8 @@ interface ErikoistuvaLaakariService {
 
     fun findOneByKayttajaUserId(userId: String): ErikoistuvaLaakariDTO?
 
+    fun laillistamispaivaAndTodistusExists(userId: String): Boolean
+
     fun findOneByKayttajaUserIdWithValidOpintooikeudet(userId: String): ErikoistuvaLaakariDTO?
 
     fun findOneByKayttajaId(kayttajaId: Long): ErikoistuvaLaakariDTO?

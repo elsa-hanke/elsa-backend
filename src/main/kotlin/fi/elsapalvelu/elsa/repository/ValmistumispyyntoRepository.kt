@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface ValmistumispyyntoRepository : JpaRepository<Valmistumispyynto, Long> {
 
     fun findByOpintooikeusId(opintooikeusId: Long): Valmistumispyynto?
+
+    fun existsByOpintooikeusId(opintooikeusId: Long): Boolean
 }

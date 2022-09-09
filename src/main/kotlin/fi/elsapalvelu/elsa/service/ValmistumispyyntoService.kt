@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
+import fi.elsapalvelu.elsa.service.dto.UusiValmistumispyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoDTO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoErikoistujaSaveDTO
 import fi.elsapalvelu.elsa.service.dto.VanhentuneetSuorituksetDTO
 
 interface ValmistumispyyntoService {
@@ -17,11 +17,13 @@ interface ValmistumispyyntoService {
 
     fun create(
         opintooikeusId: Long,
-        valmistumispyyntoDTO: ValmistumispyyntoErikoistujaSaveDTO
-    ): ValmistumispyyntoDTO?
+        uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
+    ): ValmistumispyyntoDTO
 
     fun update(
         opintooikeusId: Long,
-        valmistumispyyntoDTO: ValmistumispyyntoErikoistujaSaveDTO
-    ): ValmistumispyyntoDTO?
+        uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
+    ): ValmistumispyyntoDTO
+
+    fun existsByOpintooikeusId(opintooikeusId: Long): Boolean
 }
