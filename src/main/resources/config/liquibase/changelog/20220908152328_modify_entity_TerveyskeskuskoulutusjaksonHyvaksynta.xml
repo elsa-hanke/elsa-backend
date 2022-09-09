@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220908152328" author="jhipster">
+        <addColumn tableName="terveyskeskuskoulutusjakson_hyvaksynta">
+            <column name="muokkauspaiva" type="date"/>
+            <column name="lisatiedot_virkailijalta" type="text"/>
+            <column name="korjausehdotus_vastuuhenkilolta" type="text"/>
+            <column name="virkailija_id" type="bigint"/>
+            <column name="vastuuhenkilo_id" type="bigint"/>
+        </addColumn>
+
+        <dropColumn tableName="terveyskeskuskoulutusjakson_hyvaksynta_audit" columnName="opintooikeus_id"/>
+
+        <addColumn tableName="terveyskeskuskoulutusjakson_hyvaksynta_audit">
+            <column name="opintooikeus_id" type="bigint"/>
+            <column name="muokkauspaiva" type="date"/>
+            <column name="lisatiedot_virkailijalta" type="text"/>
+            <column name="korjausehdotus_vastuuhenkilolta" type="text"/>
+            <column name="virkailija_id" type="bigint"/>
+            <column name="vastuuhenkilo_id" type="bigint"/>
+        </addColumn>
+
+        <addForeignKeyConstraint baseColumnNames="virkailija_id"
+            baseTableName="terveyskeskuskoulutusjakson_hyvaksynta"
+            constraintName="fk_terveyskeskuskoulutusjakson_hyvaksynta_virkailija_id"
+            referencedColumnNames="id"
+            referencedTableName="kayttaja"/>
+
+        <addForeignKeyConstraint baseColumnNames="vastuuhenkilo_id"
+            baseTableName="terveyskeskuskoulutusjakson_hyvaksynta"
+            constraintName="fk_terveyskeskuskoulutusjakson_hyvaksynta_vastuuhenkilo_id"
+            referencedColumnNames="id"
+            referencedTableName="kayttaja"/>
+    </changeSet>
+</databaseChangeLog>
