@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import java.io.Serializable
 
 class TyoskentelyjaksotTableDTO(
@@ -10,7 +11,9 @@ class TyoskentelyjaksotTableDTO(
 
     var tilastot: TyoskentelyjaksotTilastotDTO? = null,
 
-    var terveyskeskuskoulutusjaksoLahetetty: Boolean? = null
+    var terveyskeskuskoulutusjaksonTila: TerveyskeskuskoulutusjaksoTila? = null,
+
+    var terveyskeskuskoulutusjaksonKorjausehdotus: String? = null
 
 ) : Serializable {
     override fun toString() = "TyoskentelyjaksotTableDTO"
