@@ -42,7 +42,15 @@ data class TerveyskeskuskoulutusjaksonHyvaksyntaDTO(
 
     var tila: TerveyskeskuskoulutusjaksoTila? = null,
 
-    var korjausehdotus: String? = null
+    var korjausehdotus: String? = null,
+
+    var lisatiedotVirkailijalta: String? = null,
+
+    var virkailijanNimi: String? = null,
+
+    var virkailijanNimike: String? = null,
+
+    var virkailijanKuittausaika: LocalDate? = null
 
 ) : Serializable {
 
