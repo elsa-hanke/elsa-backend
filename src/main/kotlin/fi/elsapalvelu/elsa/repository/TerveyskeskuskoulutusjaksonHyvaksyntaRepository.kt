@@ -10,6 +10,11 @@ interface TerveyskeskuskoulutusjaksonHyvaksyntaRepository :
     JpaRepository<TerveyskeskuskoulutusjaksonHyvaksynta, Long>,
     JpaSpecificationExecutor<TerveyskeskuskoulutusjaksonHyvaksynta> {
 
+    fun findByIdAndOpintooikeusYliopistoIdIn(
+        id: Long,
+        yliopistoIds: List<Long>
+    ): TerveyskeskuskoulutusjaksonHyvaksynta?
+
     fun findByOpintooikeusId(opintooikeusId: Long): TerveyskeskuskoulutusjaksonHyvaksynta?
 
     fun existsByOpintooikeusId(opintooikeusId: Long): Boolean

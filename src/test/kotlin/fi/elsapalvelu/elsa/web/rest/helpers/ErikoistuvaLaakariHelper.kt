@@ -86,7 +86,8 @@ class ErikoistuvaLaakariHelper {
             var opintoopasKaytossa = opintoopas
             if (opintoopasKaytossa == null) {
                 if (em.findAll(Opintoopas::class).isEmpty()) {
-                    opintoopasKaytossa = OpintoopasHelper.createEntity(em, erikoisala = erikoistuvanErikoisala)
+                    opintoopasKaytossa =
+                        OpintoopasHelper.createEntity(em, erikoisala = erikoistuvanErikoisala)
                     em.persist(opintoopasKaytossa)
                     em.flush()
                 } else {
