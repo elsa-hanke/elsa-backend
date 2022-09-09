@@ -23,6 +23,7 @@ private const val TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME = "terveyskeskuskoulutu
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
 private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
 private const val TYOSKENTELYPAIKKA_ENTITY_NAME = "tyoskentelypaikka"
+private const val TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME = "terveyskeskuskoulutusjakson_hyvaksynta"
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
@@ -121,7 +122,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
         table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeusId)
         terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)?.let {
-            table.terveyskeskuskoulutusjaksoLahetetty = it.vastuuhenkiloHyvaksynyt != true
+            table.terveyskeskuskoulutusjaksonTila = it.tila
+            table.terveyskeskuskoulutusjaksonKorjausehdotus = it.korjausehdotus
         }
 
         return ResponseEntity.ok(table)
@@ -392,13 +394,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         } catch (e: EntityNotFoundException) {
             throw BadRequestAlertException(
                 "Vastuuhenkilöä ei löytynyt",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
+                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
                 "dataillegal.vastuuhenkiloa-ei-loytynyt"
             )
         } catch (e: ValidationException) {
             throw BadRequestAlertException(
                 "Terveyskeskuskoulutusjakson vähimmäispituus ei täyty",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
+                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
                 "dataillegal.terveyskeskuskoulutusjakson-vahimmaispituus-ei-tayty"
             )
         }
@@ -418,7 +420,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         if (terveyskeskuskoulutusjaksonHyvaksyntaService.existsByOpintooikeusId(opintooikeusId)) {
             throw BadRequestAlertException(
                 "Terveyskeskuskoulutusjakson hyväksyntä on jo lähetetty",
-                "terveyskeskuskoulutusjakso",
+                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
                 "dataillegal.terveyskeskuskoulutusjakson-hyvaksynta-on-jo-lahetetty"
             )
         }
@@ -434,6 +436,44 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         terveyskeskuskoulutusjaksonHyvaksyntaService.create(opintooikeusId).let {
             return ResponseEntity.ok(it)
         }
+    }
+
+    @PutMapping("/tyoskentelyjaksot/terveyskeskuskoulutusjakson-hyvaksynta")
+    fun updateTerveyskeskuskoulutusjaksonHyvaksynta(
+        @RequestParam(required = false) laillistamispaiva: LocalDate?,
+        @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
+        principal: Principal?
+    ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        val hyvaksynta =
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)
+                ?: throw BadRequestAlertException(
+                    "Terveyskeskuskoulutusjakson hyväksyntää ei löydy",
+                    TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
+                    "dataillegal.terveyskeskuskoulutusjakson-hyvaksyntaa-ei-loydy"
+                )
+
+        erikoistuvaLaakariService.updateLaillistamispaiva(
+            user.id!!,
+            laillistamispaiva,
+            laillistamispaivanLiite?.bytes,
+            laillistamispaivanLiite?.originalFilename,
+            laillistamispaivanLiite?.contentType
+        )
+
+        terveyskeskuskoulutusjaksonHyvaksyntaService.update(
+            user.id!!,
+            false,
+            hyvaksynta.id!!,
+            null,
+            null
+        )
+            .let {
+                return ResponseEntity.ok(it)
+            }
     }
 
     private fun getMappedFiles(
