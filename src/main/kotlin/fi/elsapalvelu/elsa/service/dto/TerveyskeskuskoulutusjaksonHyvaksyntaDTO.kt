@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import java.io.Serializable
 import java.time.LocalDate
 import java.util.*
@@ -39,9 +40,7 @@ data class TerveyskeskuskoulutusjaksonHyvaksyntaDTO(
 
     var vastuuhenkilonNimike: String? = null,
 
-    var virkailijaHyvaksynyt: Boolean? = null,
-
-    var vastuuhenkiloHyvaksynyt: Boolean? = null,
+    var tila: TerveyskeskuskoulutusjaksoTila? = null,
 
     var korjausehdotus: String? = null
 

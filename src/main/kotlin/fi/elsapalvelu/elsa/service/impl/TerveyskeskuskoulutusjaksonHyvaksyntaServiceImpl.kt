@@ -11,16 +11,18 @@ import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.TerveyskeskuskoulutusjaksonHyvaksyntaRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.MailProperty
-import fi.elsapalvelu.elsa.service.MailService
-import fi.elsapalvelu.elsa.service.TerveyskeskuskoulutusjaksonHyvaksyntaService
-import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.VASTUUHENKILO_NOT_FOUND_ERROR
+import fi.elsapalvelu.elsa.service.criteria.TerveyskeskuskoulutusjaksoCriteria
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
+import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksonHyvaksyntaDTO
+import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.TerveyskeskuskoulutusjaksonHyvaksyntaMapper
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoWithKeskeytysajatMapper
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -38,6 +40,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     private val kayttajaMapper: KayttajaMapper,
     private val tyoskentelyjaksoMapper: TyoskentelyjaksoWithKeskeytysajatMapper,
     private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
+    private val terveyskeskuskoulutusjaksonHyvaksyntaQueryService: TerveyskeskuskoulutusjaksonHyvaksyntaQueryService,
     private val mailService: MailService,
     private val applicationProperties: ApplicationProperties
 
@@ -53,6 +56,31 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     override fun findByOpintooikeusId(opintooikeusId: Long): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
         terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(opintooikeusId)?.let {
             return mapTerveyskeskuskoulutusjakso(it)
+        }
+        return null
+    }
+
+    override fun findByVirkailijaUserId(
+        userId: String,
+        criteria: TerveyskeskuskoulutusjaksoCriteria,
+        pageable: Pageable
+    ): Page<TerveyskeskuskoulutusjaksoSimpleDTO>? {
+        kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
+            k.yliopistot.firstOrNull()?.let {
+                return terveyskeskuskoulutusjaksonHyvaksyntaQueryService.findByCriteriaAndYliopistoId(
+                    criteria,
+                    pageable,
+                    it.id!!,
+                    k.user?.langKey
+                ).map { hyvaksynta ->
+                    TerveyskeskuskoulutusjaksoSimpleDTO(
+                        hyvaksynta.id,
+                        TerveyskeskuskoulutusjaksoTila.fromHyvaksynta(hyvaksynta),
+                        hyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
+                        hyvaksynta.muokkauspaiva
+                    )
+                }
+            }
         }
         return null
     }
@@ -137,27 +165,34 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     override fun update(
         userId: String,
         isVirkailija: Boolean,
-        terveyskeskuskoulutusjaksoDTO: TerveyskeskuskoulutusjaksonHyvaksyntaDTO
+        id: Long,
+        korjausehdotus: String?,
+        lisatiedotVirkailijalta: String?
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
         val kayttaja = kayttajaRepository.findOneByUserId(userId)
-        return terveyskeskuskoulutusjaksonHyvaksyntaRepository.findById(
-            terveyskeskuskoulutusjaksoDTO.id!!
-        )
+            .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+        return terveyskeskuskoulutusjaksonHyvaksyntaRepository.findById(id)
             .orElse(null)?.let {
-                if (isVirkailija) {
-                    if (terveyskeskuskoulutusjaksoDTO.korjausehdotus != null) {
-                        it.korjausehdotus = terveyskeskuskoulutusjaksoDTO.korjausehdotus
+                if (it.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId) {
+                    it.korjausehdotus = null
+                } else if (isVirkailija) {
+                    it.virkailija = kayttaja
+                    if (korjausehdotus != null) {
+                        it.korjausehdotus = korjausehdotus
                     } else {
                         it.virkailijaHyvaksynyt = true
+                        it.lisatiedotVirkailijalta = lisatiedotVirkailijalta
                     }
                 } else if (kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
                         listOf(VASTUUHENKILO),
                         it.opintooikeus?.yliopisto?.id,
                         VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
-                    )?.id == kayttaja.orElse(null)?.id
+                    )?.id == kayttaja.id
                 ) {
-                    if (terveyskeskuskoulutusjaksoDTO.korjausehdotus != null) {
-                        it.korjausehdotus = terveyskeskuskoulutusjaksoDTO.korjausehdotus
+                    it.vastuuhenkilo = kayttaja
+                    if (korjausehdotus != null) {
+                        it.korjausehdotus = korjausehdotus
+                        it.korjausehdotusVastuuhenkilolta = korjausehdotus
                     } else {
                         it.vastuuhenkiloHyvaksynyt = true
                     }
@@ -198,6 +233,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         result.vastuuhenkilonNimi = vastuuhenkilo.nimi
         result.vastuuhenkilonNimike = vastuuhenkilo.nimike
         result.tyoskentelyjaksot = tyoskentelyjaksot.map(tyoskentelyjaksoMapper::toDto)
+        result.tila = TerveyskeskuskoulutusjaksoTila.fromHyvaksynta(hyvaksynta)
 
         return result
     }
