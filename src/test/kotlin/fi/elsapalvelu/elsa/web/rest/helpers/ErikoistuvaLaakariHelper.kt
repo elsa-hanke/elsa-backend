@@ -19,12 +19,14 @@ class ErikoistuvaLaakariHelper {
         private const val UPDATED_OPISKELIJATUNNUS = "BBBBBBBBBB"
 
         val DEFAULT_YLIOPISTO = YliopistoEnum.TAMPEREEN_YLIOPISTO
-
-        private val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
-        private val DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
-        private val DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(20L)
-
-        const val DEFAULT_ASETUS = "55/2020"
+        val DEFAULT_ASETUS = "55/2020"
+        val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
+        val DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
+        val DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(20L)
+        val DEFAULT_LAILLISTAMISPAIVA: LocalDate = LocalDate.ofEpochDay(15L)
+        val DEFAULT_LAILLISTAMISTODISTUS_DATA = byteArrayOf(0x2E, 0x38)
+        val DEFAULT_LAILLISTAMISTODISTUS_NIMI = "laillistamistodistus.pdf"
+        val DEFAULT_LAILLISTAMISTODISTUS_TYYPPI = "application/pdf"
 
         @JvmStatic
         fun createEntity(
@@ -36,7 +38,11 @@ class ErikoistuvaLaakariHelper {
             opintoopas: Opintoopas? = null,
             yliopisto: Yliopisto? = null,
             asetus: Asetus? = null,
-            yliopistoOpintooikeusId: String? = RandomStringUtils.randomAlphabetic(8)
+            yliopistoOpintooikeusId: String? = RandomStringUtils.randomAlphabetic(8),
+            laillistamispaiva: LocalDate? = DEFAULT_LAILLISTAMISPAIVA,
+            laillistamistodistusData: ByteArray? = DEFAULT_LAILLISTAMISTODISTUS_DATA,
+            laillistamistodistusNimi: String? = DEFAULT_LAILLISTAMISTODISTUS_NIMI,
+            laillistamistodistusTyyppi: String? = DEFAULT_LAILLISTAMISTODISTUS_TYYPPI
         ): ErikoistuvaLaakari {
             val erikoistuvaLaakari = ErikoistuvaLaakari()
 
@@ -49,6 +55,10 @@ class ErikoistuvaLaakariHelper {
 
             erikoistuvaLaakari.syntymaaika = LocalDate.ofEpochDay(5L)
             erikoistuvaLaakari.kayttaja = kayttaja
+            erikoistuvaLaakari.laillistamispaiva = laillistamispaiva
+            erikoistuvaLaakari.laillistamispaivanLiitetiedosto = laillistamistodistusData
+            erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = laillistamistodistusNimi
+            erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = laillistamistodistusTyyppi
             em.persist(erikoistuvaLaakari)
 
             var erikoistuvanYliopisto = yliopisto
