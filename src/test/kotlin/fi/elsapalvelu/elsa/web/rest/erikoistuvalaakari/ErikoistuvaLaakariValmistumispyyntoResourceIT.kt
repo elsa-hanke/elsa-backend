@@ -3,14 +3,13 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.*
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoErikoistujaSaveDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
-import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -21,15 +20,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
+import java.io.File
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -51,6 +53,9 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     private lateinit var valmistumispyyntoRepository: ValmistumispyyntoRepository
 
     @Autowired
+    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
+
+    @Autowired
     private lateinit var restValmistumispyyntoMockMvc: MockMvc
 
     private lateinit var vastuuhenkiloArvioija: Kayttaja
@@ -60,6 +65,12 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     private lateinit var virkailija: Kayttaja
 
     private lateinit var user: User
+
+    private lateinit var tempFile: File
+
+    private lateinit var mockMultipartFile: MockMultipartFile
+
+    private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
 
     private lateinit var opintooikeus: Opintooikeus
 
@@ -307,12 +318,10 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         initValmistumispyynnonHyvaksyjat()
 
         val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
-        val valmistumispyyntoErikoistujaSaveDTO = ValmistumispyyntoErikoistujaSaveDTO()
 
         restValmistumispyyntoMockMvc.perform(
-            post("/api/erikoistuva-laakari/valmistumispyynto")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyyntoErikoistujaSaveDTO))
+            multipart("/api/erikoistuva-laakari/valmistumispyynto")
+                .with { it.method = "POST"; it }
                 .with(csrf())
         ).andExpect(status().isCreated)
 
@@ -326,6 +335,96 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
 
     @Test
     @Transactional
+    fun tryToCreateValmistumispyyntoWithoutLaillistamispaivaAndTodistus() {
+        initTestWithVoimassaolevatSuoritukset()
+        initValmistumispyynnonHyvaksyjat()
+
+        erikoistuvaLaakari.laillistamispaiva = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedosto = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = null
+
+        val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
+
+        restValmistumispyyntoMockMvc.perform(
+            multipart("/api/erikoistuva-laakari/valmistumispyynto")
+                .with { it.method = "POST"; it }
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val valmistumispyynnotList = valmistumispyyntoRepository.findAll()
+        assertThat(valmistumispyynnotList).hasSize(valmistumispyyntoTableSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
+    fun createValmistumispyyntoWithLaillistamispaivaAndTodistus() {
+        initTestWithVoimassaolevatSuoritukset()
+        initValmistumispyynnonHyvaksyjat()
+        initMockFile()
+
+        erikoistuvaLaakari.laillistamispaiva = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedosto = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = null
+
+        val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
+        val laillistamispaiva = LocalDate.now()
+
+        restValmistumispyyntoMockMvc.perform(
+            multipart("/api/erikoistuva-laakari/valmistumispyynto")
+                .file(mockMultipartFile)
+                .param("laillistamispaiva", laillistamispaiva.toString())
+                .with { it.method = "POST"; it }
+                .with(csrf())
+        ).andExpect(status().isCreated)
+
+        val valmistumispyynnotList = valmistumispyyntoRepository.findAll()
+        assertThat(valmistumispyynnotList).hasSize(valmistumispyyntoTableSizeBeforeCreate + 1)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        assertThat(erikoistuvaLaakari?.laillistamispaiva).isEqualTo(laillistamispaiva)
+        assertThat(erikoistuvaLaakari?.laillistamispaivanLiitetiedosto).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        assertThat(erikoistuvaLaakari?.laillistamispaivanLiitetiedostonNimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
+        assertThat(erikoistuvaLaakari?.laillistamispaivanLiitetiedostonTyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
+    }
+
+    @Test
+    @Transactional
+    fun tryToCreateValmistumispyyntoWithLaillistamistodistusWithInvalidContentType() {
+        initTestWithVoimassaolevatSuoritukset()
+        initValmistumispyynnonHyvaksyjat()
+        initMockFile()
+
+        erikoistuvaLaakari.laillistamispaiva = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedosto = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = null
+
+        val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
+        val laillistamispaiva = LocalDate.now()
+
+        restValmistumispyyntoMockMvc.perform(
+            multipart("/api/erikoistuva-laakari/valmistumispyynto")
+                .file(
+                    MockMultipartFile(
+                        "laillistamistodistus",
+                        "invalidFile",
+                        "application/x-msdownload",
+                        tempFile.readBytes()
+                    )
+                )
+                .param("laillistamispaiva", laillistamispaiva.toString())
+                .with { it.method = "POST"; it }
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val valmistumispyynnotList = valmistumispyyntoRepository.findAll()
+        assertThat(valmistumispyynnotList).hasSize(valmistumispyyntoTableSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
     fun createValmistumispyyntoVanhentunutSuoritusExistsSelvitysNull() {
         initTestWithVoimassaolevatSuoritukset()
         initValmistumispyynnonHyvaksyjat()
@@ -333,12 +432,10 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         em.persist(OpintosuoritusHelper.createEntity(em, user, suorituspaiva = LocalDate.ofEpochDay(100L)))
 
         val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
-        val valmistumispyyntoErikoistujaSaveDTO = ValmistumispyyntoErikoistujaSaveDTO()
 
         restValmistumispyyntoMockMvc.perform(
-            post("/api/erikoistuva-laakari/valmistumispyynto")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyyntoErikoistujaSaveDTO))
+            multipart("/api/erikoistuva-laakari/valmistumispyynto")
+                .with { it.method = "POST"; it }
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 
@@ -356,13 +453,11 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
 
         val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
         val selvitysVanhentuneistaSuorituksista = "selvitysVanhentuneistaSuorituksista"
-        val valmistumispyyntoErikoistujaSaveDTO =
-            ValmistumispyyntoErikoistujaSaveDTO(selvitysVanhentuneistaSuorituksista = selvitysVanhentuneistaSuorituksista)
 
         restValmistumispyyntoMockMvc.perform(
-            post("/api/erikoistuva-laakari/valmistumispyynto")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyyntoErikoistujaSaveDTO))
+            multipart("/api/erikoistuva-laakari/valmistumispyynto")
+                .with { it.method = "POST"; it }
+                .param("selvitysVanhentuneistaSuorituksista", selvitysVanhentuneistaSuorituksista)
                 .with(csrf())
         ).andExpect(status().isCreated)
 
@@ -379,13 +474,19 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     fun tryToCreateValmistumispyyntoAlreadyExists() {
         initTestWithVoimassaolevatSuoritukset()
 
+        val valmistumispyynto = Valmistumispyynto(
+            opintooikeus = opintooikeus,
+            vastuuhenkiloOsaamisenArvioijaPalautusaika = LocalDate.now(),
+            selvitysVanhentuneistaSuorituksista = "selvitysVanhentuneistaSuorituksista",
+            vastuuhenkiloOsaamisenArvioijaKorjausehdotus = "korjausehdotus"
+        )
+        em.persist(valmistumispyynto)
+
         val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
-        val valmistumispyyntoErikoistujaSaveDTO = ValmistumispyyntoErikoistujaSaveDTO()
 
         restValmistumispyyntoMockMvc.perform(
-            put("/api/erikoistuva-laakari/valmistumispyynto")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyyntoErikoistujaSaveDTO))
+            multipart("/api/erikoistuva-laakari/valmistumispyynto")
+                .with { it.method = "POST"; it }
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 
@@ -409,13 +510,11 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
 
         val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
         val selvitysVanhentuneistaSuorituksistaUpdated = "selvitysVanhentuneistaSuorituksistaUpdated"
-        val valmistumispyyntoErikoistujaSaveDTO =
-            ValmistumispyyntoErikoistujaSaveDTO(selvitysVanhentuneistaSuorituksista = selvitysVanhentuneistaSuorituksistaUpdated)
 
         restValmistumispyyntoMockMvc.perform(
-            put("/api/erikoistuva-laakari/valmistumispyynto")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyyntoErikoistujaSaveDTO))
+            multipart("/api/erikoistuva-laakari/valmistumispyynto")
+                .with { it.method = "PUT"; it }
+                .param("selvitysVanhentuneistaSuorituksista", selvitysVanhentuneistaSuorituksistaUpdated)
                 .with(csrf())
         ).andExpect(status().isOk)
 
@@ -433,18 +532,58 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
 
     @Test
     @Transactional
+    fun tryToUpdateValmistumispyyntoWithLaillistamispaivaWithInvalidContentType() {
+        initTestWithVoimassaolevatSuoritukset()
+        initValmistumispyynnonHyvaksyjat()
+        initMockFile()
+
+        val valmistumispyynto = Valmistumispyynto(
+            opintooikeus = opintooikeus,
+            vastuuhenkiloOsaamisenArvioijaPalautusaika = LocalDate.now(),
+            selvitysVanhentuneistaSuorituksista = "selvitysVanhentuneistaSuorituksista",
+            vastuuhenkiloOsaamisenArvioijaKorjausehdotus = "korjausehdotus"
+        )
+        em.persist(valmistumispyynto)
+
+        erikoistuvaLaakari.laillistamispaiva = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedosto = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = null
+        erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = null
+
+        val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
+        val laillistamispaiva = LocalDate.now()
+
+        restValmistumispyyntoMockMvc.perform(
+            multipart("/api/erikoistuva-laakari/valmistumispyynto")
+                .file(
+                    MockMultipartFile(
+                        "laillistamistodistus",
+                        "invalidFile",
+                        "application/x-msdownload",
+                        tempFile.readBytes()
+                    )
+                )
+                .param("laillistamispaiva", laillistamispaiva.toString())
+                .with { it.method = "PUT"; it }
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val valmistumispyynnotList = valmistumispyyntoRepository.findAll()
+        assertThat(valmistumispyynnotList).hasSize(valmistumispyyntoTableSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
     fun tryToUpdateValmistumispyyntoNotExists() {
         initTestWithVoimassaolevatSuoritukset()
 
         val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
-        val valmistumispyyntoErikoistujaSaveDTO = ValmistumispyyntoErikoistujaSaveDTO()
 
         restValmistumispyyntoMockMvc.perform(
-            put("/api/erikoistuva-laakari/valmistumispyynto")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyyntoErikoistujaSaveDTO))
+            multipart("/api/erikoistuva-laakari/valmistumispyynto")
+                .with { it.method = "PUT"; it }
                 .with(csrf())
-        ).andExpect(status().isBadRequest)
+        ).andExpect(status().is5xxServerError)
 
         val valmistumispyynnotList = valmistumispyyntoRepository.findAll()
         assertThat(valmistumispyynnotList).hasSize(valmistumispyyntoTableSizeBeforeCreate)
@@ -468,6 +607,10 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaNimike").value(vastuuhenkiloArvioija.nimike))
             .andExpect(jsonPath("$.vastuuhenkiloHyvaksyjaNimi").value(vastuuhenkiloHyvaksyja.getNimi()))
             .andExpect(jsonPath("$.vastuuhenkiloHyvaksyjaNimike").value(vastuuhenkiloHyvaksyja.nimike))
+            .andExpect(jsonPath("$.erikoistujanLaillistamispaiva").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISPAIVA.toString()))
+            .andExpect(jsonPath("$.erikoistujanLaillistamistodistus").value("Ljg="))
+            .andExpect(jsonPath("$.erikoistujanLaillistamistodistusNimi").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISTODISTUS_NIMI))
+            .andExpect(jsonPath("$.erikoistujanLaillistamistodistusTyyppi").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISTODISTUS_TYYPPI))
     }
 
     @Test
@@ -704,7 +847,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
 
         val erikoisala = ErikoisalaHelper.createEntity(tyyppi = erikoisalaTyyppi)
         em.persist(erikoisala)
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user, erikoisala = erikoisala)
+        erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user, erikoisala = erikoisala)
         em.persist(erikoistuvaLaakari)
         em.flush()
 
@@ -795,6 +938,19 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
         vastuuhenkiloHyvaksyja.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat.add(hyvaksyntaTehtavatyyppi)
         virkailija.yliopistot.add(opintooikeus.yliopisto!!)
+    }
+
+    fun initMockFile() {
+        tempFile = File.createTempFile("file", "pdf")
+        tempFile.writeBytes(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        tempFile.deleteOnExit()
+
+        mockMultipartFile = MockMultipartFile(
+            "laillistamistodistus",
+            AsiakirjaHelper.ASIAKIRJA_PDF_NIMI,
+            AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI,
+            tempFile.readBytes()
+        )
     }
 
     companion object {
