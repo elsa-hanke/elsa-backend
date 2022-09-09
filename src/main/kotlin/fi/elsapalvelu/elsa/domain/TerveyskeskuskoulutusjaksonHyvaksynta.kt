@@ -20,13 +20,27 @@ data class TerveyskeskuskoulutusjaksonHyvaksynta(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
+    @ManyToOne
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+    var virkailija: Kayttaja? = null,
+
     @NotNull
     @Column(name = "virkailija_hyvaksynyt")
     var virkailijaHyvaksynyt: Boolean = false,
 
+    @Column(name = "virkailijan_kuittausaika")
+    var virkailijanKuittausaika: LocalDate? = null,
+
+    @ManyToOne
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+    var vastuuhenkilo: Kayttaja? = null,
+
     @NotNull
     @Column(name = "vastuuhenkilo_hyvaksynyt")
     var vastuuhenkiloHyvaksynyt: Boolean = false,
+
+    @Column(name = "vastuuhenkilon_kuittausaika")
+    var vastuuhenkilonKuittausaika: LocalDate? = null,
 
     @Column(name = "korjausehdotus")
     var korjausehdotus: String? = null,
@@ -41,14 +55,6 @@ data class TerveyskeskuskoulutusjaksonHyvaksynta(
     @JoinColumn(unique = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var opintooikeus: Opintooikeus? = null,
-
-    @ManyToOne
-    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var virkailija: Kayttaja? = null,
-
-    @ManyToOne
-    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var vastuuhenkilo: Kayttaja? = null,
 
     @NotNull
     @Column(name = "muokkauspaiva", nullable = false)
