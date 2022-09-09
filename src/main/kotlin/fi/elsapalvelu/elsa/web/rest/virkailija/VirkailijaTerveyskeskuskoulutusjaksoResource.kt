@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.TerveyskeskuskoulutusjaksonHyvaksyntaService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.criteria.TerveyskeskuskoulutusjaksoCriteria
@@ -21,6 +22,7 @@ private const val TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME = "terveyskeskuskoulutu
 @RequestMapping("/api/virkailija")
 class VirkailijaTerveyskeskuskoulutusjaksoResource(
     private val userService: UserService,
+    private val kayttajaService: KayttajaService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService
 ) {
 
@@ -45,10 +47,15 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
         @PathVariable id: Long,
         principal: Principal?
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.findByUserId(user.id!!).get()
+        val yliopistoIds = kayttaja.yliopistot?.map { it.id!! }.orEmpty().toList()
         try {
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findById(id).let {
-                return ResponseEntity.ok(it)
-            }
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndYliopistoId(id, yliopistoIds)
+                .let {
+                    if (it == null) return ResponseEntity.notFound().build()
+                    return ResponseEntity.ok(it)
+                }
         } catch (e: EntityNotFoundException) {
             throw BadRequestAlertException(
                 "Vastuuhenkilöä ei löytynyt",

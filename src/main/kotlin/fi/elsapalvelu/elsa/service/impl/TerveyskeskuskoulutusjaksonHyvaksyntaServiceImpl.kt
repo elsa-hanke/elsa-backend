@@ -46,8 +46,14 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
 ) : TerveyskeskuskoulutusjaksonHyvaksyntaService {
 
-    override fun findById(id: Long): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
-        terveyskeskuskoulutusjaksonHyvaksyntaRepository.findById(id).orElse(null)?.let {
+    override fun findByIdAndYliopistoId(
+        id: Long,
+        yliopistoIds: List<Long>
+    ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
+        terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByIdAndOpintooikeusYliopistoIdIn(
+            id,
+            yliopistoIds
+        )?.let {
             return mapTerveyskeskuskoulutusjakso(it)
         }
         return null
