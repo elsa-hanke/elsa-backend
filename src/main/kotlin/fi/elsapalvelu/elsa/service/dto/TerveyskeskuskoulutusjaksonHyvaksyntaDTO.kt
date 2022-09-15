@@ -36,9 +36,9 @@ data class TerveyskeskuskoulutusjaksonHyvaksyntaDTO(
 
     var tyoskentelyjaksot: List<TyoskentelyjaksoDTO>? = listOf(),
 
-    var vastuuhenkilonNimi: String? = null,
+    var yleislaaketieteenVastuuhenkilonNimi: String? = null,
 
-    var vastuuhenkilonNimike: String? = null,
+    var yleislaaketieteenVastuuhenkilonNimike: String? = null,
 
     var tila: TerveyskeskuskoulutusjaksoTila? = null,
 
@@ -50,9 +50,15 @@ data class TerveyskeskuskoulutusjaksonHyvaksyntaDTO(
 
     var virkailijanNimike: String? = null,
 
-    var virkailijanKuittausaika: LocalDate? = null
+    var virkailijanKuittausaika: LocalDate? = null,
 
-) : Serializable {
+    var vastuuhenkilonNimi: String? = null,
+
+    var vastuuhenkilonNimike: String? = null,
+
+    var vastuuhenkilonKuittausaika: LocalDate? = null,
+
+    ) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

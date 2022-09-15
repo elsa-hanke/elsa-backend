@@ -123,6 +123,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)?.let {
             table.terveyskeskuskoulutusjaksonTila = it.tila
             table.terveyskeskuskoulutusjaksonKorjausehdotus = it.korjausehdotus
+            table.terveyskeskuskoulutusjaksonHyvaksymispvm = it.vastuuhenkilonKuittausaika
         }
 
         return ResponseEntity.ok(table)

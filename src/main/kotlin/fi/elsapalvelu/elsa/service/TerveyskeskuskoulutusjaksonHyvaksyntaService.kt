@@ -11,12 +11,19 @@ interface TerveyskeskuskoulutusjaksonHyvaksyntaService {
 
     fun findByIdAndYliopistoId(
         id: Long,
+        isVastuuhenkilo: Boolean,
         yliopistoIds: List<Long>
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO?
 
     fun findByOpintooikeusId(opintooikeusId: Long): TerveyskeskuskoulutusjaksonHyvaksyntaDTO?
 
     fun findByVirkailijaUserId(
+        userId: String,
+        criteria: TerveyskeskuskoulutusjaksoCriteria,
+        pageable: Pageable
+    ): Page<TerveyskeskuskoulutusjaksoSimpleDTO>?
+
+    fun findByVastuuhenkiloUserId(
         userId: String,
         criteria: TerveyskeskuskoulutusjaksoCriteria,
         pageable: Pageable

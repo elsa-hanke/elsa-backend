@@ -50,13 +50,19 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
     override fun findByIdAndYliopistoId(
         id: Long,
+        isVastuuhenkilo: Boolean,
         yliopistoIds: List<Long>
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
         terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByIdAndOpintooikeusYliopistoIdIn(
             id,
             yliopistoIds
         )?.let {
-            return mapTerveyskeskuskoulutusjakso(it)
+            val result = mapTerveyskeskuskoulutusjakso(it)
+            if (isVastuuhenkilo && it.korjausehdotusVastuuhenkilolta != null) {
+                result.tila = TerveyskeskuskoulutusjaksoTila.PALAUTETTU_KORJATTAVAKSI
+                result.korjausehdotus = it.korjausehdotusVastuuhenkilolta
+            }
+            return result
         }
         return null
     }
@@ -74,20 +80,47 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         pageable: Pageable
     ): Page<TerveyskeskuskoulutusjaksoSimpleDTO>? {
         kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
-            k.yliopistot.firstOrNull()?.let {
-                return terveyskeskuskoulutusjaksonHyvaksyntaQueryService.findByCriteriaAndYliopistoId(
-                    criteria,
-                    pageable,
-                    it.id!!,
-                    k.user?.langKey
-                ).map { hyvaksynta ->
-                    TerveyskeskuskoulutusjaksoSimpleDTO(
-                        hyvaksynta.id,
-                        TerveyskeskuskoulutusjaksoTila.fromHyvaksynta(hyvaksynta),
-                        hyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
-                        hyvaksynta.muokkauspaiva
-                    )
+            return terveyskeskuskoulutusjaksonHyvaksyntaQueryService.findByCriteriaAndYliopistoId(
+                criteria,
+                pageable,
+                k.yliopistot.map { it.id!! },
+                true,
+                k.user?.langKey
+            ).map { hyvaksynta ->
+                TerveyskeskuskoulutusjaksoSimpleDTO(
+                    hyvaksynta.id,
+                    TerveyskeskuskoulutusjaksoTila.fromHyvaksynta(hyvaksynta),
+                    hyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
+                    hyvaksynta.muokkauspaiva
+                )
+            }
+        }
+        return null
+    }
+
+    override fun findByVastuuhenkiloUserId(
+        userId: String,
+        criteria: TerveyskeskuskoulutusjaksoCriteria,
+        pageable: Pageable
+    ): Page<TerveyskeskuskoulutusjaksoSimpleDTO>? {
+        kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
+            return terveyskeskuskoulutusjaksonHyvaksyntaQueryService.findByCriteriaAndYliopistoId(
+                criteria,
+                pageable,
+                k.yliopistotAndErikoisalat.filter {
+                    it.erikoisala?.id == 50L && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+                        .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
                 }
+                    .map { it.yliopisto?.id!! },
+                false,
+                k.user?.langKey
+            ).map { hyvaksynta ->
+                TerveyskeskuskoulutusjaksoSimpleDTO(
+                    hyvaksynta.id,
+                    TerveyskeskuskoulutusjaksoTila.fromHyvaksynta(hyvaksynta, true),
+                    hyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
+                    hyvaksynta.muokkauspaiva
+                )
             }
         }
         return null
@@ -134,8 +167,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 asetus = it.asetus?.nimi,
                 terveyskeskuskoulutusjaksonKesto = suoritettuPituus,
                 tyoskentelyjaksot = tyoskentelyjaksot.map(tyoskentelyjaksoMapper::toDto),
-                vastuuhenkilonNimi = vastuuhenkilo.nimi,
-                vastuuhenkilonNimike = vastuuhenkilo.nimike
+                yleislaaketieteenVastuuhenkilonNimi = vastuuhenkilo.nimi,
+                yleislaaketieteenVastuuhenkilonNimike = vastuuhenkilo.nimike
             )
         }
         return null
@@ -226,6 +259,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             hyvaksynta.virkailijaHyvaksynyt = true
             hyvaksynta.virkailijanKuittausaika = LocalDate.now()
             hyvaksynta.lisatiedotVirkailijalta = lisatiedotVirkailijalta
+            hyvaksynta.korjausehdotusVastuuhenkilolta = null
         }
 
         val result = terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(hyvaksynta)
@@ -258,6 +292,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         if (korjausehdotus != null) {
             hyvaksynta.korjausehdotus = korjausehdotus
             hyvaksynta.korjausehdotusVastuuhenkilolta = korjausehdotus
+            hyvaksynta.lisatiedotVirkailijalta = null
             hyvaksynta.virkailija = null
             hyvaksynta.virkailijanKuittausaika = null
             hyvaksynta.virkailijaHyvaksynyt = false
@@ -331,8 +366,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
         val result = terveyskeskuskoulutusjaksonHyvaksyntaMapper.toDto(hyvaksynta)
         result.terveyskeskuskoulutusjaksonKesto = suoritettuPituus
-        result.vastuuhenkilonNimi = vastuuhenkilo.nimi
-        result.vastuuhenkilonNimike = vastuuhenkilo.nimike
+        result.yleislaaketieteenVastuuhenkilonNimi = vastuuhenkilo.nimi
+        result.yleislaaketieteenVastuuhenkilonNimike = vastuuhenkilo.nimike
         result.tyoskentelyjaksot = tyoskentelyjaksot.map(tyoskentelyjaksoMapper::toDto)
         result.tila = TerveyskeskuskoulutusjaksoTila.fromHyvaksynta(hyvaksynta)
 

@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.web.rest.virkailija
+package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.TerveyskeskuskoulutusjaksonHyvaksyntaService
 import fi.elsapalvelu.elsa.service.UserService
@@ -19,12 +20,22 @@ import javax.validation.ValidationException
 private const val TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME = "terveyskeskuskoulutusjakson_hyvaksynta"
 
 @RestController
-@RequestMapping("/api/virkailija")
-class VirkailijaTerveyskeskuskoulutusjaksoResource(
+@RequestMapping("/api/vastuuhenkilo")
+class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
     private val userService: UserService,
     private val kayttajaService: KayttajaService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService
 ) {
+
+    @GetMapping("/onko-terveyskeskuskoulutusjakso-vastuuhenkilo")
+    fun getOnkoTerveyskeskuskoulutusjaksoVastuuhenkilo(principal: Principal?): ResponseEntity<Boolean> {
+        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.findByUserId(user.id!!)
+        return ResponseEntity.ok(kayttaja.get().yliopistotAndErikoisalat?.any {
+            it.erikoisala?.id == 50L && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+                .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
+        })
+    }
 
     @GetMapping("/terveyskeskuskoulutusjaksot")
     fun getTerveyskeskuskoulutusjaksot(
@@ -34,7 +45,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
     ): ResponseEntity<Page<TerveyskeskuskoulutusjaksoSimpleDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findByVirkailijaUserId(
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByVastuuhenkiloUserId(
                 user.id!!,
                 criteria,
                 pageable
@@ -49,11 +60,14 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val kayttaja = kayttajaService.findByUserId(user.id!!).get()
-        val yliopistoIds = kayttaja.yliopistot?.map { it.id!! }.orEmpty().toList()
+        val yliopistoIds = kayttaja.yliopistotAndErikoisalat?.filter {
+            it.erikoisala?.id == 50L && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+                .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
+        }?.map { it.yliopisto?.id!! }.orEmpty()
         try {
             terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndYliopistoId(
                 id,
-                false,
+                true,
                 yliopistoIds
             )
                 .let {
@@ -85,7 +99,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
 
         terveyskeskuskoulutusjaksonHyvaksyntaService.update(
             user.id!!,
-            true,
+            false,
             id,
             dto?.korjausehdotus,
             dto?.lisatiedotVirkailijalta

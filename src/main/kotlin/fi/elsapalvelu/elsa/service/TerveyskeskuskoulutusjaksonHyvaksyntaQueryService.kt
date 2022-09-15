@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tech.jhipster.service.QueryService
 import javax.persistence.criteria.*
+import kotlin.math.exp
 
 
 @Service
@@ -23,14 +24,15 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
     fun findByCriteriaAndYliopistoId(
         criteria: TerveyskeskuskoulutusjaksoCriteria?,
         pageable: Pageable,
-        yliopistoId: Long,
+        yliopistoIds: List<Long>,
+        isVirkailija: Boolean,
         langkey: String?
     ): Page<TerveyskeskuskoulutusjaksonHyvaksynta> {
         val specification = createSpecification(criteria) { root, _, cb ->
             val opintooikeus: Join<TerveyskeskuskoulutusjaksonHyvaksynta?, Opintooikeus> =
                 root.join(TerveyskeskuskoulutusjaksonHyvaksynta_.opintooikeus)
             val yliopisto: Path<Yliopisto> = opintooikeus.get(Opintooikeus_.yliopisto)
-            var result = cb.equal(yliopisto.get(Yliopisto_.id), yliopistoId)
+            var result = yliopisto.get(Yliopisto_.id).`in`(yliopistoIds)
 
             if (criteria?.erikoistujanNimi != null) {
                 val user: Join<Kayttaja, User> =
@@ -43,13 +45,31 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
             }
 
             if (criteria?.avoin != null) {
-                val avoinExpr = cb.and(
-                    cb.equal(
-                        root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.virkailijaHyvaksynyt),
-                        false
-                    ),
+                var avoinExpr =
                     cb.isNull(root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.korjausehdotus))
-                )
+                if (isVirkailija) {
+                    avoinExpr = cb.and(
+                        cb.equal(
+                            root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.virkailijaHyvaksynyt),
+                            false
+                        ), avoinExpr
+                    )
+                } else {
+                    avoinExpr = cb.and(
+                        cb.equal(
+                            root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.virkailijaHyvaksynyt),
+                            true
+                        ),
+                        avoinExpr
+                    )
+                    avoinExpr = cb.and(
+                        cb.equal(
+                            root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.vastuuhenkiloHyvaksynyt),
+                            false
+                        ),
+                        avoinExpr
+                    )
+                }
                 result = if (criteria.avoin == true) {
                     cb.and(result, avoinExpr)
                 } else {
