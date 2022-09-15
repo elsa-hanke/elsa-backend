@@ -32,7 +32,7 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         val kayttaja = kayttajaService.findByUserId(user.id!!)
         return ResponseEntity.ok(kayttaja.get().yliopistotAndErikoisalat?.any {
-            it.erikoisala?.id == 50L && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+            it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
                 .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
         })
     }
@@ -61,7 +61,7 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         val kayttaja = kayttajaService.findByUserId(user.id!!).get()
         val yliopistoIds = kayttaja.yliopistotAndErikoisalat?.filter {
-            it.erikoisala?.id == 50L && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+            it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
                 .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
         }?.map { it.yliopisto?.id!! }.orEmpty()
         try {
