@@ -194,7 +194,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 to = it.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
                 templateName = "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
                 titleKey = "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
-                properties = mapOf(Pair(MailProperty.ID, hyvaksynta.id.toString()))
+                properties = mapOf(
+                    Pair(MailProperty.ID, hyvaksynta.id.toString()),
+                    Pair(MailProperty.URL_PATH, "terveyskeskuskoulutusjakson-tarkistus")
+                )
             )
 
             return terveyskeskuskoulutusjaksonHyvaksyntaMapper.toDto(hyvaksynta)
@@ -269,7 +272,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 to = vastuuhenkilo?.user?.email,
                 templateName = "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
                 titleKey = "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id.toString()))
+                properties = mapOf(
+                    Pair(MailProperty.ID, result.id.toString()),
+                    Pair(MailProperty.URL_PATH, "terveyskeskuskoulutusjakson-hyvaksynta")
+                )
             )
         } else {
             mailService.sendEmailFromTemplate(
@@ -322,7 +328,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 properties = mapOf(
                     Pair(
                         MailProperty.URL_PATH,
-                        "terveyskeskuskoulutusjakso/${hyvaksynta.id}"
+                        "terveyskeskuskoulutusjaksot/terveyskeskuskoulutusjakson-tarkistus/${hyvaksynta.id}"
                     )
                 )
             )
