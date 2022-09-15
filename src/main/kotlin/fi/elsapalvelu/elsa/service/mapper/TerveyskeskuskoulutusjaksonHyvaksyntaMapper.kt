@@ -55,6 +55,14 @@ interface TerveyskeskuskoulutusjaksonHyvaksyntaMapper :
         Mapping(
             source = "virkailija.nimike",
             target = "virkailijanNimike"
+        ),
+        Mapping(
+            source = "vastuuhenkilo.nimi",
+            target = "vastuuhenkilonNimi"
+        ),
+        Mapping(
+            source = "vastuuhenkilo.nimike",
+            target = "vastuuhenkilonNimike"
         )
     )
     override fun toDto(entity: TerveyskeskuskoulutusjaksonHyvaksynta): TerveyskeskuskoulutusjaksonHyvaksyntaDTO
