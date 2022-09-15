@@ -9,8 +9,12 @@ enum class TerveyskeskuskoulutusjaksoTila {
     HYVAKSYTTY;
 
     companion object {
-        fun fromHyvaksynta(hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta?): TerveyskeskuskoulutusjaksoTila {
+        fun fromHyvaksynta(
+            hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta?,
+            isVastuuhenkilo: Boolean = false
+        ): TerveyskeskuskoulutusjaksoTila {
             return if (hyvaksynta?.vastuuhenkiloHyvaksynyt == true) HYVAKSYTTY
+            else if (isVastuuhenkilo && !hyvaksynta?.korjausehdotusVastuuhenkilolta.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else if (!hyvaksynta?.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else if (hyvaksynta?.virkailijaHyvaksynyt == true) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
             else ODOTTAA_VIRKAILIJAN_TARKISTUSTA
