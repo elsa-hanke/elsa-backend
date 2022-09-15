@@ -94,7 +94,7 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResourceIT {
 
     @Test
     @Transactional
-    fun getTerveyskeskuskoulutusjaksotEriErikoisala() {
+    fun getTerveyskeskuskoulutusjaksotEriYliopisto() {
         initTest(YliopistoEnum.HELSINGIN_YLIOPISTO)
 
         restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/terveyskeskuskoulutusjaksot"))
