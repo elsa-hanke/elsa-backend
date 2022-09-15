@@ -1,16 +1,19 @@
-package fi.elsapalvelu.elsa.web.rest.virkailija
+package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.TerveyskeskuskoulutusjaksonHyvaksyntaRepository
-import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
+import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.criteria.KoejaksoCriteria
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
+import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KoejaksonVaiheetHelper
@@ -36,14 +39,21 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import javax.persistence.EntityManager
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
-class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
+class VastuuhenkiloTerveyskeskuskoulutusjaksoResourceIT {
 
     @Autowired
     private lateinit var terveyskeskuskoulutusjaksonHyvaksyntaRepository: TerveyskeskuskoulutusjaksonHyvaksyntaRepository
+
+    @Autowired
+    private lateinit var kayttajaRepository: KayttajaRepository
+
+    @Autowired
+    private lateinit var userRepository: UserRepository
 
     @Autowired
     private lateinit var em: EntityManager
@@ -59,6 +69,8 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
 
     private lateinit var vastuuhenkilo: Kayttaja
 
+    private lateinit var yliopisto: Yliopisto
+
     @BeforeEach
     fun setup() {
         MockitoAnnotations.openMocks(this)
@@ -68,11 +80,11 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
     @Transactional
     fun getTerveyskeskuskoulutusjaksot() {
         initTest()
-        restKoejaksoMockMvc.perform(get("/api/virkailija/terveyskeskuskoulutusjaksot"))
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/terveyskeskuskoulutusjaksot"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content[0].id").value(terveyskeskuskoulutusjaksonHyvaksynta.id))
-            .andExpect(jsonPath("$.content[0].tila").value(TerveyskeskuskoulutusjaksoTila.ODOTTAA_VIRKAILIJAN_TARKISTUSTA.name))
+            .andExpect(jsonPath("$.content[0].tila").value(TerveyskeskuskoulutusjaksoTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA.name))
             .andExpect(
                 jsonPath("$.content[0].erikoistuvanNimi").value(
                     terveyskeskuskoulutusjaksonHyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()
@@ -82,12 +94,21 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
 
     @Test
     @Transactional
-    fun getTerveyskeskuskoulutusjaksotEriYliopisto() {
-        val yliopisto = Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO)
-        em.persist(yliopisto)
-        initTest(yliopisto)
+    fun getTerveyskeskuskoulutusjaksotEriErikoisala() {
+        initTest(YliopistoEnum.HELSINGIN_YLIOPISTO)
 
-        restKoejaksoMockMvc.perform(get("/api/virkailija/terveyskeskuskoulutusjaksot"))
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/terveyskeskuskoulutusjaksot"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(0)))
+    }
+
+    @Test
+    @Transactional
+    fun getTerveyskeskuskoulutusjaksotEriTehtavatyyppi() {
+        initTest(tehtavatyyppi = VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN)
+
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/terveyskeskuskoulutusjaksot"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(0)))
@@ -100,14 +121,14 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
 
         restKoejaksoMockMvc.perform(
             get(
-                "/api/virkailija/terveyskeskuskoulutusjaksot",
+                "/api/vastuuhenkilo/terveyskeskuskoulutusjaksot",
                 KoejaksoCriteria(avoin = true)
             )
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content[0].id").value(terveyskeskuskoulutusjaksonHyvaksynta.id))
-            .andExpect(jsonPath("$.content[0].tila").value(TerveyskeskuskoulutusjaksoTila.ODOTTAA_VIRKAILIJAN_TARKISTUSTA.name))
+            .andExpect(jsonPath("$.content[0].tila").value(TerveyskeskuskoulutusjaksoTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA.name))
             .andExpect(
                 jsonPath("$.content[0].erikoistuvanNimi").value(
                     terveyskeskuskoulutusjaksonHyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()
@@ -120,21 +141,21 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
     fun getTerveyskeskuskoulutusjaksotMuut() {
         initTest()
 
-        terveyskeskuskoulutusjaksonHyvaksynta.virkailijaHyvaksynyt = true
+        terveyskeskuskoulutusjaksonHyvaksynta.vastuuhenkiloHyvaksynyt = true
         terveyskeskuskoulutusjaksonHyvaksyntaRepository.saveAndFlush(
             terveyskeskuskoulutusjaksonHyvaksynta
         )
 
         restKoejaksoMockMvc.perform(
             get(
-                "/api/virkailija/terveyskeskuskoulutusjaksot",
+                "/api/vastuuhenkilo/terveyskeskuskoulutusjaksot",
                 KoejaksoCriteria(avoin = false)
             )
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content[0].id").value(terveyskeskuskoulutusjaksonHyvaksynta.id))
-            .andExpect(jsonPath("$.content[0].tila").value(TerveyskeskuskoulutusjaksoTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA.name))
+            .andExpect(jsonPath("$.content[0].tila").value(TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY.name))
             .andExpect(
                 jsonPath("$.content[0].erikoistuvanNimi").value(
                     terveyskeskuskoulutusjaksonHyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()
@@ -152,7 +173,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
 
         restKoejaksoMockMvc.perform(
             get(
-                "/api/virkailija/terveyskeskuskoulutusjakso/{id}", id
+                "/api/vastuuhenkilo/terveyskeskuskoulutusjakso/{id}", id
             )
         )
             .andExpect(status().isOk)
@@ -184,23 +205,58 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.yleislaaketieteenVastuuhenkilonNimi").value(vastuuhenkilo.getNimi()))
             .andExpect(jsonPath("$.yleislaaketieteenVastuuhenkilonNimike").value(vastuuhenkilo.nimike))
-            .andExpect(jsonPath("$.tila").value(TerveyskeskuskoulutusjaksoTila.ODOTTAA_VIRKAILIJAN_TARKISTUSTA.toString()))
+            .andExpect(jsonPath("$.tila").value(TerveyskeskuskoulutusjaksoTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA.toString()))
             .andExpect(jsonPath("$.korjausehdotus").doesNotExist())
+            .andExpect(jsonPath("$.virkailijanNimi").value(virkailija.getNimi()))
+            .andExpect(jsonPath("$.virkailijanNimike").value(virkailija.nimike))
+            .andExpect(jsonPath("$.virkailijanKuittausaika").value(DEFAULT_VIRKAILIJAN_KUITTAUSAIKA.toString()))
     }
 
     @Test
     @Transactional
     fun getTerveyskeskuskoulutusjaksoEriYliopisto() {
-        val yliopisto = Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO)
-        em.persist(yliopisto)
-        initTest(yliopisto)
+        initTest(YliopistoEnum.HELSINGIN_YLIOPISTO)
 
         val id = terveyskeskuskoulutusjaksonHyvaksynta.id
         assertNotNull(id)
 
         restKoejaksoMockMvc.perform(
             get(
-                "/api/virkailija/terveyskeskuskoulutusjakso/{id}", id
+                "/api/vastuuhenkilo/terveyskeskuskoulutusjakso/{id}", id
+            )
+        )
+            .andExpect(status().isNotFound)
+    }
+
+    @Test
+    @Transactional
+    fun getTerveyskeskuskoulutusjaksoEriTehtavatyyppi() {
+        initTest(tehtavatyyppi = VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN)
+
+        val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity(
+            authority = Authority(
+                VASTUUHENKILO
+            )
+        )
+        userRepository.saveAndFlush(vastuuhenkiloUser)
+
+        val yleislaaketieteenVastuuhenkilo = KayttajaHelper.createEntity(em, vastuuhenkiloUser)
+        yleislaaketieteenVastuuhenkilo.yliopistotAndErikoisalat.add(
+            KayttajaYliopistoErikoisala(
+                kayttaja = yleislaaketieteenVastuuhenkilo,
+                yliopisto = yliopisto,
+                erikoisala = Erikoisala(50),
+                vastuuhenkilonTehtavat = mutableSetOf(VastuuhenkilonTehtavatyyppi(2))
+            )
+        )
+        kayttajaRepository.saveAndFlush(yleislaaketieteenVastuuhenkilo)
+
+        val id = terveyskeskuskoulutusjaksonHyvaksynta.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/terveyskeskuskoulutusjakso/{id}", id
             )
         )
             .andExpect(status().isNotFound)
@@ -219,12 +275,11 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
 
         val terveyskeskuskoulutusjaksoUpdateDTO =
             TerveyskeskuskoulutusjaksoUpdateDTO(
-                korjausehdotus = null,
-                lisatiedotVirkailijalta = "test"
+                korjausehdotus = null
             )
 
         restKoejaksoMockMvc.perform(
-            put("/api/virkailija/terveyskeskuskoulutusjakson-hyvaksynta/{id}", id)
+            put("/api/vastuuhenkilo/terveyskeskuskoulutusjakson-hyvaksynta/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(terveyskeskuskoulutusjaksoUpdateDTO))
                 .with(csrf())
@@ -234,8 +289,9 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         assertThat(hyvaksyntaList).hasSize(databaseSizeBeforeUpdate)
         val testHyvaksynta = hyvaksyntaList[hyvaksyntaList.size - 1]
         assertThat(testHyvaksynta.virkailijaHyvaksynyt).isTrue
-        assertThat(testHyvaksynta.vastuuhenkiloHyvaksynyt).isFalse
-        assertThat(testHyvaksynta.lisatiedotVirkailijalta).isEqualTo("test")
+        assertEquals(DEFAULT_VIRKAILIJAN_KUITTAUSAIKA, testHyvaksynta.virkailijanKuittausaika)
+        assertThat(testHyvaksynta.vastuuhenkiloHyvaksynyt).isTrue
+        assertThat(testHyvaksynta.vastuuhenkilonKuittausaika).isNotNull
         assertThat(testHyvaksynta.korjausehdotus).isNull()
     }
 
@@ -251,13 +307,10 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         assertNotNull(id)
 
         val terveyskeskuskoulutusjaksoUpdateDTO =
-            TerveyskeskuskoulutusjaksoUpdateDTO(
-                korjausehdotus = "test",
-                lisatiedotVirkailijalta = null
-            )
+            TerveyskeskuskoulutusjaksoUpdateDTO(korjausehdotus = "test")
 
         restKoejaksoMockMvc.perform(
-            put("/api/virkailija/terveyskeskuskoulutusjakson-hyvaksynta/{id}", id)
+            put("/api/vastuuhenkilo/terveyskeskuskoulutusjakson-hyvaksynta/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(terveyskeskuskoulutusjaksoUpdateDTO))
                 .with(csrf())
@@ -269,15 +322,20 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         assertThat(testHyvaksynta.virkailijaHyvaksynyt).isFalse
         assertThat(testHyvaksynta.vastuuhenkiloHyvaksynyt).isFalse
         assertThat(testHyvaksynta.korjausehdotus).isEqualTo("test")
+        assertThat(testHyvaksynta.korjausehdotusVastuuhenkilolta).isEqualTo("test")
     }
 
-    fun initTest(virkailijaYliopisto: Yliopisto? = null) {
-        user = KayttajaResourceWithMockUserIT.createEntity()
+    fun initTest(
+        vastuuhenkilonYliopistoNimi: YliopistoEnum? = YliopistoEnum.TAMPEREEN_YLIOPISTO,
+        tehtavatyyppi: VastuuhenkilonTehtavatyyppiEnum? = VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
+    ) {
+        user =
+            KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
         em.persist(user)
         em.flush()
         val userDetails = mapOf<String, List<Any>>(
         )
-        val authorities = listOf(SimpleGrantedAuthority(OPINTOHALLINNON_VIRKAILIJA))
+        val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
         val authentication = Saml2Authentication(
             DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
             "test",
@@ -285,7 +343,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         )
         TestSecurityContextHolder.getContext().authentication = authentication
 
-        val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
+        yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
         em.persist(yliopisto)
 
         val erikoistuvaLaakari =
@@ -305,50 +363,49 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         )
         em.persist(tyoskentelyjakso)
 
-        val vastuuhenkiloUser =
-            KayttajaResourceWithMockUserIT.createEntity(
-                authority = Authority(
-                    VASTUUHENKILO
-                )
-            )
-        em.persist(vastuuhenkiloUser)
-        vastuuhenkilo = KayttajaHelper.createEntity(em, user = vastuuhenkiloUser)
-        em.persist(vastuuhenkilo)
+        val tehtavatyypit = em.findAll(VastuuhenkilonTehtavatyyppi::class)
 
-        em.persist(
+        var vastuuhenkilonYliopisto = yliopisto
+
+        if (vastuuhenkilonYliopistoNimi != YliopistoEnum.TAMPEREEN_YLIOPISTO) {
+            vastuuhenkilonYliopisto = Yliopisto(nimi = vastuuhenkilonYliopistoNimi)
+            em.persist(vastuuhenkilonYliopisto)
+        }
+
+        vastuuhenkilo = KayttajaHelper.createEntity(em, user = user)
+        vastuuhenkilo.yliopistotAndErikoisalat.add(
             KayttajaYliopistoErikoisala(
                 kayttaja = vastuuhenkilo,
-                yliopisto = yliopisto,
+                yliopisto = vastuuhenkilonYliopisto,
                 erikoisala = Erikoisala(50),
-                vastuuhenkilonTehtavat = mutableSetOf(VastuuhenkilonTehtavatyyppi(2))
+                vastuuhenkilonTehtavat = mutableSetOf(tehtavatyypit.first { it.nimi == tehtavatyyppi })
             )
         )
+        em.persist(vastuuhenkilo)
 
-        virkailija = KayttajaHelper.createEntity(em, user)
-
-        if (virkailijaYliopisto != null) {
-            virkailija.yliopistot.add(virkailijaYliopisto)
-        } else {
-            virkailija.yliopistot.add(yliopisto)
-        }
+        virkailija = KayttajaHelper.createEntity(em)
         em.persist(virkailija)
 
         terveyskeskuskoulutusjaksonHyvaksynta =
-            createTerveyskeskuskoulutusjaksonHyvaksynta(erikoistuvaLaakari)
+            createTerveyskeskuskoulutusjaksonHyvaksynta(erikoistuvaLaakari, virkailija)
         em.persist(terveyskeskuskoulutusjaksonHyvaksynta)
     }
 
     companion object {
 
         private val DEFAULT_LAILLISTAMISPAIVA: LocalDate = LocalDate.ofEpochDay(15L)
+        private val DEFAULT_VIRKAILIJAN_KUITTAUSAIKA: LocalDate = LocalDate.ofEpochDay(20L)
 
         @JvmStatic
         fun createTerveyskeskuskoulutusjaksonHyvaksynta(
-            erikoistuvaLaakari: ErikoistuvaLaakari
+            erikoistuvaLaakari: ErikoistuvaLaakari, virkailija: Kayttaja
         ): TerveyskeskuskoulutusjaksonHyvaksynta {
             return TerveyskeskuskoulutusjaksonHyvaksynta(
                 opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                muokkauspaiva = KoejaksonVaiheetHelper.DEFAULT_MUOKKAUSPAIVA
+                muokkauspaiva = KoejaksonVaiheetHelper.DEFAULT_MUOKKAUSPAIVA,
+                virkailija = virkailija,
+                virkailijaHyvaksynyt = true,
+                virkailijanKuittausaika = DEFAULT_VIRKAILIJAN_KUITTAUSAIKA
             )
         }
     }
