@@ -1281,8 +1281,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.laillistamispaivanLiitteenTyyppi").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISTODISTUS_TYYPPI))
             .andExpect(jsonPath("$.asetus").value(opintooikeus.asetus?.nimi))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
-            .andExpect(jsonPath("$.vastuuhenkilonNimi").value(vastuuhenkiloKayttaja.getNimi()))
-            .andExpect(jsonPath("$.vastuuhenkilonNimike").value(vastuuhenkiloKayttaja.nimike))
+            .andExpect(jsonPath("$.yleislaaketieteenVastuuhenkilonNimi").value(vastuuhenkiloKayttaja.getNimi()))
+            .andExpect(jsonPath("$.yleislaaketieteenVastuuhenkilonNimike").value(vastuuhenkiloKayttaja.nimike))
     }
 
     @Test
