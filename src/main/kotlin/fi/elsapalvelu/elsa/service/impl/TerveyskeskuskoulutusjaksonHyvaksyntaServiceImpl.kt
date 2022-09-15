@@ -108,7 +108,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 criteria,
                 pageable,
                 k.yliopistotAndErikoisalat.filter {
-                    it.erikoisala?.id == 50L && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+                    it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
                         .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
                 }
                     .map { it.yliopisto?.id!! },
