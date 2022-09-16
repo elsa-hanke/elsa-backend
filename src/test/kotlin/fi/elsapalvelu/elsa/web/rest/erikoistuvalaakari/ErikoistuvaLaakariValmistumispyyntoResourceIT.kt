@@ -608,7 +608,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.vastuuhenkiloHyvaksyjaNimi").value(vastuuhenkiloHyvaksyja.getNimi()))
             .andExpect(jsonPath("$.vastuuhenkiloHyvaksyjaNimike").value(vastuuhenkiloHyvaksyja.nimike))
             .andExpect(jsonPath("$.erikoistujanLaillistamispaiva").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISPAIVA.toString()))
-            .andExpect(jsonPath("$.erikoistujanLaillistamistodistus").value("Ljg="))
+            .andExpect(jsonPath("$.erikoistujanLaillistamistodistus").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISTODISTUS_DATA_AS_STRING))
             .andExpect(jsonPath("$.erikoistujanLaillistamistodistusNimi").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISTODISTUS_NIMI))
             .andExpect(jsonPath("$.erikoistujanLaillistamistodistusTyyppi").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISTODISTUS_TYYPPI))
     }
@@ -637,7 +637,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.erikoistujanOpiskelijatunnus").value(opintooikeus.opiskelijatunnus))
             .andExpect(jsonPath("$.erikoistujanSyntymaaika").value(opintooikeus.erikoistuvaLaakari?.syntymaaika.toString()))
             .andExpect(jsonPath("$.erikoistujanYliopisto").value(opintooikeus.yliopisto?.nimi.toString()))
-            .andExpect(jsonPath("$.asetus").value(opintooikeus.asetus?.nimi))
+            .andExpect(jsonPath("$.erikoistujanAsetus").value(opintooikeus.asetus?.nimi))
             .andExpect(jsonPath("$.opintooikeudenMyontamispaiva").value(opintooikeus.opintooikeudenMyontamispaiva.toString()))
             .andExpect(jsonPath("$.erikoistujanKuittausaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.muokkauspaiva").value(LocalDate.now().toString()))
@@ -926,6 +926,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         vastuuhenkiloHyvaksyja.yliopistotAndErikoisalat.add(vastuuhenkiloHyvaksyjaYliopistoAndErikoisala)
 
         val osaamisenArviointiTehtavatyyppi =
+
             VastuuhenkilonTehtavatyyppi(nimi = VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI)
         em.persist(osaamisenArviointiTehtavatyyppi)
 

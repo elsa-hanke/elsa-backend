@@ -13,6 +13,7 @@ class KayttajaHelper {
         const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
         const val DEFAULT_LOGIN = "johndoe"
         const val DEFAULT_EMAIL = "john.doe@example.com"
+        const val DEFAULT_AVATAR_AS_STRING = "AA=="
 
         private const val DEFAULT_NIMI = "AAAAAAAAAA"
         private const val UPDATED_NIMI = "BBBBBBBBBB"

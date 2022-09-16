@@ -25,6 +25,7 @@ class ErikoistuvaLaakariHelper {
         val DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(20L)
         val DEFAULT_LAILLISTAMISPAIVA: LocalDate = LocalDate.ofEpochDay(15L)
         val DEFAULT_LAILLISTAMISTODISTUS_DATA = byteArrayOf(0x2E, 0x38)
+        val DEFAULT_LAILLISTAMISTODISTUS_DATA_AS_STRING = "Ljg="
         val DEFAULT_LAILLISTAMISTODISTUS_NIMI = "laillistamistodistus.pdf"
         val DEFAULT_LAILLISTAMISTODISTUS_TYYPPI = "application/pdf"
 
