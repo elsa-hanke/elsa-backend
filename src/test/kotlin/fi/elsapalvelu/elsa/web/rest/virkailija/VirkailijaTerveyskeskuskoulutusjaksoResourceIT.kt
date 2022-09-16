@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.TerveyskeskuskoulutusjaksonHyvaksyntaRepository
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.criteria.KoejaksoCriteria
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
@@ -101,7 +101,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         restKoejaksoMockMvc.perform(
             get(
                 "/api/virkailija/terveyskeskuskoulutusjaksot",
-                KoejaksoCriteria(avoin = true)
+                NimiErikoisalaAndAvoinCriteria(avoin = true)
             )
         )
             .andExpect(status().isOk)
@@ -128,7 +128,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         restKoejaksoMockMvc.perform(
             get(
                 "/api/virkailija/terveyskeskuskoulutusjaksot",
-                KoejaksoCriteria(avoin = false)
+                NimiErikoisalaAndAvoinCriteria(avoin = false)
             )
         )
             .andExpect(status().isOk)
