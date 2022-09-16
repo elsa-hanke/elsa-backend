@@ -84,7 +84,11 @@ data class Tyoskentelyjakso(
 
     @ManyToMany(mappedBy = "tyoskentelyjaksot")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf()
+    var koulutusjaksot: MutableSet<Koulutusjakso>? = mutableSetOf(),
+
+    @get: NotNull
+    @Column(name = "liitetty_terveyskeskuskoulutusjaksoon", nullable = false)
+    var liitettyTerveyskeskuskoulutusjaksoon: Boolean = false
 
 ) : Serializable {
 
