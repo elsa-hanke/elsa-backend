@@ -9,7 +9,6 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
-import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
 import fi.elsapalvelu.elsa.service.mapper.KuntaMapper
@@ -1276,7 +1275,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.erikoistuvanSyntymaaika").value(opintooikeus.erikoistuvaLaakari?.syntymaaika.toString()))
             .andExpect(jsonPath("$.erikoistuvanYliopisto").value(opintooikeus.yliopisto?.nimi.toString()))
             .andExpect(jsonPath("$.laillistamispaiva").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISPAIVA.toString()))
-            .andExpect(jsonPath("$.laillistamispaivanLiite").value("Ljg="))
+            .andExpect(jsonPath("$.laillistamispaivanLiite").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISTODISTUS_DATA_AS_STRING))
             .andExpect(jsonPath("$.laillistamispaivanLiitteenNimi").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISTODISTUS_NIMI))
             .andExpect(jsonPath("$.laillistamispaivanLiitteenTyyppi").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISTODISTUS_TYYPPI))
             .andExpect(jsonPath("$.asetus").value(opintooikeus.asetus?.nimi))

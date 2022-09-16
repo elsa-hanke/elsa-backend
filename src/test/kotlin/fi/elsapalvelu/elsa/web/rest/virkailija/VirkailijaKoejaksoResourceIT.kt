@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
-import fi.elsapalvelu.elsa.service.criteria.KoejaksoCriteria
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
@@ -93,7 +93,7 @@ class VirkailijaKoejaksoResourceIT {
         restKoejaksoMockMvc.perform(
             get(
                 "/api/virkailija/koejaksot",
-                KoejaksoCriteria(avoin = true)
+                NimiErikoisalaAndAvoinCriteria(avoin = true)
             )
         )
             .andExpect(status().isOk)
@@ -115,7 +115,7 @@ class VirkailijaKoejaksoResourceIT {
         restKoejaksoMockMvc.perform(
             get(
                 "/api/virkailija/koejaksot",
-                KoejaksoCriteria(avoin = false)
+                NimiErikoisalaAndAvoinCriteria(avoin = false)
             )
         )
             .andExpect(status().isOk)
