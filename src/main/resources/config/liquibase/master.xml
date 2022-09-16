@@ -233,5 +233,6 @@
     <include file="config/liquibase/changelog/20220907125558_modify_entity_Koulutussuunnitelma.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220908112743_insert_hy_sisu_kurssikoodit.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220908152328_modify_entity_TerveyskeskuskoulutusjaksonHyvaksynta.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220915162419_modify_entity_Tyoskentelyjakso.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

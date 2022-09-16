@@ -41,7 +41,9 @@ data class TyoskentelyjaksoDTO(
 
     var asiakirjat: MutableSet<AsiakirjaDTO>? = mutableSetOf(),
 
-    var poissaolot: List<KeskeytysaikaDTO>? = listOf()
+    var poissaolot: List<KeskeytysaikaDTO>? = listOf(),
+
+    var liitettyTerveyskeskuskoulutusjaksoon: Boolean? = null
 
 ) : Serializable {
 

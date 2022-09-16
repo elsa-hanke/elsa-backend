@@ -100,10 +100,19 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let { id ->
                 objectMapper.readValue(id, mutableSetOf<Int>()::class.java)
             }
-            tyoskentelyjaksoService.update(it, opintooikeusId, newAsiakirjat, deletedAsiakirjaIds)
-                ?.let { result ->
-                    return ResponseEntity.ok(result)
-                }
+            try {
+                tyoskentelyjaksoService.update(
+                    it,
+                    opintooikeusId,
+                    newAsiakirjat,
+                    deletedAsiakirjaIds
+                )
+                    ?.let { result ->
+                        return ResponseEntity.ok(result)
+                    }
+            } catch (e: ValidationException) {
+                throw liitettyTerveyskoulutusjaksoonException(e)
+            }
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
@@ -166,13 +175,17 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
-        tyoskentelyjaksoService.updateAsiakirjat(
-            id,
-            getMappedFiles(addedFiles, opintooikeusId),
-            deletedFiles?.toSet()
-        )?.let {
-            return ResponseEntity.ok(it)
-        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        try {
+            tyoskentelyjaksoService.updateAsiakirjat(
+                id,
+                getMappedFiles(addedFiles, opintooikeusId),
+                deletedFiles?.toSet()
+            )?.let {
+                return ResponseEntity.ok(it)
+            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        } catch (e: ValidationException) {
+            throw liitettyTerveyskoulutusjaksoonException(e)
+        }
     }
 
     @DeleteMapping("/tyoskentelyjaksot/{id}")
@@ -262,11 +275,15 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             )
         }
 
-        keskeytysaikaService.save(keskeytysaikaDTO, opintooikeusId)?.let {
-            return ResponseEntity
-                .created(URI("/api/tyoskentelyjaksot/poissaolot/${it.id}"))
-                .body(it)
-        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        try {
+            keskeytysaikaService.save(keskeytysaikaDTO, opintooikeusId)?.let {
+                return ResponseEntity
+                    .created(URI("/api/tyoskentelyjaksot/poissaolot/${it.id}"))
+                    .body(it)
+            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        } catch (e: ValidationException) {
+            throw liitettyTerveyskoulutusjaksoonException(e)
+        }
     }
 
     @PutMapping("/tyoskentelyjaksot/poissaolot")
@@ -306,9 +323,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             throwOverlappingTyoskentelyjaksotException()
         }
 
-        keskeytysaikaService.save(keskeytysaikaDTO, opintooikeusId)?.let {
-            return ResponseEntity.ok(it)
-        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        try {
+            keskeytysaikaService.save(keskeytysaikaDTO, opintooikeusId)?.let {
+                return ResponseEntity.ok(it)
+            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        } catch (e: ValidationException) {
+            throw liitettyTerveyskoulutusjaksoonException(e)
+        }
     }
 
     @GetMapping("/tyoskentelyjaksot/poissaolot/{id}")
@@ -340,7 +361,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             throwOverlappingTyoskentelyjaksotException()
         }
 
-        keskeytysaikaService.delete(id, opintooikeusId)
+        try {
+            keskeytysaikaService.delete(id, opintooikeusId)
+        } catch (e: ValidationException) {
+            throw liitettyTerveyskoulutusjaksoonException(e)
+        }
         return ResponseEntity
             .noContent()
             .build()
@@ -615,6 +640,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
             TYOSKENTELYJAKSO_ENTITY_NAME,
             "dataillegal.paallekkaisten-tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy"
+        )
+    }
+
+    private fun liitettyTerveyskoulutusjaksoonException(e: ValidationException): BadRequestAlertException {
+        return BadRequestAlertException(
+            e.message ?: "Validaatiovirhe",
+            TYOSKENTELYJAKSO_ENTITY_NAME,
+            "dataillegal.terveyskeskuskoulutusjaksoon-liitettya-tyoskentelyjaksoa-ei-voi-paivittaa"
         )
     }
 }
