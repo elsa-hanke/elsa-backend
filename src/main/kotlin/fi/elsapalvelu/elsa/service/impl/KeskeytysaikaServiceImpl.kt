@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import javax.validation.ValidationException
 
 @Service
 @Transactional
@@ -17,8 +18,14 @@ class KeskeytysaikaServiceImpl(
 ) : KeskeytysaikaService {
 
     override fun save(keskeytysaikaDTO: KeskeytysaikaDTO, opintooikeusId: Long): KeskeytysaikaDTO? {
-        tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(keskeytysaikaDTO.tyoskentelyjaksoId!!, opintooikeusId)
+        tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(
+            keskeytysaikaDTO.tyoskentelyjaksoId!!,
+            opintooikeusId
+        )
             ?.let { tyoskentelyjakso ->
+                if (tyoskentelyjakso.liitettyTerveyskeskuskoulutusjaksoon) {
+                    throw ValidationException("Terveyskeskuskoulutusjaksoon liitetyn työskentelyjakson poissaoloja ei voi päivittää")
+                }
                 if (tyoskentelyjakso.alkamispaiva!!.isBefore(keskeytysaikaDTO.alkamispaiva) || tyoskentelyjakso.alkamispaiva!!.isEqual(
                         keskeytysaikaDTO.alkamispaiva
                     )
@@ -49,16 +56,25 @@ class KeskeytysaikaServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findOne(id: Long, opintooikeusId: Long): KeskeytysaikaDTO? {
-        keskeytysaikaRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId)?.let {
-            return keskeytysaikaMapper.toDto(it)
-        }
+        keskeytysaikaRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId)
+            ?.let {
+                return keskeytysaikaMapper.toDto(it)
+            }
 
         return null
     }
 
     override fun delete(id: Long, opintooikeusId: Long) {
-        keskeytysaikaRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId)?.let {
-            keskeytysaikaRepository.deleteById(id)
-        }
+        keskeytysaikaRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId)
+            ?.let {
+                tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(it.id!!, opintooikeusId)
+                    ?.let { tyoskentelyjakso ->
+                        if (tyoskentelyjakso.liitettyTerveyskeskuskoulutusjaksoon) {
+                            throw ValidationException("Terveyskeskuskoulutusjaksoon liitetyn työskentelyjakson poissaoloja ei voi päivittää")
+                        }
+                    }
+
+                keskeytysaikaRepository.deleteById(id)
+            }
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import javax.validation.ValidationException
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
@@ -79,6 +80,9 @@ class TyoskentelyjaksoServiceImpl(
             tyoskentelyjaksoDTO.id!!,
             opintooikeusId
         )?.let { tyoskentelyjakso ->
+            if (tyoskentelyjakso.liitettyTerveyskeskuskoulutusjaksoon) {
+                throw ValidationException("Terveyskeskuskoulutusjaksoon liitettyä työskentelyjaksoa ei voi päivittää")
+            }
             // Jos työskentelyjaksolle on lisätty arviointeja tai arviointipyyntöjä, sallitaan vain
             // päättymispäivän muokkaus.
             tyoskentelyjakso.takeIf { it.hasTapahtumia() }
@@ -245,7 +249,7 @@ class TyoskentelyjaksoServiceImpl(
 
     override fun delete(id: Long, opintooikeusId: Long): Boolean {
         tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
-            if (!it.hasTapahtumia()) {
+            if (!it.hasTapahtumia() && !it.liitettyTerveyskeskuskoulutusjaksoon) {
                 tyoskentelyjaksoRepository.deleteById(it.id!!)
                 return true
             }
@@ -440,6 +444,9 @@ class TyoskentelyjaksoServiceImpl(
         deletedFiles: Set<Int>?
     ): TyoskentelyjaksoDTO? {
         tyoskentelyjaksoRepository.findById(id).orElse(null)?.let {
+            if (it.liitettyTerveyskeskuskoulutusjaksoon) {
+                throw ValidationException("Terveyskeskuskoulutusjaksoon liitetyn työskentelyjakson asiakirjoja ei voi päivittää")
+            }
             mapAsiakirjat(
                 it,
                 addedFiles.orEmpty(),

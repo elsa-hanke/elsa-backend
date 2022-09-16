@@ -305,6 +305,16 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         } else {
             hyvaksynta.vastuuhenkiloHyvaksynyt = true
             hyvaksynta.vastuuhenkilonKuittausaika = LocalDate.now()
+
+            val tyoskentelyjaksot =
+                tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
+                    hyvaksynta.opintooikeus?.id!!,
+                    TyoskentelyjaksoTyyppi.TERVEYSKESKUS
+                )
+            tyoskentelyjaksot.forEach {
+                it.liitettyTerveyskeskuskoulutusjaksoon = true
+                tyoskentelyjaksoRepository.save(it)
+            }
         }
 
         val result = terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(hyvaksynta)
