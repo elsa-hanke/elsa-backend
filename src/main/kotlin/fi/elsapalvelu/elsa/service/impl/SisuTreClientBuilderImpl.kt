@@ -2,8 +2,9 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
+import fi.elsapalvelu.elsa.security.AccessTokenAuthenticator
+import fi.elsapalvelu.elsa.service.AuthenticationTokenService
 import fi.elsapalvelu.elsa.service.OkHttpClientBuilder
-import fi.elsapalvelu.elsa.service.SisuTreAccessTokenProvider
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -12,26 +13,25 @@ import java.util.concurrent.TimeUnit
 @Qualifier("SisuTre")
 @Service
 class SisuTreClientBuilderImpl(
-    sisuTreAccessTokenProvider: SisuTreAccessTokenProvider,
+    sisuTreAuthenticationTokenService: AuthenticationTokenService,
     applicationProperties: ApplicationProperties
 ) : OkHttpClientBuilder {
 
     init {
         Companion.applicationProperties = applicationProperties
-        Companion.sisuTreAccessTokenProvider = sisuTreAccessTokenProvider
+        Companion.sisuTreAuthenticationTokenService = sisuTreAuthenticationTokenService
     }
 
     companion object {
 
         private lateinit var applicationProperties: ApplicationProperties
-        private lateinit var sisuTreAccessTokenProvider: SisuTreAccessTokenProvider
+        private lateinit var sisuTreAuthenticationTokenService: AuthenticationTokenService
 
         val okHttpClient: OkHttpClient by lazy {
             OkHttpClient.Builder()
                 .addInterceptor(
                     OkHttp3RequestInterceptor(
                         mapOf(
-                            "Authorization" to "Bearer ${sisuTreAccessTokenProvider.token()}",
                             "Ocp-Apim-Subscription-Key" to applicationProperties.getSecurity()
                                 .getSisuTre().subscriptionKey!!,
                             "Content-Type" to "application/json"
@@ -46,6 +46,10 @@ class SisuTreClientBuilderImpl(
     }
 
     override fun okHttpClient(): OkHttpClient {
-        return okHttpClient
+        return okHttpClient.newBuilder().addInterceptor(
+            OkHttp3RequestInterceptor(
+                mapOf("Authorization" to "Bearer ${sisuTreAuthenticationTokenService.getCachedTokenOrRequestNew()}")
+            )
+        ).build()
     }
 }
