@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
 
-@Qualifier("SisuTreAccessTokenClient")
+@Qualifier("AuthenticationTokenClient")
 @Service
-class SisuTreAccessTokenClientBuilderImpl : OkHttpClientBuilder {
+class AuthenticationTokenClientBuilderImpl : OkHttpClientBuilder {
 
     companion object {
         val okHttpClient: OkHttpClient by lazy {
