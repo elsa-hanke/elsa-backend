@@ -46,6 +46,8 @@ class EtusivuServiceImpl(
     private val arviointiasteikkoMapper: ArviointiasteikkoMapper,
     private val opintooikeusService: OpintooikeusService,
     private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
+    private val terveyskeskuskoulutusjaksonHyvaksyntaRepository: TerveyskeskuskoulutusjaksonHyvaksyntaRepository,
+    private val valmistumispyyntoRepository: ValmistumispyyntoRepository,
     private val clock: Clock,
     private val messageSource: MessageSource
 ) : EtusivuService {
@@ -261,6 +263,8 @@ class EtusivuServiceImpl(
         mapAloituskeskusteluPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
         mapVastuuhenkilonarvioPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
         mapSeurantajaksotPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
+        mapTerveyskeskuskoulutusjaksoPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
+        mapValmistumispyyntoPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
 
         return avoimetAsiatList.sortedBy { it.pvm }
     }
@@ -622,4 +626,58 @@ class EtusivuServiceImpl(
             }
         }
     }
+
+    private fun mapTerveyskeskuskoulutusjaksoPalautettuIfExists(
+        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
+        opintooikeusId: Long,
+        locale: Locale
+    ) {
+        terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(opintooikeusId)?.let {
+            if (!it.korjausehdotus.isNullOrBlank() || !it.korjausehdotusVastuuhenkilolta.isNullOrBlank()) {
+                avoimetAsiatList.add(
+                    AvoinAsiaDTO(
+                        it.id,
+                        tyyppi = AvoinAsiaTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO,
+                        asia = messageSource.getMessage(
+                            "avoimetasiat.terveyskeskuskoulutusjaksonhyvaksynta",
+                            arrayOf(),
+                            locale
+                        ),
+                        pvm = it.muokkauspaiva
+                    )
+                )
+            }
+        }
+    }
+
+    private fun mapValmistumispyyntoPalautettuIfExists(
+        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
+        opintooikeusId: Long,
+        locale: Locale
+    ) {
+        valmistumispyyntoRepository.findByOpintooikeusId(opintooikeusId)?.let {
+            if (it.vastuuhenkiloOsaamisenArvioijaPalautusaika != null ||
+                it.virkailijanPalautusaika != null ||
+                it.vastuuhenkiloHyvaksyjaPalautusaika != null
+            ) {
+                avoimetAsiatList.add(
+                    AvoinAsiaDTO(
+                        it.id,
+                        tyyppi = AvoinAsiaTyyppiEnum.VALMISTUMISPYYNTO,
+                        asia = messageSource.getMessage(
+                            "avoimetasiat.valmistumispyynto",
+                            arrayOf(),
+                            locale
+                        ),
+                        pvm = getValmistumispyynnonPalautusaika(it)
+                    )
+                )
+            }
+        }
+    }
+
+    private fun getValmistumispyynnonPalautusaika(valmistumispyynto: Valmistumispyynto) =
+        valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika
+            ?: valmistumispyynto.virkailijanPalautusaika
+            ?: valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika
 }
