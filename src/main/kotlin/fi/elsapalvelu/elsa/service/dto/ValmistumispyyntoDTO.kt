@@ -64,6 +64,8 @@ data class ValmistumispyyntoDTO(
 
     var virkailijanKorjausehdotus: String? = null,
 
+    var virkailijanSaate: String? = null,
+
     var vastuuhenkiloHyvaksyjaNimi: String? = null,
 
     var vastuuhenkiloHyvaksyjaNimike: String? = null,
@@ -76,7 +78,9 @@ data class ValmistumispyyntoDTO(
 
     var allekirjoitusaika: LocalDate? = null,
 
-    ) : Serializable {
+    var valmistumispyyntoVirkailijaDTO: ValmistumispyynnonTarkistusDTO? = null
+
+) : Serializable {
     override fun toString() = "ValmistumispyyntoDTO"
 
 
