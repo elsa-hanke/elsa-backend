@@ -15,6 +15,11 @@ interface ValmistumispyyntoRepository : JpaRepository<Valmistumispyynto, Long>,
         erikoisalaIds: List<Long>
     ): Valmistumispyynto?
 
+    fun findByIdAndOpintooikeusYliopistoId(
+        id: Long,
+        yliopistoId: Long
+    ): Valmistumispyynto?
+
     fun existsByOpintooikeusId(opintooikeusId: Long): Boolean
 
 }

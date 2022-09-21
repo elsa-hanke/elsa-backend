@@ -23,10 +23,21 @@ interface ValmistumispyyntoService {
         pageable: Pageable
     ): Page<ValmistumispyyntoListItemDTO>
 
+    fun findAllForVirkailijaByCriteria(
+        userId: String,
+        valmistumispyyntoCriteria: NimiErikoisalaAndAvoinCriteria,
+        pageable: Pageable
+    ): Page<ValmistumispyyntoListItemDTO>
+
     fun findOneByIdAndVastuuhenkiloOsaamisenArvioijaUserId(
         id: Long,
         userId: String
     ): ValmistumispyyntoOsaamisenArviointiDTO?
+
+    fun findOneByIdAndVirkailijaUserId(
+        id: Long,
+        userId: String
+    ): ValmistumispyynnonTarkistusDTO?
 
     fun create(
         opintooikeusId: Long,
@@ -43,6 +54,12 @@ interface ValmistumispyyntoService {
         userId: String,
         osaamisenArviointiDTO: ValmistumispyyntoOsaamisenArviointiFormDTO
     ): ValmistumispyyntoDTO
+
+    fun updateTarkistusByVirkailijaUserId(
+        id: Long,
+        userId: String,
+        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO
+    ): ValmistumispyynnonTarkistusDTO?
 
     fun existsByOpintooikeusId(opintooikeusId: Long): Boolean
 
