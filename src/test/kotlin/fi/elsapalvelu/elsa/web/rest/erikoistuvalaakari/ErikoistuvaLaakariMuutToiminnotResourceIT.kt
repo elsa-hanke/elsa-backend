@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelypaikkaHelper.Companion.DEFAULT_NIMI
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -79,7 +80,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
     @Transactional
     fun `test that new kouluttaja is added with same yliopisto and erikoisala than erikoistuva`() {
         val databaseSizeBeforeCreate = kayttajaRepository.findAll().size
-        val uusiLahikouluttajaDTO = UusiLahikouluttajaDTO(DEFAULT_NIMI, DEFAULT_EMAIL)
+        val uusiLahikouluttajaDTO = UusiLahikouluttajaDTO(DEFAULT_ETUNIMI, DEFAULT_SUKUNIMI, DEFAULT_EMAIL)
 
         restLahikouluttajatMockMvc.perform(
             post("/api/erikoistuva-laakari/lahikouluttajat")
@@ -93,7 +94,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         assertThat(kayttajatList).hasSize(databaseSizeBeforeCreate + 1)
         val testLahikouluttaja = kayttajatList[kayttajatList.size - 1]
 
-        assertThat(testLahikouluttaja?.getNimi()).isEqualTo(DEFAULT_NIMI)
+        assertThat(testLahikouluttaja?.getNimi()).isEqualTo("$DEFAULT_ETUNIMI $DEFAULT_SUKUNIMI")
         assertThat(testLahikouluttaja?.user?.email).isEqualTo(DEFAULT_EMAIL)
         assertThat(testLahikouluttaja?.user?.login).isEqualTo(DEFAULT_EMAIL)
         assertThat(testLahikouluttaja?.user?.activated).isEqualTo(true)
@@ -112,7 +113,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
     @Transactional
     fun `test that new kouluttaja is added with same yliopisto and erikoisala than opintooikeusKaytossa`() {
         val databaseSizeBeforeCreate = kayttajaRepository.findAll().size
-        val uusiLahikouluttajaDTO = UusiLahikouluttajaDTO(DEFAULT_NIMI, DEFAULT_EMAIL)
+        val uusiLahikouluttajaDTO = UusiLahikouluttajaDTO(DEFAULT_ETUNIMI, DEFAULT_SUKUNIMI, DEFAULT_EMAIL)
 
         val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
         OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
@@ -128,7 +129,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         assertThat(kayttajatList).hasSize(databaseSizeBeforeCreate + 1)
         val testLahikouluttaja = kayttajatList[kayttajatList.size - 1]
 
-        assertThat(testLahikouluttaja?.getNimi()).isEqualTo(DEFAULT_NIMI)
+        assertThat(testLahikouluttaja?.getNimi()).isEqualTo("$DEFAULT_ETUNIMI $DEFAULT_SUKUNIMI")
         assertThat(testLahikouluttaja?.user?.email).isEqualTo(DEFAULT_EMAIL)
         assertThat(testLahikouluttaja?.user?.login).isEqualTo(DEFAULT_EMAIL)
         assertThat(testLahikouluttaja?.user?.activated).isEqualTo(true)
@@ -169,7 +170,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         initKouluttajaWithYliopistoAndErikoisala()
 
         val databaseSizeBeforeCreate = kayttajaRepository.findAll().size
-        val uusiLahikouluttajaDTO = UusiLahikouluttajaDTO(DEFAULT_NIMI, DEFAULT_EMAIL)
+        val uusiLahikouluttajaDTO = UusiLahikouluttajaDTO(DEFAULT_ETUNIMI, DEFAULT_SUKUNIMI, DEFAULT_EMAIL)
 
         restLahikouluttajatMockMvc.perform(
             post("/api/erikoistuva-laakari/lahikouluttajat")
@@ -221,7 +222,8 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
     }
 
     companion object {
-        private const val DEFAULT_NIMI: String = "Test User"
+        private const val DEFAULT_ETUNIMI: String = "Test"
+        private const val DEFAULT_SUKUNIMI: String = "User"
         private const val DEFAULT_EMAIL: String = "test.user@test.test"
         private val DEFAULT_YLIOPISTO = YliopistoEnum.TAMPEREEN_YLIOPISTO
     }
