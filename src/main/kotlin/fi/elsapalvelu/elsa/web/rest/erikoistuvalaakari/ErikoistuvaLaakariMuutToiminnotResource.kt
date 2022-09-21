@@ -85,7 +85,11 @@ class ErikoistuvaLaakariMuutToiminnotResource(
 
                 val result = kayttajaService.saveKouluttaja(
                     user.id!!,
-                    KayttajaDTO(nimi = uusiLahikouluttajaDTO.nimi, tila = KayttajatilinTila.KUTSUTTU),
+                    KayttajaDTO(
+                        etunimi = uusiLahikouluttajaDTO.etunimi,
+                        sukunimi = uusiLahikouluttajaDTO.sukunimi,
+                        tila = KayttajatilinTila.KUTSUTTU
+                    ),
                     UserDTO(
                         id = UUID.randomUUID().toString(),
                         login = uusiLahikouluttajaDTO.sahkoposti,
