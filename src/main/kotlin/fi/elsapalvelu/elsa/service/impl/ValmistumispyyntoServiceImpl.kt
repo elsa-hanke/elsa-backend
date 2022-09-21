@@ -374,9 +374,10 @@ class ValmistumispyyntoServiceImpl(
         val erikoistujanArviointienArvioitavaKokonaisuusIds =
             erikoistujanArvioinnit.map { it.arvioitavaKokonaisuus?.id!! }.distinct()
         val arviointienTilaDTO = ValmistumispyyntoArviointienTilaDTO(
-            hasArvioitaviaKokonaisuuksiaWithArviointiLowerThanFour = erikoistujanArvioinnit.any {
-                it.arviointiasteikonTaso!! < ARVIOINTI_VAHINTAAN
-            },
+            hasArvioitaviaKokonaisuuksiaWithArviointiLowerThanFour = erikoistujanArvioinnit.filter { it.arviointiasteikonTaso != null }
+                .any {
+                    it.arviointiasteikonTaso!! < ARVIOINTI_VAHINTAAN
+                },
             hasArvioitaviaKokonaisuuksiaWithoutArviointi = erikoistujanArvioivatKokonaisuudet.any {
                 it.id!! !in erikoistujanArviointienArvioitavaKokonaisuusIds
             }
@@ -388,7 +389,11 @@ class ValmistumispyyntoServiceImpl(
     private fun getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(
         kayttaja: Kayttaja
     ): ValmistumispyynnonHyvaksyjaRole? {
-        val vastuuhenkilonTehtavat = kayttaja.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat.map { it.nimi }
+        val vastuuhenkilonTehtavat =
+            kayttaja.yliopistotAndErikoisalat.firstOrNull()?.vastuuhenkilonTehtavat?.map { it.nimi }
+                ?: throw EntityNotFoundException(
+                    KAYTTAJA_YLIOPISTO_ERIKOISALA_NOT_FOUND_ERROR
+                )
         return if (
             vastuuhenkilonTehtavat.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI) &&
             vastuuhenkilonTehtavat.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA)
