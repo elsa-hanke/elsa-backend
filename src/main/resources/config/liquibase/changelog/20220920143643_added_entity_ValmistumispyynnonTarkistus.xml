@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20220920143643" author="jhipster">
+        <createTable tableName="valmistumispyynnon_tarkistus">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="valmistumispyynto_id" type="bigint">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="yek_suoritettu" type="boolean" defaultValue="false" />
+            <column name="yek_suorituspaiva" type="date" />
+            <column name="ptl_suoritettu" type="boolean" defaultValue="false" />
+            <column name="ptl_suorituspaiva" type="date" />
+            <column name="aiempi_el_koulutus_suoritettu" type="boolean" defaultValue="false" />
+            <column name="aiempi_el_koulutus_suorituspaiva" type="date" />
+            <column name="lt_tutkinto_suoritettu" type="boolean" defaultValue="false" />
+            <column name="lt_tutkinto_suorituspaiva" type="date" />
+            <column name="yliopistosairaalan_ulkopuolinen_tyo_tarkistettu" type="boolean" defaultValue="false" />
+            <column name="yliopistosairaalatyo_tarkistettu" type="boolean" defaultValue="false" />
+            <column name="kokonaistyoaika_tarkistettu" type="boolean" defaultValue="false" />
+            <column name="teoriakouluitus_tarkistettu" type="boolean" defaultValue="false" />
+            <column name="kommentit_virkailijoille" type="text" />
+            <column name="muokkauspaiva" type="date" />
+        </createTable>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="valmistumispyynnon_tarkistus"/>
+
+        <addForeignKeyConstraint baseTableName="valmistumispyynnon_tarkistus"
+            baseColumnNames="valmistumispyynto_id"
+            constraintName="fk_valmistumispyynnon_tarkistus_valmistumispyynto_id"
+            referencedTableName="valmistumispyynto"
+            referencedColumnNames="id"/>
+
+        <createTable tableName="valmistumispyynnon_tarkistus_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="valmistumispyynto_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="yek_suoritettu" type="boolean" />
+            <column name="yek_suorituspaiva" type="date" />
+            <column name="ptl_suoritettu" type="boolean" />
+            <column name="ptl_suorituspaiva" type="date" />
+            <column name="aiempi_el_koulutus_suoritettu" type="boolean" />
+            <column name="aiempi_el_koulutus_suorituspaiva" type="date" />
+            <column name="lt_tutkinto_suoritettu" type="boolean" />
+            <column name="lt_tutkinto_suorituspaiva" type="date" />
+            <column name="yliopistosairaalan_ulkopuolinen_tyo_tarkistettu" type="boolean" />
+            <column name="yliopistosairaalatyo_tarkistettu" type="boolean" />
+            <column name="kokonaistyoaika_tarkistettu" type="boolean" />
+            <column name="teoriakouluitus_tarkistettu" type="boolean" />
+            <column name="kommentit_virkailijoille" type="text" />
+            <column name="muokkauspaiva" type="date" />
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+            baseTableName="valmistumispyynnon_tarkistus_audit"
+            constraintName="fk_valmistumispyynnon_tarkistus_audit_revinfo_id"
+            referencedColumnNames="id"
+            referencedTableName="revinfo"/>
+
+    </changeSet>
+
+</databaseChangeLog>
