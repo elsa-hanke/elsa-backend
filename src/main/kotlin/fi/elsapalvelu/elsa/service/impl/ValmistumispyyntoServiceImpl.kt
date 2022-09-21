@@ -21,6 +21,7 @@ import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
+import fi.elsapalvelu.elsa.service.mapper.ValmistumispyynnonTarkistusMapper
 import fi.elsapalvelu.elsa.service.mapper.ValmistumispyyntoMapper
 import fi.elsapalvelu.elsa.service.mapper.ValmistumispyyntoOsaamisenArviointiMapper
 import org.springframework.data.domain.Page
@@ -51,7 +52,9 @@ class ValmistumispyyntoServiceImpl(
     private val opintosuoritusRepository: OpintosuoritusRepository,
     private val mailService: MailService,
     private val applicationProperties: ApplicationProperties,
-    private val clock: Clock
+    private val clock: Clock,
+    private val valmistumispyynnonTarkistusRepository: ValmistumispyynnonTarkistusRepository,
+    private val valmistumispyynnonTarkistusMapper: ValmistumispyynnonTarkistusMapper
 ) : ValmistumispyyntoService {
 
     @Transactional(readOnly = true)
@@ -203,6 +206,68 @@ class ValmistumispyyntoServiceImpl(
         }
     }
 
+    override fun updateTarkistusByVirkailijaUserId(
+        id: Long,
+        userId: String,
+        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO
+    ): ValmistumispyynnonTarkistusDTO? {
+        val kayttaja = getKayttaja(userId)
+        val yliopisto = kayttaja.yliopistot.first()
+        var tarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdAndValmistumispyyntoOpintooikeusYliopistoId(
+            id,
+            yliopisto.id!!
+        )
+
+        if (tarkistus != null) {
+            tarkistus.yekSuoritettu = valmistumispyynnonTarkistusDTO.yekSuoritettu
+            tarkistus.yekSuorituspaiva = valmistumispyynnonTarkistusDTO.yekSuorituspaiva
+            tarkistus.ptlSuoritettu = valmistumispyynnonTarkistusDTO.ptlSuoritettu
+            tarkistus.ptlSuorituspaiva = valmistumispyynnonTarkistusDTO.ptlSuorituspaiva
+            tarkistus.aiempiElKoulutusSuoritettu =
+                valmistumispyynnonTarkistusDTO.aiempiElKoulutusSuoritettu
+            tarkistus.aiempiElKoulutusSuorituspaiva =
+                valmistumispyynnonTarkistusDTO.aiempiElKoulutusSuorituspaiva
+            tarkistus.ltTutkintoSuoritettu = valmistumispyynnonTarkistusDTO.ltTutkintoSuoritettu
+            tarkistus.ltTutkintoSuorituspaiva = valmistumispyynnonTarkistusDTO.ltTutkintoSuorituspaiva
+            tarkistus.yliopistosairaalanUlkopuolinenTyoTarkistettu =
+                valmistumispyynnonTarkistusDTO.yliopistosairaalanUlkopuolinenTyoTarkistettu
+            tarkistus.yliopistosairaalatyoTarkistettu =
+                valmistumispyynnonTarkistusDTO.yliopistosairaalatyoTarkistettu
+            tarkistus.kokonaistyoaikaTarkistettu =
+                valmistumispyynnonTarkistusDTO.kokonaistyoaikaTarkistettu
+            tarkistus.teoriakoulutusTarkistettu = valmistumispyynnonTarkistusDTO.teoriakoulutusTarkistettu
+            tarkistus.kommentitVirkailijoille = valmistumispyynnonTarkistusDTO.kommentitVirkailijoille
+        } else {
+            valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)
+                ?.let {
+                    tarkistus = valmistumispyynnonTarkistusMapper.toEntity(valmistumispyynnonTarkistusDTO)
+                    tarkistus?.valmistumispyynto = it
+                }
+        }
+
+        tarkistus?.let {
+            valmistumispyynnonTarkistusRepository.save(it)
+
+            if (valmistumispyynnonTarkistusDTO.keskenerainen != true) {
+                it.valmistumispyynto?.virkailija = kayttaja
+
+                if (valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanKorjausehdotus != null) {
+                    it.valmistumispyynto?.virkailijanKorjausehdotus = valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanKorjausehdotus
+                    it.valmistumispyynto?.virkailijanPalautusaika = LocalDate.now(clock)
+                } else {
+                    it.valmistumispyynto?.virkailijanSaate = valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanSaate
+                    it.valmistumispyynto?.virkailijanKuittausaika = LocalDate.now(clock)
+                }
+
+                valmistumispyyntoRepository.save(it.valmistumispyynto)
+            }
+
+            return valmistumispyynnonTarkistusMapper.toDto(it)
+        }
+
+        return null
+    }
+
     @Transactional(readOnly = true)
     override fun findAllForVastuuhenkiloByCriteria(
         userId: String,
@@ -218,6 +283,26 @@ class ValmistumispyyntoServiceImpl(
             pageable,
             yliopisto.id!!,
             getErikoisalaIds(kayttaja),
+            kayttaja.user?.langKey
+        ).map {
+            val isAvoin = valmistumispyyntoCriteria.avoin == true
+            mapValmistumispyyntoListItem(it, hyvaksyjaRole, isAvoin)
+        }
+    }
+
+    override fun findAllForVirkailijaByCriteria(
+        userId: String,
+        valmistumispyyntoCriteria: NimiErikoisalaAndAvoinCriteria,
+        pageable: Pageable
+    ): Page<ValmistumispyyntoListItemDTO> {
+        val kayttaja = getKayttaja(userId)
+        val hyvaksyjaRole = ValmistumispyynnonHyvaksyjaRole.VIRKAILIJA
+        return valmistumispyyntoQueryService.findValmistumispyynnotByCriteria(
+            valmistumispyyntoCriteria,
+            hyvaksyjaRole,
+            pageable,
+            kayttaja.yliopistot.first().id!!,
+            null,
             kayttaja.user?.langKey
         ).map {
             val isAvoin = valmistumispyyntoCriteria.avoin == true
@@ -246,6 +331,29 @@ class ValmistumispyyntoServiceImpl(
         return valmistumispyyntoOsaamisenArviointiMapper.toDto(valmistumispyynto).apply {
             tila = getValmistumispyynnonTilaForArvioija(valmistumispyynto)
         }
+    }
+
+    override fun findOneByIdAndVirkailijaUserId(
+        id: Long,
+        userId: String
+    ): ValmistumispyynnonTarkistusDTO? {
+        val kayttaja = getKayttaja(userId)
+        val yliopisto = kayttaja.yliopistot.first()
+        valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdAndValmistumispyyntoOpintooikeusYliopistoId(
+            id,
+            yliopisto.id!!
+        )?.let {
+            return valmistumispyynnonTarkistusMapper.toDto(it)
+        }
+
+        val valmistumispyynto =
+            valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)
+                ?: throw getValmistumispyyntoNotFoundException()
+        return ValmistumispyynnonTarkistusDTO(
+            valmistumispyynto = valmistumispyyntoMapper.toDto(
+                valmistumispyynto
+            )
+        )
     }
 
     @Transactional(readOnly = true)
