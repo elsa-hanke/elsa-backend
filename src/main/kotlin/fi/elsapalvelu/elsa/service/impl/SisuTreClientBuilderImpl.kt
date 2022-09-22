@@ -38,6 +38,7 @@ class SisuTreClientBuilderImpl(
                         )
                     )
                 )
+                .authenticator(AccessTokenAuthenticator(sisuTreAuthenticationTokenService))
                 .connectTimeout(5, TimeUnit.SECONDS)
                 .readTimeout(5, TimeUnit.SECONDS)
                 .writeTimeout(5, TimeUnit.SECONDS)
