@@ -48,17 +48,29 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
 ) : TerveyskeskuskoulutusjaksonHyvaksyntaService {
 
-    override fun findByIdAndYliopistoId(
+    override fun findByIdAndYliopistoIdVirkailija(
         id: Long,
-        isVastuuhenkilo: Boolean,
         yliopistoIds: List<Long>
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
         terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByIdAndOpintooikeusYliopistoIdIn(
             id,
             yliopistoIds
         )?.let {
+            return mapTerveyskeskuskoulutusjakso(it)
+        }
+        return null
+    }
+
+    override fun findByIdAndYliopistoIdVastuuhenkilo(
+        id: Long,
+        yliopistoIds: List<Long>
+    ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
+        terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByIdAndYliopistoIdForVastuuhenkilo(
+            id,
+            yliopistoIds
+        )?.let {
             val result = mapTerveyskeskuskoulutusjakso(it)
-            if (isVastuuhenkilo && it.korjausehdotusVastuuhenkilolta != null) {
+            if (it.korjausehdotusVastuuhenkilolta != null) {
                 result.tila = TerveyskeskuskoulutusjaksoTila.PALAUTETTU_KORJATTAVAKSI
                 result.korjausehdotus = it.korjausehdotusVastuuhenkilolta
             }
