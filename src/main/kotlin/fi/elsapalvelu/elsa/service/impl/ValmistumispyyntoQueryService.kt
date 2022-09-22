@@ -12,6 +12,7 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tech.jhipster.service.QueryService
+import tech.jhipster.service.filter.LongFilter
 import tech.jhipster.service.filter.StringFilter
 import javax.persistence.criteria.*
 
@@ -27,7 +28,7 @@ class ValmistumispyyntoQueryService(
         role: ValmistumispyynnonHyvaksyjaRole,
         pageable: Pageable,
         yliopistoId: Long,
-        erikoisalaId: Long?,
+        erikoisalaIds: List<Long>,
         langkey: String?
     ): Page<Valmistumispyynto> {
         val specification: Specification<Valmistumispyynto> = Specification.where { root, cq, cb ->
@@ -36,18 +37,17 @@ class ValmistumispyyntoQueryService(
                 root.join(Valmistumispyynto_.opintooikeus)
 
             if (role == ValmistumispyynnonHyvaksyjaRole.VIRKAILIJA) {
-                getErikoisalaPredicate(criteria?.erikoisalaId?.equals, opintooikeusJoin, cb)?.let {
+                getErikoisalaPredicate(criteria?.erikoisalaId, opintooikeusJoin, cb)?.let {
                     predicates.add(it)
                 }
             } else {
-                requireNotNull(erikoisalaId)
                 getVastuuhenkiloPredicate(
                     role,
                     criteria,
                     root,
                     cb
                 ).let { predicates.add(it) }
-                getErikoisalaPredicate(erikoisalaId, opintooikeusJoin, cb)?.let {
+                getErikoisalatPredicate(erikoisalaIds, opintooikeusJoin)?.let {
                     predicates.add(it)
                 }
             }
@@ -154,14 +154,22 @@ class ValmistumispyyntoQueryService(
     }
 
     private fun getErikoisalaPredicate(
-        erikoisalaId: Long?,
+        erikoisalaId: LongFilter?,
         opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus>,
         cb: CriteriaBuilder
     ): Predicate? {
         return erikoisalaId?.let {
             val erikoisala: Path<Erikoisala> = opintooikeusJoin.get(Opintooikeus_.erikoisala)
-            cb.equal(erikoisala.get(Erikoisala_.id), erikoisalaId)
+            cb.equal(erikoisala.get(Erikoisala_.id), erikoisalaId.equals)
         }
+    }
+
+    private fun getErikoisalatPredicate(
+        erikoisalaIds: List<Long>,
+        opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus>,
+    ): Predicate? {
+        val erikoisala: Path<Erikoisala> = opintooikeusJoin.get(Opintooikeus_.erikoisala)
+        return (erikoisala.get(Erikoisala_.id)).`in`(erikoisalaIds)
     }
 
     private fun getNimiPredicate(
