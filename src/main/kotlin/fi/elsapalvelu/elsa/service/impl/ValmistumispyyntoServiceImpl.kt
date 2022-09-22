@@ -168,16 +168,16 @@ class ValmistumispyyntoServiceImpl(
         osaamisenArviointiDTO: ValmistumispyyntoOsaamisenArviointiFormDTO
     ): ValmistumispyyntoDTO {
         val kayttaja = getKayttaja(userId)
-        val yliopistoErikoisala = getYliopistoErikoisala(kayttaja)
+        val yliopisto = getYliopisto(kayttaja)
         val valmistumispyynto = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja).takeIf {
             it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA ||
                 it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA
         }?.let {
             val valmistumispyynto =
-                getValmistumispyyntoByIYliopistoIdAndErikoisalaIdOrThrow(
+                getValmistumispyyntoByYliopistoIdAndErikoisalaIdsOrThrow(
                     id,
-                    yliopistoErikoisala.yliopisto?.id!!,
-                    yliopistoErikoisala.erikoisala?.id!!
+                    yliopisto.id!!,
+                    getErikoisalaIds(kayttaja)
                 )
             valmistumispyynto.vastuuhenkiloOsaamisenArvioija = kayttaja
 
@@ -186,7 +186,7 @@ class ValmistumispyyntoServiceImpl(
                 valmistumispyynto.virkailijanPalautusaika = null
                 valmistumispyynto.virkailijanKorjausehdotus = null
                 sendMailNotificationOdottaaVirkailijanTarkastusta(
-                    yliopistoErikoisala.yliopisto!!.nimi!!,
+                    yliopisto.nimi!!,
                     valmistumispyynto.id!!
                 )
             } else {
@@ -210,14 +210,14 @@ class ValmistumispyyntoServiceImpl(
         pageable: Pageable
     ): Page<ValmistumispyyntoListItemDTO> {
         val kayttaja = getKayttaja(userId)
-        val yliopistoErikoisala = getYliopistoErikoisala(kayttaja)
+        val yliopisto = getYliopisto(kayttaja)
         val hyvaksyjaRole = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja) ?: return Page.empty()
         return valmistumispyyntoQueryService.findValmistumispyynnotByCriteria(
             valmistumispyyntoCriteria,
             hyvaksyjaRole,
             pageable,
-            yliopistoErikoisala.yliopisto!!.id!!,
-            yliopistoErikoisala.erikoisala!!.id!!,
+            yliopisto.id!!,
+            getErikoisalaIds(kayttaja),
             kayttaja.user?.langKey
         ).map {
             val isAvoin = valmistumispyyntoCriteria.avoin == true
@@ -231,15 +231,15 @@ class ValmistumispyyntoServiceImpl(
         userId: String
     ): ValmistumispyyntoOsaamisenArviointiDTO? {
         val kayttaja = getKayttaja(userId)
-        val yliopistoErikoisala = getYliopistoErikoisala(kayttaja)
+        val yliopisto = getYliopisto(kayttaja)
         val valmistumispyynto = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja).takeIf {
             it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA ||
                 it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA
         }?.let {
-            getValmistumispyyntoByIYliopistoIdAndErikoisalaIdOrThrow(
+            getValmistumispyyntoByYliopistoIdAndErikoisalaIdsOrThrow(
                 id,
-                yliopistoErikoisala.yliopisto?.id!!,
-                yliopistoErikoisala.erikoisala?.id!!
+                yliopisto.id!!,
+                getErikoisalaIds(kayttaja)
             )
         } ?: throw getValmistumispyyntoNotFoundException()
 
@@ -278,23 +278,25 @@ class ValmistumispyyntoServiceImpl(
     private fun getKayttaja(userId: String) =
         kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
 
-    private fun getYliopistoErikoisala(kayttaja: Kayttaja) =
-        kayttaja.yliopistotAndErikoisalat.firstOrNull() ?: throw EntityNotFoundException(
-            KAYTTAJA_YLIOPISTO_ERIKOISALA_NOT_FOUND_ERROR
-        )
-
     private fun getOpintooikeus(id: Long) =
         opintooikeusRepository.findByIdOrNull(id) ?: throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
 
-    private fun getValmistumispyyntoByIYliopistoIdAndErikoisalaIdOrThrow(
+    private fun getYliopisto(kayttaja: Kayttaja) =
+        kayttaja.yliopistotAndErikoisalat.firstOrNull()?.yliopisto ?: throw EntityNotFoundException(
+            KAYTTAJA_YLIOPISTO_ERIKOISALA_NOT_FOUND_ERROR
+        )
+
+    private fun getErikoisalaIds(kayttaja: Kayttaja) = kayttaja.yliopistotAndErikoisalat.map { it.erikoisala?.id!! }
+
+    private fun getValmistumispyyntoByYliopistoIdAndErikoisalaIdsOrThrow(
         id: Long,
         yliopistoId: Long,
-        erikoisalaId: Long
+        erikoisalaIds: List<Long>
     ) =
-        valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoIdAndOpintooikeusErikoisalaId(
+        valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoIdAndOpintooikeusErikoisalaIdIn(
             id,
             yliopistoId,
-            erikoisalaId
+            erikoisalaIds
         ) ?: throw getValmistumispyyntoNotFoundException()
 
     private fun getValmistumispyyntoByOpintooikeusId(opintooikeusId: Long) =
@@ -357,11 +359,11 @@ class ValmistumispyyntoServiceImpl(
     }
 
     private fun getArviointienTila(id: Long, kayttaja: Kayttaja): ValmistumispyyntoArviointienTilaDTO {
-        val yliopistoErikoisala = getYliopistoErikoisala(kayttaja)
-        val valmistumispyynto = getValmistumispyyntoByIYliopistoIdAndErikoisalaIdOrThrow(
+        val yliopisto = getYliopisto(kayttaja)
+        val valmistumispyynto = getValmistumispyyntoByYliopistoIdAndErikoisalaIdsOrThrow(
             id,
-            yliopistoErikoisala.yliopisto?.id!!,
-            yliopistoErikoisala.erikoisala?.id!!
+            yliopisto.id!!,
+            getErikoisalaIds(kayttaja)
         )
         val opintooikeus = valmistumispyynto.opintooikeus
         val erikoistujanArvioivatKokonaisuudet = arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
