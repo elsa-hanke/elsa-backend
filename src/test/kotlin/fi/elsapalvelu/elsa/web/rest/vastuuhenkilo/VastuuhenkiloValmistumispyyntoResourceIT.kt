@@ -1218,15 +1218,8 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
         val tehtavatyypit = em.findAll(VastuuhenkilonTehtavatyyppi::class)
         vastuuhenkilo = KayttajaHelper.createEntity(em, vastuuhenkiloUser)
-
-        vastuuhenkilo.yliopistotAndErikoisalat.add(
-            KayttajaYliopistoErikoisala(
-                kayttaja = vastuuhenkilo,
-                yliopisto = opintooikeus.yliopisto,
-                erikoisala = opintooikeus.erikoisala,
-                vastuuhenkilonTehtavat = tehtavatyypit.filter { it.nimi in vastuuhenkilonTehtavatyypit }.toMutableSet()
-            )
-        )
+        val tehtavat = tehtavatyypit.filter { it.nimi in vastuuhenkilonTehtavatyypit }.toMutableSet()
+        initVastuuhenkiloErikoisalat(vastuuhenkilo, opintooikeus.yliopisto!!, opintooikeus.erikoisala!!, tehtavat)
         em.persist(vastuuhenkilo)
 
         if (!vastuuhenkilonTehtavatyypit.contains(
@@ -1243,14 +1236,13 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             em.persist(anotherVastuuhenkiloUser)
 
             anotherVastuuhenkilo = KayttajaHelper.createEntity(em, anotherVastuuhenkiloUser)
-            anotherVastuuhenkilo.yliopistotAndErikoisalat.add(
-                KayttajaYliopistoErikoisala(
-                    kayttaja = anotherVastuuhenkilo,
-                    yliopisto = opintooikeus.yliopisto,
-                    erikoisala = opintooikeus.erikoisala,
-                    vastuuhenkilonTehtavat = tehtavatyypit.filter { it.nimi !in vastuuhenkilonTehtavatyypit }
-                        .toMutableSet()
-                )
+            val anotherVastuuhenkiloTehtavat =
+                tehtavatyypit.filter { it.nimi !in vastuuhenkilonTehtavatyypit }.toMutableSet()
+            initVastuuhenkiloErikoisalat(
+                anotherVastuuhenkilo,
+                opintooikeus.yliopisto!!,
+                opintooikeus.erikoisala!!,
+                anotherVastuuhenkiloTehtavat
             )
             em.persist(anotherVastuuhenkilo)
         }
@@ -1265,6 +1257,46 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
         virkailija = KayttajaHelper.createEntity(em, virkailijaUser)
         em.persist(virkailija)
         virkailija.yliopistot.add(opintooikeus.yliopisto!!)
+    }
+
+    private fun initVastuuhenkiloErikoisalat(
+        kayttaja: Kayttaja,
+        yliopisto: Yliopisto,
+        erikoisala: Erikoisala,
+        tehtavat: MutableSet<VastuuhenkilonTehtavatyyppi>
+    ) {
+        val newErikoisala = ErikoisalaHelper.createEntity()
+        val anotherNewErikoisala = ErikoisalaHelper.createEntity()
+
+        em.persist(newErikoisala)
+        em.persist(anotherNewErikoisala)
+
+        kayttaja.yliopistotAndErikoisalat.add(
+            KayttajaYliopistoErikoisala(
+                kayttaja = kayttaja,
+                yliopisto = yliopisto,
+                erikoisala = newErikoisala,
+                vastuuhenkilonTehtavat = tehtavat
+            )
+        )
+
+        kayttaja.yliopistotAndErikoisalat.add(
+            KayttajaYliopistoErikoisala(
+                kayttaja = kayttaja,
+                yliopisto = yliopisto,
+                erikoisala = erikoisala,
+                vastuuhenkilonTehtavat = tehtavat
+            )
+        )
+
+        kayttaja.yliopistotAndErikoisalat.add(
+            KayttajaYliopistoErikoisala(
+                kayttaja = kayttaja,
+                yliopisto = yliopisto,
+                erikoisala = anotherNewErikoisala,
+                vastuuhenkilonTehtavat = tehtavat
+            )
+        )
     }
 
     private fun initErikoistuvaLaakari(
