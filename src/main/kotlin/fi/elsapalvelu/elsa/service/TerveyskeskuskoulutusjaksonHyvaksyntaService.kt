@@ -9,9 +9,13 @@ import org.springframework.data.domain.Pageable
 
 interface TerveyskeskuskoulutusjaksonHyvaksyntaService {
 
-    fun findByIdAndYliopistoId(
+    fun findByIdAndYliopistoIdVirkailija(
         id: Long,
-        isVastuuhenkilo: Boolean,
+        yliopistoIds: List<Long>
+    ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO?
+
+    fun findByIdAndYliopistoIdVastuuhenkilo(
+        id: Long,
         yliopistoIds: List<Long>
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO?
 

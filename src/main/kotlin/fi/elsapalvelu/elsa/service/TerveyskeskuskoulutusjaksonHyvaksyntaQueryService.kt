@@ -43,6 +43,19 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
                 result = cb.and(result, nimiPredicate)
             }
 
+            if (!isVirkailija) {
+                result = cb.and(
+                    result,
+                    cb.or(
+                        cb.isNotNull(root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.korjausehdotusVastuuhenkilolta)),
+                        cb.equal(
+                            root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.virkailijaHyvaksynyt),
+                            true
+                        )
+                    )
+                )
+            }
+
             if (criteria?.avoin != null) {
                 var avoinExpr =
                     cb.isNull(root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.korjausehdotus))
