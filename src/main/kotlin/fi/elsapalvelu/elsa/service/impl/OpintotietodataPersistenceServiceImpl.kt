@@ -76,7 +76,7 @@ class OpintotietodataPersistenceServiceImpl(
 
         checkOpintooikeudetAmount(filteredOpintotietodataOpintooikeudet, erikoistuvaLaakari)
 
-        filteredOpintotietodataOpintooikeudet.forEach {
+        filteredOpintotietodataOpintooikeudet.sortedBy { it.opintooikeudenPaattymispaiva }.forEach {
             createOpintooikeus(it, userId, erikoistuvaLaakari)
         }
     }
@@ -106,8 +106,8 @@ class OpintotietodataPersistenceServiceImpl(
         val filteredOpintotietodataOpintooikeudet =
             filteredOpintotietodataNewOpintooikeudet + opintotietodataExistingOpintooikeudet
 
-        filteredOpintotietodataOpintooikeudet.forEach {
-            createOrUpdateOpintooikeus(it, existingOpintooikeudet, userId, erikoistuvaLaakari)
+        filteredOpintotietodataOpintooikeudet.sortedBy { it.opintooikeudenPaattymispaiva }.forEach {
+            createOrUpdateOpintooikeus(it, userId, erikoistuvaLaakari)
         }
     }
 
@@ -268,10 +268,10 @@ class OpintotietodataPersistenceServiceImpl(
 
     private fun createOrUpdateOpintooikeus(
         opintooikeusDTO: OpintotietoOpintooikeusDataDTO,
-        existingOpintooikeudet: List<Opintooikeus>,
         userId: String,
         erikoistuvaLaakari: ErikoistuvaLaakari
     ) {
+        val existingOpintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         val opintooikeusId =
             checkOpintooikeusIdValueExistsOrLogError(opintooikeusDTO.id, opintooikeusDTO.yliopisto, userId)
                 ?: return
