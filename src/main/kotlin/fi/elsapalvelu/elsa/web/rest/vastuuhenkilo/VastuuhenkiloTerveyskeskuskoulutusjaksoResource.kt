@@ -65,9 +65,8 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
                 .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
         }?.map { it.yliopisto?.id!! }.orEmpty()
         try {
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndYliopistoId(
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndYliopistoIdVastuuhenkilo(
                 id,
-                true,
                 yliopistoIds
             )
                 .let {
