@@ -37,6 +37,15 @@ class ValmistumispyyntoQueryService(
                 root.join(Valmistumispyynto_.opintooikeus)
 
             if (role == ValmistumispyynnonHyvaksyjaRole.VIRKAILIJA) {
+                predicates.add(
+                    cb.or(
+                        cb.or(
+                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
+                            cb.isNotNull(root.get(Valmistumispyynto_.virkailijanPalautusaika))
+                        ),
+                        cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika))
+                    )
+                )
                 getErikoisalaPredicate(criteria?.erikoisalaId, opintooikeusJoin, cb)?.let {
                     predicates.add(it)
                 }

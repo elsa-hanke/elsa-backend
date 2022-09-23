@@ -7,33 +7,33 @@ data class ValmistumispyynnonTarkistusDTO(
 
     var id: Long? = null,
 
-    var yekSuoritettu: Boolean? = null,
+    var yekSuoritettu: Boolean? = false,
 
     var yekSuorituspaiva: LocalDate? = null,
 
-    var ptlSuoritettu: Boolean? = null,
+    var ptlSuoritettu: Boolean? = false,
 
     var ptlSuorituspaiva: LocalDate? = null,
 
-    var aiempiElKoulutusSuoritettu: Boolean? = null,
+    var aiempiElKoulutusSuoritettu: Boolean? = false,
 
     var aiempiElKoulutusSuorituspaiva: LocalDate? = null,
 
-    var ltTutkintoSuoritettu: Boolean? = null,
+    var ltTutkintoSuoritettu: Boolean? = false,
 
     var ltTutkintoSuorituspaiva: LocalDate? = null,
 
-    var yliopistosairaalanUlkopuolinenTyoTarkistettu: Boolean? = null,
+    var yliopistosairaalanUlkopuolinenTyoTarkistettu: Boolean? = false,
 
-    var yliopistosairaalatyoTarkistettu: Boolean? = null,
+    var yliopistosairaalatyoTarkistettu: Boolean? = false,
 
-    var kokonaistyoaikaTarkistettu: Boolean? = null,
+    var kokonaistyoaikaTarkistettu: Boolean? = false,
 
-    var teoriakoulutusTarkistettu: Boolean? = null,
+    var teoriakoulutusTarkistettu: Boolean? = false,
 
     var kommentitVirkailijoille: String? = null,
 
-    var keskenerainen: Boolean? = null,
+    var keskenerainen: Boolean? = false,
 
     var valmistumispyynto: ValmistumispyyntoDTO? = null
 
