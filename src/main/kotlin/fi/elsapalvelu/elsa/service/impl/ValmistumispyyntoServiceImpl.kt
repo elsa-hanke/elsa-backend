@@ -39,6 +39,7 @@ private const val VANHENTUNUT_SUORITUS_YEARS_EHL = 6L
 private const val ARVIOINTI_VAHINTAAN = 4
 
 @Service
+@Transactional
 class ValmistumispyyntoServiceImpl(
     private val valmistumispyyntoRepository: ValmistumispyyntoRepository,
     private val valmistumispyyntoQueryService: ValmistumispyyntoQueryService,
@@ -302,7 +303,7 @@ class ValmistumispyyntoServiceImpl(
             hyvaksyjaRole,
             pageable,
             kayttaja.yliopistot.first().id!!,
-            null,
+            listOf(),
             kayttaja.user?.langKey
         ).map {
             val isAvoin = valmistumispyyntoCriteria.avoin == true
@@ -352,7 +353,7 @@ class ValmistumispyyntoServiceImpl(
         return ValmistumispyynnonTarkistusDTO(
             valmistumispyynto = valmistumispyyntoMapper.toDto(
                 valmistumispyynto
-            )
+            ).apply { tila = getValmistumispyynnonTilaForArvioija(valmistumispyynto) }
         )
     }
 

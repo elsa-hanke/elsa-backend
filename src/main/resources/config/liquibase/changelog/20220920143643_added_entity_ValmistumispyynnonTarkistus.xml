@@ -12,20 +12,37 @@
             <column name="valmistumispyynto_id" type="bigint">
                 <constraints nullable="false" unique="true"/>
             </column>
-            <column name="yek_suoritettu" type="boolean" defaultValue="false" />
-            <column name="yek_suorituspaiva" type="date" />
-            <column name="ptl_suoritettu" type="boolean" defaultValue="false" />
-            <column name="ptl_suorituspaiva" type="date" />
-            <column name="aiempi_el_koulutus_suoritettu" type="boolean" defaultValue="false" />
-            <column name="aiempi_el_koulutus_suorituspaiva" type="date" />
-            <column name="lt_tutkinto_suoritettu" type="boolean" defaultValue="false" />
-            <column name="lt_tutkinto_suorituspaiva" type="date" />
-            <column name="yliopistosairaalan_ulkopuolinen_tyo_tarkistettu" type="boolean" defaultValue="false" />
-            <column name="yliopistosairaalatyo_tarkistettu" type="boolean" defaultValue="false" />
-            <column name="kokonaistyoaika_tarkistettu" type="boolean" defaultValue="false" />
-            <column name="teoriakouluitus_tarkistettu" type="boolean" defaultValue="false" />
-            <column name="kommentit_virkailijoille" type="text" />
-            <column name="muokkauspaiva" type="date" />
+            <column name="yek_suoritettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yek_suorituspaiva" type="date"/>
+            <column name="ptl_suoritettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ptl_suorituspaiva" type="date"/>
+            <column name="aiempi_el_koulutus_suoritettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="aiempi_el_koulutus_suorituspaiva" type="date"/>
+            <column name="lt_tutkinto_suoritettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lt_tutkinto_suorituspaiva" type="date"/>
+            <column name="yliopistosairaalan_ulkopuolinen_tyo_tarkistettu" type="boolean"
+                defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yliopistosairaalatyo_tarkistettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kokonaistyoaika_tarkistettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="teoriakouluitus_tarkistettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kommentit_virkailijoille" type="text"/>
+            <column name="muokkauspaiva" type="date"/>
         </createTable>
 
         <addAutoIncrement columnName="id"
@@ -50,22 +67,22 @@
             </column>
             <column name="revision_type" type="smallint"/>
             <column name="valmistumispyynto_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
-            <column name="yek_suoritettu" type="boolean" />
-            <column name="yek_suorituspaiva" type="date" />
-            <column name="ptl_suoritettu" type="boolean" />
-            <column name="ptl_suorituspaiva" type="date" />
-            <column name="aiempi_el_koulutus_suoritettu" type="boolean" />
-            <column name="aiempi_el_koulutus_suorituspaiva" type="date" />
-            <column name="lt_tutkinto_suoritettu" type="boolean" />
-            <column name="lt_tutkinto_suorituspaiva" type="date" />
-            <column name="yliopistosairaalan_ulkopuolinen_tyo_tarkistettu" type="boolean" />
-            <column name="yliopistosairaalatyo_tarkistettu" type="boolean" />
-            <column name="kokonaistyoaika_tarkistettu" type="boolean" />
-            <column name="teoriakouluitus_tarkistettu" type="boolean" />
-            <column name="kommentit_virkailijoille" type="text" />
-            <column name="muokkauspaiva" type="date" />
+            <column name="yek_suoritettu" type="boolean"/>
+            <column name="yek_suorituspaiva" type="date"/>
+            <column name="ptl_suoritettu" type="boolean"/>
+            <column name="ptl_suorituspaiva" type="date"/>
+            <column name="aiempi_el_koulutus_suoritettu" type="boolean"/>
+            <column name="aiempi_el_koulutus_suorituspaiva" type="date"/>
+            <column name="lt_tutkinto_suoritettu" type="boolean"/>
+            <column name="lt_tutkinto_suorituspaiva" type="date"/>
+            <column name="yliopistosairaalan_ulkopuolinen_tyo_tarkistettu" type="boolean"/>
+            <column name="yliopistosairaalatyo_tarkistettu" type="boolean"/>
+            <column name="kokonaistyoaika_tarkistettu" type="boolean"/>
+            <column name="teoriakouluitus_tarkistettu" type="boolean"/>
+            <column name="kommentit_virkailijoille" type="text"/>
+            <column name="muokkauspaiva" type="date"/>
         </createTable>
 
         <addForeignKeyConstraint baseColumnNames="revision_id"
