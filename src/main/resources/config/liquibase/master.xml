@@ -235,5 +235,6 @@
     <include file="config/liquibase/changelog/20220908152328_modify_entity_TerveyskeskuskoulutusjaksonHyvaksynta.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220912142112_modify_entity_Valmistumispyynto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220915162419_modify_entity_Tyoskentelyjakso.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220923114933_modify_erikoisala_nimet.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
