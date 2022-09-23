@@ -51,9 +51,8 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
         val kayttaja = kayttajaService.findByUserId(user.id!!).get()
         val yliopistoIds = kayttaja.yliopistot?.map { it.id!! }.orEmpty().toList()
         try {
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndYliopistoId(
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndYliopistoIdVirkailija(
                 id,
-                false,
                 yliopistoIds
             )
                 .let {

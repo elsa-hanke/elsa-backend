@@ -9,10 +9,10 @@ interface ValmistumispyyntoRepository : JpaRepository<Valmistumispyynto, Long>,
 
     fun findByOpintooikeusId(opintooikeusId: Long): Valmistumispyynto?
 
-    fun findByIdAndOpintooikeusYliopistoIdAndOpintooikeusErikoisalaId(
+    fun findByIdAndOpintooikeusYliopistoIdAndOpintooikeusErikoisalaIdIn(
         id: Long,
         yliopistoId: Long,
-        erikoisalaId: Long
+        erikoisalaIds: List<Long>
     ): Valmistumispyynto?
 
     fun existsByOpintooikeusId(opintooikeusId: Long): Boolean
