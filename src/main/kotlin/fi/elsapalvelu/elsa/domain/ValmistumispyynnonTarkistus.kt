@@ -27,40 +27,40 @@ data class ValmistumispyynnonTarkistus(
     var valmistumispyynto: Valmistumispyynto? = null,
 
     @Column(name = "yek_suoritettu")
-    var yekSuoritettu: Boolean? = null,
+    var yekSuoritettu: Boolean? = false,
 
     @Column(name = "yek_suorituspaiva")
     var yekSuorituspaiva: LocalDate? = null,
 
     @Column(name = "ptl_suoritettu")
-    var ptlSuoritettu: Boolean? = null,
+    var ptlSuoritettu: Boolean? = false,
 
     @Column(name = "ptl_suorituspaiva")
     var ptlSuorituspaiva: LocalDate? = null,
 
     @Column(name = "aiempi_el_koulutus_suoritettu")
-    var aiempiElKoulutusSuoritettu: Boolean? = null,
+    var aiempiElKoulutusSuoritettu: Boolean? = false,
 
     @Column(name = "aiempi_el_koulutus_suorituspaiva")
     var aiempiElKoulutusSuorituspaiva: LocalDate? = null,
 
     @Column(name = "lt_tutkinto_suoritettu")
-    var ltTutkintoSuoritettu: Boolean? = null,
+    var ltTutkintoSuoritettu: Boolean? = false,
 
     @Column(name = "lt_tutkinto_suorituspaiva")
     var ltTutkintoSuorituspaiva: LocalDate? = null,
 
     @Column(name = "yliopistosairaalan_ulkopuolinen_tyo_tarkistettu")
-    var yliopistosairaalanUlkopuolinenTyoTarkistettu: Boolean? = null,
+    var yliopistosairaalanUlkopuolinenTyoTarkistettu: Boolean? = false,
 
     @Column(name = "yliopistosairaalatyo_tarkistettu")
-    var yliopistosairaalatyoTarkistettu: Boolean? = null,
+    var yliopistosairaalatyoTarkistettu: Boolean? = false,
 
     @Column(name = "kokonaistyoaika_tarkistettu")
-    var kokonaistyoaikaTarkistettu: Boolean? = null,
+    var kokonaistyoaikaTarkistettu: Boolean? = false,
 
     @Column(name = "teoriakouluitus_tarkistettu")
-    var teoriakoulutusTarkistettu: Boolean? = null,
+    var teoriakoulutusTarkistettu: Boolean? = false,
 
     @Column(name = "kommentit_virkailijoille")
     var kommentitVirkailijoille: String? = null,

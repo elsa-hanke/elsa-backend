@@ -22,7 +22,7 @@ class VirkailijaValmistumispyyntoResource(
     ): ResponseEntity<Page<ValmistumispyyntoListItemDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val valmistumispyynnot =
-            valmistumispyyntoService.findAllForVastuuhenkiloByCriteria(
+            valmistumispyyntoService.findAllForVirkailijaByCriteria(
                 user.id!!,
                 criteria,
                 pageable
