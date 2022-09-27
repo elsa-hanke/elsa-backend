@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.repository.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.KoulutussuunnitelmaRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
@@ -35,7 +36,10 @@ class AsiakirjaServiceImpl(
                     this.lisattypvm = LocalDateTime.now()
                     this.opintooikeus = opintooikeus
                     this.asiakirjaData?.data =
-                        BlobProxy.generateProxy(it.asiakirjaData?.fileInputStream, it.asiakirjaData?.fileSize!!)
+                        BlobProxy.generateProxy(
+                            it.asiakirjaData?.fileInputStream,
+                            it.asiakirjaData?.fileSize!!
+                        )
                 }
             }
 
@@ -64,6 +68,25 @@ class AsiakirjaServiceImpl(
             .map(asiakirjaMapper::toDto)
     }
 
+    override fun findByIdAndTyoskentelyjaksoTyyppi(
+        id: Long,
+        tyyppi: TyoskentelyjaksoTyyppi,
+        yliopistoIds: List<Long>?
+    ): AsiakirjaDTO? {
+        yliopistoIds?.let {
+            asiakirjaRepository.findOneByIdAndTyoskentelyjaksoTyoskentelypaikkaTyyppi(
+                id,
+                tyyppi,
+                it
+            )?.let { asiakirja ->
+                val result = asiakirjaMapper.toDto(asiakirja)
+                result.asiakirjaData?.fileInputStream = asiakirja.asiakirjaData?.data?.binaryStream
+                return result
+            }
+        }
+        return null
+    }
+
     @Transactional(readOnly = true)
     override fun findOne(id: Long, opintooikeusId: Long): AsiakirjaDTO? {
         asiakirjaRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
@@ -82,7 +105,9 @@ class AsiakirjaServiceImpl(
     }
 
     private fun deleteKoulutussuunnitelmaReferenceIfExists(asiakirjaId: Long) {
-        koulutussuunnitelmaRepository.findOneByKoulutussuunnitelmaAsiakirjaIdOrMotivaatiokirjeAsiakirjaId(asiakirjaId)
+        koulutussuunnitelmaRepository.findOneByKoulutussuunnitelmaAsiakirjaIdOrMotivaatiokirjeAsiakirjaId(
+            asiakirjaId
+        )
             ?.let {
                 if (it.koulutussuunnitelmaAsiakirja?.id == asiakirjaId) {
                     it.koulutussuunnitelmaAsiakirja = null
@@ -101,7 +126,8 @@ class AsiakirjaServiceImpl(
     override fun removeTyoskentelyjaksoReference(tyoskentelyJaksoId: Long?) {
         val asiakirjaIdsByTyoskentelyjakso =
             asiakirjaRepository.findAllByTyoskentelyjaksoId(tyoskentelyJaksoId).map { it.id }
-        val asiakirjaEntitiesByTyoskentelyjakso = asiakirjaRepository.findAllById(asiakirjaIdsByTyoskentelyjakso)
+        val asiakirjaEntitiesByTyoskentelyjakso =
+            asiakirjaRepository.findAllById(asiakirjaIdsByTyoskentelyjakso)
         asiakirjaEntitiesByTyoskentelyjakso.forEach {
             it.tyoskentelyjakso = null
         }
