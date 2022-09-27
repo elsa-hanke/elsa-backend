@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.TerveyskeskuskoulutusjaksonHyvaksyntaService
 import fi.elsapalvelu.elsa.service.UserService
@@ -11,8 +13,10 @@ import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksonHyvaksyntaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.net.URLEncoder
 import java.security.Principal
 import javax.persistence.EntityNotFoundException
 import javax.validation.ValidationException
@@ -24,7 +28,8 @@ private const val TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME = "terveyskeskuskoulutu
 class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
     private val userService: UserService,
     private val kayttajaService: KayttajaService,
-    private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService
+    private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
+    private val asiakirjaService: AsiakirjaService
 ) {
 
     @GetMapping("/onko-terveyskeskuskoulutusjakso-vastuuhenkilo")
@@ -86,6 +91,35 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
                 "dataillegal.terveyskeskuskoulutusjakson-vahimmaispituus-ei-tayty"
             )
         }
+    }
+
+    @GetMapping("/terveyskeskuskoulutusjakso/tyoskentelyjakso-liite/{id}")
+    fun getTerveyskeskuskoulutusjaksoTyoskentelyjaksoLiite(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<ByteArray> {
+        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.findByUserId(user.id!!).orElse(null)
+        val yliopistoIds = kayttaja?.yliopistotAndErikoisalat?.filter {
+            it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+                .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
+        }?.map { it.yliopisto?.id!! }.orEmpty()
+        val asiakirja = asiakirjaService
+            .findByIdAndTyoskentelyjaksoTyyppi(
+                id,
+                TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
+                yliopistoIds
+            )
+        asiakirja?.asiakirjaData?.fileInputStream?.use {
+            return ResponseEntity.ok()
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
+                )
+                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
+                .body(it.readBytes())
+        }
+        return ResponseEntity.notFound().build()
     }
 
     @PutMapping("/terveyskeskuskoulutusjakson-hyvaksynta/{id}")
