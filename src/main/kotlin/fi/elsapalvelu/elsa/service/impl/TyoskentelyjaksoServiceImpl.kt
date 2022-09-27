@@ -195,6 +195,13 @@ class TyoskentelyjaksoServiceImpl(
             .map(tyoskentelyjaksoMapper::toDto)
     }
 
+    override fun findAllByOpintooikeusIdForKoejakso(opintooikeusId: Long): List<TyoskentelyjaksoDTO> {
+        return tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndLiitettyKoejaksoonTrue(
+            opintooikeusId
+        )
+            .map(tyoskentelyjaksoMapper::toDto)
+    }
+
     @Transactional(readOnly = true)
     override fun findOne(id: Long, opintooikeusId: Long): TyoskentelyjaksoDTO? {
         tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
