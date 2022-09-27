@@ -334,7 +334,9 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val principal =
             SecurityContextHolder.getContext().authentication.principal as AuthenticatedPrincipal
         result.koejaksonSuorituspaikat = TyoskentelyjaksotTableDTO(
-            tyoskentelyjaksot = tyoskentelyjaksoService.findAllByOpintooikeusId(opintoOikeusId)
+            tyoskentelyjaksot = tyoskentelyjaksoService.findAllByOpintooikeusIdForKoejakso(
+                opintoOikeusId
+            )
                 .toMutableSet(),
             keskeytykset = keskeytysaikaService.findAllByTyoskentelyjaksoOpintooikeusId(
                 opintoOikeusId
