@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.virkailija
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.ValmistumispyynnonTarkistusRepository
 import fi.elsapalvelu.elsa.repository.ValmistumispyyntoRepository
@@ -12,10 +13,9 @@ import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
-import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.ValmistumispyyntoHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -56,6 +56,8 @@ class VirkailijaValmistumispyyntoResourceIT {
     private lateinit var restValmistumispyyntoMockMvc: MockMvc
 
     private lateinit var opintooikeus: Opintooikeus
+
+    private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
 
     private lateinit var vastuuhenkilo: Kayttaja
 
@@ -304,6 +306,57 @@ class VirkailijaValmistumispyyntoResourceIT {
             )
         em.persist(valmistumispyynto)
 
+        val hyvaksyntaPvm = LocalDate.ofEpochDay(12)
+        val terveyskeskustyoHyvaksynta =
+            TerveyskeskustyoHelper.createTerveyskeskustyoHyvaksyntaHyvaksytty(
+                opintooikeus,
+                hyvaksyntaPvm
+            )
+        em.persist(terveyskeskustyoHyvaksynta)
+
+        val terveyssuoritus = OpintosuoritusHelper.createEntity(
+            em,
+            tyyppiEnum = OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO
+        )
+        em.persist(terveyssuoritus)
+
+        val teoriakoulutus1 = TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
+        em.persist(teoriakoulutus1)
+
+        val teoriakoulutus2 = TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
+        em.persist(teoriakoulutus2)
+
+        val sateilysuojakoulutus = OpintosuoritusHelper.createEntity(
+            em,
+            tyyppiEnum = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS
+        )
+        em.persist(sateilysuojakoulutus)
+
+        val johtamiskoulutus = OpintosuoritusHelper.createEntity(
+            em,
+            tyyppiEnum = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO
+        )
+        em.persist(johtamiskoulutus)
+
+        val kuulustelu1 = OpintosuoritusHelper.createEntity(
+            em,
+            tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU
+        )
+        em.persist(kuulustelu1)
+
+        val kuulustelu2 = OpintosuoritusHelper.createEntity(
+            em,
+            tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU
+        )
+        em.persist(kuulustelu2)
+
+        val koejaksoHyvaksyttyPvm = LocalDate.ofEpochDay(20)
+        val vastuuhenkilonArvio =
+            KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+        vastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = true
+        vastuuhenkilonArvio.vastuuhenkilonKuittausaika = koejaksoHyvaksyttyPvm
+        em.persist(vastuuhenkilonArvio)
+
         restValmistumispyyntoMockMvc.perform(
             get(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/${valmistumispyynto.id}"
@@ -368,6 +421,43 @@ class VirkailijaValmistumispyyntoResourceIT {
                 jsonPath("$.valmistumispyynto.vastuuhenkiloOsaamisenArvioijaNimike").value(
                     vastuuhenkilo.nimike
                 )
+            )
+            .andExpect(
+                jsonPath("$.terveyskeskustyoHyvaksyttyPvm").value(hyvaksyntaPvm.toString())
+            )
+            .andExpect(
+                jsonPath("$.terveyskeskustyoHyvaksyntaId").value(terveyskeskustyoHyvaksynta.id)
+            )
+            .andExpect(
+                jsonPath("$.terveyskeskustyoOpintosuoritusId").value(terveyssuoritus.id)
+            )
+            .andExpect(
+                jsonPath("$.teoriakoulutusSuoritettu").value(
+                    teoriakoulutus1.erikoistumiseenHyvaksyttavaTuntimaara?.plus(
+                        teoriakoulutus2.erikoistumiseenHyvaksyttavaTuntimaara!!
+                    )
+                )
+            )
+            .andExpect(
+                jsonPath("$.teoriakoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara)
+            )
+            .andExpect(
+                jsonPath("$.sateilusuojakoulutusSuoritettu").value(sateilysuojakoulutus.opintopisteet)
+            )
+            .andExpect(
+                jsonPath("$.sateilusuojakoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara)
+            )
+            .andExpect(
+                jsonPath("$.johtamiskoulutusSuoritettu").value(johtamiskoulutus.opintopisteet)
+            )
+            .andExpect(
+                jsonPath("$.johtamiskoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara)
+            )
+            .andExpect(
+                jsonPath("$.kuulustelut").value(Matchers.hasSize<Any>(2))
+            )
+            .andExpect(
+                jsonPath("$.koejaksoHyvaksyttyPvm").value(koejaksoHyvaksyttyPvm.toString())
             )
     }
 
@@ -695,7 +785,7 @@ class VirkailijaValmistumispyyntoResourceIT {
         )
         TestSecurityContextHolder.getContext().authentication = authentication
 
-        val erikoistuvaLaakari = initErikoistuvaLaakari()
+        erikoistuvaLaakari = initErikoistuvaLaakari()
 
         opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
 

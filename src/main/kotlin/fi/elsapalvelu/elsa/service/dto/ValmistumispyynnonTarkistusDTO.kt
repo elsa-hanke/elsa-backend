@@ -23,7 +23,7 @@ data class ValmistumispyynnonTarkistusDTO(
 
     var ltTutkintoSuorituspaiva: LocalDate? = null,
 
-    var tyoskentelyjaksotTilastot: TyoskentelyjaksotTilastotDTO? = null,
+    var tyoskentelyjaksotTilastot: TyoskentelyjaksotTilastotKoulutustyypitDTO? = null,
 
     var terveyskeskustyoHyvaksyttyPvm: LocalDate? = null,
 
