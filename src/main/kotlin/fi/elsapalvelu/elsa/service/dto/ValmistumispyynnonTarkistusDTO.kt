@@ -23,13 +23,39 @@ data class ValmistumispyynnonTarkistusDTO(
 
     var ltTutkintoSuorituspaiva: LocalDate? = null,
 
+    var tyoskentelyjaksotTilastot: TyoskentelyjaksotTilastotDTO? = null,
+
+    var terveyskeskustyoHyvaksyttyPvm: LocalDate? = null,
+
+    var terveyskeskustyoHyvaksyntaId: Long? = null,
+
+    var terveyskeskustyoOpintosuoritusId: Long? = null,
+
     var yliopistosairaalanUlkopuolinenTyoTarkistettu: Boolean? = false,
 
     var yliopistosairaalatyoTarkistettu: Boolean? = false,
 
     var kokonaistyoaikaTarkistettu: Boolean? = false,
 
+    var teoriakoulutusSuoritettu: Double? = null,
+
+    var teoriakoulutusVaadittu: Double? = null,
+
     var teoriakoulutusTarkistettu: Boolean? = false,
+
+    var sateilusuojakoulutusSuoritettu: Double? = null,
+
+    var sateilusuojakoulutusVaadittu: Double? = null,
+
+    var johtamiskoulutusSuoritettu: Double? = null,
+
+    var johtamiskoulutusVaadittu: Double? = null,
+
+    var kuulustelut: List<OpintosuoritusDTO>? = listOf(),
+
+    var koejaksoHyvaksyttyPvm: LocalDate? = null,
+
+    var suoritustenTila: ValmistumispyyntoSuoritustenTilaDTO? = null,
 
     var kommentitVirkailijoille: String? = null,
 
