@@ -1,17 +1,17 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
-import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
-import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import tech.jhipster.web.util.ResponseUtil
+import java.net.URLEncoder
 import java.security.Principal
 import javax.validation.Valid
 
@@ -21,8 +21,10 @@ private const val ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO = "koejakson_vastuuhenki
 @RequestMapping("/api/virkailija")
 class VirkailijaKoejaksoResource(
     private val userService: UserService,
+    private val kayttajaService: KayttajaService,
     private val koejaksonVaiheetService: KoejaksonVaiheetService,
-    private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService
+    private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService,
+    private val asiakirjaService: AsiakirjaService
 ) {
 
     @GetMapping("/koejaksot")
@@ -46,6 +48,30 @@ class VirkailijaKoejaksoResource(
         val vastuuhenkilonArvioDTO =
             koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id!!)
         return ResponseUtil.wrapOrNotFound(vastuuhenkilonArvioDTO)
+    }
+
+    @GetMapping("/koejakso/tyoskentelyjakso-liite/{id}")
+    fun getVastuuhenkilonArvioTyoskentelyjaksoLiite(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<ByteArray> {
+        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.findByUserId(user.id!!)
+        val asiakirja = asiakirjaService
+            .findByIdAndLiitettykoejaksoonByYliopisto(
+                id,
+                kayttaja.orElse(null)?.yliopistot?.map { it.id!! })
+
+        asiakirja?.asiakirjaData?.fileInputStream?.use {
+            return ResponseEntity.ok()
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
+                )
+                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
+                .body(it.readBytes())
+        }
+        return ResponseEntity.notFound().build()
     }
 
     @PutMapping("/koejakso/vastuuhenkilonarvio")

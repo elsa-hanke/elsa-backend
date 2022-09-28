@@ -308,6 +308,13 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             .map(this::mapVastuuhenkilonArvio)
     }
 
+    override fun existsByIdAndVastuuhenkiloUserId(
+        id: Long,
+        userId: String
+    ): Boolean {
+        return koejaksonVastuuhenkilonArvioRepository.existsByIdAndVastuuhenkiloUserId(id, userId)
+    }
+
     override fun findOneByIdAndVirkailijaUserId(
         id: Long,
         userId: String
