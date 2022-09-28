@@ -586,10 +586,10 @@ class ValmistumispyyntoServiceImpl(
 
     private fun mapValmistumispyynnonTarkistus(dto: ValmistumispyynnonTarkistusDTO): ValmistumispyynnonTarkistusDTO {
         dto.valmistumispyynto?.opintooikeusId?.let {
-            dto.tyoskentelyjaksotTilastot = tyoskentelyjaksoService.getTilastot(it)
+            dto.tyoskentelyjaksotTilastot = tyoskentelyjaksoService.getTilastot(it).koulutustyypit
                 terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(it)?.let { hyvaksynta ->
                     if (hyvaksynta.vastuuhenkiloHyvaksynyt) {
-                        dto.terveyskeskustyoHyvaksyttyPvm = hyvaksynta.muokkauspaiva
+                        dto.terveyskeskustyoHyvaksyttyPvm = hyvaksynta.vastuuhenkilonKuittausaika
                     }
                     dto.terveyskeskustyoHyvaksyntaId = hyvaksynta.id
                 }

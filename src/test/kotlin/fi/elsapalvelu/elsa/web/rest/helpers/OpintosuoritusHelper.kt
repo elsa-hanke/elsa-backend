@@ -20,7 +20,8 @@ class OpintosuoritusHelper {
         val DEFAULT_OPINTOSUORITUSTYYPPI = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO
         val DEFAULT_SUORITUSPAIVA = LocalDate.ofEpochDay(0L)
         val DEFAULT_VANHENEMISPAIVA = LocalDate.ofEpochDay(5L)
-        val DEFAULT_MUOKKAUSAIKA = LocalDate.ofEpochDay(5L).atStartOfDay(ZoneId.systemDefault()).toInstant()
+        val DEFAULT_MUOKKAUSAIKA =
+            LocalDate.ofEpochDay(5L).atStartOfDay(ZoneId.systemDefault()).toInstant()
 
         @JvmStatic
         fun createEntity(
