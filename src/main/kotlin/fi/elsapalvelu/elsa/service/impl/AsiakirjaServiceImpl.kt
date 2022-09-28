@@ -23,8 +23,6 @@ class AsiakirjaServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository
 ) : AsiakirjaService {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     override fun create(
         asiakirjat: List<AsiakirjaDTO>,
         opintooikeusId: Long,
@@ -83,6 +81,32 @@ class AsiakirjaServiceImpl(
                 result.asiakirjaData?.fileInputStream = asiakirja.asiakirjaData?.data?.binaryStream
                 return result
             }
+        }
+        return null
+    }
+
+    override fun findByIdAndLiitettykoejaksoon(id: Long): AsiakirjaDTO? {
+        asiakirjaRepository.findOneByIdAndTyoskentelyjaksoLiitettyKoejaksoonTrue(id)
+            ?.let { asiakirja ->
+                val result = asiakirjaMapper.toDto(asiakirja)
+                result.asiakirjaData?.fileInputStream = asiakirja.asiakirjaData?.data?.binaryStream
+                return result
+            }
+        return null
+    }
+
+    override fun findByIdAndLiitettykoejaksoonByYliopisto(
+        id: Long,
+        yliopistoIds: List<Long>?
+    ): AsiakirjaDTO? {
+        yliopistoIds?.let {
+            asiakirjaRepository.findOneByIdAndLiitettyKoejaksoon(id, it)
+                ?.let { asiakirja ->
+                    val result = asiakirjaMapper.toDto(asiakirja)
+                    result.asiakirjaData?.fileInputStream =
+                        asiakirja.asiakirjaData?.data?.binaryStream
+                    return result
+                }
         }
         return null
     }
