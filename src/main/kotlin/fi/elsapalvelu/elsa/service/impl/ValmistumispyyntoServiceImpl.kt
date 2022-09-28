@@ -1,9 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.Valmistumispyynto
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.Valmistumispyynto.Companion.fromValmistumispyyntoArvioija
 import fi.elsapalvelu.elsa.domain.Valmistumispyynto.Companion.fromValmistumispyyntoArvioijaHyvaksyja
 import fi.elsapalvelu.elsa.domain.Valmistumispyynto.Companion.fromValmistumispyyntoErikoistuja
@@ -15,12 +13,14 @@ import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.service.constants.*
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
+import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusMapper
 import fi.elsapalvelu.elsa.service.mapper.ValmistumispyynnonTarkistusMapper
 import fi.elsapalvelu.elsa.service.mapper.ValmistumispyyntoMapper
 import fi.elsapalvelu.elsa.service.mapper.ValmistumispyyntoOsaamisenArviointiMapper
@@ -55,7 +55,12 @@ class ValmistumispyyntoServiceImpl(
     private val applicationProperties: ApplicationProperties,
     private val clock: Clock,
     private val valmistumispyynnonTarkistusRepository: ValmistumispyynnonTarkistusRepository,
-    private val valmistumispyynnonTarkistusMapper: ValmistumispyynnonTarkistusMapper
+    private val valmistumispyynnonTarkistusMapper: ValmistumispyynnonTarkistusMapper,
+    private val tyoskentelyjaksoService: TyoskentelyjaksoService,
+    private val terveyskeskuskoulutusjaksonHyvaksyntaRepository: TerveyskeskuskoulutusjaksonHyvaksyntaRepository,
+    private val teoriakoulutusRepository: TeoriakoulutusRepository,
+    private val opintosuoritusMapper: OpintosuoritusMapper,
+    private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
 ) : ValmistumispyyntoService {
 
     @Transactional(readOnly = true)
@@ -344,17 +349,17 @@ class ValmistumispyyntoServiceImpl(
             id,
             yliopisto.id!!
         )?.let {
-            return valmistumispyynnonTarkistusMapper.toDto(it)
+            return mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it))
         }
 
         val valmistumispyynto =
             valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)
                 ?: throw getValmistumispyyntoNotFoundException()
-        return ValmistumispyynnonTarkistusDTO(
+        return mapValmistumispyynnonTarkistus(ValmistumispyynnonTarkistusDTO(
             valmistumispyynto = valmistumispyyntoMapper.toDto(
                 valmistumispyynto
             ).apply { tila = getValmistumispyynnonTilaForArvioija(valmistumispyynto) }
-        )
+        ))
     }
 
     @Transactional(readOnly = true)
@@ -577,5 +582,61 @@ class ValmistumispyyntoServiceImpl(
             titleKey = "email.valmistumispyyntoVastuuhenkiloPalauttanut.title",
             properties = mapOf()
         )
+    }
+
+    private fun mapValmistumispyynnonTarkistus(dto: ValmistumispyynnonTarkistusDTO): ValmistumispyynnonTarkistusDTO {
+        dto.valmistumispyynto?.opintooikeusId?.let {
+            dto.tyoskentelyjaksotTilastot = tyoskentelyjaksoService.getTilastot(it)
+                terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(it)?.let { hyvaksynta ->
+                    if (hyvaksynta.vastuuhenkiloHyvaksynyt) {
+                        dto.terveyskeskustyoHyvaksyttyPvm = hyvaksynta.muokkauspaiva
+                    }
+                    dto.terveyskeskustyoHyvaksyntaId = hyvaksynta.id
+                }
+            val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it)
+            opintosuoritukset
+                .firstOrNull { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO }
+                ?.let { suoritus ->
+                    dto.terveyskeskustyoOpintosuoritusId = suoritus.id
+                }
+            val teoriakoulutukset = teoriakoulutusRepository.findAllByOpintooikeusId(it)
+            dto.teoriakoulutusSuoritettu =
+                teoriakoulutukset.filter { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara != null }
+                    .sumOf { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara!! }
+            val opintooikeus = getOpintooikeus(it)
+            dto.teoriakoulutusVaadittu =
+                opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
+            val sateilysuojakoulutukset =
+                opintosuoritukset.filter { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS }
+            dto.sateilusuojakoulutusSuoritettu =
+                sateilysuojakoulutukset.filter { suoritus -> suoritus.opintopisteet != null }
+                    .sumOf { koulutus -> koulutus.opintopisteet!! }
+            dto.sateilusuojakoulutusVaadittu =
+                opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
+            val johtamisopinnot =
+                opintosuoritukset.filter { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.JOHTAMISOPINTO }
+            dto.johtamiskoulutusSuoritettu =
+                johtamisopinnot.filter { suoritus -> suoritus.opintopisteet != null }
+                    .sumOf { suoritus -> suoritus.opintopisteet!! }
+            dto.johtamiskoulutusVaadittu =
+                opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara
+            dto.kuulustelut =
+                opintosuoritukset.filter { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU }
+                    .map(opintosuoritusMapper::toDto)
+            koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(it).orElse(null)?.let { arvio ->
+                if (arvio.vastuuhenkiloHyvaksynyt) {
+                    dto.koejaksoHyvaksyttyPvm = arvio.vastuuhenkilonKuittausaika
+                }
+            }
+            val erikoisalaTyyppi = findErikoisalaTyyppiByOpintooikeusId(it)
+            val vanhatSuorituksetDTO = findSuoritustenTila(it, erikoisalaTyyppi)
+            dto.suoritustenTila = ValmistumispyyntoSuoritustenTilaDTO(
+                erikoisalaTyyppi = erikoisalaTyyppi,
+                vanhojaTyoskentelyjaksojaOrSuorituksiaExists = vanhatSuorituksetDTO.vanhojaTyoskentelyjaksojaOrSuorituksiaExists,
+                kuulusteluVanhentunut = vanhatSuorituksetDTO.kuulusteluVanhentunut
+            )
+        }
+
+        return dto
     }
 }
