@@ -31,4 +31,17 @@ interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
         tyyppi: TyoskentelyjaksoTyyppi,
         yliopistoIds: List<Long>
     ): Asiakirja?
+
+    @Query(
+        """
+        select a from Asiakirja a join a.tyoskentelyjakso t join t.opintooikeus o
+        where a.id = :id and t.liitettyKoejaksoon = true and o.yliopisto.id in :yliopistoIds
+    """
+    )
+    fun findOneByIdAndLiitettyKoejaksoon(
+        id: Long,
+        yliopistoIds: List<Long>
+    ): Asiakirja?
+
+    fun findOneByIdAndTyoskentelyjaksoLiitettyKoejaksoonTrue(id: Long): Asiakirja?
 }

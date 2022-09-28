@@ -3,10 +3,11 @@ package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import tech.jhipster.web.util.ResponseUtil
+import java.net.URLEncoder
 import java.security.Principal
 import javax.validation.Valid
 
@@ -23,11 +24,9 @@ class VastuuhenkiloKoejaksoResource(
     private val koejaksonKehittamistoimenpiteetService: KoejaksonKehittamistoimenpiteetService,
     private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService,
     private val koejaksonVaiheetService: KoejaksonVaiheetService,
-    private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService
+    private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService,
+    private val asiakirjaService: AsiakirjaService
 ) {
-
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
 
     @GetMapping("/koejaksot")
     fun getKoejaksot(principal: Principal?): ResponseEntity<List<KoejaksonVaiheDTO>> {
@@ -148,6 +147,33 @@ class VastuuhenkiloKoejaksoResource(
         val vastuuhenkilonArvioDTO =
             koejaksonVastuuhenkilonArvioService.findOneByIdAndVastuuhenkiloUserId(id, user.id!!)
         return ResponseUtil.wrapOrNotFound(vastuuhenkilonArvioDTO)
+    }
+
+    @GetMapping("/koejakso/vastuuhenkilonarvio/{id}/tyoskentelyjakso-liite/{asiakirjaId}")
+    fun getVastuuhenkilonArvioTyoskentelyjaksoLiite(
+        @PathVariable id: Long,
+        @PathVariable asiakirjaId: Long,
+        principal: Principal?
+    ): ResponseEntity<ByteArray> {
+        val user = userService.getAuthenticatedUser(principal)
+        if (koejaksonVastuuhenkilonArvioService.existsByIdAndVastuuhenkiloUserId(id, user.id!!)) {
+            val asiakirja = asiakirjaService.findByIdAndLiitettykoejaksoon(asiakirjaId)
+
+            asiakirja?.asiakirjaData?.fileInputStream?.use {
+                return ResponseEntity.ok()
+                    .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + URLEncoder.encode(
+                            asiakirja.nimi,
+                            "UTF-8"
+                        ) + "\""
+                    )
+                    .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
+                    .body(it.readBytes())
+            }
+        }
+
+        return ResponseEntity.notFound().build()
     }
 
     @PutMapping("/koejakso/vastuuhenkilonarvio")

@@ -17,6 +17,8 @@ interface KoejaksonVastuuhenkilonArvioRepository :
         userId: String
     ): Optional<KoejaksonVastuuhenkilonArvio>
 
+    fun existsByIdAndVastuuhenkiloUserId(id: Long, userId: String): Boolean
+
     fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonVastuuhenkilonArvio>
 
     fun findAllByVastuuhenkiloUserIdAndVirkailijaHyvaksynytTrue(
