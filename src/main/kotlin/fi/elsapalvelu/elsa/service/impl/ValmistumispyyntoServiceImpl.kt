@@ -202,7 +202,7 @@ class ValmistumispyyntoServiceImpl(
                 valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika = LocalDate.now()
                 valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKorjausehdotus = osaamisenArviointiDTO.korjausehdotus
                 valmistumispyynto.erikoistujanKuittausaika = null
-                sendMailNotificationVastuuhenkiloPalauttanut(valmistumispyynto)
+                sendMailNotificationOsaamisenArvioijaPalauttanut(valmistumispyynto)
             }
             valmistumispyynto
         } ?: throw getValmistumispyyntoNotFoundException()
@@ -260,9 +260,15 @@ class ValmistumispyyntoServiceImpl(
                 if (valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanKorjausehdotus != null) {
                     it.valmistumispyynto?.virkailijanKorjausehdotus = valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanKorjausehdotus
                     it.valmistumispyynto?.virkailijanPalautusaika = LocalDate.now(clock)
+                    it.valmistumispyynto?.vastuuhenkiloOsaamisenArvioija = null
+                    it.valmistumispyynto?.vastuuhenkiloOsaamisenArvioijaKuittausaika = null
+                    it.valmistumispyynto?.erikoistujanKuittausaika = null
+                    sendMailNotificationVirkailijaPalauttanut(it.valmistumispyynto!!)
                 } else {
                     it.valmistumispyynto?.virkailijanSaate = valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanSaate
                     it.valmistumispyynto?.virkailijanKuittausaika = LocalDate.now(clock)
+                    it.valmistumispyynto?.vastuuhenkiloHyvaksyjaKorjausehdotus = null
+                    sendMailNotificationOdottaaHyvaksyntaa(it.valmistumispyynto!!)
                 }
 
                 valmistumispyyntoRepository.save(it.valmistumispyynto)
@@ -573,14 +579,76 @@ class ValmistumispyyntoServiceImpl(
         )
     }
 
-    private fun sendMailNotificationVastuuhenkiloPalauttanut(
+    private fun sendMailNotificationOdottaaHyvaksyntaa(
+        valmistumispyynto: Valmistumispyynto
+    ) {
+        val opintooikeus = valmistumispyynto.opintooikeus
+        mailService.sendEmailFromTemplate(
+            getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!,
+            templateName = "valmistumispyyntoTarkastettavissa.html",
+            titleKey = "email.valmistumispyyntoTarkastettavissa.title",
+            properties = mapOf(Pair(MailProperty.ID, valmistumispyynto.id.toString()))
+        )
+    }
+
+    private fun sendMailNotificationOsaamisenArvioijaPalauttanut(
         valmistumispyynto: Valmistumispyynto
     ) {
         mailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
-            templateName = "valmistumispyyntoVastuuhenkiloPalauttanut.html",
-            titleKey = "email.valmistumispyyntoVastuuhenkiloPalauttanut.title",
+            templateName = "valmistumispyyntoPalautettuErikoistuja.html",
+            titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
             properties = mapOf()
+        )
+    }
+
+    private fun sendMailNotificationVirkailijaPalauttanut(
+        valmistumispyynto: Valmistumispyynto
+    ) {
+        mailService.sendEmailFromTemplate(
+            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
+            templateName = "valmistumispyyntoPalautettuErikoistuja.html",
+            titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
+            properties = mapOf()
+        )
+
+        val nimi = valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()
+
+        mailService.sendEmailFromTemplate(
+            valmistumispyynto.vastuuhenkiloOsaamisenArvioija?.user!!,
+            templateName = "valmistumispyyntoPalautettuMuut.html",
+            titleKey = "email.valmistumispyyntoPalautettuMuut.title",
+            titleProperties = arrayOf("$nimi"),
+            properties = mapOf(Pair(MailProperty.NAME, nimi.toString()))
+        )
+    }
+
+    private fun sendMailNotificationHyvaksyjaPalauttanut(
+        valmistumispyynto: Valmistumispyynto
+    ) {
+        mailService.sendEmailFromTemplate(
+            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
+            templateName = "valmistumispyyntoPalautettuErikoistuja.html",
+            titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
+            properties = mapOf()
+        )
+
+        val nimi = valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()
+
+        mailService.sendEmailFromTemplate(
+            valmistumispyynto.virkailija?.user!!,
+            templateName = "valmistumispyyntoPalautettuMuut.html",
+            titleKey = "email.valmistumispyyntoPalautettuMuut.title",
+            titleProperties = arrayOf("$nimi"),
+            properties = mapOf(Pair(MailProperty.NAME, nimi.toString()))
+        )
+
+        mailService.sendEmailFromTemplate(
+            valmistumispyynto.vastuuhenkiloOsaamisenArvioija?.user!!,
+            templateName = "valmistumispyyntoPalautettuMuut.html",
+            titleKey = "email.valmistumispyyntoPalautettuMuut.title",
+            titleProperties = arrayOf("$nimi"),
+            properties = mapOf(Pair(MailProperty.NAME, nimi.toString()))
         )
     }
 
