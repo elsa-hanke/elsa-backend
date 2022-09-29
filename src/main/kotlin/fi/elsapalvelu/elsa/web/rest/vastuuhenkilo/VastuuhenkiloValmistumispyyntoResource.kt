@@ -67,7 +67,7 @@ class VastuuhenkiloValmistumispyyntoResource(
 
     @PutMapping("/valmistumispyynnon-arviointi/{id}")
     fun updateValmistumispyynto(
-        @PathVariable(value = "id", required = true) id: Long,
+        @PathVariable id: Long,
         @Valid @RequestBody osaamisenArviointiDTO: ValmistumispyyntoOsaamisenArviointiFormDTO,
         principal: Principal?
     ): ResponseEntity<ValmistumispyyntoDTO> {
