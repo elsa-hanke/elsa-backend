@@ -84,6 +84,24 @@ class VastuuhenkiloValmistumispyyntoResource(
         return ResponseEntity.ok(valmistumispyynto)
     }
 
+    @PutMapping("/valmistumispyynnon-hyvaksynta/{id}")
+    fun updateValmistumispyyntoHyvaksyja(
+        @PathVariable id: Long,
+        @Valid @RequestBody hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO,
+        principal: Principal?
+    ): ResponseEntity<ValmistumispyyntoDTO> {
+
+        val user = userService.getAuthenticatedUser(principal)
+        val valmistumispyynto =
+            valmistumispyyntoService.updateValmistumispyyntoByHyvaksyjaUserId(
+                id,
+                user.id!!,
+                hyvaksyntaFormDTO
+            )
+
+        return ResponseEntity.ok(valmistumispyynto)
+    }
+
     private fun validateOsaamisenArviointiDto(osaamisenArviointiDTO: ValmistumispyyntoOsaamisenArviointiFormDTO) {
         if ((osaamisenArviointiDTO.osaaminenRiittavaValmistumiseen == null ||
                 osaamisenArviointiDTO.osaaminenRiittavaValmistumiseen == false) &&
