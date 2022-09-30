@@ -60,6 +60,7 @@ class ElsaSwitchUserFilter(
                 val context = SecurityContextHolder.createEmptyContext()
                 context.authentication = targetUser
                 SecurityContextHolder.setContext(context)
+                request.session.setAttribute("originalUrl", request.getParameter("originalUrl"))
                 logger.debug(LogMessage.format("Set SecurityContextHolder to %s", targetUser))
                 successHandler.onAuthenticationSuccess(request, response, targetUser)
             } catch (ex: AuthenticationException) {
@@ -78,6 +79,10 @@ class ElsaSwitchUserFilter(
             val principal =
                 SecurityContextHolder.getContext().authentication.principal as Saml2AuthenticatedPrincipal
             SecurityLoggingWrapper.info("User with id ${principal.name} switched back to original session")
+            val originalUrl = request.session.getAttribute("originalUrl")
+            originalUrl?.let {
+                response.sendRedirect(originalUrl as String)
+            }
             successHandler.onAuthenticationSuccess(request, response, originalUser)
             return
         }
