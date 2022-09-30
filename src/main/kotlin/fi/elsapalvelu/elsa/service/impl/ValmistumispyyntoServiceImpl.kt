@@ -11,10 +11,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.*
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.MailProperty
-import fi.elsapalvelu.elsa.service.MailService
-import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
-import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.*
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
@@ -58,7 +55,8 @@ class ValmistumispyyntoServiceImpl(
     private val terveyskeskuskoulutusjaksonHyvaksyntaRepository: TerveyskeskuskoulutusjaksonHyvaksyntaRepository,
     private val teoriakoulutusRepository: TeoriakoulutusRepository,
     private val opintosuoritusMapper: OpintosuoritusMapper,
-    private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
+    private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
+    private val sarakesignService: SarakesignService
 ) : ValmistumispyyntoService {
 
     @Transactional(readOnly = true)
@@ -201,6 +199,52 @@ class ValmistumispyyntoServiceImpl(
                 valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKorjausehdotus = osaamisenArviointiDTO.korjausehdotus
                 valmistumispyynto.erikoistujanKuittausaika = null
                 sendMailNotificationOsaamisenArvioijaPalauttanut(valmistumispyynto)
+            }
+            valmistumispyynto
+        } ?: throw getValmistumispyyntoNotFoundException()
+
+        return valmistumispyyntoMapper.toDto(valmistumispyynto).apply {
+            tila = getValmistumispyynnonTilaForArvioija(valmistumispyynto)
+        }
+    }
+
+    override fun updateValmistumispyyntoByHyvaksyjaUserId(
+        id: Long,
+        userId: String,
+        hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO
+    ): ValmistumispyyntoDTO {
+        val kayttaja = getKayttaja(userId)
+        val yliopistoErikoisala = getYliopistoErikoisala(kayttaja)
+        val valmistumispyynto = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja).takeIf {
+            it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA ||
+                it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA
+        }?.let {
+            val valmistumispyynto =
+                getValmistumispyyntoByIYliopistoIdAndErikoisalaIdOrThrow(
+                    id,
+                    yliopistoErikoisala.yliopisto?.id!!,
+                    yliopistoErikoisala.erikoisala?.id!!
+                )
+            valmistumispyynto.vastuuhenkiloHyvaksyja = kayttaja
+
+            if (hyvaksyntaFormDTO.korjausehdotus != null) {
+                valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika = LocalDate.now()
+                valmistumispyynto.vastuuhenkiloHyvaksyjaKorjausehdotus = hyvaksyntaFormDTO.korjausehdotus
+                valmistumispyynto.erikoistujanKuittausaika = null
+                valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika = null
+                valmistumispyynto.virkailijanKuittausaika = null
+                sendMailNotificationHyvaksyjaPalauttanut(valmistumispyynto)
+            } else {
+                valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika = LocalDate.now()
+                valmistumispyynto.virkailijanPalautusaika = null
+                valmistumispyynto.virkailijanKorjausehdotus = null
+                // TODO: allekirjoitettava pdf
+                /*valmistumispyynto.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
+                    "Valmistumispyyntö - " + valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
+                    recipients,
+                    asiakirja.id!!,
+                    koulutussopimus.opintooikeus?.yliopisto?.nimi!!
+                )*/
             }
             valmistumispyynto
         } ?: throw getValmistumispyyntoNotFoundException()

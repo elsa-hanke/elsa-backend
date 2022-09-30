@@ -55,6 +55,12 @@ interface ValmistumispyyntoService {
         osaamisenArviointiDTO: ValmistumispyyntoOsaamisenArviointiFormDTO
     ): ValmistumispyyntoDTO
 
+    fun updateValmistumispyyntoByHyvaksyjaUserId(
+        id: Long,
+        userId: String,
+        hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO
+    ): ValmistumispyyntoDTO
+
     fun updateTarkistusByVirkailijaUserId(
         id: Long,
         userId: String,
