@@ -208,7 +208,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 titleKey = "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, hyvaksynta.id.toString()),
-                    Pair(MailProperty.URL_PATH, "terveyskeskuskoulutusjakson-tarkistus")
+                    Pair(MailProperty.URL_PATH, "/terveyskeskuskoulutusjaksot/terveyskeskuskoulutusjakson-tarkistus")
                 )
             )
 
@@ -286,7 +286,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 titleKey = "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, result.id.toString()),
-                    Pair(MailProperty.URL_PATH, "terveyskeskuskoulutusjakson-hyvaksynta")
+                    Pair(MailProperty.URL_PATH, "/terveyskeskuskoulutusjaksot/terveyskeskuskoulutusjakson-hyvaksynta")
                 )
             )
         } else {
@@ -339,7 +339,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 properties = mapOf(
                     Pair(
                         MailProperty.URL_PATH,
-                        "tyoskentelyjaksot/terveyskeskuskoulutusjakso"
+                        "tyoskentelyjaksot/terveyskeskuskoulutusjakson-hyvaksynta"
                     )
                 )
             )
