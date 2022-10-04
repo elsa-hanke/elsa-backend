@@ -258,12 +258,13 @@ class ValmistumispyyntoServiceImpl(
                 it.valmistumispyynto?.virkailija = kayttaja
 
                 if (valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanKorjausehdotus != null) {
+                    val osaamisenArvioija = it.valmistumispyynto?.vastuuhenkiloOsaamisenArvioija
                     it.valmistumispyynto?.virkailijanKorjausehdotus = valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanKorjausehdotus
                     it.valmistumispyynto?.virkailijanPalautusaika = LocalDate.now(clock)
                     it.valmistumispyynto?.vastuuhenkiloOsaamisenArvioija = null
                     it.valmistumispyynto?.vastuuhenkiloOsaamisenArvioijaKuittausaika = null
                     it.valmistumispyynto?.erikoistujanKuittausaika = null
-                    sendMailNotificationVirkailijaPalauttanut(it.valmistumispyynto!!)
+                    sendMailNotificationVirkailijaPalauttanut(it.valmistumispyynto!!, osaamisenArvioija)
                 } else {
                     it.valmistumispyynto?.virkailijanSaate = valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanSaate
                     it.valmistumispyynto?.virkailijanKuittausaika = LocalDate.now(clock)
@@ -355,7 +356,11 @@ class ValmistumispyyntoServiceImpl(
             id,
             yliopisto.id!!
         )?.let {
-            return mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it))
+            val result = mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it))
+            it.valmistumispyynto?.let { pyynto ->
+                result.valmistumispyynto?.tila = getValmistumispyynnonTilaForVirkailija(pyynto)
+            }
+            return result
         }
 
         val valmistumispyynto =
@@ -364,7 +369,7 @@ class ValmistumispyyntoServiceImpl(
         return mapValmistumispyynnonTarkistus(ValmistumispyynnonTarkistusDTO(
             valmistumispyynto = valmistumispyyntoMapper.toDto(
                 valmistumispyynto
-            ).apply { tila = getValmistumispyynnonTilaForArvioija(valmistumispyynto) }
+            ).apply { tila = getValmistumispyynnonTilaForVirkailija(valmistumispyynto) }
         ))
     }
 
@@ -434,6 +439,14 @@ class ValmistumispyyntoServiceImpl(
                 valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika == null &&
                 valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika == null
         return fromValmistumispyyntoArvioija(valmistumispyynto, isAvoin)
+    }
+
+    private fun getValmistumispyynnonTilaForVirkailija(valmistumispyynto: Valmistumispyynto): ValmistumispyynnonTila {
+        val isAvoin =
+            valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika != null &&
+                valmistumispyynto.virkailijanKuittausaika == null &&
+                valmistumispyynto.virkailijanPalautusaika == null
+        return fromValmistumispyyntoVirkailija(valmistumispyynto, isAvoin)
     }
 
     private fun mapValmistumispyyntoListItem(
@@ -603,7 +616,8 @@ class ValmistumispyyntoServiceImpl(
     }
 
     private fun sendMailNotificationVirkailijaPalauttanut(
-        valmistumispyynto: Valmistumispyynto
+        valmistumispyynto: Valmistumispyynto,
+        osaamisenArvioija: Kayttaja?
     ) {
         mailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
@@ -615,7 +629,7 @@ class ValmistumispyyntoServiceImpl(
         val nimi = valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()
 
         mailService.sendEmailFromTemplate(
-            valmistumispyynto.vastuuhenkiloOsaamisenArvioija?.user!!,
+            osaamisenArvioija?.user!!,
             templateName = "valmistumispyyntoPalautettuMuut.html",
             titleKey = "email.valmistumispyyntoPalautettuMuut.title",
             titleProperties = arrayOf("$nimi"),
