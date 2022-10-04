@@ -3,16 +3,19 @@ package fi.elsapalvelu.elsa.web.rest.virkailija
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.ValmistumispyynnonTarkistusRepository
 import fi.elsapalvelu.elsa.repository.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusDTO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
+import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
@@ -94,7 +97,7 @@ class VirkailijaValmistumispyyntoResourceIT {
     @Test
     @Transactional
     fun getValmistumispyynnotEriYliopisto() {
-        initTest(Yliopisto(2))
+        initTest(Yliopisto(nimi = YliopistoEnum.TURUN_YLIOPISTO))
 
         val valmistumispyynto =
             ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus)
@@ -789,17 +792,41 @@ class VirkailijaValmistumispyyntoResourceIT {
 
         opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
 
-        vastuuhenkilo = KayttajaHelper.createEntity(em)
+        val tehtavatyypit = em.findAll(VastuuhenkilonTehtavatyyppi::class)
+
+        val arvioijaUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
+        em.persist(arvioijaUser)
+        vastuuhenkilo = KayttajaHelper.createEntity(em, arvioijaUser)
+        vastuuhenkilo.yliopistotAndErikoisalat.add(
+            KayttajaYliopistoErikoisala(
+                kayttaja = vastuuhenkilo,
+                yliopisto = opintooikeus.yliopisto,
+                erikoisala = opintooikeus.erikoisala,
+                vastuuhenkilonTehtavat = tehtavatyypit.filter { it.nimi == VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI }.toMutableSet()
+            )
+        )
         em.persist(vastuuhenkilo)
 
-        anotherVastuuhenkilo = KayttajaHelper.createEntity(em)
+        val hyvaksyjaUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
+        em.persist(hyvaksyjaUser)
+        anotherVastuuhenkilo = KayttajaHelper.createEntity(em, hyvaksyjaUser)
+        anotherVastuuhenkilo.yliopistotAndErikoisalat.add(
+            KayttajaYliopistoErikoisala(
+                kayttaja = anotherVastuuhenkilo,
+                yliopisto = opintooikeus.yliopisto,
+                erikoisala = opintooikeus.erikoisala,
+                vastuuhenkilonTehtavat = tehtavatyypit.filter { it.nimi == VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA }.toMutableSet()
+            )
+        )
         em.persist(anotherVastuuhenkilo)
 
         virkailija = KayttajaHelper.createEntity(em, virkailijaUser)
-        em.persist(virkailija)
-
+        virkailijanYliopisto?.let {
+            em.persist(virkailijanYliopisto)
+        }
         val yliopisto = virkailijanYliopisto ?: opintooikeus.yliopisto!!
         virkailija.yliopistot.add(yliopisto)
+        em.persist(virkailija)
     }
 
     private fun initErikoistuvaLaakari(
