@@ -11,8 +11,6 @@ data class SarakeSignRequestDTO(
 
     var dueDate: LocalDateTime? = null,
 
-    var owner: String? = null,
-
     var notificationDays: Long? = null,
 
     var autoArchive: Boolean? = null,
