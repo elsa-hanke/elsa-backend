@@ -11,6 +11,7 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusDTO
+import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
@@ -579,7 +580,7 @@ class VirkailijaValmistumispyyntoResourceIT {
 
         val yekSuorituspaiva = LocalDate.ofEpochDay(15)
 
-        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusDTO(
+        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusUpdateDTO(
             yekSuoritettu = true,
             yekSuorituspaiva = yekSuorituspaiva,
             keskenerainen = true
@@ -644,7 +645,7 @@ class VirkailijaValmistumispyyntoResourceIT {
 
         val databaseSizeBeforeUpdate = valmistumispyynnonTarkistusRepository.findAll().size
 
-        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusDTO(
+        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusUpdateDTO(
             ptlSuoritettu = true,
             ptlSuorituspaiva = ptlSuorituspaiva,
             aiempiElKoulutusSuoritettu = true,
@@ -717,7 +718,7 @@ class VirkailijaValmistumispyyntoResourceIT {
 
         val databaseSizeBeforeUpdate = valmistumispyynnonTarkistusRepository.findAll().size
 
-        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusDTO(
+        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusUpdateDTO(
             yekSuoritettu = true,
             yekSuorituspaiva = LocalDate.ofEpochDay(15),
             keskenerainen = true
@@ -752,8 +753,8 @@ class VirkailijaValmistumispyyntoResourceIT {
         val databaseSizeBeforeUpdate = valmistumispyynnonTarkistusRepository.findAll().size
 
         val korjausehdotus = "korjausehdotus"
-        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusDTO(
-            valmistumispyynto = ValmistumispyyntoDTO(virkailijanKorjausehdotus = korjausehdotus)
+        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusUpdateDTO(
+            korjausehdotus = korjausehdotus
         )
 
         restValmistumispyyntoMockMvc.perform(

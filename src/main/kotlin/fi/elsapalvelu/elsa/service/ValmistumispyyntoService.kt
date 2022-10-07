@@ -58,7 +58,7 @@ interface ValmistumispyyntoService {
     fun updateTarkistusByVirkailijaUserId(
         id: Long,
         userId: String,
-        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO
+        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO
     ): ValmistumispyynnonTarkistusDTO?
 
     fun existsByOpintooikeusId(opintooikeusId: Long): Boolean
