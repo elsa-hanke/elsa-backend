@@ -46,7 +46,7 @@ class VirkailijaValmistumispyyntoResource(
     @PutMapping("/valmistumispyynnon-tarkistus/{id}")
     fun updateValmistumispyynnonTarkistus(
         @PathVariable(value = "id", required = true) id: Long,
-        @Valid @RequestBody valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO,
+        @Valid @RequestBody valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO,
         principal: Principal?
     ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
         val user = userService.getAuthenticatedUser(principal)
