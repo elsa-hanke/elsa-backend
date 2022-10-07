@@ -20,10 +20,7 @@ import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
-import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusMapper
-import fi.elsapalvelu.elsa.service.mapper.ValmistumispyynnonTarkistusMapper
-import fi.elsapalvelu.elsa.service.mapper.ValmistumispyyntoMapper
-import fi.elsapalvelu.elsa.service.mapper.ValmistumispyyntoOsaamisenArviointiMapper
+import fi.elsapalvelu.elsa.service.mapper.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -56,6 +53,7 @@ class ValmistumispyyntoServiceImpl(
     private val clock: Clock,
     private val valmistumispyynnonTarkistusRepository: ValmistumispyynnonTarkistusRepository,
     private val valmistumispyynnonTarkistusMapper: ValmistumispyynnonTarkistusMapper,
+    private val valmistumispyynnonTarkistusUpdateMapper: ValmistumispyynnonTarkistusUpdateMapper,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaRepository: TerveyskeskuskoulutusjaksonHyvaksyntaRepository,
     private val teoriakoulutusRepository: TeoriakoulutusRepository,
@@ -215,7 +213,7 @@ class ValmistumispyyntoServiceImpl(
     override fun updateTarkistusByVirkailijaUserId(
         id: Long,
         userId: String,
-        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO
+        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO
     ): ValmistumispyynnonTarkistusDTO? {
         val kayttaja = getKayttaja(userId)
         val yliopisto = kayttaja.yliopistot.first()
@@ -246,7 +244,7 @@ class ValmistumispyyntoServiceImpl(
         } else {
             valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)
                 ?.let {
-                    tarkistus = valmistumispyynnonTarkistusMapper.toEntity(valmistumispyynnonTarkistusDTO)
+                    tarkistus = valmistumispyynnonTarkistusUpdateMapper.toEntity(valmistumispyynnonTarkistusDTO)
                     tarkistus?.valmistumispyynto = it
                 }
         }
@@ -257,16 +255,16 @@ class ValmistumispyyntoServiceImpl(
             if (valmistumispyynnonTarkistusDTO.keskenerainen != true) {
                 it.valmistumispyynto?.virkailija = kayttaja
 
-                if (valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanKorjausehdotus != null) {
+                if (valmistumispyynnonTarkistusDTO.korjausehdotus != null) {
                     val osaamisenArvioija = it.valmistumispyynto?.vastuuhenkiloOsaamisenArvioija
-                    it.valmistumispyynto?.virkailijanKorjausehdotus = valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanKorjausehdotus
+                    it.valmistumispyynto?.virkailijanKorjausehdotus = valmistumispyynnonTarkistusDTO.korjausehdotus
                     it.valmistumispyynto?.virkailijanPalautusaika = LocalDate.now(clock)
                     it.valmistumispyynto?.vastuuhenkiloOsaamisenArvioija = null
                     it.valmistumispyynto?.vastuuhenkiloOsaamisenArvioijaKuittausaika = null
                     it.valmistumispyynto?.erikoistujanKuittausaika = null
                     sendMailNotificationVirkailijaPalauttanut(it.valmistumispyynto!!, osaamisenArvioija)
                 } else {
-                    it.valmistumispyynto?.virkailijanSaate = valmistumispyynnonTarkistusDTO.valmistumispyynto?.virkailijanSaate
+                    it.valmistumispyynto?.virkailijanSaate = valmistumispyynnonTarkistusDTO.lisatiedotVastuuhenkilolle
                     it.valmistumispyynto?.virkailijanKuittausaika = LocalDate.now(clock)
                     it.valmistumispyynto?.vastuuhenkiloHyvaksyjaKorjausehdotus = null
                     sendMailNotificationOdottaaHyvaksyntaa(it.valmistumispyynto!!)
