@@ -59,8 +59,6 @@ data class ValmistumispyynnonTarkistusDTO(
 
     var kommentitVirkailijoille: String? = null,
 
-    var keskenerainen: Boolean? = false,
-
     var valmistumispyynto: ValmistumispyyntoDTO? = null
 
 ) : Serializable {
