@@ -85,7 +85,14 @@ data class Valmistumispyynto(
     @Column(name = "allekirjoitusaika", nullable = false)
     var allekirjoitusaika: LocalDate? = null,
 
-    ) : Serializable {
+    @OneToOne(
+        mappedBy = "valmistumispyynto",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    )
+    var valmistumispyynnonTarkistus: ValmistumispyynnonTarkistus? = null
+
+) : Serializable {
 
     @PrePersist
     protected fun onCreate() {
@@ -163,7 +170,9 @@ data class Valmistumispyynto(
             valmistumispyynto: Valmistumispyynto,
             isAvoin: Boolean
         ): ValmistumispyynnonTila {
-            return if (isAvoin || valmistumispyynto.virkailijanKuittausaika != null)
+            return if (isAvoin && valmistumispyynto.valmistumispyynnonTarkistus != null)
+                ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_KESKEN
+            else if (isAvoin || valmistumispyynto.virkailijanKuittausaika != null)
                 fromValmistumispyyntoNotReturned(valmistumispyynto)
             else if (valmistumispyynto.virkailijanPalautusaika != null)
                 ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU

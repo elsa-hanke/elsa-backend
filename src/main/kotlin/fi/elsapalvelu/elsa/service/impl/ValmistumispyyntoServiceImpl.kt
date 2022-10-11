@@ -270,7 +270,7 @@ class ValmistumispyyntoServiceImpl(
                     sendMailNotificationOdottaaHyvaksyntaa(it.valmistumispyynto!!)
                 }
 
-                valmistumispyyntoRepository.save(it.valmistumispyynto)
+                it.valmistumispyynto?.let { pyynto -> valmistumispyyntoRepository.save(pyynto) }
             }
 
             return valmistumispyynnonTarkistusMapper.toDto(it)
