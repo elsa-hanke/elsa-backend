@@ -237,5 +237,6 @@
     <include file="config/liquibase/changelog/20220915162419_modify_entity_Tyoskentelyjakso.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220920143643_added_entity_ValmistumispyynnonTarkistus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220923114933_modify_erikoisala_nimet.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20221012103632_update_kurssikoodit_tampere.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
