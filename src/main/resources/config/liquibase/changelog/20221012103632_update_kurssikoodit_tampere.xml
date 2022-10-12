@@ -9,5 +9,24 @@
             <column name="tunniste" value="MOJOP*"/>
             <where>tunniste = 'MOJOP???'</where>
         </update>
+
+        <update tableName="opintosuoritus_kurssikoodi">
+            <column name="tyyppi_id" value="3"/>
+            <where>tunniste = 'MEDATEN'</where>
+        </update>
+
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="MEDASÄT"/>
+            <column name="tyyppi_id" value="2"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
+        </insert>
+
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="MEDASÄT2"/>
+            <column name="tyyppi_id" value="2"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
+        </insert>
     </changeSet>
 </databaseChangeLog>
