@@ -1,7 +1,5 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import com.itextpdf.html2pdf.HtmlConverter
-import com.itextpdf.kernel.pdf.PdfWriter
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
@@ -13,7 +11,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
-import org.thymeleaf.spring5.SpringTemplateEngine
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -34,10 +31,10 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val kayttajaService: KayttajaService,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val userRepository: UserRepository,
-    private val templateEngine: SpringTemplateEngine,
     private val asiakirjaRepository: AsiakirjaRepository,
     private val sarakesignService: SarakesignService,
-    private val kouluttajavaltuutusService: KouluttajavaltuutusService
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService,
+    private val pdfService: PdfService
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -451,10 +448,10 @@ class KoejaksonKoulutussopimusServiceImpl(
         val context = Context(locale).apply {
             setVariable("sopimus", koulutussopimusDTO)
         }
-        val content = templateEngine.process("pdf/koulutussopimus.html", context)
         val outputStream = ByteArrayOutputStream()
+        pdfService.luoPdf("pdf/koulutussopimus.html", context, outputStream)
         val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-        HtmlConverter.convertToPdf(content, PdfWriter(outputStream))
+
         val asiakirja = asiakirjaRepository.save(
             Asiakirja(
                 opintooikeus = koulutussopimus.opintooikeus,
