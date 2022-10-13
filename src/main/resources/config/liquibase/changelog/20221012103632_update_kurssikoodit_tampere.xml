@@ -4,7 +4,7 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
-    <changeSet id="20220816131623" author="jhipster">
+    <changeSet id="20220816131623-1" author="jhipster">
         <update tableName="opintosuoritus_kurssikoodi">
             <column name="tunniste" value="MOJOP*"/>
             <where>tunniste = 'MOJOP???'</where>
@@ -14,6 +14,14 @@
             <column name="tyyppi_id" value="3"/>
             <where>tunniste = 'MEDATEN'</where>
         </update>
+    </changeSet>
+
+    <changeSet id="20220816131623-2" author="jhipster">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM opintosuoritus_kurssikoodi WHERE tunniste='MEDASÄT' AND yliopisto_id = (select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO');
+            </sqlCheck>
+        </preConditions>
 
         <insert tableName="opintosuoritus_kurssikoodi">
             <column name="tunniste" value="MEDASÄT"/>
@@ -21,9 +29,32 @@
             <column name="osakokonaisuus" value="false"/>
             <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
         </insert>
+    </changeSet>
+
+    <changeSet id="20220816131623-3" author="jhipster">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM opintosuoritus_kurssikoodi WHERE tunniste='MEDASÄT2' AND yliopisto_id = (select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO');
+            </sqlCheck>
+        </preConditions>
 
         <insert tableName="opintosuoritus_kurssikoodi">
             <column name="tunniste" value="MEDASÄT2"/>
+            <column name="tyyppi_id" value="2"/>
+            <column name="osakokonaisuus" value="false"/>
+            <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20220816131623-4" author="jhipster">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM opintosuoritus_kurssikoodi WHERE tunniste='MEDATEORSÄT2' AND yliopisto_id = (select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO');
+            </sqlCheck>
+        </preConditions>
+
+        <insert tableName="opintosuoritus_kurssikoodi">
+            <column name="tunniste" value="MEDATEORSÄT2"/>
             <column name="tyyppi_id" value="2"/>
             <column name="osakokonaisuus" value="false"/>
             <column name="yliopisto_id" valueComputed="(select id from yliopisto where nimi = 'TAMPEREEN_YLIOPISTO')"/>
