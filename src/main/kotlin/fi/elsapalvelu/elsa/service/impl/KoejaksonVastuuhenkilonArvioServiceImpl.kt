@@ -1,7 +1,5 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import com.itextpdf.html2pdf.HtmlConverter
-import com.itextpdf.kernel.pdf.PdfWriter
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
@@ -17,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
-import org.thymeleaf.spring5.SpringTemplateEngine
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -46,10 +43,10 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val opintooikeusService: OpintooikeusService,
     private val koulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
-    private val templateEngine: SpringTemplateEngine,
     private val asiakirjaRepository: AsiakirjaRepository,
     private val sarakesignService: SarakesignService,
-    private val keskeytysaikaService: KeskeytysaikaService
+    private val keskeytysaikaService: KeskeytysaikaService,
+    private val pdfService: PdfService
 ) : KoejaksonVastuuhenkilonArvioService {
 
     override fun create(
@@ -244,10 +241,10 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 vastuuhenkilonArvio.opintooikeus?.opintooikeudenPaattymispaiva
             )
         }
-        val content = templateEngine.process("pdf/vastuuhenkilonarvio.html", context)
         val outputStream = ByteArrayOutputStream()
+        pdfService.luoPdf("pdf/vastuuhenkilonarvio.html", context, outputStream)
         val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-        HtmlConverter.convertToPdf(content, PdfWriter(outputStream))
+
         val asiakirja = asiakirjaRepository.save(
             Asiakirja(
                 opintooikeus = vastuuhenkilonArvio.opintooikeus,

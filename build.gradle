@@ -260,6 +260,7 @@ dependencies {
     implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.33.0"
     implementation "com.itextpdf:kernel:7.2.1"
     implementation "com.itextpdf:html2pdf:4.0.1"
+    implementation "com.itextpdf:pdfa:7.2.1"
 }
 
 apollo {
