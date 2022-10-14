@@ -131,12 +131,9 @@ class VirkailijaValmistumispyyntoResourceIT {
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNOT_ENDPOINT&avoin=false",
             )
         )
+            .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.content[0].id").value(valmistumispyynto.id))
-            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKASTUSTA.toString()))
-            .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
-            .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
-            .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
+            .andExpect(jsonPath("$.content").isEmpty)
     }
 
     @Test
@@ -521,8 +518,7 @@ class VirkailijaValmistumispyyntoResourceIT {
             yliopistosairaalatyoTarkistettu = true,
             kokonaistyoaikaTarkistettu = true,
             teoriakoulutusTarkistettu = true,
-            kommentitVirkailijoille = "test",
-            keskenerainen = false
+            kommentitVirkailijoille = "test"
         )
 
         restValmistumispyyntoMockMvc.perform(
