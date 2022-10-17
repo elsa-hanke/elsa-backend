@@ -39,6 +39,11 @@ interface ValmistumispyyntoService {
         userId: String
     ): ValmistumispyynnonTarkistusDTO?
 
+    fun findOneByIdAndVastuuhenkiloHyvaksyjaUserId(
+        id: Long,
+        userId: String
+    ): ValmistumispyynnonTarkistusDTO?
+
     fun create(
         opintooikeusId: Long,
         uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
@@ -59,7 +64,7 @@ interface ValmistumispyyntoService {
         id: Long,
         userId: String,
         hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO
-    ): ValmistumispyyntoDTO
+    ): ValmistumispyynnonTarkistusDTO
 
     fun updateTarkistusByVirkailijaUserId(
         id: Long,
