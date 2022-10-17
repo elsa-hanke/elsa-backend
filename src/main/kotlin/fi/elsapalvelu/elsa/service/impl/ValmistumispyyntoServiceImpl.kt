@@ -212,18 +212,18 @@ class ValmistumispyyntoServiceImpl(
         id: Long,
         userId: String,
         hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO
-    ): ValmistumispyyntoDTO {
+    ): ValmistumispyynnonTarkistusDTO {
         val kayttaja = getKayttaja(userId)
-        val yliopistoErikoisala = getYliopistoErikoisala(kayttaja)
+        val yliopisto = getYliopisto(kayttaja)
         val valmistumispyynto = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja).takeIf {
             it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA ||
                 it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA
         }?.let {
             val valmistumispyynto =
-                getValmistumispyyntoByIYliopistoIdAndErikoisalaIdOrThrow(
+                getValmistumispyyntoByYliopistoIdAndErikoisalaIdsOrThrow(
                     id,
-                    yliopistoErikoisala.yliopisto?.id!!,
-                    yliopistoErikoisala.erikoisala?.id!!
+                    yliopisto.id!!,
+                    getErikoisalaIds(kayttaja)
                 )
             valmistumispyynto.vastuuhenkiloHyvaksyja = kayttaja
 
@@ -235,9 +235,7 @@ class ValmistumispyyntoServiceImpl(
                 valmistumispyynto.virkailijanKuittausaika = null
                 sendMailNotificationHyvaksyjaPalauttanut(valmistumispyynto)
             } else {
-                valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika = LocalDate.now()
-                valmistumispyynto.virkailijanPalautusaika = null
-                valmistumispyynto.virkailijanKorjausehdotus = null
+                valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = LocalDate.now()
                 // TODO: allekirjoitettava pdf
                 /*valmistumispyynto.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
                     "Valmistumispyyntö - " + valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
@@ -249,8 +247,10 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyynto
         } ?: throw getValmistumispyyntoNotFoundException()
 
-        return valmistumispyyntoMapper.toDto(valmistumispyynto).apply {
-            tila = getValmistumispyynnonTilaForArvioija(valmistumispyynto)
+        val valmistumispyynnonTarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoId(valmistumispyynto.id!!)
+
+        return valmistumispyynnonTarkistusMapper.toDto(valmistumispyynnonTarkistus!!).apply {
+            this.valmistumispyynto?.tila = getValmistumispyynnonTilaForHyvaksyja(valmistumispyynto)
         }
     }
 
@@ -415,6 +415,29 @@ class ValmistumispyyntoServiceImpl(
         ))
     }
 
+    override fun findOneByIdAndVastuuhenkiloHyvaksyjaUserId(
+        id: Long,
+        userId: String
+    ): ValmistumispyynnonTarkistusDTO? {
+        val kayttaja = getKayttaja(userId)
+        val yliopisto = getYliopisto(kayttaja)
+        val tarkistus = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja).takeIf {
+            it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA ||
+                it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA
+        }?.let {
+            valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdForHyvaksyja(
+                id,
+                yliopisto.id!!,
+                getErikoisalaIds(kayttaja))
+        } ?: throw getValmistumispyyntoNotFoundException()
+
+        val result = mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(tarkistus))
+        tarkistus.valmistumispyynto?.let { pyynto ->
+            result.valmistumispyynto?.tila = getValmistumispyynnonTilaForHyvaksyja(pyynto)
+        }
+        return result
+    }
+
     @Transactional(readOnly = true)
     override fun existsByOpintooikeusId(opintooikeusId: Long): Boolean {
         return valmistumispyyntoRepository.existsByOpintooikeusId(opintooikeusId)
@@ -489,6 +512,14 @@ class ValmistumispyyntoServiceImpl(
                 valmistumispyynto.virkailijanKuittausaika == null &&
                 valmistumispyynto.virkailijanPalautusaika == null
         return fromValmistumispyyntoVirkailija(valmistumispyynto, isAvoin)
+    }
+
+    private fun getValmistumispyynnonTilaForHyvaksyja(valmistumispyynto: Valmistumispyynto): ValmistumispyynnonTila {
+        val isAvoin =
+            valmistumispyynto.virkailijanKuittausaika != null &&
+                valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika == null &&
+                valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika == null
+        return fromValmistumispyyntoHyvaksyja(valmistumispyynto, isAvoin)
     }
 
     private fun mapValmistumispyyntoListItem(

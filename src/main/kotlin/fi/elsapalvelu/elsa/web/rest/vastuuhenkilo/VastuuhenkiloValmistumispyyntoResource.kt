@@ -44,6 +44,18 @@ class VastuuhenkiloValmistumispyyntoResource(
         return ResponseEntity.ok(valmistumispyynto)
     }
 
+    @GetMapping("/valmistumispyynnon-hyvaksynta/{id}")
+    fun getValmistumispyyntoHyvaksyja(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val valmistumispyynto =
+            valmistumispyyntoService.findOneByIdAndVastuuhenkiloHyvaksyjaUserId(id, user.id!!)
+
+        return ResponseEntity.ok(valmistumispyynto)
+    }
+
     @GetMapping("/valmistumispyynto-arviointien-tila/{id}")
     fun getValmistumispyyntoArviointienTila(
         @PathVariable id: Long,
@@ -89,7 +101,7 @@ class VastuuhenkiloValmistumispyyntoResource(
         @PathVariable id: Long,
         @Valid @RequestBody hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO,
         principal: Principal?
-    ): ResponseEntity<ValmistumispyyntoDTO> {
+    ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
 
         val user = userService.getAuthenticatedUser(principal)
         val valmistumispyynto =
