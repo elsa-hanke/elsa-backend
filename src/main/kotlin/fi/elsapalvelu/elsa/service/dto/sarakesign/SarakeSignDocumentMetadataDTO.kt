@@ -24,9 +24,7 @@ data class SarakeSignDocumentMetadataDTO(
 
     var description: String? = null,
 
-    var orderNumber: Long? = null,
-
-    var ownerId: String? = null
+    var orderNumber: Long? = null
 
 ) : Serializable {
 
