@@ -249,8 +249,15 @@ class SarakesignServiceImpl(
             fields = SarakeSignRecipientFieldsDTO(
                 firstName = user.firstName,
                 lastName = user.lastName,
-                phoneNumber = user.phoneNumber
+                phoneNumber = getPhoneNumber(user.phoneNumber)
             )
         )
+    }
+
+    private fun getPhoneNumber(number: String?): String? {
+        if (number?.startsWith("0") == true) {
+            return number.replaceFirst("0", "+358")
+        }
+        return number
     }
 }
