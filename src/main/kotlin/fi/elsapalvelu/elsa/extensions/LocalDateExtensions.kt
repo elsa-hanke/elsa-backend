@@ -41,8 +41,7 @@ fun String.tryParseToLocalDate(): LocalDate? {
         LocalDate.parse(this)
     }
     catch(ex: Exception) {
-        log.warn("$this ei ole kelvollinen päivämäärä." )
-        null
+        return tryParseToLocalDateTime()?.toLocalDate()
     }
 }
 
