@@ -21,7 +21,7 @@ data class ValmistumispyyntoDTO(
 
     var erikoistujanOpiskelijatunnus: String? = null,
 
-    var erikoistujanSyntymaaika: String? = null,
+    var erikoistujanSyntymaaika: LocalDate? = null,
 
     var erikoistujanYliopisto: YliopistoEnum? = null,
 

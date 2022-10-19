@@ -8,6 +8,10 @@ import fi.elsapalvelu.elsa.domain.Valmistumispyynto.Companion.fromValmistumispyy
 import fi.elsapalvelu.elsa.domain.Valmistumispyynto.Companion.fromValmistumispyyntoHyvaksyja
 import fi.elsapalvelu.elsa.domain.Valmistumispyynto.Companion.fromValmistumispyyntoVirkailija
 import fi.elsapalvelu.elsa.domain.enumeration.*
+import fi.elsapalvelu.elsa.extensions.format
+import fi.elsapalvelu.elsa.extensions.toDays
+import fi.elsapalvelu.elsa.extensions.toMonths
+import fi.elsapalvelu.elsa.extensions.toYears
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
@@ -18,13 +22,17 @@ import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.service.mapper.*
+import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Clock
-import java.time.LocalDate
+import org.thymeleaf.context.Context
+import java.io.ByteArrayOutputStream
+import java.time.*
+import java.time.format.DateTimeFormatter
+import java.util.*
 import javax.persistence.EntityNotFoundException
 
 private const val VANHENTUNUT_KUULUSTELU_YEARS = 4L
@@ -56,7 +64,12 @@ class ValmistumispyyntoServiceImpl(
     private val teoriakoulutusRepository: TeoriakoulutusRepository,
     private val opintosuoritusMapper: OpintosuoritusMapper,
     private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
-    private val sarakesignService: SarakesignService
+    private val pdfService: PdfService,
+    private val asiakirjaRepository: AsiakirjaRepository,
+    private val sarakesignService: SarakesignService,
+    private val teoriakoulutusService: TeoriakoulutusService,
+    private val suoritusarviointiService: SuoritusarviointiService,
+    private val arviointiasteikkoService: ArviointiasteikkoService
 ) : ValmistumispyyntoService {
 
     @Transactional(readOnly = true)
@@ -236,13 +249,10 @@ class ValmistumispyyntoServiceImpl(
                 sendMailNotificationHyvaksyjaPalauttanut(valmistumispyynto)
             } else {
                 valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = LocalDate.now()
-                // TODO: allekirjoitettava pdf
-                /*valmistumispyynto.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
-                    "Valmistumispyyntö - " + valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
-                    recipients,
-                    asiakirja.id!!,
-                    koulutussopimus.opintooikeus?.yliopisto?.nimi!!
-                )*/
+                val result = valmistumispyyntoRepository.save(valmistumispyynto)
+                result.valmistumispyynnonTarkistus?.let {
+                    luoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
+                }
             }
             valmistumispyynto
         } ?: throw getValmistumispyyntoNotFoundException()
@@ -743,12 +753,12 @@ class ValmistumispyyntoServiceImpl(
     private fun mapValmistumispyynnonTarkistus(dto: ValmistumispyynnonTarkistusDTO): ValmistumispyynnonTarkistusDTO {
         dto.valmistumispyynto?.opintooikeusId?.let {
             dto.tyoskentelyjaksotTilastot = tyoskentelyjaksoService.getTilastot(it).koulutustyypit
-                terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(it)?.let { hyvaksynta ->
-                    if (hyvaksynta.vastuuhenkiloHyvaksynyt) {
-                        dto.terveyskeskustyoHyvaksyttyPvm = hyvaksynta.vastuuhenkilonKuittausaika
-                    }
-                    dto.terveyskeskustyoHyvaksyntaId = hyvaksynta.id
+            terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(it)?.let { hyvaksynta ->
+                if (hyvaksynta.vastuuhenkiloHyvaksynyt) {
+                    dto.terveyskeskustyoHyvaksyttyPvm = hyvaksynta.vastuuhenkilonKuittausaika
                 }
+                dto.terveyskeskustyoHyvaksyntaId = hyvaksynta.id
+            }
             val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it)
             opintosuoritukset
                 .firstOrNull { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO }
@@ -794,5 +804,137 @@ class ValmistumispyyntoServiceImpl(
         }
 
         return dto
+    }
+
+    private fun luoPdf(valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO, valmistumispyynto: Valmistumispyynto) {
+        val locale = Locale.forLanguageTag("fi")
+        val context = Context(locale).apply {
+            setVariable("tarkistus", valmistumispyynnonTarkistusDTO)
+            setVariable("teoriakoulutusSuoritettu", valmistumispyynnonTarkistusDTO.teoriakoulutusSuoritettu)
+            setVariable("teoriakoulutusVaadittu", valmistumispyynnonTarkistusDTO.teoriakoulutusVaadittu)
+            setVariable("sateilusuojakoulutusSuoritettu", valmistumispyynnonTarkistusDTO.sateilusuojakoulutusSuoritettu)
+            setVariable("sateilusuojakoulutusVaadittu", valmistumispyynnonTarkistusDTO.sateilusuojakoulutusVaadittu)
+            setVariable("johtamiskoulutusSuoritettu", valmistumispyynnonTarkistusDTO.johtamiskoulutusSuoritettu)
+            setVariable("johtamiskoulutusVaadittu", valmistumispyynnonTarkistusDTO.johtamiskoulutusVaadittu)
+
+            valmistumispyynto.opintooikeus?.let {
+                val tyoskentelyjaksotTilastot = tyoskentelyjaksoService.getTilastot(it)
+                setVariable("tyoskentelyaikaYhteensa", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yhteensaSuoritettu).format())
+                setVariable("arvioErikoistumiseenHyvaksyttavista", daysToPeriod(tyoskentelyjaksotTilastot.arvioErikoistumiseenHyvaksyttavista).format())
+                setVariable("arvioPuuttuvastaKoulutuksesta", daysToPeriod(tyoskentelyjaksotTilastot.arvioPuuttuvastaKoulutuksesta).format())
+                setVariable("terveyskeskusSuoritettu", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.terveyskeskusSuoritettu).format())
+                setVariable("terveyskeskusVaadittuVahintaan", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.terveyskeskusVaadittuVahintaan).format())
+                setVariable("yliopistosairaalaSuoritettu", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yliopistosairaalaSuoritettu).format())
+                setVariable("yliopistosairaalaVaadittuVahintaan", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yliopistosairaalaVaadittuVahintaan).format())
+                setVariable("yliopistosairaaloidenUlkopuolinenSuoritettu", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenSuoritettu).format())
+                setVariable("yliopistosairaaloidenUlkopuolinenVaadittuVahintaan", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenVaadittuVahintaan).format())
+                setVariable("yhteensaSuoritettu", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yhteensaSuoritettu).format())
+                setVariable("yhteensaVaadittuVahintaan", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yhteensaVaadittuVahintaan).format())
+
+                val koulutusYhteensa = tyoskentelyjaksotTilastot.kaytannonKoulutus.sumOf { koulutus -> koulutus.suoritettu }
+                tyoskentelyjaksotTilastot.kaytannonKoulutus.forEach { koulutus ->
+                    when (koulutus.kaytannonKoulutus) {
+                        KaytannonKoulutusTyyppi.OMAN_ERIKOISALAN_KOULUTUS -> {
+                            setVariable("omaErikoisalaSuoritettu", daysToPeriod(koulutus.suoritettu).format())
+                            setVariable("omaErikoisalaOsuus", (koulutus.suoritettu / koulutusYhteensa * 100).toInt())
+                        }
+                        KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS -> {
+                            setVariable("omaaErikoisalaaTukevaSuoritettu", daysToPeriod(koulutus.suoritettu).format())
+                            setVariable("omaErikoisalaaTukevaOsuus", (koulutus.suoritettu / koulutusYhteensa * 100).toInt())
+                        }
+                        KaytannonKoulutusTyyppi.TUTKIMUSTYO -> {
+                            setVariable("tutkimustyoSuoritettu", daysToPeriod(koulutus.suoritettu).format())
+                            setVariable("tutkimustyoOsuus", (koulutus.suoritettu / koulutusYhteensa * 100).toInt())
+                        }
+                        KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO -> {
+                            setVariable("terveyskeskustyoSuoritettu", daysToPeriod(koulutus.suoritettu).format())
+                            setVariable("terveyskeskustyoOsuus", (koulutus.suoritettu / koulutusYhteensa * 100).toInt())
+                        }
+                    }
+                }
+
+                val tyoskentelyjaksot = tyoskentelyjaksoService.findAllByOpintooikeusId(it.id!!)
+                setVariable("tyoskentelyjaksot", tyoskentelyjaksot.sortedByDescending { jakso -> jakso.alkamispaiva })
+                setVariable("tyoskentelyjaksotSuoritettu", tyoskentelyjaksotTilastot.tyoskentelyjaksot.groupBy { jakso -> jakso.id }.mapValues { jakso -> daysToPeriod(jakso.value.sumOf { value -> value.suoritettu }).format() })
+
+                val teoriakoulutukset = teoriakoulutusService.findAll(it.id!!)
+                setVariable("teoriakoulutukset", teoriakoulutukset)
+                setVariable("teoriakoulutusSuoritettuYhteensa", teoriakoulutukset.filter { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara != null }.sumOf { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara!! })
+                setVariable("teoriakoulutusVaadittu", it.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara)
+
+                val suoritusarvioinnit = suoritusarviointiService.findAllByTyoskentelyjaksoOpintooikeusId(it.id!!).filter { arviointi -> arviointi.arviointiasteikonTaso != null && arviointi.arviointiasteikonTaso!! >= 4 }
+                val kokonaisuudetMap = suoritusarvioinnit.groupBy { arviointi -> arviointi.arvioitavaKokonaisuus }
+                val kategoriatMap = kokonaisuudetMap.keys.groupBy { k -> k?.kategoria }
+                val kategoriat = kategoriatMap.entries.map { m ->
+                    ArvioitavanKokonaisuudenKategoriaWithArvioinnitDTO(
+                        id = m.key?.id,
+                        nimi = m.key?.nimi,
+                        nimiSv = m.key?.nimiSv,
+                        jarjestysnumero = m.key?.jarjestysnumero,
+                        arviointejaYhteensa = m.value.sumOf { a -> kokonaisuudetMap[a]!!.size },
+                        arvioitavatKokonaisuudet = m.value.map { k ->
+                            ArvioitavaKokonaisuusWithArvioinnitDTO(
+                                id = k?.id,
+                                nimi = k?.nimi,
+                                nimiSv = k?.nimiSv,
+                                kuvaus = k?.kuvaus,
+                                kuvausSv = k?.kuvausSv,
+                                voimassaoloAlkaa = k?.voimassaoloAlkaa,
+                                voimassaoloLoppuu = k?.voimassaoloLoppuu,
+                                suoritusarvioinnit = kokonaisuudetMap[k]
+                            ) }
+                    )
+                }
+
+                setVariable("arvioinninKategoriat", kategoriat)
+
+                val arviointiasteikonTasot = arviointiasteikkoService.findByOpintooikeusId(it.id!!)?.tasot
+                setVariable("arviointiasteikonTasot", arviointiasteikonTasot)
+            }
+        }
+        val outputStream = ByteArrayOutputStream()
+        pdfService.luoPdf("pdf/valmistumisenyhteenveto.html", context, outputStream)
+        val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+
+        val asiakirja = asiakirjaRepository.save(
+            Asiakirja(
+                opintooikeus = valmistumispyynto.opintooikeus,
+                nimi = "valmistumisen_yhteenveto_${timestamp}.pdf",
+                tyyppi = "application/pdf",
+                lisattypvm = LocalDateTime.now(),
+                asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
+            )
+        )
+
+        if (!sarakesignService.getApiUrl(valmistumispyynto.opintooikeus?.yliopisto?.nimi!!)
+                .isNullOrBlank()
+        ) {
+            lahetaAllekirjoitettavaksi(valmistumispyynto, asiakirja)
+        }
+
+    }
+
+    private fun lahetaAllekirjoitettavaksi(
+        valmistumispyynto: Valmistumispyynto,
+        asiakirja: Asiakirja
+    ) {
+        val recipients: MutableList<User> = mutableListOf()
+        valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let {
+            recipients.add(it)
+        }
+
+        valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.let { recipients.add(it) }
+
+        valmistumispyynto.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
+            "Valmistumisen yhteenveto - " + valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
+            recipients,
+            asiakirja.id!!,
+            valmistumispyynto.opintooikeus?.yliopisto?.nimi!!
+        )
+        valmistumispyyntoRepository.save(valmistumispyynto)
+    }
+
+    private fun daysToPeriod(days: Double): Period {
+        return Period.of(days.toYears(), days.toMonths(), days.toDays())
     }
 }
