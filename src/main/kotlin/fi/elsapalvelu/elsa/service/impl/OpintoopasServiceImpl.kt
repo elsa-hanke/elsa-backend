@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.Opintoopas
+import fi.elsapalvelu.elsa.extensions.toMonths
+import fi.elsapalvelu.elsa.extensions.toYears
 import fi.elsapalvelu.elsa.repository.OpintoopasRepository
 import fi.elsapalvelu.elsa.service.OpintoopasService
 import fi.elsapalvelu.elsa.service.dto.OpintoopasDTO
@@ -86,40 +88,32 @@ class OpintoopasServiceImpl(
     private fun mapOpintoopas(opas: Opintoopas): OpintoopasDTO {
         val dto = opintoopasMapper.toDto(opas)
         dto.kaytannonKoulutuksenVahimmaispituusVuodet =
-            getYears(opas.kaytannonKoulutuksenVahimmaispituus)
+            opas.kaytannonKoulutuksenVahimmaispituus?.toYears()
         dto.kaytannonKoulutuksenVahimmaispituusKuukaudet =
-            getMonths(opas.kaytannonKoulutuksenVahimmaispituus)
+            opas.kaytannonKoulutuksenVahimmaispituus?.toMonths()
 
         dto.terveyskeskuskoulutusjaksonVahimmaispituusVuodet =
-            getYears(opas.terveyskeskuskoulutusjaksonVahimmaispituus)
+            opas.terveyskeskuskoulutusjaksonVahimmaispituus?.toYears()
         dto.terveyskeskuskoulutusjaksonVahimmaispituusKuukaudet =
-            getMonths(opas.terveyskeskuskoulutusjaksonVahimmaispituus)
+            opas.terveyskeskuskoulutusjaksonVahimmaispituus?.toMonths()
 
         if (opas.terveyskeskuskoulutusjaksonMaksimipituus != null) {
             dto.terveyskeskuskoulutusjaksonMaksimipituusVuodet =
-                getYears(opas.terveyskeskuskoulutusjaksonMaksimipituus)
+                opas.terveyskeskuskoulutusjaksonMaksimipituus?.toYears()
             dto.terveyskeskuskoulutusjaksonMaksimipituusKuukaudet =
-                getMonths(opas.terveyskeskuskoulutusjaksonMaksimipituus)
+                opas.terveyskeskuskoulutusjaksonMaksimipituus?.toMonths()
         }
 
         dto.yliopistosairaalajaksonVahimmaispituusVuodet =
-            getYears(opas.yliopistosairaalajaksonVahimmaispituus)
+            opas.yliopistosairaalajaksonVahimmaispituus?.toYears()
         dto.yliopistosairaalajaksonVahimmaispituusKuukaudet =
-            getMonths(opas.yliopistosairaalajaksonVahimmaispituus)
+            opas.yliopistosairaalajaksonVahimmaispituus?.toMonths()
 
         dto.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusVuodet =
-            getYears(opas.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus)
+            opas.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus?.toYears()
         dto.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusKuukaudet =
-            getMonths(opas.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus)
+            opas.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus?.toMonths()
         return dto
-    }
-
-    private fun getYears(days: Double?): Int? {
-        return days?.let { it / DAYS_IN_YEAR }?.toInt()
-    }
-
-    private fun getMonths(days: Double?): Int? {
-        return days?.let { (it % DAYS_IN_YEAR) / DAYS_IN_YEAR * MONTHS_IN_YEAR }?.toInt()
     }
 
     private fun toDays(years: Int?, months: Int?): Double {
