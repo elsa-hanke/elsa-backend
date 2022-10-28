@@ -50,7 +50,10 @@ class ValmistumispyyntoQueryService(
                         cb.or(
                             cb.isNotNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
                             cb.isNotNull(root.get(Valmistumispyynto_.virkailijanKuittausaika)),
+                            cb.and(
                             cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
+                            cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika))
+                            )
                         )
                     )
                 }
