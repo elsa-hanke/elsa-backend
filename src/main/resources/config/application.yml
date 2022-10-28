@@ -229,7 +229,7 @@ application:
       api-key:
       endpoint-url: https://mixqa.uef.fi/api/v1/elsa
   feedback:
-    to: julia.sillanpaa@tuni.fi
+    to: elsa@tuni.fi
   opintohallintoemail:
     hki:
     oulu:
