@@ -311,6 +311,7 @@ class ValmistumispyyntoServiceImpl(
                     it.valmistumispyynto?.virkailijanSaate = valmistumispyynnonTarkistusDTO.lisatiedotVastuuhenkilolle
                     it.valmistumispyynto?.virkailijanKuittausaika = LocalDate.now(clock)
                     it.valmistumispyynto?.vastuuhenkiloHyvaksyjaKorjausehdotus = null
+                    it.valmistumispyynto?.vastuuhenkiloHyvaksyjaPalautusaika = null
                     sendMailNotificationOdottaaHyvaksyntaa(it.valmistumispyynto!!)
                 }
 
