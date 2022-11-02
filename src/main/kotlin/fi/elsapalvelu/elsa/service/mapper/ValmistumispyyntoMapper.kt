@@ -48,7 +48,9 @@ interface ValmistumispyyntoMapper : EntityMapper<ValmistumispyyntoDTO, Valmistum
         Mapping(target = "vastuuhenkiloOsaamisenArvioijaNimike", source = "vastuuhenkiloOsaamisenArvioija.nimike"),
         Mapping(target = "virkailijaNimi", source = "virkailija.nimi"),
         Mapping(target = "vastuuhenkiloHyvaksyjaNimi", source = "vastuuhenkiloHyvaksyja.nimi"),
-        Mapping(target = "vastuuhenkiloHyvaksyjaNimike", source = "vastuuhenkiloHyvaksyja.nimike")
+        Mapping(target = "vastuuhenkiloHyvaksyjaNimike", source = "vastuuhenkiloHyvaksyja.nimike"),
+        Mapping(target = "yhteenvetoAsiakirjaId", source = "yhteenvetoAsiakirja.id"),
+        Mapping(target = "liitteetAsiakirjaId", source = "liitteetAsiakirja.id")
     )
     override fun toDto(entity: Valmistumispyynto): ValmistumispyyntoDTO
 }
