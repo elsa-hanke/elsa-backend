@@ -421,7 +421,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                 sarakesignService.tarkistaAllekirjoitus(
                     koejaksonKoulutussopimus.sarakeSignRequestId,
                     yliopisto
-                )
+                )?.status
 
             if (status == 3) { // Completed
                 koejaksonKoulutussopimus.allekirjoitettu = true

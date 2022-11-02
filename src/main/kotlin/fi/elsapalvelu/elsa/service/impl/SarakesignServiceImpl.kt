@@ -45,13 +45,13 @@ class SarakesignServiceImpl(
         return requestId
     }
 
-    override fun tarkistaAllekirjoitus(requestId: String?, yliopisto: YliopistoEnum): Int {
+    override fun tarkistaAllekirjoitus(requestId: String?, yliopisto: YliopistoEnum): SarakeSignResponseRequestDTO {
         return try {
             val token = login(yliopisto)
             getRequestStatus(requestId, token, yliopisto)
         } catch (e: Exception) {
             log.error("Sarakesign tilan tarkistus epäonnistui: $e")
-            0
+            SarakeSignResponseRequestDTO()
         }
     }
 
@@ -107,7 +107,7 @@ class SarakesignServiceImpl(
         requestId: String?,
         token: String?,
         yliopisto: YliopistoEnum
-    ): Int {
+    ): SarakeSignResponseRequestDTO {
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
         token?.let { headers.setBearerAuth(it) }
@@ -122,7 +122,7 @@ class SarakesignServiceImpl(
             SarakeSignResponseDTO::class.java
         )
 
-        return requestResponse.body?.request?.status
+        return requestResponse.body?.request
             ?: throw BadRequestException("Virhe saragesign pyynnön tilan haussa")
     }
 
