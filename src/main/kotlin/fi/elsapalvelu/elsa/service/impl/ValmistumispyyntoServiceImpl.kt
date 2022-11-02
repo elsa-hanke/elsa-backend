@@ -70,7 +70,8 @@ class ValmistumispyyntoServiceImpl(
     private val sarakesignService: SarakesignService,
     private val teoriakoulutusService: TeoriakoulutusService,
     private val suoritusarviointiService: SuoritusarviointiService,
-    private val arviointiasteikkoService: ArviointiasteikkoService
+    private val arviointiasteikkoService: ArviointiasteikkoService,
+    private val asiakirjaMapper: AsiakirjaMapper
 ) : ValmistumispyyntoService {
 
     @Transactional(readOnly = true)
@@ -486,6 +487,25 @@ class ValmistumispyyntoServiceImpl(
     override fun getValmistumispyynnonHyvaksyjaRole(userId: String): ValmistumispyynnonHyvaksyjaRole? {
         val kayttaja = getKayttaja(userId)
         return getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja)
+    }
+
+    override fun getValmistumispyynnonAsiakirja(
+        userId: String,
+        valmistumispyyntoId: Long,
+        asiakirjaId: Long
+    ): AsiakirjaDTO? {
+        valmistumispyyntoRepository.findByIdOrNull(valmistumispyyntoId)?.let {
+            if ((it.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId ||
+                it.vastuuhenkiloOsaamisenArvioija?.user?.id == userId ||
+                it.vastuuhenkiloHyvaksyja?.user?.id == userId ||
+                it.virkailija?.user?.id == userId) &&
+                (it.yhteenvetoAsiakirja?.id == asiakirjaId || it.liitteetAsiakirja?.id == asiakirjaId)) {
+                asiakirjaRepository.findByIdOrNull(asiakirjaId)?.let { asiakirja ->
+                    return asiakirjaMapper.toDto(asiakirja)
+                }
+            }
+        }
+        return null
     }
 
     private fun tarkistaAllekirjoitus(valmistumispyynto: Valmistumispyynto) {
@@ -939,6 +959,9 @@ class ValmistumispyyntoServiceImpl(
                 asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
             )
         )
+
+        valmistumispyynto.yhteenvetoAsiakirja = asiakirja
+        valmistumispyyntoRepository.save(valmistumispyynto)
 
         if (!sarakesignService.getApiUrl(valmistumispyynto.opintooikeus?.yliopisto?.nimi!!)
                 .isNullOrBlank()
