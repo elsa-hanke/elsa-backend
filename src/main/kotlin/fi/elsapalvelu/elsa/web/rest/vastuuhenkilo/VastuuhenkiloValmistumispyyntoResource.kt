@@ -8,8 +8,10 @@ import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRo
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.net.URLEncoder
 import java.security.Principal
 import javax.validation.Valid
 
@@ -112,6 +114,28 @@ class VastuuhenkiloValmistumispyyntoResource(
             )
 
         return ResponseEntity.ok(valmistumispyynto)
+    }
+
+    @GetMapping("/valmistumispyynto/{valmistumispyyntoId}/asiakirja/{asiakirjaId}")
+    fun getValmistumispyynnonAsiakirja(
+        @PathVariable valmistumispyyntoId: Long,
+        @PathVariable asiakirjaId: Long,
+        principal: Principal?
+    ): ResponseEntity<ByteArray> {
+        val user = userService.getAuthenticatedUser(principal)
+        val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirja(user.id!!, valmistumispyyntoId, asiakirjaId)
+
+        asiakirja?.asiakirjaData?.fileInputStream?.use {
+            return ResponseEntity.ok()
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
+                )
+                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
+                .body(it.readBytes())
+        }
+
+        return ResponseEntity.notFound().build()
     }
 
     private fun validateOsaamisenArviointiDto(osaamisenArviointiDTO: ValmistumispyyntoOsaamisenArviointiFormDTO) {
