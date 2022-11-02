@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20221031153118" author="jhipster">
+        <addColumn tableName="valmistumispyynto">
+            <column name="yhteenveto_asiakirja_id" type="bigint">
+                <constraints nullable="true" unique="true"
+                    uniqueConstraintName="ux_valmistumispyynto__valmistumisen_yhteenveto_asiakirja_id"/>
+            </column>
+            <column name="liitteet_asiakirja_id" type="bigint">
+                <constraints nullable="true" unique="true"
+                    uniqueConstraintName="ux_valmistumispyynto__valmistumispyynnon_liitteet_asiakirja_id"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
