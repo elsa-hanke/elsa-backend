@@ -87,6 +87,7 @@ class ValmistumispyyntoServiceImpl(
         val vastuuhenkiloOsaamisenarvioija =
             getVastuuhenkiloOsaamisenArvioija(yliopistoId, erikoisalaId)
         val vastuuhenkiloHyvaksyja = getVastuuhenkiloHyvaksyja(yliopistoId, erikoisalaId)
+        valmistumispyynto?.let { tarkistaAllekirjoitus(it) }
         val valmistumispyyntoDTO =
             valmistumispyynto?.let { valmistumispyyntoMapper.toDto(it) } ?: ValmistumispyyntoDTO().apply {
                 erikoistujanLaillistamispaiva = opintooikeus.erikoistuvaLaakari?.laillistamispaiva
@@ -354,6 +355,7 @@ class ValmistumispyyntoServiceImpl(
             kayttaja.user?.langKey
         ).map {
             val isAvoin = valmistumispyyntoCriteria.avoin == true
+            tarkistaAllekirjoitus(it)
             mapValmistumispyyntoListItem(it, hyvaksyjaRole, isAvoin)
         }
     }
@@ -374,6 +376,7 @@ class ValmistumispyyntoServiceImpl(
             kayttaja.user?.langKey
         ).map {
             val isAvoin = valmistumispyyntoCriteria.avoin == true
+            tarkistaAllekirjoitus(it)
             mapValmistumispyyntoListItem(it, hyvaksyjaRole, isAvoin)
         }
     }
@@ -395,6 +398,8 @@ class ValmistumispyyntoServiceImpl(
                 getErikoisalaIds(kayttaja)
             )
         } ?: throw getValmistumispyyntoNotFoundException()
+
+        tarkistaAllekirjoitus(valmistumispyynto)
 
         return valmistumispyyntoOsaamisenArviointiMapper.toDto(valmistumispyynto).apply {
             tila = getValmistumispyynnonTilaForArvioija(valmistumispyynto)
@@ -421,6 +426,9 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyynto =
             valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)
                 ?: throw getValmistumispyyntoNotFoundException()
+
+        tarkistaAllekirjoitus(valmistumispyynto)
+
         return mapValmistumispyynnonTarkistus(ValmistumispyynnonTarkistusDTO(
             valmistumispyynto = valmistumispyyntoMapper.toDto(
                 valmistumispyynto
@@ -443,6 +451,8 @@ class ValmistumispyyntoServiceImpl(
                 yliopisto.id!!,
                 getErikoisalaIds(kayttaja))
         } ?: throw getValmistumispyyntoNotFoundException()
+
+        tarkistus.valmistumispyynto?.let { tarkistaAllekirjoitus(it) }
 
         val result = mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(tarkistus))
         tarkistus.valmistumispyynto?.let { pyynto ->
@@ -476,6 +486,28 @@ class ValmistumispyyntoServiceImpl(
     override fun getValmistumispyynnonHyvaksyjaRole(userId: String): ValmistumispyynnonHyvaksyjaRole? {
         val kayttaja = getKayttaja(userId)
         return getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja)
+    }
+
+    private fun tarkistaAllekirjoitus(valmistumispyynto: Valmistumispyynto) {
+        val yliopisto = valmistumispyynto.opintooikeus?.yliopisto?.nimi!!
+        if (valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika != null
+            && valmistumispyynto.allekirjoitusaika == null
+            && !sarakesignService.getApiUrl(yliopisto).isNullOrBlank()
+            && valmistumispyynto.sarakeSignRequestId != null
+        ) {
+            val response =
+                sarakesignService.tarkistaAllekirjoitus(
+                    valmistumispyynto.sarakeSignRequestId,
+                    yliopisto
+                )
+
+            if (response?.status == 3) { // Completed
+                valmistumispyynto.allekirjoitusaika = response.finished?.toLocalDate()
+            } else if (response?.status == 4) { // Aborted
+                valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = null
+            }
+            valmistumispyyntoRepository.save(valmistumispyynto)
+        }
     }
 
     private fun getKayttaja(userId: String) =

@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignResponseRequestDTO
 
 interface SarakesignService {
 
@@ -12,7 +13,7 @@ interface SarakesignService {
         yliopisto: YliopistoEnum
     ): String
 
-    fun tarkistaAllekirjoitus(requestId: String?, yliopisto: YliopistoEnum): Int?
+    fun tarkistaAllekirjoitus(requestId: String?, yliopisto: YliopistoEnum): SarakeSignResponseRequestDTO?
 
     fun getApiUrl(yliopisto: YliopistoEnum): String?
 }

@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.sarakesign
 
 import java.io.Serializable
+import java.time.LocalDateTime
 
 data class SarakeSignResponseRequestDTO(
 
@@ -14,7 +15,9 @@ data class SarakeSignResponseRequestDTO(
     4 = Aborted: Request has been aborted
     99 = Failure: Request is in error state due to problems in the process
      */
-    var status: Int? = null
+    var status: Int? = null,
+
+    var finished: LocalDateTime? = null
 
 ) : Serializable {
 
