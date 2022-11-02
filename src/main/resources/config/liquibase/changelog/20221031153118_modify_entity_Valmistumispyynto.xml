@@ -15,6 +15,11 @@
                     uniqueConstraintName="ux_valmistumispyynto__valmistumispyynnon_liitteet_asiakirja_id"/>
             </column>
         </addColumn>
+
+        <addColumn tableName="valmistumispyynto_audit">
+            <column name="yhteenveto_asiakirja_id" type="bigint"/>
+            <column name="liitteet_asiakirja_id" type="bigint"/>
+        </addColumn>
     </changeSet>
 
 </databaseChangeLog>
