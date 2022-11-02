@@ -90,7 +90,15 @@ data class Valmistumispyynto(
         cascade = [CascadeType.ALL],
         orphanRemoval = true
     )
-    var valmistumispyynnonTarkistus: ValmistumispyynnonTarkistus? = null
+    var valmistumispyynnonTarkistus: ValmistumispyynnonTarkistus? = null,
+
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(unique = true)
+    var yhteenvetoAsiakirja: Asiakirja? = null,
+
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(unique = true)
+    var liitteetAsiakirja: Asiakirja? = null
 
 ) : Serializable {
 
