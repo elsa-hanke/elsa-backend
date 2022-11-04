@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.repository.ArvioitavaKokonaisuusRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.ArvioitavaKokonaisuusService
+import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusByErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusDTO
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusWithErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusMapper
@@ -64,6 +65,30 @@ class ArvioitavaKokonaisuusServiceImpl(
                 it.erikoisala?.id, it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
             ).map(arvioitavaKokonaisuusMapper::toDto)
         } ?: listOf()
+    }
+
+    override fun findAllByErikoisalaIds(erikoisalaIds: List<Long>): List<ArvioitavaKokonaisuusByErikoisalaDTO> {
+        val arvioitavatKokonaisuudet =
+            arvioitavaKokonaisuusRepository.findAllByKategoriaErikoisalaIdIn(erikoisalaIds)
+        val now = LocalDate.now()
+        val result = mutableListOf<ArvioitavaKokonaisuusByErikoisalaDTO>()
+        arvioitavatKokonaisuudet.groupBy { it.kategoria?.erikoisala }
+            .forEach { (erikoisala, kokonaisuudet) ->
+                val (voimassa, vanhentuneet) = kokonaisuudet.partition { k ->
+                    (now.isEqual(k.voimassaoloAlkaa) || now.isAfter(
+                        k.voimassaoloAlkaa
+                    )) && (k.voimassaoloLoppuu == null || now.isBefore(k.voimassaoloLoppuu))
+                }
+                result.add(
+                    ArvioitavaKokonaisuusByErikoisalaDTO(
+                        erikoisala?.id,
+                        erikoisala?.nimi,
+                        voimassa.map { arvioitavaKokonaisuusMapper.toDto(it) },
+                        vanhentuneet.map { arvioitavaKokonaisuusMapper.toDto(it) }
+                    )
+                )
+            }
+        return result
     }
 
     @Transactional(readOnly = true)

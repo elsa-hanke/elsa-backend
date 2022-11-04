@@ -16,4 +16,6 @@ interface ArvioitavaKokonaisuusRepository : JpaRepository<ArvioitavaKokonaisuus,
             "and (oa.voimassaoloLoppuu is null or oa.voimassaoloLoppuu >= ?2)"
     )
     fun findAllByErikoisalaIdAndValid(id: Long?, valid: LocalDate): List<ArvioitavaKokonaisuus>
+
+    fun findAllByKategoriaErikoisalaIdIn(erikoisalaIds: List<Long>): List<ArvioitavaKokonaisuus>
 }
