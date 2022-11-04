@@ -2,13 +2,8 @@ package fi.elsapalvelu.elsa.web.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
-import fi.elsapalvelu.elsa.service.FileValidationService
-import fi.elsapalvelu.elsa.service.SuoritusarviointiQueryService
-import fi.elsapalvelu.elsa.service.SuoritusarviointiService
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.EtusivuArviointipyyntoDTO
-import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
+import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -32,7 +27,9 @@ open class SuoritusarviointiResource(
     private val suoritusarviointiQueryService: SuoritusarviointiQueryService,
     private val userService: UserService,
     private val objectMapper: ObjectMapper,
-    private val fileValidationService: FileValidationService
+    private val fileValidationService: FileValidationService,
+    private val kayttajaService: KayttajaService,
+    private val arvioitavaKokonaisuusService: ArvioitavaKokonaisuusService
 ) {
 
     @GetMapping("/suoritusarvioinnit")
@@ -117,9 +114,23 @@ open class SuoritusarviointiResource(
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
+    @GetMapping("/arvioitavatkokonaisuudet")
+    fun getArvioitavatKokonaisuudet(principal: Principal?): ResponseEntity<List<ArvioitavaKokonaisuusByErikoisalaDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.findByUserId(user.id!!).get()
+        return ResponseEntity.ok(
+            arvioitavaKokonaisuusService.findAllByErikoisalaIds(
+                kayttaja.yliopistotAndErikoisalat.orEmpty().map { it.erikoisala?.id!! })
+        )
+    }
+
     private fun getMappedFile(arviointiFile: MultipartFile?): AsiakirjaDTO? {
         return arviointiFile?.let {
-            if (!fileValidationService.validate(listOf(it), listOf(MediaType.APPLICATION_PDF_VALUE))) {
+            if (!fileValidationService.validate(
+                    listOf(it),
+                    listOf(MediaType.APPLICATION_PDF_VALUE)
+                )
+            ) {
                 throw BadRequestAlertException(
                     "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
                     ENTITY_NAME,
