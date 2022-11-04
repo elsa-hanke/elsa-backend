@@ -501,7 +501,10 @@ class ValmistumispyyntoServiceImpl(
                 it.virkailija?.user?.id == userId) &&
                 (it.yhteenvetoAsiakirja?.id == asiakirjaId || it.liitteetAsiakirja?.id == asiakirjaId)) {
                 asiakirjaRepository.findByIdOrNull(asiakirjaId)?.let { asiakirja ->
-                    return asiakirjaMapper.toDto(asiakirja)
+                    val result = asiakirjaMapper.toDto(asiakirja)
+                    result.asiakirjaData?.fileInputStream =
+                        asiakirja.asiakirjaData?.data?.binaryStream
+                    return result
                 }
             }
         }
