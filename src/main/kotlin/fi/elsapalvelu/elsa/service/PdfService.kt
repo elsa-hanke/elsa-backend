@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service
 
 import org.thymeleaf.context.Context
 import java.io.ByteArrayOutputStream
+import java.sql.Blob
 
 interface PdfService {
 
@@ -10,4 +11,6 @@ interface PdfService {
         context: Context,
         outputStream: ByteArrayOutputStream
     )
+
+    fun yhdistaAsiakirjat(asiakirjat: List<Blob?>, outputStream: ByteArrayOutputStream)
 }

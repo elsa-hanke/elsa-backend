@@ -2,9 +2,8 @@ package fi.elsapalvelu.elsa.service.impl
 
 import com.itextpdf.html2pdf.ConverterProperties
 import com.itextpdf.html2pdf.HtmlConverter
-import com.itextpdf.kernel.pdf.PdfAConformanceLevel
-import com.itextpdf.kernel.pdf.PdfOutputIntent
-import com.itextpdf.kernel.pdf.PdfWriter
+import com.itextpdf.kernel.pdf.*
+import com.itextpdf.kernel.utils.PdfMerger
 import com.itextpdf.layout.font.FontProvider
 import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.service.PdfService
@@ -14,6 +13,7 @@ import org.thymeleaf.context.Context
 import org.thymeleaf.spring5.SpringTemplateEngine
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
+import java.sql.Blob
 
 @Service
 @Transactional
@@ -39,5 +39,15 @@ class PdfServiceImpl(
         properties.fontProvider = provider
 
         HtmlConverter.convertToPdf(content, pdf, properties)
+    }
+
+    override fun yhdistaAsiakirjat(asiakirjat: List<Blob?>, outputStream: ByteArrayOutputStream) {
+        val result = PdfDocument(PdfWriter(outputStream))
+        val merger = PdfMerger(result)
+        asiakirjat.forEach {
+            val document = PdfDocument(PdfReader(it?.binaryStream))
+            merger.merge(document, 1, document.numberOfPages)
+        }
+        result.close()
     }
 }
