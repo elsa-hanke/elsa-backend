@@ -17,13 +17,20 @@ class PalauteServiceImpl(
 
     override fun send(palauteDTO: PalauteDTO, userId: String) {
         kayttajaRepository.findOneByUserId(userId).ifPresent {
+            val feedbackSender = when {
+                palauteDTO.anonyymiPalaute -> ""
+                it.user?.email != null -> "${it.id}, ${it.getNimi()}, ${it.user?.email}"
+                else -> "${it.id}, ${it.getNimi()}"
+            }
+
             mailService.sendEmailFromTemplate(
                 applicationProperties.getFeedback().to,
                 templateName = "palaute.html",
                 titleKey = "email.palaute.title",
                 properties = mapOf(
                     Pair(MailProperty.FEEDBACK_TOPIC, palauteDTO.palautteenAihe!!),
-                    Pair(MailProperty.FEEDBACK, palauteDTO.palaute!!)
+                    Pair(MailProperty.FEEDBACK, palauteDTO.palaute!!),
+                    Pair(MailProperty.FEEDBACK_SENDER, feedbackSender)
                 ),
             )
         }
