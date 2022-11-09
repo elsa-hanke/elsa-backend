@@ -26,6 +26,7 @@ import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
@@ -251,7 +252,8 @@ class ValmistumispyyntoServiceImpl(
                 valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = LocalDate.now()
                 val result = valmistumispyyntoRepository.save(valmistumispyynto)
                 result.valmistumispyynnonTarkistus?.let {
-                    luoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
+                    luoYhteenvetoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
+                    luoLiitteetPdf(valmistumispyynto)
                 }
             }
             valmistumispyynto
@@ -806,7 +808,7 @@ class ValmistumispyyntoServiceImpl(
         return dto
     }
 
-    private fun luoPdf(valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO, valmistumispyynto: Valmistumispyynto) {
+    private fun luoYhteenvetoPdf(valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO, valmistumispyynto: Valmistumispyynto) {
         val locale = Locale.forLanguageTag("fi")
         val context = Context(locale).apply {
             setVariable("tarkistus", valmistumispyynnonTarkistusDTO)
@@ -912,6 +914,30 @@ class ValmistumispyyntoServiceImpl(
             lahetaAllekirjoitettavaksi(valmistumispyynto, asiakirja)
         }
 
+    }
+
+    private fun luoLiitteetPdf(valmistumispyynto: Valmistumispyynto) {
+        valmistumispyynto.opintooikeus?.let {
+            val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(it.id!!)
+            val data = tyoskentelyjaksot.flatMap { t ->
+                t.asiakirjat.filter { a -> a.tyyppi == MediaType.APPLICATION_PDF_VALUE }
+                    .map { a -> a.asiakirjaData?.data }
+            }
+
+            val outputStream = ByteArrayOutputStream()
+            pdfService.yhdistaAsiakirjat(data, outputStream)
+            val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+
+            asiakirjaRepository.save(
+                Asiakirja(
+                    opintooikeus = valmistumispyynto.opintooikeus,
+                    nimi = "valmistumisen_yhteenvedon_liitteet_${timestamp}.pdf",
+                    tyyppi = "application/pdf",
+                    lisattypvm = LocalDateTime.now(),
+                    asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
+                )
+            )
+        }
     }
 
     private fun lahetaAllekirjoitettavaksi(
