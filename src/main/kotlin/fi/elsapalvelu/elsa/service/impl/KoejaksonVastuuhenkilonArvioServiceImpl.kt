@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.MediaType
 import org.springframework.security.core.AuthenticatedPrincipal
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -249,7 +250,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             Asiakirja(
                 opintooikeus = vastuuhenkilonArvio.opintooikeus,
                 nimi = "koejakson_vastuuhenkilon_arvio_${timestamp}.pdf",
-                tyyppi = "application/pdf",
+                tyyppi = MediaType.APPLICATION_PDF_VALUE,
                 lisattypvm = LocalDateTime.now(),
                 asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
             )

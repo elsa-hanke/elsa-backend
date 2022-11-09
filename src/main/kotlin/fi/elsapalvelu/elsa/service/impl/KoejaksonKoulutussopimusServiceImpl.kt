@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
@@ -456,7 +457,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             Asiakirja(
                 opintooikeus = koulutussopimus.opintooikeus,
                 nimi = "koejakson_koulutussopimus_${timestamp}.pdf",
-                tyyppi = "application/pdf",
+                tyyppi = MediaType.APPLICATION_PDF_VALUE,
                 lisattypvm = LocalDateTime.now(),
                 asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
             )

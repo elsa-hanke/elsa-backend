@@ -902,7 +902,7 @@ class ValmistumispyyntoServiceImpl(
             Asiakirja(
                 opintooikeus = valmistumispyynto.opintooikeus,
                 nimi = "valmistumisen_yhteenveto_${timestamp}.pdf",
-                tyyppi = "application/pdf",
+                tyyppi = MediaType.APPLICATION_PDF_VALUE,
                 lisattypvm = LocalDateTime.now(),
                 asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
             )
@@ -932,7 +932,7 @@ class ValmistumispyyntoServiceImpl(
                 Asiakirja(
                     opintooikeus = valmistumispyynto.opintooikeus,
                     nimi = "valmistumisen_yhteenvedon_liitteet_${timestamp}.pdf",
-                    tyyppi = "application/pdf",
+                    tyyppi = MediaType.APPLICATION_PDF_VALUE,
                     lisattypvm = LocalDateTime.now(),
                     asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
                 )
