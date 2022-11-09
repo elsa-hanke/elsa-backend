@@ -14,6 +14,8 @@
 
     Palautteen aihe: <span th:text="${feedbackTopic}"></span>
 
+    Palautteen lähettäjä: <span th:if="${!feedbackSender.isEmpty()}" th:text="${feedbackSender}"></span><span th:if="${feedbackSender.isEmpty()}" th:text="#{palaute.anonyymi}"></span>
+
     Palaute: <p th:text="${feedback}"></p>
 
 </p>

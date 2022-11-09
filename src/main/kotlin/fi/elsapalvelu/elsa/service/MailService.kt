@@ -26,6 +26,7 @@ enum class MailProperty(val property: String) {
     DATE("date"),
     FEEDBACK("feedback"),
     FEEDBACK_TOPIC("feedbackTopic"),
+    FEEDBACK_SENDER("feedbackSender"),
     URL_PATH("urlPath")
 }
 
