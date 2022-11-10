@@ -986,7 +986,7 @@ class ValmistumispyyntoServiceImpl(
             pdfService.yhdistaAsiakirjat(tyoskentelyjaksot.flatMap { t -> t.asiakirjat }, outputStream)
             val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
-            asiakirjaRepository.save(
+            val asiakirja = asiakirjaRepository.save(
                 Asiakirja(
                     opintooikeus = valmistumispyynto.opintooikeus,
                     nimi = "valmistumisen_yhteenvedon_liitteet_${timestamp}.pdf",
@@ -995,6 +995,9 @@ class ValmistumispyyntoServiceImpl(
                     asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
                 )
             )
+
+            valmistumispyynto.liitteetAsiakirja = asiakirja
+            valmistumispyyntoRepository.save(valmistumispyynto)
         }
     }
 
