@@ -925,7 +925,7 @@ class ValmistumispyyntoServiceImpl(
             }
 
             val outputStream = ByteArrayOutputStream()
-            pdfService.yhdistaAsiakirjat(data, outputStream)
+            pdfService.yhdistaAsiakirjat(tyoskentelyjaksot.flatMap { t -> t.asiakirjat }, outputStream)
             val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
             asiakirjaRepository.save(
