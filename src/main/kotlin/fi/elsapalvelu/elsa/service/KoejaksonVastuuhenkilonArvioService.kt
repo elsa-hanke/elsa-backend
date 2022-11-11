@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.domain.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import java.util.*
 
@@ -37,4 +38,6 @@ interface KoejaksonVastuuhenkilonArvioService {
     ): Optional<KoejaksonVastuuhenkilonArvioDTO>
 
     fun delete(id: Long)
+
+    fun tarkistaAllekirjoitus(koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio)
 }

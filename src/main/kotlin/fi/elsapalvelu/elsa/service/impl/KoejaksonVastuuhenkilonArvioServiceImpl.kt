@@ -293,8 +293,9 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonVastuuhenkilonArvioDTO> {
-        return koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(opintooikeusId)
-            .map(this::mapVastuuhenkilonArvio)
+        val arvio = koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(opintooikeusId)
+        arvio.ifPresent { tarkistaAllekirjoitus(it) }
+        return arvio.map(this::mapVastuuhenkilonArvio)
     }
 
     @Transactional(readOnly = true)
@@ -302,8 +303,10 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         id: Long,
         userId: String
     ): Optional<KoejaksonVastuuhenkilonArvioDTO> {
-        return koejaksonVastuuhenkilonArvioRepository.findOneByIdAndVastuuhenkiloUserId(id, userId)
-            .map(this::mapVastuuhenkilonArvio)
+        val arvio =
+            koejaksonVastuuhenkilonArvioRepository.findOneByIdAndVastuuhenkiloUserId(id, userId)
+        arvio.ifPresent { tarkistaAllekirjoitus(it) }
+        return arvio.map(this::mapVastuuhenkilonArvio)
     }
 
     override fun existsByIdAndVastuuhenkiloUserId(
@@ -319,11 +322,13 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     ): Optional<KoejaksonVastuuhenkilonArvioDTO> {
         kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
             k.yliopistot.firstOrNull()?.let { yliopisto ->
-                return koejaksonVastuuhenkilonArvioRepository.findOneByIdAndOpintooikeusYliopistoId(
-                    id,
-                    yliopisto.id!!
-                )
-                    .map(this::mapVastuuhenkilonArvio)
+                val arvio =
+                    koejaksonVastuuhenkilonArvioRepository.findOneByIdAndOpintooikeusYliopistoId(
+                        id,
+                        yliopisto.id!!
+                    )
+                arvio.ifPresent { tarkistaAllekirjoitus(it) }
+                return arvio.map(this::mapVastuuhenkilonArvio)
             }
         }
         return Optional.empty()
@@ -331,6 +336,33 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
     override fun delete(id: Long) {
         koejaksonVastuuhenkilonArvioRepository.deleteById(id)
+    }
+
+    override fun tarkistaAllekirjoitus(koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio) {
+        val yliopisto = koejaksonVastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!
+        if (koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt
+            && !koejaksonVastuuhenkilonArvio.allekirjoitettu
+            && !sarakesignService.getApiUrl(yliopisto).isNullOrBlank()
+            && koejaksonVastuuhenkilonArvio.sarakeSignRequestId != null
+        ) {
+            val status =
+                sarakesignService.tarkistaAllekirjoitus(
+                    koejaksonVastuuhenkilonArvio.sarakeSignRequestId,
+                    yliopisto
+                )?.status
+
+            if (status == 3) { // Completed
+                koejaksonVastuuhenkilonArvio.allekirjoitettu = true
+            } else if (status == 4) { // Aborted
+                koejaksonVastuuhenkilonArvio.korjausehdotus = "Allekirjoitus keskeytetty"
+                koejaksonVastuuhenkilonArvio.erikoistuvanKuittausaika = null
+                koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
+                koejaksonVastuuhenkilonArvio.vastuuhenkilonKuittausaika = null
+                koejaksonVastuuhenkilonArvio.virkailijaHyvaksynyt = false
+                koejaksonVastuuhenkilonArvio.virkailijanKuittausaika = null
+            }
+            koejaksonVastuuhenkilonArvioRepository.save(koejaksonVastuuhenkilonArvio)
+        }
     }
 
     private fun mapVastuuhenkilonArvio(vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio): KoejaksonVastuuhenkilonArvioDTO {
