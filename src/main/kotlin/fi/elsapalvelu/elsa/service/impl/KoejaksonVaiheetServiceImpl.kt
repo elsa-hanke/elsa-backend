@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioQueryService
+import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
@@ -31,6 +32,7 @@ class KoejaksonVaiheetServiceImpl(
     private val kehittamistoimenpiteetMapper: KoejaksonKehittamistoimenpiteetMapper,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
     private val koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper,
+    private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService,
     private val vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
     private val vastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper,
     private val kayttajaRepository: KayttajaRepository,
@@ -101,6 +103,7 @@ class KoejaksonVaiheetServiceImpl(
                     it.id!!,
                     k.user?.langKey
                 ).map { arvio ->
+                    koejaksonVastuuhenkilonArvioService.tarkistaAllekirjoitus(arvio)
                     KoejaksonVaiheDTO(
                         arvio.id,
                         KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
@@ -146,6 +149,7 @@ class KoejaksonVaiheetServiceImpl(
                 userId
             )
         vastuuhenkilonArviot.associate {
+            koejaksonVastuuhenkilonArvioService.tarkistaAllekirjoitus(it)
             getOpintooikeusIdOrElseThrow(it.opintooikeus) to vastuuhenkilonArvioMapper.toDto(it)
         }.forEach {
             val opintooikeusId = it.key
