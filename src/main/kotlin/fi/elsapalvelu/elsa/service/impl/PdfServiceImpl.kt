@@ -13,6 +13,8 @@ import com.itextpdf.layout.properties.UnitValue
 import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.domain.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfService
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
@@ -25,6 +27,15 @@ class PdfServiceImpl(
     private val templateEngine: SpringTemplateEngine
 ) : PdfService {
 
+    @Value("classpath:sRGB_CS_profile.icm")
+    var colorProfile: Resource? = null
+
+    @Value("classpath:times-bold.ttf")
+    var timesNewFontBold: Resource? = null
+
+    @Value("classpath:times-roman.ttf")
+    var timesNewFont: Resource? = null
+
     override fun luoPdf(template: String, context: Context, outputStream: ByteArrayOutputStream) {
         val content = templateEngine.process(template, context)
         val pdf = PdfADocument(
@@ -32,12 +43,12 @@ class PdfServiceImpl(
             PdfAConformanceLevel.PDF_A_2B,
             PdfOutputIntent(
                 "Custom", "", "https://www.color.org",
-                "sRGB IEC61966-2.1", FileInputStream("src/main/resources/sRGB_CS_profile.icm")
+                "sRGB IEC61966-2.1", colorProfile?.inputStream
             )
         )
         val provider = FontProvider()
-        provider.addFont("src/main/resources/times-bold.ttf")
-        provider.addFont("src/main/resources/times-roman.ttf")
+        provider.addFont(timesNewFont?.file?.absolutePath)
+        provider.addFont(timesNewFontBold?.file?.absolutePath)
 
         val properties = ConverterProperties()
         properties.fontProvider = provider
