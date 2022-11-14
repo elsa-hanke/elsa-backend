@@ -399,15 +399,17 @@
         <span style="margin-left: 0.5rem"
               th:text="#{valmistumisenyhteenveto.todistuksetTarkistettu}"></span>
     </p>
-    <h4 th:text="#{valmistumisenyhteenveto.sateilysuojakoulutus}"></h4>
-    <p class="mb-1">
-        <em class="fas fa-check-circle success"></em>
-        <span style="margin-left: 0.5rem" th:text="#{valmistumisenyhteenveto.suoritettu}"></span>
-        <span
-            th:text="${#strings.replace(sateilusuojakoulutusSuoritettu,'.0','')}"></span>
-        <span th:if="${sateilusuojakoulutusVaadittu != null}"
-              th:text="' / ' + ${#strings.replace(sateilusuojakoulutusVaadittu,'.0','')} + ' op'"></span>
-    </p>
+    <div th:if="${sateilusuojakoulutusVaadittu > 0}">
+        <h4 th:text="#{valmistumisenyhteenveto.sateilysuojakoulutus}"></h4>
+        <p class="mb-1">
+            <em class="fas fa-check-circle success"></em>
+            <span style="margin-left: 0.5rem" th:text="#{valmistumisenyhteenveto.suoritettu}"></span>
+            <span
+                th:text="${#strings.replace(sateilusuojakoulutusSuoritettu,'.0','')}"></span>
+            <span th:if="${sateilusuojakoulutusVaadittu != null}"
+                  th:text="' / ' + ${#strings.replace(sateilusuojakoulutusVaadittu,'.0','')} + ' op'"></span>
+        </p>
+    </div>
     <h4 th:text="#{valmistumisenyhteenveto.johtamiskoulutus}"></h4>
     <p class="mb-1">
         <em class="fas fa-check-circle success"></em>
