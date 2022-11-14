@@ -31,6 +31,8 @@ import java.time.LocalDate
 import javax.persistence.EntityNotFoundException
 import javax.validation.ValidationException
 
+private const val TERVEYSKESKUS_HYVAKSYNTA_MINIMIPITUUS = 273.75 // 9kk
+
 @Service
 @Transactional
 class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
@@ -151,7 +153,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 )
             val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
 
-            if (suoritettuPituus < it.opintoopas!!.terveyskeskuskoulutusjaksonVahimmaispituus!!) {
+            if (suoritettuPituus < TERVEYSKESKUS_HYVAKSYNTA_MINIMIPITUUS) {
                 throw ValidationException()
             }
 
@@ -194,7 +196,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             )
         val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
 
-        return suoritettuPituus >= opintooikeus.opintoopas!!.terveyskeskuskoulutusjaksonVahimmaispituus!!
+        return suoritettuPituus >= TERVEYSKESKUS_HYVAKSYNTA_MINIMIPITUUS
     }
 
     override fun create(opintooikeusId: Long): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
@@ -378,7 +380,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             )
         val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
 
-        if (suoritettuPituus < hyvaksynta.opintooikeus?.opintoopas!!.terveyskeskuskoulutusjaksonVahimmaispituus!!) {
+        if (suoritettuPituus < TERVEYSKESKUS_HYVAKSYNTA_MINIMIPITUUS) {
             throw ValidationException()
         }
 
