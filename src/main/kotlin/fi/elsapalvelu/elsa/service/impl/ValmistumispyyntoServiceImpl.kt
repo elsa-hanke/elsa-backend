@@ -919,7 +919,7 @@ class ValmistumispyyntoServiceImpl(
                 setVariable("teoriakoulutusSuoritettuYhteensa", teoriakoulutukset.filter { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara != null }.sumOf { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara!! })
                 setVariable("teoriakoulutusVaadittu", it.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara)
 
-                val suoritusarvioinnit = suoritusarviointiService.findAllByTyoskentelyjaksoOpintooikeusId(it.id!!).filter { arviointi -> arviointi.arviointiasteikonTaso != null && arviointi.arviointiasteikonTaso!! >= 4 }
+                val suoritusarvioinnit = suoritusarviointiService.findAllByTyoskentelyjaksoOpintooikeusId(it.id!!).filter { arviointi -> arviointi.arviointiasteikonTaso != null }
                 val kokonaisuudetMap = suoritusarvioinnit.groupBy { arviointi -> arviointi.arvioitavaKokonaisuus }
                 val kategoriatMap = kokonaisuudetMap.keys.groupBy { k -> k?.kategoria }
                 val kategoriat = kategoriatMap.entries.map { m ->
@@ -928,9 +928,9 @@ class ValmistumispyyntoServiceImpl(
                         nimi = m.key?.nimi,
                         nimiSv = m.key?.nimiSv,
                         jarjestysnumero = m.key?.jarjestysnumero,
-                        arviointejaYhteensa = m.value.sumOf { a -> kokonaisuudetMap[a]!!.size },
+                        arviointejaYhteensa = m.value.size,
                         arvioitavatKokonaisuudet = m.value.map { k ->
-                            ArvioitavaKokonaisuusWithArvioinnitDTO(
+                            ArvioitavaKokonaisuusWithArviointiDTO(
                                 id = k?.id,
                                 nimi = k?.nimi,
                                 nimiSv = k?.nimiSv,
@@ -938,7 +938,7 @@ class ValmistumispyyntoServiceImpl(
                                 kuvausSv = k?.kuvausSv,
                                 voimassaoloAlkaa = k?.voimassaoloAlkaa,
                                 voimassaoloLoppuu = k?.voimassaoloLoppuu,
-                                suoritusarvioinnit = kokonaisuudetMap[k]
+                                suoritusarviointi = kokonaisuudetMap[k]?.sortedByDescending { a -> a.arviointiAika }?.maxByOrNull { a -> a.arviointiasteikonTaso!! }
                             ) }
                     )
                 }
