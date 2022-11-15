@@ -3,8 +3,12 @@ package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 import fi.elsapalvelu.elsa.service.EtusivuService
 import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
+import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoListItemDTO
+import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -16,7 +20,8 @@ import java.security.Principal
 class VastuuhenkiloEtusivuResource(
     private val userService: UserService,
     private val etusivuService: EtusivuService,
-    private val koejaksonVaiheetService: KoejaksonVaiheetService
+    private val koejaksonVaiheetService: KoejaksonVaiheetService,
+    private val valmistumispyyntoService: ValmistumispyyntoService
 ) {
 
     @GetMapping("/erikoistujien-seuranta")
@@ -37,6 +42,20 @@ class VastuuhenkiloEtusivuResource(
                 user.id!!,
                 true
             )
+        )
+    }
+
+    @GetMapping("/valmistumispyynnot")
+    fun getValmistumispyynnot(
+        principal: Principal?
+    ): ResponseEntity<List<ValmistumispyyntoListItemDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(
+            valmistumispyyntoService.findAllForVastuuhenkiloByCriteria(
+                user.id!!,
+                NimiErikoisalaAndAvoinCriteria(avoin = true),
+                Pageable.unpaged()
+            ).content
         )
     }
 }
