@@ -16,7 +16,7 @@ data class ArvioitavanKokonaisuudenKategoriaWithArvioinnitDTO(
 
     var arviointejaYhteensa: Int? = null,
 
-    var arvioitavatKokonaisuudet: List<ArvioitavaKokonaisuusWithArvioinnitDTO>? = null
+    var arvioitavatKokonaisuudet: List<ArvioitavaKokonaisuusWithArviointiDTO>? = null
 
 ) : Serializable {
 
