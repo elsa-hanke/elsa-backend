@@ -5,10 +5,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.AvoinAsiaTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.extensions.pattern
 import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.service.ErikoistujienSeurantaQueryService
-import fi.elsapalvelu.elsa.service.EtusivuService
-import fi.elsapalvelu.elsa.service.OpintooikeusService
-import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.dto.*
@@ -46,6 +43,7 @@ class EtusivuServiceImpl(
     private val arviointiasteikkoMapper: ArviointiasteikkoMapper,
     private val opintooikeusService: OpintooikeusService,
     private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
+    private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaRepository: TerveyskeskuskoulutusjaksonHyvaksyntaRepository,
     private val valmistumispyyntoRepository: ValmistumispyyntoRepository,
     private val clock: Clock,
@@ -263,7 +261,7 @@ class EtusivuServiceImpl(
         mapAloituskeskusteluPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
         mapVastuuhenkilonarvioPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
         mapSeurantajaksotPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
-        mapTerveyskeskuskoulutusjaksoPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
+        mapTerveyskeskuskoulutusjaksoPalautettuOrHaettavissaIfExists(avoimetAsiatList, opintooikeusId, locale)
         mapValmistumispyyntoPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
 
         return avoimetAsiatList.sortedBy { it.pvm }
@@ -627,26 +625,41 @@ class EtusivuServiceImpl(
         }
     }
 
-    private fun mapTerveyskeskuskoulutusjaksoPalautettuIfExists(
+    private fun mapTerveyskeskuskoulutusjaksoPalautettuOrHaettavissaIfExists(
         avoimetAsiatList: MutableList<AvoinAsiaDTO>,
         opintooikeusId: Long,
         locale: Locale
     ) {
-        terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(opintooikeusId)?.let {
-            if (!it.korjausehdotus.isNullOrBlank() || !it.korjausehdotusVastuuhenkilolta.isNullOrBlank()) {
+        val hyvaksynta = terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(opintooikeusId)
+        if (hyvaksynta != null) {
+            if (!hyvaksynta.korjausehdotus.isNullOrBlank() || !hyvaksynta.korjausehdotusVastuuhenkilolta.isNullOrBlank()) {
                 avoimetAsiatList.add(
                     AvoinAsiaDTO(
-                        it.id,
+                        hyvaksynta.id,
                         tyyppi = AvoinAsiaTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO,
                         asia = messageSource.getMessage(
                             "avoimetasiat.terveyskeskuskoulutusjaksonhyvaksynta",
                             arrayOf(),
                             locale
                         ),
-                        pvm = it.muokkauspaiva
+                        pvm = hyvaksynta.muokkauspaiva
                     )
                 )
             }
+        } else if (terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(
+                    opintooikeusId
+                )
+            ) {
+            avoimetAsiatList.add(
+                AvoinAsiaDTO(
+                    tyyppi = AvoinAsiaTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO,
+                    asia = messageSource.getMessage(
+                        "avoimetasiat.terveyskeskuskoulutusjaksonhyvaksynta",
+                        arrayOf(),
+                        locale
+                    )
+                )
+            )
         }
     }
 
