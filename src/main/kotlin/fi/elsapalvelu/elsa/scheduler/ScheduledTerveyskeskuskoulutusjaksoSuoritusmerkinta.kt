@@ -30,7 +30,7 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
             try {
                 opintooikeusService.findAllByTerveyskoulutusjaksoSuorittamatta().forEach {
                     if (terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(
-                            it
+                            it.id!!
                         )
                     ) {
                         it.terveyskoulutusjaksoSuoritettu = true
