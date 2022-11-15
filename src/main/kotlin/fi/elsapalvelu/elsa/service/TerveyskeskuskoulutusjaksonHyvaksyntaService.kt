@@ -35,7 +35,7 @@ interface TerveyskeskuskoulutusjaksonHyvaksyntaService {
 
     fun findByOpintooikeusIdOrCreateNew(opintooikeusId: Long): TerveyskeskuskoulutusjaksonHyvaksyntaDTO?
 
-    fun getTerveyskoulutusjaksoSuoritettu(opintooikeus: Opintooikeus): Boolean
+    fun getTerveyskoulutusjaksoSuoritettu(opintooikeusId: Long): Boolean
 
     fun create(opintooikeusId: Long): TerveyskeskuskoulutusjaksonHyvaksyntaDTO?
 

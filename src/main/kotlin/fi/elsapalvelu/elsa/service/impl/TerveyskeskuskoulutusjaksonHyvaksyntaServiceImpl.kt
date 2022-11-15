@@ -188,10 +188,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         return null
     }
 
-    override fun getTerveyskoulutusjaksoSuoritettu(opintooikeus: Opintooikeus): Boolean {
+    override fun getTerveyskoulutusjaksoSuoritettu(opintooikeusId: Long): Boolean {
         val tyoskentelyjaksot =
             tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
-                opintooikeus.id!!,
+                opintooikeusId,
                 TyoskentelyjaksoTyyppi.TERVEYSKESKUS
             )
         val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
