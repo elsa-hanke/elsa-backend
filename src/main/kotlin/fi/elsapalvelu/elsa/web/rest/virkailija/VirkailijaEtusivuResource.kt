@@ -2,9 +2,11 @@ package fi.elsapalvelu.elsa.web.rest.virkailija
 
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
+import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistujanEteneminenVirkailijaDTO
 import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaOptionsVirkailijaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
+import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoListItemDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
@@ -21,7 +23,8 @@ class VirkailijaEtusivuResource(
     private val erikoisalaService: ErikoisalaService,
     private val asetusService: AsetusService,
     private val etusivuService: EtusivuService,
-    private val koejaksonVaiheetService: KoejaksonVaiheetService
+    private val koejaksonVaiheetService: KoejaksonVaiheetService,
+    private val valmistumispyyntoService: ValmistumispyyntoService
 ) {
     @GetMapping("/erikoistujien-seuranta-rajaimet")
     fun getErikoistujienSeurantaRajaimet(): ResponseEntity<ErikoistujienSeurantaOptionsVirkailijaDTO> {
@@ -61,6 +64,20 @@ class VirkailijaEtusivuResource(
             koejaksonVaiheetService.findAllAvoinByVirkailijaKayttajaUserId(
                 user.id!!
             )
+        )
+    }
+
+    @GetMapping("/valmistumispyynnot")
+    fun getValmistumispyynnot(
+        principal: Principal?
+    ): ResponseEntity<List<ValmistumispyyntoListItemDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(
+            valmistumispyyntoService.findAllForVirkailijaByCriteria(
+                user.id!!,
+                NimiErikoisalaAndAvoinCriteria(avoin = true),
+                Pageable.unpaged()
+            ).content
         )
     }
 }
