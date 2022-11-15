@@ -264,6 +264,7 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyynnonTarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoId(valmistumispyynto.id!!)
 
         return valmistumispyynnonTarkistusMapper.toDto(valmistumispyynnonTarkistus!!).apply {
+            this.kommentitVirkailijoille = null
             this.valmistumispyynto?.tila = getValmistumispyynnonTilaForHyvaksyja(valmistumispyynto)
         }
     }
@@ -456,6 +457,7 @@ class ValmistumispyyntoServiceImpl(
         tarkistus.valmistumispyynto?.let { tarkistaAllekirjoitus(it) }
 
         val result = mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(tarkistus))
+        result.kommentitVirkailijoille = null
         tarkistus.valmistumispyynto?.let { pyynto ->
             result.valmistumispyynto?.tila = getValmistumispyynnonTilaForHyvaksyja(pyynto)
         }
