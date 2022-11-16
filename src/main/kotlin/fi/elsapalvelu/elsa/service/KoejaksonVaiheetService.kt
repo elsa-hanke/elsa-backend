@@ -1,11 +1,13 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.service.criteria.AvoinAndNimiCriteria
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
 interface KoejaksonVaiheetService {
+
     fun findAllByKouluttajaKayttajaUserId(
         userId: String,
         vainAvoimet: Boolean = false
@@ -13,8 +15,9 @@ interface KoejaksonVaiheetService {
 
     fun findAllByVastuuhenkiloKayttajaUserId(
         userId: String,
-        vainAvoimet: Boolean = false
-    ): List<KoejaksonVaiheDTO>
+        avoinAndNimiCriteria: AvoinAndNimiCriteria = AvoinAndNimiCriteria(false),
+        pageable: Pageable
+    ): Page<KoejaksonVaiheDTO>
 
     fun findAllByVirkailijaKayttajaUserId(
         userId: String,
