@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoListItemDTO
+import fi.elsapalvelu.elsa.service.criteria.AvoinAndNimiCriteria
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -40,8 +41,9 @@ class VastuuhenkiloEtusivuResource(
         return ResponseEntity.ok(
             koejaksonVaiheetService.findAllByVastuuhenkiloKayttajaUserId(
                 user.id!!,
-                true
-            )
+                AvoinAndNimiCriteria(true),
+                Pageable.unpaged()
+            ).content
         )
     }
 

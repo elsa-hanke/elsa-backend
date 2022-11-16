@@ -29,6 +29,17 @@ interface KoejaksonVastuuhenkilonArvioRepository :
         """
         select a
         from KoejaksonVastuuhenkilonArvio a join a.vastuuhenkilo v
+        where v.user.id = :userId and a.virkailijaHyvaksynyt = true and a.vastuuhenkiloHyvaksynyt = true
+        """
+    )
+    fun findAllNotAvoinByVastuuhenkilo(
+        userId: String
+    ): List<KoejaksonVastuuhenkilonArvio>
+
+    @Query(
+        """
+        select a
+        from KoejaksonVastuuhenkilonArvio a join a.vastuuhenkilo v
         where v.user.id = :userId and a.virkailijaHyvaksynyt = true and a.vastuuhenkiloHyvaksynyt = false
         """
     )
