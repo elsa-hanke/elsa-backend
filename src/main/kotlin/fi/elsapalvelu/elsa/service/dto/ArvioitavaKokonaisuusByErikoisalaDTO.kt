@@ -4,9 +4,9 @@ import java.io.Serializable
 
 data class ArvioitavaKokonaisuusByErikoisalaDTO(
 
-    var erikoisalaId: Long? = null,
+    var id: Long? = null,
 
-    var erikoisalaNimi: String? = null,
+    var nimi: String? = null,
 
     var voimassaolevat: List<ArvioitavaKokonaisuusDTO>? = null,
 
@@ -17,7 +17,7 @@ data class ArvioitavaKokonaisuusByErikoisalaDTO(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ArvioitavaKokonaisuusByErikoisalaDTO) return false
-        return erikoisalaId != null && erikoisalaId == other.erikoisalaId
+        return id != null && id == other.id
     }
 
     override fun hashCode() = 31
