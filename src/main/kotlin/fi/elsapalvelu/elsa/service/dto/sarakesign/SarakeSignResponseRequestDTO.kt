@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.sarakesign
 
 import java.io.Serializable
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 data class SarakeSignResponseRequestDTO(
 
@@ -17,7 +17,7 @@ data class SarakeSignResponseRequestDTO(
      */
     var status: Int? = null,
 
-    var finished: LocalDateTime? = null
+    var finished: ZonedDateTime? = null
 
 ) : Serializable {
 
