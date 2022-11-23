@@ -3,11 +3,12 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.repository.ArvioitavaKokonaisuusRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.ArvioitavaKokonaisuusService
-import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusByErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusDTO
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusWithErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusMapper
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusWithErikoisalaMapper
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -67,28 +68,24 @@ class ArvioitavaKokonaisuusServiceImpl(
         } ?: listOf()
     }
 
-    override fun findAllByErikoisalaIds(erikoisalaIds: List<Long>): List<ArvioitavaKokonaisuusByErikoisalaDTO> {
-        val arvioitavatKokonaisuudet =
-            arvioitavaKokonaisuusRepository.findAllByKategoriaErikoisalaIdIn(erikoisalaIds)
+    override fun findAllByErikoisalaIdPaged(
+        erikoisalaId: Long?,
+        voimassaolevat: Boolean?,
+        pageable: Pageable
+    ): Page<ArvioitavaKokonaisuusDTO> {
         val now = LocalDate.now()
-        val result = mutableListOf<ArvioitavaKokonaisuusByErikoisalaDTO>()
-        arvioitavatKokonaisuudet.groupBy { it.kategoria?.erikoisala }
-            .forEach { (erikoisala, kokonaisuudet) ->
-                val (voimassa, vanhentuneet) = kokonaisuudet.partition { k ->
-                    (now.isEqual(k.voimassaoloAlkaa) || now.isAfter(
-                        k.voimassaoloAlkaa
-                    )) && (k.voimassaoloLoppuu == null || now.isBefore(k.voimassaoloLoppuu))
-                }
-                result.add(
-                    ArvioitavaKokonaisuusByErikoisalaDTO(
-                        erikoisala?.id,
-                        erikoisala?.nimi,
-                        voimassa.map { arvioitavaKokonaisuusMapper.toDto(it) },
-                        vanhentuneet.map { arvioitavaKokonaisuusMapper.toDto(it) }
-                    )
-                )
-            }
-        return result
+        val arvioitavatKokonaisuudet =
+            if (voimassaolevat == true) arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
+                erikoisalaId,
+                now,
+                pageable
+            )
+            else arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndExpired(
+                erikoisalaId,
+                now,
+                pageable
+            )
+        return arvioitavatKokonaisuudet.map(arvioitavaKokonaisuusMapper::toDto)
     }
 
     @Transactional(readOnly = true)

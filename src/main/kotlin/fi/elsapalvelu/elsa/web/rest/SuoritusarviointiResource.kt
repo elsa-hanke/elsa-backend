@@ -3,8 +3,11 @@ package fi.elsapalvelu.elsa.web.rest
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.criteria.ArvioitavaKokonaisuusCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -114,13 +117,37 @@ open class SuoritusarviointiResource(
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
-    @GetMapping("/arvioitavatkokonaisuudet")
-    fun getArvioitavatKokonaisuudet(principal: Principal?): ResponseEntity<List<ArvioitavaKokonaisuusByErikoisalaDTO>> {
+    @GetMapping("/erikoisalat")
+    fun getErikoisalat(
+        principal: Principal?
+    ): ResponseEntity<List<ErikoisalaDTO?>> {
         val user = userService.getAuthenticatedUser(principal)
         val kayttaja = kayttajaService.findByUserId(user.id!!).get()
+        return ResponseEntity.ok(kayttaja.yliopistotAndErikoisalat?.map { it.erikoisala })
+    }
+
+    @GetMapping("/arvioitavatkokonaisuudet")
+    fun getArvioitavatKokonaisuudet(
+        criteria: ArvioitavaKokonaisuusCriteria,
+        pageable: Pageable,
+        principal: Principal?
+    ): ResponseEntity<Page<ArvioitavaKokonaisuusDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.findByUserId(user.id!!).get()
+        if (kayttaja.yliopistotAndErikoisalat?.map { it.erikoisala?.id }
+                ?.contains(criteria.erikoisalaId) == false) {
+            throw BadRequestAlertException(
+                "Käyttäjällä ei ole oikeutta katsella erikoisalan tietoja.",
+                ENTITY_NAME,
+                "dataillegal.kayttajalla-ei-oikeutta-erikoisalaan"
+            )
+        }
         return ResponseEntity.ok(
-            arvioitavaKokonaisuusService.findAllByErikoisalaIds(
-                kayttaja.yliopistotAndErikoisalat.orEmpty().map { it.erikoisala?.id!! })
+            arvioitavaKokonaisuusService.findAllByErikoisalaIdPaged(
+                criteria.erikoisalaId,
+                criteria.voimassaolevat,
+                pageable
+            )
         )
     }
 
