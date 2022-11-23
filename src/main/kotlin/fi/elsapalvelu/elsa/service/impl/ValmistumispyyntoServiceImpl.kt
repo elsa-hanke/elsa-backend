@@ -527,7 +527,7 @@ class ValmistumispyyntoServiceImpl(
                 )
 
             if (response?.status == 3) { // Completed
-                valmistumispyynto.allekirjoitusaika = response.finished?.toLocalDate()
+                valmistumispyynto.allekirjoitusaika = response.finished?.withZoneSameInstant(ZoneId.systemDefault())?.toLocalDate()
             } else if (response?.status == 4) { // Aborted
                 valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = null
             }
