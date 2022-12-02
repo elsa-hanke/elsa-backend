@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>Seurantajakson yhteenveto</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+          rel="stylesheet" type="text/css"/>
+    <style>
+        hr {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 0;
+            border-top: 1px solid rgba(34, 34, 34, 0.1);
+        }
+
+        th {
+            text-align: left;
+        }
+
+        td {
+            padding-bottom: 2px;
+        }
+
+        table {
+            border-spacing: 0;
+        }
+
+        .alert {
+            padding: 1rem;
+            background-color: #e8e9ec;
+            margin-bottom: 1rem;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .osaamistavoitteet-badge {
+            display: inline-block;
+            color: #212529;
+            background-color: #e8e9ec;
+            padding: 0.3em 0.6em;
+            margin-bottom: 0.2em;
+            border-radius: 1rem;
+        }
+
+        .kokonaisuus-title {
+            font-weight: bold;
+            padding-top: 0.5rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .arviointi-hr {
+            margin-top: 0.1rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .arviointi-header {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            text-transform: uppercase;
+            font-weight: normal;
+            font-size: 0.8125000003rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .arviointi-item {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .arviointi-badge {
+            color: #ffffff;
+            background-color: #41b257;
+            font-size: 1.171875rem;
+            padding-right: 0.3em;
+            padding-left: 0.3em;
+            border-radius: 10rem;
+        }
+
+        .suorite-row {
+            padding: 0.5rem;
+            vertical-align: top;
+            border-bottom: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1 th:text="#{erikoistujantiedot.seurantajaksonYhteenveto}"></h1>
+    <div th:if="${seurantajakso.hyvaksytty}" class="alert">
+        <em class="fas fa-check-circle success"></em>
+        <span style="margin-left: 0.5rem"
+              th:text="#{erikoistujantiedot.seurantajaksoArvioitu}"></span>
+    </div>
+    <hr/>
+    <div>
+        <table>
+            <caption></caption>
+            <tr>
+                <th style="width: 12rem" th:text="#{erikoistujantiedot.erikoistuvaLaakari}"></th>
+                <td th:text="${seurantajakso.erikoistuvanNimi}">
+                </td>
+            </tr>
+            <tr>
+                <th th:text="#{erikoistujantiedot.opiskelijanumero}"></th>
+                <td th:text="${seurantajakso.erikoistuvanOpiskelijatunnus}"></td>
+            </tr>
+            <tr>
+                <th th:text="#{erikoistujantiedot.yliopisto}"></th>
+                <td th:text="#{${seurantajakso.erikoistuvanYliopistoNimi}}"></td>
+            </tr>
+            <tr>
+                <th th:text="#{erikoistujantiedot.seurantajakso}"></th>
+                <td>
+                    <span th:text="${#temporals.format(seurantajakso.alkamispaiva, 'dd.MM.yyyy')}"></span>
+                    <span th:text="'-'"></span>
+                    <span th:text="${#temporals.format(seurantajakso.paattymispaiva, 'dd.MM.yyyy')}"></span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <hr/>
+    <div th:if="${seurantajaksonTiedot.osaamistavoitteet.size() > 0}">
+        <h3 th:text="#{erikoistujantiedot.suunnitellutTavoitteet}"></h3>
+        <h4 th:text="#{erikoistujantiedot.osaamistavoitteetOmaltaErikoisalalta}"></h4>
+        <span th:each="osaamistavoite: ${seurantajaksonTiedot.osaamistavoitteet}">
+            <span class="osaamistavoitteet-badge" th:text="${osaamistavoite}"></span>
+        </span>
+        <div th:if="${seurantajaksonTiedot.muutOsaamistavoitteet.size() > 0}">
+            <h4 th:text="#{erikoistujantiedot.muutOsaamistavoitteet}"></h4>
+            <p th:each="muuTavoite: ${seurantajaksonTiedot.muutOsaamistavoitteet}" th:text="${muuTavoite}"></p>
+        </div>
+        <hr/>
+    </div>
+    <h3 th:text="#{erikoistujantiedot.arvioinnit} + ' (' + ${seurantajaksonTiedot.arviointienMaara} + ' ' + #{erikoistujantiedot.kpl} + ')'"></h3>
+    <div th:each="kategoria: ${seurantajaksonTiedot.arvioinnit}">
+        <h4 th:text="${kategoria.nimi}" style="margin-bottom: 0.5rem"></h4>
+        <div th:each="kokonaisuus: ${kategoria.arvioitavatKokonaisuudet}">
+            <p th:text="${kokonaisuus.nimi}" class="kokonaisuus-title"></p>
+            <table style="width: 100%">
+                <caption></caption>
+                <thead>
+                <tr>
+                    <th class="arviointi-header" style="width: 35%" th:text="#{erikoistujantiedot.tapahtuma}"></th>
+                    <th class="arviointi-header" style="width: 50%" th:text="#{${arviointiasteikko.nimi}}"></th>
+                    <th class="arviointi-header" th:text="#{erikoistujantiedot.pvm}"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="arviointi: ${kokonaisuus.arvioinnit}" style="padding-left: 0.5rem">
+                    <td class="arviointi-item" th:text="${arviointi.arvioitavaTapahtuma}"></td>
+                    <td class="arviointi-item">
+                        <div th:if="${arviointi.arviointiasteikonTaso != null}">
+                            <span class="arviointi-badge" th:text="${arviointi.arviointiasteikonTaso}"></span>
+                            <span th:text="#{${arviointiasteikonTasot[arviointi.arviointiasteikonTaso].nimi}}"></span>
+                        </div>
+                    </td>
+                    <td class="arviointi-item"
+                        th:text="${#temporals.format(arviointi.tapahtumanAjankohta, 'dd.MM.yyyy')}">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <h3 th:text="#{erikoistujantiedot.suoritemerkinnat} + ' (' + ${seurantajaksonTiedot.suoritemerkinnatMaara} + ' ' + #{erikoistujantiedot.kpl} + ')'"></h3>
+    <table th:if="${seurantajaksonTiedot.suoritemerkinnatMaara > 0}">
+        <caption></caption>
+        <thead>
+        <tr>
+            <th class="arviointi-header" style="width: 40%" th:text="#{erikoistujantiedot.suorite}"></th>
+            <th class="arviointi-header" style="width: 45%" th:text="#{${arviointiasteikko.nimi}}"></th>
+            <th class="arviointi-header" th:text="#{erikoistujantiedot.suorituspaiva}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="suorite: ${seurantajaksonTiedot.suoritemerkinnat}" style="padding-left: 0.5rem">
+            <td class="suorite-row" th:text="${suorite.suorite}"></td>
+            <td class="suorite-row">
+                <table>
+                    <caption></caption>
+                    <thead><tr><th></tr></thead>
+                    <tr th:each="merkinta: ${suorite.suoritemerkinnat}">
+                        <td style="line-height: 25px;">
+                            <div th:if="${merkinta.arviointiasteikonTaso != null}">
+                                <span class="arviointi-badge" th:text="${merkinta.arviointiasteikonTaso}"></span>
+                                <span th:text="#{${arviointiasteikonTasot[merkinta.arviointiasteikonTaso].nimi}}"></span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td class="suorite-row">
+                <table>
+                    <caption></caption>
+                    <thead><tr><th></tr></thead>
+                    <tr th:each="merkinta: ${suorite.suoritemerkinnat}">
+                        <td style="line-height: 25px;" th:text="${#temporals.format(merkinta.suorituspaiva, 'dd.MM.yyyy')}">
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <h3 th:text="#{erikoistujantiedot.teoriakoulutukset} + ' (' + ${seurantajaksonTiedot.teoriakoulutukset.size()} + ' ' + #{erikoistujantiedot.kpl} + ')'"></h3>
+    <table style="width: 100%" th:if="${seurantajaksonTiedot.teoriakoulutukset.size() > 0}">
+        <caption></caption>
+        <thead>
+        <tr>
+            <th class="arviointi-header" th:text="#{erikoistujantiedot.koulutuksenNimi}"></th>
+            <th class="arviointi-header" th:text="#{erikoistujantiedot.paikka}"></th>
+            <th class="arviointi-header" th:text="#{erikoistujantiedot.pvm}"></th>
+            <th class="arviointi-header" th:text="#{erikoistujantiedot.tunnit}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="koulutus: ${seurantajaksonTiedot.teoriakoulutukset}" style="padding-left: 0.5rem">
+            <td class="suorite-row" th:text="${koulutus.koulutuksenNimi}"></td>
+            <td class="suorite-row" th:text="${koulutus.koulutuksenPaikka}"></td>
+            <td class="suorite-row">
+                <span
+                    th:text="${#temporals.format(koulutus.alkamispaiva, 'dd.MM.yyyy')}"></span>
+                <span th:if="${koulutus.paattymispaiva != null}"
+                      th:text="'-' + ${#temporals.format(koulutus.paattymispaiva, 'dd.MM.yyyy')}"></span>
+            </td>
+            <td class="suorite-row" th:text="${#strings.replace(koulutus.erikoistumiseenHyvaksyttavaTuntimaara,'.0','')}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <h3 th:text="#{erikoistujantiedot.erikoistujanOmaArviointi}"></h3>
+    <h4 th:text="#{erikoistujantiedot.omaArviointiSeurantajaksolta}"></h4>
+    <p class="mb-1" th:text="${seurantajakso.omaArviointi}"></p>
+    <h4 th:text="#{erikoistujantiedot.lisahuomioita}"></h4>
+    <p class="mb-1" th:text="${seurantajakso.lisahuomioita}"></p>
+    <h4 th:text="#{erikoistujantiedot.seuraavanJaksonTavoitteet}"></h4>
+    <p class="mb-1" th:text="${seurantajakso.seuraavanJaksonTavoitteet}"></p>
+    <hr/>
+    <h3 th:text="#{erikoistujantiedot.seurantakeskustelunOsapuoli}"></h3>
+    <h4 th:text="#{erikoistujantiedot.lahikouluttaja}"></h4>
+    <p class="mb-1" th:text="${seurantajakso.kouluttaja.nimi}"></p>
+    <hr/>
+    <h3 th:text="#{erikoistujantiedot.lahikouluttajanArviointi}"></h3>
+    <h4 th:text="#{erikoistujantiedot.edistyminenOsaamistavoitteidenMukaista}"></h4>
+    <p class="mb-1" th:text="${seurantajakso.edistyminenTavoitteidenMukaista} ? #{erikoistujantiedot.kylla} : #{erikoistujantiedot.ei}"></p>
+    <div th:if="${seurantajakso.huolenaiheet != null}">
+        <h4 th:text="#{erikoistujantiedot.huolenaiheet}"></h4>
+        <p class="mb-1" th:text="${seurantajakso.huolenaiheet}"></p>
+    </div>
+    <h4 th:text="#{erikoistujantiedot.lahikouluttajanArviointiJaksosta}"></h4>
+    <p class="mb-1" th:text="${seurantajakso.kouluttajanArvio}"></p>
+    <div th:if="${seurantajakso.erikoisalanTyoskentelyvalmiudet != null}">
+        <h4 th:text="#{erikoistujantiedot.erikoisalanTyoskentelyvalmiudet}"></h4>
+        <p class="mb-1" th:text="${seurantajakso.erikoisalanTyoskentelyvalmiudet}"></p>
+    </div>
+    <h4 th:text="#{erikoistujantiedot.jatkotoimetJaRaportointi}"></h4>
+    <p class="mb-1" th:text="${seurantajakso.jatkotoimetJaRaportointi}"></p>
+    <hr/>
+    <div th:if="${seurantajakso.seurantakeskustelunYhteisetMerkinnat != null}">
+        <h3 th:text="#{erikoistujantiedot.seurantakeskustelunMerkinnat}"></h3>
+        <h4 th:text="#{erikoistujantiedot.yhteisetMerkinnat}"></h4>
+        <p class="mb-1" th:text="${seurantajakso.seurantakeskustelunYhteisetMerkinnat}"></p>
+        <h4 th:text="#{erikoistujantiedot.seuraavanKeskustelunAjankohta}"></h4>
+        <p class="mb-1" th:text="${#temporals.format(seurantajakso.seuraavanKeskustelunAjankohta, 'dd.MM.yyyy')}"></p>
+    </div>
+</div>
+</body>
+</html>

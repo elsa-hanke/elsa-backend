@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>Koulutussuunnitelma</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+          rel="stylesheet" type="text/css"/>
+    <style>
+        hr {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 0;
+            border-top: 1px solid rgba(34, 34, 34, 0.1);
+        }
+
+        th {
+            text-align: left;
+        }
+
+        td {
+            padding-bottom: 2px;
+        }
+
+        table {
+            border-spacing: 0;
+        }
+
+        .koulutussuunnitelma-item {
+            border: 1px solid #dee2e6;
+            margin-top: 0.5rem;
+        }
+
+        .koulutussuunnitelma-header {
+            padding: 1rem 1rem;
+        }
+
+        .koulutussuunnitelma-header-title {
+            padding-left: 1rem;
+            font-weight: bold;
+        }
+
+        .koulutussuunnitelma-content {
+            padding: 0 0.5rem 1rem 3rem;
+        }
+
+        .text-muted {
+            color: #808080
+        }
+
+        .koulutusjaksot-table {
+            margin-bottom: 1rem;
+            border-collapse: collapse;
+        }
+
+        .koulutusjaksot-table thead th {
+            border-bottom: 1px solid #dee2e6;
+            padding-right: 0.7rem;
+        }
+
+        .koulutusjaksot-table td {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            padding-right: 0.3rem;
+            vertical-align: top;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .osaamistavoitteet-badge {
+            display: inline-block;
+            color: #212529;
+            background-color: #e8e9ec;
+            padding: 0.3em 0.6em;
+            margin-bottom: 0.2em;
+            border-radius: 1rem;
+        }
+
+        .motivaatiokirje-table {
+            margin-bottom: 1rem;
+            border-collapse: collapse;
+        }
+
+        .motivaatiokirje-table thead th {
+            border-bottom: 1px solid #dee2e6;
+            padding-right: 1rem;
+        }
+
+        .motivaatiokirje-table td {
+            padding-right: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1 th:text="#{erikoistujantiedot.koulutussuunnitelma}"></h1>
+    <h3 th:text="#{erikoistujantiedot.koulutusjaksot}"></h3>
+    <table class="koulutusjaksot-table">
+        <caption></caption>
+        <thead>
+        <tr>
+            <th th:text="#{erikoistujantiedot.koulutusjakso}"></th>
+            <th th:text="#{erikoistujantiedot.tyoskentelyjaksot}"></th>
+            <th th:text="#{erikoistujantiedot.osaamistavoitteet}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="koulutusjakso: ${koulutussuunnitelma.koulutusjaksot}">
+            <td th:text="${koulutusjakso.nimi}"></td>
+            <td>
+                <div th:each="tyoskentelyjakso: ${koulutusjakso.tyoskentelyjaksot}">
+                    <span th:text="${tyoskentelyjakso.tyoskentelypaikka.nimi}"></span>
+                    <span
+                        th:text="${#temporals.format(tyoskentelyjakso.alkamispaiva, 'dd.MM.yyyy')}"></span>
+                    <span th:text="'-'">-</span>
+                    <span th:if="${tyoskentelyjakso.paattymispaiva != null}"
+                          th:text="${#temporals.format(tyoskentelyjakso.paattymispaiva, 'dd.MM.yyyy')}"></span>
+                </div>
+            </td>
+            <td style="padding-top: 0.3rem">
+                <span th:each="kokonaisuus: ${koulutusjakso.osaamistavoitteet}">
+                    <span class="osaamistavoitteet-badge" th:text="${kokonaisuus.nimi}"></span>
+                </span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <h3 th:text="#{erikoistujantiedot.henkilokohtainenKoulutussuunnitelma}"></h3>
+    <div class="koulutussuunnitelma-item">
+        <header class="koulutussuunnitelma-header">
+            <em class="fas fa-envelope-open-text text-muted"></em>
+            <span class="koulutussuunnitelma-header-title" th:text="#{erikoistujantiedot.motivaatiokirje}"></span>
+            <span th:if="${koulutussuunnitelma.motivaatiokirjeYksityinen}" th:text="'(' + #{erikoistujantiedot.yksityinen} + ')'"></span>
+        </header>
+        <div class="koulutussuunnitelma-content">
+            <div th:if="${koulutussuunnitelma.motivaatiokirjeAsiakirja != null}">
+                <table class="motivaatiokirje-table">
+                    <caption></caption>
+                    <thead>
+                    <tr>
+                        <th class="motivaatiokirje-header" th:text="#{erikoistujantiedot.tiedostonNimi}"></th>
+                        <th class="motivaatiokirje-header" th:text="#{erikoistujantiedot.lisatty}"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="kuulustelu-item" th:text="${koulutussuunnitelma.motivaatiokirjeAsiakirja.nimi}"></td>
+                        <td class="kuulustelu-item" th:text="${#temporals.format(koulutussuunnitelma.motivaatiokirjeAsiakirja.lisattypvm, 'dd.MM.yyyy')}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${koulutussuunnitelma.motivaatiokirje != null}" th:text="${koulutussuunnitelma.motivaatiokirje}"></div>
+        </div>
+    </div>
+    <div class="koulutussuunnitelma-item">
+        <header class="koulutussuunnitelma-header">
+            <em class="fas fa-toolbox text-muted"></em>
+            <span class="koulutussuunnitelma-header-title" th:text="#{erikoistujantiedot.opiskeluJaTyohistoria}"></span>
+            <span th:if="${koulutussuunnitelma.opiskeluJaTyohistoriaYksityinen}" th:text="'(' + #{erikoistujantiedot.yksityinen} + ')'"></span>
+        </header>
+        <div class="koulutussuunnitelma-content">
+            <div th:if="${koulutussuunnitelma.opiskeluJaTyohistoria != null}" th:text="${koulutussuunnitelma.opiskeluJaTyohistoria}"></div>
+        </div>
+    </div>
+    <div class="koulutussuunnitelma-item">
+        <header class="koulutussuunnitelma-header">
+            <em class="fas fa-dumbbell text-muted"></em>
+            <span class="koulutussuunnitelma-header-title" th:text="#{erikoistujantiedot.vahvuudet}"></span>
+            <span th:if="${koulutussuunnitelma.vahvuudetYksityinen}" th:text="'(' + #{erikoistujantiedot.yksityinen} + ')'"></span>
+        </header>
+        <div class="koulutussuunnitelma-content">
+            <div th:if="${koulutussuunnitelma.vahvuudet != null}" th:text="${koulutussuunnitelma.vahvuudet}"></div>
+        </div>
+    </div>
+    <div class="koulutussuunnitelma-item">
+        <header class="koulutussuunnitelma-header">
+            <em class="fas fa-eye text-muted"></em>
+            <span class="koulutussuunnitelma-header-title" th:text="#{erikoistujantiedot.tulevaisuudenVisiointi}"></span>
+            <span th:if="${koulutussuunnitelma.tulevaisuudenVisiointiYksityinen}" th:text="'(' + #{erikoistujantiedot.yksityinen} + ')'"></span>
+        </header>
+        <div class="koulutussuunnitelma-content">
+            <div th:if="${koulutussuunnitelma.tulevaisuudenVisiointi != null}" th:text="${koulutussuunnitelma.tulevaisuudenVisiointi}"></div>
+        </div>
+    </div>
+    <div class="koulutussuunnitelma-item">
+        <header class="koulutussuunnitelma-header">
+            <em class="fas fa-chart-line text-muted"></em>
+            <span class="koulutussuunnitelma-header-title" th:text="#{erikoistujantiedot.osaamisenKartuttaminen}"></span>
+            <span th:if="${koulutussuunnitelma.osaamisenKartuttaminenYksityinen}" th:text="'(' + #{erikoistujantiedot.yksityinen} + ')'"></span>
+        </header>
+        <div class="koulutussuunnitelma-content">
+            <div th:if="${koulutussuunnitelma.osaamisenKartuttaminen != null}" th:text="${koulutussuunnitelma.osaamisenKartuttaminen}"></div>
+        </div>
+    </div>
+    <div class="koulutussuunnitelma-item">
+        <header class="koulutussuunnitelma-header">
+            <em class="fas fa-theater-masks text-muted"></em>
+            <span class="koulutussuunnitelma-header-title" th:text="#{erikoistujantiedot.elamankentta}"></span>
+            <span th:if="${koulutussuunnitelma.elamankenttaYksityinen}" th:text="'(' + #{erikoistujantiedot.yksityinen} + ')'"></span>
+        </header>
+        <div class="koulutussuunnitelma-content">
+            <div th:if="${koulutussuunnitelma.elamankentta != null}" th:text="${koulutussuunnitelma.elamankentta}"></div>
+        </div>
+    </div>
+    <hr/>
+</div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>Päivittäiset merkinnät</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+          rel="stylesheet" type="text/css"/>
+    <style>
+        hr {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 0;
+            border-top: 1px solid rgba(34, 34, 34, 0.1);
+        }
+
+        h4 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 0;
+        }
+
+        .paivakirja-container {
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .merkinta-badge {
+            background-color: #e8e9ec;
+            font-size: 1.171875rem;
+            padding: 0.3em 0.6em;
+            border-radius: 1rem;
+        }
+
+        .small {
+            font-size: smaller;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1 th:text="#{erikoistujantiedot.paivittaisetMerkinnat}"></h1>
+    <hr/>
+    <div class="paivakirja-container" th:each="merkinta: ${paivakirjamerkinnat}">
+        <h4 th:text="${merkinta.oppimistapahtumanNimi}"></h4>
+        <div>
+            <span class="small" th:text="${#temporals.format(merkinta.paivamaara, 'dd.MM.yyyy')}"></span>
+            <span th:each="aihe: ${merkinta.aihekategoriat}">
+                <span class="merkinta-badge small" th:text="${aihe.nimi} + (${aihe.teoriakoulutus && merkinta.teoriakoulutus != null} ? (': ' + ${merkinta.teoriakoulutus.koulutuksenNimi}) : (${aihe.muunAiheenNimi} ? (': ' + ${merkinta.muunAiheenNimi}) : ''))"></span>
+            </span>
+        </div>
+        <p th:text="${merkinta.reflektio}"></p>
+    </div>
+</div>
+</body>
+</html>

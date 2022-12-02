@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>Arvioinnit</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+          rel="stylesheet" type="text/css"/>
+    <style>
+        hr {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 0;
+            border-top: 1px solid rgba(34, 34, 34, 0.1);
+        }
+
+        th {
+            text-align: left;
+        }
+
+        td {
+            padding-bottom: 2px;
+        }
+
+        table {
+            border-spacing: 0;
+        }
+
+        .kategoria {
+            background: #f5f5f6;
+            font-weight: bold;
+            padding: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .kokonaisuus-title {
+            font-weight: bold;
+            padding-top: 0.5rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .arviointi-header {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            text-transform: uppercase;
+            font-weight: normal;
+            font-size: 0.8125000003rem;
+        }
+
+        .arviointi-item {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .arviointi-badge {
+            background-color: #e8e9ec;
+            font-size: 1.171875rem;
+            padding-right: 0.3em;
+            padding-left: 0.3em;
+            border-radius: 10rem;
+        }
+
+        .success {
+            color: #ffffff;
+            background-color: #41b257;
+        }
+
+        .arviointiasteikko {
+            background: #f5f5f6;
+            margin-top: 0.5rem;
+            padding-left: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .arviointiasteikko-title {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1 th:text="#{erikoistujantiedot.arvioinnit}"></h1>
+    <div th:each="kategoria: ${arvioinninKategoriat}">
+        <div class="kategoria"
+             th:text="${kategoria.nimi} + ' (' + ${kategoria.arviointejaYhteensa} + ' ' + #{valmistumisenyhteenveto.arviointia} + ')'">
+        </div>
+        <div th:each="kokonaisuus: ${kategoria.arvioitavatKokonaisuudet}">
+            <p th:text="${kokonaisuus.nimi}" class="kokonaisuus-title"></p>
+            <table>
+                <caption></caption>
+                <thead>
+                <tr>
+                    <th class="arviointi-header" th:text="#{erikoistujantiedot.pvm}"></th>
+                    <th class="arviointi-header" th:text="#{erikoistujantiedot.tapahtuma}">
+                    </th>
+                    <th class="arviointi-header" th:text="#{erikoistujantiedot.arviointi}">
+                    </th>
+                    <th class="arviointi-header" th:text="#{erikoistujantiedot.itsearviointi}">
+                    </th>
+                    <th class="arviointi-header" th:text="#{erikoistujantiedot.tyoskentelypaikka}">
+                    </th>
+                    <th class="arviointi-header" th:text="#{erikoistujantiedot.kouluttaja}">
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="arviointi: ${kokonaisuus.suoritusarvioinnit}" style="padding-left: 0.5rem">
+                    <td class="arviointi-item"
+                        th:text="${#temporals.format(arviointi.tapahtumanAjankohta, 'dd.MM.yyyy')}">
+                    </td>
+                    <td class="arviointi-item" th:text="${arviointi.arvioitavaTapahtuma}"></td>
+                    <td class="arviointi-item">
+                        <span th:if="${arviointi.arviointiasteikonTaso != null}" class="arviointi-badge" th:classappend="${arviointi.arviointiasteikonTaso > 3 ? 'success' : ''}"
+                              th:text="${arviointi.arviointiasteikonTaso}"></span>
+                        <span th:unless="${arviointi.arviointiasteikonTaso != null}" th:text="#{erikoistujantiedot.eiTehty}"></span>
+                    </td>
+                    <td class="arviointi-item">
+                        <span th:if="${arviointi.itsearviointiArviointiasteikonTaso != null}" class="arviointi-badge" th:classappend="${arviointi.itsearviointiArviointiasteikonTaso > 3 ? 'success' : ''}"
+                              th:text="${arviointi.itsearviointiArviointiasteikonTaso}"></span>
+                        <span th:unless="${arviointi.itsearviointiArviointiasteikonTaso != null}" th:text="#{erikoistujantiedot.eiTehty}"></span>
+                    </td>
+                    <td class="arviointi-item"
+                        th:text="${arviointi.tyoskentelyjakso.tyoskentelypaikka.nimi}">
+                    </td>
+                    <td class="arviointi-item" th:text="${arviointi.arvioinninAntaja.nimi}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="arviointiasteikko">
+        <h3 class="arviointiasteikko-title" th:text="#{erikoistujantiedot.arviointiasteikko}"></h3>
+        <div th:each="asteikonTaso: ${arviointiasteikko.tasot}">
+            <h4 style="margin-bottom: 0.5rem" th:text="${asteikonTaso.taso} + ' ' + #{${asteikonTaso.nimi}}"></h4>
+            <p th:text="#{${asteikonTaso.nimi} + '-kuvaus'}"></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

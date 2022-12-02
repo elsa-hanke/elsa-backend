@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>Suoritemerkinnät ja seurantajaksot</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+          rel="stylesheet" type="text/css"/>
+    <style>
+        hr {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 0;
+            border-top: 1px solid rgba(34, 34, 34, 0.1);
+        }
+
+        th {
+            text-align: left;
+        }
+
+        td {
+            padding-bottom: 2px;
+        }
+
+        table {
+            border-spacing: 0;
+        }
+
+        .kategoria {
+            background: #f5f5f6;
+            font-weight: bold;
+            padding: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .kokonaisuus-title {
+            font-weight: bold;
+            padding-top: 0.5rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .suorite-table {
+            border-collapse: collapse;
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .suorite-table th {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            text-transform: uppercase;
+            font-weight: normal;
+            font-size: 0.8125000003rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .suorite-row {
+            padding: 0.5rem;
+            vertical-align: top;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .merkinta-badge {
+            background-color: #e8e9ec;
+            font-size: 1.171875rem;
+            padding-right: 0.3em;
+            padding-left: 0.3em;
+            border-radius: 10rem;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1 th:text="#{erikoistujantiedot.suoritemerkinnat}"></h1>
+    <div th:each="kategoria: ${suoritteenKategoriat}" style="padding-bottom: 1.5rem">
+        <table class="suorite-table">
+            <caption></caption>
+            <thead>
+            <tr>
+                <th style="width: 40%;" th:text="#{erikoistujantiedot.suorite} + ': ' + ${kategoria.nimi}"></th>
+                <th style="width: 35%;" th:text="#{${kategoria.arviointiasteikko}}"></th>
+                <th style="width: 15%" th:text="#{erikoistujantiedot.pvm}"></th>
+                <th style="width: 10%" th:text="#{erikoistujantiedot.maara}"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="suorite: ${kategoria.suoritteet}" style="padding-left: 0.5rem">
+                <td class="suorite-row" th:text="${suorite.nimi}"></td>
+                <td class="suorite-row">
+                    <table>
+                        <caption></caption>
+                        <thead><tr><th></tr></thead>
+                        <tr th:each="merkinta: ${suorite.suoritemerkinnat}">
+                            <td style="line-height: 25px;">
+                                <div th:if="${merkinta.arviointiasteikonTaso != null}">
+                                    <span class="merkinta-badge" th:text="${merkinta.arviointiasteikonTaso}"></span>
+                                    <span th:text="#{${arviointiasteikonTasot[merkinta.arviointiasteikonTaso].nimi}}"></span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td class="suorite-row">
+                    <table>
+                        <caption></caption>
+                        <thead><tr><th></tr></thead>
+                        <tr th:each="merkinta: ${suorite.suoritemerkinnat}">
+                            <td style="line-height: 25px;" th:text="${#temporals.format(merkinta.suorituspaiva, 'dd.MM.yyyy')}">
+                        </tr>
+                    </table>
+                </td>
+                <td class="suorite-row">
+                    <span th:text="${suorite.suoritemerkinnat.size()}"></span>
+                    <span th:if="${suorite.vaadittulkm != null}">
+                        <span th:text="'/'"></span>
+                        <span th:text="${suorite.vaadittulkm}"></span>
+                    </span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
