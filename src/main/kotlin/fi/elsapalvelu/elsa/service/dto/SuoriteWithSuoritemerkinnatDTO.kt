@@ -4,7 +4,7 @@ import java.io.Serializable
 import java.time.LocalDate
 import javax.validation.constraints.NotNull
 
-data class ArvioitavaKokonaisuusWithArviointiDTO(
+data class SuoriteWithSuoritemerkinnatDTO(
 
     var id: Long? = null,
 
@@ -13,22 +13,20 @@ data class ArvioitavaKokonaisuusWithArviointiDTO(
 
     var nimiSv: String? = null,
 
-    var kuvaus: String? = null,
-
-    var kuvausSv: String? = null,
-
     @get: NotNull
-    var voimassaoloAlkaa: LocalDate? = null,
+    var voimassaolonAlkamispaiva: LocalDate? = null,
 
-    var voimassaoloLoppuu: LocalDate? = null,
+    var voimassaolonPaattymispaiva: LocalDate? = null,
 
-    var suoritusarviointi: SuoritusarviointiDTO? = null
+    var vaadittulkm: Int? = null,
+
+    var suoritemerkinnat: List<SuoritemerkintaDTO>? = listOf()
 
 ) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ArvioitavaKokonaisuusWithArviointiDTO) return false
+        if (other !is SuoriteWithSuoritemerkinnatDTO) return false
         return id != null && id == other.id
     }
 

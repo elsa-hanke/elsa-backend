@@ -662,19 +662,19 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr style="padding-left: 0.5rem">
+                <tr th:each="arviointi: ${kokonaisuus.suoritusarvioinnit}" style="padding-left: 0.5rem">
                     <td class="arviointi-item"
-                        th:text="${#temporals.format(kokonaisuus.suoritusarviointi.tapahtumanAjankohta, 'dd.MM.yyyy')}">
+                        th:text="${#temporals.format(arviointi.tapahtumanAjankohta, 'dd.MM.yyyy')}">
                     </td>
-                    <td class="arviointi-item" th:text="${kokonaisuus.suoritusarviointi.arvioitavaTapahtuma}"></td>
+                    <td class="arviointi-item" th:text="${arviointi.arvioitavaTapahtuma}"></td>
                     <td class="arviointi-item">
                         <span class="arviointi-badge"
-                              th:text="${kokonaisuus.suoritusarviointi.arviointiasteikonTaso}"></span>
+                              th:text="${arviointi.arviointiasteikonTaso}"></span>
                     </td>
                     <td class="arviointi-item"
-                        th:text="${kokonaisuus.suoritusarviointi.tyoskentelyjakso.tyoskentelypaikka.nimi}">
+                        th:text="${arviointi.tyoskentelyjakso.tyoskentelypaikka.nimi}">
                     </td>
-                    <td class="arviointi-item" th:text="${kokonaisuus.suoritusarviointi.arvioinninAntaja.nimi}"></td>
+                    <td class="arviointi-item" th:text="${arviointi.arvioinninAntaja.nimi}"></td>
                 </tr>
                 </tbody>
             </table>

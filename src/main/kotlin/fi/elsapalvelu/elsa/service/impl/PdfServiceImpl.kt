@@ -19,8 +19,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
 import org.thymeleaf.spring5.SpringTemplateEngine
-import java.io.ByteArrayOutputStream
-import java.io.FileInputStream
+import java.io.*
 
 @Service
 class PdfServiceImpl(
@@ -36,7 +35,7 @@ class PdfServiceImpl(
     @Value("classpath:times-roman.ttf")
     var timesNewFont: Resource? = null
 
-    override fun luoPdf(template: String, context: Context, outputStream: ByteArrayOutputStream) {
+    override fun luoPdf(template: String, context: Context, outputStream: OutputStream) {
         val content = templateEngine.process(template, context)
         val pdf = PdfADocument(
             PdfWriter(outputStream),
@@ -58,7 +57,7 @@ class PdfServiceImpl(
 
     override fun yhdistaAsiakirjat(
         asiakirjat: List<Asiakirja>,
-        outputStream: ByteArrayOutputStream
+        outputStream: OutputStream
     ) {
         val result = PdfDocument(PdfWriter(outputStream))
         val resultDocument = Document(result)
@@ -77,6 +76,21 @@ class PdfServiceImpl(
                 image.objectFit = ObjectFit.SCALE_DOWN
                 resultDocument.add(image)
             }
+        resultDocument.close()
+    }
+
+    override fun yhdistaPdf(
+        source: InputStream,
+        newPdf: InputStream,
+        outputStream: OutputStream
+    ) {
+        val result = PdfDocument(PdfReader(source), PdfWriter(outputStream))
+        val resultDocument = Document(result)
+        val merger = PdfMerger(result)
+
+        val newDocument = PdfDocument(PdfReader(newPdf))
+        merger.merge(newDocument, 1, newDocument.numberOfPages)
+
         resultDocument.close()
     }
 }

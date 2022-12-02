@@ -41,7 +41,7 @@ data class Arviointiasteikko(
     override fun hashCode() = 31
 
     override fun toString(): String {
-        return "Arviointiasteikko(id=$id, nimi=$nimi, tasot=$tasot)"
+        return "Arviointiasteikko(id=$id, nimi=$nimi)"
     }
 
     companion object {

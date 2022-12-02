@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>Suoritemerkintä</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+          rel="stylesheet" type="text/css"/>
+    <style>
+        hr {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 0;
+            border-top: 1px solid rgba(34, 34, 34, 0.1);
+        }
+
+        h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .merkinta-badge {
+            background-color: #e8e9ec;
+            font-size: 1.171875rem;
+            padding-right: 0.3em;
+            padding-left: 0.3em;
+            border-radius: 10rem;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.5rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1 th:text="#{erikoistujantiedot.suoritemerkinta}"></h1>
+    <hr/>
+    <h4 th:text="#{erikoistujantiedot.tyoskentelyjakso}"></h4>
+    <div class="mb-1">
+        <span th:text="${suoritemerkinta.tyoskentelyjakso.tyoskentelypaikka.nimi}"></span>
+        <span
+            th:text="'(' + ${#temporals.format(suoritemerkinta.tyoskentelyjakso.alkamispaiva, 'dd.MM.yyyy')}"></span>
+        <span th:text="'-'"></span>
+        <span th:if="${suoritemerkinta.tyoskentelyjakso.paattymispaiva != null}"
+              th:text="${#temporals.format(suoritemerkinta.tyoskentelyjakso.paattymispaiva, 'dd.MM.yyyy')} + ')'"></span>
+        <span th:unless="${suoritemerkinta.tyoskentelyjakso.paattymispaiva != null}"
+              th:text="#{erikoistujantiedot.kesken} + ')'"></span>
+    </div>
+    <h4 th:text="#{erikoistujantiedot.suorite}"></h4>
+    <p class="mb-1" th:text="${suoritemerkinta.suorite.nimi}"></p>
+    <h4 th:text="#{${suoritemerkinta.arviointiasteikko.nimi}}"></h4>
+    <div th:if="${suoritemerkinta.arviointiasteikonTaso != null}">
+        <span class="merkinta-badge" th:text="${suoritemerkinta.arviointiasteikonTaso}"></span>
+        <span th:text="#{${arviointiasteikonTasot[suoritemerkinta.arviointiasteikonTaso].nimi}}"></span>
+    </div>
+    <h4 th:text="#{erikoistujantiedot.vaativuustaso}"></h4>
+    <div th:if="${suoritemerkinta.vaativuustaso != null}">
+        <span class="merkinta-badge" th:text="${suoritemerkinta.vaativuustaso}"></span>
+        <span th:text="#{${vaativuusTasot[suoritemerkinta.vaativuustaso]}}"></span>
+    </div>
+    <h4 th:text="#{erikoistujantiedot.suorituspaiva}"></h4>
+    <p class="mb-1" th:text="${#temporals.format(suoritemerkinta.suorituspaiva, 'dd.MM.yyyy')}"></p>
+    <div th:if="${suoritemerkinta.lisatiedot != null}">
+        <h4 th:text="#{erikoistujantiedot.lisatiedot}"></h4>
+        <p class="mb-1" th:text="${suoritemerkinta.lisateidot}"></p>
+    </div>
+</div>
+</body>
+</html>
