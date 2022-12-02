@@ -13,6 +13,8 @@ interface PaivakirjamerkintaRepository : JpaRepository<Paivakirjamerkinta, Long>
 
     fun findAllByOpintooikeusId(pageable: Pageable, opintooikeusId: Long): Page<Paivakirjamerkinta>
 
+    fun findAllByOpintooikeusId(opintooikeusId: Long): List<Paivakirjamerkinta>
+
     fun findOneByIdAndOpintooikeusId(id: Long, opintooikeusId: Long): Paivakirjamerkinta?
 
     fun deleteByIdAndOpintooikeusId(id: Long, opintooikeusId: Long)
