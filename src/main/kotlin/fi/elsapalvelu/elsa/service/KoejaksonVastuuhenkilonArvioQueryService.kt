@@ -41,6 +41,7 @@ class KoejaksonVastuuhenkilonArvioQueryService(
                 val nimiPredicate = criteria.erikoistujanNimi.toNimiPredicate(user, cb, langkey)
                 result = cb.and(result, nimiPredicate)
             }
+
             if (criteria?.avoin != null) {
                 val avoinExpr = cb.and(
                     cb.equal(root.get(KoejaksonVastuuhenkilonArvio_.virkailijaHyvaksynyt), false),
