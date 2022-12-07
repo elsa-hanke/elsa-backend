@@ -1,16 +1,16 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
-import fi.elsapalvelu.elsa.service.AsiakirjaService
-import fi.elsapalvelu.elsa.service.FileValidationService
-import fi.elsapalvelu.elsa.service.OpintooikeusService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
@@ -27,7 +27,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
     private val userService: UserService,
     private val asiakirjaService: AsiakirjaService,
     private val fileValidationService: FileValidationService,
-    private val opintooikeusService: OpintooikeusService
+    private val opintooikeusService: OpintooikeusService,
+    private val valmistumispyyntoService: ValmistumispyyntoService
 ) {
     @Value("\${jhipster.clientApp.name}")
     private var applicationName: String? = null
@@ -38,7 +39,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
         if (!fileValidationService.validate(files, opintooikeusId)) {
             throw BadRequestAlertException(
@@ -61,8 +63,17 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
-        val asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        var asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId)
+
+        if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
+                .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED)
+        ) {
+            valmistumispyyntoService.findOneByOpintooikeusId(opintooikeusId)?.let {
+                asiakirjat = asiakirjat.filter { a -> it.erikoistujanTiedotAsiakirjaId != a.id }
+            }
+        }
 
         return ResponseEntity.ok(asiakirjat)
     }
@@ -72,7 +83,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<List<String>> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map {
             it.nimi!!
         }
@@ -86,8 +98,19 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val asiakirja = asiakirjaService.findOne(id, opintooikeusId)
+
+        if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
+                .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED)
+        ) {
+            valmistumispyyntoService.findOneByOpintooikeusId(opintooikeusId)?.let {
+                if (it.erikoistujanTiedotAsiakirjaId == id) {
+                    return ResponseEntity.notFound().build()
+                }
+            }
+        }
 
         asiakirja?.asiakirjaData?.fileInputStream?.use {
             return ResponseEntity.ok()
@@ -108,7 +131,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         asiakirjaService.delete(id, opintooikeusId)
         return ResponseEntity
             .noContent()

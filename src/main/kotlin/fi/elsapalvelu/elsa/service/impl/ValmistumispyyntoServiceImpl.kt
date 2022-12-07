@@ -999,7 +999,7 @@ class ValmistumispyyntoServiceImpl(
 
         val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
-        asiakirjaRepository.save(
+        val asiakirja = asiakirjaRepository.save(
             Asiakirja(
                 opintooikeus = valmistumispyynto.opintooikeus,
                 nimi = "koulutussuunnitelma_ja_osaaminen_${timestamp}.pdf",
@@ -1008,7 +1008,7 @@ class ValmistumispyyntoServiceImpl(
                 asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
             )
         )
-
+        valmistumispyynto.erikoistujanTiedotAsiakirja = asiakirja
         valmistumispyyntoRepository.save(valmistumispyynto)
     }
 
