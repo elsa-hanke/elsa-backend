@@ -6,14 +6,12 @@ import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioQueryService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
-import fi.elsapalvelu.elsa.service.criteria.AvoinAndNimiCriteria
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.*
 import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -76,24 +74,19 @@ class KoejaksonVaiheetServiceImpl(
         )
         applyKoulutussopimuksetForKouluttaja(userId, resultMap, kayttajaId!!, vainAvoimet)
 
-        return resultMap.flattenKoejaksonVaiheet().sortKoejaksonVaiheet(AvoinAndNimiCriteria(vainAvoimet))
+        return sortKoejaksonVaiheet(resultMap)
     }
 
     override fun findAllByVastuuhenkiloKayttajaUserId(
         userId: String,
-        avoinAndNimiCriteria: AvoinAndNimiCriteria,
-        pageable: Pageable
-    ): Page<KoejaksonVaiheDTO> {
+        vainAvoimet: Boolean
+    ): List<KoejaksonVaiheDTO> {
         val resultMap = HashMap<Long, MutableList<KoejaksonVaiheDTO>>()
 
-        applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(userId, resultMap, avoinAndNimiCriteria)
-        applyKoulutussopimuksetForVastuuhenkilo(userId, resultMap, avoinAndNimiCriteria)
+        applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(userId, resultMap, vainAvoimet)
+        applyKoulutussopimuksetForVastuuhenkilo(userId, resultMap, vainAvoimet)
 
-        return resultMap
-            .flattenKoejaksonVaiheet()
-            .filterKoejaksonVaiheet(avoinAndNimiCriteria)
-            .sortKoejaksonVaiheet(avoinAndNimiCriteria)
-            .paginateKoejaksonVaiheet(pageable)
+        return sortKoejaksonVaiheet(resultMap)
     }
 
     override fun findAllByVirkailijaKayttajaUserId(
@@ -147,44 +140,38 @@ class KoejaksonVaiheetServiceImpl(
     private fun applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(
         userId: String,
         resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>,
-        avoinAndNimiCriteria: AvoinAndNimiCriteria
+        vainAvoimet: Boolean
     ) {
         val vastuuhenkilonArviot =
-            if (avoinAndNimiCriteria.avoin) vastuuhenkilonArvioRepository.findAllAvoinByVastuuhenkilo(
+            if (vainAvoimet) vastuuhenkilonArvioRepository.findAllAvoinByVastuuhenkilo(
                 userId
-            ) else vastuuhenkilonArvioRepository.findAllNotAvoinByVastuuhenkilo(
+            ) else vastuuhenkilonArvioRepository.findAllByVastuuhenkiloUserIdAndVirkailijaHyvaksynytTrue(
                 userId
             )
-        vastuuhenkilonArviot
-            .associate {
-                koejaksonVastuuhenkilonArvioService.tarkistaAllekirjoitus(it)
-                getOpintooikeusIdOrElseThrow(it.opintooikeus) to vastuuhenkilonArvioMapper.toDto(it)
+        vastuuhenkilonArviot.associate {
+            koejaksonVastuuhenkilonArvioService.tarkistaAllekirjoitus(it)
+            getOpintooikeusIdOrElseThrow(it.opintooikeus) to vastuuhenkilonArvioMapper.toDto(it)
+        }.forEach {
+            val opintooikeusId = it.key
+            if (resultMap[opintooikeusId] != null) {
+                return@forEach
             }
-            .forEach {
-                val opintooikeusId = it.key
-                if (resultMap[opintooikeusId] != null) {
-                    return@forEach
-                }
-                resultMap[opintooikeusId] = mutableListOf()
-                val result = mapVastuuhenkilonArvio(it.value, userId)
+            resultMap[opintooikeusId] = mutableListOf()
+            val result = mapVastuuhenkilonArvio(it.value, userId)
 
+            if (!vainAvoimet) {
                 result.apply {
-                    getLoppukeskusteluHyvaksytty(opintooikeusId).ifPresent { hyvaksytty ->
-                        hyvaksytytVaiheet.add(hyvaksytty)
-                    }
+                    hyvaksytytVaiheet.add(getLoppukeskusteluHyvaksytty(opintooikeusId))
                     getKehittamistoimenpiteetHyvaksytty(opintooikeusId).ifPresent { hyvaksytty ->
                         hyvaksytytVaiheet.add(hyvaksytty)
                     }
-                    getValiarviointiHyvaksytty(opintooikeusId).ifPresent { hyvaksytty ->
-                        hyvaksytytVaiheet.add(hyvaksytty)
-                    }
-                    getAloituskeskusteluHyvaksytty(opintooikeusId).ifPresent { hyvaksytty ->
-                        hyvaksytytVaiheet.add(hyvaksytty)
-                    }
+                    hyvaksytytVaiheet.add(getValiarviointiHyvaksytty(opintooikeusId))
+                    hyvaksytytVaiheet.add(getAloituskeskusteluHyvaksytty(opintooikeusId))
                 }
-
-                resultMap[opintooikeusId]!!.add(result)
             }
+
+            resultMap[opintooikeusId]!!.add(result)
+        }
     }
 
     private fun applyKoejaksonVaiheetStartingFromLoppukeskustelut(
@@ -370,12 +357,12 @@ class KoejaksonVaiheetServiceImpl(
     private fun applyKoulutussopimuksetForVastuuhenkilo(
         userId: String,
         resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>,
-        avoinAndNimiCriteria: AvoinAndNimiCriteria
+        vainAvoimet: Boolean
     ) {
         val koulutussopimukset =
-            if (avoinAndNimiCriteria.avoin) koejaksonKoulutussopimusRepository.findAllAvoinByVastuuhenkiloUserId(
+            if (vainAvoimet) koejaksonKoulutussopimusRepository.findAllAvoinByVastuuhenkiloUserId(
                 userId
-            ) else koejaksonKoulutussopimusRepository.findAllNotAvoinByVastuuhenkiloUserId(userId)
+            ) else koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(userId)
         koulutussopimukset.associate {
             koejaksonKoulutussopimusService.tarkistaAllekirjoitus(it)
             getOpintooikeusIdOrElseThrow(it.opintooikeus) to koejaksonKoulutussopimusMapper.toDto(
@@ -397,14 +384,11 @@ class KoejaksonVaiheetServiceImpl(
         return mapAloituskeskusteluHyvaksytty(aloituskeskusteluDTO)
     }
 
-    private fun getAloituskeskusteluHyvaksytty(opintooikeusId: Long): Optional<HyvaksyttyKoejaksonVaiheDTO> {
-        var mappedAloituskeskusteluHyvaksytty: HyvaksyttyKoejaksonVaiheDTO? = null
-        aloituskeskusteluRepository.findByOpintooikeusId(opintooikeusId)
-            .map(aloituskeskusteluMapper::toDto)
-            .ifPresent {
-                mappedAloituskeskusteluHyvaksytty = mapAloituskeskusteluHyvaksytty(it)
-            }
-        return Optional.ofNullable(mappedAloituskeskusteluHyvaksytty)
+    private fun getAloituskeskusteluHyvaksytty(opintooikeusId: Long): HyvaksyttyKoejaksonVaiheDTO {
+        val aloituskeskusteluDTO =
+            aloituskeskusteluRepository.findByOpintooikeusId(opintooikeusId)
+                .map(aloituskeskusteluMapper::toDto).get()
+        return mapAloituskeskusteluHyvaksytty(aloituskeskusteluDTO)
     }
 
     private fun applyValiarviointi(
@@ -423,14 +407,11 @@ class KoejaksonVaiheetServiceImpl(
         return mappedValiarviointiHyvaksytty
     }
 
-    private fun getValiarviointiHyvaksytty(opintooikeusId: Long): Optional<HyvaksyttyKoejaksonVaiheDTO> {
-        var mappedValiarviointiHyvaksytty: HyvaksyttyKoejaksonVaiheDTO? = null
-        valiarviointiRepository.findByOpintooikeusId(opintooikeusId)
-            .map(valiarviointiMapper::toDto)
-            .ifPresent {
-                mappedValiarviointiHyvaksytty = mapValiarviointiHyvaksytty(it)
-            }
-        return Optional.ofNullable(mappedValiarviointiHyvaksytty)
+    private fun getValiarviointiHyvaksytty(opintooikeusId: Long): HyvaksyttyKoejaksonVaiheDTO {
+        val valiarviointiDTO =
+            valiarviointiRepository.findByOpintooikeusId(opintooikeusId)
+                .map(valiarviointiMapper::toDto).get()
+        return mapValiarviointiHyvaksytty(valiarviointiDTO)
     }
 
     private fun applyKehittamistoimenpiteetSingle(
@@ -463,14 +444,11 @@ class KoejaksonVaiheetServiceImpl(
         return Optional.ofNullable(mappedKehittamistoimenpiteetHyvaksytty)
     }
 
-    private fun getLoppukeskusteluHyvaksytty(opintooikeusId: Long): Optional<HyvaksyttyKoejaksonVaiheDTO> {
-        var mappedLoppukeskusteluHyvaksytty: HyvaksyttyKoejaksonVaiheDTO? = null
-        koejaksonLoppukeskusteluRepository.findByOpintooikeusId(opintooikeusId)
-                .map(koejaksonLoppukeskusteluMapper::toDto)
-                .ifPresent {
-                    mappedLoppukeskusteluHyvaksytty = mapLoppukeskusteluHyvaksytty(it)
-                }
-        return Optional.ofNullable(mappedLoppukeskusteluHyvaksytty)
+    private fun getLoppukeskusteluHyvaksytty(opintooikeusId: Long): HyvaksyttyKoejaksonVaiheDTO {
+        val loppukeskustelu =
+            koejaksonLoppukeskusteluRepository.findByOpintooikeusId(opintooikeusId)
+                .map(koejaksonLoppukeskusteluMapper::toDto).get()
+        return mapLoppukeskusteluHyvaksytty(loppukeskustelu)
     }
 
     private fun mapKoulutussopimus(
@@ -601,36 +579,18 @@ class KoejaksonVaiheetServiceImpl(
         )
     }
 
-    private fun HashMap<Long, MutableList<KoejaksonVaiheDTO>>.flattenKoejaksonVaiheet() = values.flatten().asSequence()
-
-    private fun Sequence<KoejaksonVaiheDTO>.filterKoejaksonVaiheet(
-        avoinAndNimiCriteria: AvoinAndNimiCriteria
-    ): Sequence<KoejaksonVaiheDTO> {
-        return if (avoinAndNimiCriteria.nimi.isBlank()) {
-            this
-        } else {
-            filter { it.erikoistuvanNimi?.contains(avoinAndNimiCriteria.nimi, ignoreCase = true) ?: false }
-        }
-    }
-
-    private fun Sequence<KoejaksonVaiheDTO>.sortKoejaksonVaiheet(
-        avoinAndNimiCriteria: AvoinAndNimiCriteria
+    private fun sortKoejaksonVaiheet(
+        resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>
     ): List<KoejaksonVaiheDTO> {
-        return if (avoinAndNimiCriteria.avoin)
-            sortedBy { it.pvm }.toList()
-        else
-            sortedByDescending { it.pvm }.toList()
-    }
+        val flattenList = resultMap.values.flatten().asSequence()
+        val avoimetVaiheet = flattenList.filter {
+            it.tila == KoejaksoTila.ODOTTAA_HYVAKSYNTAA
+        }.sortedBy { it.pvm }.toList()
+        val muutVaiheet = flattenList.filter {
+            it.tila != KoejaksoTila.ODOTTAA_HYVAKSYNTAA
+        }.sortedByDescending { it.pvm }.toList()
 
-    private fun List<KoejaksonVaiheDTO>.paginateKoejaksonVaiheet(
-        pageable: Pageable
-    ): Page<KoejaksonVaiheDTO> {
-
-        if (!pageable.isPaged) return PageImpl(this)
-
-        val fromIndex = pageable.offset.toInt().coerceAtMost(size)
-        val toIndex = (fromIndex + pageable.pageSize).coerceAtMost(size)
-        return PageImpl(subList(fromIndex, toIndex), pageable, size.toLong())
+        return avoimetVaiheet + muutVaiheet
     }
 
     private fun getOpintooikeusIdOrElseThrow(opintooikeus: Opintooikeus?): Long {
