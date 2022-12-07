@@ -98,7 +98,11 @@ data class Valmistumispyynto(
 
     @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(unique = true)
-    var liitteetAsiakirja: Asiakirja? = null
+    var liitteetAsiakirja: Asiakirja? = null,
+
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(unique = true)
+    var erikoistujanTiedotAsiakirja: Asiakirja? = null
 
 ) : Serializable {
 
