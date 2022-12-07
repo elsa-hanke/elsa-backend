@@ -16,9 +16,6 @@ import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KoejaksonVaiheetHelper
 import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.BaseMatcher
-import org.hamcrest.Matcher
-import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
@@ -32,7 +29,6 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -88,7 +84,7 @@ class VastuuhenkiloKoejaksoResourceIT {
 
     @Test
     @Transactional
-    fun getAvoimetKoejaksotByVastuuhenkilo() {
+    fun getKoejaksotByVastuuhenkilo() {
         initTest()
 
         koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt = true
@@ -98,80 +94,28 @@ class VastuuhenkiloKoejaksoResourceIT {
         koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
         vastuuhenkilonArvioRepository.saveAndFlush(koejaksonVastuuhenkilonArvio)
 
-        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejaksot").param("avoin", "true"))
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejaksot"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("totalElements").value(1))
-            .andExpect(jsonPath("content[0].id").value(koejaksonVastuuhenkilonArvio.id))
-            .andExpect(jsonPath("content[0].tila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name))
-            .andExpect(jsonPath("content[0].tyyppi").value(KoejaksoTyyppi.VASTUUHENKILON_ARVIO.name))
-            .andExpect(jsonPath("content[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
-            .andExpect(jsonPath("content[0].hyvaksytytVaiheet[0].id").value(koejaksonLoppukeskustelu.id))
-            .andExpect(jsonPath("content[0].hyvaksytytVaiheet[0].tyyppi").value("LOPPUKESKUSTELU"))
+            .andExpect(jsonPath("$[0].id").value(koejaksonVastuuhenkilonArvio.id))
+            .andExpect(jsonPath("$[0].tila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name))
+            .andExpect(jsonPath("$[0].tyyppi").value(KoejaksoTyyppi.VASTUUHENKILON_ARVIO.name))
+            .andExpect(jsonPath("$[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].id").value(koejaksonLoppukeskustelu.id))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].tyyppi").value("LOPPUKESKUSTELU"))
             .andExpect(
-                jsonPath("content[0].hyvaksytytVaiheet[1].id").value(
+                jsonPath("$[0].hyvaksytytVaiheet[1].id").value(
                     koejaksonKehittamistoimenpiteet.id
                 )
             )
-            .andExpect(jsonPath("content[0].hyvaksytytVaiheet[1].tyyppi").value("KEHITTAMISTOIMENPITEET"))
-            .andExpect(jsonPath("content[0].hyvaksytytVaiheet[2].id").value(koejaksonValiarviointi.id))
-            .andExpect(jsonPath("content[0].hyvaksytytVaiheet[2].tyyppi").value("VALIARVIOINTI"))
-            .andExpect(jsonPath("content[0].hyvaksytytVaiheet[3].id").value(koejaksonAloituskeskustelu.id))
-            .andExpect(jsonPath("content[0].hyvaksytytVaiheet[3].tyyppi").value("ALOITUSKESKUSTELU"))
-    }
-
-    @Test
-    @Transactional
-    fun getAvoimetKoejaksotByVastuuhenkiloByNimi() {
-        initTest()
-
-        val nimiParam = "esti"
-
-        koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt = false
-        koejaksonKoulutussopimus.opintooikeus!!.erikoistuvaLaakari!!.kayttaja!!.user!!.lastName = "Testinen"
-        koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
-
-        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejaksot").param("avoin", "true").param("nimi", nimiParam))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("totalElements").value(1))
-            .andExpect(jsonPath("content[0].erikoistuvanNimi", Matchers.containsStringIgnoringCase(nimiParam)))
-    }
-
-    @Test
-    @Transactional
-    fun getAvoimetKoejaksotByVastuuhenkiloByNimiNotFound() {
-        initTest()
-
-        koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt = false
-        koejaksonKoulutussopimus.opintooikeus!!.erikoistuvaLaakari!!.kayttaja!!.user!!.lastName = "Pekkanen"
-        koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
-
-        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejaksot").param("avoin", "true").param("nimi", "testi"))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("totalElements").value(0))
-    }
-
-    @Test
-    @Transactional
-    fun getNotAvoimetKoejaksotByVastuuhenkilo() {
-        initTest()
-
-        koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt = true
-        koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
-
-        koejaksonVastuuhenkilonArvio.virkailijaHyvaksynyt = true
-        koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
-        vastuuhenkilonArvioRepository.saveAndFlush(koejaksonVastuuhenkilonArvio)
-
-        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejaksot").param("avoin", "false"))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("totalElements").value(1))
-            .andExpect(jsonPath("content[0].id").value(koejaksonKoulutussopimus.id))
-            .andExpect(jsonPath("content[0].tila").value(KoejaksoTila.ODOTTAA_ALLEKIRJOITUKSIA.name))
-            .andExpect(jsonPath("content[0].tyyppi").value("KOULUTUSSOPIMUS"))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].tyyppi").value("KEHITTAMISTOIMENPITEET"))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].id").value(koejaksonValiarviointi.id))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].tyyppi").value("VALIARVIOINTI"))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[3].id").value(koejaksonAloituskeskustelu.id))
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[3].tyyppi").value("ALOITUSKESKUSTELU"))
+            .andExpect(jsonPath("$[1].id").value(koejaksonKoulutussopimus.id))
+            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.ODOTTAA_ALLEKIRJOITUKSIA.name))
+            .andExpect(jsonPath("$[1].tyyppi").value("KOULUTUSSOPIMUS"))
     }
 
     @Test

@@ -59,15 +59,6 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
         userId: String
     ): List<KoejaksonKoulutussopimus>
 
-    @Query(
-        "select ks " +
-            "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt " +
-            "where ks.vastuuhenkilo.user.id = :userId and ks.vastuuhenkiloHyvaksynyt = true"
-    )
-    fun findAllNotAvoinByVastuuhenkiloUserId(
-        userId: String
-    ): List<KoejaksonKoulutussopimus>
-
     @Transactional
     @Modifying
     @Query("update KoulutussopimuksenKouluttaja k set k.kouluttaja.id = :newKayttaja where k.kouluttaja.id = :currentKayttaja")

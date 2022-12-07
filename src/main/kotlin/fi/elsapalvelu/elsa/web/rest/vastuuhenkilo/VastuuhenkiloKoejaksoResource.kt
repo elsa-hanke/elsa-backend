@@ -1,11 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.criteria.AvoinAndNimiCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -32,14 +29,10 @@ class VastuuhenkiloKoejaksoResource(
 ) {
 
     @GetMapping("/koejaksot")
-    fun getKoejaksot(
-        principal: Principal?,
-        criteria: AvoinAndNimiCriteria,
-        pageable: Pageable
-    ): ResponseEntity<Page<KoejaksonVaiheDTO>> {
+    fun getKoejaksot(principal: Principal?): ResponseEntity<List<KoejaksonVaiheDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val koejaksonVaiheet =
-            koejaksonVaiheetService.findAllByVastuuhenkiloKayttajaUserId(user.id!!, criteria, pageable)
+            koejaksonVaiheetService.findAllByVastuuhenkiloKayttajaUserId(user.id!!)
         return ResponseEntity.ok(koejaksonVaiheet)
     }
 
