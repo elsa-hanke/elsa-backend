@@ -308,6 +308,7 @@ class ValmistumispyyntoServiceImpl(
                 valmistumispyynnonTarkistusDTO.kokonaistyoaikaTarkistettu
             tarkistus.teoriakoulutusTarkistettu = valmistumispyynnonTarkistusDTO.teoriakoulutusTarkistettu
             tarkistus.kommentitVirkailijoille = valmistumispyynnonTarkistusDTO.kommentitVirkailijoille
+            tarkistus.koejaksoEiVaadittu = valmistumispyynnonTarkistusDTO.koejaksoEiVaadittu
         } else {
             valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)
                 ?.let {
