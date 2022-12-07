@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20221207144106" author="jhipster">
+        <addColumn tableName="valmistumispyynnon_tarkistus">
+            <column name="koejaksoa_ei_vaadittu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="valmistumispyynnon_tarkistus_audit">
+            <column name="koejaksoa_ei_vaadittu" type="boolean"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

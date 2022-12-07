@@ -67,7 +67,10 @@ data class ValmistumispyynnonTarkistus(
 
     @NotNull
     @Column(name = "muokkauspaiva", nullable = false)
-    var muokkauspaiva: LocalDate? = null
+    var muokkauspaiva: LocalDate? = null,
+
+    @Column(name = "koejaksoa_ei_vaadittu")
+    var koejaksoEiVaadittu: Boolean? = false
 
 ) : Serializable {
 

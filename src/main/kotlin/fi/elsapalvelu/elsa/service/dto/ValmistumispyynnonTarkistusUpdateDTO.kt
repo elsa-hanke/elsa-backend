@@ -37,7 +37,9 @@ data class ValmistumispyynnonTarkistusUpdateDTO(
 
     var keskenerainen: Boolean? = false,
 
-    var korjausehdotus: String? = null
+    var korjausehdotus: String? = null,
+
+    var koejaksoEiVaadittu: Boolean? = false
 
 ) : Serializable {
     override fun toString() = "ValmistumispyynnonTarkistusUpdateDTO"
