@@ -856,6 +856,9 @@ class ValmistumispyyntoServiceImpl(
             dto.kuulustelut =
                 opintosuoritukset.filter { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU }
                     .map(opintosuoritusMapper::toDto)
+            opintosuoritukset.firstOrNull { s -> s.tyyppi?.nimi == OpintosuoritusTyyppiEnum.KOEJAKSO && s.hyvaksytty }?.let { o ->
+                dto.koejaksoHyvaksyttyPvm = o.suorituspaiva
+            }
             koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(it).orElse(null)?.let { arvio ->
                 if (arvio.vastuuhenkiloHyvaksynyt) {
                     dto.koejaksoHyvaksyttyPvm = arvio.vastuuhenkilonKuittausaika
