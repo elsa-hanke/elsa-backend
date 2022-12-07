@@ -241,5 +241,6 @@
     <include file="config/liquibase/changelog/20221031153118_modify_entity_Valmistumispyynto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20221114103338_modify_Valmistumispyynto_constraints.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20221207132911_modify_entity_Valmistumispyynto.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20221207144106_modify_entity_ValmistumispyynnonTarkistus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
