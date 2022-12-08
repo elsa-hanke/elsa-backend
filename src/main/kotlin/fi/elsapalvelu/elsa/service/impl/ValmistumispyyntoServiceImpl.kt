@@ -78,7 +78,8 @@ class ValmistumispyyntoServiceImpl(
     private val suoritteenKategoriaRepository: SuoritteenKategoriaRepository,
     private val suoritemerkintaMapper: SuoritemerkintaMapper,
     private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository,
-    private val seurantajaksoService: SeurantajaksoService
+    private val seurantajaksoService: SeurantajaksoService,
+    private val userRepository: UserRepository
 ) : ValmistumispyyntoService {
 
     @Transactional(readOnly = true)
@@ -150,6 +151,11 @@ class ValmistumispyyntoServiceImpl(
         uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
     ): ValmistumispyyntoDTO {
         getOpintooikeus(opintooikeusId).let { opintooikeus ->
+            opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
+                user.email = uusiValmistumispyyntoDTO.erikoistujanSahkoposti
+                user.phoneNumber = uusiValmistumispyyntoDTO.erikoistujanPuhelinnumero
+                userRepository.save(user)
+            }
             val valmistumispyynto = Valmistumispyynto(
                 opintooikeus = opintooikeus,
                 selvitysVanhentuneistaSuorituksista = uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista,
@@ -172,6 +178,11 @@ class ValmistumispyyntoServiceImpl(
         uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
     ): ValmistumispyyntoDTO {
         getOpintooikeus(opintooikeusId).let { opintooikeus ->
+            opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
+                user.email = uusiValmistumispyyntoDTO.erikoistujanSahkoposti
+                user.phoneNumber = uusiValmistumispyyntoDTO.erikoistujanPuhelinnumero
+                userRepository.save(user)
+            }
             val vastuuhenkiloOsaamisenArvioijaUser =
                 getVastuuhenkiloOsaamisenArvioija(opintooikeus.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!
             getValmistumispyyntoByOpintooikeusId(opintooikeusId).apply {
@@ -237,6 +248,13 @@ class ValmistumispyyntoServiceImpl(
         hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO
     ): ValmistumispyynnonTarkistusDTO {
         val kayttaja = getKayttaja(userId)
+
+        kayttaja?.user?.let { user ->
+            user.email = hyvaksyntaFormDTO.sahkoposti
+            user.phoneNumber = hyvaksyntaFormDTO.puhelinnumero
+            userRepository.save(user)
+        }
+
         val yliopisto = getYliopisto(kayttaja)
         val valmistumispyynto = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja).takeIf {
             it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA ||

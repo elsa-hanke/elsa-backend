@@ -7,7 +7,11 @@ data class UusiValmistumispyyntoDTO(
 
     var selvitysVanhentuneistaSuorituksista: String? = null,
 
-    var laillistamispaiva: LocalDate? = null
+    var laillistamispaiva: LocalDate? = null,
+
+    var erikoistujanPuhelinnumero: String? = null,
+
+    var erikoistujanSahkoposti: String? = null
 
 ) : Serializable {
     override fun toString() = "UusiValmistumispyyntoDTO"
