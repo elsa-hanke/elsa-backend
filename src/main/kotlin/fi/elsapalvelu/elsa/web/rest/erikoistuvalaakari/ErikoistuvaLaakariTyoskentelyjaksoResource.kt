@@ -441,6 +441,16 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
+        if (!terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(
+                opintooikeusId
+            )) {
+            throw BadRequestAlertException(
+                "Terveyskeskuskoulutusjakson hyväksyntään vaadittava työskentelyaika ei täyty",
+                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
+                "dataillegal.terveyskeskuskoulutusjakson-pituus-liian-pieni"
+            )
+        }
+
         validateLaillistamispaivaAndTodistus(user, laillistamispaiva, laillistamispaivanLiite)
         if (terveyskeskuskoulutusjaksonHyvaksyntaService.existsByOpintooikeusId(opintooikeusId)) {
             throw BadRequestAlertException(

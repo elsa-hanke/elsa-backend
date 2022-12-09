@@ -38,13 +38,14 @@ class TyoskentelyjaksoHelper {
             user: User? = null,
             alkamispaiva: LocalDate = DEFAULT_ALKAMISPAIVA,
             paattymispaiva: LocalDate = DEFAULT_PAATTYMISPAIVA,
-            tyoskentelyjaksoTyyppi: TyoskentelyjaksoTyyppi = TyoskentelypaikkaHelper.DEFAULT_TYYPPI
+            tyoskentelyjaksoTyyppi: TyoskentelyjaksoTyyppi = TyoskentelypaikkaHelper.DEFAULT_TYYPPI,
+            kaytannonKoulutus: KaytannonKoulutusTyyppi? = DEFAULT_KAYTANNON_KOULUTUS
         ): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
                 alkamispaiva = alkamispaiva,
                 paattymispaiva = paattymispaiva,
                 osaaikaprosentti = DEFAULT_OSAAIKAPROSENTTI,
-                kaytannonKoulutus = DEFAULT_KAYTANNON_KOULUTUS,
+                kaytannonKoulutus = kaytannonKoulutus,
                 hyvaksyttyAiempaanErikoisalaan = DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
             )
 
@@ -87,7 +88,8 @@ class TyoskentelyjaksoHelper {
             // Lisätään pakollinen tieto
             val tyoskentelypaikka: Tyoskentelypaikka
             if (em.findAll(Tyoskentelypaikka::class).isEmpty()) {
-                tyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em, tyoskentelyjaksoTyyppi)
+                tyoskentelypaikka =
+                    TyoskentelypaikkaHelper.createUpdatedEntity(em, tyoskentelyjaksoTyyppi)
                 em.persist(tyoskentelypaikka)
                 em.flush()
             } else {
