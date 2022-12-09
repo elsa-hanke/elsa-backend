@@ -60,7 +60,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             val opintooikeusId =
                 opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
             validateNewTyoskentelyjaksoDTO(it)
-            validatePaattymispaiva(opintooikeusId, it)
+            validateAlkamisJaPaattymispaiva(opintooikeusId, it)
             validateTyoskentelyaika(opintooikeusId, it)
 
             val asiakirjaDTOs = getMappedFiles(files, opintooikeusId) ?: mutableSetOf()
@@ -93,7 +93,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                     "idnull"
                 )
             }
-            validatePaattymispaiva(opintooikeusId, it)
+            validateAlkamisJaPaattymispaiva(opintooikeusId, it)
             validateTyoskentelyaika(opintooikeusId, it)
 
             val newAsiakirjat = getMappedFiles(files, opintooikeusId) ?: mutableSetOf()
@@ -567,7 +567,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         }
     }
 
-    private fun validatePaattymispaiva(
+    private fun validateAlkamisJaPaattymispaiva(
         opintooikeusId: Long,
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO
     ) {
@@ -581,9 +581,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             }
         }
 
-        if (!tyoskentelyjaksoService.validatePaattymispaiva(tyoskentelyjaksoDTO, opintooikeusId)) {
+        if (!tyoskentelyjaksoService.validateAlkamisJaPaattymispaiva(tyoskentelyjaksoDTO, opintooikeusId)) {
             throw BadRequestAlertException(
-                "Työskentelyjakson päättymispäivä ei ole kelvollinen.",
+                "Työskentelyjakson alkamis- tai päättymispäivä ei ole kelvollinen.",
                 TYOSKENTELYJAKSO_ENTITY_NAME,
                 "dataillegal.tyoskentelyjakson-paattymispaiva-ei-ole-kelvollinen"
             )
