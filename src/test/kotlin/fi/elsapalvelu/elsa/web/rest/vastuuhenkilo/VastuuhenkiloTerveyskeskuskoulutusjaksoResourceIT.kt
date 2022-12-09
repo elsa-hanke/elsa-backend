@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
@@ -359,7 +360,8 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResourceIT {
             em,
             alkamispaiva = alkamispaiva,
             paattymispaiva = alkamispaiva.plusYears(2),
-            user = erikoistuvaLaakari.kayttaja?.user
+            user = erikoistuvaLaakari.kayttaja?.user,
+            kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
         )
         em.persist(tyoskentelyjakso)
 
