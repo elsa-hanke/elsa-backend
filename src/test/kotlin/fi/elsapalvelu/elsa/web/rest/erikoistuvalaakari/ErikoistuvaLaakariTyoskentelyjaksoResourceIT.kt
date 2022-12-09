@@ -406,7 +406,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         assertThat(tyoskentelyjakso.suoritusarvioinnit).isEmpty()
 
         tyoskentelyjakso.suoritusarvioinnit.add(
-            SuoritusarviointiHelper.createEntity(em, user)
+            SuoritusarviointiHelper.createEntity(em, user, UPDATED_ALKAMISPAIVA.plusDays(1))
         )
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
@@ -415,7 +415,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         val id = tyoskentelyjakso.id
         assertNotNull(id)
 
-        val defaultTyoskentelypaikka = TyoskentelypaikkaHelper.createEntity(em)
         val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(id).get()
         val updatedTyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em)
         val omaaErikoisalaaTukeva = em.findAll(Erikoisala::class).first()
@@ -447,19 +446,19 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeUpdate)
         val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
 
-        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.nimi).isEqualTo(defaultTyoskentelypaikka.nimi)
+        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.nimi).isEqualTo(updatedTyoskentelypaikka.nimi)
         assertThat(testTyoskentelyjakso.tyoskentelypaikka?.tyyppi).isEqualTo(
-            defaultTyoskentelypaikka.tyyppi
+            updatedTyoskentelypaikka.tyyppi
         )
-        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.muuTyyppi).isNull()
-        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.kunta).isEqualTo(defaultTyoskentelypaikka.kunta)
-        assertThat(testTyoskentelyjakso.alkamispaiva).isEqualTo(DEFAULT_ALKAMISPAIVA)
+        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.muuTyyppi).isEqualTo(updatedTyoskentelypaikka.muuTyyppi)
+        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.kunta).isEqualTo(updatedTyoskentelypaikka.kunta)
+        assertThat(testTyoskentelyjakso.alkamispaiva).isEqualTo(UPDATED_ALKAMISPAIVA)
         assertThat(testTyoskentelyjakso.paattymispaiva).isEqualTo(UPDATED_PAATTYMISPAIVA)
-        assertThat(testTyoskentelyjakso.osaaikaprosentti).isEqualTo(DEFAULT_OSAAIKAPROSENTTI)
-        assertThat(testTyoskentelyjakso.kaytannonKoulutus).isEqualTo(DEFAULT_KAYTANNON_KOULUTUS)
-        assertThat(testTyoskentelyjakso.omaaErikoisalaaTukeva).isNull()
+        assertThat(testTyoskentelyjakso.osaaikaprosentti).isEqualTo(UPDATED_OSAAIKAPROSENTTI)
+        assertThat(testTyoskentelyjakso.kaytannonKoulutus).isEqualTo(UPDATED_KAYTANNON_KOULUTUS)
+        assertThat(testTyoskentelyjakso.omaaErikoisalaaTukeva?.id).isEqualTo(omaaErikoisalaaTukeva.id)
         assertThat(testTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan)
-            .isEqualTo(DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN)
+            .isEqualTo(UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN)
     }
 
     @Test

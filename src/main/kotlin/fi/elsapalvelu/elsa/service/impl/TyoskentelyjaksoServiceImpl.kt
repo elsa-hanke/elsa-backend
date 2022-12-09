@@ -83,38 +83,31 @@ class TyoskentelyjaksoServiceImpl(
             if (tyoskentelyjakso.liitettyTerveyskeskuskoulutusjaksoon) {
                 throw ValidationException("Terveyskeskuskoulutusjaksoon liitettyä työskentelyjaksoa ei voi päivittää")
             }
-            // Jos työskentelyjaksolle on lisätty arviointeja tai arviointipyyntöjä, sallitaan vain
-            // päättymispäivän muokkaus.
-            tyoskentelyjakso.takeIf { it.hasTapahtumia() }
-                ?.apply {
-                    paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
-                } ?: tyoskentelyjakso.let {
-                val updatedTyoskentelyjakso =
-                    tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
-                tyoskentelyjakso.apply {
-                    tyoskentelypaikka?.apply {
-                        kunta =
-                            tyoskentelyjaksoDTO.tyoskentelypaikka?.kuntaId?.let { id ->
-                                kuntaRepository.findByIdOrNull(id)
-                            }
-                        nimi = tyoskentelyjaksoDTO.tyoskentelypaikka?.nimi
-                        tyyppi = updatedTyoskentelyjakso.tyoskentelypaikka?.tyyppi
-                        muuTyyppi =
-                            if (tyyppi == MUU) updatedTyoskentelyjakso.tyoskentelypaikka?.muuTyyppi else null
-                    }
-                    osaaikaprosentti = updatedTyoskentelyjakso.osaaikaprosentti
-                    alkamispaiva = updatedTyoskentelyjakso.alkamispaiva
-                    paattymispaiva = updatedTyoskentelyjakso.paattymispaiva
-                    osaaikaprosentti = updatedTyoskentelyjakso.osaaikaprosentti
-                    hyvaksyttyAiempaanErikoisalaan =
-                        updatedTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan
-                    kaytannonKoulutus = updatedTyoskentelyjakso.kaytannonKoulutus
-                    omaaErikoisalaaTukeva =
-                        updatedTyoskentelyjakso.omaaErikoisalaaTukeva.takeIf { kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS }
-                            ?.let {
-                                erikoisalaRepository.findByIdOrNull(it.id)
-                            }
+
+            val updatedTyoskentelyjakso = tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO)
+            tyoskentelyjakso.apply {
+                tyoskentelypaikka?.apply {
+                    kunta =
+                        tyoskentelyjaksoDTO.tyoskentelypaikka?.kuntaId?.let { id ->
+                            kuntaRepository.findByIdOrNull(id)
+                        }
+                    nimi = tyoskentelyjaksoDTO.tyoskentelypaikka?.nimi
+                    tyyppi = updatedTyoskentelyjakso.tyoskentelypaikka?.tyyppi
+                    muuTyyppi =
+                        if (tyyppi == MUU) updatedTyoskentelyjakso.tyoskentelypaikka?.muuTyyppi else null
                 }
+                osaaikaprosentti = updatedTyoskentelyjakso.osaaikaprosentti
+                alkamispaiva = updatedTyoskentelyjakso.alkamispaiva
+                paattymispaiva = updatedTyoskentelyjakso.paattymispaiva
+                osaaikaprosentti = updatedTyoskentelyjakso.osaaikaprosentti
+                hyvaksyttyAiempaanErikoisalaan =
+                    updatedTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan
+                kaytannonKoulutus = updatedTyoskentelyjakso.kaytannonKoulutus
+                omaaErikoisalaaTukeva =
+                    updatedTyoskentelyjakso.omaaErikoisalaaTukeva.takeIf { kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS }
+                        ?.let {
+                            erikoisalaRepository.findByIdOrNull(it.id)
+                        }
             }
 
             mapAsiakirjat(
@@ -411,11 +404,12 @@ class TyoskentelyjaksoServiceImpl(
         }
     }
 
-    override fun validatePaattymispaiva(
+    override fun validateAlkamisJaPaattymispaiva(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         opintooikeusId: Long
     ): Boolean {
-        val paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva ?: return true
+        val alkamispaiva = tyoskentelyjaksoDTO.alkamispaiva
+        val paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
 
         tyoskentelyjaksoDTO.id?.let { tyoskentelyjaksoId ->
             tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(
@@ -424,19 +418,25 @@ class TyoskentelyjaksoServiceImpl(
             )
         }?.let { tyoskentelyjakso ->
             for (suoritemerkinta in tyoskentelyjakso.suoritemerkinnat) {
-                if (paattymispaiva.isBefore(suoritemerkinta.suorituspaiva)) {
+                if (alkamispaiva?.isAfter(suoritemerkinta.suorituspaiva) == true
+                    || paattymispaiva?.isBefore(suoritemerkinta.suorituspaiva) == true
+                ) {
                     return false
                 }
             }
 
             for (keskeytys in tyoskentelyjakso.keskeytykset) {
-                if (paattymispaiva.isBefore(keskeytys.paattymispaiva)) {
+                if (alkamispaiva?.isAfter(keskeytys.paattymispaiva) == true
+                    || paattymispaiva?.isBefore(keskeytys.paattymispaiva) == true
+                ) {
                     return false
                 }
             }
 
             for (suoritusarviointi in tyoskentelyjakso.suoritusarvioinnit) {
-                if (paattymispaiva.isBefore(suoritusarviointi.tapahtumanAjankohta)) {
+                if (alkamispaiva?.isAfter(suoritusarviointi.tapahtumanAjankohta) == true
+                    || paattymispaiva?.isBefore(suoritusarviointi.tapahtumanAjankohta) == true
+                ) {
                     return false
                 }
             }

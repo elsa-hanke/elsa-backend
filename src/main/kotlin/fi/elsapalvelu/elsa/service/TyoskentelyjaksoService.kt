@@ -40,7 +40,7 @@ interface TyoskentelyjaksoService {
         liitettyKoejaksoon: Boolean
     ): TyoskentelyjaksoDTO?
 
-    fun validatePaattymispaiva(
+    fun validateAlkamisJaPaattymispaiva(
         tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         opintooikeusId: Long,
     ): Boolean
