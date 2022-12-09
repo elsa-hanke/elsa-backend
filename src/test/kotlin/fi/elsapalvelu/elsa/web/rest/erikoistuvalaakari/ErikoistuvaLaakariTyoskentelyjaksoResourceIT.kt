@@ -1201,7 +1201,18 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     @Test
     @Transactional
     fun getTerveyskeskuskoulutusjaksoTooShort() {
-        initTest()
+        initTest(kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO)
+
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot/terveyskeskuskoulutusjakso"))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @Transactional
+    fun getTerveyskeskuskoulutusjaksoWrongKaytannonKoulutus() {
+        initTest(kaytannonKoulutus = KaytannonKoulutusTyyppi.OMAN_ERIKOISALAN_KOULUTUS)
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
@@ -1212,7 +1223,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     @Test
     @Transactional
     fun getTerveyskeskuskoulutusjaksoWithoutVastuuhenkilo() {
-        initTest()
+        initTest(kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO)
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         tyoskentelyjaksoRepository.saveAndFlush(
@@ -1230,14 +1241,15 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     @Test
     @Transactional
     fun getTerveyskeskuskoulutusjakso() {
-        initTest()
+        initTest(kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO)
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         tyoskentelyjaksoRepository.saveAndFlush(
             createEntity(
                 em,
                 user = user,
-                paattymispaiva = DEFAULT_ALKAMISPAIVA.plusYears(1)
+                paattymispaiva = DEFAULT_ALKAMISPAIVA.plusYears(1),
+                kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
             )
         )
         val opintooikeus = opintooikeusRepository.findAll().first()
@@ -1286,7 +1298,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     @Test
     @Transactional
     fun createTerveyskeskuskoulutusjakso() {
-        initTest()
+        initTest(kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO)
         initMockFiles()
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
@@ -1294,7 +1306,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             createEntity(
                 em,
                 user = user,
-                paattymispaiva = DEFAULT_ALKAMISPAIVA.plusYears(1)
+                paattymispaiva = DEFAULT_ALKAMISPAIVA.plusYears(1),
+                kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
             )
         )
         val opintooikeus = opintooikeusRepository.findAll().first()
@@ -1355,7 +1368,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         )
     }
 
-    fun initTest(userId: String? = null) {
+    fun initTest(userId: String? = null, kaytannonKoulutus: KaytannonKoulutusTyyppi? = DEFAULT_KAYTANNON_KOULUTUS) {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -1369,7 +1382,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         )
         TestSecurityContextHolder.getContext().authentication = authentication
 
-        tyoskentelyjakso = createEntity(em, user)
+        tyoskentelyjakso = createEntity(em, user, kaytannonKoulutus = kaytannonKoulutus)
     }
 
     fun initMockFiles() {
@@ -1420,13 +1433,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             em: EntityManager,
             user: User? = null,
             alkamispaiva: LocalDate? = DEFAULT_ALKAMISPAIVA,
-            paattymispaiva: LocalDate? = DEFAULT_PAATTYMISPAIVA
+            paattymispaiva: LocalDate? = DEFAULT_PAATTYMISPAIVA,
+            kaytannonKoulutus: KaytannonKoulutusTyyppi? = DEFAULT_KAYTANNON_KOULUTUS
         ): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
                 alkamispaiva = alkamispaiva,
                 paattymispaiva = paattymispaiva,
                 osaaikaprosentti = DEFAULT_OSAAIKAPROSENTTI,
-                kaytannonKoulutus = DEFAULT_KAYTANNON_KOULUTUS,
+                kaytannonKoulutus = kaytannonKoulutus,
                 hyvaksyttyAiempaanErikoisalaan = DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
             )
 

@@ -2,9 +2,9 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.TerveyskeskuskoulutusjaksonHyvaksynta
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
@@ -147,9 +147,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
         opintooikeusRepository.findById(opintooikeusId).orElse(null)?.let {
             val tyoskentelyjaksot =
-                tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
+                tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
                     opintooikeusId,
-                    TyoskentelyjaksoTyyppi.TERVEYSKESKUS
+                    TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
+                    KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
                 )
             val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
 
@@ -190,9 +191,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
     override fun getTerveyskoulutusjaksoSuoritettu(opintooikeusId: Long): Boolean {
         val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
+            tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
                 opintooikeusId,
-                TyoskentelyjaksoTyyppi.TERVEYSKESKUS
+                TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
+                KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
             )
         val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
 
@@ -254,7 +256,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             }
     }
 
-    private fun handleErikoistuja(hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
+    private fun handleErikoistuja(hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta): TerveyskeskuskoulutusjaksonHyvaksyntaDTO {
         hyvaksynta.korjausehdotus = null
         hyvaksynta.virkailija = null
         hyvaksynta.vastuuhenkilo = null
@@ -321,9 +323,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             hyvaksynta.vastuuhenkilonKuittausaika = LocalDate.now()
 
             val tyoskentelyjaksot =
-                tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
+                tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
                     hyvaksynta.opintooikeus?.id!!,
-                    TyoskentelyjaksoTyyppi.TERVEYSKESKUS
+                    TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
+                    KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
                 )
             tyoskentelyjaksot.forEach {
                 it.liitettyTerveyskeskuskoulutusjaksoon = true
@@ -374,9 +377,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
     private fun mapTerveyskeskuskoulutusjakso(hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta): TerveyskeskuskoulutusjaksonHyvaksyntaDTO {
         val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
+            tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
                 hyvaksynta.opintooikeus?.id!!,
-                TyoskentelyjaksoTyyppi.TERVEYSKESKUS
+                TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
+                KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
             )
         val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
 
