@@ -62,7 +62,7 @@ class SisuTreAuthenticationTokenServiceImpl(
         try {
             return sisuTreAuthTokenClientBuilder.okHttpClient().newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    log.error("$JSON_FETCHING_ERROR: $endpointUrl ${response.body}")
+                    log.error("$JSON_FETCHING_ERROR: $endpointUrl ${response.body?.string()}")
                     return null
                 }
                 response.body?.string().let { body ->
