@@ -17,12 +17,12 @@ class AccessTokenAuthenticator(
     override fun authenticate(route: Route?, response: Response): Request? {
         if (response.responseCount() == 1) {
             log.warn(
-                "Autentikointi epäonnistui rajapintaan ${response.request.url}. Response: ${response.body}. " +
+                "Autentikointi epäonnistui rajapintaan ${response.request.url}. Response: ${response.body?.string()}. " +
                     "Haetaan uusi authentication token."
             )
         }
         if (response.responseCount() > 1) {
-            log.error("Autentikointi epäonnistui rajapintaan ${response.request.url}. Response: ${response.body}.")
+            log.error("Autentikointi epäonnistui rajapintaan ${response.request.url}. Response: ${response.body?.string()}.")
             return null
         }
 
