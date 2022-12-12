@@ -120,7 +120,11 @@ data class Opintooikeus(
         cascade = [CascadeType.ALL],
         orphanRemoval = true
     )
-    var terveyskeskuskoulutusjaksonHyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta? = null
+    var terveyskeskuskoulutusjaksonHyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta? = null,
+
+    @NotNull
+    @Column(name = "muokkausoikeudet_virkailijoilla")
+    var muokkausoikeudetVirkailijoilla: Boolean = false
 
 ) : Serializable {
 

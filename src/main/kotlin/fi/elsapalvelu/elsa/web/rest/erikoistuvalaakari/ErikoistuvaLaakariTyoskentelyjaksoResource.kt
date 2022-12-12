@@ -2,12 +2,16 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
@@ -83,6 +87,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        validateMuokkausoikeudet(principal, user.id!!, TYOSKENTELYJAKSO_ENTITY_NAME)
+
         tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
         }?.let {
@@ -174,6 +181,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        validateMuokkausoikeudet(principal, user.id!!, ASIAKIRJA_ENTITY_NAME)
 
         try {
             tyoskentelyjaksoService.updateAsiakirjat(
@@ -299,8 +308,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             )
         }
 
-        validateKeskeytysaikaDTO(keskeytysaikaDTO)
         val user = userService.getAuthenticatedUser(principal)
+
+        validateKeskeytysaikaDTO(keskeytysaikaDTO)
+        validateMuokkausoikeudet(principal, user.id!!, KESKEYTYSAIKA_ENTITY_NAME)
+
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         if (!overlappingKeskeytysaikaValidationService.validateKeskeytysaika(
@@ -443,7 +455,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
         if (!terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(
                 opintooikeusId
-            )) {
+            )
+        ) {
             throw BadRequestAlertException(
                 "Terveyskeskuskoulutusjakson hyväksyntään vaadittava työskentelyaika ei täyty",
                 TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
@@ -474,6 +487,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     }
 
     @PutMapping("/tyoskentelyjaksot/terveyskeskuskoulutusjakson-hyvaksynta")
+    @PreAuthorize("!hasRole('ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA')")
     fun updateTerveyskeskuskoulutusjaksonHyvaksynta(
         @RequestParam(required = false) laillistamispaiva: LocalDate?,
         @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
@@ -591,7 +605,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             }
         }
 
-        if (!tyoskentelyjaksoService.validateAlkamisJaPaattymispaiva(tyoskentelyjaksoDTO, opintooikeusId)) {
+        if (!tyoskentelyjaksoService.validateAlkamisJaPaattymispaiva(
+                tyoskentelyjaksoDTO,
+                opintooikeusId
+            )
+        ) {
             throw BadRequestAlertException(
                 "Työskentelyjakson alkamis- tai päättymispäivä ei ole kelvollinen.",
                 TYOSKENTELYJAKSO_ENTITY_NAME,
@@ -642,6 +660,22 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 KESKEYTYSAIKA_ENTITY_NAME,
                 "dataillegal.keskeytysajan-taytyy-kohdistua-tyoskentelyjaksoon"
             )
+        }
+    }
+
+    private fun validateMuokkausoikeudet(principal: Principal?, userId: String, entity: String) {
+        if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
+                .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
+        ) {
+            val opintooikeus =
+                opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+            if (!opintooikeus.muokkausoikeudetVirkailijoilla) {
+                throw BadRequestAlertException(
+                    "Ei oikeuksia muokata erikoistujan tietoja",
+                    entity,
+                    "dataillegal.ei-oikeuksia-muokata-erikoistujan-tietoja"
+                )
+            }
         }
     }
 

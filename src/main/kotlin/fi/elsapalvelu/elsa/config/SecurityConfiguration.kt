@@ -168,6 +168,12 @@ class SecurityConfiguration(
                 ERIKOISTUVA_LAAKARI_IMPERSONATED,
                 ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
             )
+            .antMatchers(
+                HttpMethod.PUT,
+                "/api/erikoistuva-laakari/tyoskentelyjaksot/**",
+                "/api/erikoistuva-laakari/teoriakoulutukset/**"
+            )
+            .hasAnyAuthority(ERIKOISTUVA_LAAKARI, ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
             .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
             .antMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
             .antMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
@@ -359,7 +365,11 @@ class SecurityConfiguration(
             existingUser.authorities.map { SimpleGrantedAuthority(it.name) })
     }
 
-    private fun shouldFetchOpintotietodata(existingUser: User?, tokenUser: User?, hetu: String?): Boolean =
+    private fun shouldFetchOpintotietodata(
+        existingUser: User?,
+        tokenUser: User?,
+        hetu: String?
+    ): Boolean =
         (existingUser == null || hasErikoistuvaLaakariRole(existingUser)) && (tokenUser == null ||
             hasErikoistuvaLaakariRole(tokenUser)) && hetu != null
 

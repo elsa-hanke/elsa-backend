@@ -49,9 +49,12 @@ data class OpintooikeusDTO(
     var kaytossa: Boolean = false,
 
     @get: NotNull
-    var tila: OpintooikeudenTila
+    var tila: OpintooikeudenTila,
 
-    ) : Serializable {
+    @get: NotNull
+    var muokkausoikeudetVirkailijoilla: Boolean = false
+
+) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
