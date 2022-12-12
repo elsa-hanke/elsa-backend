@@ -4,6 +4,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutuksetDTO
@@ -11,6 +12,8 @@ import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
@@ -43,7 +46,8 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         if (teoriakoulutusDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi teoriakoulutus ei saa sisältää ID:tä",
@@ -53,11 +57,12 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         }
 
         val todistukset = getMappedFiles(todistusFiles, opintooikeusId) ?: mutableSetOf()
-        return teoriakoulutusService.save(teoriakoulutusDTO, todistukset, null, opintooikeusId)?.let {
-            ResponseEntity
-                .created(URI("/api/erikoistuva-laakari/teoriakoulutukset/${it.id}"))
-                .body(it)
-        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        return teoriakoulutusService.save(teoriakoulutusDTO, todistukset, null, opintooikeusId)
+            ?.let {
+                ResponseEntity
+                    .created(URI("/api/erikoistuva-laakari/teoriakoulutukset/${it.id}"))
+                    .body(it)
+            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @PutMapping("/teoriakoulutukset/{id}")
@@ -69,7 +74,11 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        validateMuokkausoikeudet(principal, user.id!!)
+
         if (teoriakoulutusDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
         }
@@ -86,7 +95,12 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let {
             objectMapper.readValue(it, mutableSetOf<Int>()::class.java)
         }
-        val result = teoriakoulutusService.save(teoriakoulutusDTO, todistukset, deletedAsiakirjaIds, opintooikeusId)
+        val result = teoriakoulutusService.save(
+            teoriakoulutusDTO,
+            todistukset,
+            deletedAsiakirjaIds,
+            opintooikeusId
+        )
         return ResponseEntity.ok(result)
     }
 
@@ -95,7 +109,8 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<TeoriakoulutuksetDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeus = opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeus =
+            opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val teoriakoulutukset = teoriakoulutusService.findAll(opintooikeus.id!!)
         val opintoopas = opintoopasService.findOne(opintooikeus.opintoopasId!!)
 
@@ -114,7 +129,8 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         return teoriakoulutusService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -126,7 +142,8 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         teoriakoulutusService.delete(id, opintooikeusId)
         return ResponseEntity.noContent().build()
     }
@@ -147,5 +164,21 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         }
 
         return null
+    }
+
+    private fun validateMuokkausoikeudet(principal: Principal?, userId: String) {
+        if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
+                .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
+        ) {
+            val opintooikeus =
+                opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+            if (!opintooikeus.muokkausoikeudetVirkailijoilla) {
+                throw BadRequestAlertException(
+                    "Ei oikeuksia muokata erikoistujan tietoja",
+                    ENTITY_NAME,
+                    "dataillegal.ei-oikeuksia-muokata-erikoistujan-tietoja"
+                )
+            }
+        }
     }
 }
