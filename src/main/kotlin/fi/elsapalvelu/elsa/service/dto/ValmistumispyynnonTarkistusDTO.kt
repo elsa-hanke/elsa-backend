@@ -55,6 +55,8 @@ data class ValmistumispyynnonTarkistusDTO(
 
     var koejaksoHyvaksyttyPvm: LocalDate? = null,
 
+    var koejaksoEiVaadittu: Boolean? = false,
+
     var suoritustenTila: ValmistumispyyntoSuoritustenTilaDTO? = null,
 
     var kommentitVirkailijoille: String? = null,
