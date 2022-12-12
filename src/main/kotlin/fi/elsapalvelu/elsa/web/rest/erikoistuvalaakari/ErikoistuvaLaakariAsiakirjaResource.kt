@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -67,8 +68,11 @@ class ErikoistuvaLaakariAsiakirjaResource(
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         var asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId)
 
-        if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
-                .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED)
+        val authorities =
+            (principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
+        if (authorities.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED) || authorities.contains(
+                ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+            )
         ) {
             valmistumispyyntoService.findOneByOpintooikeusId(opintooikeusId)?.let {
                 asiakirjat = asiakirjat.filter { a -> it.erikoistujanTiedotAsiakirjaId != a.id }
@@ -102,8 +106,11 @@ class ErikoistuvaLaakariAsiakirjaResource(
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val asiakirja = asiakirjaService.findOne(id, opintooikeusId)
 
-        if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
-                .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED)
+        val authorities =
+            (principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
+        if (authorities.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED) || authorities.contains(
+                ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+            )
         ) {
             valmistumispyyntoService.findOneByOpintooikeusId(opintooikeusId)?.let {
                 if (it.erikoistujanTiedotAsiakirjaId == id) {
