@@ -128,4 +128,14 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         opintooikeusService.setOpintooikeusKaytossa(user.id!!, id)
         return ResponseEntity.ok().build()
     }
+
+    @PostMapping("/muokkausoikeudet")
+    fun updateMuokkausoikeudet(
+        principal: Principal?,
+        @RequestParam muokkausoikeudet: Boolean
+    ): ResponseEntity<Void> {
+        val user = userService.getAuthenticatedUser(principal)
+        opintooikeusService.updateMuokkausoikeudet(user.id!!, muokkausoikeudet)
+        return ResponseEntity.ok().build()
+    }
 }
