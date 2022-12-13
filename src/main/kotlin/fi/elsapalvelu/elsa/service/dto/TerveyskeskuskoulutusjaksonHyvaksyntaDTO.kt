@@ -70,4 +70,6 @@ data class TerveyskeskuskoulutusjaksonHyvaksyntaDTO(
     }
 
     override fun hashCode() = 31
+
+    override fun toString() = "TerveyskeskuskoulutusjaksonHyvaksyntaDTO(id: $id)"
 }
