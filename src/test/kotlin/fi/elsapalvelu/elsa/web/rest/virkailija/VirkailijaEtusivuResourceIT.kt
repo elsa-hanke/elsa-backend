@@ -5,10 +5,7 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
-import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
@@ -66,6 +63,9 @@ class VirkailijaEtusivuResourceIT {
 
     @Autowired
     private lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
+
+    @Autowired
+    private lateinit var opintooikeusRepository: OpintooikeusRepository
 
     @Autowired
     private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
@@ -508,7 +508,7 @@ class VirkailijaEtusivuResourceIT {
             MockMvcRequestBuilders.put("/api/erikoistuva-laakari/tyoskentelyjaksot")
                 .param("tyoskentelyjaksoJson", updatedTyoskentelyjaksoJson)
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andExpect(status().isForbidden)
+        ).andExpect(status().isBadRequest)
 
         // Ei sallitut osiot
         restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/koulutussuunnitelma/koulutusjaksot"))
@@ -548,6 +548,71 @@ class VirkailijaEtusivuResourceIT {
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    @Transactional
+    fun testImpersonationWithMuokkausoikeudet() {
+        initTest()
+
+        val opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa()
+        opintooikeus?.muokkausoikeudetVirkailijoilla = true
+        opintooikeusRepository.save(opintooikeus)
+
+        tyoskentelyjakso =
+            TyoskentelyjaksoHelper.createEntity(
+                em,
+                erikoistuvaLaakari1.kayttaja?.user
+            )
+        em.persist(tyoskentelyjakso)
+
+        restEtusivuMockMvc.perform(
+            get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id}")
+                .accept(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isFound)
+
+        // Päivitetään Security contextiin impersonoitu käyttäjä
+        val currentAuthentication: Authentication =
+            TestSecurityContextHolder.getContext().authentication
+        val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(
+            ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA, currentAuthentication
+        )
+        val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
+        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
+            erikoistuvaLaakari1.kayttaja?.user?.id,
+            mapOf(
+                "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari1.kayttaja?.user?.firstName),
+                "urn:oid:2.5.4.4" to listOf(erikoistuvaLaakari1.kayttaja?.user?.lastName),
+                "nameID" to currentPrincipal.attributes["nameID"],
+                "nameIDFormat" to currentPrincipal.attributes["nameIDFormat"],
+                "nameIDQualifier" to currentPrincipal.attributes["nameIDQualifier"],
+                "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"],
+                "opintooikeusId" to listOf(erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id)
+            )
+        )
+        val context = TestSecurityContextHolder.getContext()
+        context.authentication = Saml2Authentication(
+            newPrincipal,
+            (currentAuthentication as Saml2Authentication).saml2Response,
+            listOf(switchAuthority)
+        )
+        TestSecurityContextHolder.setContext(context)
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").value(hasSize<Int>(1)))
+
+        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
+        val updatedTyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+
+        // Työskentelyjakson päivitys on sallittu muokkausoikeuksilla
+        restEtusivuMockMvc.perform(
+            MockMvcRequestBuilders.put("/api/erikoistuva-laakari/tyoskentelyjaksot")
+                .param("tyoskentelyjaksoJson", updatedTyoskentelyjaksoJson)
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isOk)
     }
 
     @Test
