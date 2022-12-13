@@ -18,4 +18,6 @@ interface OpintooikeusService {
     fun checkOpintooikeusKaytossaValid(user: User)
 
     fun setOpintooikeusKaytossa(userId: String, opintooikeusId: Long)
+
+    fun updateMuokkausoikeudet(userId: String, muokkausoikeudet: Boolean)
 }

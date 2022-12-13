@@ -104,6 +104,14 @@ class OpintooikeusServiceImpl(
         }
     }
 
+    override fun updateMuokkausoikeudet(userId: String, muokkausoikeudet: Boolean) {
+        opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId)
+            ?.let {
+                it.muokkausoikeudetVirkailijoilla = muokkausoikeudet
+                opintooikeusRepository.save(it)
+            }
+    }
+
     private fun getImpersonatedOpintooikeusId(): Long? {
         val authentication = SecurityContextHolder.getContext().authentication
         val principal: Saml2AuthenticatedPrincipal =
