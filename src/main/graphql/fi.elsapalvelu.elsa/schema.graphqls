@@ -872,7 +872,7 @@ type Attainment {
   acceptorOrganisationIds: [String!]
   acceptorOrganisations: [Organisation!]
   additionalInfo: LocalizedString
-  attainmentDate: String!
+  attainmentDate: String
   attainmentLanguageUrn: String
   attainmentLanguageCanonizedUrn: String
   attainmentLanguage: Code

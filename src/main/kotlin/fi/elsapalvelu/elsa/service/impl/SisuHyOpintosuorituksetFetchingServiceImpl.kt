@@ -37,7 +37,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
                     yliopisto = YliopistoEnum.HELSINGIN_YLIOPISTO,
                     items = it.map { a ->
                         OpintosuoritusDTO(
-                            suorituspaiva = a.attainmentDate.tryParseToLocalDate(),
+                            suorituspaiva = a.attainmentDate?.tryParseToLocalDate(),
                             opintopisteet = a.credits,
                             nimi_fi = a.name?.fi ?: a.courseUnit?.name?.fi ?: a.module?.name?.fi,
                             nimi_sv = a.name?.sv ?: a.courseUnit?.name?.sv ?: a.module?.name?.fi,
@@ -61,7 +61,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
 
     private fun mapOsakokonaisuus(osakokonaisuus: OpintosuorituksetSisuHyQuery.ChildAttainment): OpintosuoritusOsakokonaisuusDTO {
         return OpintosuoritusOsakokonaisuusDTO(
-            suorituspaiva = osakokonaisuus.attainmentDate.tryParseToLocalDate(),
+            suorituspaiva = osakokonaisuus.attainmentDate?.tryParseToLocalDate(),
             opintopisteet = osakokonaisuus.credits,
             nimi_fi = osakokonaisuus.name?.fi ?: osakokonaisuus.courseUnit?.name?.fi,
             nimi_sv = osakokonaisuus.name?.sv ?: osakokonaisuus.courseUnit?.name?.sv,
