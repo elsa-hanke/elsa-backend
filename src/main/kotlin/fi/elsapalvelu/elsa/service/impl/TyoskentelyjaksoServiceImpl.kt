@@ -287,7 +287,8 @@ class TyoskentelyjaksoServiceImpl(
                 tilastotCounter,
                 hyvaksiluettavatCounter,
                 kaytannonKoulutusSuoritettuMap,
-                tyoskentelyjaksotSuoritettu
+                tyoskentelyjaksotSuoritettu,
+                opintooikeus.opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus
             )
         }
 
@@ -312,6 +313,7 @@ class TyoskentelyjaksoServiceImpl(
             koulutustyypit = TyoskentelyjaksotTilastotKoulutustyypitDTO(
                 terveyskeskusVaadittuVahintaan = opintooikeus.opintoopas?.terveyskeskuskoulutusjaksonVahimmaispituus
                     ?: 0.0,
+                terveyskeskusMaksimipituus = opintooikeus.opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus,
                 terveyskeskusSuoritettu = tilastotCounter.terveyskeskusSuoritettu,
                 yliopistosairaalaVaadittuVahintaan = opintooikeus.opintoopas?.yliopistosairaalajaksonVahimmaispituus
                     ?: 0.0,
@@ -353,9 +355,10 @@ class TyoskentelyjaksoServiceImpl(
         tilastotCounter: TilastotCounter,
         hyvaksiluettavatCounterData: HyvaksiluettavatCounterData,
         kaytannonKoulutusSuoritettuMap: MutableMap<KaytannonKoulutusTyyppi, Double>,
-        tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>
+        tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>,
+        terveyskeskusMaksimi: Double?
     ) {
-        val tyoskentelyjaksonPituus =
+        var tyoskentelyjaksonPituus =
             tyoskentelyjaksonPituusCounterService.calculateInDays(
                 tyoskentelyjakso,
                 hyvaksiluettavatCounterData
@@ -363,7 +366,18 @@ class TyoskentelyjaksoServiceImpl(
         if (tyoskentelyjaksonPituus > 0) {
             // Summataan suoritettu aika koulutustyypettäin
             when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
-                TERVEYSKESKUS -> tilastotCounter.terveyskeskusSuoritettu += tyoskentelyjaksonPituus
+                TERVEYSKESKUS -> {
+                    // Yli maksimin menevät pituudet jätetään huomiotta
+                    if (terveyskeskusMaksimi != null && terveyskeskusMaksimi != 0.0) {
+                        if (tilastotCounter.terveyskeskusSuoritettu == terveyskeskusMaksimi) {
+                            return
+                        } else if (tilastotCounter.terveyskeskusSuoritettu + tyoskentelyjaksonPituus > terveyskeskusMaksimi) {
+                            tyoskentelyjaksonPituus =
+                                terveyskeskusMaksimi - tilastotCounter.terveyskeskusSuoritettu
+                        }
+                    }
+                    tilastotCounter.terveyskeskusSuoritettu += tyoskentelyjaksonPituus
+                }
                 YLIOPISTOLLINEN_SAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
                 else -> tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu += tyoskentelyjaksonPituus
             }
