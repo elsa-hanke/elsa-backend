@@ -52,6 +52,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                 it.erikoisalaNimi = opintooikeus?.erikoisalaNimi
                 it.yliopisto = opintooikeus?.yliopistoNimi
                 it.yliopistoId = opintooikeus?.id.toString()
+                it.muokkausoikeudetVirkailijoilla = opintooikeus?.muokkausoikeudetVirkailijoilla
             }
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
