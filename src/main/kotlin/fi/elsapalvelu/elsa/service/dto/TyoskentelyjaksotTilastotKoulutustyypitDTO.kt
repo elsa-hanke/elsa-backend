@@ -6,6 +6,8 @@ class TyoskentelyjaksotTilastotKoulutustyypitDTO(
 
     var terveyskeskusVaadittuVahintaan: Double,
 
+    var terveyskeskusMaksimipituus: Double?,
+
     var terveyskeskusSuoritettu: Double,
 
     var yliopistosairaalaVaadittuVahintaan: Double,
