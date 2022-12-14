@@ -72,6 +72,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
     private lateinit var opintooikeusRepository: OpintooikeusRepository
 
     @Autowired
+    private lateinit var opintoopasRepository: OpintoopasRepository
+
+    @Autowired
     private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
 
     @Autowired
@@ -1134,6 +1137,136 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
                     tyoskentelyjaksoForAnotherOpintooikeus.id
                 )
             )
+    }
+
+    @Test
+    @Transactional
+    fun getTyoskentelyjaksoTableWithTerveyskeskusMax() {
+        initTest()
+
+        val pituus = 273.75
+        val opintoopas = tyoskentelyjakso.opintooikeus?.opintoopas
+        opintoopas?.terveyskeskuskoulutusjaksonVahimmaispituus = pituus
+        opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus = pituus
+        opintoopasRepository.saveAndFlush(opintoopas)
+
+        tyoskentelyjakso.kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
+        tyoskentelyjakso.tyoskentelypaikka!!.tyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
+        tyoskentelyjakso.paattymispaiva = tyoskentelyjakso.alkamispaiva?.plusYears(1)
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        val tyoskentelyjakso2 = createEntity(
+            em,
+            user,
+            LocalDate.of(2020, 2, 1),
+            LocalDate.of(2020, 2, 15)
+        )
+        tyoskentelyjakso2.kaytannonKoulutus =
+            KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
+        tyoskentelyjakso2.tyoskentelypaikka!!.tyyppi =
+            TyoskentelyjaksoTyyppi.YLIOPISTOLLINEN_SAIRAALA
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso2)
+
+        restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot-taulukko"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
+            .andExpect(jsonPath("$.keskeytykset").value(Matchers.hasSize<Any>(0)))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyaikaYhteensa").value(288.75))
+            .andExpect(jsonPath("$.tilastot.arvioErikoistumiseenHyvaksyttavista").value(288.75))
+            .andExpect(jsonPath("$.tilastot.arvioPuuttuvastaKoulutuksesta").value(1901.25))
+            .andExpect(
+                jsonPath("$.tilastot.koulutustyypit.terveyskeskusVaadittuVahintaan").value(
+                    273.75
+                )
+            )
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.terveyskeskusSuoritettu").value(273.75))
+            .andExpect(
+                jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaVaadittuVahintaan").value(
+                    821.25
+                )
+            )
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaSuoritettu").value(15.0))
+            .andExpect(
+                jsonPath("$.tilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenVaadittuVahintaan").value(
+                    821.25
+                )
+            )
+            .andExpect(
+                jsonPath("$.tilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenSuoritettu").value(
+                    0.0
+                )
+            )
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaVaadittuVahintaan").value(2190.0))
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaSuoritettu").value(288.75))
+            .andExpect(jsonPath("$.tilastot.kaytannonKoulutus").value(Matchers.hasSize<Any>(4)))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[0].suoritettu").value(273.75))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[1].suoritettu").value(15.0))
+    }
+
+    @Test
+    @Transactional
+    fun getTyoskentelyjaksoTableWithoutTerveyskeskusMax() {
+        initTest()
+
+        val opintoopas = tyoskentelyjakso.opintooikeus?.opintoopas
+        opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus = null
+        opintoopasRepository.saveAndFlush(opintoopas)
+
+        tyoskentelyjakso.kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
+        tyoskentelyjakso.tyoskentelypaikka!!.tyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
+        tyoskentelyjakso.paattymispaiva = tyoskentelyjakso.alkamispaiva?.plusYears(1)
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        val tyoskentelyjakso2 = createEntity(
+            em,
+            user,
+            LocalDate.of(2020, 2, 1),
+            LocalDate.of(2020, 2, 15)
+        )
+        tyoskentelyjakso2.kaytannonKoulutus =
+            KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
+        tyoskentelyjakso2.tyoskentelypaikka!!.tyyppi =
+            TyoskentelyjaksoTyyppi.YLIOPISTOLLINEN_SAIRAALA
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso2)
+
+        restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot-taulukko"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
+            .andExpect(jsonPath("$.keskeytykset").value(Matchers.hasSize<Any>(0)))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyaikaYhteensa").value(382.0))
+            .andExpect(jsonPath("$.tilastot.arvioErikoistumiseenHyvaksyttavista").value(382.0))
+            .andExpect(jsonPath("$.tilastot.arvioPuuttuvastaKoulutuksesta").value(1808.0))
+            .andExpect(
+                jsonPath("$.tilastot.koulutustyypit.terveyskeskusVaadittuVahintaan").value(
+                    273.75
+                )
+            )
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.terveyskeskusSuoritettu").value(367.0))
+            .andExpect(
+                jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaVaadittuVahintaan").value(
+                    821.25
+                )
+            )
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yliopistosairaalaSuoritettu").value(15.0))
+            .andExpect(
+                jsonPath("$.tilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenVaadittuVahintaan").value(
+                    821.25
+                )
+            )
+            .andExpect(
+                jsonPath("$.tilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenSuoritettu").value(
+                    0.0
+                )
+            )
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaVaadittuVahintaan").value(2190.0))
+            .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaSuoritettu").value(382.0))
+            .andExpect(jsonPath("$.tilastot.kaytannonKoulutus").value(Matchers.hasSize<Any>(4)))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[0].suoritettu").value(367.0))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[1].suoritettu").value(15.0))
     }
 
     @Test
