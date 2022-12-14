@@ -58,6 +58,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
+
+        validateMuokkausoikeudet(principal, user.id!!, TYOSKENTELYJAKSO_ENTITY_NAME)
+
         tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
         }?.let {
@@ -203,6 +206,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
+
+        validateMuokkausoikeudet(principal, user.id!!, TYOSKENTELYJAKSO_ENTITY_NAME)
+
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
@@ -268,8 +274,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             )
         }
 
-        validateKeskeytysaikaDTO(keskeytysaikaDTO)
         val user = userService.getAuthenticatedUser(principal)
+
+        validateKeskeytysaikaDTO(keskeytysaikaDTO)
+        validateMuokkausoikeudet(principal, user.id!!, KESKEYTYSAIKA_ENTITY_NAME)
+
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         if (!overlappingKeskeytysaikaValidationService.validateKeskeytysaika(
@@ -363,6 +372,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
+
+        validateMuokkausoikeudet(principal, user.id!!, KESKEYTYSAIKA_ENTITY_NAME)
+
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         if (!overlappingTyoskentelyjaksoValidationService.validateKeskeytysaikaDelete(
@@ -384,6 +396,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     }
 
     @PatchMapping("/tyoskentelyjaksot/koejakso")
+    @PreAuthorize("!hasRole('ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA')")
     fun updateLiitettyKoejaksoon(
         @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         principal: Principal?
@@ -444,6 +457,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     }
 
     @PostMapping("/tyoskentelyjaksot/terveyskeskuskoulutusjakson-hyvaksynta")
+    @PreAuthorize("!hasRole('ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA')")
     fun createTerveyskeskuskoulutusjaksonHyvaksynta(
         @RequestParam(required = false) laillistamispaiva: LocalDate?,
         @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,

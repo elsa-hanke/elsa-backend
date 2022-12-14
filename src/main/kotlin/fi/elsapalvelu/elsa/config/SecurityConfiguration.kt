@@ -169,7 +169,6 @@ class SecurityConfiguration(
                 ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
             )
             .antMatchers(
-                HttpMethod.PUT,
                 "/api/erikoistuva-laakari/tyoskentelyjaksot/**",
                 "/api/erikoistuva-laakari/teoriakoulutukset/**"
             )
