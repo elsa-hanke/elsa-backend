@@ -56,6 +56,8 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
             )
         }
 
+        validateMuokkausoikeudet(principal, user.id!!)
+
         val todistukset = getMappedFiles(todistusFiles, opintooikeusId) ?: mutableSetOf()
         return teoriakoulutusService.save(teoriakoulutusDTO, todistukset, null, opintooikeusId)
             ?.let {
@@ -142,6 +144,9 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val user = userService.getAuthenticatedUser(principal)
+
+        validateMuokkausoikeudet(principal, user.id!!)
+
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         teoriakoulutusService.delete(id, opintooikeusId)
