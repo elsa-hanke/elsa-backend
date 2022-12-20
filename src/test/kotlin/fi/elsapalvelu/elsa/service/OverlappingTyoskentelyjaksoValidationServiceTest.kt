@@ -146,6 +146,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 LocalDate.ofEpochDay(0L),
                 LocalDate.ofEpochDay(30L),
                 null,
+                null,
                 25
             )
         )
@@ -182,6 +183,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 null,
                 LocalDate.ofEpochDay(0L),
                 LocalDate.ofEpochDay(30L),
+                null,
                 null,
                 25
             )
@@ -221,6 +223,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(19L),
                 null,
+                null,
                 100
             )
         )
@@ -259,6 +262,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 1,
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(20L),
+                null,
                 null,
                 100
             )
@@ -306,6 +310,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 1,
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(20L),
+                null,
                 null,
                 25
             )
@@ -381,6 +386,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 LocalDate.ofEpochDay(70L),
                 LocalDate.ofEpochDay(90L),
                 null,
+                null,
                 100
             )
         )
@@ -454,6 +460,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 1,
                 LocalDate.ofEpochDay(40L),
                 LocalDate.ofEpochDay(78L),
+                null,
                 null,
                 100
             )
@@ -545,6 +552,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 LocalDate.ofEpochDay(451L),
                 LocalDate.ofEpochDay(470L),
                 null,
+                null,
                 100
             )
         )
@@ -604,6 +612,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 LocalDate.ofEpochDay(360L),
                 LocalDate.ofEpochDay(370L),
                 null,
+                null,
                 100
             )
         )
@@ -633,6 +642,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 null,
                 LocalDate.ofEpochDay(0L),
                 LocalDate.ofEpochDay(30L),
+                null,
                 null,
                 25
             )
@@ -671,6 +681,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 LocalDate.ofEpochDay(0L),
                 LocalDate.ofEpochDay(30L),
                 null,
+                null,
                 25
             )
         )
@@ -706,6 +717,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 null,
                 LocalDate.ofEpochDay(31L),
                 LocalDate.ofEpochDay(50L),
+                null,
                 null,
                 50
             )
@@ -767,6 +779,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 LocalDate.ofEpochDay(490L),
                 LocalDate.ofEpochDay(510L),
                 null,
+                null,
                 50
             )
         )
@@ -804,6 +817,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 1,
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(20L),
+                null,
                 null,
                 100
             )
@@ -843,6 +857,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 1,
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(20L),
+                null,
                 null,
                 100
             )
@@ -890,6 +905,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                 1,
                 LocalDate.ofEpochDay(5L),
                 LocalDate.ofEpochDay(20L),
+                null,
                 null,
                 50
             )
