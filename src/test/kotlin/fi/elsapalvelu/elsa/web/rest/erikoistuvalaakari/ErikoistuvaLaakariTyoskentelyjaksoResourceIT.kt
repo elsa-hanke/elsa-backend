@@ -1201,7 +1201,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
             .andExpect(jsonPath("$.tilastot.koulutustyypit.yhteensaSuoritettu").value(288.75))
             .andExpect(jsonPath("$.tilastot.kaytannonKoulutus").value(Matchers.hasSize<Any>(4)))
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot").value(Matchers.hasSize<Any>(2)))
-            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[0].suoritettu").value(273.75))
+            .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[0].suoritettu").value(367.0))
             .andExpect(jsonPath("$.tilastot.tyoskentelyjaksot[1].suoritettu").value(15.0))
     }
 
