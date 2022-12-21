@@ -25,28 +25,13 @@
             border-spacing: 0;
         }
 
-        .kategoria {
-            background: #f5f5f6;
-            font-weight: bold;
-            padding: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .kokonaisuus-title {
-            font-weight: bold;
-            padding-top: 0.5rem;
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
         .suorite-table {
             border-collapse: collapse;
             table-layout: fixed;
             width: 100%;
         }
 
-        .suorite-table th {
+        .suorite-header {
             padding-left: 0.5rem;
             padding-right: 0.5rem;
             text-transform: uppercase;
@@ -78,10 +63,10 @@
             <caption></caption>
             <thead>
             <tr>
-                <th style="width: 40%;" th:text="#{erikoistujantiedot.suorite} + ': ' + ${kategoria.nimi}"></th>
-                <th style="width: 35%;" th:text="#{${kategoria.arviointiasteikko}}"></th>
-                <th style="width: 15%" th:text="#{erikoistujantiedot.pvm}"></th>
-                <th style="width: 10%" th:text="#{erikoistujantiedot.maara}"></th>
+                <th class="suorite-header" style="width: 40%;" th:text="#{erikoistujantiedot.suorite} + ': ' + ${kategoria.nimi}"></th>
+                <th class="suorite-header" style="width: 35%;" th:text="#{${kategoria.arviointiasteikko}}"></th>
+                <th class="suorite-header" style="width: 15%" th:text="#{erikoistujantiedot.pvm}"></th>
+                <th class="suorite-header" style="width: 10%" th:text="#{erikoistujantiedot.maara}"></th>
             </tr>
             </thead>
             <tbody>
@@ -90,7 +75,7 @@
                 <td class="suorite-row">
                     <table>
                         <caption></caption>
-                        <thead><tr><th></tr></thead>
+                        <thead><tr><th></th></tr></thead>
                         <tr th:each="merkinta: ${suorite.suoritemerkinnat}">
                             <td style="line-height: 25px;">
                                 <div th:if="${merkinta.arviointiasteikonTaso != null}">
@@ -104,7 +89,7 @@
                 <td class="suorite-row">
                     <table>
                         <caption></caption>
-                        <thead><tr><th></tr></thead>
+                        <thead><tr><th></th></tr></thead>
                         <tr th:each="merkinta: ${suorite.suoritemerkinnat}">
                             <td style="line-height: 25px;" th:text="${#temporals.format(merkinta.suorituspaiva, 'dd.MM.yyyy')}">
                         </tr>
