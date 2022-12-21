@@ -384,10 +384,6 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             )
         val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
 
-        if (suoritettuPituus < TERVEYSKESKUS_HYVAKSYNTA_MINIMIPITUUS) {
-            throw ValidationException()
-        }
-
         val vastuuhenkilo =
             kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
                 listOf(VASTUUHENKILO),
