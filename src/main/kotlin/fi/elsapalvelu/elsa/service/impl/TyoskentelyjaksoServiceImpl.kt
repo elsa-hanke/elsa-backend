@@ -358,11 +358,13 @@ class TyoskentelyjaksoServiceImpl(
         tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>,
         terveyskeskusMaksimi: Double?
     ) {
-        var tyoskentelyjaksonPituus =
+        val tyoskentelyjaksonPituus =
             tyoskentelyjaksonPituusCounterService.calculateInDays(
                 tyoskentelyjakso,
                 hyvaksiluettavatCounterData
             )
+        var tutkintoonHyvaksyttavaPituus = tyoskentelyjaksonPituus
+
         if (tyoskentelyjaksonPituus > 0) {
             // Summataan suoritettu aika koulutustyypettäin
             when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
@@ -370,13 +372,13 @@ class TyoskentelyjaksoServiceImpl(
                     // Yli maksimin menevät pituudet jätetään huomiotta
                     if (terveyskeskusMaksimi != null && terveyskeskusMaksimi != 0.0) {
                         if (tilastotCounter.terveyskeskusSuoritettu == terveyskeskusMaksimi) {
-                            return
+                            tutkintoonHyvaksyttavaPituus = 0.0
                         } else if (tilastotCounter.terveyskeskusSuoritettu + tyoskentelyjaksonPituus > terveyskeskusMaksimi) {
-                            tyoskentelyjaksonPituus =
+                            tutkintoonHyvaksyttavaPituus =
                                 terveyskeskusMaksimi - tilastotCounter.terveyskeskusSuoritettu
                         }
                     }
-                    tilastotCounter.terveyskeskusSuoritettu += tyoskentelyjaksonPituus
+                    tilastotCounter.terveyskeskusSuoritettu += tutkintoonHyvaksyttavaPituus
                 }
                 YLIOPISTOLLINEN_SAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
                 else -> tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu += tyoskentelyjaksonPituus
@@ -400,13 +402,13 @@ class TyoskentelyjaksoServiceImpl(
 
             // Summataan nykyiselle tai hyväksytylle erikoisalalle
             if (tyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan) {
-                tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu += tyoskentelyjaksonPituus
+                tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu += tutkintoonHyvaksyttavaPituus
             } else {
-                tilastotCounter.nykyiselleErikoisalalleSuoritettu += tyoskentelyjaksonPituus
+                tilastotCounter.nykyiselleErikoisalalleSuoritettu += tutkintoonHyvaksyttavaPituus
             }
 
             // Summataan työskentelyaika yhteensä
-            tilastotCounter.tyoskentelyaikaYhteensa += tyoskentelyjaksonPituus
+            tilastotCounter.tyoskentelyaikaYhteensa += tutkintoonHyvaksyttavaPituus
 
             // Kootaan työskentelyjaksojen suoritetut työskentelyajat
             tyoskentelyjaksotSuoritettu.add(
