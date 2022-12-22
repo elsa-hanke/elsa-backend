@@ -106,7 +106,7 @@ data class Tyoskentelyjakso(
     fun getMaxAlkamispaiva(): LocalDate? {
         val dates = listOfNotNull(this.paattymispaiva)
             .plus(suoritemerkinnat.map { it.suorituspaiva })
-            .plus(keskeytykset.map { it.paattymispaiva })
+            .plus(keskeytykset.map { it.alkamispaiva })
             .plus(suoritusarvioinnit.map { it.tapahtumanAjankohta })
 
         return dates.minWithOrNull { o1, o2 ->
