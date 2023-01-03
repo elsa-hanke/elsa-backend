@@ -22,7 +22,7 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
 
     override fun calculateInDays(
         tyoskentelyjakso: Tyoskentelyjakso,
-        hyvaksiluettavatCounterData: HyvaksiluettavatCounterData
+        vahennettavatPaivat: Double?
     ): Double {
         val now = LocalDate.now(ZoneId.systemDefault())
         val tyoskentelyJaksoEndDate =
@@ -39,14 +39,8 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
             var result = tyoskentelyjaksoFactor * daysBetween
 
             // Vähennetään keskeytykset
-            tyoskentelyjakso.keskeytykset.map { keskeytysaika ->
-                val amountOfReducedDays =
-                    calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
-                        keskeytysaika,
-                        tyoskentelyjaksoFactor,
-                        hyvaksiluettavatCounterData
-                    )
-                result -= amountOfReducedDays
+            vahennettavatPaivat?.let {
+                result -= it
             }
 
             // Koskaan ei summata negatiivisia arvoja laskuriin! (Esim. jos on kirjattu poissaolo useampaan kertaan)
@@ -105,11 +99,11 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
         return hyvaksiLuettavatPerYearMap
     }
 
-    private fun calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
+    override fun calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
         keskeytysaika: Keskeytysaika,
         tyoskentelyjaksoFactor: Double,
         hyvaksiluettavatCounterData: HyvaksiluettavatCounterData,
-        calculateUntilDate: LocalDate? = null
+        calculateUntilDate: LocalDate?
     ): Double {
         val endDate = getEndDate(keskeytysaika.paattymispaiva!!, calculateUntilDate)
         val keskeytysaikaDaysBetween =
@@ -121,7 +115,8 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
         val keskeytysaikaFactor = keskeytysaikaProsentti / 100.0
         // Kerrotaan myös työskentelyjakson osa-aikaprosentilla, koska esim. 50% poissaolo 50% mittaisesta
         // työpäivästä vähentää hyväksiluettavia päiviä kyseisen päivän osalta vain 0,25 päivää.
-        val keskeytysaikaLength = keskeytysaikaFactor * tyoskentelyjaksoFactor * keskeytysaikaDaysBetween
+        val keskeytysaikaLength =
+            keskeytysaikaFactor * tyoskentelyjaksoFactor * keskeytysaikaDaysBetween
 
         when (keskeytysaika.poissaolonSyy!!.vahennystyyppi!!) {
             VAHENNETAAN_SUORAAN -> {
@@ -150,7 +145,8 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
                             it.value,
                             hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key]!!
                         )
-                    hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key] = hyvaksiLuettavatLeft
+                    hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key] =
+                        hyvaksiLuettavatLeft
                     reducedDaysTotal += amountOfReducedDays
                 }
                 return reducedDaysTotal

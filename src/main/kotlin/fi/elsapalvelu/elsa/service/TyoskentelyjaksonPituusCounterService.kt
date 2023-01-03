@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.domain.Keskeytysaika
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
 import java.time.LocalDate
@@ -8,7 +9,7 @@ interface TyoskentelyjaksonPituusCounterService {
 
     fun calculateInDays(
         tyoskentelyjakso: Tyoskentelyjakso,
-        hyvaksiluettavatCounterData: HyvaksiluettavatCounterData
+        vahennettavatPaivat: Double?
     ): Double
 
     fun calculateHyvaksiluettavatDaysLeft(
@@ -16,5 +17,12 @@ interface TyoskentelyjaksonPituusCounterService {
     ): HyvaksiluettavatCounterData
 
     fun getHyvaksiluettavatPerYearMap(tyoskentelyjaksot: List<Tyoskentelyjakso>): MutableMap<Int, Double>
+
+    fun calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
+        keskeytysaika: Keskeytysaika,
+        tyoskentelyjaksoFactor: Double,
+        hyvaksiluettavatCounterData: HyvaksiluettavatCounterData,
+        calculateUntilDate: LocalDate? = null
+    ): Double
 
 }
