@@ -5,10 +5,7 @@ import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi.*
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi.*
-import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
-import fi.elsapalvelu.elsa.repository.KuntaRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
-import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
+import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
 import fi.elsapalvelu.elsa.service.dto.*
@@ -233,10 +230,11 @@ class TyoskentelyjaksoServiceImpl(
                     tyoskentelyjaksot
                 )
         }
+        val vahennettavatMap = getVahennettavatPaivat(tyoskentelyjaksot)
         tyoskentelyjaksot.forEach {
             totalLength += tyoskentelyjaksonPituusCounterService.calculateInDays(
                 it,
-                hyvaksiluettavatCounter
+                vahennettavatMap[it.id]
             )
         }
 
@@ -274,18 +272,14 @@ class TyoskentelyjaksoServiceImpl(
             KaytannonKoulutusTyyppi.values().map { it to 0.0 }.toMap().toMutableMap()
         val tyoskentelyjaksotSuoritettu =
             mutableSetOf<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>()
-        val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
-            hyvaksiluettavatPerYearMap =
-                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(
-                    tyoskentelyjaksot
-                )
-        }
+
+        val vahennettavatMap = getVahennettavatPaivat(tyoskentelyjaksot)
 
         tyoskentelyjaksot.map {
             getTyoskentelyjaksoTilastot(
                 it,
                 tilastotCounter,
-                hyvaksiluettavatCounter,
+                vahennettavatMap,
                 kaytannonKoulutusSuoritettuMap,
                 tyoskentelyjaksotSuoritettu,
                 opintooikeus.opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus
@@ -353,7 +347,7 @@ class TyoskentelyjaksoServiceImpl(
     fun getTyoskentelyjaksoTilastot(
         tyoskentelyjakso: Tyoskentelyjakso,
         tilastotCounter: TilastotCounter,
-        hyvaksiluettavatCounterData: HyvaksiluettavatCounterData,
+        vahennettavatMap: Map<Long, Double>,
         kaytannonKoulutusSuoritettuMap: MutableMap<KaytannonKoulutusTyyppi, Double>,
         tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>,
         terveyskeskusMaksimi: Double?
@@ -361,7 +355,7 @@ class TyoskentelyjaksoServiceImpl(
         val tyoskentelyjaksonPituus =
             tyoskentelyjaksonPituusCounterService.calculateInDays(
                 tyoskentelyjakso,
-                hyvaksiluettavatCounterData
+                vahennettavatMap[tyoskentelyjakso.id]
             )
         var tutkintoonHyvaksyttavaPituus = tyoskentelyjaksonPituus
 
@@ -418,6 +412,29 @@ class TyoskentelyjaksoServiceImpl(
                 )
             )
         }
+    }
+
+    private fun getVahennettavatPaivat(tyoskentelyjaksot: List<Tyoskentelyjakso>): Map<Long, Double> {
+        val result = mutableMapOf<Long, Double>()
+        val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
+            hyvaksiluettavatPerYearMap =
+                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(
+                    tyoskentelyjaksot
+                )
+        }
+        tyoskentelyjaksot.map { it.keskeytykset }.flatten()
+            .sortedBy { it.alkamispaiva }.forEach {
+                val tyoskentelyjaksoFactor =
+                    it.tyoskentelyjakso?.osaaikaprosentti!!.toDouble() / 100.0
+                val amountOfReducedDays =
+                    tyoskentelyjaksonPituusCounterService.calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
+                        it,
+                        tyoskentelyjaksoFactor,
+                        hyvaksiluettavatCounter
+                    )
+                result[it.tyoskentelyjakso!!.id!!] = amountOfReducedDays
+            }
+        return result
     }
 
     override fun validateAlkamisJaPaattymispaiva(
