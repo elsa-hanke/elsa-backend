@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
+import fi.elsapalvelu.elsa.service.dto.LaillistamispaivaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import org.springframework.data.domain.Page
@@ -32,6 +33,8 @@ interface ErikoistuvaLaakariService {
     fun delete(id: Long)
 
     fun findOneByKayttajaUserId(userId: String): ErikoistuvaLaakariDTO?
+
+    fun getLaillistamispaiva(userId: String): LaillistamispaivaDTO?
 
     fun laillistamispaivaAndTodistusExists(userId: String): Boolean
 
