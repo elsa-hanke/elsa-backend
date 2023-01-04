@@ -6,10 +6,7 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
-import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
-import fi.elsapalvelu.elsa.service.dto.UserDTO
-import fi.elsapalvelu.elsa.service.dto.UusiLahikouluttajaDTO
+import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.impl.UserServiceImpl
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpStatus
@@ -17,9 +14,11 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.EntityExistsException
 import javax.validation.Valid
@@ -57,6 +56,47 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                 it.muokkausoikeudetVirkailijoilla =
                     it.opintooikeudet?.first { o -> o.id == it.opintooikeusKaytossaId }?.muokkausoikeudetVirkailijoilla
             }
+            return ResponseEntity.ok(it)
+        } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+    }
+
+    @PutMapping("")
+    fun updateErikoistuvaLaakari(
+        @Valid @ModelAttribute omatTiedotDTO: OmatTiedotDTO,
+        @RequestParam(required = false) laillistamispaiva: LocalDate?,
+        @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
+        principal: Principal?
+    ): UserDTO {
+        val userId = userService.getAuthenticatedUser(principal).id!!
+        val email = omatTiedotDTO.email!!.lowercase()
+
+        val userDTO = userService.getUser(userId)
+        if (userDTO.email?.lowercase() != email && userService.existsByEmail(email)) {
+            throw BadRequestAlertException(
+                "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
+            )
+        }
+
+        val user = userService.getAuthenticatedUser(principal)
+        erikoistuvaLaakariService.updateLaillistamispaiva(
+            user.id!!,
+            laillistamispaiva,
+            laillistamispaivanLiite?.bytes,
+            laillistamispaivanLiite?.originalFilename,
+            laillistamispaivanLiite?.contentType
+        )
+
+        return userService.updateUserDetails(omatTiedotDTO, userId)
+    }
+
+    @GetMapping("/laillistamispaiva")
+    fun getLaillistamispaiva(
+        principal: Principal?
+    ): ResponseEntity<LaillistamispaivaDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        erikoistuvaLaakariService.getLaillistamispaiva(user.id!!)?.let {
             return ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
