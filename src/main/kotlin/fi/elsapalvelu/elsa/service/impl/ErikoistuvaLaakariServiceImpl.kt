@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
+import fi.elsapalvelu.elsa.service.dto.LaillistamispaivaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
@@ -159,6 +160,19 @@ class ErikoistuvaLaakariServiceImpl(
     ): ErikoistuvaLaakariDTO? {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             return erikoistuvaLaakariMapper.toDto(it)
+        }
+
+        return null
+    }
+
+    override fun getLaillistamispaiva(userId: String): LaillistamispaivaDTO? {
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+            return LaillistamispaivaDTO(
+                laillistamispaiva = it.laillistamispaiva,
+                laillistamistodistus = it.laillistamispaivanLiitetiedosto,
+                laillistamistodistusNimi = it.laillistamispaivanLiitetiedostonNimi,
+                laillistamistodistusTyyppi = it.laillistamispaivanLiitetiedostonTyyppi
+            )
         }
 
         return null
