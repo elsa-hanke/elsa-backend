@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.max
+import kotlin.math.min
 
 @Service
 @Transactional
@@ -58,18 +59,18 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
             hyvaksiluettavatPerYearMap = getHyvaksiluettavatPerYearMap(tyoskentelyjaksot)
         }
 
-        tyoskentelyjaksot.forEach {
-            val tyoskentelyjaksoFactor = it.osaaikaprosentti!!.toDouble() / 100.0
+        tyoskentelyjaksot.map { it.keskeytykset }.flatten().sortedBy { k -> k.alkamispaiva }
+            .forEach {
+                val tyoskentelyjaksoFactor =
+                    it.tyoskentelyjakso?.osaaikaprosentti!!.toDouble() / 100.0
 
-            for (keskeytys in it.keskeytykset) {
                 calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
-                    keskeytys,
+                    it,
                     tyoskentelyjaksoFactor,
                     hyvaksiluettavatCounterData,
                     calculateUntilDate
                 )
             }
-        }
 
         return hyvaksiluettavatCounterData
     }
@@ -117,21 +118,20 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
         // työpäivästä vähentää hyväksiluettavia päiviä kyseisen päivän osalta vain 0,25 päivää.
         val keskeytysaikaLength =
             keskeytysaikaFactor * tyoskentelyjaksoFactor * keskeytysaikaDaysBetween
+        val vahennetaanKerran = keskeytysaika.poissaolonSyy!!.vahennetaanKerran
 
         when (keskeytysaika.poissaolonSyy!!.vahennystyyppi!!) {
             VAHENNETAAN_SUORAAN -> {
                 return keskeytysaikaLength
             }
-            VAHENNETAAN_YLIMENEVA_AIKA -> {
-                val (amountOfReducedDays, hyvaksiLuettavatLeft) =
-                    getAmountOfReducedDaysAndHyvaksiluettavatLeft(
-                        keskeytysaikaLength,
-                        hyvaksiluettavatCounterData.hyvaksiluettavatDays
-                    )
-                hyvaksiluettavatCounterData.hyvaksiluettavatDays = hyvaksiLuettavatLeft
-                return amountOfReducedDays
-            }
             VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI -> {
+                if (vahennetaanKerran) {
+                    hyvaksiluettavatCounterData.hyvaksiluettavatDays.putIfAbsent(
+                        keskeytysaika.poissaolonSyy!!,
+                        30.0
+                    )
+                }
+
                 val keskeytysaikaMap = getKeskeytysaikaMap(
                     keskeytysaika.alkamispaiva!!,
                     endDate,
@@ -140,13 +140,26 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
                 )
                 var reducedDaysTotal = 0.0
                 keskeytysaikaMap.forEach {
-                    val (amountOfReducedDays, hyvaksiLuettavatLeft) =
-                        getAmountOfReducedDaysAndHyvaksiluettavatLeft(
-                            it.value,
-                            hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key]!!
-                        )
-                    hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key] =
+                    val hyvaksiLuettavatLeft = if (vahennetaanKerran) min(
+                        hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key]!!,
+                        hyvaksiluettavatCounterData.hyvaksiluettavatDays[keskeytysaika.poissaolonSyy]!!
+                    ) else hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key]!!
+                    val (amountOfReducedDays, hyvaksiluettavatUsed) = getAmountOfReducedDaysAndHyvaksiluettavatUsed(
+                        it.value,
                         hyvaksiLuettavatLeft
+                    )
+                    if (vahennetaanKerran) {
+                        hyvaksiluettavatCounterData.hyvaksiluettavatDays[keskeytysaika.poissaolonSyy!!] =
+                            max(
+                                0.0,
+                                hyvaksiluettavatCounterData.hyvaksiluettavatDays[keskeytysaika.poissaolonSyy!!]!! - hyvaksiluettavatUsed
+                            )
+                    }
+                    hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key] =
+                        max(
+                            0.0,
+                            hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key]!! - hyvaksiluettavatUsed
+                        )
                     reducedDaysTotal += amountOfReducedDays
                 }
                 return reducedDaysTotal
@@ -154,12 +167,12 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
         }
     }
 
-    private fun getAmountOfReducedDaysAndHyvaksiluettavatLeft(
+    private fun getAmountOfReducedDaysAndHyvaksiluettavatUsed(
         keskeytysaikaLength: Double,
         hyvaksiluettavatLeft: Double
     ): Pair<Double, Double> {
         var amountOfReducedDays = 0.0
-        var hyvaksiLuettavatLeftUpdated = hyvaksiluettavatLeft
+        var hyvaksiLuettavatUsed = 0.0
         when {
             // Jäljellä olevia hyväksiluettavia päiviä ei ole jäljellä, joten vähennetään
             // keskeytysajan pituus.
@@ -172,15 +185,15 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
             // asetetaan jäljellä olevien hyväksiluettavien päivien määrä nollaan.
             keskeytysaikaLength >= hyvaksiluettavatLeft -> {
                 amountOfReducedDays = keskeytysaikaLength - hyvaksiluettavatLeft
-                hyvaksiLuettavatLeftUpdated = 0.0
+                hyvaksiLuettavatUsed = hyvaksiluettavatLeft
             }
             // Keskeytysajan pituus on pienempi kuin jäljellä olevien hyväksiluettavien päivien määrä,
             // vähennetään vain jäljellä olevien hyväksiluettavien päivien määrää.
             else -> {
-                hyvaksiLuettavatLeftUpdated = hyvaksiluettavatLeft - keskeytysaikaLength
+                hyvaksiLuettavatUsed = keskeytysaikaLength
             }
         }
-        return Pair(amountOfReducedDays, hyvaksiLuettavatLeftUpdated)
+        return Pair(amountOfReducedDays, hyvaksiLuettavatUsed)
     }
 
     // Muodostetaan Map, jossa avaimena vuosi ja arvona kuinka monta päivää keskeytysajasta
