@@ -414,7 +414,7 @@ class TyoskentelyjaksoServiceImpl(
         }
     }
 
-    private fun getVahennettavatPaivat(tyoskentelyjaksot: List<Tyoskentelyjakso>): Map<Long, Double> {
+    override fun getVahennettavatPaivat(tyoskentelyjaksot: List<Tyoskentelyjakso>): Map<Long, Double> {
         val result = mutableMapOf<Long, Double>()
         val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
             hyvaksiluettavatPerYearMap =

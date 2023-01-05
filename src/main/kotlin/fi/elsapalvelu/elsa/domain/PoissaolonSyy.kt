@@ -30,6 +30,10 @@ data class PoissaolonSyy(
     var vahennystyyppi: PoissaolonSyyTyyppi? = null,
 
     @get: NotNull
+    @Column(name = "vahennetaan_kerran", nullable = true)
+    var vahennetaanKerran: Boolean = false,
+
+    @get: NotNull
     @Column(name = "voimassaolon_alkamispaiva", nullable = false)
     var voimassaolonAlkamispaiva: LocalDate? = null,
 

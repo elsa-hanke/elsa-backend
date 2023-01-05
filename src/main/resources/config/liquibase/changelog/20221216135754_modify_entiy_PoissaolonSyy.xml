@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20221216135754" author="jhipster">
+        <addColumn tableName="poissaolon_syy">
+            <column name="vahennetaan_kerran" type="boolean" defaultValue="false"/>
+        </addColumn>
+
+        <update tableName="poissaolon_syy">
+            <column name="nimi" value="Äitiysloma, isyysloma, vanhempainvapaa (palkallinen/palkaton), lapsi 1"/>
+            <column name="vahennystyyppi" value="VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI"/>
+            <column name="vahennetaan_kerran" value="true"/>
+            <where>nimi = 'Äitiysloma, isyysloma, vanhempainvapaa (palkallinen/palkaton)'</where>
+        </update>
+
+        <insert tableName="poissaolon_syy">
+            <column name="id" value="16"/>
+            <column name="nimi"
+                value="Äitiysloma, isyysloma, vanhempainvapaa (palkallinen/palkaton), lapsi 2"/>
+            <column name="vahennystyyppi" value="VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI"/>
+            <column name="vahennetaan_kerran" value="true"/>
+            <column name="voimassaolon_alkamispaiva" value="2020-08-01"/>
+        </insert>
+
+        <insert tableName="poissaolon_syy">
+            <column name="id" value="17"/>
+            <column name="nimi"
+                value="Äitiysloma, isyysloma, vanhempainvapaa (palkallinen/palkaton), lapsi 3"/>
+            <column name="vahennystyyppi" value="VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI"/>
+            <column name="vahennetaan_kerran" value="true"/>
+            <column name="voimassaolon_alkamispaiva" value="2020-08-01"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
