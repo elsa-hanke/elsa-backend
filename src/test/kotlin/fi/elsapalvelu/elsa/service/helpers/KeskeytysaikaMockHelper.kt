@@ -23,6 +23,7 @@ class KeskeytysaikaMockHelper {
                 null,
                 "",
                 poissaolonSyyTyyppi,
+                false,
                 LocalDate.ofEpochDay(0L),
                 null
             )
@@ -45,16 +46,23 @@ class KeskeytysaikaMockHelper {
             alkamispaiva: LocalDate?,
             paattymispaiva: LocalDate?,
             poissaoloprosentti: Int = 100,
-            poissaolonSyyTyyppi: PoissaolonSyyTyyppi = PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN
+            poissaolonSyyTyyppi: PoissaolonSyyTyyppi = PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN,
+            vahennetaanKerran: Boolean = false,
+            poissaolonSyy: PoissaolonSyy? = null
         ): Keskeytysaika {
             val keskeytysaikaMock = mock(Keskeytysaika::class.java)
             `when`(keskeytysaikaMock.id).thenReturn(id)
             `when`(keskeytysaikaMock.alkamispaiva).thenReturn(alkamispaiva)
             `when`(keskeytysaikaMock.paattymispaiva).thenReturn(paattymispaiva)
             `when`(keskeytysaikaMock.poissaoloprosentti).thenReturn(poissaoloprosentti)
-            val poissaolonSyyMock = mock(PoissaolonSyy::class.java)
-            `when`(poissaolonSyyMock.vahennystyyppi).thenReturn(poissaolonSyyTyyppi)
-            `when`(keskeytysaikaMock.poissaolonSyy).thenReturn(poissaolonSyyMock)
+            if (poissaolonSyy != null) {
+                `when`(keskeytysaikaMock.poissaolonSyy).thenReturn(poissaolonSyy)
+            } else {
+                val poissaolonSyyMock = mock(PoissaolonSyy::class.java)
+                `when`(poissaolonSyyMock.vahennystyyppi).thenReturn(poissaolonSyyTyyppi)
+                `when`(poissaolonSyyMock.vahennetaanKerran).thenReturn(vahennetaanKerran)
+                `when`(keskeytysaikaMock.poissaolonSyy).thenReturn(poissaolonSyyMock)
+            }
 
             return keskeytysaikaMock
         }

@@ -224,12 +224,6 @@ class TyoskentelyjaksoServiceImpl(
         tyoskentelyjaksot: List<Tyoskentelyjakso>
     ): Boolean {
         var totalLength = 0.0
-        val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
-            hyvaksiluettavatPerYearMap =
-                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(
-                    tyoskentelyjaksot
-                )
-        }
         val vahennettavatMap = getVahennettavatPaivat(tyoskentelyjaksot)
         tyoskentelyjaksot.forEach {
             totalLength += tyoskentelyjaksonPituusCounterService.calculateInDays(
@@ -432,7 +426,9 @@ class TyoskentelyjaksoServiceImpl(
                         tyoskentelyjaksoFactor,
                         hyvaksiluettavatCounter
                     )
-                result[it.tyoskentelyjakso!!.id!!] = amountOfReducedDays
+                result.putIfAbsent(it.tyoskentelyjakso!!.id!!, 0.0)
+                result[it.tyoskentelyjakso!!.id!!] =
+                    result[it.tyoskentelyjakso!!.id!!]!! + amountOfReducedDays
             }
         return result
     }

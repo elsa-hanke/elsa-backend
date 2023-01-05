@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi
 import fi.elsapalvelu.elsa.extensions.isInRange
@@ -22,7 +23,7 @@ import kotlin.math.min
 class OverlappingTyoskentelyjaksoValidationServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val keskeytysaikaRepository: KeskeytysaikaRepository,
-    private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
+    private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService
 ) : OverlappingTyoskentelyjaksoValidationService {
 
     override fun validateTyoskentelyjakso(
@@ -176,13 +177,18 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                             if (vahennetaanKerran) {
                                 counterData.hyvaksiluettavatDays.putIfAbsent(
                                     it.poissaolonSyy!!,
-                                    30.0
+                                    HYVAKSILUETTAVAT_DAYS
                                 )
                             }
                             if (!counterData.hyvaksiluettavatPerYearMap.keys.contains(date.year)) {
                                 counterData.hyvaksiluettavatPerYearMap[date.year] =
                                     HYVAKSILUETTAVAT_DAYS
                             }
+
+                            // Tarkistetaan hyväksiluettavat päivät vuosittaisesta määrästä ja
+                            // vain kerran hyväksyttävien keskeytyksien (vanhempainvapaat) osalta
+                            // poissaolokohtaisesta määrästä. Hyväksiluetaan näistä niin paljon kuin
+                            // pystytään ja päivitetään molemmat laskurit.
                             val hyvaksiluettavaFactor = if (vahennetaanKerran) min(
                                 counterData.hyvaksiluettavatPerYearMap[date.year]!!,
                                 counterData.hyvaksiluettavatDays[it.poissaolonSyy]!!
@@ -249,7 +255,16 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
             alkamispaiva = keskeytysaikaDTO.alkamispaiva
             paattymispaiva = keskeytysaikaDTO.paattymispaiva
             poissaoloprosentti = keskeytysaikaDTO.poissaoloprosentti
-            poissaolonSyy?.vahennystyyppi = keskeytysaikaDTO.poissaolonSyy?.vahennystyyppi
+            keskeytysaikaDTO.poissaolonSyy?.let {
+                poissaolonSyy = PoissaolonSyy(
+                    id = it.id,
+                    nimi = it.nimi,
+                    vahennystyyppi = it.vahennystyyppi,
+                    vahennetaanKerran = it.vahennetaanKerran,
+                    voimassaolonAlkamispaiva = it.voimassaolonAlkamispaiva,
+                    voimassaolonPaattymispaiva = it.voimassaolonPaattymispaiva
+                )
+            }
         }
     }
 
