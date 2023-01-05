@@ -15,7 +15,6 @@ import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.VASTUUHENKILO_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
-import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksonHyvaksyntaDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
@@ -46,6 +45,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaQueryService: TerveyskeskuskoulutusjaksonHyvaksyntaQueryService,
     private val mailService: MailService,
+    private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val applicationProperties: ApplicationProperties
 
 ) : TerveyskeskuskoulutusjaksonHyvaksyntaService {
@@ -405,17 +405,12 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     }
 
     private fun getKokonaispituus(tyoskentelyjaksot: List<Tyoskentelyjakso>): Double {
-        val hyvaksiluettavatCounter = HyvaksiluettavatCounterData().apply {
-            hyvaksiluettavatPerYearMap =
-                tyoskentelyjaksonPituusCounterService.getHyvaksiluettavatPerYearMap(
-                    tyoskentelyjaksot
-                )
-        }
         var suoritettuPituus = 0.0
+        val vahennettavatMap = tyoskentelyjaksoService.getVahennettavatPaivat(tyoskentelyjaksot)
 
         tyoskentelyjaksot.forEach {
             val tyoskentelyjaksonPituus =
-                tyoskentelyjaksonPituusCounterService.calculateInDays(it, hyvaksiluettavatCounter)
+                tyoskentelyjaksonPituusCounterService.calculateInDays(it, vahennettavatMap[it.id])
             if (tyoskentelyjaksonPituus > 0) {
                 suoritettuPituus += tyoskentelyjaksonPituus
             }
