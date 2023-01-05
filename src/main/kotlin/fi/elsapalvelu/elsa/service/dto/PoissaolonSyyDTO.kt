@@ -16,6 +16,9 @@ data class PoissaolonSyyDTO(
     var vahennystyyppi: PoissaolonSyyTyyppi? = null,
 
     @get: NotNull
+    var vahennetaanKerran: Boolean = false,
+
+    @get: NotNull
     var voimassaolonAlkamispaiva: LocalDate? = null,
 
     var voimassaolonPaattymispaiva: LocalDate? = null

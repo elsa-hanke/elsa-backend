@@ -13,7 +13,7 @@ class PoissaolonSyyHelper {
         private const val UPDATED_NIMI = "BBBBBBBBBB"
 
         private val DEFAULT_VAHENNYSTYYPPI: PoissaolonSyyTyyppi = PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN
-        private val UPDATED_VAHENNYSTYYPPI: PoissaolonSyyTyyppi = PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA
+        private val UPDATED_VAHENNYSTYYPPI: PoissaolonSyyTyyppi = PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
 
         private val DEFAULT_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())

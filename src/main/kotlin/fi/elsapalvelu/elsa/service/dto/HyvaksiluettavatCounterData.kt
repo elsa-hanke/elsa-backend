@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.dto
 import fi.elsapalvelu.elsa.domain.PoissaolonSyy
 
 data class HyvaksiluettavatCounterData(
-    // Poissaolon syy tyyppi: VAHENNETAAN_YLIMENEVA_AIKA.
+    // Poissaolon syy tyyppi: VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI ja vahennetaanKerran = true.
     // Voidaan hyväksilukea vain kerran 30 päivää riippumatta siitä
     // kuinka monta ja kuinka monelle vuodelle jakautuvaa työskentelyjaksoa
     // erikoistuva on kirjannut.
