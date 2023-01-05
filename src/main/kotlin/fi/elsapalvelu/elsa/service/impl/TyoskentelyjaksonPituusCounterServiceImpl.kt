@@ -12,6 +12,7 @@ import fi.elsapalvelu.elsa.service.constants.HYVAKSILUETTAVAT_DAYS
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.max
@@ -140,6 +141,10 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
                 )
                 var reducedDaysTotal = 0.0
                 keskeytysaikaMap.forEach {
+                    // Tarkistetaan hyväksiluettavat päivät vuosittaisesta määrästä ja
+                    // vain kerran hyväksyttävien keskeytyksien (vanhempainvapaat) osalta
+                    // poissaolokohtaisesta määrästä. Hyväksiluetaan näistä niin paljon kuin
+                    // pystytään ja päivitetään molemmat laskurit.
                     val hyvaksiLuettavatLeft = if (vahennetaanKerran) min(
                         hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key]!!,
                         hyvaksiluettavatCounterData.hyvaksiluettavatDays[keskeytysaika.poissaolonSyy]!!
@@ -184,7 +189,8 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
             // keskeystysajan pituuden ja jäljellä olevien hyväksiluettavien päivien erotus sekä
             // asetetaan jäljellä olevien hyväksiluettavien päivien määrä nollaan.
             keskeytysaikaLength >= hyvaksiluettavatLeft -> {
-                amountOfReducedDays = keskeytysaikaLength - hyvaksiluettavatLeft
+                amountOfReducedDays = BigDecimal.valueOf(keskeytysaikaLength)
+                    .subtract(BigDecimal.valueOf(hyvaksiluettavatLeft)).toDouble()
                 hyvaksiLuettavatUsed = hyvaksiluettavatLeft
             }
             // Keskeytysajan pituus on pienempi kuin jäljellä olevien hyväksiluettavien päivien määrä,
