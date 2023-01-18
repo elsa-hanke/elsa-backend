@@ -876,7 +876,7 @@ type Attainment {
   attainmentLanguageUrn: String
   attainmentLanguageCanonizedUrn: String
   attainmentLanguage: Code
-  credits: Float!
+  credits: Float
   degreeTitleUrn: String
   degreeTitle: Code
   documentState: String!
