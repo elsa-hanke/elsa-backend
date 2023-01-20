@@ -197,7 +197,7 @@ application:
       enabled: true
       saml-private-key-location: classpath:private.key
       saml-certificate-location: classpath:public.crt
-      saml-suomifi-metadata-location: https://testi.apro.tunnistus.fi/static/metadata/idp-metadata.xml
+      saml-suomifi-metadata-location: https://static.apro.tunnistus.fi/static/metadata/idp-metadata.xml
       saml-suomifi-entity-id: https://testi.apro.tunnistus.fi/idp1
     haka:
       enabled: true
