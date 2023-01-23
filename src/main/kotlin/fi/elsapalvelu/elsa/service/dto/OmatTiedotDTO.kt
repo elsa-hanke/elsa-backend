@@ -13,7 +13,9 @@ data class OmatTiedotDTO(
 
     var avatar: MultipartFile? = null,
 
-    var avatarUpdated: Boolean = false
+    var avatarUpdated: Boolean = false,
+
+    var nimike: String? = null
 
 ) : Serializable {
     override fun toString() = "OmatTiedotDTO"
