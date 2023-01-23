@@ -78,7 +78,7 @@ class KayttajaResource(
     @PutMapping("/kayttaja")
     fun updateKayttajaDetails(
         @Valid @ModelAttribute omatTiedotDTO: OmatTiedotDTO,
-        @Valid @RequestParam kayttajanYliopistot: String,
+        @Valid @RequestParam kayttajanYliopistot: String?,
         principal: Principal?
     ): UserDTO {
         val userId = userService.getAuthenticatedUser(principal).id!!
@@ -94,13 +94,17 @@ class KayttajaResource(
             )
         }
 
-        val kayttajanYliopistotDTO: List<KayttajaYliopistoErikoisalatDTO> = objectMapper.readValue(
-            kayttajanYliopistot,
-            objectMapper.typeFactory.constructCollectionType(
-                List::class.java,
-                KayttajaYliopistoErikoisalatDTO::class.java
-            )
-        )
+        val kayttajanYliopistotDTO: List<KayttajaYliopistoErikoisalatDTO> =
+            kayttajanYliopistot?.let {
+                objectMapper.readValue(
+                    kayttajanYliopistot,
+                    objectMapper.typeFactory.constructCollectionType(
+                        List::class.java,
+                        KayttajaYliopistoErikoisalatDTO::class.java
+                    )
+                )
+            } ?: listOf()
+
         if (user.authorities?.contains(KOULUTTAJA) == true) {
             kayttajaService.updateKayttaja(
                 userId,
