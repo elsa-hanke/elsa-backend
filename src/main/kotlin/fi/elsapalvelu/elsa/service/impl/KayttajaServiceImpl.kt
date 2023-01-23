@@ -1,8 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala
-import fi.elsapalvelu.elsa.domain.VastuuhenkilonTehtavatyyppi
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
@@ -14,10 +12,7 @@ import fi.elsapalvelu.elsa.service.constants.ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.constants.VASTUUHENKILO_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
-import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
-import fi.elsapalvelu.elsa.service.dto.ReassignedVastuuhenkilonTehtavaDTO
-import fi.elsapalvelu.elsa.service.dto.UserDTO
-import fi.elsapalvelu.elsa.service.dto.VastuuhenkilonTehtavatyyppiDTO
+import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ReassignedVastuuhenkilonTehtavaTyyppi
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
@@ -142,7 +137,10 @@ class KayttajaServiceImpl(
     }
 
     override fun findVastuuhenkilotByYliopisto(yliopistoId: Long): List<KayttajaDTO> {
-        return kayttajaRepository.findAllByAuthoritiesAndYliopisto(listOf(VASTUUHENKILO), yliopistoId)
+        return kayttajaRepository.findAllByAuthoritiesAndYliopisto(
+            listOf(VASTUUHENKILO),
+            yliopistoId
+        )
             .map(kayttajaMapper::toDto)
     }
 
@@ -172,38 +170,40 @@ class KayttajaServiceImpl(
         erikoistuvaUserId: String,
         kouluttajaEmail: String
     ): KayttajaDTO? {
-        return kayttajaRepository.findOneByUserEmail(kouluttajaEmail.lowercase()).orElse(null)?.let {
-            val opintooikeus =
-                requireNotNull(
-                    opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(
-                        erikoistuvaUserId
+        return kayttajaRepository.findOneByUserEmail(kouluttajaEmail.lowercase()).orElse(null)
+            ?.let {
+                val opintooikeus =
+                    requireNotNull(
+                        opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(
+                            erikoistuvaUserId
+                        )
                     )
+                val erikoistuvanYliopisto = requireNotNull(opintooikeus.yliopisto)
+                val erikoistuvanErikoisala = requireNotNull(opintooikeus.erikoisala)
+
+                if (it.yliopistotAndErikoisalat.any { yliopistotAndErikoisalat ->
+                        yliopistotAndErikoisalat.yliopisto?.id == erikoistuvanYliopisto.id &&
+                            yliopistotAndErikoisalat.erikoisala?.id == erikoistuvanErikoisala.id
+                    }) {
+                    throw EntityExistsException()
+                }
+
+                val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
+                    kayttaja = it,
+                    yliopisto = erikoistuvanYliopisto,
+                    erikoisala = erikoistuvanErikoisala
                 )
-            val erikoistuvanYliopisto = requireNotNull(opintooikeus.yliopisto)
-            val erikoistuvanErikoisala = requireNotNull(opintooikeus.erikoisala)
+                kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
+                it.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
-            if (it.yliopistotAndErikoisalat.any { yliopistotAndErikoisalat ->
-                    yliopistotAndErikoisalat.yliopisto?.id == erikoistuvanYliopisto.id &&
-                        yliopistotAndErikoisalat.erikoisala?.id == erikoistuvanErikoisala.id
-                }) {
-                throw EntityExistsException()
+                kayttajaMapper.toDto(it)
             }
-
-            val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
-                kayttaja = it,
-                yliopisto = erikoistuvanYliopisto,
-                erikoisala = erikoistuvanErikoisala
-            )
-            kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
-            it.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
-
-            kayttajaMapper.toDto(it)
-        }
     }
 
     override fun findVastuuhenkilotFromSameYliopistoAndErikoisala(kayttajaId: Long): List<KayttajaDTO> {
         val kayttaja =
-            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+            kayttajaRepository.findById(kayttajaId)
+                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         val yliopistoIds = kayttaja.yliopistotAndErikoisalat.map { it.yliopisto!!.id }
         val erikoisalaIds = kayttaja.yliopistotAndErikoisalat.map { it.erikoisala!!.id }
 
@@ -221,9 +221,11 @@ class KayttajaServiceImpl(
         pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+            kayttajaRepository.findOneByUserId(userId)
+                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         val yliopisto =
-            kayttaja.yliopistot.firstOrNull() ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
+            kayttaja.yliopistot.firstOrNull()
+                ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
 
         return kayttajaQueryService.findByAuthorityAndCriteriaAndYliopistoId(
             criteria,
@@ -241,7 +243,8 @@ class KayttajaServiceImpl(
         pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+            kayttajaRepository.findOneByUserId(userId)
+                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         return kayttajaQueryService.findByAuthorityAndCriteria(
             criteria,
             authority,
@@ -252,13 +255,15 @@ class KayttajaServiceImpl(
 
     override fun activateKayttaja(kayttajaId: Long) {
         val kayttaja =
-            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+            kayttajaRepository.findById(kayttajaId)
+                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         kayttaja.tila = KayttajatilinTila.AKTIIVINEN
     }
 
     override fun passivateKayttaja(kayttajaId: Long) {
         val kayttaja =
-            kayttajaRepository.findById(kayttajaId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+            kayttajaRepository.findById(kayttajaId)
+                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         kayttaja.tila = KayttajatilinTila.PASSIIVINEN
     }
 
@@ -296,6 +301,67 @@ class KayttajaServiceImpl(
         )
     }
 
+    override fun updateKayttaja(
+        userId: String,
+        nimike: String?,
+        kayttajanYliopistot: List<KayttajaYliopistoErikoisalatDTO>?,
+        oikeusPaivittaaErikoisaloja: Boolean
+    ) {
+        kayttajaRepository.findOneByUserId(userId).orElse(null)?.let {
+            it.nimike = nimike
+            if (kayttajanYliopistot != null && oikeusPaivittaaErikoisaloja) {
+                val yliopistoErikoisalaMap = it.yliopistotAndErikoisalat.associate { ye ->
+                    Pair(
+                        ye.yliopisto?.id,
+                        ye.erikoisala?.id
+                    ) to Pair(ye, false)
+                }.toMutableMap()
+
+                val uudetErikoisalat: MutableList<KayttajaYliopistoErikoisala> = mutableListOf()
+
+                kayttajanYliopistot.forEach { kayttajanYliopisto ->
+                    kayttajanYliopisto.erikoisalat?.forEach { erikoisala ->
+                        val existing = yliopistoErikoisalaMap[Pair(
+                            kayttajanYliopisto.yliopisto?.id,
+                            erikoisala.id
+                        )]
+                        if (existing != null) {
+                            yliopistoErikoisalaMap[Pair(
+                                kayttajanYliopisto.yliopisto?.id,
+                                erikoisala.id
+                            )] = Pair(existing.first, true)
+                        } else {
+                            uudetErikoisalat.add(
+                                KayttajaYliopistoErikoisala(
+                                    kayttaja = it,
+                                    yliopisto = Yliopisto(id = kayttajanYliopisto.yliopisto?.id),
+                                    erikoisala = Erikoisala(id = erikoisala.id)
+                                )
+                            )
+                        }
+                    }
+                }
+
+                val poistettavatErikoisalat: MutableList<KayttajaYliopistoErikoisala> =
+                    mutableListOf()
+
+                it.yliopistotAndErikoisalat.forEach { ye ->
+                    if (yliopistoErikoisalaMap[Pair(
+                            ye.yliopisto?.id,
+                            ye.erikoisala?.id
+                        )]?.second == false
+                    ) {
+                        poistettavatErikoisalat.add(ye)
+                    }
+                }
+
+                it.yliopistotAndErikoisalat.removeAll(poistettavatErikoisalat)
+                it.yliopistotAndErikoisalat.addAll(uudetErikoisalat)
+            }
+            kayttajaRepository.save(it)
+        }
+    }
+
     private fun saveYliopistotAndErikoisalat(
         kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
         kayttaja: Kayttaja
@@ -309,9 +375,10 @@ class KayttajaServiceImpl(
                 existingKayttajaYliopistoErikoisala.vastuuhenkilonTehtavat =
                     mapVastuuhenkilonTehtavat(it.vastuuhenkilonTehtavat)
             } else {
-                val kayttajaYliopistoErikoisala = kayttajaYliopistoErikoisalaMapper.toEntity(it).apply {
-                    this.kayttaja = kayttaja
-                }
+                val kayttajaYliopistoErikoisala =
+                    kayttajaYliopistoErikoisalaMapper.toEntity(it).apply {
+                        this.kayttaja = kayttaja
+                    }
                 kayttaja.yliopistotAndErikoisalat.add(kayttajaYliopistoErikoisala)
             }
         }
@@ -341,7 +408,8 @@ class KayttajaServiceImpl(
     }
 
     private fun mapVastuuhenkilonTehtavat(tehtavat: MutableSet<VastuuhenkilonTehtavatyyppiDTO>?): MutableSet<VastuuhenkilonTehtavatyyppi> =
-        tehtavat?.map { vastuuhenkilonTehtavatyyppiMapper.toEntity(it) }?.toMutableSet() ?: mutableSetOf()
+        tehtavat?.map { vastuuhenkilonTehtavatyyppiMapper.toEntity(it) }?.toMutableSet()
+            ?: mutableSetOf()
 
     private fun createNewKayttaja(
         kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
@@ -359,7 +427,8 @@ class KayttajaServiceImpl(
         val persistedUser = userRepository.save(userMapper.userDTOToUser(userDTO)!!)
         val kayttajaDTO = KayttajaDTO(
             tila = KayttajatilinTila.KUTSUTTU,
-            yliopistot = kayttajahallintaKayttajaDTO.yliopisto?.let { mutableSetOf(it) } ?: mutableSetOf()
+            yliopistot = kayttajahallintaKayttajaDTO.yliopisto?.let { mutableSetOf(it) }
+                ?: mutableSetOf()
         )
         val kayttaja = kayttajaMapper.toEntity(kayttajaDTO)
         kayttaja.user = persistedUser
