@@ -179,7 +179,13 @@ class SecurityConfiguration(
             .antMatchers("/api/tekninen-paakayttaja/**").hasAuthority(TEKNINEN_PAAKAYTTAJA)
             .antMatchers("/api/virkailija/**").hasAuthority(OPINTOHALLINNON_VIRKAILIJA)
             .antMatchers(HttpMethod.PUT, "/api/kayttaja")
-            .hasAnyAuthority(ERIKOISTUVA_LAAKARI, KOULUTTAJA, VASTUUHENKILO, TEKNINEN_PAAKAYTTAJA)
+            .hasAnyAuthority(
+                ERIKOISTUVA_LAAKARI,
+                KOULUTTAJA,
+                VASTUUHENKILO,
+                OPINTOHALLINNON_VIRKAILIJA,
+                TEKNINEN_PAAKAYTTAJA
+            )
             .antMatchers("/api/**").authenticated()
             .antMatchers("/management/health").permitAll()
             .antMatchers("/management/info").denyAll()

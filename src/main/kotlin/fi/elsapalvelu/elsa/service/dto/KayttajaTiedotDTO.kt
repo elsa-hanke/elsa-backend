@@ -6,7 +6,9 @@ data class KayttajaTiedotDTO(
 
     var nimike: String? = null,
 
-    var kayttajanYliopistot: MutableSet<KayttajaYliopistoErikoisalatDTO>? = mutableSetOf(),
+    var kayttajanYliopistot: MutableSet<YliopistoDTO>? = mutableSetOf(),
+
+    var kayttajanYliopistotJaErikoisalat: MutableSet<KayttajaYliopistoErikoisalatDTO>? = mutableSetOf(),
 
     var yliopistot: List<YliopistoDTO> = listOf(),
 
