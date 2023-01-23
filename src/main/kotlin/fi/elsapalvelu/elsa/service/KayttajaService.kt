@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalatDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
@@ -79,4 +80,11 @@ interface KayttajaService {
         authorities: Set<String>? = null,
         kayttajaId: Long? = null
     ): KayttajahallintaKayttajaWrapperDTO
+
+    fun updateKayttaja(
+        userId: String,
+        nimike: String?,
+        kayttajanYliopistot: List<KayttajaYliopistoErikoisalatDTO>?,
+        oikeusPaivittaaErikoisaloja: Boolean
+    )
 }
