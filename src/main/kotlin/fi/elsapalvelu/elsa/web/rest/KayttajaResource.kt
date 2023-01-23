@@ -15,9 +15,7 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.multipart.MultipartFile
 import java.security.Principal
-import java.time.LocalDate
 import javax.validation.Valid
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
@@ -52,7 +50,8 @@ class KayttajaResource(
         val kayttaja = kayttajaService.findByUserId(userId).orElse(null)
         return KayttajaTiedotDTO(
             nimike = kayttaja?.nimike,
-            kayttajanYliopistot = kayttaja?.yliopistotAndErikoisalat?.groupBy { it.yliopisto }
+            kayttajanYliopistot = kayttaja?.yliopistot,
+            kayttajanYliopistotJaErikoisalat = kayttaja?.yliopistotAndErikoisalat?.groupBy { it.yliopisto }
                 ?.map {
                     KayttajaYliopistoErikoisalatDTO(
                         it.key,
@@ -78,7 +77,7 @@ class KayttajaResource(
     @PutMapping("/kayttaja")
     fun updateKayttajaDetails(
         @Valid @ModelAttribute omatTiedotDTO: OmatTiedotDTO,
-        @Valid @RequestParam kayttajanYliopistot: String?,
+        @Valid @RequestParam kayttajanYliopistotJaErikoisalat: String?,
         principal: Principal?
     ): UserDTO {
         val userId = userService.getAuthenticatedUser(principal).id!!
@@ -95,9 +94,9 @@ class KayttajaResource(
         }
 
         val kayttajanYliopistotDTO: List<KayttajaYliopistoErikoisalatDTO> =
-            kayttajanYliopistot?.let {
+            kayttajanYliopistotJaErikoisalat?.let {
                 objectMapper.readValue(
-                    kayttajanYliopistot,
+                    kayttajanYliopistotJaErikoisalat,
                     objectMapper.typeFactory.constructCollectionType(
                         List::class.java,
                         KayttajaYliopistoErikoisalatDTO::class.java
