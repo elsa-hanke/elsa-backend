@@ -34,4 +34,6 @@ data class LaillistamispaivaDTO(
 
         return true
     }
+
+    override fun toString() = "LaillistamispaivaDTO"
 }
