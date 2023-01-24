@@ -18,7 +18,7 @@ class KayttajaHelper {
         private const val DEFAULT_NIMI = "AAAAAAAAAA"
         private const val UPDATED_NIMI = "BBBBBBBBBB"
 
-        private const val DEFAULT_NIMIKE = "DEFAULT_NIMIKE"
+        const val DEFAULT_NIMIKE = "DEFAULT_NIMIKE"
 
         @JvmStatic
         fun createEntity(em: EntityManager, user: User? = null): Kayttaja {

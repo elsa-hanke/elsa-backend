@@ -8,10 +8,7 @@ import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.Yliopisto
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
-import fi.elsapalvelu.elsa.security.KOULUTTAJA
-import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.dto.ErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalatDTO
 import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
@@ -19,9 +16,7 @@ import fi.elsapalvelu.elsa.web.rest.createByteArray
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.json.simple.JSONArray
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
@@ -135,7 +130,7 @@ class KayttajaResourceIT {
         val updatedUser = userRepository.findOneByEmail(UPDATED_EMAIL).get()
         assertThat(updatedUser.email).isEqualTo(UPDATED_EMAIL)
         assertThat(updatedUser.phoneNumber).isEqualTo(UPDATED_PHONE_NUMBER)
-        Assertions.assertThat(updatedUser.avatar).isNotEmpty
+        assertThat(updatedUser.avatar).isNotEmpty
     }
 
     @Test
@@ -163,7 +158,7 @@ class KayttajaResourceIT {
         val updatedUser = userRepository.findOneByEmail(UPDATED_EMAIL).get()
         assertThat(updatedUser.email).isEqualTo(UPDATED_EMAIL)
         assertThat(updatedUser.phoneNumber).isEqualTo(UPDATED_PHONE_NUMBER)
-        Assertions.assertThat(updatedUser.avatar).isNotEmpty
+        assertThat(updatedUser.avatar).isNotEmpty
     }
 
     @Test
@@ -237,7 +232,7 @@ class KayttajaResourceIT {
                 .param("avatarUpdated", "false")
                 .param("nimike", UPDATED_NIMIKE)
                 .param(
-                    "kayttajanYliopistot",
+                    "kayttajanYliopistotJaErikoisalat",
                     jacksonObjectMapper().writeValueAsString(kayttajanYliopistot)
                 )
                 .with { it.method = "PUT"; it }
@@ -288,7 +283,7 @@ class KayttajaResourceIT {
                 .param("avatarUpdated", "false")
                 .param("nimike", UPDATED_NIMIKE)
                 .param(
-                    "kayttajanYliopistot",
+                    "kayttajanYliopistotJaErikoisalat",
                     jacksonObjectMapper().writeValueAsString(kayttajanYliopistot)
                 )
                 .with { it.method = "PUT"; it }
@@ -304,6 +299,54 @@ class KayttajaResourceIT {
         assertThat(updatedKayttaja.nimike).isEqualTo(UPDATED_NIMIKE)
 
         // Vastuuhenkilön yliopistoja ja erikoisaloja ei pysty muokkaamaan
+        assertThat(updatedKayttaja.yliopistotAndErikoisalat).hasSize(0)
+    }
+
+    @Test
+    @Transactional
+    fun testUserDetailsUpdateVirkailija() {
+        initTest(OPINTOHALLINNON_VIRKAILIJA)
+
+        val virkailija = KayttajaHelper.createEntity(em, user)
+        kayttajaRepository.save(virkailija)
+
+        val yliopisto1 =
+            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
+        val erikoisala1 = ErikoisalaHelper.createEntity()
+        erikoisalaRepository.saveAndFlush(erikoisala1)
+        val erikoisala2 = ErikoisalaHelper.createEntity()
+        erikoisalaRepository.saveAndFlush(erikoisala2)
+
+        val kayttajanYliopistot: List<KayttajaYliopistoErikoisalatDTO> = listOf(
+            KayttajaYliopistoErikoisalatDTO(
+                yliopisto = YliopistoDTO(id = yliopisto1.id), erikoisalat = listOf(
+                    ErikoisalaDTO(id = erikoisala1.id), ErikoisalaDTO(id = erikoisala2.id)
+                )
+            )
+        )
+
+        restKayttajaMockMvc.perform(
+            multipart("/api/kayttaja")
+                .param("email", UPDATED_EMAIL)
+                .param("phoneNumber", UPDATED_PHONE_NUMBER)
+                .param("avatarUpdated", "false")
+                .param("nimike", UPDATED_NIMIKE)
+                .param(
+                    "kayttajanYliopistotJaErikoisalat",
+                    jacksonObjectMapper().writeValueAsString(kayttajanYliopistot)
+                )
+                .with { it.method = "PUT"; it }
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val updatedUser = userRepository.findOneByEmail(UPDATED_EMAIL).get()
+        assertThat(updatedUser.email).isEqualTo(UPDATED_EMAIL)
+        assertThat(updatedUser.phoneNumber).isEqualTo(UPDATED_PHONE_NUMBER)
+        assertThat(updatedUser.avatar).isEqualTo(DEFAULT_AVATAR)
+
+        // Virkailijan nimikettä, yliopistoja ja erikoisaloja ei pysty muokkaamaan
+        val updatedKayttaja = kayttajaRepository.findOneByUserId(updatedUser.id!!).get()
+        assertThat(updatedKayttaja.nimike).isEqualTo(KayttajaHelper.DEFAULT_NIMIKE)
         assertThat(updatedKayttaja.yliopistotAndErikoisalat).hasSize(0)
     }
 
