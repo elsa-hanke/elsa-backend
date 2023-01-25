@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface IlmoitusRepository : JpaRepository<Ilmoitus, Long> {
 
-    fun findAllByOrderById(): List<Ilmoitus>
+    fun findAllByOrderByIdDesc(): List<Ilmoitus>
 }

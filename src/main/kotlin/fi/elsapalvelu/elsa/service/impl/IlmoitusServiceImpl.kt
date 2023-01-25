@@ -16,7 +16,7 @@ class IlmoitusServiceImpl(
 ) : IlmoitusService {
 
     override fun findAll(): List<IlmoitusDTO> {
-        return ilmoitusRepository.findAllByOrderById()
+        return ilmoitusRepository.findAllByOrderByIdDesc()
             .map(ilmoitusMapper::toDto)
     }
 
