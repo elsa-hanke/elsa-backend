@@ -46,11 +46,6 @@ data class Suoritusarviointi(
     @Column(name = "itsearviointi_vaativuustaso")
     var itsearviointiVaativuustaso: Int? = null,
 
-    @get: Min(value = 1)
-    @get: Max(value = 5)
-    @Column(name = "itsearviointi_arviointiasteikon_taso")
-    var itsearviointiArviointiasteikonTaso: Int? = null,
-
     @Lob
     @Type(type = "org.hibernate.type.TextType")
     @Column(name = "sanallinen_itsearviointi")
@@ -63,11 +58,6 @@ data class Suoritusarviointi(
     @get: Max(value = 5)
     @Column(name = "vaativuustaso")
     var vaativuustaso: Int? = null,
-
-    @get: Min(value = 1)
-    @get: Max(value = 5)
-    @Column(name = "arviointiasteikon_taso")
-    var arviointiasteikonTaso: Int? = null,
 
     @Lob
     @Type(type = "org.hibernate.type.TextType")
@@ -90,10 +80,9 @@ data class Suoritusarviointi(
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var arvioinninAntaja: Kayttaja? = null,
 
-    @NotNull
-    @ManyToOne(optional = false)
-    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var arvioitavaKokonaisuus: ArvioitavaKokonaisuus? = null,
+    @OneToMany(mappedBy = "suoritusarviointi", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @NotAudited
+    var arvioitavatKokonaisuudet: MutableSet<SuoritusarvioinninArvioitavaKokonaisuus> = mutableSetOf(),
 
     @NotNull
     @ManyToOne(optional = false)
@@ -158,11 +147,9 @@ data class Suoritusarviointi(
         ", pyynnonAika='$pyynnonAika'" +
         ", lisatiedot='$lisatiedot'" +
         ", itsearviointiVaativuustaso=$itsearviointiVaativuustaso" +
-        ", itsearviointiArviointiasteikonTaso=$itsearviointiArviointiasteikonTaso" +
         ", sanallinenItsearviointi='$sanallinenItsearviointi'" +
         ", itsearviointiAika='$itsearviointiAika'" +
         ", vaativuustaso=$vaativuustaso" +
-        ", arviointiasteikonTaso=$arviointiasteikonTaso" +
         ", sanallinenArviointi='$sanallinenArviointi'" +
         ", arviointiAika='$arviointiAika'" +
         ", lukittu='$lukittu'" +

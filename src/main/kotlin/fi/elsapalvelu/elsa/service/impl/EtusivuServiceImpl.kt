@@ -313,8 +313,9 @@ class EtusivuServiceImpl(
     private fun getSuoritusarvioinnitMap(opintooikeusId: Long): Map<ArvioitavaKokonaisuus, Int> {
         return suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
             .asSequence()
-            .filter { arviointi -> arviointi.arviointiasteikonTaso != null }
-            .groupBy { arviointi -> arviointi.arvioitavaKokonaisuus!! }
+            .flatMap { arviointi -> arviointi.arvioitavatKokonaisuudet }
+            .filter { kokonaisuus -> kokonaisuus.arviointiasteikonTaso != null }
+            .groupBy { kokonaisuus -> kokonaisuus.arvioitavaKokonaisuus!! }
             .mapValues { it.value.maxOf { arviointi -> arviointi.arviointiasteikonTaso!! } }
     }
 
