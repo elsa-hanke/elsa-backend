@@ -367,7 +367,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuus
+            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
+            suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             return suoritusarviointi
         }
@@ -401,7 +402,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuus
+            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
+            suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             return suoritusarviointi
         }

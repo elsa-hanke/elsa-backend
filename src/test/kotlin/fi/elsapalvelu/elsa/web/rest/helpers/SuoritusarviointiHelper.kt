@@ -60,10 +60,8 @@ class SuoritusarviointiHelper {
                 pyynnonAika = DEFAULT_PYYNNON_AIKA,
                 lisatiedot = DEFAULT_LISATIEDOT,
                 itsearviointiVaativuustaso = DEFAULT_ITSEARVIOINTI_VAATIVUUSTASO,
-                itsearviointiArviointiasteikonTaso = DEFAULT_ITSEARVIOINTI_LUOTTAMUKSEN_TASO,
                 sanallinenItsearviointi = DEFAULT_SANALLINEN_ITSEARVIOINTI,
                 vaativuustaso = DEFAULT_VAATIVUUSTASO,
-                arviointiasteikonTaso = arviointiasteikonTaso,
                 sanallinenArviointi = DEFAULT_SANALLINEN_ARVIOINTI,
                 arviointiAika = DEFAULT_ARVIOINTI_AIKA,
                 lukittu = DEFAULT_LUKITTU
@@ -80,6 +78,12 @@ class SuoritusarviointiHelper {
             }
             suoritusarviointi.arvioinninAntaja = kayttaja
 
+            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(
+                suoritusarviointi = suoritusarviointi,
+                itsearviointiArviointiasteikonTaso = DEFAULT_ITSEARVIOINTI_LUOTTAMUKSEN_TASO,
+                arviointiasteikonTaso = arviointiasteikonTaso
+            )
+
             // Lisätään pakollinen tieto
             if (arvioitavaKokonaisuus == null) {
                 val uusiKokonaisuus: ArvioitavaKokonaisuus
@@ -90,10 +94,12 @@ class SuoritusarviointiHelper {
                 } else {
                     uusiKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
                 }
-                suoritusarviointi.arvioitavaKokonaisuus = uusiKokonaisuus
+                suoritusarvioinninArvioitavaKokonaisuus.arvioitavaKokonaisuus = uusiKokonaisuus
             } else {
-                suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuus
+                suoritusarvioinninArvioitavaKokonaisuus.arvioitavaKokonaisuus =
+                    arvioitavaKokonaisuus
             }
+            suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
@@ -120,10 +126,8 @@ class SuoritusarviointiHelper {
                 pyynnonAika = UPDATED_PYYNNON_AIKA,
                 lisatiedot = UPDATED_LISATIEDOT,
                 itsearviointiVaativuustaso = UPDATED_ITSEARVIOINTI_VAATIVUUSTASO,
-                itsearviointiArviointiasteikonTaso = UPDATED_ITSEARVIOINTI_LUOTTAMUKSEN_TASO,
                 sanallinenItsearviointi = UPDATED_SANALLINEN_ITSEARVIOINTI,
                 vaativuustaso = UPDATED_VAATIVUUSTASO,
-                arviointiasteikonTaso = UPDATED_LUOTTAMUKSEN_TASO,
                 sanallinenArviointi = UPDATED_SANALLINEN_ARVIOINTI,
                 arviointiAika = UPDATED_ARVIOINTI_AIKA,
                 lukittu = UPDATED_LUKITTU
@@ -140,6 +144,12 @@ class SuoritusarviointiHelper {
             }
             suoritusarviointi.arvioinninAntaja = kayttaja
 
+            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(
+                suoritusarviointi = suoritusarviointi,
+                itsearviointiArviointiasteikonTaso = UPDATED_ITSEARVIOINTI_LUOTTAMUKSEN_TASO,
+                arviointiasteikonTaso = UPDATED_LUOTTAMUKSEN_TASO
+            )
+
             // Lisätään pakollinen tieto
             val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
             if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
@@ -149,7 +159,8 @@ class SuoritusarviointiHelper {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuus
+            suoritusarvioinninArvioitavaKokonaisuus.arvioitavaKokonaisuus = arvioitavaKokonaisuus
+            suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
