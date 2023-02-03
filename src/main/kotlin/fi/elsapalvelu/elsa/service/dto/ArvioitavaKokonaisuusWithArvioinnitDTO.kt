@@ -22,7 +22,7 @@ data class ArvioitavaKokonaisuusWithArvioinnitDTO(
 
     var voimassaoloLoppuu: LocalDate? = null,
 
-    var suoritusarvioinnit: List<SuoritusarviointiDTO?>? = listOf()
+    var suoritusarvioinnit: List<SuoritusarviointiByKokonaisuusDTO?>? = listOf()
 
 ) : Serializable {
 

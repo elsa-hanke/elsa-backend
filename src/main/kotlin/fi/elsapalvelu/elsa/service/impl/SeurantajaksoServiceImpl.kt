@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.SeurantajaksoTila
+import fi.elsapalvelu.elsa.service.mapper.ArviointiasteikkoMapper
 import fi.elsapalvelu.elsa.service.mapper.SeurantajaksoMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -23,12 +24,12 @@ class SeurantajaksoServiceImpl(
     private val kayttajaRepository: KayttajaRepository,
     private val koulutusjaksoRepository: KoulutusjaksoRepository,
     private val mailService: MailService,
-    private val suoritusarviointiService: SuoritusarviointiService,
     private val suoritemerkintaService: SuoritemerkintaService,
     private val koulutusjaksoService: KoulutusjaksoService,
     private val teoriakoulutusService: TeoriakoulutusService,
     private val opintooikeusRepository: OpintooikeusRepository,
-    private val kouluttajavaltuutusService: KouluttajavaltuutusService
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService,
+    private val arviointiasteikkoMapper: ArviointiasteikkoMapper
 ) : SeurantajaksoService {
 
     override fun create(
@@ -239,12 +240,13 @@ class SeurantajaksoServiceImpl(
         koulutusjaksot: List<Long>
     ): SeurantajaksonTiedotDTO {
         val arvioinnit =
-            suoritusarviointiService.findForSeurantajakso(
+            suoritusarviointiRepository.findForSeurantajakso(
                 opintooikeusId,
                 alkamispaiva,
                 paattymispaiva
             )
-        val arvioitavatKokonaisuudetMap = arvioinnit.groupBy { it.arvioitavaKokonaisuus }
+        val arvioitavatKokonaisuudetMap =
+            arvioinnit.flatMap { it.arvioitavatKokonaisuudet }.groupBy { it.arvioitavaKokonaisuus }
         val arvioitavatKategoriatMap = arvioitavatKokonaisuudetMap.keys.groupBy { it?.kategoria }
         val kategoriat = arvioitavatKategoriatMap.map { (kategoria, kokonaisuudet) ->
             SeurantajaksonArviointiKategoriaDTO(
@@ -253,7 +255,15 @@ class SeurantajaksoServiceImpl(
                 kokonaisuudet.map {
                     SeurantajaksonArviointiKokonaisuusDTO(
                         it?.nimi,
-                        arvioitavatKokonaisuudetMap[it]
+                        arvioitavatKokonaisuudetMap[it]?.map { kokonaisuus ->
+                            SeurantajaksonArviointiDTO(
+                                arvioitavaTapahtuma = kokonaisuus.suoritusarviointi?.arvioitavaTapahtuma,
+                                arviointiasteikonTaso = kokonaisuus.arviointiasteikonTaso,
+                                tapahtumanAjankohta = kokonaisuus.suoritusarviointi?.tapahtumanAjankohta,
+                                arviointiasteikko = arviointiasteikkoMapper.toDto(kokonaisuus.suoritusarviointi?.arviointiasteikko!!),
+                                suoritusarviointiId = kokonaisuus.suoritusarviointi?.id
+                            )
+                        }
                     )
                 })
         }.sortedBy { it.jarjestysnumero }

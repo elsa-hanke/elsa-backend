@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
+import fi.elsapalvelu.elsa.service.mapper.SuoritusarvioinninArvioitavaKokonaisuusMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
@@ -26,16 +27,19 @@ import java.util.*
 class SuoritusarviointiServiceImpl(
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
-    private val arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository,
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val suoritusarviointiMapper: SuoritusarviointiMapper,
+    private val suoritusarvioinninArvioitavaKokonaisuusMapper: SuoritusarvioinninArvioitavaKokonaisuusMapper,
     private val arviointityokaluRepository: ArviointityokaluRepository,
     private val mailService: MailService,
 ) : SuoritusarviointiService {
 
     override fun save(suoritusarviointiDTO: SuoritusarviointiDTO): SuoritusarviointiDTO {
         var suoritusarviointi = suoritusarviointiMapper.toEntity(suoritusarviointiDTO)
+        suoritusarviointi.arvioitavatKokonaisuudet.forEach {
+            it.suoritusarviointi = suoritusarviointi
+        }
         suoritusarviointi = suoritusarviointiRepository.save(suoritusarviointi)
         mailService.sendEmailFromTemplate(
             kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!).get().user!!,
@@ -63,7 +67,8 @@ class SuoritusarviointiServiceImpl(
 
         val kirjautunutKayttaja = kayttajaRepository.findOneByUserId(userId)
         if (kirjautunutKayttaja.isPresent && kirjautunutKayttaja.get() == suoritusarviointi.arvioinninAntaja) {
-            suoritusarviointi = handleKouluttajaOrVastuuhenkilo(suoritusarviointiDTO, suoritusarviointi)
+            suoritusarviointi =
+                handleKouluttajaOrVastuuhenkilo(suoritusarviointiDTO, suoritusarviointi)
         }
 
         return suoritusarviointiMapper.toDto(suoritusarviointi)
@@ -74,27 +79,42 @@ class SuoritusarviointiServiceImpl(
         suoritusarviointi: Suoritusarviointi
     ): Suoritusarviointi {
         val isItsearviointiNotEmpty =
-            !ObjectUtils.isEmpty(suoritusarviointiDTO.itsearviointiArviointiasteikonTaso) &&
-                !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenItsearviointi)
-
+            !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenItsearviointi)
         // Itsearvioinnin tekeminen
         if (isItsearviointiNotEmpty) {
             suoritusarviointi.itsearviointiVaativuustaso =
                 suoritusarviointiDTO.itsearviointiVaativuustaso
-            suoritusarviointi.itsearviointiArviointiasteikonTaso =
-                suoritusarviointiDTO.itsearviointiArviointiasteikonTaso
             suoritusarviointi.sanallinenItsearviointi =
                 suoritusarviointiDTO.sanallinenItsearviointi
             suoritusarviointi.itsearviointiAika = LocalDate.now(ZoneId.systemDefault())
+            suoritusarviointiDTO.arvioitavatKokonaisuudet?.forEach {
+                val arvioitavaKokonaisuus =
+                    suoritusarviointi.arvioitavatKokonaisuudet.first { k -> k.id == it.id }
+                arvioitavaKokonaisuus.itsearviointiArviointiasteikonTaso =
+                    it.itsearviointiArviointiasteikonTaso
+            }
         } else {
             // Arviointipyynnön muokkaus
-            suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuusRepository
-                .findByIdOrNull(suoritusarviointiDTO.arvioitavaKokonaisuusId)
             suoritusarviointi.arvioitavaTapahtuma = suoritusarviointiDTO.arvioitavaTapahtuma
             suoritusarviointi.lisatiedot = suoritusarviointiDTO.lisatiedot
             suoritusarviointi.tapahtumanAjankohta = suoritusarviointiDTO.tapahtumanAjankohta
             suoritusarviointi.tyoskentelyjakso = tyoskentelyjaksoRepository
                 .findByIdOrNull(suoritusarviointiDTO.tyoskentelyjaksoId)
+            val ids =
+                suoritusarviointi.arvioitavatKokonaisuudet.map { it.arvioitavaKokonaisuus?.id }
+            val dtoIds =
+                suoritusarviointiDTO.arvioitavatKokonaisuudet?.map { it.arvioitavaKokonaisuusId }
+            val poistetut =
+                suoritusarviointi.arvioitavatKokonaisuudet.filter { dtoIds?.contains(it.arvioitavaKokonaisuus?.id) == false }
+            suoritusarviointi.arvioitavatKokonaisuudet.removeAll(poistetut)
+            val uudet =
+                suoritusarviointiDTO.arvioitavatKokonaisuudet?.filter { !ids.contains(it.arvioitavaKokonaisuusId) }
+                    ?.map {
+                        val result = suoritusarvioinninArvioitavaKokonaisuusMapper.toEntity(it)
+                        result.suoritusarviointi = suoritusarviointi
+                        result
+                    } ?: listOf()
+            suoritusarviointi.arvioitavatKokonaisuudet.addAll(uudet)
         }
 
         return suoritusarviointiRepository.save(suoritusarviointi)
@@ -105,7 +125,6 @@ class SuoritusarviointiServiceImpl(
         suoritusarviointi: Suoritusarviointi
     ): Suoritusarviointi {
         suoritusarviointi.vaativuustaso = suoritusarviointiDTO.vaativuustaso
-        suoritusarviointi.arviointiasteikonTaso = suoritusarviointiDTO.arviointiasteikonTaso
         suoritusarviointi.sanallinenArviointi = suoritusarviointiDTO.sanallinenArviointi
         suoritusarviointi.arviointiAika = LocalDate.now(ZoneId.systemDefault())
         suoritusarviointi.arviointityokalut = arviointityokaluRepository.findAllByIdIn(
@@ -115,6 +134,11 @@ class SuoritusarviointiServiceImpl(
         )
         suoritusarviointi.arviointiPerustuu = suoritusarviointiDTO.arviointiPerustuu
         suoritusarviointi.muuPeruste = suoritusarviointiDTO.muuPeruste
+
+        suoritusarviointi.arvioitavatKokonaisuudet.forEach {
+            it.arviointiasteikonTaso =
+                suoritusarviointiDTO.arvioitavatKokonaisuudet?.first { k -> k.id == it.id }?.arviointiasteikonTaso
+        }
 
         if (suoritusarviointiDTO.arviointiAsiakirjaUpdated) {
             suoritusarviointiDTO.arviointiAsiakirja?.let {
@@ -246,19 +270,24 @@ class SuoritusarviointiServiceImpl(
     }
 
     override fun delete(id: Long, opintooikeusId: Long) {
-        suoritusarviointiRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId).ifPresent {
-            if (it.arviointiAika == null && !it.lukittu) {
-                suoritusarviointiRepository.deleteById(id)
+        suoritusarviointiRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId)
+            .ifPresent {
+                if (it.arviointiAika == null && !it.lukittu) {
+                    suoritusarviointiRepository.deleteById(id)
+                }
             }
-        }
     }
 
     override fun findAvoimetByKouluttajaOrVastuuhenkiloUserId(userId: String): List<SuoritusarviointiDTO> {
-        return suoritusarviointiRepository.findAllByArvioinninAntajaUserIdAndArviointiAikaNull(userId)
+        return suoritusarviointiRepository.findAllByArvioinninAntajaUserIdAndArviointiAikaNull(
+            userId
+        )
             .map(suoritusarviointiMapper::toDto)
     }
 
     override fun existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusId: Long): Boolean {
-        return suoritusarviointiRepository.existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusId)
+        return suoritusarviointiRepository.existsByArvioitavatKokonaisuudetArvioitavaKokonaisuusId(
+            arvioitavaKokonaisuusId
+        )
     }
 }
