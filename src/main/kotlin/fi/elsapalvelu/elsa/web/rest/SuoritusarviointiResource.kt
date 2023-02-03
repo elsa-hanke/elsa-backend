@@ -172,14 +172,16 @@ open class SuoritusarviointiResource(
         if (suoritusarviointiDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
-        if (suoritusarviointiDTO.arviointiasteikonTaso == null
-            || suoritusarviointiDTO.sanallinenArviointi == null
-        ) {
-            throw BadRequestAlertException(
-                "Kouluttajan arvioinnin täytyy sisältää arviointiasteikon taso ja sanallinen arviointi",
-                ENTITY_NAME,
-                "dataillegal.kouluttajan-arvioinnin-taytyy-sisaltaa-arviointiasteikon-taso-ja-sanallinen-arviointi"
-            )
+        suoritusarviointiDTO.arvioitavatKokonaisuudet?.forEach { k ->
+            if (k.arviointiasteikonTaso == null
+                || suoritusarviointiDTO.sanallinenArviointi == null
+            ) {
+                throw BadRequestAlertException(
+                    "Kouluttajan arvioinnin täytyy sisältää arviointiasteikon taso ja sanallinen arviointi",
+                    ENTITY_NAME,
+                    "dataillegal.kouluttajan-arvioinnin-taytyy-sisaltaa-arviointiasteikon-taso-ja-sanallinen-arviointi"
+                )
+            }
         }
     }
 }

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20230126154341" author="jhipster">
+        <createTable tableName="suoritusarvioinnin_arvioitava_kokonaisuus">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="arviointiasteikon_taso" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="itsearviointi_arviointiasteikon_taso" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="arvioitava_kokonaisuus_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="suoritusarviointi_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addAutoIncrement columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="suoritusarvioinnin_arvioitava_kokonaisuus"/>
+
+        <addForeignKeyConstraint baseColumnNames="arvioitava_kokonaisuus_id"
+            baseTableName="suoritusarvioinnin_arvioitava_kokonaisuus"
+            constraintName="fk_suoritusarvioinnin_arvioitava_kokonaisuus_arvioitava_kokonaisuus_id"
+            referencedColumnNames="id"
+            referencedTableName="arvioitava_kokonaisuus"/>
+
+        <addForeignKeyConstraint baseColumnNames="suoritusarviointi_id"
+            baseTableName="suoritusarvioinnin_arvioitava_kokonaisuus"
+            constraintName="fk_suoritusarvioinnin_arvioitava_kokonaisuus_suoritusarviointi_id"
+            referencedColumnNames="id"
+            referencedTableName="suoritusarviointi"/>
+
+        <sql>
+            INSERT INTO suoritusarvioinnin_arvioitava_kokonaisuus(arviointiasteikon_taso, itsearviointi_arviointiasteikon_taso, arvioitava_kokonaisuus_id, suoritusarviointi_id)
+            select arviointiasteikon_taso, itsearviointi_arviointiasteikon_taso, arvioitava_kokonaisuus_id, id
+            from suoritusarviointi;
+        </sql>
+
+        <dropColumn tableName="suoritusarviointi" columnName="arviointiasteikon_taso"/>
+        <dropColumn tableName="suoritusarviointi" columnName="itsearviointi_arviointiasteikon_taso"/>
+        <dropColumn tableName="suoritusarviointi" columnName="arvioitava_kokonaisuus_id"/>
+
+        <createTable tableName="suoritusarvioinnin_arvioitava_kokonaisuus_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="itsearviointi_arviointiasteikon_taso" type="integer"/>
+            <column name="arviointiasteikon_taso" type="integer"/>
+            <column name="arvioitava_kokonaisuus_id" type="bigint"/>
+            <column name="suoritusarviointi_id" type="bigint"/>
+        </createTable>
+
+        <dropColumn tableName="suoritusarviointi_audit" columnName="arviointiasteikon_taso"/>
+        <dropColumn tableName="suoritusarviointi_audit" columnName="itsearviointi_arviointiasteikon_taso"/>
+        <dropColumn tableName="suoritusarviointi_audit" columnName="arvioitava_kokonaisuus_id"/>
+    </changeSet>
+
+</databaseChangeLog>

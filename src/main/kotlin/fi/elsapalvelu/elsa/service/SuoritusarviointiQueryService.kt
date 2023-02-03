@@ -121,14 +121,12 @@ class SuoritusarviointiQueryService(
                     )
             }
             if (criteria.arvioitavaKokonaisuusId != null) {
-                specification = specification
-                    .and(
-                        buildReferringEntitySpecification(
-                            criteria.arvioitavaKokonaisuusId,
-                            Suoritusarviointi_.arvioitavaKokonaisuus,
-                            ArvioitavaKokonaisuus_.id
-                        )
-                    )
+                val kokonaisuusSpecification = createSpecification(null) { root, _, cb ->
+                    val arvioitavaKokonaisuusJoin =
+                        root.join(Suoritusarviointi_.arvioitavatKokonaisuudet).join(SuoritusarvioinninArvioitavaKokonaisuus_.arvioitavaKokonaisuus)
+                    cb.equal(arvioitavaKokonaisuusJoin.get(ArvioitavaKokonaisuus_.id), criteria.arvioitavaKokonaisuusId)
+                }
+                specification = specification.and(kokonaisuusSpecification)
             }
             if (criteria.arvioinninAntajaId != null) {
                 specification = specification

@@ -50,10 +50,12 @@ class ValmistumispyyntoServiceImpl(
     private val arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository,
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
     private val kayttajaRepository: KayttajaRepository,
+    private val kayttajaMapper: KayttajaMapper,
     private val valmistumispyyntoMapper: ValmistumispyyntoMapper,
     private val valmistumispyyntoOsaamisenArviointiMapper: ValmistumispyyntoOsaamisenArviointiMapper,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
+    private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper,
     private val opintosuoritusRepository: OpintosuoritusRepository,
     private val mailService: MailService,
     private val applicationProperties: ApplicationProperties,
@@ -677,9 +679,9 @@ class ValmistumispyyntoServiceImpl(
             suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeus.id!!)
         }.flatten()
         val erikoistujanArviointienArvioitavaKokonaisuusIds =
-            erikoistujanArvioinnit.map { it.arvioitavaKokonaisuus?.id!! }.distinct()
+            erikoistujanArvioinnit.flatMap { it.arvioitavatKokonaisuudet.map { k -> k.arvioitavaKokonaisuus?.id!! } }.distinct()
         val arviointienTilaDTO = ValmistumispyyntoArviointienTilaDTO(
-            hasArvioitaviaKokonaisuuksiaWithArviointiLowerThanFour = erikoistujanArvioinnit.filter { it.arviointiasteikonTaso != null }
+            hasArvioitaviaKokonaisuuksiaWithArviointiLowerThanFour = erikoistujanArvioinnit.flatMap { it.arvioitavatKokonaisuudet }.filter { it.arviointiasteikonTaso != null }
                 .any {
                     it.arviointiasteikonTaso!! < ARVIOINTI_VAHINTAAN
                 },
@@ -1067,29 +1069,34 @@ class ValmistumispyyntoServiceImpl(
         outputStream.reset()
         pdfService.yhdistaPdf(result, newPdf, outputStream)
 
-        kategoriat.forEach { k -> k.arvioitavatKokonaisuudet?.forEach { ak -> ak.suoritusarvioinnit?.forEach { a ->
-            val arviointiStream = ByteArrayOutputStream()
-            pdfService.luoPdf(
-                "pdf/erikoistujantiedot/arviointi.html",
-                Context(locale).apply {
-                    setVariable("arviointi", a)
-                    setVariable("arviointiasteikonTasot", arviointiasteikonTasot)
-                    setVariable("vaativuusTasot", getVaativuustasot())
-                },
-                arviointiStream
-            )
+        suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
+            .sortedWith(
+            compareBy<Suoritusarviointi>(
+                { a -> a.arvioitavatKokonaisuudet.minOf { k -> k.arvioitavaKokonaisuus?.kategoria?.nimi!! } },
+                { a -> a.arvioitavatKokonaisuudet.minOf { k -> k.arvioitavaKokonaisuus?.nimi!! } }).thenByDescending { a -> a.tapahtumanAjankohta })
+            .forEach { a ->
+                val arviointiStream = ByteArrayOutputStream()
+                pdfService.luoPdf(
+                    "pdf/erikoistujantiedot/arviointi.html",
+                    Context(locale).apply {
+                        setVariable("arviointi", suoritusarviointiMapper.toDto(a))
+                        setVariable("arviointiasteikonTasot", arviointiasteikonTasot)
+                        setVariable("vaativuusTasot", getVaativuustasot())
+                    },
+                    arviointiStream
+                )
 
-            result = ByteArrayInputStream(outputStream.toByteArray())
-            newPdf = ByteArrayInputStream(arviointiStream.toByteArray())
-            outputStream.reset()
-            pdfService.yhdistaPdf(result, newPdf, outputStream)
-
-            if (a?.arviointiAsiakirja?.asiakirjaData != null) {
-                val inputStream = ByteArrayInputStream(outputStream.toByteArray())
+                result = ByteArrayInputStream(outputStream.toByteArray())
+                newPdf = ByteArrayInputStream(arviointiStream.toByteArray())
                 outputStream.reset()
-                pdfService.yhdistaPdf(inputStream, a.arviointiAsiakirja?.asiakirjaData?.fileInputStream!!, outputStream)
-            }
-        } } }
+                pdfService.yhdistaPdf(result, newPdf, outputStream)
+
+                if (a.asiakirjaData != null) {
+                    val inputStream = ByteArrayInputStream(outputStream.toByteArray())
+                    outputStream.reset()
+                    pdfService.yhdistaPdf(inputStream, a.asiakirjaData?.data?.binaryStream!!, outputStream)
+                }
+        }
     }
 
     private fun lisaaSuoritemerkinnat(opintooikeusId: Long, valmistumispyynto: Valmistumispyynto, outputStream: ByteArrayOutputStream) {
@@ -1199,13 +1206,13 @@ class ValmistumispyyntoServiceImpl(
     }
 
     private fun getArviointiKategoriat(opintooikeusId: Long, korkeinArviointi: Boolean): List<ArvioitavanKokonaisuudenKategoriaWithArvioinnitDTO> {
-        var suoritusarvioinnit = suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
+        var suoritusarvioinnit = suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).flatMap { it.arvioitavatKokonaisuudet }
         if (korkeinArviointi) {
             suoritusarvioinnit = suoritusarvioinnit.filter { arviointi -> arviointi.arviointiasteikonTaso != null }
         }
 
         val kokonaisuudetMap = suoritusarvioinnit.groupBy { arviointi -> arviointi.arvioitavaKokonaisuus }
-        val kategoriatMap = kokonaisuudetMap.keys.groupBy { k -> k?.kategoria }
+        val kategoriatMap = kokonaisuudetMap.keys.sortedBy { k -> k?.kategoria?.nimi }.groupBy { k -> k?.kategoria }
         return kategoriatMap.entries.map { m ->
             ArvioitavanKokonaisuudenKategoriaWithArvioinnitDTO(
                 id = m.key?.id,
@@ -1213,7 +1220,7 @@ class ValmistumispyyntoServiceImpl(
                 nimiSv = m.key?.nimiSv,
                 jarjestysnumero = m.key?.jarjestysnumero,
                 arviointejaYhteensa = if (korkeinArviointi) m.value.size else m.value.sumOf { k -> kokonaisuudetMap[k]?.size ?: 0 },
-                arvioitavatKokonaisuudet = m.value.map { k ->
+                arvioitavatKokonaisuudet = m.value.sortedBy { k -> k?.nimi }.map { k ->
                     ArvioitavaKokonaisuusWithArvioinnitDTO(
                         id = k?.id,
                         nimi = k?.nimi,
@@ -1222,15 +1229,28 @@ class ValmistumispyyntoServiceImpl(
                         kuvausSv = k?.kuvausSv,
                         voimassaoloAlkaa = k?.voimassaoloAlkaa,
                         voimassaoloLoppuu = k?.voimassaoloLoppuu,
-                        suoritusarvioinnit = if (korkeinArviointi) listOf(kokonaisuudetMap[k]?.sortedByDescending { a -> a.tapahtumanAjankohta }
+                        suoritusarvioinnit = if (korkeinArviointi) listOf(kokonaisuudetMap[k]?.sortedByDescending { a -> a.suoritusarviointi?.tapahtumanAjankohta }
                             ?.maxByOrNull { a -> a.arviointiasteikonTaso!! }).map { a ->
-                            suoritusarviointiMapper.toDto(
-                                a!!
-                            )
-                        } else kokonaisuudetMap[k]?.sortedByDescending { a -> a.tapahtumanAjankohta }
+                            SuoritusarviointiByKokonaisuusDTO(
+                                id = a?.suoritusarviointi?.id,
+                                tapahtumanAjankohta = a?.suoritusarviointi?.tapahtumanAjankohta,
+                                arvioitavaTapahtuma = a?.suoritusarviointi?.arvioitavaTapahtuma,
+                                arviointiasteikonTaso = a?.arviointiasteikonTaso,
+                            arvioinninAntaja = kayttajaMapper.toDto(a?.suoritusarviointi?.arvioinninAntaja!!),
+                            tyoskentelyjakso = tyoskentelyjaksoMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso!!),
+                            arviointiAsiakirja = null)
+                        } else kokonaisuudetMap[k]?.sortedByDescending { a -> a.suoritusarviointi?.tapahtumanAjankohta }
                             ?.map { a ->
-                                val result = suoritusarviointiMapper.toDto(a)
-                                a.asiakirjaData?.let { result.arviointiAsiakirja?.asiakirjaData = AsiakirjaDataDTO(id = it.id, fileInputStream = it.data?.binaryStream) }
+                                val result = SuoritusarviointiByKokonaisuusDTO(
+                                    id = a.suoritusarviointi?.id,
+                                    tapahtumanAjankohta = a.suoritusarviointi?.tapahtumanAjankohta,
+                                    arvioitavaTapahtuma = a.suoritusarviointi?.arvioitavaTapahtuma,
+                                    arviointiasteikonTaso = a.arviointiasteikonTaso,
+                                    itsearviointiArviointiasteikonTaso = a.itsearviointiArviointiasteikonTaso,
+                                    arvioinninAntaja = kayttajaMapper.toDto(a.suoritusarviointi?.arvioinninAntaja!!),
+                                    arvioinninSaaja = kayttajaMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja!!),
+                                    tyoskentelyjakso = tyoskentelyjaksoMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso!!))
+                                a.suoritusarviointi!!.asiakirjaData?.let { result.arviointiAsiakirja?.asiakirjaData = AsiakirjaDataDTO(id = it.id, fileInputStream = it.data?.binaryStream) }
                                 result
                             }
                     )

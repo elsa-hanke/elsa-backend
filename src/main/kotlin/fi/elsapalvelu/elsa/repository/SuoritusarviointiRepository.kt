@@ -59,5 +59,5 @@ interface SuoritusarviointiRepository :
 
     fun findAllByArvioinninAntajaUserIdAndArviointiAikaNull(userId: String): List<Suoritusarviointi>
 
-    fun existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusId: Long): Boolean
+    fun existsByArvioitavatKokonaisuudetArvioitavaKokonaisuusId(arvioitavaKokonaisuusId: Long): Boolean
 }

@@ -163,13 +163,16 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 "idexists"
             )
         }
-        if (suoritusarviointiDTO.arviointiasteikonTaso != null) {
-            throw BadRequestAlertException(
-                "Uusi arviointipyyntö ei saa sisältää arviointiasteikon tasoa. Kouluttaja määrittelee sen.",
-                ENTITY_NAME,
-                "dataillegal.uusi-arviointipyynto-ei-saa-sisaltaa-arviointiasteikon-tasoa"
-            )
+        suoritusarviointiDTO.arvioitavatKokonaisuudet?.forEach {
+            if (it.arviointiasteikonTaso != null) {
+                throw BadRequestAlertException(
+                    "Uusi arviointipyyntö ei saa sisältää arviointiasteikon tasoa. Kouluttaja määrittelee sen.",
+                    ENTITY_NAME,
+                    "dataillegal.uusi-arviointipyynto-ei-saa-sisaltaa-arviointiasteikon-tasoa"
+                )
+            }
         }
+
         if (suoritusarviointiDTO.vaativuustaso != null) {
             throw BadRequestAlertException(
                 "Uusi arviointipyyntö ei saa sisältää vaativuustasoa. Kouluttaja määrittelee sen.",

@@ -26,10 +26,6 @@ data class SuoritusarviointiDTO(
     @get: Max(value = 5)
     var itsearviointiVaativuustaso: Int? = null,
 
-    @get: Min(value = 1)
-    @get: Max(value = 5)
-    var itsearviointiArviointiasteikonTaso: Int? = null,
-
     @Lob
     var sanallinenItsearviointi: String? = null,
 
@@ -38,10 +34,6 @@ data class SuoritusarviointiDTO(
     @get: Min(value = 1)
     @get: Max(value = 5)
     var vaativuustaso: Int? = null,
-
-    @get: Min(value = 1)
-    @get: Max(value = 5)
-    var arviointiasteikonTaso: Int? = null,
 
     @Lob
     var sanallinenArviointi: String? = null,
@@ -57,16 +49,13 @@ data class SuoritusarviointiDTO(
     var arvioinninAntajaId: Long? = null,
 
     @get: NotNull
-    var arvioitavaKokonaisuusId: Long? = null,
-
-    @get: NotNull
     var tyoskentelyjaksoId: Long? = null,
 
     var arvioinninSaaja: KayttajaDTO? = null,
 
     var arvioinninAntaja: KayttajaDTO? = null,
 
-    var arvioitavaKokonaisuus: ArvioitavaKokonaisuusDTO? = null,
+    var arvioitavatKokonaisuudet: MutableSet<SuoritusarvioinninArvioitavaKokonaisuusDTO>? = null,
 
     var tyoskentelyjakso: TyoskentelyjaksoDTO? = null,
 

@@ -36,4 +36,6 @@ data class ArvioitavaKokonaisuusDTO(
     }
 
     override fun hashCode() = 31
+
+    override fun toString() = "ArvioitavaKokonaisuusDTO(id=$id)"
 }

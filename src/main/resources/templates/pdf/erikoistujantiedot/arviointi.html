@@ -46,6 +46,9 @@
             padding-left: 0.5rem;
             vertical-align: top;
             border-top: 1px solid #dee2e6;
+        }
+
+        .border-left {
             border-left: 1px solid #dee2e6;
         }
 
@@ -89,13 +92,6 @@
                 </td>
             </tr>
             <tr>
-                <th th:text="#{erikoistujantiedot.arvioitavaKokonaisuus}"></th>
-                <td>
-                    <span th:text="${arviointi.arvioitavaKokonaisuus.kategoria.nimi} + ':'"></span>
-                    <span th:text="${arviointi.arvioitavaKokonaisuus.nimi}"></span>
-                </td>
-            </tr>
-            <tr>
                 <th th:text="#{erikoistujantiedot.arvioitavaTapahtuma}"></th>
                 <td th:text="${arviointi.arvioitavaTapahtuma}"></td>
             </tr>
@@ -127,47 +123,64 @@
                 </td>
             </tr>
         </table>
+        <hr/>
         <table class="arviointi-table">
             <caption></caption>
             <thead>
             <tr>
-                <th scope="col" style="width: 24%;"></th>
-                <th scope="col" style="width: 38%; padding-left: 0.5rem;">
+                <th scope="col" style="width: 40%;">
+                    <span th:text="#{erikoistujantiedot.arvioitavaKokonaisuus} + ', '"></span>
+                    <span th:text="#{${arviointi.arviointiasteikko.nimi}}"></span>
+                </th>
+                <th scope="col" style="width: 30%; padding-left: 0.5rem;">
                     <span th:text="#{erikoistujantiedot.arviointi}"></span>
-                    <span th:if="${arviointi.arviointiasteikonTaso != null}"
+                    <span th:if="${arviointi.arviointiAika != null}"
                           th:text="'(' + ${#temporals.format(arviointi.arviointiAika, 'dd.MM.yyyy')} + ')'"></span>
                 </th>
-                <th scope="col" style="width: 38%; padding-left: 0.5rem;">
+                <th scope="col" style="width: 30%; padding-left: 0.5rem;">
                     <span th:text="#{erikoistujantiedot.itsearviointi}"></span>
-                    <span th:if="${arviointi.itsearviointiArviointiasteikonTaso != null}"
+                    <span th:if="${arviointi.itsearviointiAika != null}"
                           th:text="'(' + ${#temporals.format(arviointi.itsearviointiAika, 'dd.MM.yyyy')} + ')'"></span>
                 </th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <th scope="col" th:text="#{${arviointi.arviointiasteikko.nimi}}"></th>
+            <tr th:each="kokonaisuus: ${arviointi.arvioitavatKokonaisuudet}">
                 <td>
-                    <div th:if="${arviointi.arviointiasteikonTaso != null}">
+                    <span th:text="${kokonaisuus.arvioitavaKokonaisuus.kategoria.nimi} + ':'"></span>
+                    <span th:text="${kokonaisuus.arvioitavaKokonaisuus.nimi}"></span>
+                </td>
+                <td class="border-left">
+                    <div th:if="${kokonaisuus.arviointiasteikonTaso != null}">
                         <span class="arviointi-badge"
-                              th:text="${arviointi.arviointiasteikonTaso}"></span>
+                              th:text="${kokonaisuus.arviointiasteikonTaso}"></span>
                         <span
-                            th:text="#{${arviointiasteikonTasot[arviointi.arviointiasteikonTaso].nimi}}"></span>
+                            th:text="#{${arviointiasteikonTasot[kokonaisuus.arviointiasteikonTaso].nimi}}"></span>
                     </div>
-                    <span th:unless="${arviointi.arviointiasteikonTaso != null}"
+                    <span th:unless="${kokonaisuus.arviointiasteikonTaso != null}"
                           th:text="#{erikoistujantiedot.eiTehty}"></span>
                 </td>
-                <td>
-                    <div th:if="${arviointi.itsearviointiArviointiasteikonTaso != null}">
+                <td class="border-left">
+                    <div th:if="${kokonaisuus.itsearviointiArviointiasteikonTaso != null}">
                         <span class="arviointi-badge"
-                              th:text="${arviointi.itsearviointiArviointiasteikonTaso}"></span>
+                              th:text="${kokonaisuus.itsearviointiArviointiasteikonTaso}"></span>
                         <span
-                            th:text="#{${arviointiasteikonTasot[arviointi.itsearviointiArviointiasteikonTaso].nimi}}"></span>
+                            th:text="#{${arviointiasteikonTasot[kokonaisuus.itsearviointiArviointiasteikonTaso].nimi}}"></span>
                     </div>
-                    <span th:unless="${arviointi.itsearviointiArviointiasteikonTaso != null}"
+                    <span th:unless="${kokonaisuus.itsearviointiArviointiasteikonTaso != null}"
                           th:text="#{erikoistujantiedot.eiTehty}"></span>
                 </td>
             </tr>
+            </tbody>
+        </table>
+        <table class="arviointi-table">
+            <caption></caption>
+            <thead>
+            <th scope="col" style="width: 40%;"></th>
+            <th scope="col" style="width: 30%; padding-left: 0.5rem;"></th>
+            <th scope="col" style="width: 30%; padding-left: 0.5rem;"></th>
+            </thead>
+            <tbody>
             <tr>
                 <th scope="col" th:text="#{erikoistujantiedot.vaativuustaso}"></th>
                 <td>
