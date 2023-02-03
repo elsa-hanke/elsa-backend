@@ -9,10 +9,7 @@ import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.findAll
-import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavaKokonaisuusHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.collection.IsCollectionWithSize
 import org.junit.jupiter.api.BeforeEach
@@ -91,7 +88,9 @@ class KouluttajaSuoritusarviointiResourceIT {
         updatedSuoritusarviointi.arviointiPerustuu = ArvioinninPerustuminen.LASNA
         updatedSuoritusarviointi.arviointityokalut = arviointityokalut
         updatedSuoritusarviointi.sanallinenArviointi = UPDATED_LISATIEDOT
-        updatedSuoritusarviointi.arviointiasteikonTaso = 5
+        updatedSuoritusarviointi.arvioitavatKokonaisuudet.forEach {
+            it.arviointiasteikonTaso = 5
+        }
         updatedSuoritusarviointi.vaativuustaso = 5
         val suoritusarviointiDTO = suoritusarviointiMapper.toDto(updatedSuoritusarviointi).apply {
             arviointiAsiakirjaUpdated = true
@@ -114,7 +113,7 @@ class KouluttajaSuoritusarviointiResourceIT {
         assertThat(testSuoritusarviointi.arviointiAika).isEqualTo(UPDATED_TAPAHTUMAN_AJANKOHTA)
         assertThat(testSuoritusarviointi.arviointityokalut).isEqualTo(arviointityokalut)
         assertThat(testSuoritusarviointi.sanallinenArviointi).isEqualTo(UPDATED_LISATIEDOT)
-        assertThat(testSuoritusarviointi.arviointiasteikonTaso).isEqualTo(5)
+        assertThat(testSuoritusarviointi.arvioitavatKokonaisuudet.first().arviointiasteikonTaso).isEqualTo(5)
         assertThat(testSuoritusarviointi.vaativuustaso).isEqualTo(5)
         assertThat(testSuoritusarviointi.arviointiLiiteNimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(testSuoritusarviointi.arviointiLiiteTyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
@@ -242,6 +241,10 @@ class KouluttajaSuoritusarviointiResourceIT {
             }
             suoritusarviointi.arvioinninAntaja = kayttaja
 
+            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(
+                suoritusarviointi = suoritusarviointi
+            )
+
             // Lisätään pakollinen tieto
             val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
             if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
@@ -251,7 +254,8 @@ class KouluttajaSuoritusarviointiResourceIT {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuus
+            suoritusarvioinninArvioitavaKokonaisuus.arvioitavaKokonaisuus = arvioitavaKokonaisuus
+            suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
@@ -290,6 +294,10 @@ class KouluttajaSuoritusarviointiResourceIT {
             }
             suoritusarviointi.arvioinninAntaja = kayttaja
 
+            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(
+                suoritusarviointi = suoritusarviointi
+            )
+
             // Lisätään pakollinen tieto
             val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
             if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
@@ -299,7 +307,8 @@ class KouluttajaSuoritusarviointiResourceIT {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            suoritusarviointi.arvioitavaKokonaisuus = arvioitavaKokonaisuus
+            suoritusarvioinninArvioitavaKokonaisuus.arvioitavaKokonaisuus = arvioitavaKokonaisuus
+            suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             // Lisätään pakollinen tieto
             val tyoskentelyjakso: Tyoskentelyjakso
