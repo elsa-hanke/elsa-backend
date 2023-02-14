@@ -33,6 +33,4 @@ interface KoejaksonKoulutussopimusService {
     ): Optional<KoejaksonKoulutussopimusDTO>
 
     fun delete(id: Long)
-
-    fun tarkistaAllekirjoitus(koejaksonKoulutussopimus: KoejaksonKoulutussopimus)
 }

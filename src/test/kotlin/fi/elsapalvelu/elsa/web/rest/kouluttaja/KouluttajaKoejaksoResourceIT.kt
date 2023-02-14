@@ -130,7 +130,7 @@ class KouluttajaKoejaksoResourceIT {
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].id").value(koejaksonAloituskeskustelu.id))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].tyyppi").value("ALOITUSKESKUSTELU"))
             .andExpect(jsonPath("$[1].id").value(koejaksonKoulutussopimus.id))
-            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.ODOTTAA_ALLEKIRJOITUKSIA.name))
+            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.HYVAKSYTTY.name))
             .andExpect(jsonPath("$[1].tyyppi").value("KOULUTUSSOPIMUS"))
             .andExpect(jsonPath("$[1].erikoistuvanNimi").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
     }
