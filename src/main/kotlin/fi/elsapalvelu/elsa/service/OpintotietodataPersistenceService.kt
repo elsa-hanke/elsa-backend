@@ -29,4 +29,9 @@ interface OpintotietodataPersistenceService {
         sukunimi: String,
         opintotietodataDTOs: List<OpintotietodataDTO>
     )
+
+    fun createOrUpdateOpintotieto(
+        userId: String,
+        opintotietodataDTO: OpintotietodataDTO
+    )
 }
