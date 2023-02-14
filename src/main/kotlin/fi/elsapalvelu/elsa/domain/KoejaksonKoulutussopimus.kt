@@ -57,13 +57,7 @@ data class KoejaksonKoulutussopimus(
     var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikka>? = mutableSetOf(),
 
     @Column(name = "erikoistuvan_allekirjoitusaika", nullable = false)
-    var erikoistuvanAllekirjoitusaika: LocalDate? = null,
-
-    @Column(name = "sarakesign_request_id")
-    var sarakeSignRequestId: String? = null,
-
-    @Column(name = "allekirjoitettu", nullable = false)
-    var allekirjoitettu: Boolean = false
+    var erikoistuvanAllekirjoitusaika: LocalDate? = null
 
 ) : Serializable {
 

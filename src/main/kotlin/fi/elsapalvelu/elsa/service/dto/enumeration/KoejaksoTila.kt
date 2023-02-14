@@ -22,8 +22,7 @@ enum class KoejaksoTila {
             kayttajaId: Long? = null
         ): KoejaksoTila {
             return if (koejaksonKoulutussopimusDTO == null) UUSI
-            else if (koejaksonKoulutussopimusDTO.allekirjoitettu == true) ALLEKIRJOITETTU
-            else if (koejaksonKoulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true) ODOTTAA_ALLEKIRJOITUKSIA
+            else if (koejaksonKoulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true) HYVAKSYTTY
             else if (!koejaksonKoulutussopimusDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else if (koejaksonKoulutussopimusDTO.lahetetty == false) TALLENNETTU_KESKENERAISENA
             else if (koejaksonKoulutussopimusDTO.kouluttajat?.all { it.sopimusHyvaksytty == true } == true) {

@@ -246,5 +246,6 @@
     <include file="config/liquibase/changelog/20221216135754_modify_entiy_PoissaolonSyy.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20230124153427_added_entity_Ilmoitus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20230126154341_modify_entity_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20230214124926_modify_entity_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

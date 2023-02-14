@@ -114,7 +114,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[3].id").value(koejaksonAloituskeskustelu.id))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[3].tyyppi").value("ALOITUSKESKUSTELU"))
             .andExpect(jsonPath("$[1].id").value(koejaksonKoulutussopimus.id))
-            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.ODOTTAA_ALLEKIRJOITUKSIA.name))
+            .andExpect(jsonPath("$[1].tila").value(KoejaksoTila.HYVAKSYTTY.name))
             .andExpect(jsonPath("$[1].tyyppi").value("KOULUTUSSOPIMUS"))
     }
 
