@@ -32,4 +32,8 @@ class PeppiUefOpintotietodataFetchingServiceImpl(
     override fun shouldFetchOpintotietodata(): Boolean {
         return yliopistoRepository.findOneByNimi(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)?.haeOpintotietodata == true
     }
+
+    override fun getYliopisto(): YliopistoEnum {
+        return YliopistoEnum.ITA_SUOMEN_YLIOPISTO
+    }
 }

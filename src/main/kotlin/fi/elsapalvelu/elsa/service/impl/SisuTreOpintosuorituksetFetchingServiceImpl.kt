@@ -86,6 +86,10 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
     override fun shouldFetchOpintosuoritukset(): Boolean {
         return yliopistoRepository.findOneByNimi(YliopistoEnum.TAMPEREEN_YLIOPISTO)?.haeOpintotietodata == true
     }
+
+    override fun getYliopisto(): YliopistoEnum {
+        return YliopistoEnum.TAMPEREEN_YLIOPISTO
+    }
 }
 
 data class AttainmentsResponse(val attainments: List<Attainment>)

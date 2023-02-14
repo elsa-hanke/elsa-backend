@@ -62,6 +62,10 @@ class PeppiOuluOpintotietodataFetchingServiceImpl(
         return yliopistoRepository.findOneByNimi(YliopistoEnum.OULUN_YLIOPISTO)?.haeOpintotietodata == true
     }
 
+    override fun getYliopisto(): YliopistoEnum {
+        return YliopistoEnum.OULUN_YLIOPISTO
+    }
+
     private fun mapOpintooikeudenTila(tila: String?): OpintooikeudenTila? {
         return when (tila) {
             PeppiOpintooikeudenTila.COMPLETED.toString(),

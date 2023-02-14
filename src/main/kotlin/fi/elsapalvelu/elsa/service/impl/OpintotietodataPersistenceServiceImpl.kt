@@ -92,22 +92,18 @@ class OpintotietodataPersistenceServiceImpl(
         val opintotietodataOpintooikeudet = opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
 
         checkOpintooikeudetAmount(filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet), erikoistuvaLaakari)
+        updateOpintooikeudet(userId, opintotietodataOpintooikeudet, erikoistuvaLaakari)
+    }
 
-        val existingOpintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
-        val opintotietodataNewOpintooikeudet =
-            opintotietodataOpintooikeudet.filter { o -> o.id !in existingOpintooikeudet.map { it.yliopistoOpintooikeusId } }
-        val opintotietodataExistingOpintooikeudet =
-            opintotietodataOpintooikeudet.filter { o -> o.id in existingOpintooikeudet.map { it.yliopistoOpintooikeusId } }
-
-        // Suodata uusista opinto-oikeuksista pois ne joiden päättymispäivä on menneisyydessä. Olemassaolevia ei
-        // suodateta, koska päättymispäivä täytyy päivittää vaikka opinto-oikeus olisikin vanhentunut.
-        val filteredOpintotietodataNewOpintooikeudet =
-            filterOpintooikeudetByVoimassaDate(opintotietodataNewOpintooikeudet)
-        val filteredOpintotietodataOpintooikeudet =
-            filteredOpintotietodataNewOpintooikeudet + opintotietodataExistingOpintooikeudet
-
-        filteredOpintotietodataOpintooikeudet.sortedBy { it.opintooikeudenPaattymispaiva }.forEach {
-            createOrUpdateOpintooikeus(it, userId, erikoistuvaLaakari)
+    override fun createOrUpdateOpintotieto(userId: String, opintotietodataDTO: OpintotietodataDTO) {
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            ?: throw EntityNotFoundException("Erikoistuvaa lääkäriä ei löydy.")
+        opintotietodataDTO.opintooikeudet?.let {
+            updateOpintooikeudet(
+                userId,
+                it,
+                erikoistuvaLaakari
+            )
         }
     }
 
@@ -176,6 +172,25 @@ class OpintotietodataPersistenceServiceImpl(
             ).apply {
                 useaVoimassaolevaHerateLahetetty = Instant.now()
             }.let { opintooikeusHerateRepository.save(it) }
+        }
+    }
+
+    private fun updateOpintooikeudet(userId: String, opintotietodataOpintooikeudet: List<OpintotietoOpintooikeusDataDTO>, erikoistuvaLaakari: ErikoistuvaLaakari) {
+        val existingOpintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+        val opintotietodataNewOpintooikeudet =
+            opintotietodataOpintooikeudet.filter { o -> o.id !in existingOpintooikeudet.map { it.yliopistoOpintooikeusId } }
+        val opintotietodataExistingOpintooikeudet =
+            opintotietodataOpintooikeudet.filter { o -> o.id in existingOpintooikeudet.map { it.yliopistoOpintooikeusId } }
+
+        // Suodata uusista opinto-oikeuksista pois ne joiden päättymispäivä on menneisyydessä. Olemassaolevia ei
+        // suodateta, koska päättymispäivä täytyy päivittää vaikka opinto-oikeus olisikin vanhentunut.
+        val filteredOpintotietodataNewOpintooikeudet =
+            filterOpintooikeudetByVoimassaDate(opintotietodataNewOpintooikeudet)
+        val filteredOpintotietodataOpintooikeudet =
+            filteredOpintotietodataNewOpintooikeudet + opintotietodataExistingOpintooikeudet
+
+        filteredOpintotietodataOpintooikeudet.sortedBy { it.opintooikeudenPaattymispaiva }.forEach {
+            createOrUpdateOpintooikeus(it, userId, erikoistuvaLaakari)
         }
     }
 

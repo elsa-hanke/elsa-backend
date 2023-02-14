@@ -34,4 +34,8 @@ class PeppiTurkuOpintosuorituksetFetchingServiceImpl(
     override fun shouldFetchOpintosuoritukset(): Boolean {
         return yliopistoRepository.findOneByNimi(YliopistoEnum.TURUN_YLIOPISTO)?.haeOpintotietodata == true
     }
+
+    override fun getYliopisto(): YliopistoEnum {
+        return YliopistoEnum.TURUN_YLIOPISTO
+    }
 }

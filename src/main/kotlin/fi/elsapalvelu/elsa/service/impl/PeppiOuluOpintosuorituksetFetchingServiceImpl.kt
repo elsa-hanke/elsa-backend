@@ -25,7 +25,8 @@ class PeppiOuluOpintosuorituksetFetchingServiceImpl(
     override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
         return try {
             val response =
-                peppiOuluClientBuilder.apolloClient().query(OpintosuorituksetPeppiOuluQuery(id = hetu))
+                peppiOuluClientBuilder.apolloClient()
+                    .query(OpintosuorituksetPeppiOuluQuery(id = hetu))
                     .execute()
 
             return response.data?.private_person_by_personal_identity_code?.attainments?.let {
@@ -70,6 +71,10 @@ class PeppiOuluOpintosuorituksetFetchingServiceImpl(
 
     override fun shouldFetchOpintosuoritukset(): Boolean {
         return yliopistoRepository.findOneByNimi(YliopistoEnum.OULUN_YLIOPISTO)?.haeOpintotietodata == true
+    }
+
+    override fun getYliopisto(): YliopistoEnum {
+        return YliopistoEnum.OULUN_YLIOPISTO
     }
 }
 

@@ -76,4 +76,8 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
     override fun shouldFetchOpintosuoritukset(): Boolean {
         return yliopistoRepository.findOneByNimi(YliopistoEnum.HELSINGIN_YLIOPISTO)?.haeOpintotietodata == true
     }
+
+    override fun getYliopisto(): YliopistoEnum {
+        return YliopistoEnum.HELSINGIN_YLIOPISTO
+    }
 }
