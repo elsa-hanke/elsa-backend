@@ -343,7 +343,6 @@ class KoejaksonVaiheetServiceImpl(
                 userId
             )
         koulutussopimukset.associate {
-            koejaksonKoulutussopimusService.tarkistaAllekirjoitus(it)
             getOpintooikeusIdOrElseThrow(it.opintooikeus) to koejaksonKoulutussopimusMapper.toDto(
                 it
             )
@@ -364,7 +363,6 @@ class KoejaksonVaiheetServiceImpl(
                 userId
             ) else koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(userId)
         koulutussopimukset.associate {
-            koejaksonKoulutussopimusService.tarkistaAllekirjoitus(it)
             getOpintooikeusIdOrElseThrow(it.opintooikeus) to koejaksonKoulutussopimusMapper.toDto(
                 it
             )

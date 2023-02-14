@@ -33,7 +33,6 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val userRepository: UserRepository,
     private val asiakirjaRepository: AsiakirjaRepository,
-    private val sarakesignService: SarakesignService,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
     private val pdfService: PdfService
 ) : KoejaksonKoulutussopimusService {
@@ -150,7 +149,10 @@ class KoejaksonKoulutussopimusServiceImpl(
         return dto
     }
 
-    private fun validateVastuuhenkilo(userId: String, koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO) {
+    private fun validateVastuuhenkilo(
+        userId: String,
+        koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO
+    ) {
         if (kayttajaService.findVastuuhenkiloByYliopistoErikoisalaAndTehtavatyyppi(
                 userId,
                 VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
@@ -302,7 +304,7 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         val result = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
-        // Sähköposti erikoistujalle, kouluttajille ja opintohallinnolle hyväksytystä sopimuksesta
+        // Sähköposti erikoistujalle hyväksytystä sopimuksesta
         if (result.vastuuhenkiloHyvaksynyt) {
             val erikoistuvaLaakari =
                 kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
@@ -313,19 +315,6 @@ class KoejaksonKoulutussopimusServiceImpl(
                 titleKey = "email.koulutussopimushyvaksytty.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
             )
-
-            result.kouluttajat?.forEach {
-                mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
-                    templateName = "koulutussopimusHyvaksyttyKouluttaja.html",
-                    titleKey = "email.koulutussopimushyvaksytty.title",
-                    properties = mapOf(
-                        Pair(MailProperty.ID, result.id!!.toString()),
-                        Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
-                    )
-                )
-            }
-            // Sähköposti opintohallinnolle
         }
         // Sähköposti erikoistujalle ja kouluttajille palautetusta sopimuksesta
         else {
@@ -365,7 +354,6 @@ class KoejaksonKoulutussopimusServiceImpl(
     override fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonKoulutussopimusDTO> {
         val koulutussopimus =
             koejaksonKoulutussopimusRepository.findByOpintooikeusId(opintooikeusId)
-        koulutussopimus.ifPresent { tarkistaAllekirjoitus(it) }
         return koulutussopimus.map(koejaksonKoulutussopimusMapper::toDto)
     }
 
@@ -379,7 +367,6 @@ class KoejaksonKoulutussopimusServiceImpl(
                 id,
                 userId
             )
-        koulutussopimus.ifPresent { tarkistaAllekirjoitus(it) }
 
         val koulutussopimusDTO = koulutussopimus.map(koejaksonKoulutussopimusMapper::toDto)
         val currentKayttaja = kayttajaRepository.findOneByUserId(userId).get()
@@ -402,43 +389,11 @@ class KoejaksonKoulutussopimusServiceImpl(
             id,
             userId
         )
-        koulutussopimus.ifPresent { tarkistaAllekirjoitus(it) }
         return koulutussopimus.map(koejaksonKoulutussopimusMapper::toDto)
     }
 
     override fun delete(id: Long) {
         koejaksonKoulutussopimusRepository.deleteById(id)
-    }
-
-    override fun tarkistaAllekirjoitus(koejaksonKoulutussopimus: KoejaksonKoulutussopimus) {
-        val yliopisto = koejaksonKoulutussopimus.opintooikeus?.yliopisto?.nimi!!
-        if (koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt
-            && !koejaksonKoulutussopimus.allekirjoitettu
-            && !sarakesignService.getApiUrl(yliopisto).isNullOrBlank()
-            && koejaksonKoulutussopimus.sarakeSignRequestId != null
-        ) {
-            val status =
-                sarakesignService.tarkistaAllekirjoitus(
-                    koejaksonKoulutussopimus.sarakeSignRequestId,
-                    yliopisto
-                )?.status
-
-            if (status == 3) { // Completed
-                koejaksonKoulutussopimus.allekirjoitettu = true
-            } else if (status == 4) { // Aborted
-                koejaksonKoulutussopimus.korjausehdotus = "Allekirjoitus keskeytetty"
-                koejaksonKoulutussopimus.lahetetty = false
-                koejaksonKoulutussopimus.erikoistuvanAllekirjoitusaika = null
-                koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt = false
-                koejaksonKoulutussopimus.vastuuhenkilonKuittausaika = null
-
-                koejaksonKoulutussopimus.kouluttajat?.forEach {
-                    it.sopimusHyvaksytty = false
-                    it.kuittausaika = null
-                }
-            }
-            koejaksonKoulutussopimusRepository.save(koejaksonKoulutussopimus)
-        }
     }
 
     private fun luoPdf(
@@ -453,7 +408,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         pdfService.luoPdf("pdf/koulutussopimus.html", context, outputStream)
         val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
-        val asiakirja = asiakirjaRepository.save(
+        asiakirjaRepository.save(
             Asiakirja(
                 opintooikeus = koulutussopimus.opintooikeus,
                 nimi = "koejakson_koulutussopimus_${timestamp}.pdf",
@@ -462,36 +417,5 @@ class KoejaksonKoulutussopimusServiceImpl(
                 asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
             )
         )
-
-        if (!sarakesignService.getApiUrl(koulutussopimus.opintooikeus?.yliopisto?.nimi!!)
-                .isNullOrBlank()
-        ) {
-            lahetaAllekirjoitettavaksi(koulutussopimus, asiakirja)
-        }
-
-    }
-
-    private fun lahetaAllekirjoitettavaksi(
-        koulutussopimus: KoejaksonKoulutussopimus,
-        asiakirja: Asiakirja
-    ) {
-        val recipients: MutableList<User> = mutableListOf()
-        koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let {
-            recipients.add(it)
-        }
-        koulutussopimus.kouluttajat?.forEach {
-            it.kouluttaja?.user?.let { user ->
-                recipients.add(user)
-            }
-        }
-        koulutussopimus.vastuuhenkilo?.user?.let { recipients.add(it) }
-
-        koulutussopimus.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
-            "Koejakson koulutussopimus - " + koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
-            recipients,
-            asiakirja.id!!,
-            koulutussopimus.opintooikeus?.yliopisto?.nimi!!
-        )
-        koejaksonKoulutussopimusRepository.save(koulutussopimus)
     }
 }
