@@ -26,7 +26,7 @@ enum class KoejaksoTila {
             else if (!koejaksonKoulutussopimusDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else if (koejaksonKoulutussopimusDTO.lahetetty == false) TALLENNETTU_KESKENERAISENA
             else if (koejaksonKoulutussopimusDTO.kouluttajat?.all { it.sopimusHyvaksytty == true } == true) {
-                if (koejaksonKoulutussopimusDTO.kouluttajat?.find { it.kayttajaId == kayttajaId } != null) ODOTTAA_ALLEKIRJOITUKSIA
+                if (koejaksonKoulutussopimusDTO.kouluttajat?.find { it.kayttajaId == kayttajaId } != null) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
                 else ODOTTAA_HYVAKSYNTAA
             } else if (koejaksonKoulutussopimusDTO.kouluttajat?.find { it.kayttajaId == kayttajaId }?.sopimusHyvaksytty == true) ODOTTAA_TOISEN_KOULUTTAJAN_HYVAKSYNTAA
             else ODOTTAA_HYVAKSYNTAA
