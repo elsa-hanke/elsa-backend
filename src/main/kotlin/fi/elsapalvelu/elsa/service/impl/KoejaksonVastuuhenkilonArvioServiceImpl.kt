@@ -269,11 +269,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         asiakirja: Asiakirja
     ) {
         val recipients: MutableList<User> = mutableListOf()
-        vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let {
-            if (vastuuhenkilonArvio.koejaksoHyvaksytty == true) {
-                recipients.add(it)
-            }
-        }
         vastuuhenkilonArvio.vastuuhenkilo?.user?.let { recipients.add(it) }
 
         vastuuhenkilonArvio.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
