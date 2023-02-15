@@ -11,7 +11,8 @@ enum class KoejaksoTila {
     ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA,
     ODOTTAA_ESIMIEHEN_HYVAKSYNTAA,
     ODOTTAA_TOISEN_KOULUTTAJAN_HYVAKSYNTAA,
-    ODOTTAA_ALLEKIRJOITUKSIA,
+    ODOTTAA_ALLEKIRJOITUSTA,
+    ODOTTAA_VASTUUHENKILON_ALLEKIRJOITUSTA,
     PALAUTETTU_KORJATTAVAKSI,
     HYVAKSYTTY,
     ALLEKIRJOITETTU;
@@ -92,7 +93,13 @@ enum class KoejaksoTila {
             else if (vastuuhenkilonArvioDTO == null) UUSI
             else if (vastuuhenkilonArvioDTO.allekirjoitettu == true) ALLEKIRJOITETTU
             else if (!vastuuhenkilonArvioDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
-            else if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true) ODOTTAA_ALLEKIRJOITUKSIA
+            else if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true) {
+                if (vastuuhenkilonArvioDTO.vastuuhenkilo?.kayttajaUserId == userId) {
+                    ODOTTAA_ALLEKIRJOITUSTA
+                } else {
+                    ODOTTAA_VASTUUHENKILON_ALLEKIRJOITUSTA
+                }
+            }
             else if (vastuuhenkilonArvioDTO.virkailija?.sopimusHyvaksytty == true && vastuuhenkilonArvioDTO.vastuuhenkilo?.kayttajaUserId != userId) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
             else ODOTTAA_HYVAKSYNTAA
         }
@@ -102,7 +109,13 @@ enum class KoejaksoTila {
             userId: String? = null
         ): KoejaksoTila {
             return if (vastuuhenkilonArvio?.allekirjoitettu == true) ALLEKIRJOITETTU
-            else if (vastuuhenkilonArvio?.vastuuhenkiloHyvaksynyt == true) ODOTTAA_ALLEKIRJOITUKSIA
+            else if (vastuuhenkilonArvio?.vastuuhenkiloHyvaksynyt == true) {
+                if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
+                    ODOTTAA_ALLEKIRJOITUSTA
+                } else {
+                    ODOTTAA_VASTUUHENKILON_ALLEKIRJOITUSTA
+                }
+            }
             else if (vastuuhenkilonArvio?.virkailijaHyvaksynyt == true && vastuuhenkilonArvio.vastuuhenkilo?.user?.id != userId) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
             else if (!vastuuhenkilonArvio?.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else ODOTTAA_HYVAKSYNTAA

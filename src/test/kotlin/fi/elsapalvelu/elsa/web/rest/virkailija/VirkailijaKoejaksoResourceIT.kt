@@ -121,7 +121,7 @@ class VirkailijaKoejaksoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content[0].id").value(koejaksonVastuuhenkilonArvio.id))
-            .andExpect(jsonPath("$.content[0].tila").value(KoejaksoTila.ODOTTAA_ALLEKIRJOITUKSIA.name))
+            .andExpect(jsonPath("$.content[0].tila").value(KoejaksoTila.ODOTTAA_VASTUUHENKILON_ALLEKIRJOITUSTA.name))
             .andExpect(jsonPath("$.content[0].tyyppi").value(KoejaksoTyyppi.VASTUUHENKILON_ARVIO.name))
             .andExpect(jsonPath("$.content[0].erikoistuvanNimi").value(koejaksonVastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
     }
