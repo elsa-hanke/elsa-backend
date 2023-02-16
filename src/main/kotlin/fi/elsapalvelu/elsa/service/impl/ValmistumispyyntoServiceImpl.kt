@@ -21,6 +21,8 @@ import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
+import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
+import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
 import fi.elsapalvelu.elsa.service.mapper.*
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.domain.Page
@@ -1263,12 +1265,12 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto: Valmistumispyynto,
         asiakirja: Asiakirja
     ) {
-        val recipients: MutableList<User> = mutableListOf()
+        val recipients: MutableList<SarakeSignRecipientDTO> = mutableListOf()
         valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let {
-            recipients.add(it)
+            recipients.add(lisaaVastaanottaja(it, true))
         }
 
-        valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.let { recipients.add(it) }
+        valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.let { recipients.add(lisaaVastaanottaja(it, false)) }
 
         valmistumispyynto.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
             "Valmistumisen yhteenveto - " + valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
@@ -1277,6 +1279,26 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyynto.opintooikeus?.yliopisto?.nimi!!
         )
         valmistumispyyntoRepository.save(valmistumispyynto)
+    }
+
+    private fun lisaaVastaanottaja(user: User, readonly: Boolean): SarakeSignRecipientDTO {
+        return SarakeSignRecipientDTO(
+            phaseNumber = 0,
+            recipient = user.email,
+            readonly = readonly,
+            fields = SarakeSignRecipientFieldsDTO(
+                firstName = user.firstName,
+                lastName = user.lastName,
+                phoneNumber = getPhoneNumber(user.phoneNumber),
+            )
+        )
+    }
+
+    private fun getPhoneNumber(number: String?): String? {
+        if (number?.startsWith("0") == true) {
+            return number.replaceFirst("0", "+358")
+        }
+        return number
     }
 
     private fun daysToPeriod(days: Double): Period {

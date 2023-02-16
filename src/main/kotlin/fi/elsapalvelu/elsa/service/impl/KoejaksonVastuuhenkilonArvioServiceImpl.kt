@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
@@ -7,6 +8,8 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTableDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
+import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
+import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
@@ -47,7 +50,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val asiakirjaRepository: AsiakirjaRepository,
     private val sarakesignService: SarakesignService,
     private val keskeytysaikaService: KeskeytysaikaService,
-    private val pdfService: PdfService
+    private val pdfService: PdfService,
+    private val applicationProperties: ApplicationProperties
 ) : KoejaksonVastuuhenkilonArvioService {
 
     override fun create(
@@ -268,8 +272,18 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio,
         asiakirja: Asiakirja
     ) {
-        val recipients: MutableList<User> = mutableListOf()
-        vastuuhenkilonArvio.vastuuhenkilo?.user?.let { recipients.add(it) }
+        val recipients: MutableList<SarakeSignRecipientDTO> = mutableListOf()
+        vastuuhenkilonArvio.vastuuhenkilo?.user?.let { recipients.add(lisaaVastaanottaja(it, false)) }
+        vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let { recipients.add(lisaaVastaanottaja(it, true)) }
+        recipients.add(
+            SarakeSignRecipientDTO(
+                phaseNumber = 0,
+                recipient = vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(
+                    applicationProperties
+                ),
+                readonly = true
+            )
+        )
 
         vastuuhenkilonArvio.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
             "Koejakson vastuuhenkilön arvio - " + vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
@@ -278,6 +292,26 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!
         )
         koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
+    }
+
+    private fun lisaaVastaanottaja(user: User, readonly: Boolean): SarakeSignRecipientDTO {
+        return SarakeSignRecipientDTO(
+            phaseNumber = 0,
+            recipient = user.email,
+            readonly = readonly,
+            fields = SarakeSignRecipientFieldsDTO(
+                firstName = user.firstName,
+                lastName = user.lastName,
+                phoneNumber = getPhoneNumber(user.phoneNumber),
+            )
+        )
+    }
+
+    private fun getPhoneNumber(number: String?): String? {
+        if (number?.startsWith("0") == true) {
+            return number.replaceFirst("0", "+358")
+        }
+        return number
     }
 
     @Transactional(readOnly = true)
