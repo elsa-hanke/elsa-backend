@@ -32,20 +32,23 @@ class SarakesignServiceImpl(
 
     override fun lahetaAllekirjoitettavaksi(
         title: String,
-        recipients: List<User>,
+        recipients: List<SarakeSignRecipientDTO>,
         asiakirjaId: Long,
         yliopisto: YliopistoEnum
     ): String {
         val token = login(yliopisto)
         val requestId =
-            createRequest(title, recipients.map { lisaaVastaanottaja(it) }, token, yliopisto)
+            createRequest(title, recipients, token, yliopisto)
         uploadDocument(title, asiakirjaId, requestId, token, yliopisto)
         sendRequest(requestId, token, yliopisto)
         log.info("Lähetetty pyyntö $requestId asiakirjasta $asiakirjaId SarakeSigniin allekirjoitettavaksi")
         return requestId
     }
 
-    override fun tarkistaAllekirjoitus(requestId: String?, yliopisto: YliopistoEnum): SarakeSignResponseRequestDTO {
+    override fun tarkistaAllekirjoitus(
+        requestId: String?,
+        yliopisto: YliopistoEnum
+    ): SarakeSignResponseRequestDTO {
         return try {
             val token = login(yliopisto)
             getRequestStatus(requestId, token, yliopisto)
@@ -240,24 +243,5 @@ class SarakesignServiceImpl(
                 return applicationProperties.getSarakesign().getUef().requestTemplateId
             }
         }
-    }
-
-    private fun lisaaVastaanottaja(user: User): SarakeSignRecipientDTO {
-        return SarakeSignRecipientDTO(
-            phaseNumber = 0,
-            recipient = user.email,
-            fields = SarakeSignRecipientFieldsDTO(
-                firstName = user.firstName,
-                lastName = user.lastName,
-                phoneNumber = getPhoneNumber(user.phoneNumber)
-            )
-        )
-    }
-
-    private fun getPhoneNumber(number: String?): String? {
-        if (number?.startsWith("0") == true) {
-            return number.replaceFirst("0", "+358")
-        }
-        return number
     }
 }

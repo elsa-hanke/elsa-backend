@@ -8,7 +8,7 @@ data class SarakeSignRecipientDTO(
 
     var recipient: String? = null,
 
-    var readonly: String? = null,
+    var readonly: Boolean? = null,
 
     var fields: SarakeSignRecipientFieldsDTO? = null
 
