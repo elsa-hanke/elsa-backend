@@ -52,4 +52,6 @@ interface UserService {
         hetu: String?,
         eppn: String?
     ): User?
+
+    fun updateRooli(rooli: String, userId: String)
 }

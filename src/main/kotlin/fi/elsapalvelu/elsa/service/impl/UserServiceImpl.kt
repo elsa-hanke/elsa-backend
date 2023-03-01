@@ -243,6 +243,11 @@ class UserServiceImpl(
         return null
     }
 
+    override fun updateRooli(rooli: String, userId: String) {
+        val user = userRepository.findById(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+        user.activeAuthority = Authority(name = rooli)
+    }
+
     private fun updateKouluttajaReferences(oldId: Long, newId: Long) {
         kouluttajavaltuutusRepository.changeKouluttaja(oldId, newId)
         suoritusarviointiRepository.changeKouluttaja(oldId, newId)

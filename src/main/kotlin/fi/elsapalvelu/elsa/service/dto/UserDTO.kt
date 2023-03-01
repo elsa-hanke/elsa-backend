@@ -48,15 +48,28 @@ open class UserDTO(
 
     var authorities: Set<String>? = null,
 
+    var activeAuthority: String? = null,
+
     var impersonated: Boolean? = false
 ) {
     constructor(user: User) :
         this(
-            user.id, user.login, user.firstName, user.lastName, user.email, user.phoneNumber,
+            user.id,
+            user.login,
+            user.firstName,
+            user.lastName,
+            user.email,
+            user.phoneNumber,
             user.avatar,
-            user.activated, user.eppn, user.langKey,
-            user.createdBy, user.createdDate, user.lastModifiedBy, user.lastModifiedDate,
-            user.authorities.map { it.name }.filterNotNullTo(mutableSetOf())
+            user.activated,
+            user.eppn,
+            user.langKey,
+            user.createdBy,
+            user.createdDate,
+            user.lastModifiedBy,
+            user.lastModifiedDate,
+            user.authorities.map { it.name }.filterNotNullTo(mutableSetOf()),
+            user.activeAuthority?.name
         )
 
     fun isActivated(): Boolean = activated

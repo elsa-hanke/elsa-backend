@@ -11,6 +11,7 @@ import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.YliopistoService
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority
@@ -121,5 +122,33 @@ class KayttajaResource(
         }
 
         return userService.updateUserDetails(omatTiedotDTO, userId)
+    }
+
+    @PostMapping("/vaihda-rooli")
+    fun vaihdaRooli(
+        @Valid @RequestParam rooli: String,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        val userId = userService.getAuthenticatedUser(principal).id!!
+        val user = userService.getUser(userId)
+
+        if (user.authorities!!.size < 2) {
+            throw BadRequestAlertException(
+                "Käyttäjällä ei ole useita rooleja.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.kayttajalla-ei-ole-useita-rooleja"
+            )
+        }
+
+        if (!user.authorities!!.contains(rooli)) {
+            throw BadRequestAlertException(
+                "Käyttäjällä ei ole haluttua roolia.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.kayttajalla-ei-ole-haluttua-roolia"
+            )
+        }
+
+        userService.updateRooli(rooli, userId)
+        return ResponseEntity.noContent().build()
     }
 }
