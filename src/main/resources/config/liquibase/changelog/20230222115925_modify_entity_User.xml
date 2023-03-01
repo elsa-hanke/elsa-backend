@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20230222115925" author="jhipster">
+        <addColumn tableName="jhi_user">
+            <column name="active_authority" type="text"/>
+        </addColumn>
+
+        <sql>
+            UPDATE jhi_user u
+            SET active_authority = (select ua.authority_name FROM jhi_user_authority ua WHERE u.id = ua.user_id LIMIT 1)
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

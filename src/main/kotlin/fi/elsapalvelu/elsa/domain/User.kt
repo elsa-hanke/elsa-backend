@@ -85,6 +85,12 @@ class User(
     @BatchSize(size = 20)
     var authorities: MutableSet<Authority> = mutableSetOf(),
 
+    @NotNull
+    @ManyToOne(optional = false)
+    @NotAudited
+    @JoinColumn(name="active_authority")
+    var activeAuthority: Authority? = null,
+
     createdBy: String? = null,
     createdDate: Instant? = Instant.now(),
     lastModifiedBy: String? = null,
