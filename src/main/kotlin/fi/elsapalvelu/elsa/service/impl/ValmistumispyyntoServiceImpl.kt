@@ -1269,6 +1269,15 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let {
             recipients.add(lisaaVastaanottaja(it, true))
         }
+        recipients.add(
+            SarakeSignRecipientDTO(
+                phaseNumber = 0,
+                recipient = valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(
+                    applicationProperties
+                ),
+                readonly = true
+            )
+        )
 
         valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.let { recipients.add(lisaaVastaanottaja(it, false)) }
 
