@@ -2,10 +2,9 @@ package fi.elsapalvelu.elsa.domain
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Type
 import java.io.Serializable
-import javax.persistence.*
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Table(name = "kunta")
@@ -25,8 +24,6 @@ data class Kunta(
     @Column(name = "long_name")
     var longName: String? = null,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "description")
     var description: String? = null,
 

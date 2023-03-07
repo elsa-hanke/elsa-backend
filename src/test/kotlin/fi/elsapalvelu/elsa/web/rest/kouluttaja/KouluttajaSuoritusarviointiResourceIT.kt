@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
@@ -118,9 +118,7 @@ class KouluttajaSuoritusarviointiResourceIT {
         assertThat(testSuoritusarviointi.arviointiLiiteNimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(testSuoritusarviointi.arviointiLiiteTyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
         val asiakirjaData = testSuoritusarviointi.asiakirjaData
-        assertThat(asiakirjaData?.data?.binaryStream?.use { it.readBytes() }).isEqualTo(
-            AsiakirjaHelper.ASIAKIRJA_PDF_DATA
-        )
+        assertThat(asiakirjaData?.data).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
     }
 
     fun initMockFile() {

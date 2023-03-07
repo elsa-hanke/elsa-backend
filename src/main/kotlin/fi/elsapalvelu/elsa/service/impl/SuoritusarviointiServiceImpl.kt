@@ -17,6 +17,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.ObjectUtils
+import java.io.ByteArrayInputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -146,10 +147,7 @@ class SuoritusarviointiServiceImpl(
                 suoritusarviointi.arviointiLiiteTyyppi = it.tyyppi
                 suoritusarviointi.arviointiLiiteLisattyPvm = LocalDateTime.now()
                 suoritusarviointi.asiakirjaData = AsiakirjaData().apply {
-                    data = BlobProxy.generateProxy(
-                        it.asiakirjaData?.fileInputStream,
-                        it.asiakirjaData?.fileSize!!
-                    )
+                    data = it.asiakirjaData?.fileInputStream?.readAllBytes()
                 }
             } ?: run {
                 suoritusarviointi.arviointiLiiteNimi = null
@@ -249,7 +247,7 @@ class SuoritusarviointiServiceImpl(
                 nimi = it.arviointiLiiteNimi
                 tyyppi = it.arviointiLiiteTyyppi
                 asiakirjaData = AsiakirjaDataDTO().apply {
-                    fileInputStream = it.asiakirjaData?.data?.binaryStream
+                    fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data)
                 }
             }
         }

@@ -46,7 +46,7 @@ stages:
         steps:
           - task: JavaToolInstaller@0
             inputs:
-              versionSpec: '11'
+              versionSpec: '17'
               jdkArchitectureOption: 'x64'
               jdkSourceOption: 'PreInstalled'
           - task: Cache@2

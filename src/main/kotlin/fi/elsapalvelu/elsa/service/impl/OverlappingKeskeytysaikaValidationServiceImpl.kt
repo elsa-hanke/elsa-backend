@@ -5,9 +5,11 @@ import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.OverlappingKeskeytysaikaValidationService
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
+import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 
 @Service
+@Transactional
 class OverlappingKeskeytysaikaValidationServiceImpl(
     private val keskeytysaikaMapper: KeskeytysaikaMapper,
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,

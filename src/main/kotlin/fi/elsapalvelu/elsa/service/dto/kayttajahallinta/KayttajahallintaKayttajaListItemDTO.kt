@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.service.dto.KayttajahallintaYliopistoErikoisalaDTO
 import java.io.Serializable
 import java.time.LocalDate
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class KayttajahallintaKayttajaListItemDTO(
 

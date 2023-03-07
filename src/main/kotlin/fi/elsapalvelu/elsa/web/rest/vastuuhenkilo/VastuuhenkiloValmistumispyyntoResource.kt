@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
 import java.security.Principal
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private const val VALMISTUMISPYYNTO_ENTITY_NAME = "valmistumispyyntö"
 

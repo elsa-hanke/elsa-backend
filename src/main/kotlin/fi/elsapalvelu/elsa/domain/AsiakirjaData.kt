@@ -1,11 +1,10 @@
 package fi.elsapalvelu.elsa.domain
 
-import com.sun.istack.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
-import java.sql.Blob
-import javax.persistence.*
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Table(name = "asiakirja_data")
@@ -16,9 +15,8 @@ data class AsiakirjaData(
     var id: Long? = null,
 
     @NotNull
-    @Lob
     @Column(name = "data", nullable = false)
-    var data: Blob? = null
+    var data: ByteArray? = null
 
 ) : Serializable {
 

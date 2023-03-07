@@ -2,13 +2,12 @@ package fi.elsapalvelu.elsa.domain
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Type
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
-import javax.persistence.*
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Table(name = "koulutusjakso")
@@ -24,8 +23,6 @@ data class Koulutusjakso(
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "muut_osaamistavoitteet")
     var muutOsaamistavoitteet: String? = null,
 
@@ -50,6 +47,7 @@ data class Koulutusjakso(
             JoinColumn(name = "tyoskentelyjakso_id")
         ]
     )
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso>? = mutableSetOf(),
 
     @ManyToMany
@@ -67,7 +65,8 @@ data class Koulutusjakso(
     var osaamistavoitteet: MutableSet<ArvioitavaKokonaisuus>? = mutableSetOf(),
 
     @NotNull
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var koulutussuunnitelma: Koulutussuunnitelma? = null
 
 ) : Serializable {

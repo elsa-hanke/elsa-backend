@@ -18,7 +18,7 @@ import org.springframework.util.MultiValueMap
 import org.springframework.web.client.RestTemplate
 import java.io.File
 import java.nio.file.Files
-import javax.persistence.EntityNotFoundException
+import jakarta.persistence.EntityNotFoundException
 
 @Service
 @Transactional
@@ -147,7 +147,7 @@ class SarakesignServiceImpl(
 
         val file = File("/tmp/" + asiakirja.id.toString() + "_" + asiakirja.nimi)
         val data = asiakirja.asiakirjaData?.data!!
-        Files.write(file.toPath(), data.getBytes(1, data.length().toInt()))
+        Files.write(file.toPath(), data)
 
         val filesystemResource = FileSystemResource(file)
         map.add("file", filesystemResource)

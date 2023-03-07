@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URI
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private const val OPINTOOPAS_ENTITY_NAME = "opintoopas"
 private const val ERIKOISALA_ENTITY_NAME = "erikoisala"

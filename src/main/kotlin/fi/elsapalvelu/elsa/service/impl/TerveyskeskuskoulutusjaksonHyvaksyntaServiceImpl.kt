@@ -27,8 +27,8 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import javax.persistence.EntityNotFoundException
-import javax.validation.ValidationException
+import jakarta.persistence.EntityNotFoundException
+import jakarta.validation.ValidationException
 
 private const val TERVEYSKESKUS_HYVAKSYNTA_MINIMIPITUUS = 273.75 // 9kk
 

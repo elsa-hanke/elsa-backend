@@ -17,7 +17,7 @@ import fi.elsapalvelu.elsa.service.dto.enumeration.ReassignedVastuuhenkilonTehta
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import javax.persistence.EntityNotFoundException
+import jakarta.persistence.EntityNotFoundException
 
 const val VIRKAILIJA_YLIOPISTO_NOT_FOUND_MSG = "Virkailijalle ei ole määritelty yliopistoa"
 

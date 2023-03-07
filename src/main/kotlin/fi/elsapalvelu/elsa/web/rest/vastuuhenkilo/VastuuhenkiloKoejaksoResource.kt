@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URLEncoder
 import java.security.Principal
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 private const val ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO = "koejakson_vastuuhenkilon_arvio"

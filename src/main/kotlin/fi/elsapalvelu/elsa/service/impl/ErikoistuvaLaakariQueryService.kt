@@ -11,17 +11,16 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tech.jhipster.service.QueryService
 import tech.jhipster.service.filter.BooleanFilter
 import tech.jhipster.service.filter.LongFilter
 import tech.jhipster.service.filter.StringFilter
-import javax.persistence.criteria.*
+import jakarta.persistence.criteria.*
 
 @Service
 @Transactional(readOnly = true)
 class ErikoistuvaLaakariQueryService(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
-) : QueryService<Any>() {
+) {
 
     @Transactional(readOnly = true)
     fun findErikoistuvatByCriteriaAndYliopistoId(

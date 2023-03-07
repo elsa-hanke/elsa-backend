@@ -38,7 +38,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
@@ -250,28 +250,6 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
 
         defaultPaivakirjamerkintaShouldBeFound("paivamaara.equals=$DEFAULT_PAIVAMAARA")
         defaultPaivakirjamerkintaShouldNotBeFound("paivamaara.equals=$UPDATED_PAIVAMAARA")
-    }
-
-    @Test
-    @Transactional
-    @Throws(Exception::class)
-    fun getAllPaivakirjamerkinnatByPaivamaaraIsNotEqualToSomething() {
-        initTest()
-        paivakirjamerkintaRepository.saveAndFlush(paivakirjamerkinta)
-
-        defaultPaivakirjamerkintaShouldNotBeFound("paivamaara.notEquals=$DEFAULT_PAIVAMAARA")
-        defaultPaivakirjamerkintaShouldBeFound("paivamaara.notEquals=$UPDATED_PAIVAMAARA")
-    }
-
-    @Test
-    @Transactional
-    @Throws(Exception::class)
-    fun getAllPaivakirjamerkinnatByPaivamaaraIsInShouldWork() {
-        initTest()
-        paivakirjamerkintaRepository.saveAndFlush(paivakirjamerkinta)
-
-        defaultPaivakirjamerkintaShouldBeFound("paivamaara.in=$DEFAULT_PAIVAMAARA,$UPDATED_PAIVAMAARA")
-        defaultPaivakirjamerkintaShouldNotBeFound("paivamaara.in=$UPDATED_PAIVAMAARA")
     }
 
     @Test

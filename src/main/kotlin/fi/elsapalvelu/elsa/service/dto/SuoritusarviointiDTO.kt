@@ -3,10 +3,9 @@ package fi.elsapalvelu.elsa.service.dto
 import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
 import java.io.Serializable
 import java.time.LocalDate
-import javax.persistence.Lob
-import javax.validation.constraints.Max
-import javax.validation.constraints.Min
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 
 data class SuoritusarviointiDTO(
 
@@ -19,14 +18,12 @@ data class SuoritusarviointiDTO(
 
     var pyynnonAika: LocalDate? = null,
 
-    @Lob
     var lisatiedot: String? = null,
 
     @get: Min(value = 1)
     @get: Max(value = 5)
     var itsearviointiVaativuustaso: Int? = null,
 
-    @Lob
     var sanallinenItsearviointi: String? = null,
 
     var itsearviointiAika: LocalDate? = null,
@@ -35,7 +32,6 @@ data class SuoritusarviointiDTO(
     @get: Max(value = 5)
     var vaativuustaso: Int? = null,
 
-    @Lob
     var sanallinenArviointi: String? = null,
 
     var arviointiAika: LocalDate? = null,

@@ -39,7 +39,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 @SpringBootTest(classes = [ElsaBackendApp::class])

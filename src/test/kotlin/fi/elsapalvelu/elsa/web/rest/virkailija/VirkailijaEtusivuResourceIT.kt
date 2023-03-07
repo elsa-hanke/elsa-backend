@@ -37,7 +37,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 private const val ERIKOISTUJIEN_SEURANTA_ENDPOINT_URL: String =
     "/api/virkailija/etusivu/erikoistujien-seuranta"

@@ -2,14 +2,13 @@ package fi.elsapalvelu.elsa.domain
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Type
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
 import java.time.ZoneId
-import javax.persistence.*
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Audited
@@ -21,8 +20,6 @@ data class Koulutussuunnitelma(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "motivaatiokirje")
     var motivaatiokirje: String? = null,
 
@@ -30,8 +27,6 @@ data class Koulutussuunnitelma(
     @Column(name = "motivaatiokirje_yksityinen", nullable = false)
     var motivaatiokirjeYksityinen: Boolean = false,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "opiskelu_ja_tyohistoria")
     var opiskeluJaTyohistoria: String? = null,
 
@@ -39,8 +34,6 @@ data class Koulutussuunnitelma(
     @Column(name = "opiskelu_ja_tyohistoria_yksityinen", nullable = false)
     var opiskeluJaTyohistoriaYksityinen: Boolean = false,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "vahvuudet")
     var vahvuudet: String? = null,
 
@@ -48,8 +41,6 @@ data class Koulutussuunnitelma(
     @Column(name = "vahvuudet_yksityinen", nullable = false)
     var vahvuudetYksityinen: Boolean = false,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "tulevaisuuden_visiointi")
     var tulevaisuudenVisiointi: String? = null,
 
@@ -57,8 +48,6 @@ data class Koulutussuunnitelma(
     @Column(name = "tulevaisuuden_visiointi_yksityinen", nullable = false)
     var tulevaisuudenVisiointiYksityinen: Boolean = false,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "osaamisen_kartuttaminen")
     var osaamisenKartuttaminen: String? = null,
 
@@ -66,8 +55,6 @@ data class Koulutussuunnitelma(
     @Column(name = "osaamisen_kartuttaminen_yksityinen", nullable = false)
     var osaamisenKartuttaminenYksityinen: Boolean = false,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "elamankentta")
     var elamankentta: String? = null,
 

@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 class KayttajaHelper {
 

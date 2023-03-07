@@ -3,8 +3,7 @@ package fi.elsapalvelu.elsa.service.dto
 import java.io.Serializable
 import java.time.LocalDate
 import java.util.*
-import javax.persistence.Lob
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class PaivakirjamerkintaDTO(
 
@@ -18,7 +17,7 @@ data class PaivakirjamerkintaDTO(
 
     var muunAiheenNimi: String? = null,
 
-    @Lob var reflektio: String? = null,
+    var reflektio: String? = null,
 
     @get: NotNull
     var yksityinen: Boolean? = null,

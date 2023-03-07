@@ -4,20 +4,18 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
+import jakarta.persistence.criteria.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tech.jhipster.service.QueryService
-import javax.persistence.criteria.Join
-import javax.persistence.criteria.Path
 
 @Service
 @Transactional(readOnly = true)
 class ErikoistujienSeurantaQueryService(
     private val opintooikeusRepository: OpintooikeusRepository
-) : QueryService<Opintooikeus>() {
+) {
 
     @Transactional(readOnly = true)
     fun findByCriteriaAndYliopistoId(
@@ -49,22 +47,24 @@ class ErikoistujienSeurantaQueryService(
         var specification: Specification<Opintooikeus?> = Specification.where(spec)
         criteria?.let {
             it.asetusId?.let {
-                specification = specification.and(
-                    buildReferringEntitySpecification(
-                        criteria.asetusId,
-                        Opintooikeus_.asetus,
-                        Asetus_.id
-                    )
-                )
+                specification =
+                    specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.join(Opintooikeus_.asetus, JoinType.INNER)
+                                .get(Asetus_.id),
+                            it.equals
+                        )
+                    }
             }
             it.erikoisalaId?.let {
-                specification = specification.and(
-                    buildReferringEntitySpecification(
-                        criteria.erikoisalaId,
-                        Opintooikeus_.erikoisala,
-                        Erikoisala_.id
-                    )
-                )
+                specification =
+                    specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.join(Opintooikeus_.erikoisala, JoinType.INNER)
+                                .get(Erikoisala_.id),
+                            it.equals
+                        )
+                    }
             }
         }
         return specification

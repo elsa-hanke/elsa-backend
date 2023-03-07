@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.dto
 import java.io.Serializable
 import java.time.Instant
 import java.time.LocalDate
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class KouluttajavaltuutusDTO(
 

@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import java.io.Serializable
 import java.time.LocalDate
-import javax.persistence.Lob
 
 data class ValmistumispyyntoOsaamisenArviointiDTO (
 
@@ -16,7 +15,6 @@ data class ValmistumispyyntoOsaamisenArviointiDTO (
 
     var erikoistujanNimi: String? = null,
 
-    @Lob
     var erikoistujanAvatar: ByteArray? = null,
 
     var erikoistujanOpiskelijatunnus: String? = null,
@@ -29,7 +27,6 @@ data class ValmistumispyyntoOsaamisenArviointiDTO (
 
     var erikoistujanLaillistamispaiva: LocalDate? = null,
 
-    @Lob
     var erikoistujanLaillistamistodistus: ByteArray? = null,
 
     var erikoistujanLaillistamistodistusNimi: String? = null,

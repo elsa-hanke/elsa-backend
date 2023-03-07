@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.domain.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 class KeskeytysaikaHelper {
 

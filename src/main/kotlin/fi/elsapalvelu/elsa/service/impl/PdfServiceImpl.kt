@@ -18,7 +18,7 @@ import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
-import org.thymeleaf.spring5.SpringTemplateEngine
+import org.thymeleaf.spring6.SpringTemplateEngine
 import java.io.*
 
 @Service
@@ -63,14 +63,13 @@ class PdfServiceImpl(
         val resultDocument = Document(result)
         val merger = PdfMerger(result)
         asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
-            val document = PdfDocument(PdfReader(it.asiakirjaData?.data?.binaryStream))
+            val document = PdfDocument(PdfReader(ByteArrayInputStream(it.asiakirjaData?.data)))
             merger.merge(document, 1, document.numberOfPages)
         }
         asiakirjat.filter { it.tyyppi == MediaType.IMAGE_JPEG_VALUE || it.tyyppi == MediaType.IMAGE_PNG_VALUE }
             .forEach {
                 result.addNewPage()
-                val image =
-                    Image(ImageDataFactory.create(it.asiakirjaData?.data?.binaryStream?.readAllBytes()))
+                val image = Image(ImageDataFactory.create(it.asiakirjaData?.data))
                 image.width = UnitValue(1, result.getPage(result.numberOfPages).pageSize.width)
                 image.setFixedPosition(result.numberOfPages, 0F, 0F)
                 image.objectFit = ObjectFit.SCALE_DOWN

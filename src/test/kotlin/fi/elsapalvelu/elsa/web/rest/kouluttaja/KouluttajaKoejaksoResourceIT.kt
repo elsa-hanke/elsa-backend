@@ -32,7 +32,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
@@ -308,18 +308,14 @@ class KouluttajaKoejaksoResourceIT {
         val id = koejaksonKoulutussopimus.id
         assertNotNull(id)
         val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
-        em.detach(updatedKoulutussopimus)
-
-        updatedKoulutussopimus.kouluttajat?.forEach {
-            it.lahiosoite = KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE
-            it.toimipaikka = KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA
-            it.postitoimipaikka = KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA
-            it.sopimusHyvaksytty = true
-        }
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
         koulutussopimusDTO.kouluttajat?.forEach {
             it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
+            it.lahiosoite = KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE
+            it.toimipaikka = KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA
+            it.postitoimipaikka = KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA
+            it.sopimusHyvaksytty = true
         }
 
         restKoejaksoMockMvc.perform(
@@ -354,20 +350,15 @@ class KouluttajaKoejaksoResourceIT {
         val id = koejaksonKoulutussopimus.id
         assertNotNull(id)
         val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
-        em.detach(updatedKoulutussopimus)
 
-        updatedKoulutussopimus.kouluttajat?.forEach {
+        val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
+        koulutussopimusDTO.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
+        koulutussopimusDTO.kouluttajat?.forEach {
+            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
             it.lahiosoite = KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE
             it.toimipaikka = KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA
             it.postitoimipaikka = KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA
             it.sopimusHyvaksytty = false
-        }
-
-        updatedKoulutussopimus.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
-
-        val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
-        koulutussopimusDTO.kouluttajat?.forEach {
-            it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
         }
 
         restKoejaksoMockMvc.perform(

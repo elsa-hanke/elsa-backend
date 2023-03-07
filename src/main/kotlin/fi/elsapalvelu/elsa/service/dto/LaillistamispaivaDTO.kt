@@ -2,13 +2,11 @@ package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
 import java.time.LocalDate
-import javax.persistence.Lob
 
 data class LaillistamispaivaDTO(
 
     var laillistamispaiva: LocalDate? = null,
 
-    @Lob
     var laillistamistodistus: ByteArray? = null,
 
     var laillistamistodistusNimi: String? = null,

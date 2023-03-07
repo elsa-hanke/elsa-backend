@@ -3,8 +3,6 @@ package fi.elsapalvelu.elsa.service.dto
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import java.io.Serializable
 import java.time.LocalDate
-import javax.persistence.Lob
-import javax.validation.constraints.NotNull
 
 data class KoejaksonVastuuhenkilonArvioDTO(
 
@@ -22,7 +20,6 @@ data class KoejaksonVastuuhenkilonArvioDTO(
 
     var erikoistuvanSahkoposti: String? = null,
 
-    @Lob
     var erikoistuvanAvatar: ByteArray? = null,
 
     var muutOpintooikeudet: List<OpintooikeusDTO>? = null,
