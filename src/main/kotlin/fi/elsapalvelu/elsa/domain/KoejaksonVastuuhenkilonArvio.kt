@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.domain
 
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
@@ -7,8 +9,6 @@ import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
 import java.time.ZoneId
-import javax.persistence.*
-import javax.validation.constraints.NotNull
 
 @Entity
 @Audited

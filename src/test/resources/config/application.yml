@@ -15,8 +15,7 @@
 
 spring:
   profiles:
-  # Uncomment the following line to enable tests against production database type rather than H2, using Testcontainers
-  #active: testcontainers
+    active: test
   application:
     name: elsaBackend
   datasource:
@@ -31,13 +30,13 @@ spring:
     serialization:
       write-durations-as-timestamps: false
   jpa:
-    database-platform: tech.jhipster.domain.util.FixedH2Dialect
+    database-platform: org.hibernate.dialect.H2Dialect
     open-in-view: false
     show-sql: false
     hibernate:
       ddl-auto: none
       naming:
-        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
         implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
     properties:
       hibernate.id.new_generator_mappings: true
@@ -50,6 +49,7 @@ spring:
       hibernate.query.fail_on_pagination_over_collection_fetch: true
   liquibase:
     contexts: test
+    change-log: classpath:/config/liquibase/master.xml
   mail:
     host: localhost
   main:
@@ -69,19 +69,13 @@ spring:
         size: 1
   thymeleaf:
     mode: HTML
-  autoconfigure:
-    exclude:
-      - org.springframework.cloud.aws.autoconfigure.cache.ElastiCacheAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.context.ContextInstanceDataAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.jdbc.AmazonRdsDatabaseAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.mail.MailSenderAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.messaging.MessagingAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.metrics.CloudWatchExportAutoConfiguration
-  # Allow SecurityConfiguration to initialize w/o specifying an empty issuer-uri is OK
+  mvc:
+    problem-details:
+      enabled: true
+  cloud:
+    aws:
+      s3:
+        enabled: false
 
 server:
   port: 10344
@@ -89,13 +83,11 @@ server:
 
 cloud:
   aws:
-    credentials:
-      access-key: key
-      secret-key: secret
     region:
       static: eu-west-1
     stack:
       auto: false
+
 
 
 # ===================================================================
@@ -110,11 +102,6 @@ jhipster:
   logging:
     # To test json console appender
     use-json-format: false
-    logstash:
-      enabled: false
-      host: localhost
-      port: 5000
-      queue-size: 512
   mail:
     from: test@localhost
     base-url: http://127.0.0.1:8080

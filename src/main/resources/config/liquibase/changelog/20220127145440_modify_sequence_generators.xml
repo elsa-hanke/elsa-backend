@@ -206,7 +206,7 @@
             columnDataType="bigint"
             generationType="ALWAYS"
             incrementBy="1"
-            startWith="16"
+            startWith="18"
             tableName="poissaolon_syy"/>
 
         <addAutoIncrement columnName="id"

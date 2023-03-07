@@ -1,37 +1,32 @@
-buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        gradlePluginPortal()
-        maven { url "https://repo.spring.io/plugins-release" }
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
-        classpath "org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}"
-        classpath "org.jetbrains.kotlin:kotlin-noarg:${kotlinVersion}"
-        classpath "org.jlleitschuh.gradle:ktlint-gradle:10.2.1"
-        classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektVersion}"
-        classpath "io.gitlab.arturbosch.detekt:detekt-formatting:${detektVersion}"
-    }
-}
-
 plugins {
-    id "java"
-    id "maven-publish"
-    id "idea"
+    id "org.jetbrains.kotlin.jvm" version "${kotlinVersion}"
+    id "org.jetbrains.kotlin.kapt" version "${kotlinVersion}"
+    id "org.jetbrains.kotlin.plugin.spring" version "${kotlinVersion}"
+    id "org.jetbrains.kotlin.plugin.jpa" version "${kotlinVersion}"
+    id "org.jlleitschuh.gradle.ktlint" version "11.2.0"
+    id "io.gitlab.arturbosch.detekt" version "${detektVersion}"
     id "jacoco"
-    id "org.springframework.boot"
+    id "org.springframework.boot" version "${springBootVersion}"
+    id "io.spring.dependency-management" version "1.1.0"
     id "com.google.cloud.tools.jib"
     id "com.gorylenko.gradle-git-properties"
-    id "org.liquibase.gradle"
+    id "org.liquibase.gradle" version "2.1.1"
     id "org.sonarqube"
     id "org.owasp.dependencycheck"
     id "com.apollographql.apollo3" version "${apolloVersion}"
+    id "org.hibernate.orm" version "${hibernateVersion}"
 }
 
 apollo {
     packageName.set("fi.elsapalvelu.elsa")
     generateKotlinModels.set(true)
+}
+
+hibernate {
+    enhancement {
+        lazyInitialization = true
+        dirtyTracking = true
+    }
 }
 
 group = "fi.elsapalvelu.elsa"
@@ -51,16 +46,10 @@ if (project.hasProperty("prod")) {
     apply from: "gradle/profile_dev.gradle"
 }
 
-idea {
-    module {
-        excludeDirs += files("node_modules")
-    }
-}
-
 defaultTasks "bootRun"
 
 springBoot {
-    mainClassName = "fi.elsapalvelu.elsa.ElsaBackendApp"
+    mainClass.set("fi.elsapalvelu.elsa.ElsaBackendApp")
 }
 
 test {
@@ -72,7 +61,7 @@ test {
     reports.html.enabled = false
 }
 
-task integrationTest(type: Test) {
+tasks.register('integrationTest', Test) {
     useJUnitPlatform()
     description = "Execute integration tests."
     group = "verification"
@@ -87,49 +76,18 @@ task integrationTest(type: Test) {
 }
 
 check.dependsOn integrationTest
-task testReport(type: TestReport) {
+tasks.register('testReport', TestReport) {
     destinationDir = file("$buildDir/reports/tests")
     reportOn test
 }
 
-task integrationTestReport(type: TestReport) {
+tasks.register('integrationTestReport', TestReport) {
     destinationDir = file("$buildDir/reports/tests")
     reportOn integrationTest
 }
 
 if (!project.hasProperty("runList")) {
     project.ext.runList = "main"
-}
-
-project.ext.diffChangelogFile = "src/main/resources/config/liquibase/changelog/" + new Date().format("yyyyMMddHHmmss") + "_changelog.xml"
-
-liquibase {
-    activities {
-        main {
-            driver "org.postgresql.Driver"
-            url "jdbc:postgresql://localhost:5432/elsaBackend"
-            username "elsaBackend"
-            password ""
-            changeLogFile "src/main/resources/config/liquibase/master.xml"
-            defaultSchemaName ""
-            logLevel "debug"
-            classpath "src/main/resources/"
-            referenceUrl "hibernate:spring:fi.elsapalvelu.elsa.domain?dialect=tech.jhipster.domain.util.FixedPostgreSQL10Dialect&hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
-        }
-        diffLog {
-            driver "org.postgresql.Driver"
-            url "jdbc:postgresql://localhost:5432/elsaBackend"
-            username "elsaBackend"
-            password ""
-            changeLogFile project.ext.diffChangelogFile
-            referenceUrl "hibernate:spring:fi.elsapalvelu.elsa.domain?dialect=tech.jhipster.domain.util.FixedPostgreSQL10Dialect&hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
-            defaultSchemaName ""
-            logLevel "debug"
-            classpath "$buildDir/classes/java/main"
-            excludeObjects "oauth_access_token, oauth_approvals, oauth_client_details, oauth_client_token, oauth_code, oauth_refresh_token"
-        }
-    }
-    runList = project.ext.runList
 }
 
 gitProperties {
@@ -148,14 +106,6 @@ configurations {
     implementation.exclude module: "spring-boot-starter-tomcat"
 }
 
-configurations.all {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        if (details.requested.group == 'ch.qos.logback') {
-            details.useVersion '1.2.9'
-        }
-    }
-}
-
 repositories {
     mavenLocal()
     mavenCentral()
@@ -163,97 +113,42 @@ repositories {
 }
 
 dependencies {
-    // import JHipster dependencies BOM
-    implementation platform("tech.jhipster:jhipster-dependencies:${jhipsterDependenciesVersion}")
-    // Use ", version: jhipsterDependenciesVersion, changing: true" if you want
-    // to use a SNAPSHOT release instead of a stable release
-    implementation group: "tech.jhipster", name: "jhipster-framework"
-    implementation "javax.annotation:javax.annotation-api"
-    implementation "org.springframework.boot:spring-boot-starter-cache:${springBootVersion}"
-    implementation "io.dropwizard.metrics:metrics-core"
-    implementation "io.micrometer:micrometer-registry-prometheus"
-    implementation "net.logstash.logback:logstash-logback-encoder"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations:${jacksonVersion}"
+    implementation "tech.jhipster:jhipster-framework:${jhipsterDependenciesVersion}"
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}"
-    implementation "javax.cache:cache-api"
-    implementation "org.hibernate:hibernate-core:${hibernateVersion}"
-    implementation "com.zaxxer:HikariCP"
-    implementation "javax.transaction:javax.transaction-api"
-    implementation "org.ehcache:ehcache"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5-jakarta"
+    implementation "org.ehcache:ehcache:3.10.8"
     implementation "org.hibernate:hibernate-jcache:${hibernateVersion}"
-    implementation "org.hibernate:hibernate-entitymanager:${hibernateVersion}"
-    implementation "org.hibernate.validator:hibernate-validator:${hibernateVersion}"
     implementation "org.hibernate:hibernate-envers:${hibernateVersion}"
-    implementation "org.liquibase:liquibase-core:${liquibaseVersion}"
-    liquibaseRuntime "org.liquibase:liquibase-core"
-    liquibaseRuntime("org.liquibase.ext:liquibase-hibernate5:${liquibaseVersion}") {
-        exclude module: "liquibase-test-harness"
-    }
-    liquibaseRuntime sourceSets.main.compileClasspath
-    implementation "org.springframework.boot:spring-boot-loader-tools:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-mail:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-logging:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-aop:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
-    testImplementation "org.testcontainers:postgresql"
-    implementation "org.springframework.boot:spring-boot-starter-security:${springBootVersion}"
-    implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}") {
+    implementation "org.liquibase:liquibase-core"
+    implementation "org.springframework.boot:spring-boot-starter-mail"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    implementation "org.springframework.boot:spring-boot-starter-security"
+    implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude module: "spring-boot-starter-tomcat"
     }
-    implementation "org.springframework.boot:spring-boot-starter-undertow:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-undertow"
     implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
-    implementation("org.thymeleaf:thymeleaf-spring5") {
-        version {
-            strictly("3.0.11.RELEASE") // CVE-2021-43466 on 3.0.12.RELEASE
-        }
-    }
-    implementation("org.thymeleaf:thymeleaf") {
-        version {
-            strictly("3.0.11.RELEASE") // CVE-2021-43466 on 3.0.12.RELEASE
-        }
-    }
+    implementation "org.thymeleaf:thymeleaf-spring6:3.1.1.RELEASE"
     implementation "org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE"
-    implementation "org.zalando:problem-spring-web"
-    implementation "org.springframework.security:spring-security-config:${springSecurityVersion}"
-    implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
-    implementation "org.springframework.security:spring-security-web:${springSecurityVersion}"
     implementation "org.springframework.security:spring-security-saml2-service-provider:${springSecurityVersion}"
-    implementation "org.opensaml:opensaml-core:${opensamlVersion}"
-    implementation "org.opensaml:opensaml-saml-api:${opensamlVersion}"
-    implementation "org.opensaml:opensaml-saml-impl:${opensamlVersion}"
-    implementation("org.bouncycastle:bcprov-jdk15on:1.69")
-    implementation "org.postgresql:postgresql:42.3.3"
-    liquibaseRuntime "org.postgresql:postgresql"
+    runtimeOnly "org.postgresql:postgresql"
+    testImplementation "org.testcontainers:postgresql:1.17.6"
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     annotationProcessor "org.hibernate:hibernate-jpamodelgen:${hibernateVersion}"
-    annotationProcessor "org.glassfish.jaxb:jaxb-runtime:${jaxbRuntimeVersion}"
-    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.springframework.security:spring-security-test"
-    testImplementation "org.springframework.boot:spring-boot-test"
-    testImplementation "com.tngtech.archunit:archunit-junit5-api:${archunitJunit5Version}"
-    testRuntimeOnly "com.tngtech.archunit:archunit-junit5-engine:${archunitJunit5Version}"
-    testImplementation "com.h2database:h2"
-    implementation "co.elastic.logging:logback-ecs-encoder:1.3.2"
-    implementation "commons-codec:commons-codec:1.15"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.10"
-    implementation "org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE"
-    implementation "com.jayway.jsonpath:json-path:2.6.0"
-    implementation "org.apache.commons:commons-lang3:3.12.0"
-    implementation "org.apache.commons:commons-text:1.9"
-    implementation "org.apache.santuario:xmlsec:2.2.3"
+    testImplementation "com.h2database:h2:2.1.214"
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.0.0-RC1'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.0.0-RC1'
+    implementation 'software.amazon.awssdk:aws-core:2.20.18'
+    implementation "org.apache.commons:commons-text:1.10.0"
     implementation "net.coobird:thumbnailator:0.4.14"
     implementation "org.fluentd:fluent-logger:0.3.4"
     implementation "com.sndyuk:logback-more-appenders:1.8.6"
-    // https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot
-    implementation(platform("org.apache.logging.log4j:log4j-bom:2.17.1"))
     implementation "com.apollographql.apollo3:apollo-runtime:${apolloVersion}"
     implementation "com.squareup.okhttp3:okhttp-tls:4.9.3"
     implementation "net.javacrumbs.shedlock:shedlock-spring:4.33.0"
@@ -267,12 +162,12 @@ apollo {
     packageName.set("fi.elsapalvelu.elsa")
 }
 
-task cleanResources(type: Delete) {
+tasks.register('cleanResources', Delete) {
     delete "build/resources"
 }
 
 wrapper {
-    gradleVersion = "7.0.2"
+    gradleVersion = "7.6.1"
 }
 
 compileJava.dependsOn processResources

@@ -38,10 +38,7 @@ class KoulutussuunnitelmaServiceImpl(
                 if (koulutussuunnitelmaDTO.koulutussuunnitelmaAsiakirjaUpdated) {
                     koulutussuunnitelma.koulutussuunnitelmaAsiakirja?.opintooikeus = koulutussuunnitelma.opintooikeus
                     koulutussuunnitelma.koulutussuunnitelmaAsiakirja?.asiakirjaData?.data =
-                        BlobProxy.generateProxy(
-                            koulutussuunnitelmaDTO.koulutussuunnitelmaAsiakirja?.asiakirjaData?.fileInputStream,
-                            koulutussuunnitelmaDTO.koulutussuunnitelmaAsiakirja?.asiakirjaData?.fileSize!!
-                        )
+                        koulutussuunnitelmaDTO.koulutussuunnitelmaAsiakirja?.asiakirjaData?.fileInputStream?.readAllBytes()
                     koulutussuunnitelma.koulutussuunnitelmaAsiakirja?.lisattypvm = LocalDateTime.now()
                 } else {
                     koulutussuunnitelma.koulutussuunnitelmaAsiakirja =
@@ -52,10 +49,7 @@ class KoulutussuunnitelmaServiceImpl(
                 if (koulutussuunnitelmaDTO.motivaatiokirjeAsiakirjaUpdated) {
                     koulutussuunnitelma.motivaatiokirjeAsiakirja?.opintooikeus = koulutussuunnitelma.opintooikeus
                     koulutussuunnitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data =
-                        BlobProxy.generateProxy(
-                            koulutussuunnitelmaDTO.motivaatiokirjeAsiakirja?.asiakirjaData?.fileInputStream,
-                            koulutussuunnitelmaDTO.motivaatiokirjeAsiakirja?.asiakirjaData?.fileSize!!
-                        )
+                        koulutussuunnitelmaDTO.motivaatiokirjeAsiakirja?.asiakirjaData?.fileInputStream?.readAllBytes()
                     koulutussuunnitelma.motivaatiokirjeAsiakirja?.lisattypvm = LocalDateTime.now()
                 } else {
                     koulutussuunnitelma.motivaatiokirjeAsiakirja =

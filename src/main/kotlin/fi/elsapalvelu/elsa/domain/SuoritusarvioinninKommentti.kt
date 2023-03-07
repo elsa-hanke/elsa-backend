@@ -2,13 +2,12 @@ package fi.elsapalvelu.elsa.domain
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Type
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.Instant
-import javax.persistence.*
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Audited
@@ -20,8 +19,6 @@ data class SuoritusarvioinninKommentti(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "teksti", nullable = false)
     var teksti: String? = null,
 

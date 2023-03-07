@@ -19,12 +19,6 @@ logging:
     tech.jhipster: INFO
     fi.elsapalvelu.elsa: INFO
 
-management:
-  metrics:
-    export:
-      prometheus:
-        enabled: false
-
 spring:
   devtools:
     restart:
@@ -40,7 +34,7 @@ spring:
       poolName: Hikari
       auto-commit: false
   jpa:
-    database-platform: tech.jhipster.domain.util.FixedPostgreSQL10Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
   # Replace by 'prod, faker' to add the faker context and have sample data loaded in production
   liquibase:
@@ -93,11 +87,6 @@ jhipster:
     base-url: http://my-server-url-to-change # Modify according to your server's URL
   logging:
     use-json-format: true # By default, logs are not in Json format
-    logstash: # Forward logs to logstash over a socket, used by LoggingConfiguration
-      enabled: false
-      host: localhost
-      port: 5000
-      queue-size: 512
   audit-events:
     retention-period: 30 # Number of days before audit events are deleted.
 

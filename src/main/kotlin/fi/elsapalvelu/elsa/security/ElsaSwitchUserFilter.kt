@@ -26,10 +26,10 @@ import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.util.UrlPathHelper
 import java.time.LocalDate
-import javax.persistence.EntityNotFoundException
-import javax.servlet.FilterChain
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.persistence.EntityNotFoundException
+import jakarta.servlet.FilterChain
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 /**
  * Kouluttaja/vastuuhenkilö/opintohallinnon virkailija voi haluta katsoa erikoistujan tietoja, jolloin autentikaatiota
@@ -57,9 +57,7 @@ class ElsaSwitchUserFilter(
         if (requiresSwitchUser(request)) {
             try {
                 val targetUser: Authentication = attemptSwitchUser(request)
-                val context = SecurityContextHolder.createEmptyContext()
-                context.authentication = targetUser
-                SecurityContextHolder.setContext(context)
+                SecurityContextHolder.getContext().authentication = targetUser
                 request.session.setAttribute("originalUrl", request.getParameter("originalUrl"))
                 logger.debug(LogMessage.format("Set SecurityContextHolder to %s", targetUser))
                 successHandler.onAuthenticationSuccess(request, response, targetUser)
@@ -72,9 +70,7 @@ class ElsaSwitchUserFilter(
 
         if (requiresExitUser(request)) {
             val originalUser: Authentication = attemptExitUser()
-            val context = SecurityContextHolder.createEmptyContext()
-            context.authentication = originalUser
-            SecurityContextHolder.setContext(context)
+            SecurityContextHolder.getContext().authentication = originalUser
             logger.debug(LogMessage.format("Set SecurityContextHolder to %s", originalUser))
             val principal =
                 SecurityContextHolder.getContext().authentication.principal as Saml2AuthenticatedPrincipal

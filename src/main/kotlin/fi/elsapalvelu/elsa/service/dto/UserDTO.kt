@@ -3,11 +3,10 @@ package fi.elsapalvelu.elsa.service.dto
 import fi.elsapalvelu.elsa.config.LOGIN_REGEX
 import fi.elsapalvelu.elsa.domain.User
 import java.time.Instant
-import javax.persistence.Lob
-import javax.validation.constraints.Email
-import javax.validation.constraints.NotBlank
-import javax.validation.constraints.Pattern
-import javax.validation.constraints.Size
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Pattern
+import jakarta.validation.constraints.Size
 
 open class UserDTO(
     var id: String? = null,
@@ -30,7 +29,6 @@ open class UserDTO(
     @field:Size(max = 254)
     var phoneNumber: String? = null,
 
-    @Lob
     var avatar: ByteArray? = null,
 
     var activated: Boolean = false,

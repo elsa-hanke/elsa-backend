@@ -20,8 +20,8 @@ import java.net.URI
 import java.security.Principal
 import java.time.LocalDate
 import java.util.*
-import javax.persistence.EntityExistsException
-import javax.validation.Valid
+import jakarta.persistence.EntityExistsException
+import jakarta.validation.Valid
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 

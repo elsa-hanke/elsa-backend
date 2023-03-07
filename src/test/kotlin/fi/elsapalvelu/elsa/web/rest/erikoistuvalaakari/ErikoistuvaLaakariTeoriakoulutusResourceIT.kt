@@ -42,7 +42,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
@@ -113,8 +113,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         assertThat(testTeoriakoulutus.erikoistumiseenHyvaksyttavaTuntimaara).isEqualTo(
             DEFAULT_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA
         )
-        val todistusBlob = testTeoriakoulutus.todistukset.firstOrNull()?.asiakirjaData?.data
-        assertThat(todistusBlob?.getBytes(1, todistusBlob.length().toInt()))
+        assertThat(testTeoriakoulutus.todistukset.firstOrNull()?.asiakirjaData?.data)
             .isEqualTo(DEFAULT_FILE)
     }
 
@@ -420,8 +419,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
             UPDATED_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA
         )
         assertThat(testTeoriakoulutus.todistukset).hasSize(1)
-        val todistusBlob = testTeoriakoulutus.todistukset.firstOrNull()?.asiakirjaData?.data
-        assertThat(todistusBlob?.getBytes(1, todistusBlob.length().toInt()))
+        assertThat(testTeoriakoulutus.todistukset.firstOrNull()?.asiakirjaData?.data)
             .isEqualTo(UPDATED_FILE)
     }
 

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.config
 
+import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
@@ -7,43 +8,53 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.*
 import org.opensaml.saml.common.assertion.ValidationContext
 import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
+import org.opensaml.saml.saml2.core.Assertion
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.core.convert.converter.Converter
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.authentication.ProviderManager
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.*
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver
 import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver
 import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter
+import org.springframework.security.saml2.provider.service.web.authentication.OpenSaml4AuthenticationRequestResolver
+import org.springframework.security.saml2.provider.service.web.authentication.OpenSaml4AuthenticationRequestResolver.AuthnRequestContext
+import org.springframework.security.saml2.provider.service.web.authentication.Saml2AuthenticationRequestResolver
 import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutRequestResolver
 import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutResponseResolver
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutResponseResolver
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor
+import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.access.intercept.AuthorizationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
 import org.springframework.security.web.util.matcher.AnyRequestMatcher
 import org.springframework.util.CollectionUtils
+import org.springframework.util.StringUtils
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.filter.CorsFilter
-import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_PRODUCTION
 import java.util.*
@@ -51,13 +62,12 @@ import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
+@Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
-@Import(SecurityProblemSupport::class)
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 class SecurityConfiguration(
     private val corsFilter: CorsFilter,
     private val applicationProperties: ApplicationProperties,
-    private val problemSupport: SecurityProblemSupport,
     private val userService: UserService,
     private val opintooikeusService: OpintooikeusService,
     private val opintotietodataFetchingServices: List<OpintotietodataFetchingService>,
@@ -69,53 +79,55 @@ class SecurityConfiguration(
     private val kayttajaRepository: KayttajaRepository,
     private val userRepository: UserRepository,
     private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
-    private val env: Environment
-) : WebSecurityConfigurerAdapter() {
+    private val env: Environment,
+    private val applicationContext: ApplicationContext
+) {
 
     private val log = LoggerFactory.getLogger(SecurityConfiguration::class.java)
 
-    override fun configure(web: WebSecurity?) {
-        web!!.ignoring()
-            .antMatchers(HttpMethod.OPTIONS, "/**")
-            .antMatchers("/h2-console/**")
-            .antMatchers("/test/**")
-    }
-
-    @Throws(Exception::class)
-    public override fun configure(http: HttpSecurity) {
+    @Bean
+    fun filterChain(http: HttpSecurity): SecurityFilterChain {
         val withHttpOnlyFalse = CookieCsrfTokenRepository.withHttpOnlyFalse()
         val authenticationProvider = OpenSaml4AuthenticationProvider()
         authenticationProvider.setAssertionValidator(
-            OpenSaml4AuthenticationProvider
-                .createDefaultAssertionValidator {
-                    val relyingPartyRegistration: RelyingPartyRegistration =
-                        it.token.relyingPartyRegistration
-                    val audience = relyingPartyRegistration.entityId
-                    val recipient = relyingPartyRegistration.assertionConsumerServiceLocation
-                    val assertingPartyEntityId =
-                        relyingPartyRegistration.assertingPartyDetails.entityId
-                    val params: MutableMap<String, Any> = HashMap()
-                    params[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] =
-                        setOf(
-                            if (audience.contains("haka")) audience.substring(
-                                0,
-                                audience.indexOf("haka")
-                            ) + "haka"; else audience
-                        )
-                    params[SAML2AssertionValidationParameters.SC_VALID_RECIPIENTS] =
-                        setOf(recipient)
-                    params[SAML2AssertionValidationParameters.VALID_ISSUERS] =
-                        setOf(assertingPartyEntityId)
-                    ValidationContext(params)
+            OpenSaml4AuthenticationProvider.createDefaultAssertionValidator {
+            val relyingPartyRegistration: RelyingPartyRegistration =
+                it.token.relyingPartyRegistration
+            val audience = relyingPartyRegistration.entityId
+            val recipient = relyingPartyRegistration.assertionConsumerServiceLocation
+            val assertingPartyEntityId =
+                relyingPartyRegistration.assertingPartyDetails.entityId
+            val params: MutableMap<String, Any> = HashMap()
+                if (assertionContainsInResponseTo(it.assertion)) {
+                    val requestId = it.token.authenticationRequest.id
+                    params[SAML2AssertionValidationParameters.SC_VALID_IN_RESPONSE_TO] = requestId
                 }
+            params[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] =
+                setOf(
+                    if (audience.contains("haka")) audience.substring(
+                        0,
+                        audience.indexOf("haka")
+                    ) + "haka"; else audience
+                )
+            params[SAML2AssertionValidationParameters.SC_VALID_RECIPIENTS] =
+                setOf(recipient)
+            params[SAML2AssertionValidationParameters.VALID_ISSUERS] =
+                setOf(assertingPartyEntityId)
+            ValidationContext(params)
+        }
         )
         authenticationProvider.setResponseAuthenticationConverter(authenticationConverter())
         withHttpOnlyFalse.setCookieDomain(applicationProperties.getCsrf().cookie.domain)
+        val requestHandler = CsrfTokenRequestAttributeHandler()
+        requestHandler.setCsrfRequestAttributeName(null);
+
         val httpConfiguration = http
-            .csrf()
-            .csrfTokenRepository(withHttpOnlyFalse)
-            .ignoringAntMatchers("/api/logout")
-            .and()
+            .csrf { csrf ->
+                csrf
+                    .csrfTokenRequestHandler(requestHandler)
+                    .csrfTokenRepository(withHttpOnlyFalse)
+                    .ignoringRequestMatchers("/api/logout")
+            }
             .addFilterBefore(corsFilter, CsrfFilter::class.java)
             .addFilterAfter(
                 ElsaSwitchUserFilter(
@@ -124,11 +136,22 @@ class SecurityConfiguration(
                     userRepository,
                     kouluttajavaltuutusRepository
                 ),
-                FilterSecurityInterceptor::class.java
+                AuthorizationFilter::class.java
             )
             .exceptionHandling()
-            .authenticationEntryPoint(problemSupport)
-            .accessDeniedHandler(problemSupport)
+            .accessDeniedHandler { request, response, _ ->
+                AuditLoggingWrapper.warn(
+                    "Access denied for " +
+                        "user: ${request.let { it?.userPrincipal?.name }}, " +
+                        "method: ${request.method}, " +
+                        "path: ${request.requestURI}}, " +
+                        "ip: ${request.getHeader("X-Forwarded-For")}"
+                )
+                response.sendError(HttpServletResponse.SC_FORBIDDEN)
+            }
+            .authenticationEntryPoint { _, response, _ ->
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+            }
             .and()
             .headers()
             .httpStrictTransportSecurity()
@@ -154,43 +177,50 @@ class SecurityConfiguration(
             .frameOptions()
             .deny()
             .and()
-            .authorizeRequests()
-            .antMatchers("/authorize").authenticated()
-            .antMatchers("/api/").permitAll() // ohjaus etusivulle
-            .antMatchers("/api/haka-yliopistot").permitAll()
-            .antMatchers("/api/julkinen/**").permitAll()
-            .antMatchers("/api/auth-info").denyAll()
-            .antMatchers("/api/login/impersonate")
-            .hasAnyAuthority(VASTUUHENKILO, KOULUTTAJA, OPINTOHALLINNON_VIRKAILIJA)
-            .antMatchers(HttpMethod.GET, "/api/erikoistuva-laakari/**")
-            .hasAnyAuthority(
-                ERIKOISTUVA_LAAKARI,
-                ERIKOISTUVA_LAAKARI_IMPERSONATED,
-                ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
-            )
-            .antMatchers(
-                "/api/erikoistuva-laakari/tyoskentelyjaksot/**",
-                "/api/erikoistuva-laakari/teoriakoulutukset/**"
-            )
-            .hasAnyAuthority(ERIKOISTUVA_LAAKARI, ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
-            .antMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
-            .antMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
-            .antMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
-            .antMatchers("/api/tekninen-paakayttaja/**").hasAuthority(TEKNINEN_PAAKAYTTAJA)
-            .antMatchers("/api/virkailija/**").hasAuthority(OPINTOHALLINNON_VIRKAILIJA)
-            .antMatchers(HttpMethod.PUT, "/api/kayttaja")
-            .hasAnyAuthority(
-                ERIKOISTUVA_LAAKARI,
-                KOULUTTAJA,
-                VASTUUHENKILO,
-                OPINTOHALLINNON_VIRKAILIJA,
-                TEKNINEN_PAAKAYTTAJA
-            )
-            .antMatchers("/api/**").authenticated()
-            .antMatchers("/management/health").permitAll()
-            .antMatchers("/management/info").denyAll()
-            .antMatchers("/management/prometheus").denyAll()
-            .antMatchers("/management/**").hasAuthority(ADMIN)
+            .authorizeHttpRequests { authorize ->
+                authorize
+                    .requestMatchers("/authorize").authenticated()
+                    .requestMatchers("/").permitAll() // ohjaus etusivulle
+                    .requestMatchers("/api/").permitAll()
+                    .requestMatchers("/api/haka-yliopistot").permitAll()
+                    .requestMatchers("/api/julkinen/**").permitAll()
+                    .requestMatchers("/api/auth-info").denyAll()
+                    .requestMatchers("/api/login/impersonate")
+                    .hasAnyAuthority(VASTUUHENKILO, KOULUTTAJA, OPINTOHALLINNON_VIRKAILIJA)
+                    .requestMatchers(HttpMethod.GET, "/api/erikoistuva-laakari/**")
+                    .hasAnyAuthority(
+                        ERIKOISTUVA_LAAKARI,
+                        ERIKOISTUVA_LAAKARI_IMPERSONATED,
+                        ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+                    )
+                    .requestMatchers(
+                        "/api/erikoistuva-laakari/tyoskentelyjaksot/**",
+                        "/api/erikoistuva-laakari/teoriakoulutukset/**"
+                    )
+                    .hasAnyAuthority(
+                        ERIKOISTUVA_LAAKARI,
+                        ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+                    )
+                    .requestMatchers("/api/erikoistuva-laakari/**")
+                    .hasAuthority(ERIKOISTUVA_LAAKARI)
+                    .requestMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
+                    .requestMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
+                    .requestMatchers("/api/tekninen-paakayttaja/**")
+                    .hasAuthority(TEKNINEN_PAAKAYTTAJA)
+                    .requestMatchers("/api/virkailija/**").hasAuthority(OPINTOHALLINNON_VIRKAILIJA)
+                    .requestMatchers(HttpMethod.PUT, "/api/kayttaja")
+                    .hasAnyAuthority(
+                        ERIKOISTUVA_LAAKARI,
+                        KOULUTTAJA,
+                        VASTUUHENKILO,
+                        OPINTOHALLINNON_VIRKAILIJA,
+                        TEKNINEN_PAAKAYTTAJA
+                    )
+                    .requestMatchers("/api/**").authenticated()
+                    .requestMatchers("/management/health").permitAll()
+                    .requestMatchers("/management/info").denyAll()
+                    .requestMatchers("/management/**").hasAuthority(ADMIN)
+            }
 
         if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT) || env.activeProfiles.contains(
                 SPRING_PROFILE_PRODUCTION
@@ -200,7 +230,7 @@ class SecurityConfiguration(
                 applicationContext.getBean(RelyingPartyRegistrationRepository::class.java)
             val relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver =
                 DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
-            httpConfiguration.and().saml2Login().authenticationConverter(
+            httpConfiguration.saml2Login().authenticationConverter(
                 Saml2AuthenticationTokenConverter(
                     relyingPartyRegistrationResolver
                 )
@@ -220,15 +250,30 @@ class SecurityConfiguration(
                     }
                 }.logout().logoutSuccessUrl("/")
         }
+        return http.build()
     }
 
     @Bean
-    fun authenticationRequestFactory(
-        authnRequestConverter: AuthnRequestConverter?
-    ): Saml2AuthenticationRequestFactory? {
-        val authenticationRequestFactory = OpenSaml4AuthenticationRequestFactory()
-        authenticationRequestFactory.setAuthenticationRequestContextConverter(authnRequestConverter)
-        return authenticationRequestFactory
+    @Profile("dev", "prod")
+    fun authenticationRequestResolver(
+        registrations: RelyingPartyRegistrationRepository
+    ): Saml2AuthenticationRequestResolver? {
+        val registrationResolver: RelyingPartyRegistrationResolver =
+            DefaultRelyingPartyRegistrationResolver(registrations)
+        val authenticationRequestResolver =
+            OpenSaml4AuthenticationRequestResolver(registrationResolver)
+        authenticationRequestResolver.setAuthnRequestCustomizer { context: AuthnRequestContext ->
+            if (context.authnRequest.issuer.value != null && context.authnRequest.issuer.value!!.contains(
+                    "haka"
+                )
+            ) {
+                context.authnRequest.issuer.value = context.authnRequest.issuer.value!!.substring(
+                    0,
+                    context.authnRequest.issuer.value!!.indexOf("haka")
+                ) + "haka"
+            }
+        }
+        return authenticationRequestResolver
     }
 
     fun logoutRequestResolver(relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver): Saml2LogoutRequestResolver {
@@ -469,5 +514,18 @@ class SecurityConfiguration(
         } catch (ex: Exception) {
             log.error("Virhe opintosuoritusten haussa tai tallentamisessa: ${ex.message} ${ex.stackTrace}")
         }
+    }
+
+    private fun assertionContainsInResponseTo(assertion: Assertion): Boolean {
+        if (assertion.subject == null) {
+            return false
+        }
+        for (confirmation in assertion.subject.subjectConfirmations) {
+            val confirmationData = confirmation.subjectConfirmationData ?: continue
+            if (StringUtils.hasText(confirmationData.inResponseTo)) {
+                return true
+            }
+        }
+        return false
     }
 }

@@ -16,7 +16,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
 import tech.jhipster.config.JHipsterConstants
 import tech.jhipster.config.JHipsterProperties
-import javax.servlet.*
+import jakarta.servlet.*
 
 /**
  * Unit tests for the [WebConfigurer] class.

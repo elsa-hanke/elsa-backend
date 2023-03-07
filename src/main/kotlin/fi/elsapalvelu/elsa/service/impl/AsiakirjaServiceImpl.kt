@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
 
 @Service
@@ -33,11 +34,7 @@ class AsiakirjaServiceImpl(
                 asiakirjaMapper.toEntity(it).apply {
                     this.lisattypvm = LocalDateTime.now()
                     this.opintooikeus = opintooikeus
-                    this.asiakirjaData?.data =
-                        BlobProxy.generateProxy(
-                            it.asiakirjaData?.fileInputStream,
-                            it.asiakirjaData?.fileSize!!
-                        )
+                    this.asiakirjaData?.data = it.asiakirjaData?.fileInputStream?.readAllBytes()
                 }
             }
 
@@ -78,7 +75,7 @@ class AsiakirjaServiceImpl(
                 it
             )?.let { asiakirja ->
                 val result = asiakirjaMapper.toDto(asiakirja)
-                result.asiakirjaData?.fileInputStream = asiakirja.asiakirjaData?.data?.binaryStream
+                result.asiakirjaData?.fileInputStream = ByteArrayInputStream(asiakirja.asiakirjaData?.data)
                 return result
             }
         }
@@ -89,7 +86,7 @@ class AsiakirjaServiceImpl(
         asiakirjaRepository.findOneByIdAndTyoskentelyjaksoLiitettyKoejaksoonTrue(id)
             ?.let { asiakirja ->
                 val result = asiakirjaMapper.toDto(asiakirja)
-                result.asiakirjaData?.fileInputStream = asiakirja.asiakirjaData?.data?.binaryStream
+                result.asiakirjaData?.fileInputStream = ByteArrayInputStream(asiakirja.asiakirjaData?.data)
                 return result
             }
         return null
@@ -104,7 +101,7 @@ class AsiakirjaServiceImpl(
                 ?.let { asiakirja ->
                     val result = asiakirjaMapper.toDto(asiakirja)
                     result.asiakirjaData?.fileInputStream =
-                        asiakirja.asiakirjaData?.data?.binaryStream
+                        ByteArrayInputStream(asiakirja.asiakirjaData?.data)
                     return result
                 }
         }
@@ -115,7 +112,7 @@ class AsiakirjaServiceImpl(
     override fun findOne(id: Long, opintooikeusId: Long): AsiakirjaDTO? {
         asiakirjaRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
             return asiakirjaMapper.toDto(it).apply {
-                asiakirjaData?.fileInputStream = it.asiakirjaData?.data?.binaryStream
+                asiakirjaData?.fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data)
             }
         }
         return null

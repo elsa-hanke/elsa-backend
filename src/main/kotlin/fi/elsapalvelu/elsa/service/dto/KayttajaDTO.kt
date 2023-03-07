@@ -3,9 +3,8 @@ package fi.elsapalvelu.elsa.service.dto
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import java.io.Serializable
-import javax.persistence.Lob
-import javax.validation.constraints.Email
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotNull
 
 data class KayttajaDTO(
 
@@ -27,7 +26,6 @@ data class KayttajaDTO(
 
     var eppn: String? = null,
 
-    @Lob
     var avatar: ByteArray? = null,
 
     var userId: String? = null,

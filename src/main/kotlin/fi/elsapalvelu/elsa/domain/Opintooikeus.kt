@@ -1,13 +1,13 @@
 package fi.elsapalvelu.elsa.domain
 
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.Instant
 import java.time.LocalDate
-import javax.persistence.*
-import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "opintooikeus")
@@ -78,6 +78,7 @@ data class Opintooikeus(
     var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf(),
 
     @OneToOne(
+        fetch = FetchType.LAZY,
         mappedBy = "opintooikeus",
         cascade = [CascadeType.ALL],
         orphanRemoval = true

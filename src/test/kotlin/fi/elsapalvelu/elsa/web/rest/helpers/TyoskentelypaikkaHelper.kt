@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.Kunta
 import fi.elsapalvelu.elsa.domain.Tyoskentelypaikka
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.web.rest.findAll
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 class TyoskentelypaikkaHelper {
 

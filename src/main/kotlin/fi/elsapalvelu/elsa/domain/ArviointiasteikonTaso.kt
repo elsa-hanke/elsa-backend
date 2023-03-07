@@ -4,10 +4,10 @@ import fi.elsapalvelu.elsa.domain.enumeration.ArviointiasteikonTasoTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
-import javax.persistence.*
-import javax.validation.constraints.Max
-import javax.validation.constraints.Min
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Table(name = "arviointiasteikon_taso")

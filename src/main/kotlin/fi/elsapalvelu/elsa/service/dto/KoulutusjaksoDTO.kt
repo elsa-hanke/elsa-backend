@@ -3,8 +3,7 @@ package fi.elsapalvelu.elsa.service.dto
 import java.io.Serializable
 import java.time.LocalDate
 import java.util.*
-import javax.persistence.Lob
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class KoulutusjaksoDTO(
 
@@ -13,7 +12,7 @@ data class KoulutusjaksoDTO(
     @get: NotNull
     var nimi: String? = null,
 
-    @Lob var muutOsaamistavoitteet: String? = null,
+    var muutOsaamistavoitteet: String? = null,
 
     var luotu: LocalDate? = null,
 

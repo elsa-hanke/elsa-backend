@@ -2,39 +2,38 @@ package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
 import java.time.LocalDate
-import javax.persistence.Lob
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class KoulutussuunnitelmaDTO(
 
     var id: Long? = null,
 
-    @Lob var motivaatiokirje: String? = null,
+    var motivaatiokirje: String? = null,
 
     @get: NotNull
     var motivaatiokirjeYksityinen: Boolean? = null,
 
-    @Lob var opiskeluJaTyohistoria: String? = null,
+    var opiskeluJaTyohistoria: String? = null,
 
     @get: NotNull
     var opiskeluJaTyohistoriaYksityinen: Boolean? = null,
 
-    @Lob var vahvuudet: String? = null,
+    var vahvuudet: String? = null,
 
     @get: NotNull
     var vahvuudetYksityinen: Boolean? = null,
 
-    @Lob var tulevaisuudenVisiointi: String? = null,
+    var tulevaisuudenVisiointi: String? = null,
 
     @get: NotNull
     var tulevaisuudenVisiointiYksityinen: Boolean? = null,
 
-    @Lob var osaamisenKartuttaminen: String? = null,
+    var osaamisenKartuttaminen: String? = null,
 
     @get: NotNull
     var osaamisenKartuttaminenYksityinen: Boolean? = null,
 
-    @Lob var elamankentta: String? = null,
+    var elamankentta: String? = null,
 
     @get: NotNull
     var elamankenttaYksityinen: Boolean? = null,

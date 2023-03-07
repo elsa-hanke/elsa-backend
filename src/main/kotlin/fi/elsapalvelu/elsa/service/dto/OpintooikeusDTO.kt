@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import com.sun.istack.NotNull
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import java.io.Serializable
 import java.time.LocalDate
+import jakarta.validation.constraints.NotNull
 
 data class OpintooikeusDTO(
 

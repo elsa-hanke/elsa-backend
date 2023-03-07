@@ -118,11 +118,7 @@ class TeoriakoulutusServiceImpl(
                     this.lisattypvm = LocalDateTime.now()
                     this.opintooikeus = opintooikeus
                     this.teoriakoulutus = teoriakoulutus
-                    this.asiakirjaData?.data =
-                        BlobProxy.generateProxy(
-                            asiakirjaDTO.asiakirjaData?.fileInputStream,
-                            asiakirjaDTO.asiakirjaData?.fileSize!!
-                        )
+                    this.asiakirjaData?.data = asiakirjaDTO.asiakirjaData?.fileInputStream?.readAllBytes()
                 }
             }
 

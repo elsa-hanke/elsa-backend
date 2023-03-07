@@ -16,7 +16,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import javax.validation.ValidationException
+import jakarta.validation.ValidationException
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
@@ -132,11 +132,7 @@ class TyoskentelyjaksoServiceImpl(
                     this.lisattypvm = LocalDateTime.now()
                     this.opintooikeus = opintooikeus
                     this.tyoskentelyjakso = tyoskentelyjakso
-                    this.asiakirjaData?.data =
-                        BlobProxy.generateProxy(
-                            asiakirjaDTO.asiakirjaData?.fileInputStream,
-                            asiakirjaDTO.asiakirjaData?.fileSize!!
-                        )
+                    this.asiakirjaData?.data = asiakirjaDTO.asiakirjaData?.fileInputStream?.readAllBytes()
                 }
             }
 

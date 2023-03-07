@@ -3,8 +3,8 @@ package fi.elsapalvelu.elsa.domain
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
-import javax.persistence.*
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Table(name = "erikoisala_sisu_tutkintoohjelma")

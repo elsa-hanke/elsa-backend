@@ -9,15 +9,14 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tech.jhipster.service.QueryService
-import javax.persistence.criteria.*
+import jakarta.persistence.criteria.*
 
 
 @Service
 @Transactional(readOnly = true)
 class KoejaksonVastuuhenkilonArvioQueryService(
     private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
-) : QueryService<KoejaksonVastuuhenkilonArvio>() {
+) {
 
     @Transactional(readOnly = true)
     fun findByCriteriaAndYliopistoId(

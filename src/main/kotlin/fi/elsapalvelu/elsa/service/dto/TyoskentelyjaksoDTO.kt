@@ -3,9 +3,9 @@ package fi.elsapalvelu.elsa.service.dto
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import java.io.Serializable
 import java.time.LocalDate
-import javax.validation.constraints.Max
-import javax.validation.constraints.Min
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 
 data class TyoskentelyjaksoDTO(
 

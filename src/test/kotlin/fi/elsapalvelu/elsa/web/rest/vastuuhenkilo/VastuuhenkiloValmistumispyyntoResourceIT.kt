@@ -35,7 +35,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 private const val ENDPOINT_BASE_URL = "/api/vastuuhenkilo"
 private const val VALMISTUMISPYYNNOT_ENDPOINT = "/valmistumispyynnot?page=0&size=20&sort=muokkauspaiva,desc"

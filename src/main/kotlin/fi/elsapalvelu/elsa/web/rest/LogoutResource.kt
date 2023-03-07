@@ -8,7 +8,7 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import java.security.Principal
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @Profile("dev", "prod")

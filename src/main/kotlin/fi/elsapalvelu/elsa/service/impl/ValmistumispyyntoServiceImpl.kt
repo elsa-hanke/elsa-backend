@@ -37,7 +37,7 @@ import java.io.ByteArrayOutputStream
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
-import javax.persistence.EntityNotFoundException
+import jakarta.persistence.EntityNotFoundException
 
 private const val VANHENTUNUT_KUULUSTELU_YEARS = 4L
 private const val VANHENTUNUT_SUORITUS_YEARS_EL = 10L
@@ -536,7 +536,7 @@ class ValmistumispyyntoServiceImpl(
                 asiakirjaRepository.findByIdOrNull(asiakirjaId)?.let { asiakirja ->
                     val result = asiakirjaMapper.toDto(asiakirja)
                     result.asiakirjaData?.fileInputStream =
-                        asiakirja.asiakirjaData?.data?.binaryStream
+                        ByteArrayInputStream(asiakirja.asiakirjaData?.data)
                     return result
                 }
             }
@@ -972,7 +972,7 @@ class ValmistumispyyntoServiceImpl(
                 nimi = "valmistumisen_yhteenveto_${timestamp}.pdf",
                 tyyppi = MediaType.APPLICATION_PDF_VALUE,
                 lisattypvm = LocalDateTime.now(),
-                asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
+                asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
             )
         )
 
@@ -1001,7 +1001,7 @@ class ValmistumispyyntoServiceImpl(
                     nimi = "valmistumisen_yhteenvedon_liitteet_${timestamp}.pdf",
                     tyyppi = MediaType.APPLICATION_PDF_VALUE,
                     lisattypvm = LocalDateTime.now(),
-                    asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
+                    asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
                 )
             )
 
@@ -1031,7 +1031,7 @@ class ValmistumispyyntoServiceImpl(
                 nimi = "koulutussuunnitelma_ja_osaaminen_${timestamp}.pdf",
                 tyyppi = MediaType.APPLICATION_PDF_VALUE,
                 lisattypvm = LocalDateTime.now(),
-                asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
+                asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
             )
         )
         valmistumispyynto.erikoistujanTiedotAsiakirja = asiakirja
@@ -1049,7 +1049,7 @@ class ValmistumispyyntoServiceImpl(
         if (koulutussuunitelma?.motivaatiokirjeAsiakirja != null) {
             val inputStream = ByteArrayInputStream(outputStream.toByteArray())
             outputStream.reset()
-            pdfService.yhdistaPdf(inputStream, koulutussuunitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data?.binaryStream!!, outputStream)
+            pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(koulutussuunitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data), outputStream)
         }
     }
 
@@ -1096,7 +1096,7 @@ class ValmistumispyyntoServiceImpl(
                 if (a.asiakirjaData != null) {
                     val inputStream = ByteArrayInputStream(outputStream.toByteArray())
                     outputStream.reset()
-                    pdfService.yhdistaPdf(inputStream, a.asiakirjaData?.data?.binaryStream!!, outputStream)
+                    pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(a.asiakirjaData?.data), outputStream)
                 }
         }
     }
@@ -1252,7 +1252,7 @@ class ValmistumispyyntoServiceImpl(
                                     arvioinninAntaja = kayttajaMapper.toDto(a.suoritusarviointi?.arvioinninAntaja!!),
                                     arvioinninSaaja = kayttajaMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja!!),
                                     tyoskentelyjakso = tyoskentelyjaksoMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso!!))
-                                a.suoritusarviointi!!.asiakirjaData?.let { result.arviointiAsiakirja?.asiakirjaData = AsiakirjaDataDTO(id = it.id, fileInputStream = it.data?.binaryStream) }
+                                a.suoritusarviointi!!.asiakirjaData?.let { result.arviointiAsiakirja?.asiakirjaData = AsiakirjaDataDTO(id = it.id, fileInputStream = ByteArrayInputStream(it.data)) }
                                 result
                             }
                     )

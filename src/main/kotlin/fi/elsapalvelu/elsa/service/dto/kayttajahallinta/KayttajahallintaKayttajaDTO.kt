@@ -4,8 +4,8 @@ import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.ReassignedVastuuhenkilonTehtavaDTO
 import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
 import java.io.Serializable
-import javax.validation.constraints.Email
-import javax.validation.constraints.NotEmpty
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotEmpty
 
 data class KayttajahallintaKayttajaDTO(
 

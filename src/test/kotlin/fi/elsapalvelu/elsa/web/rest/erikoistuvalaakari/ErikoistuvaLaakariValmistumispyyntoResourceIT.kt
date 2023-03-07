@@ -36,7 +36,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 private const val ENDPOINT_BASE_URL = "/api/erikoistuva-laakari"
 private const val VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT = "/valmistumispyynto-suoritusten-tila"

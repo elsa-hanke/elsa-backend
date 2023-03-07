@@ -22,7 +22,7 @@ import tech.jhipster.service.filter.BooleanFilter
 import java.net.URI
 import java.security.Principal
 import java.util.*
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 @RestController
 @PreAuthorize("!hasRole('ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA')")

@@ -62,18 +62,6 @@ class HibernateTimeZoneIT {
 
     @Test
     @Transactional
-    fun storeInstantWithZoneIdConfigShouldBeStoredOnGMTTimeZone() {
-        dateTimeWrapperRepository.saveAndFlush(dateTimeWrapper)
-
-        val request = generateSqlRequest("instant", dateTimeWrapper.id!!)
-        val resultSet = jdbcTemplate.queryForRowSet(request)
-        val expectedValue = dateTimeFormatter.format(dateTimeWrapper.instant)
-
-        assertThatDateStoredValueIsEqualToInsertDateValueOnGMTTimeZone(resultSet, expectedValue)
-    }
-
-    @Test
-    @Transactional
     fun storeLocalDateTimeWithZoneIdConfigShouldBeStoredOnGMTTimeZone() {
         dateTimeWrapperRepository.saveAndFlush(dateTimeWrapper)
 

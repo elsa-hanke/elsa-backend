@@ -44,7 +44,7 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import javax.imageio.ImageIO
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 
 @AutoConfigureMockMvc
@@ -399,32 +399,6 @@ class KayttajaResourceIT {
                 .accept(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isFound)
-
-        // TestSecurityContext täytyy päivittää käsin, koska impersonointi päivittää vain security contextin
-        val currentAuthentication: Authentication =
-            TestSecurityContextHolder.getContext().authentication
-        val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(
-            ERIKOISTUVA_LAAKARI_IMPERSONATED, currentAuthentication
-        )
-        val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
-        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
-            erikoistuvaLaakari.kayttaja?.user?.id,
-            mapOf(
-                "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari.kayttaja?.user?.firstName),
-                "urn:oid:2.5.4.4" to listOf(erikoistuvaLaakari.kayttaja?.user?.lastName),
-                "nameID" to currentPrincipal.attributes["nameID"],
-                "nameIDFormat" to currentPrincipal.attributes["nameIDFormat"],
-                "nameIDQualifier" to currentPrincipal.attributes["nameIDQualifier"],
-                "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"]
-            )
-        )
-        val context = TestSecurityContextHolder.getContext()
-        context.authentication = Saml2Authentication(
-            newPrincipal,
-            (currentAuthentication as Saml2Authentication).saml2Response,
-            listOf(switchAuthority)
-        )
-        TestSecurityContextHolder.setContext(context)
 
         restKayttajaMockMvc.perform(
             MockMvcRequestBuilders.get("/api/kayttaja")

@@ -19,7 +19,7 @@ stages:
         steps:
           - task: JavaToolInstaller@0
             inputs:
-              versionSpec: '11'
+              versionSpec: '17'
               jdkArchitectureOption: 'x64'
               jdkSourceOption: 'PreInstalled'
           - task: Cache@2
@@ -85,7 +85,7 @@ stages:
 
   - stage: Deploy_backend_sandbox
     displayName: Deploy backend sandbox
-    dependsOn: 
+    dependsOn:
     - Build
     - Deploy_maintenance_page_sandbox
     jobs:

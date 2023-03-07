@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.repository.timezone
 
 import java.io.Serializable
 import java.time.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "jhi_date_time_wrapper")

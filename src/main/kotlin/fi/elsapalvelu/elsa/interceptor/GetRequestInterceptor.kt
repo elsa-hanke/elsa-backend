@@ -6,8 +6,8 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 @Component
 class GetRequestInterceptor : HandlerInterceptor {

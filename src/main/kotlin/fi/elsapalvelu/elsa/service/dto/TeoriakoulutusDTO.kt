@@ -3,8 +3,8 @@ package fi.elsapalvelu.elsa.service.dto
 import java.io.Serializable
 import java.time.LocalDate
 import java.util.*
-import javax.validation.constraints.Min
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 
 data class TeoriakoulutusDTO(
 
