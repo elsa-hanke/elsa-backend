@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 private const val ENTITY_KOEJAKSON_ALOITUSKESKUSTELU = "koejakson_aloituskeskustelu"

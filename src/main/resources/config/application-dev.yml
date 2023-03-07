@@ -20,8 +20,8 @@ logging:
     fi.elsapalvelu.elsa: DEBUG
 
 spring:
-  config:
-    use-legacy-processing: true
+  main:
+    lazy-initialization: true
   devtools:
     restart:
       enabled: true
@@ -40,7 +40,7 @@ spring:
       poolName: Hikari
       auto-commit: false
   jpa:
-    database-platform: tech.jhipster.domain.util.FixedPostgreSQL10Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
   liquibase:
     # Remove 'faker' if you do not want the sample data to be loaded automatically
@@ -61,18 +61,6 @@ spring:
     cache-duration: PT1S # 1 second, see the ISO 8601 standard
   thymeleaf:
     cache: false
-  autoconfigure:
-    exclude:
-      - org.springframework.cloud.aws.autoconfigure.cache.ElastiCacheAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.context.ContextInstanceDataAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.jdbc.AmazonRdsDatabaseAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.mail.MailSenderAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.messaging.MessagingAutoConfiguration
-      - org.springframework.cloud.aws.autoconfigure.metrics.CloudWatchExportAutoConfiguration
 
 server:
   port: 8080
@@ -105,11 +93,6 @@ jhipster:
     base-url: http://127.0.0.1:9060
   logging:
     use-json-format: false # By default, logs are not in Json format
-    logstash: # Forward logs to logstash over a socket, used by LoggingConfiguration
-      enabled: false
-      host: localhost
-      port: 5000
-      queue-size: 512
   audit-events:
     retention-period: 30 # Number of days before audit events are deleted.
 

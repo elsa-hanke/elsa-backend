@@ -8,7 +8,6 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.mapper.KoulutussuunnitelmaMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
-import fi.elsapalvelu.elsa.web.rest.errors.ExceptionTranslator
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_ELAMANKENTTA
@@ -58,7 +57,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multi
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.Validator
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 
@@ -77,9 +76,6 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
 
     @Autowired
     private lateinit var pageableArgumentResolver: PageableHandlerMethodArgumentResolver
-
-    @Autowired
-    private lateinit var exceptionTranslator: ExceptionTranslator
 
     @Autowired
     private lateinit var validator: Validator
@@ -336,22 +332,12 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
         Assertions.assertThat(testKoulutussuunnitelma.elamankenttaYksityinen)
             .isEqualTo(UPDATED_ELAMANKENTTA_YKSITYINEN)
         Assertions.assertThat(testKoulutussuunnitelma.koulutussuunnitelmaAsiakirja).isNotNull
-        val koulutussuunnitelmaBlob =
-            testKoulutussuunnitelma.koulutussuunnitelmaAsiakirja?.asiakirjaData?.data
         Assertions.assertThat(
-            koulutussuunnitelmaBlob?.getBytes(
-                1,
-                koulutussuunnitelmaBlob.length().toInt()
-            )
+            testKoulutussuunnitelma.koulutussuunnitelmaAsiakirja?.asiakirjaData?.data
         ).isEqualTo(DEFAULT_FILE)
         Assertions.assertThat(testKoulutussuunnitelma.motivaatiokirjeAsiakirja).isNotNull
-        val motivaatiokirjeBlob =
-            testKoulutussuunnitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data
         Assertions.assertThat(
-            motivaatiokirjeBlob?.getBytes(
-                1,
-                motivaatiokirjeBlob.length().toInt()
-            )
+            testKoulutussuunnitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data
         ).isEqualTo(DEFAULT_FILE)
     }
 

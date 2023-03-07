@@ -12,6 +12,7 @@ import fi.elsapalvelu.elsa.service.constants.HYVAKSILUETTAVAT_DAYS
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
+import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.ZoneId
@@ -20,6 +21,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Service
+@Transactional
 class OverlappingTyoskentelyjaksoValidationServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val keskeytysaikaRepository: KeskeytysaikaRepository,

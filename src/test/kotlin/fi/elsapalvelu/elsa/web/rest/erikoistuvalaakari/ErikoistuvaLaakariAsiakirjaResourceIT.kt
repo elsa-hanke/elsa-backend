@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper.Companion.ASIAKIRJA_PDF_DATA
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
 import org.assertj.core.api.Assertions.assertThat
@@ -34,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
@@ -89,7 +90,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         val testAsiakirja = asiakirjaList[asiakirjaList.size - 1]
         assertThat(testAsiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(testAsiakirja.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
-        assertThat(testAsiakirja.asiakirjaData?.data?.binaryStream?.use { it.readBytes() }).isEqualTo(
+        assertThat(testAsiakirja.asiakirjaData?.data).isEqualTo(
             AsiakirjaHelper.ASIAKIRJA_PDF_DATA
         )
         assertThat(testAsiakirja.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
@@ -115,7 +116,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         val testAsiakirja = asiakirjaList[asiakirjaList.size - 2]
         assertThat(testAsiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(testAsiakirja.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
-        assertThat(testAsiakirja.asiakirjaData?.data?.binaryStream?.use { it.readBytes() }).isEqualTo(
+        assertThat(testAsiakirja.asiakirjaData?.data).isEqualTo(
             AsiakirjaHelper.ASIAKIRJA_PDF_DATA
         )
         assertThat(testAsiakirja.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
@@ -123,7 +124,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         val testAsiakirja2 = asiakirjaList[asiakirjaList.size - 1]
         assertThat(testAsiakirja2.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI)
         assertThat(testAsiakirja2.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI)
-        assertThat(testAsiakirja2.asiakirjaData?.data?.binaryStream?.use { it.readBytes() }).isEqualTo(
+        assertThat(testAsiakirja2.asiakirjaData?.data).isEqualTo(
             AsiakirjaHelper.ASIAKIRJA_PNG_DATA
         )
         assertThat(testAsiakirja2.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
@@ -219,7 +220,7 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         asiakirja2.nimi = AsiakirjaHelper.ASIAKIRJA_PNG_NIMI
         asiakirja2.tyyppi = AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI
         asiakirja2.lisattypvm = LocalDateTime.now().minusDays(1)
-        asiakirja2.asiakirjaData?.data = BlobProxy.generateProxy(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        asiakirja2.asiakirjaData?.data = ASIAKIRJA_PDF_DATA
 
         asiakirjaRepository.saveAndFlush(asiakirja2)
 

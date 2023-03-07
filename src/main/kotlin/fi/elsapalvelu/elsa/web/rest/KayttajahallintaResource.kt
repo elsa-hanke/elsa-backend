@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 import java.security.Principal
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 private const val ERIKOISTUVA_LAAKARI_ENTITY_NAME = "erikoistuvaLaakari"
@@ -542,6 +542,7 @@ open class KayttajahallintaResource(
         requireNotNull(yliopistotAndErikoisalat)
         require(yliopistotAndErikoisalat.isNotEmpty())
         yliopistotAndErikoisalat.forEach { kayttajaYliopistoErikoisalaDTO ->
+            requireNotNull(kayttajaYliopistoErikoisalaDTO.erikoisala)
             yliopistoId?.let { require(kayttajaYliopistoErikoisalaDTO.yliopisto?.id == it) }
         }
     }

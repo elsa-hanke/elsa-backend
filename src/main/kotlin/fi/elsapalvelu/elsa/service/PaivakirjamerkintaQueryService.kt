@@ -5,22 +5,19 @@ import fi.elsapalvelu.elsa.repository.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.service.criteria.PaivakirjamerkintaCriteria
 import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.PaivakirjamerkintaMapper
+import jakarta.persistence.criteria.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tech.jhipster.service.QueryService
-import tech.jhipster.service.filter.Filter
-import javax.persistence.criteria.JoinType
-import javax.persistence.criteria.Path
 
 @Service
 @Transactional(readOnly = true)
 class PaivakirjamerkintaQueryService(
     private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository,
     private val paivakirjamerkintaMapper: PaivakirjamerkintaMapper
-) : QueryService<Paivakirjamerkinta>() {
+) {
 
     @Transactional(readOnly = true)
     fun findByCriteriaAndOpintooikeusId(
@@ -45,45 +42,87 @@ class PaivakirjamerkintaQueryService(
         var specification: Specification<Paivakirjamerkinta?> = Specification.where(spec)
         if (criteria != null) {
             if (criteria.id != null) {
-                specification = specification.and(buildRangeSpecification(criteria.id, Paivakirjamerkinta_.id))
+                specification =
+                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.get(Paivakirjamerkinta_.id),
+                            criteria.id!!.equals
+                        )
+                    }
             }
             if (criteria.paivamaara != null) {
                 specification =
-                    specification.and(buildRangeSpecification(criteria.paivamaara, Paivakirjamerkinta_.paivamaara))
+                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        if (criteria.paivamaara!!.specified != null) {
+                            if (criteria.paivamaara!!.specified) cb.isNotNull(
+                                root.get(
+                                    Paivakirjamerkinta_.paivamaara
+                                )
+                            ) else cb.isNull(root.get(Paivakirjamerkinta_.paivamaara))
+                        } else if (criteria.paivamaara!!.greaterThanOrEqual != null) {
+                            cb.greaterThanOrEqualTo(
+                                root.get(Paivakirjamerkinta_.paivamaara),
+                                criteria.paivamaara!!.greaterThanOrEqual
+                            )
+                        } else if (criteria.paivamaara!!.lessThanOrEqual != null) {
+                            cb.lessThanOrEqualTo(
+                                root.get(Paivakirjamerkinta_.paivamaara),
+                                criteria.paivamaara!!.lessThanOrEqual
+                            )
+                        } else {
+                            cb.equal(
+                                root.get(Paivakirjamerkinta_.paivamaara),
+                                criteria.paivamaara!!.equals
+                            )
+                        }
+                    }
             }
             if (criteria.oppimistapahtumanNimi != null) {
-                specification = specification.and(
-                    buildStringSpecification(
-                        criteria.oppimistapahtumanNimi,
-                        Paivakirjamerkinta_.oppimistapahtumanNimi
-                    )
-                )
+                specification =
+                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.get(Paivakirjamerkinta_.oppimistapahtumanNimi),
+                            criteria.oppimistapahtumanNimi!!.equals
+                        )
+                    }
             }
             if (criteria.muunAiheenNimi != null) {
-                specification = specification.and(
-                    buildStringSpecification(
-                        criteria.muunAiheenNimi,
-                        Paivakirjamerkinta_.muunAiheenNimi
-                    )
-                )
+                specification =
+                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.get(Paivakirjamerkinta_.muunAiheenNimi),
+                            criteria.muunAiheenNimi!!.equals
+                        )
+                    }
             }
             if (criteria.yksityinen != null) {
                 specification =
-                    specification.and(buildSpecification(criteria.yksityinen, Paivakirjamerkinta_.yksityinen))
+                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.get(Paivakirjamerkinta_.yksityinen),
+                            criteria.yksityinen!!.equals
+                        )
+                    }
             }
             if (criteria.aihekategoriaId != null) {
-                specification = specification.and(
-                    buildSpecification(criteria.aihekategoriaId as Filter<Long>) {
-                        it.join(Paivakirjamerkinta_.aihekategoriat, JoinType.LEFT).get(PaivakirjaAihekategoria_.id)
+                specification =
+                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.join(Paivakirjamerkinta_.aihekategoriat, JoinType.LEFT)
+                                .get(PaivakirjaAihekategoria_.id),
+                            criteria.aihekategoriaId!!.equals
+                        )
                     }
-                )
             }
             if (criteria.teoriakoulutusId != null) {
-                specification = specification.and(
-                    buildSpecification(criteria.teoriakoulutusId as Filter<Long>) {
-                        it.join(Paivakirjamerkinta_.teoriakoulutus, JoinType.LEFT).get(Teoriakoulutus_.id)
+                specification =
+                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.join(Paivakirjamerkinta_.teoriakoulutus, JoinType.LEFT)
+                                .get(Teoriakoulutus_.id),
+                            criteria.teoriakoulutusId!!.equals
+                        )
                     }
-                )
             }
         }
         return specification

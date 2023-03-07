@@ -5,18 +5,17 @@ import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.service.criteria.SuoritusarviointiCriteria
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
+import jakarta.persistence.criteria.*
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tech.jhipster.service.QueryService
-import javax.persistence.criteria.Join
 
 @Service
 @Transactional(readOnly = true)
 class SuoritusarviointiQueryService(
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
     private val suoritusarviointiMapper: SuoritusarviointiMapper
-) : QueryService<Suoritusarviointi>() {
+) {
 
     @Transactional(readOnly = true)
     fun findByCriteriaAndTyoskentelyjaksoOpintooikeusId(
@@ -24,8 +23,9 @@ class SuoritusarviointiQueryService(
         opintooikeusId: Long,
     ): List<SuoritusarviointiDTO> {
         val specification = createSpecification(criteria) { root, _, cb ->
-            val opintooikeus: Join<Tyoskentelyjakso, Opintooikeus> = root.join(Suoritusarviointi_.tyoskentelyjakso)
-                .join(Tyoskentelyjakso_.opintooikeus)
+            val opintooikeus: Join<Tyoskentelyjakso, Opintooikeus> =
+                root.join(Suoritusarviointi_.tyoskentelyjakso)
+                    .join(Tyoskentelyjakso_.opintooikeus)
             cb.equal(opintooikeus.get(Opintooikeus_.id), opintooikeusId)
         }
 
@@ -54,89 +54,106 @@ class SuoritusarviointiQueryService(
         if (criteria != null) {
             if (criteria.id != null) {
                 specification =
-                    specification.and(buildRangeSpecification(criteria.id, Suoritusarviointi_.id))
+                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.get(Suoritusarviointi_.id),
+                            criteria.id!!.equals
+                        )
+                    }
             }
             if (criteria.tapahtumanAjankohta != null) {
-                specification = specification
-                    .and(
-                        buildRangeSpecification(
-                            criteria.tapahtumanAjankohta,
-                            Suoritusarviointi_.tapahtumanAjankohta
+                specification =
+                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.get(Suoritusarviointi_.tapahtumanAjankohta),
+                            criteria.tapahtumanAjankohta!!.equals
                         )
-                    )
+                    }
             }
             if (criteria.arvioitavaTapahtuma != null) {
-                specification = specification
-                    .and(
-                        buildStringSpecification(
-                            criteria.arvioitavaTapahtuma,
-                            Suoritusarviointi_.arvioitavaTapahtuma
+                specification =
+                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.get(Suoritusarviointi_.arvioitavaTapahtuma),
+                            criteria.arvioitavaTapahtuma!!.equals
                         )
-                    )
+                    }
             }
             if (criteria.pyynnonAika != null) {
-                specification = specification
-                    .and(
-                        buildRangeSpecification(
-                            criteria.pyynnonAika,
-                            Suoritusarviointi_.pyynnonAika
+                specification =
+                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.get(Suoritusarviointi_.pyynnonAika),
+                            criteria.pyynnonAika!!.equals
                         )
-                    )
+                    }
             }
             if (criteria.vaativuustaso != null) {
-                specification = specification
-                    .and(
-                        buildRangeSpecification(
-                            criteria.vaativuustaso,
-                            Suoritusarviointi_.vaativuustaso
+                specification =
+                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.get(Suoritusarviointi_.vaativuustaso),
+                            criteria.vaativuustaso!!.equals
                         )
-                    )
+                    }
             }
             if (criteria.sanallinenArviointi != null) {
-                specification = specification
-                    .and(
-                        buildStringSpecification(
-                            criteria.sanallinenArviointi,
-                            Suoritusarviointi_.sanallinenArviointi
+                specification =
+                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.get(Suoritusarviointi_.sanallinenArviointi),
+                            criteria.sanallinenArviointi!!.equals
                         )
-                    )
+                    }
             }
             if (criteria.arviointiAika != null) {
-                specification = specification
-                    .and(
-                        buildRangeSpecification(
-                            criteria.arviointiAika,
-                            Suoritusarviointi_.arviointiAika
-                        )
-                    )
+                specification =
+                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        if (criteria.arviointiAika!!.specified != null) {
+                            if (criteria.arviointiAika!!.specified) cb.isNotNull(
+                                root.get(
+                                    Suoritusarviointi_.arviointiAika
+                                )
+                            ) else cb.isNull(root.get(Suoritusarviointi_.arviointiAika))
+                        } else {
+                            cb.equal(
+                                root.get(Suoritusarviointi_.arviointiAika),
+                                criteria.arviointiAika!!.equals
+                            )
+                        }
+                    }
             }
             if (criteria.tyoskentelyjaksoId != null) {
-                specification = specification
-                    .and(
-                        buildReferringEntitySpecification(
-                            criteria.tyoskentelyjaksoId,
-                            Suoritusarviointi_.tyoskentelyjakso,
-                            Tyoskentelyjakso_.id
+                specification =
+                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.join(Suoritusarviointi_.tyoskentelyjakso, JoinType.INNER)
+                                .get(Tyoskentelyjakso_.id),
+                            criteria.tyoskentelyjaksoId!!.equals
                         )
-                    )
+                    }
             }
             if (criteria.arvioitavaKokonaisuusId != null) {
                 val kokonaisuusSpecification = createSpecification(null) { root, _, cb ->
                     val arvioitavaKokonaisuusJoin =
-                        root.join(Suoritusarviointi_.arvioitavatKokonaisuudet).join(SuoritusarvioinninArvioitavaKokonaisuus_.arvioitavaKokonaisuus)
-                    cb.equal(arvioitavaKokonaisuusJoin.get(ArvioitavaKokonaisuus_.id), criteria.arvioitavaKokonaisuusId)
+                        root.join(Suoritusarviointi_.arvioitavatKokonaisuudet)
+                            .join(SuoritusarvioinninArvioitavaKokonaisuus_.arvioitavaKokonaisuus)
+                    cb.equal(
+                        arvioitavaKokonaisuusJoin.get(ArvioitavaKokonaisuus_.id),
+                        criteria.arvioitavaKokonaisuusId
+                    )
                 }
                 specification = specification.and(kokonaisuusSpecification)
             }
             if (criteria.arvioinninAntajaId != null) {
-                specification = specification
-                    .and(
-                        buildReferringEntitySpecification(
-                            criteria.arvioinninAntajaId,
-                            Suoritusarviointi_.arvioinninAntaja,
-                            Kayttaja_.id
+                specification =
+                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(
+                            root.join(Suoritusarviointi_.arvioinninAntaja, JoinType.INNER)
+                                .get(Kayttaja_.id),
+                            criteria.arvioinninAntajaId!!.equals
                         )
-                    )
+                    }
             }
         }
         return specification

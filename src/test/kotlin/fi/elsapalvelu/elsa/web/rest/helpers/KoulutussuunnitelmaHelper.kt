@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.domain.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.web.rest.createByteArray
 import fi.elsapalvelu.elsa.web.rest.findAll
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 class KoulutussuunnitelmaHelper {
 

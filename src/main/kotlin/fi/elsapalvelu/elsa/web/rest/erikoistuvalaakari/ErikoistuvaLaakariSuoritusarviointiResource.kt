@@ -15,7 +15,7 @@ import java.net.URLEncoder
 import java.security.Principal
 import java.time.LocalDate
 import java.time.ZoneId
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private const val ENTITY_NAME = "suoritusarviointi"
 

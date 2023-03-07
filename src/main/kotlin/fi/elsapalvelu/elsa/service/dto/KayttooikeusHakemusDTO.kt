@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class KayttooikeusHakemusDTO(
 

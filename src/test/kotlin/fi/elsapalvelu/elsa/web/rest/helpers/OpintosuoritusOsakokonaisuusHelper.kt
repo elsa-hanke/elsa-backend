@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.Opintosuoritus
 import fi.elsapalvelu.elsa.domain.OpintosuoritusOsakokonaisuus
 import java.time.LocalDate
 import java.time.ZoneId
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 class OpintosuoritusOsakokonaisuusHelper {
 

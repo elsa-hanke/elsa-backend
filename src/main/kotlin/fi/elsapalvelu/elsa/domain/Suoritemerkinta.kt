@@ -2,15 +2,14 @@ package fi.elsapalvelu.elsa.domain
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Type
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
-import javax.persistence.*
-import javax.validation.constraints.Max
-import javax.validation.constraints.Min
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Audited
@@ -36,8 +35,6 @@ data class Suoritemerkinta(
     @Column(name = "vaativuustaso", nullable = false)
     var vaativuustaso: Int? = null,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "lisatiedot")
     var lisatiedot: String? = null,
 

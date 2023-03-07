@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.domain.SuoritteenKategoria
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 class SuoriteHelper {
 

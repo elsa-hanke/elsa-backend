@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.web.rest.findAll
 import org.hibernate.engine.jdbc.BlobProxy
 import java.time.LocalDateTime
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 class AsiakirjaHelper {
 
@@ -31,7 +31,7 @@ class AsiakirjaHelper {
                 tyoskentelyjakso = tyoskentelyjakso,
                 teoriakoulutus = teoriakoulutus,
                 asiakirjaData = AsiakirjaData(
-                    data = BlobProxy.generateProxy(ASIAKIRJA_PDF_DATA)
+                    data = ASIAKIRJA_PDF_DATA
                 )
             )
 

@@ -27,8 +27,8 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import javax.persistence.EntityExistsException
-import javax.persistence.EntityNotFoundException
+import jakarta.persistence.EntityExistsException
+import jakarta.persistence.EntityNotFoundException
 
 @Service
 @Transactional

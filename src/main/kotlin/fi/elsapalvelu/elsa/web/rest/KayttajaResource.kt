@@ -16,7 +16,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 

@@ -6,14 +6,14 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Description
 import org.hamcrest.TypeSafeDiagnosingMatcher
 import java.io.IOException
 import java.time.ZonedDateTime
 import java.time.format.DateTimeParseException
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 
@@ -24,7 +24,7 @@ private fun createObjectMapper() =
         configure(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS, false)
         setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
         registerModule(JavaTimeModule())
-        registerModule(KotlinModule())
+        registerKotlinModule()
     }
 
 /**

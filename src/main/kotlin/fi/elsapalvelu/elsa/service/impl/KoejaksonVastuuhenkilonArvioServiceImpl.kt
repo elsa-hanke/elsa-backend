@@ -26,7 +26,7 @@ import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
-import javax.persistence.EntityNotFoundException
+import jakarta.persistence.EntityNotFoundException
 
 
 @Service
@@ -256,7 +256,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 nimi = "koejakson_vastuuhenkilon_arvio_${timestamp}.pdf",
                 tyyppi = MediaType.APPLICATION_PDF_VALUE,
                 lisattypvm = LocalDateTime.now(),
-                asiakirjaData = AsiakirjaData(data = BlobProxy.generateProxy(outputStream.toByteArray()))
+                asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
             )
         )
 

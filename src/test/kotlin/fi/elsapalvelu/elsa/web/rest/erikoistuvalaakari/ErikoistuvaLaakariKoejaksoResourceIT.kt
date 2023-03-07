@@ -35,7 +35,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.ZoneId
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc

@@ -4,9 +4,9 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.web.rest.findAll
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils
 import java.time.LocalDate
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 class ErikoistuvaLaakariHelper {
 

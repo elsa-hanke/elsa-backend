@@ -7,7 +7,7 @@ import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import javax.validation.ValidationException
+import jakarta.validation.ValidationException
 
 @Service
 @Transactional

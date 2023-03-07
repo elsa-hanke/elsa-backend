@@ -18,8 +18,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
 import java.security.Principal
-import javax.persistence.EntityNotFoundException
-import javax.validation.ValidationException
+import jakarta.persistence.EntityNotFoundException
+import jakarta.validation.ValidationException
 
 private const val TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME = "terveyskeskuskoulutusjakson_hyvaksynta"
 

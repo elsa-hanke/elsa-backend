@@ -3,17 +3,16 @@ package fi.elsapalvelu.elsa.domain
 import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Type
 import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
 import java.time.LocalDateTime
-import javax.persistence.*
-import javax.validation.constraints.Max
-import javax.validation.constraints.Min
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Audited
@@ -36,8 +35,6 @@ data class Suoritusarviointi(
     @Column(name = "pyynnon_aika", nullable = false)
     var pyynnonAika: LocalDate? = null,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "lisatiedot")
     var lisatiedot: String? = null,
 
@@ -46,8 +43,6 @@ data class Suoritusarviointi(
     @Column(name = "itsearviointi_vaativuustaso")
     var itsearviointiVaativuustaso: Int? = null,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "sanallinen_itsearviointi")
     var sanallinenItsearviointi: String? = null,
 
@@ -59,8 +54,6 @@ data class Suoritusarviointi(
     @Column(name = "vaativuustaso")
     var vaativuustaso: Int? = null,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "sanallinen_arviointi")
     var sanallinenArviointi: String? = null,
 

@@ -2,10 +2,9 @@ package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
 import java.time.LocalDate
-import javax.persistence.Lob
-import javax.validation.constraints.Max
-import javax.validation.constraints.Min
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 
 data class SuoritemerkintaDTO(
 
@@ -22,7 +21,6 @@ data class SuoritemerkintaDTO(
     @get: Max(value = 5)
     var vaativuustaso: Int? = null,
 
-    @Lob
     var lisatiedot: String? = null,
 
     var lukittu: Boolean = false,

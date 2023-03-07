@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.dto
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import java.io.Serializable
 import java.util.*
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class VastuuhenkilonTehtavatyyppiDTO(
 

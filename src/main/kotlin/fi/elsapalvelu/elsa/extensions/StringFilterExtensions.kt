@@ -5,9 +5,9 @@ import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.User_
 import tech.jhipster.service.filter.StringFilter
 import java.util.*
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.Join
-import javax.persistence.criteria.Predicate
+import jakarta.persistence.criteria.CriteriaBuilder
+import jakarta.persistence.criteria.Join
+import jakarta.persistence.criteria.Predicate
 
 fun StringFilter?.toNimiPredicate(
     userJoin: Join<Kayttaja, User>,

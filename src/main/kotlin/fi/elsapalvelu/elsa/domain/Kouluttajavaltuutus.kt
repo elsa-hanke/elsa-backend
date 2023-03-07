@@ -7,8 +7,8 @@ import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.Instant
 import java.time.LocalDate
-import javax.persistence.*
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Audited

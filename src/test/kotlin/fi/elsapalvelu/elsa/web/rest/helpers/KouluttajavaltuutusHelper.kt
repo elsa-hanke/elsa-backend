@@ -9,7 +9,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 class KouluttajavaltuutusHelper {
 

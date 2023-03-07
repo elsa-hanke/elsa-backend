@@ -2,13 +2,12 @@ package fi.elsapalvelu.elsa.domain
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Type
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
-import javax.persistence.*
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Audited
@@ -31,8 +30,6 @@ data class Paivakirjamerkinta(
     @Column(name = "muun_aiheen_nimi", nullable = false)
     var muunAiheenNimi: String? = null,
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
     @Column(name = "reflektio")
     var reflektio: String? = null,
 

@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.service.dto.ErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.ReassignedVastuuhenkilonTehtavaDTO
 import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
@@ -50,7 +51,7 @@ import java.security.SecureRandom
 import java.time.LocalDate
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 private const val tekninenPaakayttajaRolePath = "tekninen-paakayttaja"
 private const val virkailijaRolePath = "virkailija"
@@ -725,9 +726,12 @@ class KayttajahallintaResourceIT {
     fun postVastuuhenkiloAsTekninenPaakayttajaWithDifferentYliopistoInYliopistotAndErikoisalat() {
         initTest(TEKNINEN_PAAKAYTTAJA)
 
+        val erikoisala = erikoisalaRepository.findById(1).get()
+        val erikoisalaDTO = erikoisalaMapper.toDto(erikoisala)
+
         val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
             yliopisto = YliopistoDTO(id = 1000)
-            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1001)))
+            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1001), erikoisala = erikoisalaDTO))
         }
 
         restMockMvc.perform(
@@ -735,7 +739,7 @@ class KayttajahallintaResourceIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andExpect(status().is5xxServerError)
+        ).andExpect(status().isBadRequest)
     }
 
     @Test
@@ -745,7 +749,7 @@ class KayttajahallintaResourceIT {
 
         val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
             yliopisto = YliopistoDTO(id = 1000)
-            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1000)))
+            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1000), erikoisala = ErikoisalaDTO(id = 1)))
         }
 
         restMockMvc.perform(
@@ -768,9 +772,10 @@ class KayttajahallintaResourceIT {
         vastuuhenkilo.user?.email = KayttajaHelper.DEFAULT_EMAIL
 
         val yliopistoDTO = yliopistoMapper.toDto(yliopisto)
+        val erikoisalaDTO = erikoisalaMapper.toDto(erikoisala)
         val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
             yliopisto = yliopistoDTO
-            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = yliopistoDTO))
+            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = yliopistoDTO, erikoisala = erikoisalaDTO))
             sahkoposti = KayttajaHelper.DEFAULT_EMAIL
         }
 
@@ -795,9 +800,10 @@ class KayttajahallintaResourceIT {
         vastuuhenkilo.user?.email = KayttajaHelper.DEFAULT_EMAIL
 
         val yliopistoDTO = yliopistoMapper.toDto(yliopisto)
+        val erikoisalaDTO = erikoisalaMapper.toDto(erikoisala)
         val kayttajahallintaKayttajaDTO = getDefaultKayttajaDTO().apply {
             yliopisto = yliopistoDTO
-            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = yliopistoDTO))
+            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = yliopistoDTO, erikoisala = erikoisalaDTO))
             sahkoposti = KayttajaHelper.DEFAULT_EMAIL + "x"
         }
 
@@ -1310,7 +1316,7 @@ class KayttajahallintaResourceIT {
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         ).andExpect(status().isCreated)
     }
-    
+
     @Test
     @Transactional
     fun patchVirkailijaNotAllowedToModifyDifferentYliopistoAssignedToVirkailija() {

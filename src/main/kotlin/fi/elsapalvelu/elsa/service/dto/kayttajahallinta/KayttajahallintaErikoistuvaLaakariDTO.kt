@@ -2,9 +2,9 @@ package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
 import java.io.Serializable
 import java.time.LocalDate
-import javax.validation.constraints.Email
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 
 data class KayttajahallintaErikoistuvaLaakariDTO(
 

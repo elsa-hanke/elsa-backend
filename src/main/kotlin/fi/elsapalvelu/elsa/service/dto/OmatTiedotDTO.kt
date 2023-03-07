@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.dto
 
 import org.springframework.web.multipart.MultipartFile
 import java.io.Serializable
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class OmatTiedotDTO(
 

@@ -21,7 +21,7 @@ import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URLEncoder
 import java.security.Principal
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 private const val ENTITY_NAME = "suoritusarviointi"
 

@@ -24,8 +24,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
-import javax.persistence.EntityNotFoundException
-import javax.transaction.Transactional
+import jakarta.persistence.EntityNotFoundException
+import jakarta.transaction.Transactional
 
 private const val SUU_JA_LEUKAKIRURGIA_VIRTA_PATEVYYSKOODI = "esl"
 

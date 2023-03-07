@@ -18,9 +18,9 @@ import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
 import java.time.LocalDate
-import javax.persistence.EntityNotFoundException
-import javax.validation.Valid
-import javax.validation.ValidationException
+import jakarta.persistence.EntityNotFoundException
+import jakarta.validation.Valid
+import jakarta.validation.ValidationException
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"

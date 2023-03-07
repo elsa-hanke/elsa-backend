@@ -20,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
 import java.util.*
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")

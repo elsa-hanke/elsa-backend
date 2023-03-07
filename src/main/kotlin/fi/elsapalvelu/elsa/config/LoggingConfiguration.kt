@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import tech.jhipster.config.JHipsterProperties
 import tech.jhipster.config.logging.LoggingUtils.addContextListener
-import tech.jhipster.config.logging.LoggingUtils.addLogstashTcpSocketAppender
 
 private const val CONSOLE_APPENDER_NAME = "CONSOLE"
 
@@ -36,7 +35,6 @@ class LoggingConfiguration(
         val customFields = mapper.writeValueAsString(map)
 
         val loggingProperties = jHipsterProperties.logging
-        val logstashProperties = loggingProperties.logstash
 
         if (loggingProperties.isUseJsonFormat) {
             val fluentAppender = createFluentAppender("fluent_backend", "backend", context)
@@ -51,11 +49,6 @@ class LoggingConfiguration(
             context.getLogger(AuditLoggingWrapper::class.java).addAppender(fluentAuditAppender)
 
             context.getLogger(Logger.ROOT_LOGGER_NAME).detachAppender(CONSOLE_APPENDER_NAME)
-        }
-        if (logstashProperties.isEnabled) {
-            addLogstashTcpSocketAppender(context, customFields, logstashProperties)
-        }
-        if (loggingProperties.isUseJsonFormat || logstashProperties.isEnabled) {
             addContextListener(context, customFields, loggingProperties)
         }
     }

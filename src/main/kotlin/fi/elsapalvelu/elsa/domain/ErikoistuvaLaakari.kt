@@ -4,9 +4,9 @@ import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.LocalDate
-import javax.persistence.*
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 
 @Entity
 @Table(name = "erikoistuva_laakari")
@@ -33,7 +33,6 @@ data class ErikoistuvaLaakari(
     @Column(name = "laillistamispaiva")
     var laillistamispaiva: LocalDate? = null,
 
-    @Lob
     @Column(name = "laillistamispaivan_liitetiedosto")
     var laillistamispaivanLiitetiedosto: ByteArray? = null,
 

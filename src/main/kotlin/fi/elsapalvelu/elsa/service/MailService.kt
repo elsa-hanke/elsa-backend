@@ -9,11 +9,11 @@ import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
-import org.thymeleaf.spring5.SpringTemplateEngine
+import org.thymeleaf.spring6.SpringTemplateEngine
 import tech.jhipster.config.JHipsterProperties
 import java.nio.charset.StandardCharsets
 import java.util.*
-import javax.mail.MessagingException
+import jakarta.mail.MessagingException
 
 enum class MailProperty(val property: String) {
     USER("user"),

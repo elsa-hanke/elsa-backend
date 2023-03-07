@@ -10,8 +10,7 @@ import org.mapstruct.ReportingPolicy
 @Mapper(
     componentModel = "spring",
     uses = [
-        ArvioitavaKokonaisuusMapper::class,
-        SuoritusarviointiMapper::class
+        ArvioitavaKokonaisuusMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
@@ -26,7 +25,7 @@ interface SuoritusarvioinninArvioitavaKokonaisuusMapper :
 
     @Mappings(
         Mapping(source = "arvioitavaKokonaisuusId", target = "arvioitavaKokonaisuus"),
-        Mapping(source = "suoritusarviointiId", target = "suoritusarviointi")
+        Mapping(source = "suoritusarviointiId", target = "suoritusarviointi.id")
     )
     override fun toEntity(dto: SuoritusarvioinninArvioitavaKokonaisuusDTO): SuoritusarvioinninArvioitavaKokonaisuus
 

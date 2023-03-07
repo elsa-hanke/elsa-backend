@@ -10,8 +10,7 @@ import org.mapstruct.ReportingPolicy
 @Mapper(
     componentModel = "spring",
     uses = [
-        ErikoisalaMapper::class,
-        SuoriteMapper::class
+        ErikoisalaMapper::class
     ],
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )

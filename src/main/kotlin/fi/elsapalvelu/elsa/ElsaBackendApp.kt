@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.repository.ErikoisalaSisuTutkintoohjelmaRepository
 import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaFetchingService
 import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaImportService
+import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -16,10 +17,9 @@ import tech.jhipster.config.DefaultProfileUtil
 import tech.jhipster.config.JHipsterConstants
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
 import java.time.Clock
-import javax.annotation.PostConstruct
 
 @SpringBootApplication
-@EnableConfigurationProperties(LiquibaseProperties::class, ApplicationProperties::class)
+@EnableConfigurationProperties(ApplicationProperties::class)
 class ElsaBackendApp(
     private val env: Environment,
     erikoisalaSisuTutkintoohjelmaRepository: ErikoisalaSisuTutkintoohjelmaRepository,

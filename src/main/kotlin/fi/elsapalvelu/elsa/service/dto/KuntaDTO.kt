@@ -1,8 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
-import javax.persistence.Lob
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class KuntaDTO(
 
@@ -15,7 +14,6 @@ data class KuntaDTO(
 
     var longName: String? = null,
 
-    @Lob
     var description: String? = null,
 
     var kortnamn: String? = null,

@@ -2,13 +2,11 @@ package fi.elsapalvelu.elsa.service.dto
 
 import java.io.Serializable
 import java.time.Instant
-import javax.persistence.Lob
 
 data class SuoritusarvioinninKommenttiDTO(
 
     var id: Long? = null,
 
-    @Lob
     var teksti: String? = null,
 
     var luontiaika: Instant? = null,

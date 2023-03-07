@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20230309124946" author="jhipster">
+        <dropNotNullConstraint tableName="tyoskentelyjakso_audit" columnName="alkamispaiva"/>
+        <dropNotNullConstraint tableName="tyoskentelyjakso_audit" columnName="osaaikaprosentti"/>
+        <dropNotNullConstraint tableName="tyoskentelyjakso_audit" columnName="kaytannon_koulutus"/>
+        <dropNotNullConstraint tableName="tyoskentelyjakso_audit" columnName="hyvaksytty_aiempaan_erikoisalaan"/>
+        <dropNotNullConstraint tableName="tyoskentelyjakso_audit" columnName="tyoskentelypaikka_id"/>
+
+        <dropNotNullConstraint tableName="suoritusarviointi_audit" columnName="tapahtuman_ajankohta"/>
+        <dropNotNullConstraint tableName="suoritusarviointi_audit" columnName="pyynnon_aika"/>
+        <dropNotNullConstraint tableName="suoritusarviointi_audit" columnName="lukittu"/>
+        <dropNotNullConstraint tableName="suoritusarviointi_audit" columnName="arvioinnin_antaja_id"/>
+        <dropNotNullConstraint tableName="suoritusarviointi_audit" columnName="tyoskentelyjakso_id"/>
+        <dropNotNullConstraint tableName="suoritusarviointi_audit" columnName="arviointiasteikko_id"/>
+
+        <dropNotNullConstraint tableName="kouluttajavaltuutus_audit" columnName="alkamispaiva"/>
+        <dropNotNullConstraint tableName="kouluttajavaltuutus_audit" columnName="paattymispaiva"/>
+        <dropNotNullConstraint tableName="kouluttajavaltuutus_audit" columnName="valtuutuksen_luontiaika"/>
+        <dropNotNullConstraint tableName="kouluttajavaltuutus_audit" columnName="valtuutuksen_muokkausaika"/>
+        <dropNotNullConstraint tableName="kouluttajavaltuutus_audit" columnName="valtuuttaja_opintooikeus_id"/>
+        <dropNotNullConstraint tableName="kouluttajavaltuutus_audit" columnName="valtuutettu_id"/>
+
+        <dropNotNullConstraint tableName="tyoskentelypaikka_audit" columnName="nimi"/>
+        <dropNotNullConstraint tableName="tyoskentelypaikka_audit" columnName="tyyppi"/>
+        <dropNotNullConstraint tableName="tyoskentelypaikka_audit" columnName="kunta_id"/>
+
+        <dropNotNullConstraint tableName="suoritusarvioinnin_kommentti_audit" columnName="teksti"/>
+        <dropNotNullConstraint tableName="suoritusarvioinnin_kommentti_audit" columnName="luontiaika"/>
+        <dropNotNullConstraint tableName="suoritusarvioinnin_kommentti_audit" columnName="muokkausaika"/>
+        <dropNotNullConstraint tableName="suoritusarvioinnin_kommentti_audit" columnName="kommentoija_id"/>
+        <dropNotNullConstraint tableName="suoritusarvioinnin_kommentti_audit" columnName="suoritusarviointi_id"/>
+
+        <dropNotNullConstraint tableName="suoritusarvioinnin_arviointityokalut_audit" columnName="suoritusarviointi_id"/>
+        <dropNotNullConstraint tableName="suoritusarvioinnin_arviointityokalut_audit" columnName="arviointityokalu_id"/>
+
+        <dropNotNullConstraint tableName="suoritemerkinta_audit" columnName="suorituspaiva"/>
+        <dropNotNullConstraint tableName="suoritemerkinta_audit" columnName="lukittu"/>
+        <dropNotNullConstraint tableName="suoritemerkinta_audit" columnName="suorite_id"/>
+        <dropNotNullConstraint tableName="suoritemerkinta_audit" columnName="tyoskentelyjakso_id"/>
+        <dropNotNullConstraint tableName="suoritemerkinta_audit" columnName="arviointiasteikko_id"/>
+
+        <dropNotNullConstraint tableName="keskeytysaika_audit" columnName="alkamispaiva"/>
+        <dropNotNullConstraint tableName="keskeytysaika_audit" columnName="paattymispaiva"/>
+        <dropNotNullConstraint tableName="keskeytysaika_audit" columnName="poissaoloprosentti"/>
+        <dropNotNullConstraint tableName="keskeytysaika_audit" columnName="poissaolon_syy_id"/>
+        <dropNotNullConstraint tableName="keskeytysaika_audit" columnName="tyoskentelyjakso_id"/>
+
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus_audit" columnName="lahetetty"/>
+        <dropNotNullConstraint tableName="koejakson_koulutussopimus_audit" columnName="muokkauspaiva"/>
+
+        <dropNotNullConstraint tableName="koulutussopimuksen_kouluttaja_audit" columnName="koulutussopimus_id"/>
+
+        <dropNotNullConstraint tableName="koulutussopimuksen_koulutuspaikka_audit" columnName="koulutussopimus_id"/>
+
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="lahetetty"/>
+        <dropNotNullConstraint tableName="koejakson_aloituskeskustelu_audit" columnName="muokkauspaiva"/>
+
+        <dropNotNullConstraint tableName="koejakson_valiarviointi_audit" columnName="lahikouluttaja_id"/>
+        <dropNotNullConstraint tableName="koejakson_valiarviointi_audit" columnName="lahiesimies_id"/>
+        <dropNotNullConstraint tableName="koejakson_valiarviointi_audit" columnName="muokkauspaiva"/>
+
+        <dropNotNullConstraint tableName="koejakson_valiarviointi_kehittamistoimenpidekategoriat_audit" columnName="kategoria"/>
+
+        <dropNotNullConstraint tableName="koejakson_kehittamistoimenpiteet_audit" columnName="lahikouluttaja_id"/>
+        <dropNotNullConstraint tableName="koejakson_kehittamistoimenpiteet_audit" columnName="lahiesimies_id"/>
+        <dropNotNullConstraint tableName="koejakson_kehittamistoimenpiteet_audit" columnName="muokkauspaiva"/>
+
+        <dropNotNullConstraint tableName="koejakson_loppukeskustelu_audit" columnName="lahikouluttaja_id"/>
+        <dropNotNullConstraint tableName="koejakson_loppukeskustelu_audit" columnName="lahiesimies_id"/>
+        <dropNotNullConstraint tableName="koejakson_loppukeskustelu_audit" columnName="muokkauspaiva"/>
+
+        <dropNotNullConstraint tableName="koejakson_vastuuhenkilon_arvio_audit" columnName="vastuuhenkilo_id"/>
+        <dropNotNullConstraint tableName="koejakson_vastuuhenkilon_arvio_audit" columnName="muokkauspaiva"/>
+        <dropNotNullConstraint tableName="koejakson_vastuuhenkilon_arvio_audit" columnName="allekirjoitettu"/>
+
+        <dropNotNullConstraint tableName="asiakirja_audit" columnName="nimi"/>
+        <dropNotNullConstraint tableName="asiakirja_audit" columnName="tyyppi"/>
+        <dropNotNullConstraint tableName="asiakirja_audit" columnName="lisattypvm"/>
+
+        <dropNotNullConstraint tableName="koulutussuunnitelma_audit" columnName="motivaatiokirje_yksityinen"/>
+        <dropNotNullConstraint tableName="koulutussuunnitelma_audit" columnName="opiskelu_ja_tyohistoria_yksityinen"/>
+        <dropNotNullConstraint tableName="koulutussuunnitelma_audit" columnName="vahvuudet_yksityinen"/>
+        <dropNotNullConstraint tableName="koulutussuunnitelma_audit" columnName="tulevaisuuden_visiointi_yksityinen"/>
+        <dropNotNullConstraint tableName="koulutussuunnitelma_audit" columnName="osaamisen_kartuttaminen_yksityinen"/>
+        <dropNotNullConstraint tableName="koulutussuunnitelma_audit" columnName="elamankentta_yksityinen"/>
+        <dropNotNullConstraint tableName="koulutussuunnitelma_audit" columnName="muokkauspaiva"/>
+
+        <dropNotNullConstraint tableName="koulutusjakso_audit" columnName="nimi"/>
+        <dropNotNullConstraint tableName="koulutusjakso_audit" columnName="lukittu"/>
+        <dropNotNullConstraint tableName="koulutusjakso_audit" columnName="koulutussuunnitelma_id"/>
+
+        <dropNotNullConstraint tableName="rel_koulutusjakso__tyoskentelyjakso_audit" columnName="tyoskentelyjakso_id"/>
+        <dropNotNullConstraint tableName="rel_koulutusjakso__tyoskentelyjakso_audit" columnName="koulutusjakso_id"/>
+
+        <dropNotNullConstraint tableName="rel_koulutusjakso__osaamistavoitteet_audit" columnName="osaamistavoitteet_id"/>
+        <dropNotNullConstraint tableName="rel_koulutusjakso__osaamistavoitteet_audit" columnName="koulutusjakso_id"/>
+
+        <dropNotNullConstraint tableName="teoriakoulutus_audit" columnName="koulutuksen_nimi"/>
+        <dropNotNullConstraint tableName="teoriakoulutus_audit" columnName="koulutuksen_paikka"/>
+        <dropNotNullConstraint tableName="teoriakoulutus_audit" columnName="alkamispaiva"/>
+
+        <dropNotNullConstraint tableName="seurantajakso_audit" columnName="alkamispaiva"/>
+        <dropNotNullConstraint tableName="seurantajakso_audit" columnName="paattymispaiva"/>
+        <dropNotNullConstraint tableName="seurantajakso_audit" columnName="oma_arviointi"/>
+        <dropNotNullConstraint tableName="seurantajakso_audit" columnName="kouluttaja_id"/>
+
+        <dropNotNullConstraint tableName="seurantajakso_koulutusjakso_audit" columnName="seurantajakso_id"/>
+        <dropNotNullConstraint tableName="seurantajakso_koulutusjakso_audit" columnName="koulutusjakso_id"/>
+
+        <dropNotNullConstraint tableName="rel_paivakirjamerkinta__aihekategoria_audit" columnName="aihekategoria_id"/>
+        <dropNotNullConstraint tableName="rel_paivakirjamerkinta__aihekategoria_audit" columnName="paivakirjamerkinta_id"/>
+
+        <dropNotNullConstraint tableName="opintoopas_audit" columnName="nimi"/>
+        <dropNotNullConstraint tableName="opintoopas_audit" columnName="voimassaolo_alkaa"/>
+        <dropNotNullConstraint tableName="opintoopas_audit" columnName="kaytannon_koulutuksen_vahimmaispituus"/>
+        <dropNotNullConstraint tableName="opintoopas_audit" columnName="terveyskeskuskoulutusjakson_vahimmaispituus"/>
+        <dropNotNullConstraint tableName="opintoopas_audit" columnName="yliopistosairaalajakson_vahimmaispituus"/>
+        <dropNotNullConstraint tableName="opintoopas_audit" columnName="yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus"/>
+        <dropNotNullConstraint tableName="opintoopas_audit" columnName="erikoisala_id"/>
+        <dropNotNullConstraint tableName="opintoopas_audit" columnName="arviointiasteikko_id"/>
+        <dropNotNullConstraint tableName="opintoopas_audit" columnName="erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara"/>
+        <dropNotNullConstraint tableName="opintoopas_audit" columnName="erikoisalan_vaatima_sateilysuojakoulutusten_vahimmaismaara"/>
+        <dropNotNullConstraint tableName="opintoopas_audit" columnName="erikoisalan_vaatima_johtamisopintojen_vahimmaismaara"/>
+
+        <dropNotNullConstraint tableName="kayttaja_yliopisto_erikoisala_audit" columnName="yliopisto_id"/>
+        <dropNotNullConstraint tableName="kayttaja_yliopisto_erikoisala_audit" columnName="erikoisala_id"/>
+        <dropNotNullConstraint tableName="kayttaja_yliopisto_erikoisala_audit" columnName="kayttaja_id"/>
+
+        <dropNotNullConstraint tableName="opintosuoritus_audit" columnName="nimi_fi"/>
+        <dropNotNullConstraint tableName="opintosuoritus_audit" columnName="kurssikoodi"/>
+        <dropNotNullConstraint tableName="opintosuoritus_audit" columnName="tyyppi_id"/>
+        <dropNotNullConstraint tableName="opintosuoritus_audit" columnName="suorituspaiva"/>
+        <dropNotNullConstraint tableName="opintosuoritus_audit" columnName="hyvaksytty"/>
+        <dropNotNullConstraint tableName="opintosuoritus_audit" columnName="opintooikeus_id"/>
+
+        <dropNotNullConstraint tableName="opintosuoritus_osakokonaisuus_audit" columnName="nimi_fi"/>
+        <dropNotNullConstraint tableName="opintosuoritus_osakokonaisuus_audit" columnName="kurssikoodi"/>
+        <dropNotNullConstraint tableName="opintosuoritus_osakokonaisuus_audit" columnName="suorituspaiva"/>
+        <dropNotNullConstraint tableName="opintosuoritus_osakokonaisuus_audit" columnName="hyvaksytty"/>
+        <dropNotNullConstraint tableName="opintosuoritus_osakokonaisuus_audit" columnName="opintosuoritus_id"/>
+
+        <dropNotNullConstraint tableName="kayttaja_audit" columnName="user_id"/>
+        <dropNotNullConstraint tableName="kayttaja_audit" columnName="tila"/>
+
+        <dropNotNullConstraint tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi_audit" columnName="kayttaja_yliopisto_erikoisala_id"/>
+        <dropNotNullConstraint tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi_audit" columnName="vastuuhenkilon_tehtavatyyppi_id"/>
+
+        <dropNotNullConstraint tableName="rel_kayttaja__yliopisto_audit" columnName="kayttaja_id"/>
+        <dropNotNullConstraint tableName="rel_kayttaja__yliopisto_audit" columnName="yliopisto_id"/>
+
+        <dropNotNullConstraint tableName="jhi_user_audit" columnName="login"/>
+        <dropNotNullConstraint tableName="jhi_user_audit" columnName="activated"/>
+
+        <dropNotNullConstraint tableName="valmistumispyynto_audit" columnName="opintooikeus_id"/>
+
+        <dropNotNullConstraint tableName="valmistumispyynnon_tarkistus_audit" columnName="valmistumispyynto_id"/>
+    </changeSet>
+
+</databaseChangeLog>

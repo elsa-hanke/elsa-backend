@@ -3,8 +3,7 @@ package fi.elsapalvelu.elsa.service.dto
 import fi.elsapalvelu.elsa.domain.enumeration.KehittamistoimenpideKategoria
 import java.io.Serializable
 import java.time.LocalDate
-import javax.persistence.Lob
-import javax.validation.constraints.NotNull
+import jakarta.validation.constraints.NotNull
 
 data class KoejaksonKehittamistoimenpiteetDTO(
 
@@ -21,7 +20,6 @@ data class KoejaksonKehittamistoimenpiteetDTO(
     @get: NotNull
     var erikoistuvanYliopisto: String? = null,
 
-    @Lob
     var erikoistuvanAvatar: ByteArray? = null,
 
     var kehittamistoimenpiteetKuvaus: String? = null,

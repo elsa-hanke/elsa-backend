@@ -34,7 +34,7 @@ import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 @SpringBootTest(classes = [ElsaBackendApp::class])

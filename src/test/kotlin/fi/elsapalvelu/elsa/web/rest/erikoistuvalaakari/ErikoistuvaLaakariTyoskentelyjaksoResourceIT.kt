@@ -38,7 +38,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
 import java.time.LocalDate
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -192,7 +192,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         assertThat(testAsiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(testAsiakirja.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
         assertThat(testAsiakirja.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
-        assertThat(testAsiakirja.asiakirjaData?.data?.binaryStream?.use { it.readBytes() }).isEqualTo(
+        assertThat(testAsiakirja.asiakirjaData?.data).isEqualTo(
             AsiakirjaHelper.ASIAKIRJA_PDF_DATA
         )
 
@@ -201,9 +201,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         assertThat(testAsiakirja2.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI)
         assertThat(testAsiakirja2.lisattypvm?.toLocalDate()).isEqualTo(LocalDate.now())
         assertThat(testAsiakirja2.tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI)
-        assertThat(testAsiakirja2.asiakirjaData?.data?.binaryStream?.use { it.readBytes() }).isEqualTo(
-            AsiakirjaHelper.ASIAKIRJA_PNG_DATA
-        )
+        assertThat(testAsiakirja2.asiakirjaData?.data).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_DATA)
     }
 
     @Test
@@ -986,12 +984,10 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
         val keskeytysaikaTableSizeBeforeDelete = keskeytysaikaRepository.findAll().size
-        val keskeytysaikaDTO = keskeytysaikaMapper.toDto(keskeytysaika)
 
         restKeskeytysaikaMockMvc.perform(
-            delete("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(keskeytysaikaDTO))
+            delete("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot/{id}", keskeytysaika.id)
+                .accept(MediaType.APPLICATION_JSON)
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 

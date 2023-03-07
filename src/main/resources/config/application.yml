@@ -19,7 +19,7 @@ management:
     web:
       base-path: /management
       exposure:
-        include: [ 'configprops', 'env', 'health', 'info', 'jhimetrics', 'logfile', 'loggers', 'prometheus', 'threaddump', 'caches', 'liquibase' ]
+        include: [ 'configprops', 'env', 'health', 'info', 'jhimetrics', 'logfile', 'loggers', 'threaddump', 'caches', 'liquibase' ]
   endpoint:
     health:
       show-details: when_authorized
@@ -38,11 +38,6 @@ management:
     mail:
       enabled: false # When using the MailService, configure an SMTP server and set this to true
   metrics:
-    export:
-      # Prometheus is the default metrics backend
-      prometheus:
-        enabled: true
-        step: 60
     enable:
       http: true
       jvm: true
@@ -56,11 +51,31 @@ management:
         all: 0, 0.5, 0.75, 0.95, 0.99, 1.0
     tags:
       application: ${spring.application.name}
-    web:
-      server:
-        request:
-          autotime:
-            enabled: true
+
+logging:
+  level:
+    _org.springframework.web.servlet.HandlerMapping.Mappings": INFO
+    angus.activation: WARN
+    com.zaxxer: WARN
+    io.undertow: WARN
+    io.undertow.websockets.jsr: ERROR
+    jakarta.activation: WARN
+    jakarta.mail: WARN
+    jakarta.xml.bind: WARN
+    javax.management.remote: WARN
+    jdk.event.security: INFO
+    liquibase: WARN
+    org.apache: WARN
+    org.ehcache: WARN
+    org.glassfish.jaxb.runtime: WARN
+    org.hibernate: WARN
+    org.hibernate.orm.incubating: ERROR
+    org.opensaml: INFO
+    org.postgresql: WARN
+    org.springframework: WARN
+    org.thymeleaf: WARN
+    org.xnio: WARN
+    sun.rmi: WARN
 
 spring:
   application:
@@ -79,6 +94,8 @@ spring:
     jpa:
       repositories:
         bootstrap-mode: deferred
+  liquibase:
+    change-log: classpath:/config/liquibase/master.xml
   servlet:
     multipart:
       max-file-size: 20MB
@@ -88,6 +105,7 @@ spring:
     properties:
       hibernate.jdbc.time_zone: UTC
       hibernate.id.new_generator_mappings: true
+      hibernate.id.db_structure_naming_strategy: legacy
       hibernate.connection.provider_disables_autocommit: true
       hibernate.cache.use_second_level_cache: true
       hibernate.cache.use_query_cache: false
@@ -105,21 +123,23 @@ spring:
             audit_table_suffix: _audit
             revision_field_name: revision_id
             revision_type_field_name: revision_type
-            store_data_at_delete: true
+            revision_on_collection_change: false
     hibernate:
       ddl-auto: none
       naming:
-        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
         implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
   messages:
     basename: i18n/messages
   web:
     locale-resolver: accept_header
     locale: fi
-  resources:
-    add-mappings: false # NoHandlerFoundAdviceTrait needs this
+    resources:
+      add-mappings: false # NoHandlerFoundAdviceTrait needs this
   mvc:
     throw-exception-if-no-handler-found: true # NoHandlerFoundAdviceTrait needs this
+    problem-details:
+      enabled: true
   main:
     allow-bean-definition-overriding: true
   task:
