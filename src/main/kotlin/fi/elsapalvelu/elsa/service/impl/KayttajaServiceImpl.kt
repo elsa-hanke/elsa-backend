@@ -196,6 +196,13 @@ class KayttajaServiceImpl(
                 kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
                 it.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
+                // Erikoistujan kutsuminen kouluttajaksi
+                if (it.user?.authorities?.contains(Authority(name = KOULUTTAJA)) == false
+                    && it.user?.authorities?.contains(Authority(name = VASTUUHENKILO)) == false) {
+                    it.user?.authorities?.add(Authority(name = KOULUTTAJA))
+                    userRepository.save(it.user!!)
+                }
+
                 kayttajaMapper.toDto(it)
             }
     }
