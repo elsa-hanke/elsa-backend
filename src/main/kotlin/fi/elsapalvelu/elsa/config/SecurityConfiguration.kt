@@ -91,30 +91,30 @@ class SecurityConfiguration(
         val authenticationProvider = OpenSaml4AuthenticationProvider()
         authenticationProvider.setAssertionValidator(
             OpenSaml4AuthenticationProvider.createDefaultAssertionValidator {
-            val relyingPartyRegistration: RelyingPartyRegistration =
-                it.token.relyingPartyRegistration
-            val audience = relyingPartyRegistration.entityId
-            val recipient = relyingPartyRegistration.assertionConsumerServiceLocation
-            val assertingPartyEntityId =
-                relyingPartyRegistration.assertingPartyDetails.entityId
-            val params: MutableMap<String, Any> = HashMap()
+                val relyingPartyRegistration: RelyingPartyRegistration =
+                    it.token.relyingPartyRegistration
+                val audience = relyingPartyRegistration.entityId
+                val recipient = relyingPartyRegistration.assertionConsumerServiceLocation
+                val assertingPartyEntityId =
+                    relyingPartyRegistration.assertingPartyDetails.entityId
+                val params: MutableMap<String, Any> = HashMap()
                 if (assertionContainsInResponseTo(it.assertion)) {
                     val requestId = it.token.authenticationRequest.id
                     params[SAML2AssertionValidationParameters.SC_VALID_IN_RESPONSE_TO] = requestId
                 }
-            params[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] =
-                setOf(
-                    if (audience.contains("haka")) audience.substring(
-                        0,
-                        audience.indexOf("haka")
-                    ) + "haka"; else audience
-                )
-            params[SAML2AssertionValidationParameters.SC_VALID_RECIPIENTS] =
-                setOf(recipient)
-            params[SAML2AssertionValidationParameters.VALID_ISSUERS] =
-                setOf(assertingPartyEntityId)
-            ValidationContext(params)
-        }
+                params[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] =
+                    setOf(
+                        if (audience.contains("haka")) audience.substring(
+                            0,
+                            audience.indexOf("haka")
+                        ) + "haka"; else audience
+                    )
+                params[SAML2AssertionValidationParameters.SC_VALID_RECIPIENTS] =
+                    setOf(recipient)
+                params[SAML2AssertionValidationParameters.VALID_ISSUERS] =
+                    setOf(assertingPartyEntityId)
+                ValidationContext(params)
+            }
         )
         authenticationProvider.setResponseAuthenticationConverter(authenticationConverter())
         withHttpOnlyFalse.setCookieDomain(applicationProperties.getCsrf().cookie.domain)
@@ -181,6 +181,7 @@ class SecurityConfiguration(
                 authorize
                     .requestMatchers("/authorize").authenticated()
                     .requestMatchers("/").permitAll() // ohjaus etusivulle
+                    .requestMatchers("/kirjaudu").permitAll()
                     .requestMatchers("/api/").permitAll()
                     .requestMatchers("/api/haka-yliopistot").permitAll()
                     .requestMatchers("/api/julkinen/**").permitAll()
@@ -374,7 +375,10 @@ class SecurityConfiguration(
             } else {
                 fetchAndUpdateOpintotietodataIfChanged(existingUser.id!!, hetu, firstName, lastName)
                 fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id!!, hetu)
-                opintooikeusService.checkOpintooikeusKaytossaValid(existingUser)
+
+                if (hasErikoistuvaLaakariRole(existingUser)) {
+                    opintooikeusService.checkOpintooikeusKaytossaValid(existingUser)
+                }
             }
         }
 
@@ -386,7 +390,7 @@ class SecurityConfiguration(
             throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
         }
 
-        val kayttaja = kayttajaRepository.findOneByUserId(existingUser.id!!).orElseThrow {
+        val kayttaja = kayttajaRepository.findOneByUserIdWithAuthorities(existingUser.id!!).orElseThrow {
             Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
         }
 
@@ -410,9 +414,9 @@ class SecurityConfiguration(
             kayttajaRepository.save(kayttaja)
         }
 
-        return Saml2Authentication(createPrincipal(existingUser.id, principal),
+        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal),
             token.saml2Response,
-            existingUser.authorities.map { SimpleGrantedAuthority(it.name) })
+            kayttaja.user?.authorities?.map { SimpleGrantedAuthority(it.name) })
     }
 
     private fun shouldFetchOpintotietodata(
@@ -420,11 +424,15 @@ class SecurityConfiguration(
         tokenUser: User?,
         hetu: String?
     ): Boolean =
-        (existingUser == null || hasErikoistuvaLaakariRole(existingUser)) && (tokenUser == null ||
-            hasErikoistuvaLaakariRole(tokenUser)) && hetu != null
+        (existingUser == null || hasErikoistuvaLaakariRole(existingUser)
+            || hasKouluttajaRole(existingUser))
+            && (tokenUser == null || hasErikoistuvaLaakariRole(tokenUser)) && hetu != null
 
     private fun hasErikoistuvaLaakariRole(user: User): Boolean =
         user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))
+
+    private fun hasKouluttajaRole(user: User): Boolean =
+        user.authorities.contains(Authority(name = KOULUTTAJA))
 
     private fun hasVastuuhenkiloRole(user: User): Boolean =
         user.authorities.contains(Authority(name = VASTUUHENKILO))
@@ -486,12 +494,14 @@ class SecurityConfiguration(
                             }
 
                     deferreds.awaitAll().filterNotNull().let {
-                        opintotietodataPersistenceService.createOrUpdateIfChanged(
-                            userId,
-                            firstName,
-                            lastName,
-                            it
-                        )
+                        if (it.isNotEmpty()) {
+                            opintotietodataPersistenceService.createOrUpdateIfChanged(
+                                userId,
+                                firstName,
+                                lastName,
+                                it
+                            )
+                        }
                     }
                 } catch (ex: Exception) {
                     log.error("Virhe opintotietodatan haussa tai päivittämisessä: ${ex.message} ${ex.stackTrace}")

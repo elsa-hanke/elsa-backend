@@ -59,7 +59,9 @@ class OpintotietodataPersistenceServiceImpl(
         opintotietodataDTOs: List<OpintotietodataDTO>
     ) {
         val filteredOpintotietodataOpintooikeudet =
-            filterOpintooikeudetByVoimassaDate(opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten())
+            filterOpintooikeudetByVoimassaDate(opintotietodataDTOs.map {
+                it.opintooikeudet ?: listOf()
+            }.flatten())
 
         if (filteredOpintotietodataOpintooikeudet.isEmpty()) {
             log.info("Voimassaolevia opinto-oikeuksia ei löytynyt käyttäjälle $etunimi $sukunimi")
@@ -71,7 +73,8 @@ class OpintotietodataPersistenceServiceImpl(
             etunimi,
             sukunimi
         ) ?: return
-        val erikoistuvaLaakari = createErikoistuvaLaakari(cipher, originalKey, hetu, etunimi, sukunimi, syntymaaika)
+        val erikoistuvaLaakari =
+            createErikoistuvaLaakari(cipher, originalKey, hetu, etunimi, sukunimi, syntymaaika)
         val userId = erikoistuvaLaakari.kayttaja?.user?.id!!
 
         checkOpintooikeudetAmount(filteredOpintotietodataOpintooikeudet, erikoistuvaLaakari)
@@ -82,16 +85,38 @@ class OpintotietodataPersistenceServiceImpl(
     }
 
     override fun createOrUpdateIfChanged(
-        userId: String, etunimi: String, sukunimi: String, opintotietodataDTOs: List<OpintotietodataDTO>
+        userId: String,
+        etunimi: String,
+        sukunimi: String,
+        opintotietodataDTOs: List<OpintotietodataDTO>
     ) {
+        val syntymaaika = checkSyntymaaikaValidDateExistsOrLogError(
+            opintotietodataDTOs,
+            etunimi,
+            sukunimi
+        ) ?: return
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-            ?: throw EntityNotFoundException("Erikoistuvaa lääkäriä ei löydy.")
+            ?: erikoistuvaLaakariRepository.save(
+                ErikoistuvaLaakari(
+                    syntymaaika = syntymaaika,
+                    kayttaja = kayttajaRepository.findOneByUserId(userId)
+                        .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy.") })
+            )
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        if (!user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))) {
+            user.authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
+            userRepository.save(user)
+        }
 
         updateNimiIfChanged(erikoistuvaLaakari, etunimi, sukunimi)
 
-        val opintotietodataOpintooikeudet = opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
+        val opintotietodataOpintooikeudet =
+            opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
 
-        checkOpintooikeudetAmount(filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet), erikoistuvaLaakari)
+        checkOpintooikeudetAmount(
+            filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet),
+            erikoistuvaLaakari
+        )
         updateOpintooikeudet(userId, opintotietodataOpintooikeudet, erikoistuvaLaakari)
     }
 
@@ -111,7 +136,12 @@ class OpintotietodataPersistenceServiceImpl(
         cipher: Cipher, originalKey: SecretKey, hetu: String?, etunimi: String, sukunimi: String
     ) {
         val erikoistuvaLaakari = createErikoistuvaLaakari(
-            cipher, originalKey, hetu, etunimi, sukunimi, LocalDate.now(ZoneId.systemDefault()).minusYears(40)
+            cipher,
+            originalKey,
+            hetu,
+            etunimi,
+            sukunimi,
+            LocalDate.now(ZoneId.systemDefault()).minusYears(40)
         )
         val yliopisto = yliopistoRepository.findByIdOrNull(1)
         val erikoisala = erikoisalaRepository.findByIdOrNull(46)
@@ -153,13 +183,15 @@ class OpintotietodataPersistenceServiceImpl(
         val user = erikoistuvaLaakari.kayttaja?.user!!
         var opintooikeusHerate: OpintooikeusHerate? = null
         opintooikeudet.takeIf { it.size > 2 }?.takeIf {
-            opintooikeusHerate = opintooikeusHerateRepository.findOneByErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusHerate =
+                opintooikeusHerateRepository.findOneByErikoistuvaLaakariKayttajaUserId(user.id!!)
             opintooikeusHerate?.useaVoimassaolevaHerateLahetetty == null
         }?.let {
             mailService.sendEmailFromTemplate(
                 user,
                 // Ei lähetetä Helsingin yliopiston virkailijoille: https://jira.eduuni.fi/browse/UOELSA-1156
-                getOpintohallintoEmailAddresses(yliopistot.filter { it != YliopistoEnum.HELSINGIN_YLIOPISTO }.toSet()),
+                getOpintohallintoEmailAddresses(yliopistot.filter { it != YliopistoEnum.HELSINGIN_YLIOPISTO }
+                    .toSet()),
                 "useaOpintooikeus.html",
                 "useaopintooikeus.title",
                 properties = mapOf(
@@ -175,8 +207,13 @@ class OpintotietodataPersistenceServiceImpl(
         }
     }
 
-    private fun updateOpintooikeudet(userId: String, opintotietodataOpintooikeudet: List<OpintotietoOpintooikeusDataDTO>, erikoistuvaLaakari: ErikoistuvaLaakari) {
-        val existingOpintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+    private fun updateOpintooikeudet(
+        userId: String,
+        opintotietodataOpintooikeudet: List<OpintotietoOpintooikeusDataDTO>,
+        erikoistuvaLaakari: ErikoistuvaLaakari
+    ) {
+        val existingOpintooikeudet =
+            opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         val opintotietodataNewOpintooikeudet =
             opintotietodataOpintooikeudet.filter { o -> o.id !in existingOpintooikeudet.map { it.yliopistoOpintooikeusId } }
         val opintotietodataExistingOpintooikeudet =
@@ -199,7 +236,12 @@ class OpintotietodataPersistenceServiceImpl(
     }
 
     private fun createErikoistuvaLaakari(
-        cipher: Cipher, originalKey: SecretKey, hetu: String?, etunimi: String, sukunimi: String, syntymaaika: LocalDate
+        cipher: Cipher,
+        originalKey: SecretKey,
+        hetu: String?,
+        etunimi: String,
+        sukunimi: String,
+        syntymaaika: LocalDate
     ): ErikoistuvaLaakari {
         val userDTO = userService.createUser(cipher, originalKey, hetu, etunimi, sukunimi)
         var user = userRepository.findById(userDTO.id!!).orElseThrow()
@@ -226,20 +268,33 @@ class OpintotietodataPersistenceServiceImpl(
         erikoistuvaLaakari: ErikoistuvaLaakari
     ) {
         val opintooikeusId =
-            checkOpintooikeusIdValueExistsOrLogError(opintooikeusDTO.id, opintooikeusDTO.yliopisto, userId) ?: return
+            checkOpintooikeusIdValueExistsOrLogError(
+                opintooikeusDTO.id,
+                opintooikeusDTO.yliopisto,
+                userId
+            ) ?: return
         val yliopisto = findYliopistoOrLogError(opintooikeusDTO.yliopisto) ?: return
         val asetusStr =
-            checkAsetusValueExistsOrLogError(opintooikeusDTO.asetus, opintooikeusDTO.yliopisto, userId) ?: return
+            checkAsetusValueExistsOrLogError(
+                opintooikeusDTO.asetus,
+                opintooikeusDTO.yliopisto,
+                userId
+            ) ?: return
         val asetus = findAsetusOrLogError(asetusStr, opintooikeusDTO.yliopisto, userId) ?: return
         val opintooikeudenTila =
-            checkOpintooikeudenTilaValueExistsOrLogError(opintooikeusDTO.tila, opintooikeusDTO.yliopisto, userId)
+            checkOpintooikeudenTilaValueExistsOrLogError(
+                opintooikeusDTO.tila,
+                opintooikeusDTO.yliopisto,
+                userId
+            )
                 ?: return
         val opintooikeudenAlkamispaiva = checkOpintooikeudenAlkamispaivaValidDateExistsOrLogError(
             opintooikeusDTO.opintooikeudenAlkamispaiva, opintooikeusDTO.yliopisto, userId
         ) ?: return
-        val opintooikeudenPaattymispaiva = checkOpintooikeudenPaattymispaivaValidDateExistsOrLogError(
-            opintooikeusDTO.opintooikeudenPaattymispaiva, opintooikeusDTO.yliopisto, userId
-        ) ?: return
+        val opintooikeudenPaattymispaiva =
+            checkOpintooikeudenPaattymispaivaValidDateExistsOrLogError(
+                opintooikeusDTO.opintooikeudenPaattymispaiva, opintooikeusDTO.yliopisto, userId
+            ) ?: return
         val erikoisala =
             findErikoisalaOrLogError(
                 opintooikeusDTO.erikoisalaTunnisteList,
@@ -286,9 +341,14 @@ class OpintotietodataPersistenceServiceImpl(
         userId: String,
         erikoistuvaLaakari: ErikoistuvaLaakari
     ) {
-        val existingOpintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+        val existingOpintooikeudet =
+            opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         val opintooikeusId =
-            checkOpintooikeusIdValueExistsOrLogError(opintooikeusDTO.id, opintooikeusDTO.yliopisto, userId)
+            checkOpintooikeusIdValueExistsOrLogError(
+                opintooikeusDTO.id,
+                opintooikeusDTO.yliopisto,
+                userId
+            )
                 ?: return
         val yliopisto = findYliopistoOrLogError(opintooikeusDTO.yliopisto) ?: return
         val erikoisala = findErikoisalaOrLogError(
@@ -308,7 +368,11 @@ class OpintotietodataPersistenceServiceImpl(
                 opintooikeusDTO.tila, opintooikeusDTO.yliopisto, userId
             ) ?: return
             val asetusStr =
-                checkAsetusValueExistsOrLogError(opintooikeusDTO.asetus, opintooikeusDTO.yliopisto, userId)
+                checkAsetusValueExistsOrLogError(
+                    opintooikeusDTO.asetus,
+                    opintooikeusDTO.yliopisto,
+                    userId
+                )
                     ?: return
 
             opintooikeusId.takeIf { opintooikeus.yliopistoOpintooikeusId == null }
@@ -390,6 +454,7 @@ class OpintotietodataPersistenceServiceImpl(
                     if (erikoisala.virtaPatevyyskoodi == SUU_JA_LEUKAKIRURGIA_VIRTA_PATEVYYSKOODI) 10
                     else 6
                 }
+
                 else -> 10
             }
         // Jos opinto-oikeuden päättymispäivää ei ole asetettu tai opinto-oikeuden pituus on alle 10/6 vuotta
@@ -400,7 +465,8 @@ class OpintotietodataPersistenceServiceImpl(
             )
         val opintoopas =
             if (useLatestOpintoopas) {
-                findLatestOpintoopasByErikoisalaOrLogError(existingOpintooikeus.erikoisala?.id!!) ?: return
+                findLatestOpintoopasByErikoisalaOrLogError(existingOpintooikeus.erikoisala?.id!!)
+                    ?: return
             } else {
                 val opintoopasValidDate =
                     newOpintooikeudenPaattymispaiva!!.minusYears(defaultOpintooikeudenPituus.toLong())
@@ -409,7 +475,9 @@ class OpintotietodataPersistenceServiceImpl(
                     opintoopasValidDate,
                     yliopisto,
                     userId
-                ) ?: findLatestOpintoopasByErikoisalaOrLogError(existingOpintooikeus.erikoisala?.id!!) ?: return
+                )
+                    ?: findLatestOpintoopasByErikoisalaOrLogError(existingOpintooikeus.erikoisala?.id!!)
+                    ?: return
             }
 
         existingOpintooikeus.opintoopas = opintoopas
@@ -499,7 +567,8 @@ class OpintotietodataPersistenceServiceImpl(
     }
 
     private fun findLatestOpintoopasByErikoisalaOrLogError(erikoisalaId: Long): Opintoopas? {
-        return opintoopasRepository.findAllByErikoisalaId(erikoisalaId).maxByOrNull { it.voimassaoloAlkaa!! }
+        return opintoopasRepository.findAllByErikoisalaId(erikoisalaId)
+            .maxByOrNull { it.voimassaoloAlkaa!! }
             ?: run {
                 log.error("Viimeisintä opinto-opasta ei löytynyt. Erikoisala id: $erikoisalaId")
                 return null
