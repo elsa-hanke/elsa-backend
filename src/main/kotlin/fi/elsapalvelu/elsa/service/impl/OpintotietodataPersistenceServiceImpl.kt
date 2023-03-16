@@ -247,6 +247,7 @@ class OpintotietodataPersistenceServiceImpl(
         var user = userRepository.findById(userDTO.id!!).orElseThrow()
 
         user.authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
+        user.activeAuthority = Authority(name = ERIKOISTUVA_LAAKARI)
         user = userRepository.save(user)
 
         val kayttaja = kayttajaRepository.save(

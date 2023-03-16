@@ -61,7 +61,8 @@ class ErikoistuvaLaakariServiceImpl(
             lastName = kayttajahallintaErikoistuvaLaakariDTO.sukunimi,
             email = kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite,
             activated = true,
-            authorities = mutableSetOf(Authority(ERIKOISTUVA_LAAKARI))
+            authorities = mutableSetOf(Authority(ERIKOISTUVA_LAAKARI)),
+            activeAuthority = Authority(ERIKOISTUVA_LAAKARI)
         )
         user = userRepository.save(user)
 
