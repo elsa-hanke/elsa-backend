@@ -63,6 +63,7 @@ class KayttajaServiceImpl(
             kayttajaMapper.toDto(kayttaja)
         } else {
             var user = userMapper.userDTOToUser(userDTO)!!
+            user.activeAuthority = user.authorities.first()
             user.firstName = kayttajaDTO.etunimi
             user.lastName = kayttajaDTO.sukunimi
             user = userRepository.save(user)
@@ -429,7 +430,8 @@ class KayttajaServiceImpl(
             email = kayttajahallintaKayttajaDTO.sahkoposti,
             activated = true,
             eppn = kayttajahallintaKayttajaDTO.eppn,
-            authorities = authorities
+            authorities = authorities,
+            activeAuthority = authorities.first()
         )
         val persistedUser = userRepository.save(userMapper.userDTOToUser(userDTO)!!)
         val kayttajaDTO = KayttajaDTO(

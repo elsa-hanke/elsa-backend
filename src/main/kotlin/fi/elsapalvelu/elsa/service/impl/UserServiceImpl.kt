@@ -177,9 +177,9 @@ class UserServiceImpl(
                 )
 
                 copyTokenUserAuthorities(existingUser, tokenUser)
-                deleteTokenUser(tokenKayttaja, token, tokenUser)
                 existingUser.email = tokenUser.email?.lowercase()
                 copyTokenUserYliopistotAndErikoisalat(tokenKayttaja, existingKayttaja)
+                deleteTokenUser(tokenKayttaja, token, tokenUser)
                 kayttajaRepository.save(existingKayttaja)
                 userRepository.save(existingUser)
             } else {
@@ -292,8 +292,11 @@ class UserServiceImpl(
         existingUser: User,
         tokenUser: User
     ) {
-        existingUser.authorities.clear()
-        existingUser.authorities.addAll(tokenUser.authorities)
+        tokenUser.authorities.forEach {
+            if (!existingUser.authorities.contains(it)) {
+                existingUser.authorities.add(it)
+            }
+        }
     }
 
     private fun deleteTokenUser(
