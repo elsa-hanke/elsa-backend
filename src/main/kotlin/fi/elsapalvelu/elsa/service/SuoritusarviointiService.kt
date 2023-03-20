@@ -8,7 +8,10 @@ import java.util.*
 interface SuoritusarviointiService {
     fun save(suoritusarviointiDTO: SuoritusarviointiDTO): SuoritusarviointiDTO
 
-    fun save(suoritusarviointiDTO: SuoritusarviointiDTO, userId: String): SuoritusarviointiDTO
+    fun save(
+        suoritusarviointiDTO: SuoritusarviointiDTO, newAsiakirjat: MutableSet<AsiakirjaDTO>,
+        deletedAsiakirjaIds: MutableSet<Int>?, userId: String
+    ): SuoritusarviointiDTO
 
     fun findAllByTyoskentelyjaksoOpintooikeusId(
         opintooikeusId: Long
@@ -26,12 +29,14 @@ interface SuoritusarviointiService {
 
     fun findAsiakirjaBySuoritusarviointiIdAndTyoskentelyjaksoOpintooikeusId(
         id: Long,
-        opintooikeusId: Long
+        opintooikeusId: Long,
+        asiakirjaId: Long
     ): AsiakirjaDTO?
 
     fun findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(
         id: Long,
-        userId: String
+        userId: String,
+        asiakirjaId: Long
     ): AsiakirjaDTO?
 
     fun findForSeurantajakso(

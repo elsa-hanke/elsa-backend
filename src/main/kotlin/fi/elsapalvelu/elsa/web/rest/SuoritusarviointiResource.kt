@@ -79,14 +79,15 @@ open class SuoritusarviointiResource(
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
     }
 
-    @GetMapping("/suoritusarvioinnit/{id}/arviointi-liite")
+    @GetMapping("/suoritusarvioinnit/{id}/arviointi-liite/{asiakirjaId}")
     fun getArviointiLiite(
         @PathVariable id: Long,
+        @PathVariable asiakirjaId: Long,
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
         val asiakirja = suoritusarviointiService
-            .findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(id, user.id!!)
+            .findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(id, user.id!!, asiakirjaId)
 
         asiakirja?.asiakirjaData?.fileInputStream?.use {
             return ResponseEntity.ok()
@@ -103,7 +104,8 @@ open class SuoritusarviointiResource(
     @PutMapping("/suoritusarvioinnit")
     fun updateSuoritusarviointi(
         @Valid @RequestParam suoritusarviointiJson: String,
-        @Valid @RequestParam arviointiFile: MultipartFile?,
+        @Valid @RequestParam arviointiFiles: List<MultipartFile>?,
+        @RequestParam deletedAsiakirjaIdsJson: String?,
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -111,8 +113,16 @@ open class SuoritusarviointiResource(
             objectMapper.readValue(it, SuoritusarviointiDTO::class.java)
         }?.let { suoritusarviointiDTO ->
             validateDTO(suoritusarviointiDTO)
-            suoritusarviointiDTO.arviointiAsiakirja = getMappedFile(arviointiFile)
-            val result = suoritusarviointiService.save(suoritusarviointiDTO, user.id!!)
+            val newAsiakirjat = getMappedFiles(arviointiFiles) ?: mutableSetOf()
+            val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let { id ->
+                objectMapper.readValue(id, mutableSetOf<Int>()::class.java)
+            }
+            val result = suoritusarviointiService.save(
+                suoritusarviointiDTO,
+                newAsiakirjat,
+                deletedAsiakirjaIds,
+                user.id!!
+            )
             return ResponseEntity.ok(result)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
@@ -151,10 +161,10 @@ open class SuoritusarviointiResource(
         )
     }
 
-    private fun getMappedFile(arviointiFile: MultipartFile?): AsiakirjaDTO? {
-        return arviointiFile?.let {
+    private fun getMappedFiles(arviointiFiles: List<MultipartFile>?): MutableSet<AsiakirjaDTO>? {
+        return arviointiFiles?.let {
             if (!fileValidationService.validate(
-                    listOf(it),
+                    it,
                     listOf(MediaType.APPLICATION_PDF_VALUE)
                 )
             ) {
@@ -164,7 +174,7 @@ open class SuoritusarviointiResource(
                     "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
                 )
             }
-            return it.mapAsiakirja()
+            return it.map { file -> file.mapAsiakirja() }.toMutableSet()
         }
     }
 

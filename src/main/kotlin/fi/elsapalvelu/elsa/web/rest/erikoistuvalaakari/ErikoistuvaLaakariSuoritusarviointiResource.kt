@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.criteria.SuoritusarviointiCriteria
 import fi.elsapalvelu.elsa.service.dto.*
@@ -16,6 +18,10 @@ import java.security.Principal
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.server.ResponseStatusException
 
 private const val ENTITY_NAME = "suoritusarviointi"
 
@@ -34,7 +40,9 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private val kayttajaService: KayttajaService,
     private val arviointiasteikkoService: ArviointiasteikkoService,
     private val opintooikeusService: OpintooikeusService,
-    private val kouluttajavaltuutusService: KouluttajavaltuutusService
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService,
+    private val objectMapper: ObjectMapper,
+    private val fileValidationService: FileValidationService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -205,20 +213,35 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
 
     @PutMapping("/suoritusarvioinnit")
     fun updateSuoritusarviointi(
-        @Valid @RequestBody suoritusarviointiDTO: SuoritusarviointiDTO,
+        @Valid @RequestParam suoritusarviointiJson: String,
+        @Valid @RequestParam arviointiFiles: List<MultipartFile>?,
+        @RequestParam deletedAsiakirjaIdsJson: String?,
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
-        if (suoritusarviointiDTO.id == null) {
-            throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
-        }
-
-        if (suoritusarviointiDTO.arviointiasteikko != null) {
-            throw IllegalArgumentException("Käytettyä arviointiasteikkoa ei voi muokata")
-        }
-
         val user = userService.getAuthenticatedUser(principal)
-        val result = suoritusarviointiService.save(suoritusarviointiDTO, user.id!!)
-        return ResponseEntity.ok(result)
+        suoritusarviointiJson.let {
+            objectMapper.readValue(it, SuoritusarviointiDTO::class.java)
+        }?.let { suoritusarviointiDTO ->
+            if (suoritusarviointiDTO.id == null) {
+                throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
+            }
+
+            if (suoritusarviointiDTO.arviointiasteikko != null) {
+                throw IllegalArgumentException("Käytettyä arviointiasteikkoa ei voi muokata")
+            }
+
+            val newAsiakirjat = getMappedFiles(arviointiFiles) ?: mutableSetOf()
+            val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let { id ->
+                objectMapper.readValue(id, mutableSetOf<Int>()::class.java)
+            }
+            val result = suoritusarviointiService.save(
+                suoritusarviointiDTO,
+                newAsiakirjat,
+                deletedAsiakirjaIds,
+                user.id!!
+            )
+            return ResponseEntity.ok(result)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @GetMapping("/suoritusarvioinnit/{id}")
@@ -234,9 +257,10 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
     }
 
-    @GetMapping("/suoritusarvioinnit/{id}/arviointi-liite")
+    @GetMapping("/suoritusarvioinnit/{id}/arviointi-liite/{asiakirjaId}")
     fun getArviointiLiite(
         @PathVariable id: Long,
+        @PathVariable asiakirjaId: Long,
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
@@ -245,7 +269,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         val asiakirja =
             suoritusarviointiService.findAsiakirjaBySuoritusarviointiIdAndTyoskentelyjaksoOpintooikeusId(
                 id,
-                opintooikeusId
+                opintooikeusId,
+                asiakirjaId
             )
 
         asiakirja?.asiakirjaData?.fileInputStream?.use {
@@ -280,5 +305,22 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         return ResponseEntity.ok(arvioitavaKokonaisuusService.findAllByOpintooikeusId(opintooikeusId))
+    }
+
+    private fun getMappedFiles(arviointiFiles: List<MultipartFile>?): MutableSet<AsiakirjaDTO>? {
+        return arviointiFiles?.let {
+            if (!fileValidationService.validate(
+                    it,
+                    listOf(MediaType.APPLICATION_PDF_VALUE)
+                )
+            ) {
+                throw BadRequestAlertException(
+                    "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
+                    ENTITY_NAME,
+                    "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
+                )
+            }
+            return it.map { file -> file.mapAsiakirja() }.toMutableSet()
+        }
     }
 }

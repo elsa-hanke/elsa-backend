@@ -30,6 +30,12 @@ data class Asiakirja(
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     var teoriakoulutus: Teoriakoulutus? = null,
 
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    var arviointi: Suoritusarviointi? = null,
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    var itsearviointi: Suoritusarviointi? = null,
+
     @NotNull
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,

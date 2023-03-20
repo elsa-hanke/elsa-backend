@@ -92,15 +92,17 @@ class KouluttajaSuoritusarviointiResourceIT {
             it.arviointiasteikonTaso = 5
         }
         updatedSuoritusarviointi.vaativuustaso = 5
-        val suoritusarviointiDTO = suoritusarviointiMapper.toDto(updatedSuoritusarviointi).apply {
-            arviointiAsiakirjaUpdated = true
-        }
+        val suoritusarviointiDTO = suoritusarviointiMapper.toDto(updatedSuoritusarviointi)
 
         val updatedSuoritusarviointiJson = objectMapper.writeValueAsString(suoritusarviointiDTO)
 
         restSuoritusarviointiMockMvc.perform(
             multipart("/api/kouluttaja/suoritusarvioinnit")
-                .file(mockMultipartFile)
+                .file(MockMultipartFile(
+                    "arviointiFiles",
+                    AsiakirjaHelper.ASIAKIRJA_PDF_NIMI,
+                    AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI,
+                    tempFile.readBytes()))
                 .param("suoritusarviointiJson", updatedSuoritusarviointiJson)
                 .with { it.method = "PUT"; it }
                 .with(csrf())
@@ -115,9 +117,9 @@ class KouluttajaSuoritusarviointiResourceIT {
         assertThat(testSuoritusarviointi.sanallinenArviointi).isEqualTo(UPDATED_LISATIEDOT)
         assertThat(testSuoritusarviointi.arvioitavatKokonaisuudet.first().arviointiasteikonTaso).isEqualTo(5)
         assertThat(testSuoritusarviointi.vaativuustaso).isEqualTo(5)
-        assertThat(testSuoritusarviointi.arviointiLiiteNimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
-        assertThat(testSuoritusarviointi.arviointiLiiteTyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
-        val asiakirjaData = testSuoritusarviointi.asiakirjaData
+        assertThat(testSuoritusarviointi.arviointiAsiakirjat.first().nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
+        assertThat(testSuoritusarviointi.arviointiAsiakirjat.first().tyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
+        val asiakirjaData = testSuoritusarviointi.arviointiAsiakirjat.first().asiakirjaData
         assertThat(asiakirjaData?.data).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
     }
 

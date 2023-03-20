@@ -63,9 +63,9 @@ data class SuoritusarviointiDTO(
 
     var muuPeruste: String? = null,
 
-    var arviointiAsiakirja: AsiakirjaDTO? = null,
+    var arviointiAsiakirjat: MutableSet<AsiakirjaDTO>? = mutableSetOf(),
 
-    var arviointiAsiakirjaUpdated: Boolean = false
+    var itsearviointiAsiakirjat: MutableSet<AsiakirjaDTO>? = mutableSetOf()
 
 ) : Serializable {
 

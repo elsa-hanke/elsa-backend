@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20230317140113" author="jhipster">
+        <addColumn tableName="asiakirja">
+            <column name="arviointi_id" type="bigint"/>
+        </addColumn>
+        <addColumn tableName="asiakirja">
+            <column name="itsearviointi_id" type="bigint"/>
+        </addColumn>
+
+        <sql>
+            INSERT INTO asiakirja(opintooikeus_id, arviointi_id, nimi, tyyppi, lisattypvm, asiakirja_data_id)
+            select t.opintooikeus_id, a.id, a.arviointi_liite_nimi, a.arviointi_liite_tyyppi, a.arviointi_liite_lisattypvm, a.asiakirja_data_id
+            from suoritusarviointi a join tyoskentelyjakso t on a.tyoskentelyjakso_id = t.id where a.arviointi_liite_nimi is not null;
+        </sql>
+
+        <dropColumn tableName="suoritusarviointi" columnName="arviointi_liite_nimi"/>
+        <dropColumn tableName="suoritusarviointi" columnName="arviointi_liite_tyyppi"/>
+        <dropColumn tableName="suoritusarviointi" columnName="arviointi_liite_lisattypvm"/>
+        <dropColumn tableName="suoritusarviointi" columnName="asiakirja_data_id"/>
+
+        <addColumn tableName="asiakirja_audit">
+            <column name="arviointi_id" type="bigint"/>
+        </addColumn>
+        <addColumn tableName="asiakirja_audit">
+            <column name="itsearviointi_id" type="bigint"/>
+        </addColumn>
+
+        <dropColumn tableName="suoritusarviointi_audit" columnName="arviointi_liite_nimi"/>
+        <dropColumn tableName="suoritusarviointi_audit" columnName="arviointi_liite_tyyppi"/>
+        <dropColumn tableName="suoritusarviointi_audit" columnName="arviointi_liite_lisattypvm"/>
+        <dropColumn tableName="suoritusarviointi_audit" columnName="asiakirja_data_id"/>
+    </changeSet>
+
+</databaseChangeLog>

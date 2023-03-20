@@ -1093,10 +1093,16 @@ class ValmistumispyyntoServiceImpl(
                 outputStream.reset()
                 pdfService.yhdistaPdf(result, newPdf, outputStream)
 
-                if (a.asiakirjaData != null) {
+                a.arviointiAsiakirjat.forEach {
                     val inputStream = ByteArrayInputStream(outputStream.toByteArray())
                     outputStream.reset()
-                    pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(a.asiakirjaData?.data), outputStream)
+                    pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(it.asiakirjaData?.data), outputStream)
+                }
+
+                a.itsearviointiAsiakirjat.forEach {
+                    val inputStream = ByteArrayInputStream(outputStream.toByteArray())
+                    outputStream.reset()
+                    pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(it.asiakirjaData?.data), outputStream)
                 }
         }
     }
@@ -1239,8 +1245,7 @@ class ValmistumispyyntoServiceImpl(
                                 arvioitavaTapahtuma = a?.suoritusarviointi?.arvioitavaTapahtuma,
                                 arviointiasteikonTaso = a?.arviointiasteikonTaso,
                             arvioinninAntaja = kayttajaMapper.toDto(a?.suoritusarviointi?.arvioinninAntaja!!),
-                            tyoskentelyjakso = tyoskentelyjaksoMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso!!),
-                            arviointiAsiakirja = null)
+                            tyoskentelyjakso = tyoskentelyjaksoMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso!!))
                         } else kokonaisuudetMap[k]?.sortedByDescending { a -> a.suoritusarviointi?.tapahtumanAjankohta }
                             ?.map { a ->
                                 val result = SuoritusarviointiByKokonaisuusDTO(
@@ -1251,8 +1256,9 @@ class ValmistumispyyntoServiceImpl(
                                     itsearviointiArviointiasteikonTaso = a.itsearviointiArviointiasteikonTaso,
                                     arvioinninAntaja = kayttajaMapper.toDto(a.suoritusarviointi?.arvioinninAntaja!!),
                                     arvioinninSaaja = kayttajaMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja!!),
-                                    tyoskentelyjakso = tyoskentelyjaksoMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso!!))
-                                a.suoritusarviointi!!.asiakirjaData?.let { result.arviointiAsiakirja?.asiakirjaData = AsiakirjaDataDTO(id = it.id, fileInputStream = ByteArrayInputStream(it.data)) }
+                                    tyoskentelyjakso = tyoskentelyjaksoMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso!!),
+                                    arviointiAsiakirjat = a.suoritusarviointi?.arviointiAsiakirjat?.map { asiakirja -> asiakirjaMapper.toDto(asiakirja) },
+                                    itsearviointiAsiakirjat = a.suoritusarviointi?.itsearviointiAsiakirjat?.map { asiakirja -> asiakirjaMapper.toDto(asiakirja) })
                                 result
                             }
                     )
