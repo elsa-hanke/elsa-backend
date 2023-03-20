@@ -75,7 +75,8 @@ class AsiakirjaServiceImpl(
                 it
             )?.let { asiakirja ->
                 val result = asiakirjaMapper.toDto(asiakirja)
-                result.asiakirjaData?.fileInputStream = ByteArrayInputStream(asiakirja.asiakirjaData?.data)
+                result.asiakirjaData?.fileInputStream =
+                    ByteArrayInputStream(asiakirja.asiakirjaData?.data)
                 return result
             }
         }
@@ -86,7 +87,8 @@ class AsiakirjaServiceImpl(
         asiakirjaRepository.findOneByIdAndTyoskentelyjaksoLiitettyKoejaksoonTrue(id)
             ?.let { asiakirja ->
                 val result = asiakirjaMapper.toDto(asiakirja)
-                result.asiakirjaData?.fileInputStream = ByteArrayInputStream(asiakirja.asiakirjaData?.data)
+                result.asiakirjaData?.fileInputStream =
+                    ByteArrayInputStream(asiakirja.asiakirjaData?.data)
                 return result
             }
         return null

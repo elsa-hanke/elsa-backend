@@ -16,7 +16,7 @@ import org.mapstruct.ReportingPolicy
         TyoskentelyjaksoMapper::class,
         SuoritusarvioinninKommenttiMapper::class,
         ArviointityokaluMapper::class,
-        AsiakirjaDataMapper::class,
+        AsiakirjaMapper::class,
         ArviointiasteikkoMapper::class,
         SuoritusarvioinninArvioitavaKokonaisuusMapper::class
     ],
@@ -31,11 +31,7 @@ interface SuoritusarviointiMapper :
         Mapping(
             source = "tyoskentelyjakso.opintooikeus.erikoistuvaLaakari.kayttaja",
             target = "arvioinninSaaja"
-        ),
-        Mapping(source = "arviointiLiiteNimi", target = "arviointiAsiakirja.nimi"),
-        Mapping(source = "arviointiLiiteTyyppi", target = "arviointiAsiakirja.tyyppi"),
-        Mapping(source = "arviointiLiiteLisattyPvm", target = "arviointiAsiakirja.lisattypvm"),
-        Mapping(source = "asiakirjaData", target = "arviointiAsiakirja.asiakirjaData")
+        )
     )
     override fun toDto(entity: Suoritusarviointi): SuoritusarviointiDTO
 
