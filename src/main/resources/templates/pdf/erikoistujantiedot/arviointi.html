@@ -202,14 +202,24 @@
         </table>
         <h4 th:text="#{erikoistujantiedot.sanallinenArviointi}"></h4>
         <p class="mb-1" th:text="${arviointi.sanallinenArviointi}"></p>
-        <hr/>
-        <div th:if="${arviointi.arviointiAsiakirja.nimi != null}">
-            <h4 th:text="#{erikoistujantiedot.liitetiedosto}"></h4>
-            <p class="mb-1" th:text="${arviointi.arviointiAsiakirja.nimi}"></p>
-            <hr/>
+        <div th:unless="${#lists.isEmpty(arviointi.arviointiAsiakirjat)}">
+            <h4 th:text="#{erikoistujantiedot.liitetiedostot}"></h4>
+            <div th:each="asiakirja: ${arviointi.arviointiAsiakirjat}">
+                <h4 th:text="#{erikoistujantiedot.liitetiedostot}"></h4>
+                <p class="mb-1" th:text="${asiakirja.nimi}"></p>
+                <hr/>
+            </div>
         </div>
         <h4 th:text="#{erikoistujantiedot.sanallinenItsearviointi}"></h4>
         <p class="mb-1" th:text="${arviointi.sanallinenItsearviointi}"></p>
+        <div th:unless="${#lists.isEmpty(arviointi.itsearviointiAsiakirjat)}">
+            <h4 th:text="#{erikoistujantiedot.liitetiedostot}"></h4>
+            <div th:each="asiakirja: ${arviointi.itsearviointiAsiakirjat}">
+                <h4 th:text="#{erikoistujantiedot.liitetiedostot}"></h4>
+                <p class="mb-1" th:text="${asiakirja.nimi}"></p>
+                <hr/>
+            </div>
+        </div>
     </div>
 </div>
 </body>

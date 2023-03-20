@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.Suoritusarviointi
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.MailProperty
@@ -10,9 +9,9 @@ import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
+import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarvioinninArvioitavaKokonaisuusMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
-import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -34,6 +33,8 @@ class SuoritusarviointiServiceImpl(
     private val suoritusarvioinninArvioitavaKokonaisuusMapper: SuoritusarvioinninArvioitavaKokonaisuusMapper,
     private val arviointityokaluRepository: ArviointityokaluRepository,
     private val mailService: MailService,
+    private val asiakirjaRepository: AsiakirjaRepository,
+    private val asiakirjaMapper: AsiakirjaMapper
 ) : SuoritusarviointiService {
 
     override fun save(suoritusarviointiDTO: SuoritusarviointiDTO): SuoritusarviointiDTO {
@@ -53,6 +54,8 @@ class SuoritusarviointiServiceImpl(
 
     override fun save(
         suoritusarviointiDTO: SuoritusarviointiDTO,
+        newAsiakirjat: MutableSet<AsiakirjaDTO>,
+        deletedAsiakirjaIds: MutableSet<Int>?,
         userId: String
     ): SuoritusarviointiDTO {
         var suoritusarviointi =
@@ -63,13 +66,23 @@ class SuoritusarviointiServiceImpl(
         if (kirjautunutErikoistuvaLaakari != null
             && kirjautunutErikoistuvaLaakari == suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari
         ) {
-            suoritusarviointi = handleErikoistuva(suoritusarviointiDTO, suoritusarviointi)
+            suoritusarviointi = handleErikoistuva(
+                suoritusarviointiDTO,
+                suoritusarviointi,
+                newAsiakirjat,
+                deletedAsiakirjaIds
+            )
         }
 
         val kirjautunutKayttaja = kayttajaRepository.findOneByUserId(userId)
         if (kirjautunutKayttaja.isPresent && kirjautunutKayttaja.get() == suoritusarviointi.arvioinninAntaja) {
             suoritusarviointi =
-                handleKouluttajaOrVastuuhenkilo(suoritusarviointiDTO, suoritusarviointi)
+                handleKouluttajaOrVastuuhenkilo(
+                    suoritusarviointiDTO,
+                    suoritusarviointi,
+                    newAsiakirjat,
+                    deletedAsiakirjaIds
+                )
         }
 
         return suoritusarviointiMapper.toDto(suoritusarviointi)
@@ -77,7 +90,9 @@ class SuoritusarviointiServiceImpl(
 
     private fun handleErikoistuva(
         suoritusarviointiDTO: SuoritusarviointiDTO,
-        suoritusarviointi: Suoritusarviointi
+        suoritusarviointi: Suoritusarviointi,
+        newAsiakirjat: MutableSet<AsiakirjaDTO>,
+        deletedAsiakirjaIds: MutableSet<Int>?
     ): Suoritusarviointi {
         val isItsearviointiNotEmpty =
             !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenItsearviointi)
@@ -94,6 +109,7 @@ class SuoritusarviointiServiceImpl(
                 arvioitavaKokonaisuus.itsearviointiArviointiasteikonTaso =
                     it.itsearviointiArviointiasteikonTaso
             }
+            mapAsiakirjat(suoritusarviointi, newAsiakirjat, deletedAsiakirjaIds, true)
         } else {
             // Arviointipyynnön muokkaus
             suoritusarviointi.arvioitavaTapahtuma = suoritusarviointiDTO.arvioitavaTapahtuma
@@ -123,7 +139,9 @@ class SuoritusarviointiServiceImpl(
 
     private fun handleKouluttajaOrVastuuhenkilo(
         suoritusarviointiDTO: SuoritusarviointiDTO,
-        suoritusarviointi: Suoritusarviointi
+        suoritusarviointi: Suoritusarviointi,
+        newAsiakirjat: MutableSet<AsiakirjaDTO>,
+        deletedAsiakirjaIds: MutableSet<Int>?
     ): Suoritusarviointi {
         suoritusarviointi.vaativuustaso = suoritusarviointiDTO.vaativuustaso
         suoritusarviointi.sanallinenArviointi = suoritusarviointiDTO.sanallinenArviointi
@@ -141,22 +159,7 @@ class SuoritusarviointiServiceImpl(
                 suoritusarviointiDTO.arvioitavatKokonaisuudet?.first { k -> k.id == it.id }?.arviointiasteikonTaso
         }
 
-        if (suoritusarviointiDTO.arviointiAsiakirjaUpdated) {
-            suoritusarviointiDTO.arviointiAsiakirja?.let {
-                suoritusarviointi.arviointiLiiteNimi = it.nimi
-                suoritusarviointi.arviointiLiiteTyyppi = it.tyyppi
-                suoritusarviointi.arviointiLiiteLisattyPvm = LocalDateTime.now()
-                suoritusarviointi.asiakirjaData = AsiakirjaData().apply {
-                    data = it.asiakirjaData?.fileInputStream?.readAllBytes()
-                }
-            } ?: run {
-                suoritusarviointi.arviointiLiiteNimi = null
-                suoritusarviointi.arviointiLiiteTyyppi = null
-                suoritusarviointi.arviointiLiiteLisattyPvm = null
-                suoritusarviointi.asiakirjaData = null
-            }
-
-        }
+        mapAsiakirjat(suoritusarviointi, newAsiakirjat, deletedAsiakirjaIds, false)
 
         val result = suoritusarviointiRepository.save(suoritusarviointi)
 
@@ -206,14 +209,22 @@ class SuoritusarviointiServiceImpl(
     @Transactional(readOnly = true)
     override fun findAsiakirjaBySuoritusarviointiIdAndTyoskentelyjaksoOpintooikeusId(
         id: Long,
-        opintooikeusId: Long
+        opintooikeusId: Long,
+        asiakirjaId: Long
     ): AsiakirjaDTO? {
-        var asiakirjaDTO: AsiakirjaDTO? = null
-        suoritusarviointiRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId)
-            .ifPresent {
-                asiakirjaDTO = mapAsiakirjaDTOIfExists(it)
-            }
-        return asiakirjaDTO
+        asiakirjaRepository.findOneByIdAndOpintooikeusIdAndArviointiId(
+            asiakirjaId,
+            opintooikeusId,
+            id
+        )?.let {
+            return AsiakirjaDTO(
+                id = it.id,
+                nimi = it.nimi,
+                tyyppi = it.tyyppi,
+                asiakirjaData = AsiakirjaDataDTO(fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data))
+            )
+        }
+        return null
     }
 
     @Transactional(readOnly = true)
@@ -228,28 +239,20 @@ class SuoritusarviointiServiceImpl(
     @Transactional(readOnly = true)
     override fun findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(
         id: Long,
-        userId: String
+        userId: String,
+        asiakirjaId: Long
     ): AsiakirjaDTO? {
-        var asiakirjaDTO: AsiakirjaDTO? = null
-        suoritusarviointiRepository.findOneByIdAndArvioinninAntajaUserId(id, userId).ifPresent {
-            asiakirjaDTO = mapAsiakirjaDTOIfExists(it)
-        }
-        return asiakirjaDTO
-    }
-
-    private fun mapAsiakirjaDTOIfExists(
-        suoritusarviointi: Suoritusarviointi,
-    ): AsiakirjaDTO? {
-        suoritusarviointi.takeIf {
-            it.arviointiLiiteNimi != null
-        }?.let {
-            return AsiakirjaDTO().apply {
-                nimi = it.arviointiLiiteNimi
-                tyyppi = it.arviointiLiiteTyyppi
-                asiakirjaData = AsiakirjaDataDTO().apply {
-                    fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data)
-                }
-            }
+        asiakirjaRepository.findOneByIdAndArviointiIdAndArviointiArvioinninAntajaUserId(
+            asiakirjaId,
+            id,
+            userId
+        )?.let {
+            return AsiakirjaDTO(
+                id = it.id,
+                nimi = it.nimi,
+                tyyppi = it.tyyppi,
+                asiakirjaData = AsiakirjaDataDTO(fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data))
+            )
         }
         return null
     }
@@ -287,5 +290,48 @@ class SuoritusarviointiServiceImpl(
         return suoritusarviointiRepository.existsByArvioitavatKokonaisuudetArvioitavaKokonaisuusId(
             arvioitavaKokonaisuusId
         )
+    }
+
+    private fun mapAsiakirjat(
+        suoritusarviointi: Suoritusarviointi,
+        newAsiakirjat: Set<AsiakirjaDTO>,
+        deletedAsiakirjaIds: Set<Int>?,
+        itsearviointi: Boolean
+    ): Suoritusarviointi {
+        newAsiakirjat.let {
+            val asiakirjaEntities = it.map { asiakirjaDTO ->
+                asiakirjaMapper.toEntity(asiakirjaDTO).apply {
+                    this.lisattypvm = LocalDateTime.now()
+                    this.opintooikeus = suoritusarviointi.tyoskentelyjakso?.opintooikeus
+                    if (itsearviointi) {
+                        this.itsearviointi = suoritusarviointi
+                    } else {
+                        this.arviointi = suoritusarviointi
+                    }
+                    this.asiakirjaData?.data =
+                        asiakirjaDTO.asiakirjaData?.fileInputStream?.readAllBytes()
+                }
+            }
+
+            if (itsearviointi) {
+                suoritusarviointi.itsearviointiAsiakirjat.addAll(asiakirjaEntities)
+            } else {
+                suoritusarviointi.arviointiAsiakirjat.addAll(asiakirjaEntities)
+            }
+        }
+
+        deletedAsiakirjaIds?.map { x -> x.toLong() }?.let {
+            if (itsearviointi) {
+                suoritusarviointi.itsearviointiAsiakirjat.removeIf { asiakirja ->
+                    asiakirja.id in it
+                }
+            } else {
+                suoritusarviointi.arviointiAsiakirjat.removeIf { asiakirja ->
+                    asiakirja.id in it
+                }
+            }
+        }
+
+        return suoritusarviointi
     }
 }

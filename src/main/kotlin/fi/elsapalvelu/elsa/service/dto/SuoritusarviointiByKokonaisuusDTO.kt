@@ -29,7 +29,9 @@ data class SuoritusarviointiByKokonaisuusDTO(
 
     var tyoskentelyjakso: TyoskentelyjaksoDTO? = null,
 
-    var arviointiAsiakirja: AsiakirjaDTO? = null
+    var arviointiAsiakirjat: List<AsiakirjaDTO>? = listOf(),
+
+    var itsearviointiAsiakirjat: List<AsiakirjaDTO>? = listOf()
 
 ) : Serializable {
 

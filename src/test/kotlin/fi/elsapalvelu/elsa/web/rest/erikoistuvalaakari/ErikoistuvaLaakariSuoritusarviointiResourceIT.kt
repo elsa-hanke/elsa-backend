@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.*
@@ -30,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
+import org.springframework.mock.web.MockMultipartFile
+import java.io.File
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
@@ -51,9 +54,14 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
     @Autowired
     private lateinit var restSuoritusarviointiMockMvc: MockMvc
 
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
     private lateinit var suoritusarviointi: Suoritusarviointi
 
     private lateinit var user: User
+
+    private lateinit var tempFile: File
 
     @BeforeEach
     fun setup() {
@@ -116,6 +124,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
     @Transactional
     fun updateSuoritusarviointi() {
         initTest()
+        initMockFile()
 
         suoritusarviointiRepository.saveAndFlush(suoritusarviointi)
 
@@ -133,10 +142,19 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         // Käytettyä arviointiasteikkoa ei voi päivittää.
         suoritusarviointiDTO.arviointiasteikko = null
 
+        val updatedSuoritusarviointiJson = objectMapper.writeValueAsString(suoritusarviointiDTO)
+
         restSuoritusarviointiMockMvc.perform(
-            put("/api/erikoistuva-laakari/suoritusarvioinnit")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(suoritusarviointiDTO))
+            multipart("/api/erikoistuva-laakari/suoritusarvioinnit")
+                .file(
+                    MockMultipartFile(
+                    "arviointiFiles",
+                    AsiakirjaHelper.ASIAKIRJA_PDF_NIMI,
+                    AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI,
+                    tempFile.readBytes())
+                )
+                .param("suoritusarviointiJson", updatedSuoritusarviointiJson)
+                .with { it.method = "PUT"; it }
                 .with(csrf())
         ).andExpect(status().isOk)
 
@@ -290,6 +308,12 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").value(Matchers.hasSize<Int>(2)))
+    }
+
+    fun initMockFile() {
+        tempFile = File.createTempFile("file", "pdf")
+        tempFile.writeBytes(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        tempFile.deleteOnExit()
     }
 
     fun initTest(userId: String? = DEFAULT_ID) {
