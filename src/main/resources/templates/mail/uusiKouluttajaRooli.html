@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fi" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>[ELSA-palvelu] Olet saanut kouluttajan oikeudet ELSA-järjestelmään</title>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
+    <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
+</head>
+<body>
+<p>
+    Hei,
+</p>
+<p>
+    <span th:text="${name}"></span> on kutsunut sinut kouluttajaksi ELSA-palveluun.
+    Kirjaudu palveluun normaalilla tavalla julkisen osoitteen kautta:
+</p>
+<p>
+    <a th:href="${url}" th:text="${url}"
+       th:with="url=(@{|${baseUrl}/kirjautuminen|})"></a>
+</p>
+<p>
+    Kirjautumisen jälkeen voit vaihtaa roolia erikoistujan ja kouluttajan välillä oikean yläkulman käyttäjävalikosta.
+</p>
+<p>
+    Tähän sähköpostiviestiin ei voi vastata.
+</p>
+<p>
+    <span>Terveisin, </span>
+    <br/>
+    <em>ELSA-palvelu</em>
+</p>
+</body>
+</html>
