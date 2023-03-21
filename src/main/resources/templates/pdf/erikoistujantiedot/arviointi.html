@@ -205,20 +205,18 @@
         <div th:unless="${#lists.isEmpty(arviointi.arviointiAsiakirjat)}">
             <h4 th:text="#{erikoistujantiedot.liitetiedostot}"></h4>
             <div th:each="asiakirja: ${arviointi.arviointiAsiakirjat}">
-                <h4 th:text="#{erikoistujantiedot.liitetiedostot}"></h4>
                 <p class="mb-1" th:text="${asiakirja.nimi}"></p>
-                <hr/>
             </div>
+            <hr/>
         </div>
         <h4 th:text="#{erikoistujantiedot.sanallinenItsearviointi}"></h4>
         <p class="mb-1" th:text="${arviointi.sanallinenItsearviointi}"></p>
         <div th:unless="${#lists.isEmpty(arviointi.itsearviointiAsiakirjat)}">
             <h4 th:text="#{erikoistujantiedot.liitetiedostot}"></h4>
             <div th:each="asiakirja: ${arviointi.itsearviointiAsiakirjat}">
-                <h4 th:text="#{erikoistujantiedot.liitetiedostot}"></h4>
                 <p class="mb-1" th:text="${asiakirja.nimi}"></p>
-                <hr/>
             </div>
+            <hr/>
         </div>
     </div>
 </div>
