@@ -8,6 +8,8 @@ import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KayttajaService
+import fi.elsapalvelu.elsa.service.MailProperty
+import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.constants.ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.constants.VASTUUHENKILO_NOT_FOUND_ERROR
@@ -43,7 +45,8 @@ class KayttajaServiceImpl(
     private val userMapper: UserMapper,
     private val kayttajaQueryService: KayttajaQueryService,
     private val vastuuhenkilonTehtavatyyppiRepository: VastuuhenkilonTehtavatyyppiRepository,
-    private val vastuuhenkilonTehtavatyyppiMapper: VastuuhenkilonTehtavatyyppiMapper
+    private val vastuuhenkilonTehtavatyyppiMapper: VastuuhenkilonTehtavatyyppiMapper,
+    private val mailService: MailService
 ) : KayttajaService {
 
     override fun save(kayttajaDTO: KayttajaDTO): KayttajaDTO {
@@ -199,9 +202,22 @@ class KayttajaServiceImpl(
 
                 // Erikoistujan kutsuminen kouluttajaksi
                 if (it.user?.authorities?.contains(Authority(name = KOULUTTAJA)) == false
-                    && it.user?.authorities?.contains(Authority(name = VASTUUHENKILO)) == false) {
+                    && it.user?.authorities?.contains(Authority(name = VASTUUHENKILO)) == false
+                ) {
                     it.user?.authorities?.add(Authority(name = KOULUTTAJA))
                     userRepository.save(it.user!!)
+
+                    mailService.sendEmailFromTemplate(
+                        it.user!!,
+                        templateName = "uusiKouluttajaRooli.html",
+                        titleKey = "email.uusikouluttajarooli.title",
+                        properties = mapOf(
+                            Pair(
+                                MailProperty.NAME,
+                                opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName + " " + opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.lastName
+                            )
+                        )
+                    )
                 }
 
                 kayttajaMapper.toDto(it)
