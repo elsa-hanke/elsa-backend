@@ -6,6 +6,8 @@ import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksonHyvaksyntaDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDate
 
 interface TerveyskeskuskoulutusjaksonHyvaksyntaService {
 
@@ -44,7 +46,9 @@ interface TerveyskeskuskoulutusjaksonHyvaksyntaService {
         isVirkailija: Boolean,
         id: Long,
         korjausehdotus: String?,
-        lisatiedotVirkailijalta: String?
+        lisatiedotVirkailijalta: String?,
+        laillistamispaiva: LocalDate? = null,
+        laillistamistodistus: MultipartFile? = null
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO?
 
     fun existsByOpintooikeusId(opintooikeusId: Long): Boolean

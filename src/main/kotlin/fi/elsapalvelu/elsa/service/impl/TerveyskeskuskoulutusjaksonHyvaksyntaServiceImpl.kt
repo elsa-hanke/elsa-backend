@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.ValidationException
+import org.springframework.web.multipart.MultipartFile
 
 private const val TERVEYSKESKUS_HYVAKSYNTA_MINIMIPITUUS = 273.75 // 9kk
 
@@ -46,8 +47,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     private val terveyskeskuskoulutusjaksonHyvaksyntaQueryService: TerveyskeskuskoulutusjaksonHyvaksyntaQueryService,
     private val mailService: MailService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
-    private val applicationProperties: ApplicationProperties
-
+    private val applicationProperties: ApplicationProperties,
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService
 ) : TerveyskeskuskoulutusjaksonHyvaksyntaService {
 
     override fun findByIdAndYliopistoIdVirkailija(
@@ -227,7 +228,9 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         isVirkailija: Boolean,
         id: Long,
         korjausehdotus: String?,
-        lisatiedotVirkailijalta: String?
+        lisatiedotVirkailijalta: String?,
+        laillistamispaiva: LocalDate?,
+        laillistamistodistus: MultipartFile?
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
         val kayttaja = kayttajaRepository.findOneByUserId(userId)
             .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
@@ -247,7 +250,9 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                         kayttaja,
                         korjausehdotus,
                         lisatiedotVirkailijalta,
-                        vastuuhenkilo
+                        vastuuhenkilo,
+                        laillistamispaiva,
+                        laillistamistodistus
                     )
                 } else if (vastuuhenkilo?.id == kayttaja.id) {
                     return handleVastuuhenkilo(it, kayttaja, korjausehdotus)
@@ -269,7 +274,9 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         kayttaja: Kayttaja,
         korjausehdotus: String?,
         lisatiedotVirkailijalta: String?,
-        vastuuhenkilo: Kayttaja?
+        vastuuhenkilo: Kayttaja?,
+        laillistamispaiva: LocalDate?,
+        laillistamistodistus: MultipartFile?
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO {
         hyvaksynta.virkailija = kayttaja
         if (korjausehdotus != null) {
@@ -279,6 +286,16 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             hyvaksynta.virkailijanKuittausaika = LocalDate.now()
             hyvaksynta.lisatiedotVirkailijalta = lisatiedotVirkailijalta
             hyvaksynta.korjausehdotusVastuuhenkilolta = null
+        }
+
+        if (laillistamistodistus != null || laillistamispaiva != null) {
+            erikoistuvaLaakariService.updateLaillistamispaiva(
+                hyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                laillistamispaiva,
+                laillistamistodistus?.bytes,
+                laillistamistodistus?.originalFilename,
+                laillistamistodistus?.contentType
+            )
         }
 
         val result = terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(hyvaksynta)

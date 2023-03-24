@@ -19,6 +19,8 @@ import java.net.URLEncoder
 import java.security.Principal
 import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.ValidationException
+import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDate
 
 private const val TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME = "terveyskeskuskoulutusjakson_hyvaksynta"
 
@@ -107,7 +109,9 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
     @PutMapping("/terveyskeskuskoulutusjakson-hyvaksynta/{id}")
     fun updateTerveyskeskuskoulutusjaksonHyvaksynta(
         @PathVariable id: Long,
-        @RequestBody dto: TerveyskeskuskoulutusjaksoUpdateDTO?,
+        dto: TerveyskeskuskoulutusjaksoUpdateDTO?,
+        @RequestParam(required = false) laillistamispaiva: LocalDate?,
+        @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
         principal: Principal?
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -117,7 +121,9 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
             true,
             id,
             dto?.korjausehdotus,
-            dto?.lisatiedotVirkailijalta
+            dto?.lisatiedotVirkailijalta,
+            laillistamispaiva,
+            laillistamispaivanLiite
         )
             .let {
                 return ResponseEntity.ok(it)

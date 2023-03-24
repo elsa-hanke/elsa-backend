@@ -38,6 +38,7 @@ import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
+import org.springframework.web.multipart.MultipartFile
 
 private const val VANHENTUNUT_KUULUSTELU_YEARS = 4L
 private const val VANHENTUNUT_SUORITUS_YEARS_EL = 10L
@@ -83,7 +84,8 @@ class ValmistumispyyntoServiceImpl(
     private val suoritemerkintaMapper: SuoritemerkintaMapper,
     private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository,
     private val seurantajaksoService: SeurantajaksoService,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService
 ) : ValmistumispyyntoService {
 
     @Transactional(readOnly = true)
@@ -302,7 +304,8 @@ class ValmistumispyyntoServiceImpl(
     override fun updateTarkistusByVirkailijaUserId(
         id: Long,
         userId: String,
-        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO
+        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO,
+        laillistamistodistus: MultipartFile?
     ): ValmistumispyynnonTarkistusDTO? {
         val kayttaja = getKayttaja(userId)
         val yliopisto = kayttaja.yliopistot.first()
@@ -341,6 +344,16 @@ class ValmistumispyyntoServiceImpl(
 
         tarkistus?.let {
             valmistumispyynnonTarkistusRepository.save(it)
+
+            if (laillistamistodistus != null || valmistumispyynnonTarkistusDTO.laillistamispaiva != null) {
+                erikoistuvaLaakariService.updateLaillistamispaiva(
+                    it.valmistumispyynto?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                    valmistumispyynnonTarkistusDTO.laillistamispaiva,
+                    laillistamistodistus?.bytes,
+                    laillistamistodistus?.originalFilename,
+                    laillistamistodistus?.contentType
+                )
+            }
 
             if (valmistumispyynnonTarkistusDTO.keskenerainen != true) {
                 it.valmistumispyynto?.virkailija = kayttaja
