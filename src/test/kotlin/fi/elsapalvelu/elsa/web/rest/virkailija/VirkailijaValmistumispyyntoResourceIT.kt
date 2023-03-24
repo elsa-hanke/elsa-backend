@@ -10,14 +10,13 @@ import fi.elsapalvelu.elsa.repository.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusDTO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusUpdateDTO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
@@ -31,12 +30,10 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import jakarta.persistence.EntityManager
 
 private const val ENDPOINT_BASE_URL = "/api/virkailija"
 private const val VALMISTUMISPYYNNOT_ENDPOINT =
@@ -321,10 +318,12 @@ class VirkailijaValmistumispyyntoResourceIT {
         )
         em.persist(terveyssuoritus)
 
-        val teoriakoulutus1 = TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
+        val teoriakoulutus1 =
+            TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
         em.persist(teoriakoulutus1)
 
-        val teoriakoulutus2 = TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
+        val teoriakoulutus2 =
+            TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
         em.persist(teoriakoulutus2)
 
         val sateilysuojakoulutus = OpintosuoritusHelper.createEntity(
@@ -505,29 +504,25 @@ class VirkailijaValmistumispyyntoResourceIT {
         val aiempiElKoulutusSuorituspaiva = LocalDate.ofEpochDay(17)
         val ltTutkintoSuorituspaiva = LocalDate.ofEpochDay(18)
 
-        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusDTO(
-            yekSuoritettu = true,
-            yekSuorituspaiva = yekSuorituspaiva,
-            ptlSuoritettu = true,
-            ptlSuorituspaiva = ptlSuorituspaiva,
-            aiempiElKoulutusSuoritettu = true,
-            aiempiElKoulutusSuorituspaiva = aiempiElKoulutusSuorituspaiva,
-            ltTutkintoSuoritettu = true,
-            ltTutkintoSuorituspaiva = ltTutkintoSuorituspaiva,
-            yliopistosairaalanUlkopuolinenTyoTarkistettu = true,
-            yliopistosairaalatyoTarkistettu = true,
-            kokonaistyoaikaTarkistettu = true,
-            teoriakoulutusTarkistettu = true,
-            kommentitVirkailijoille = "test"
-        )
-
         restValmistumispyyntoMockMvc.perform(
-            put(
+            multipart(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
                 valmistumispyynto.id
             )
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyynnonTarkistusDTO))
+                .param("yekSuoritettu", "true")
+                .param("yekSuorituspaiva", yekSuorituspaiva.toString())
+                .param("ptlSuoritettu", "true")
+                .param("ptlSuorituspaiva", ptlSuorituspaiva.toString())
+                .param("aiempiElKoulutusSuoritettu", "true")
+                .param("aiempiElKoulutusSuorituspaiva", aiempiElKoulutusSuorituspaiva.toString())
+                .param("ltTutkintoSuoritettu", "true")
+                .param("ltTutkintoSuorituspaiva", ltTutkintoSuorituspaiva.toString())
+                .param("yliopistosairaalanUlkopuolinenTyoTarkistettu", "true")
+                .param("yliopistosairaalatyoTarkistettu", "true")
+                .param("kokonaistyoaikaTarkistettu", "true")
+                .param("teoriakoulutusTarkistettu", "true")
+                .param("kommentitVirkailijoille", "test")
+                .with { it.method = "PUT"; it }
                 .with(csrf())
         ).andExpect(status().isOk)
 
@@ -583,12 +578,14 @@ class VirkailijaValmistumispyyntoResourceIT {
         )
 
         restValmistumispyyntoMockMvc.perform(
-            put(
+            multipart(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
                 valmistumispyynto.id
             )
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyynnonTarkistusDTO))
+                .param("yekSuoritettu", "true")
+                .param("yekSuorituspaiva", yekSuorituspaiva.toString())
+                .param("keskenerainen", "true")
+                .with { it.method = "PUT"; it }
                 .with(csrf())
         ).andExpect(status().isOk)
 
@@ -641,28 +638,24 @@ class VirkailijaValmistumispyyntoResourceIT {
 
         val databaseSizeBeforeUpdate = valmistumispyynnonTarkistusRepository.findAll().size
 
-        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusUpdateDTO(
-            ptlSuoritettu = true,
-            ptlSuorituspaiva = ptlSuorituspaiva,
-            aiempiElKoulutusSuoritettu = true,
-            aiempiElKoulutusSuorituspaiva = aiempiElKoulutusSuorituspaiva,
-            ltTutkintoSuoritettu = true,
-            ltTutkintoSuorituspaiva = ltTutkintoSuorituspaiva,
-            yliopistosairaalanUlkopuolinenTyoTarkistettu = true,
-            yliopistosairaalatyoTarkistettu = true,
-            kokonaistyoaikaTarkistettu = true,
-            teoriakoulutusTarkistettu = true,
-            kommentitVirkailijoille = "test",
-            keskenerainen = false
-        )
-
         restValmistumispyyntoMockMvc.perform(
-            put(
+            multipart(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
                 valmistumispyynto.id
             )
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyynnonTarkistusDTO))
+                .param("ptlSuoritettu", "true")
+                .param("ptlSuorituspaiva", ptlSuorituspaiva.toString())
+                .param("aiempiElKoulutusSuoritettu", "true")
+                .param("aiempiElKoulutusSuorituspaiva", aiempiElKoulutusSuorituspaiva.toString())
+                .param("ltTutkintoSuoritettu", "true")
+                .param("ltTutkintoSuorituspaiva", ltTutkintoSuorituspaiva.toString())
+                .param("yliopistosairaalanUlkopuolinenTyoTarkistettu", "true")
+                .param("yliopistosairaalatyoTarkistettu", "true")
+                .param("kokonaistyoaikaTarkistettu", "true")
+                .param("teoriakoulutusTarkistettu", "true")
+                .param("kommentitVirkailijoille", "test")
+                .param("keskenerainen", "false")
+                .with { it.method = "PUT"; it }
                 .with(csrf())
         ).andExpect(status().isOk)
 
@@ -749,17 +742,14 @@ class VirkailijaValmistumispyyntoResourceIT {
         val databaseSizeBeforeUpdate = valmistumispyynnonTarkistusRepository.findAll().size
 
         val korjausehdotus = "korjausehdotus"
-        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusUpdateDTO(
-            korjausehdotus = korjausehdotus
-        )
 
         restValmistumispyyntoMockMvc.perform(
-            put(
+            multipart(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
                 valmistumispyynto.id
             )
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyynnonTarkistusDTO))
+                .param("korjausehdotus", korjausehdotus)
+                .with { it.method = "PUT"; it }
                 .with(csrf())
         ).andExpect(status().isOk)
 
@@ -791,7 +781,8 @@ class VirkailijaValmistumispyyntoResourceIT {
 
         val tehtavatyypit = em.findAll(VastuuhenkilonTehtavatyyppi::class)
 
-        val arvioijaUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
+        val arvioijaUser =
+            KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
         em.persist(arvioijaUser)
         vastuuhenkilo = KayttajaHelper.createEntity(em, arvioijaUser)
         vastuuhenkilo.yliopistotAndErikoisalat.add(
@@ -799,12 +790,14 @@ class VirkailijaValmistumispyyntoResourceIT {
                 kayttaja = vastuuhenkilo,
                 yliopisto = opintooikeus.yliopisto,
                 erikoisala = opintooikeus.erikoisala,
-                vastuuhenkilonTehtavat = tehtavatyypit.filter { it.nimi == VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI }.toMutableSet()
+                vastuuhenkilonTehtavat = tehtavatyypit.filter { it.nimi == VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI }
+                    .toMutableSet()
             )
         )
         em.persist(vastuuhenkilo)
 
-        val hyvaksyjaUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
+        val hyvaksyjaUser =
+            KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
         em.persist(hyvaksyjaUser)
         anotherVastuuhenkilo = KayttajaHelper.createEntity(em, hyvaksyjaUser)
         anotherVastuuhenkilo.yliopistotAndErikoisalat.add(
@@ -812,7 +805,8 @@ class VirkailijaValmistumispyyntoResourceIT {
                 kayttaja = anotherVastuuhenkilo,
                 yliopisto = opintooikeus.yliopisto,
                 erikoisala = opintooikeus.erikoisala,
-                vastuuhenkilonTehtavat = tehtavatyypit.filter { it.nimi == VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA }.toMutableSet()
+                vastuuhenkilonTehtavat = tehtavatyypit.filter { it.nimi == VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA }
+                    .toMutableSet()
             )
         )
         em.persist(anotherVastuuhenkilo)
