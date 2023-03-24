@@ -9,6 +9,12 @@ import org.springframework.stereotype.Repository
 @Repository
 interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
 
+    @Query(
+        """
+        select a from Asiakirja a join a.tyoskentelyjakso t join t.opintooikeus o
+        where o.id in :opintooikeusId and a.arviointi.id is null and a.itsearviointi.id is null
+        """
+    )
     fun findAllByOpintooikeusId(opintooikeusId: Long): List<Asiakirja>
 
     fun findAllByOpintooikeusIdAndTyoskentelyjaksoId(
