@@ -8,14 +8,13 @@ import fi.elsapalvelu.elsa.repository.TerveyskeskuskoulutusjaksonHyvaksyntaRepos
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
-import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
-import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KoejaksonVaiheetHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
@@ -32,11 +31,10 @@ import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
@@ -218,16 +216,10 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         val id = terveyskeskuskoulutusjaksonHyvaksynta.id
         assertNotNull(id)
 
-        val terveyskeskuskoulutusjaksoUpdateDTO =
-            TerveyskeskuskoulutusjaksoUpdateDTO(
-                korjausehdotus = null,
-                lisatiedotVirkailijalta = "test"
-            )
-
         restKoejaksoMockMvc.perform(
-            put("/api/virkailija/terveyskeskuskoulutusjakson-hyvaksynta/{id}", id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(terveyskeskuskoulutusjaksoUpdateDTO))
+            multipart("/api/virkailija/terveyskeskuskoulutusjakson-hyvaksynta/{id}", id)
+                .param("lisatiedotVirkailijalta", "test")
+                .with { it.method = "PUT"; it }
                 .with(csrf())
         ).andExpect(status().isOk)
 
@@ -251,16 +243,10 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         val id = terveyskeskuskoulutusjaksonHyvaksynta.id
         assertNotNull(id)
 
-        val terveyskeskuskoulutusjaksoUpdateDTO =
-            TerveyskeskuskoulutusjaksoUpdateDTO(
-                korjausehdotus = "test",
-                lisatiedotVirkailijalta = null
-            )
-
         restKoejaksoMockMvc.perform(
-            put("/api/virkailija/terveyskeskuskoulutusjakson-hyvaksynta/{id}", id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(terveyskeskuskoulutusjaksoUpdateDTO))
+            multipart("/api/virkailija/terveyskeskuskoulutusjakson-hyvaksynta/{id}", id)
+                .param("korjausehdotus", "test")
+                .with { it.method = "PUT"; it }
                 .with(csrf())
         ).andExpect(status().isOk)
 

@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.web.multipart.MultipartFile
 
 interface ValmistumispyyntoService {
     fun findErikoisalaTyyppiByOpintooikeusId(opintooikeusId: Long): ErikoisalaTyyppi
@@ -69,7 +70,8 @@ interface ValmistumispyyntoService {
     fun updateTarkistusByVirkailijaUserId(
         id: Long,
         userId: String,
-        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO
+        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO,
+        laillistamistodistus: MultipartFile?
     ): ValmistumispyynnonTarkistusDTO?
 
     fun existsByOpintooikeusId(opintooikeusId: Long): Boolean
@@ -81,5 +83,9 @@ interface ValmistumispyyntoService {
 
     fun getValmistumispyynnonHyvaksyjaRole(userId: String): ValmistumispyynnonHyvaksyjaRole?
 
-    fun getValmistumispyynnonAsiakirja(userId: String, valmistumispyyntoId: Long, asiakirjaId: Long): AsiakirjaDTO?
+    fun getValmistumispyynnonAsiakirja(
+        userId: String,
+        valmistumispyyntoId: Long,
+        asiakirjaId: Long
+    ): AsiakirjaDTO?
 }

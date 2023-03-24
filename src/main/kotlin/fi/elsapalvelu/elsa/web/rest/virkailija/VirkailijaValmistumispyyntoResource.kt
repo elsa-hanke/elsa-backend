@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
 import java.security.Principal
 import jakarta.validation.Valid
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/api/virkailija")
@@ -48,7 +49,8 @@ class VirkailijaValmistumispyyntoResource(
     @PutMapping("/valmistumispyynnon-tarkistus/{id}")
     fun updateValmistumispyynnonTarkistus(
         @PathVariable(value = "id", required = true) id: Long,
-        @Valid @RequestBody valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO,
+        @Valid valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO,
+        @RequestParam(required = false) laillistamistodistus: MultipartFile?,
         principal: Principal?
     ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -56,7 +58,8 @@ class VirkailijaValmistumispyyntoResource(
             valmistumispyyntoService.updateTarkistusByVirkailijaUserId(
                 id,
                 user.id!!,
-                valmistumispyynnonTarkistusDTO
+                valmistumispyynnonTarkistusDTO,
+                laillistamistodistus
             )
 
         return ResponseEntity.ok(tarkistus)
@@ -69,7 +72,11 @@ class VirkailijaValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirja(user.id!!, valmistumispyyntoId, asiakirjaId)
+        val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirja(
+            user.id!!,
+            valmistumispyyntoId,
+            asiakirjaId
+        )
 
         asiakirja?.asiakirjaData?.fileInputStream?.use {
             return ResponseEntity.ok()
