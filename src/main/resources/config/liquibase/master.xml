@@ -250,5 +250,6 @@
     <include file="config/liquibase/changelog/20230222115925_modify_entity_User.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20230309124946_modify_audit_log_entities.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20230317140113_modify_entity_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20230324122533_added_Opintooikeus_audit.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

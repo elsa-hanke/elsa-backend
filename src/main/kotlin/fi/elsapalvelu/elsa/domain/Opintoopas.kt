@@ -6,9 +6,13 @@ import java.io.Serializable
 import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
+import org.hibernate.envers.Audited
+import org.hibernate.envers.NotAudited
+import org.hibernate.envers.RelationTargetAuditMode
 
 @Entity
 @Table(name = "opintoopas")
+@Audited
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Opintoopas(
 
@@ -62,13 +66,16 @@ data class Opintoopas(
     var erikoisalanVaatimaJohtamisopintojenVahimmaismaara: Double? = null,
 
     @ManyToOne
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var arviointiasteikko: Arviointiasteikko? = null,
 
     @OneToMany(mappedBy = "opintoopas")
+    @NotAudited
     var opintooikeudet: MutableSet<Opintooikeus> = mutableSetOf(),
 
     @NotNull
     @ManyToOne(optional = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoisala: Erikoisala? = null
 
 ) : Serializable {
