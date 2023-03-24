@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20230324122533" author="jhipster">
+        <createTable tableName="opintooikeus_audit">
+            <column name="id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision_type" type="smallint"/>
+            <column name="yliopisto_opintooikeus_id" type="varchar(255)"/>
+            <column name="opintooikeuden_myontamispaiva" type="date"/>
+            <column name="opintooikeuden_paattymispaiva" type="date"/>
+            <column name="opiskelijatunnus" type="varchar(255)"/>
+            <column name="osaamisen_arvioinnin_oppaan_pvm" type="date"/>
+            <column name="kaytossa" type="boolean"/>
+            <column name="tila" type="varchar(50)"/>
+            <column name="muokkausaika" type="timestamp"/>
+            <column name="erikoistuva_laakari_id" type="bigint"/>
+            <column name="yliopisto_id" type="bigint"/>
+            <column name="erikoisala_id" type="bigint"/>
+            <column name="opintoopas_id" type="bigint"/>
+            <column name="asetus_id" type="bigint"/>
+            <column name="terveyskeskuskoulutusjakso_suoritettu" type="boolean"/>
+            <column name="muokkausoikeudet_virkailijoilla" type="boolean"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="revision_id"
+            baseTableName="opintooikeus_audit"
+            constraintName="fk_opintooikeus_audit_revinfo_id"
+            referencedColumnNames="id"
+            referencedTableName="revinfo"/>
+    </changeSet>
+
+</databaseChangeLog>

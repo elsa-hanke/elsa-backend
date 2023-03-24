@@ -5,12 +5,16 @@ import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
+import org.hibernate.envers.NotAudited
+import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.Instant
 import java.time.LocalDate
 
 @Entity
 @Table(name = "opintooikeus")
+@Audited
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Opintooikeus(
 
@@ -50,22 +54,27 @@ data class Opintooikeus(
 
     @NotNull
     @ManyToOne(optional = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoistuvaLaakari: ErikoistuvaLaakari? = null,
 
     @NotNull
     @ManyToOne(optional = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var yliopisto: Yliopisto? = null,
 
     @NotNull
     @ManyToOne(optional = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var erikoisala: Erikoisala? = null,
 
     @NotNull
     @ManyToOne(optional = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var opintoopas: Opintoopas? = null,
 
     @NotNull
     @ManyToOne(optional = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var asetus: Asetus? = null,
 
     @OneToMany(
@@ -75,6 +84,7 @@ data class Opintooikeus(
         fetch = FetchType.LAZY
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @NotAudited
     var tyoskentelyjaksot: MutableSet<Tyoskentelyjakso> = mutableSetOf(),
 
     @OneToOne(
@@ -83,6 +93,7 @@ data class Opintooikeus(
         cascade = [CascadeType.ALL],
         orphanRemoval = true
     )
+    @NotAudited
     var koulutussuunnitelma: Koulutussuunnitelma? = null,
 
     @OneToMany(
@@ -92,6 +103,7 @@ data class Opintooikeus(
         fetch = FetchType.LAZY
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @NotAudited
     var teoriakoulutukset: MutableSet<Teoriakoulutus>? = mutableSetOf(),
 
     @OneToMany(
@@ -101,6 +113,7 @@ data class Opintooikeus(
         fetch = FetchType.LAZY
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @NotAudited
     var opintosuoritukset: MutableSet<Opintosuoritus>? = mutableSetOf(),
 
     @OneToMany(
@@ -110,6 +123,7 @@ data class Opintooikeus(
         fetch = FetchType.LAZY
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @NotAudited
     var annetutValtuutukset: MutableSet<Kouluttajavaltuutus> = mutableSetOf(),
 
     @NotNull
@@ -121,6 +135,7 @@ data class Opintooikeus(
         cascade = [CascadeType.ALL],
         orphanRemoval = true
     )
+    @NotAudited
     var terveyskeskuskoulutusjaksonHyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta? = null,
 
     @NotNull
