@@ -401,12 +401,18 @@ class SecurityConfiguration(
 
         // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus
         if (hasErikoistuvaLaakariRole(existingUser) && !opintooikeusService.onOikeus(existingUser)) {
-            log.error(
-                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole voimassaolevaa " +
-                    "opinto-oikeutta, opinto-oikeuden tila ei salli kirjautumista tai opinto-oikeuden erikoisala " +
-                    "ei ole liittynyt Elsaan."
-            )
-            throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
+            if (hasKouluttajaRole(existingUser)) {
+                existingUser.authorities = existingUser.authorities.filter { it.name != ERIKOISTUVA_LAAKARI }.toMutableSet()
+                existingUser.activeAuthority = Authority(name = KOULUTTAJA)
+                userRepository.save(existingUser)
+            } else {
+                log.error(
+                    "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole voimassaolevaa " +
+                        "opinto-oikeutta, opinto-oikeuden tila ei salli kirjautumista tai opinto-oikeuden erikoisala " +
+                        "ei ole liittynyt Elsaan."
+                )
+                throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
+            }
         }
 
         if (hasVastuuhenkiloRole(existingUser) && kayttaja.tila == KayttajatilinTila.KUTSUTTU) {
