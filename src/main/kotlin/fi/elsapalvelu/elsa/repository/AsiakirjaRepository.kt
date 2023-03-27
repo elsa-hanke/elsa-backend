@@ -11,7 +11,7 @@ interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
 
     @Query(
         """
-        select a from Asiakirja a join a.tyoskentelyjakso t join t.opintooikeus o
+        select a from Asiakirja a join a.opintooikeus o
         where o.id in :opintooikeusId and a.arviointi.id is null and a.itsearviointi.id is null
         """
     )
