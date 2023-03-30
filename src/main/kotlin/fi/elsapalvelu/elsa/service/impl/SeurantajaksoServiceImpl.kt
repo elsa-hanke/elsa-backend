@@ -60,9 +60,9 @@ class SeurantajaksoServiceImpl(
             suoritemerkinnat.forEach { it.lukittu = true }
             suoritemerkintaRepository.saveAll(suoritemerkinnat)
 
-            val koulutusjaksot = seurantajakso.koulutusjaksot
-            if (koulutusjaksot != null && koulutusjaksot.size > 0) {
-                koulutusjaksot.forEach { it.lukittu = true }
+            seurantajakso.koulutusjaksot?.filter { it.id != null }?.map { it.id!! }?.let {
+                val koulutusjaksot = koulutusjaksoRepository.findForSeurantajakso(it, opintooikeusId)
+                koulutusjaksot.forEach { kj -> kj.lukittu = true }
                 koulutusjaksoRepository.saveAll(koulutusjaksot)
             }
 
@@ -281,17 +281,10 @@ class SeurantajaksoServiceImpl(
 
         val koulutusjaksotDTO =
             koulutusjaksoService.findForSeurantajakso(koulutusjaksot, opintooikeusId)
-        val osaamistavoitteet =
-            koulutusjaksotDTO.map { jakso -> jakso.osaamistavoitteet.map { it.nimi } }.flatten()
-                .distinct()
-        val muutTavoitteet =
-            koulutusjaksotDTO.mapNotNull { jakso -> jakso.muutOsaamistavoitteet }
-                .distinct()
         val teoriakoulutukset =
             teoriakoulutusService.findForSeurantajakso(opintooikeusId, alkamispaiva, paattymispaiva)
         return SeurantajaksonTiedotDTO(
-            osaamistavoitteet = osaamistavoitteet,
-            muutOsaamistavoitteet = muutTavoitteet,
+            koulutusjaksot = koulutusjaksotDTO,
             arvioinnit = kategoriat,
             arviointienMaara = arvioinnit.size,
             suoritemerkinnat = suoritteet,

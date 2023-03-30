@@ -125,17 +125,31 @@
         </table>
     </div>
     <hr/>
-    <div th:if="${seurantajaksonTiedot.osaamistavoitteet.size() > 0}">
+    <div th:if="${seurantajaksonTiedot.koulutusjaksot.size() > 0}">
         <h3 th:text="#{erikoistujantiedot.suunnitellutTavoitteet}"></h3>
-        <h4 th:text="#{erikoistujantiedot.osaamistavoitteetOmaltaErikoisalalta}"></h4>
-        <span th:each="osaamistavoite: ${seurantajaksonTiedot.osaamistavoitteet}">
-            <span class="osaamistavoitteet-badge" th:text="${osaamistavoite}"></span>
-        </span>
-        <div th:if="${seurantajaksonTiedot.muutOsaamistavoitteet.size() > 0}">
-            <h4 th:text="#{erikoistujantiedot.muutOsaamistavoitteet}"></h4>
-            <p th:each="muuTavoite: ${seurantajaksonTiedot.muutOsaamistavoitteet}" th:text="${muuTavoite}"></p>
+        <div th:each="koulutusjakso: ${seurantajaksonTiedot.koulutusjaksot}">
+            <h4 th:text="${koulutusjakso.nimi}"></h4>
+            <h5 th:text="#{erikoistujantiedot.tyoskentelyjaksot}"></h5>
+            <div th:each="tyoskentelyjakso: ${koulutusjakso.tyoskentelyjaksot}">
+                <span th:text="${tyoskentelyjakso.tyoskentelypaikka.nimi}"></span>
+                <span
+                    th:text="'(' + ${#temporals.format(tyoskentelyjakso.alkamispaiva, 'dd.MM.yyyy')}"></span>
+                <span th:text="'-'"></span>
+                <span th:if="${tyoskentelyjakso.paattymispaiva != null}"
+                      th:text="${#temporals.format(tyoskentelyjakso.paattymispaiva, 'dd.MM.yyyy')} + ')'"></span>
+                <span th:unless="${tyoskentelyjakso.paattymispaiva != null}"
+                      th:text="#{erikoistujantiedot.kesken} + ')'"></span>
+            </div>
+            <h5 th:text="#{erikoistujantiedot.osaamistavoitteetOmaltaErikoisalalta}"></h5>
+            <span th:each="osaamistavoite: ${koulutusjakso.osaamistavoitteet}">
+                <span class="osaamistavoitteet-badge" th:text="${osaamistavoite.nimi}"></span>
+            </span>
+            <div th:if="${koulutusjakso.muutOsaamistavoitteet != null}">
+                <h5 th:text="#{erikoistujantiedot.muutOsaamistavoitteet}"></h5>
+                <p th:text="${koulutusjakso.muutOsaamistavoitteet}"></p>
+            </div>
+            <hr/>
         </div>
-        <hr/>
     </div>
     <h3 th:text="#{erikoistujantiedot.arvioinnit} + ' (' + ${seurantajaksonTiedot.arviointienMaara} + ' ' + #{erikoistujantiedot.kpl} + ')'"></h3>
     <div th:each="kategoria: ${seurantajaksonTiedot.arvioinnit}">
