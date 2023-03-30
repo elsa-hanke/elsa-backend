@@ -417,6 +417,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         result.yleislaaketieteenVastuuhenkilonNimike = vastuuhenkilo.nimike
         result.tyoskentelyjaksot = tyoskentelyjaksot.map(tyoskentelyjaksoMapper::toDto)
         result.tila = TerveyskeskuskoulutusjaksoTila.fromHyvaksynta(hyvaksynta)
+        result.opintooikeusId = hyvaksynta.opintooikeus?.id
 
         return result
     }
