@@ -4,9 +4,7 @@ import java.io.Serializable
 
 data class SeurantajaksonTiedotDTO(
 
-    var osaamistavoitteet: List<String?>? = null,
-
-    var muutOsaamistavoitteet: List<String?>? = null,
+    var koulutusjaksot: List<KoulutusjaksoDTO?>? = null,
 
     var arvioinnit: List<SeurantajaksonArviointiKategoriaDTO?>? = null,
 
