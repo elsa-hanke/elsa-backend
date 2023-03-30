@@ -58,7 +58,9 @@ data class TerveyskeskuskoulutusjaksonHyvaksyntaDTO(
 
     var vastuuhenkilonKuittausaika: LocalDate? = null,
 
-    ) : Serializable {
+    var opintooikeusId: Long? = null
+
+) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
