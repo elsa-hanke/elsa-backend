@@ -403,6 +403,8 @@ class SecurityConfiguration(
             throw Exception(LoginException.TILI_PASSIVOITU.name)
         }
 
+        existingUser = kayttaja.user!!
+
         // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus
         if (hasErikoistuvaLaakariRole(existingUser) && !opintooikeusService.onOikeus(existingUser)) {
             if (hasKouluttajaRole(existingUser)) {
