@@ -77,7 +77,7 @@ class OpintooikeusServiceImpl(
     override fun checkOpintooikeusKaytossaValid(user: User) {
         val opintooikeusKaytossa =
             opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(user.id!!)
-                ?: throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
+                ?: return
         if (opintooikeusKaytossa.opintooikeudenPaattymispaiva!! < LocalDate.now() || !allowedOpintooikeusTilat().contains(
                 opintooikeusKaytossa.tila
             ) || opintooikeusKaytossa.erikoisala?.liittynytElsaan == false

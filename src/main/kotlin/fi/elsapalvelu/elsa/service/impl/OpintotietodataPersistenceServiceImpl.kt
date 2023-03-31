@@ -95,23 +95,31 @@ class OpintotietodataPersistenceServiceImpl(
             etunimi,
             sukunimi
         ) ?: return
-        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-            ?: erikoistuvaLaakariRepository.save(
-                ErikoistuvaLaakari(
-                    syntymaaika = syntymaaika,
-                    kayttaja = kayttajaRepository.findOneByUserId(userId)
-                        .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy.") })
-            )
-        val user = erikoistuvaLaakari.kayttaja?.user!!
+        var erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+
+        val opintotietodataOpintooikeudet =
+            opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
+
+        if (erikoistuvaLaakari == null) {
+            if (filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet).isEmpty()) {
+                return
+            } else {
+                erikoistuvaLaakari = erikoistuvaLaakariRepository.save(
+                    ErikoistuvaLaakari(
+                        syntymaaika = syntymaaika,
+                        kayttaja = kayttajaRepository.findOneByUserId(userId)
+                            .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy.") })
+                )
+            }
+        }
+
+        val user = erikoistuvaLaakari!!.kayttaja?.user!!
         if (!user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))) {
             user.authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
             userRepository.save(user)
         }
 
         updateNimiIfChanged(erikoistuvaLaakari, etunimi, sukunimi)
-
-        val opintotietodataOpintooikeudet =
-            opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
 
         checkOpintooikeudetAmount(
             filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet),
