@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20230403133331" author="jhipster">
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio">
+            <column name="vastuuhenkilon_korjausehdotus" type="text"/>
+        </addColumn>
+        <renameColumn tableName="koejakson_vastuuhenkilon_arvio" oldColumnName="korjausehdotus"
+            newColumnName="virkailijan_korjausehdotus"/>
+
+        <addColumn tableName="koejakson_vastuuhenkilon_arvio_audit">
+            <column name="vastuuhenkilon_korjausehdotus" type="text"/>
+        </addColumn>
+        <renameColumn tableName="koejakson_vastuuhenkilon_arvio_audit" oldColumnName="korjausehdotus"
+            newColumnName="virkailijan_korjausehdotus"/>
+    </changeSet>
+
+</databaseChangeLog>

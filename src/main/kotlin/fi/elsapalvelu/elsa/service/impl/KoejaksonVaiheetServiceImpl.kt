@@ -107,7 +107,7 @@ class KoejaksonVaiheetServiceImpl(
                     KoejaksonVaiheDTO(
                         arvio.id,
                         KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
-                        KoejaksoTila.fromVastuuhenkilonArvio(arvio),
+                        KoejaksoTila.fromVastuuhenkilonArvio(arvio, virkailija = true),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getAvatar(),
                         arvio.muokkauspaiva

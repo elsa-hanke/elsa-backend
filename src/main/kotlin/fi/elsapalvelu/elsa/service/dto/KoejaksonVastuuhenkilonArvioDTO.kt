@@ -58,7 +58,9 @@ data class KoejaksonVastuuhenkilonArvioDTO(
 
     var loppukeskustelu: KoejaksonLoppukeskusteluDTO? = null,
 
-    var korjausehdotus: String? = null,
+    var virkailijanKorjausehdotus: String? = null,
+
+    var vastuuhenkilonKorjausehdotus: String? = null,
 
     var tila: KoejaksoTila? = null
 

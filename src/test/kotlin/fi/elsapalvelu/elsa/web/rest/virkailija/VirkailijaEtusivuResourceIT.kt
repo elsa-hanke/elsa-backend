@@ -646,6 +646,7 @@ class VirkailijaEtusivuResourceIT {
 
         val vastuuhenkilonArvio =
             KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+        vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
         vastuuhenkilonArvio.virkailijaHyvaksynyt = false
         vastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
