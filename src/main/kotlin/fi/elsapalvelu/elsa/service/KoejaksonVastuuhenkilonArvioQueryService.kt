@@ -44,7 +44,7 @@ class KoejaksonVastuuhenkilonArvioQueryService(
             if (criteria?.avoin != null) {
                 val avoinExpr = cb.and(
                     cb.equal(root.get(KoejaksonVastuuhenkilonArvio_.virkailijaHyvaksynyt), false),
-                    cb.isNull(root.get(KoejaksonVastuuhenkilonArvio_.korjausehdotus))
+                    cb.isNotNull(root.get(KoejaksonVastuuhenkilonArvio_.erikoistuvanKuittausaika))
                 )
                 result = if (criteria.avoin == true) {
                     cb.and(result, avoinExpr)

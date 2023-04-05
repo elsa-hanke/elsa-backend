@@ -584,7 +584,7 @@ class EtusivuServiceImpl(
         locale: Locale
     ) {
         koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(opintooikeusId).ifPresent {
-            if (!it.korjausehdotus.isNullOrBlank()) {
+            if (!it.virkailijanKorjausehdotus.isNullOrBlank() || !it.vastuuhenkilonKorjausehdotus.isNullOrBlank()) {
                 avoimetAsiatList.add(
                     AvoinAsiaDTO(
                         tyyppi = AvoinAsiaTyyppiEnum.VASTUUHENKILON_ARVIO,
