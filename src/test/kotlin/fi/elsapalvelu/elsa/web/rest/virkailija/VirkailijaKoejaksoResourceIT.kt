@@ -178,7 +178,7 @@ class VirkailijaKoejaksoResourceIT {
         val updatedVastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.findById(id).get()
         em.detach(updatedVastuuhenkilonArvio)
 
-        updatedVastuuhenkilonArvio.korjausehdotus = null
+        updatedVastuuhenkilonArvio.virkailijanKorjausehdotus = null
 
         val vastuuhenkilonArvioDTO =
             koejaksonVastuuhenkilonArvioMapper.toDto(updatedVastuuhenkilonArvio)
@@ -210,7 +210,7 @@ class VirkailijaKoejaksoResourceIT {
         val updatedVastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.findById(id).get()
         em.detach(updatedVastuuhenkilonArvio)
 
-        updatedVastuuhenkilonArvio.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
+        updatedVastuuhenkilonArvio.virkailijanKorjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
 
         val vastuuhenkilonArvioDTO =
             koejaksonVastuuhenkilonArvioMapper.toDto(updatedVastuuhenkilonArvio)
@@ -227,7 +227,7 @@ class VirkailijaKoejaksoResourceIT {
         val testVastuuhenkilonArvio = vastuuhenkilonArvioList[vastuuhenkilonArvioList.size - 1]
         assertThat(testVastuuhenkilonArvio.virkailijaHyvaksynyt).isEqualTo(false)
         assertThat(testVastuuhenkilonArvio.virkailijanKuittausaika).isNull()
-        assertThat(testVastuuhenkilonArvio.korjausehdotus).isEqualTo(KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS)
+        assertThat(testVastuuhenkilonArvio.virkailijanKorjausehdotus).isEqualTo(KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS)
     }
 
     fun initTest(virkailijaYliopisto: Yliopisto? = null) {

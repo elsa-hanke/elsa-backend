@@ -21,6 +21,13 @@ interface KoejaksonVastuuhenkilonArvioRepository :
 
     fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonVastuuhenkilonArvio>
 
+    @Query(
+        """
+        select a
+        from KoejaksonVastuuhenkilonArvio a join a.vastuuhenkilo v
+        where v.user.id = :userId and (a.virkailijaHyvaksynyt = true or a.vastuuhenkilonKorjausehdotus is not null)
+        """
+    )
     fun findAllByVastuuhenkiloUserIdAndVirkailijaHyvaksynytTrue(
         userId: String
     ): List<KoejaksonVastuuhenkilonArvio>
@@ -40,7 +47,7 @@ interface KoejaksonVastuuhenkilonArvioRepository :
         """
         select a
         from KoejaksonVastuuhenkilonArvio a join a.opintooikeus o
-        where o.yliopisto.id = :yliopistoId and a.korjausehdotus is null and a.virkailijaHyvaksynyt = false
+        where o.yliopisto.id = :yliopistoId and a.erikoistuvanKuittausaika is not null and a.virkailijaHyvaksynyt = false
         """
     )
     fun findAllAvoinByVirkailija(

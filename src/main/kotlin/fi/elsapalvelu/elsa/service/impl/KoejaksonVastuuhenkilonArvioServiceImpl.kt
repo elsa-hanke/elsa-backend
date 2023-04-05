@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTableDTO
@@ -11,7 +12,6 @@ import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
-import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.security.core.AuthenticatedPrincipal
@@ -27,6 +27,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 
 
 @Service
@@ -140,7 +142,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         email: String?,
         phoneNumber: String?
     ) {
-        vastuuhenkilonArvio.korjausehdotus = null
         vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
 
         koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
@@ -158,15 +159,17 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         virkailija: Kayttaja
     ) {
         // Hyväksytty
-        if (updated.korjausehdotus.isNullOrBlank()) {
+        if (updated.virkailijanKorjausehdotus.isNullOrBlank()) {
             vastuuhenkilonArvio.virkailija = virkailija
             vastuuhenkilonArvio.virkailijaHyvaksynyt = true
             vastuuhenkilonArvio.virkailijanKuittausaika = LocalDate.now(ZoneId.systemDefault())
             vastuuhenkilonArvio.lisatiedotVirkailijalta = updated.lisatiedotVirkailijalta
+            vastuuhenkilonArvio.virkailijanKorjausehdotus = null
+            vastuuhenkilonArvio.vastuuhenkilonKorjausehdotus = null
         }
         // Palautettu korjattavaksi
         else {
-            vastuuhenkilonArvio.korjausehdotus = updated.korjausehdotus
+            vastuuhenkilonArvio.virkailijanKorjausehdotus = updated.virkailijanKorjausehdotus
             vastuuhenkilonArvio.virkailijaHyvaksynyt = false
             vastuuhenkilonArvio.virkailijanKuittausaika = null
             vastuuhenkilonArvio.erikoistuvanKuittausaika = null
@@ -191,13 +194,27 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         email: String?,
         phoneNumber: String?
     ) {
-        vastuuhenkilonArvio.apply {
-            vastuuhenkiloHyvaksynyt = true
-            vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
-            koejaksoHyvaksytty = updated.koejaksoHyvaksytty
-        }.takeIf { it.koejaksoHyvaksytty == false }?.apply {
-            perusteluHylkaamiselle = updated.perusteluHylkaamiselle
-            hylattyArviointiKaytyLapiKeskustellen = updated.hylattyArviointiKaytyLapiKeskustellen
+        // Hyväksytty
+        if (updated.vastuuhenkilonKorjausehdotus.isNullOrBlank()) {
+            vastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = true
+            vastuuhenkilonArvio.vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            vastuuhenkilonArvio.koejaksoHyvaksytty = updated.koejaksoHyvaksytty
+
+            if (updated.koejaksoHyvaksytty == false) {
+                vastuuhenkilonArvio.perusteluHylkaamiselle = updated.perusteluHylkaamiselle
+                vastuuhenkilonArvio.hylattyArviointiKaytyLapiKeskustellen =
+                    updated.hylattyArviointiKaytyLapiKeskustellen
+            }
+        }
+        // Palautettu korjattavaksi
+        else {
+            vastuuhenkilonArvio.vastuuhenkilonKorjausehdotus = updated.vastuuhenkilonKorjausehdotus
+            vastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
+            vastuuhenkilonArvio.vastuuhenkilonKuittausaika = null
+            vastuuhenkilonArvio.virkailijaHyvaksynyt = false
+            vastuuhenkilonArvio.virkailijanKuittausaika = null
+            vastuuhenkilonArvio.erikoistuvanKuittausaika = null
+            vastuuhenkilonArvio.lisatiedotVirkailijalta = null
         }
 
         val result = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
@@ -273,8 +290,19 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         asiakirja: Asiakirja
     ) {
         val recipients: MutableList<SarakeSignRecipientDTO> = mutableListOf()
-        vastuuhenkilonArvio.vastuuhenkilo?.user?.let { recipients.add(lisaaVastaanottaja(it, false)) }
-        vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let { recipients.add(lisaaVastaanottaja(it, true)) }
+        vastuuhenkilonArvio.vastuuhenkilo?.user?.let {
+            recipients.add(
+                lisaaVastaanottaja(
+                    it,
+                    false
+                )
+            )
+        }
+        vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let {
+            recipients.add(
+                lisaaVastaanottaja(it, true)
+            )
+        }
         recipients.add(
             SarakeSignRecipientDTO(
                 phaseNumber = 0,
@@ -383,7 +411,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             if (status == 3) { // Completed
                 koejaksonVastuuhenkilonArvio.allekirjoitettu = true
             } else if (status == 4) { // Aborted
-                koejaksonVastuuhenkilonArvio.korjausehdotus = "Allekirjoitus keskeytetty"
+                koejaksonVastuuhenkilonArvio.virkailijanKorjausehdotus = "Allekirjoitus keskeytetty"
                 koejaksonVastuuhenkilonArvio.erikoistuvanKuittausaika = null
                 koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
                 koejaksonVastuuhenkilonArvio.vastuuhenkilonKuittausaika = null
@@ -397,8 +425,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private fun mapVastuuhenkilonArvio(vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio): KoejaksonVastuuhenkilonArvioDTO {
         val result = koejaksonVastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvio)
         val opintoOikeusId = vastuuhenkilonArvio.opintooikeus?.id!!
-        val principal =
-            SecurityContextHolder.getContext().authentication.principal as AuthenticatedPrincipal
+        val authentication =
+            SecurityContextHolder.getContext().authentication as Saml2Authentication
         result.koejaksonSuorituspaikat = TyoskentelyjaksotTableDTO(
             tyoskentelyjaksot = tyoskentelyjaksoService.findAllByOpintooikeusIdForKoejakso(
                 opintoOikeusId
@@ -423,7 +451,10 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val koulutussopimus = koulutussopimusRepository.findByOpintooikeusId(opintoOikeusId)
         result.koulutussopimusHyvaksytty =
             koulutussopimus.isPresent && koulutussopimus.get().vastuuhenkiloHyvaksynyt == true
-        result.tila = KoejaksoTila.fromVastuuhenkilonArvio(vastuuhenkilonArvio, principal.name)
+        result.tila = KoejaksoTila.fromVastuuhenkilonArvio(
+            vastuuhenkilonArvio,
+            (authentication.principal as Saml2AuthenticatedPrincipal).name,
+            authentication.authorities.any { it.authority == OPINTOHALLINNON_VIRKAILIJA })
         return result
     }
 }
