@@ -229,7 +229,6 @@ class ValmistumispyyntoServiceImpl(
             if (osaamisenArviointiDTO.osaaminenRiittavaValmistumiseen == true) {
                 valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika = LocalDate.now()
                 valmistumispyynto.virkailijanPalautusaika = null
-                valmistumispyynto.virkailijanKorjausehdotus = null
                 sendMailNotificationOdottaaVirkailijanTarkastusta(
                     yliopisto.nimi!!,
                     valmistumispyynto.id!!
@@ -371,6 +370,7 @@ class ValmistumispyyntoServiceImpl(
                     it.valmistumispyynto?.virkailijanKuittausaika = LocalDate.now(clock)
                     it.valmistumispyynto?.vastuuhenkiloHyvaksyjaKorjausehdotus = null
                     it.valmistumispyynto?.vastuuhenkiloHyvaksyjaPalautusaika = null
+                    it.valmistumispyynto?.virkailijanKorjausehdotus = null
                     sendMailNotificationOdottaaHyvaksyntaa(it.valmistumispyynto!!)
                 }
 
