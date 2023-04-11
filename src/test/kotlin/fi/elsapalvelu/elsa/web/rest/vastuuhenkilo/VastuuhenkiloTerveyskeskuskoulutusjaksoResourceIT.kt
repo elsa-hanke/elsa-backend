@@ -293,7 +293,8 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResourceIT {
         assertEquals(DEFAULT_VIRKAILIJAN_KUITTAUSAIKA, testHyvaksynta.virkailijanKuittausaika)
         assertThat(testHyvaksynta.vastuuhenkiloHyvaksynyt).isTrue
         assertThat(testHyvaksynta.vastuuhenkilonKuittausaika).isNotNull
-        assertThat(testHyvaksynta.korjausehdotus).isNull()
+        assertThat(testHyvaksynta.virkailijanKorjausehdotus).isNull()
+        assertThat(testHyvaksynta.vastuuhenkilonKorjausehdotus).isNull()
     }
 
     @Test
@@ -322,8 +323,8 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResourceIT {
         val testHyvaksynta = hyvaksyntaList[hyvaksyntaList.size - 1]
         assertThat(testHyvaksynta.virkailijaHyvaksynyt).isFalse
         assertThat(testHyvaksynta.vastuuhenkiloHyvaksynyt).isFalse
-        assertThat(testHyvaksynta.korjausehdotus).isEqualTo("test")
-        assertThat(testHyvaksynta.korjausehdotusVastuuhenkilolta).isEqualTo("test")
+        assertThat(testHyvaksynta.virkailijanKorjausehdotus).isNull()
+        assertThat(testHyvaksynta.vastuuhenkilonKorjausehdotus).isEqualTo("test")
     }
 
     fun initTest(

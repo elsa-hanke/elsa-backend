@@ -229,7 +229,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         assertThat(testHyvaksynta.virkailijaHyvaksynyt).isTrue
         assertThat(testHyvaksynta.vastuuhenkiloHyvaksynyt).isFalse
         assertThat(testHyvaksynta.lisatiedotVirkailijalta).isEqualTo("test")
-        assertThat(testHyvaksynta.korjausehdotus).isNull()
+        assertThat(testHyvaksynta.virkailijanKorjausehdotus).isNull()
     }
 
     @Test
@@ -255,7 +255,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         val testHyvaksynta = hyvaksyntaList[hyvaksyntaList.size - 1]
         assertThat(testHyvaksynta.virkailijaHyvaksynyt).isFalse
         assertThat(testHyvaksynta.vastuuhenkiloHyvaksynyt).isFalse
-        assertThat(testHyvaksynta.korjausehdotus).isEqualTo("test")
+        assertThat(testHyvaksynta.virkailijanKorjausehdotus).isEqualTo("test")
     }
 
     fun initTest(virkailijaYliopisto: Yliopisto? = null) {
