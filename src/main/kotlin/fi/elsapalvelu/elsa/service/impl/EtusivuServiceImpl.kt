@@ -633,7 +633,7 @@ class EtusivuServiceImpl(
     ) {
         val hyvaksynta = terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(opintooikeusId)
         if (hyvaksynta != null) {
-            if (!hyvaksynta.korjausehdotus.isNullOrBlank() || !hyvaksynta.korjausehdotusVastuuhenkilolta.isNullOrBlank()) {
+            if (!hyvaksynta.virkailijanKorjausehdotus.isNullOrBlank() || !hyvaksynta.vastuuhenkilonKorjausehdotus.isNullOrBlank()) {
                 avoimetAsiatList.add(
                     AvoinAsiaDTO(
                         hyvaksynta.id,

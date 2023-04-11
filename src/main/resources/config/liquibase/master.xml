@@ -252,5 +252,6 @@
     <include file="config/liquibase/changelog/20230317140113_modify_entity_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20230324122533_added_Opintooikeus_audit.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20230403133331_modify_entity_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20230411121531_modify_entity_TerveyskeskuskoulutusjaksonHyvaksynta.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
