@@ -141,7 +141,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeusId)
         terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)?.let {
             table.terveyskeskuskoulutusjaksonTila = it.tila
-            table.terveyskeskuskoulutusjaksonKorjausehdotus = it.korjausehdotus
+            table.terveyskeskuskoulutusjaksonKorjausehdotus =
+                if (it.virkailijanKorjausehdotus != null) it.virkailijanKorjausehdotus else it.vastuuhenkilonKorjausehdotus
             table.terveyskeskuskoulutusjaksonHyvaksymispvm = it.vastuuhenkilonKuittausaika
         }
 

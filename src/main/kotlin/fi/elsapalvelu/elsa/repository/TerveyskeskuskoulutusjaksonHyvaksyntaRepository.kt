@@ -20,7 +20,7 @@ interface TerveyskeskuskoulutusjaksonHyvaksyntaRepository :
         """
         select t from TerveyskeskuskoulutusjaksonHyvaksynta t
         join t.opintooikeus o
-        where t.id = :id and o.yliopisto.id in :yliopistoIds and (t.virkailijaHyvaksynyt = true or t.korjausehdotusVastuuhenkilolta is not null)
+        where t.id = :id and o.yliopisto.id in :yliopistoIds and (t.virkailijaHyvaksynyt = true or t.vastuuhenkilonKorjausehdotus is not null)
         """
     )
     fun findByIdAndYliopistoIdForVastuuhenkilo(

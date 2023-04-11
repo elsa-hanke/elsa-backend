@@ -42,7 +42,9 @@ data class TerveyskeskuskoulutusjaksonHyvaksyntaDTO(
 
     var tila: TerveyskeskuskoulutusjaksoTila? = null,
 
-    var korjausehdotus: String? = null,
+    var virkailijanKorjausehdotus: String? = null,
+
+    var vastuuhenkilonKorjausehdotus: String? = null,
 
     var lisatiedotVirkailijalta: String? = null,
 

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20230411121531" author="jhipster">
+        <addColumn tableName="terveyskeskuskoulutusjakson_hyvaksynta">
+            <column name="erikoistuja_lahettanyt" type="boolean"/>
+        </addColumn>
+        <renameColumn tableName="terveyskeskuskoulutusjakson_hyvaksynta"
+            oldColumnName="korjausehdotus_vastuuhenkilolta"
+            newColumnName="vastuuhenkilon_korjausehdotus"/>
+        <renameColumn tableName="terveyskeskuskoulutusjakson_hyvaksynta"
+            oldColumnName="korjausehdotus"
+            newColumnName="virkailijan_korjausehdotus"/>
+
+        <update tableName="terveyskeskuskoulutusjakson_hyvaksynta">
+            <column name="erikoistuja_lahettanyt" value="true"/>
+        </update>
+        <update tableName="terveyskeskuskoulutusjakson_hyvaksynta">
+            <column name="erikoistuja_lahettanyt" value="false"/>
+            <where>vastuuhenkilon_korjausehdotus is not null or virkailijan_korjausehdotus is not null
+            </where>
+        </update>
+        <addNotNullConstraint tableName="terveyskeskuskoulutusjakson_hyvaksynta" columnName="erikoistuja_lahettanyt"/>
+
+        <addColumn tableName="terveyskeskuskoulutusjakson_hyvaksynta_audit">
+            <column name="erikoistuja_lahettanyt" type="boolean"/>
+        </addColumn>
+        <renameColumn tableName="terveyskeskuskoulutusjakson_hyvaksynta_audit"
+            oldColumnName="korjausehdotus_vastuuhenkilolta"
+            newColumnName="vastuuhenkilon_korjausehdotus"/>
+        <renameColumn tableName="terveyskeskuskoulutusjakson_hyvaksynta_audit"
+            oldColumnName="korjausehdotus"
+            newColumnName="virkailijan_korjausehdotus"/>
+    </changeSet>
+
+</databaseChangeLog>

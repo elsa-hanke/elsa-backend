@@ -20,6 +20,10 @@ data class TerveyskeskuskoulutusjaksonHyvaksynta(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
+    @NotNull
+    @Column(name = "erikoistuja_lahettanyt")
+    var erikoistujaLahettanyt: Boolean = false,
+
     @ManyToOne
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var virkailija: Kayttaja? = null,
@@ -42,11 +46,11 @@ data class TerveyskeskuskoulutusjaksonHyvaksynta(
     @Column(name = "vastuuhenkilon_kuittausaika")
     var vastuuhenkilonKuittausaika: LocalDate? = null,
 
-    @Column(name = "korjausehdotus")
-    var korjausehdotus: String? = null,
+    @Column(name = "virkailijan_korjausehdotus")
+    var virkailijanKorjausehdotus: String? = null,
 
-    @Column(name = "korjausehdotus_vastuuhenkilolta")
-    var korjausehdotusVastuuhenkilolta: String? = null,
+    @Column(name = "vastuuhenkilon_korjausehdotus")
+    var vastuuhenkilonKorjausehdotus: String? = null,
 
     @Column(name = "lisatiedot_virkailijalta")
     var lisatiedotVirkailijalta: String? = null,

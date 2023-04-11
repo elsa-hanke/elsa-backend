@@ -46,7 +46,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
                 result = cb.and(
                     result,
                     cb.or(
-                        cb.isNotNull(root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.korjausehdotusVastuuhenkilolta)),
+                        cb.isNotNull(root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.vastuuhenkilonKorjausehdotus)),
                         cb.equal(
                             root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.virkailijaHyvaksynyt),
                             true
@@ -56,14 +56,16 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
             }
 
             if (criteria?.avoin != null) {
-                var avoinExpr =
-                    cb.isNull(root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.korjausehdotus))
+                val avoinExpr: Predicate
                 if (isVirkailija) {
                     avoinExpr = cb.and(
                         cb.equal(
                             root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.virkailijaHyvaksynyt),
                             false
-                        ), avoinExpr
+                        ), cb.equal(
+                            root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.erikoistujaLahettanyt),
+                            true
+                        )
                     )
                 } else {
                     avoinExpr = cb.and(
@@ -71,14 +73,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
                             root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.virkailijaHyvaksynyt),
                             true
                         ),
-                        avoinExpr
-                    )
-                    avoinExpr = cb.and(
                         cb.equal(
                             root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.vastuuhenkiloHyvaksynyt),
                             false
-                        ),
-                        avoinExpr
+                        )
                     )
                 }
                 result = if (criteria.avoin == true) {

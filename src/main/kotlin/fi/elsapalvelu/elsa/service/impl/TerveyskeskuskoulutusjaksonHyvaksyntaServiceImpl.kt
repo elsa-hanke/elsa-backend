@@ -73,9 +73,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             yliopistoIds
         )?.let {
             val result = mapTerveyskeskuskoulutusjakso(it)
-            if (it.korjausehdotusVastuuhenkilolta != null) {
+            if (it.vastuuhenkilonKorjausehdotus != null) {
                 result.tila = TerveyskeskuskoulutusjaksoTila.PALAUTETTU_KORJATTAVAKSI
-                result.korjausehdotus = it.korjausehdotusVastuuhenkilolta
             }
             return result
         }
@@ -262,7 +261,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     }
 
     private fun handleErikoistuja(hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta): TerveyskeskuskoulutusjaksonHyvaksyntaDTO {
-        hyvaksynta.korjausehdotus = null
+        hyvaksynta.erikoistujaLahettanyt = true
         hyvaksynta.virkailija = null
         hyvaksynta.vastuuhenkilo = null
         val result = terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(hyvaksynta)
@@ -280,12 +279,14 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO {
         hyvaksynta.virkailija = kayttaja
         if (korjausehdotus != null) {
-            hyvaksynta.korjausehdotus = korjausehdotus
+            hyvaksynta.virkailijanKorjausehdotus = korjausehdotus
+            hyvaksynta.erikoistujaLahettanyt = false
         } else {
             hyvaksynta.virkailijaHyvaksynyt = true
             hyvaksynta.virkailijanKuittausaika = LocalDate.now()
             hyvaksynta.lisatiedotVirkailijalta = lisatiedotVirkailijalta
-            hyvaksynta.korjausehdotusVastuuhenkilolta = null
+            hyvaksynta.vastuuhenkilonKorjausehdotus = null
+            hyvaksynta.virkailijanKorjausehdotus = null
         }
 
         if (laillistamistodistus != null || laillistamispaiva != null) {
@@ -329,8 +330,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO {
         hyvaksynta.vastuuhenkilo = kayttaja
         if (korjausehdotus != null) {
-            hyvaksynta.korjausehdotus = korjausehdotus
-            hyvaksynta.korjausehdotusVastuuhenkilolta = korjausehdotus
+            hyvaksynta.vastuuhenkilonKorjausehdotus = korjausehdotus
+            hyvaksynta.erikoistujaLahettanyt = false
             hyvaksynta.lisatiedotVirkailijalta = null
             hyvaksynta.virkailija = null
             hyvaksynta.virkailijanKuittausaika = null
