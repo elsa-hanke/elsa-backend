@@ -39,6 +39,7 @@ class ValmistumispyyntoQueryService(
                 if (criteria?.avoin == true) {
                     predicates.add(
                         cb.and(
+                            cb.isNotNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika)),
                             cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
                             cb.isNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
                             cb.isNull(root.get(Valmistumispyynto_.virkailijanKuittausaika))
@@ -51,7 +52,7 @@ class ValmistumispyyntoQueryService(
                             cb.isNotNull(root.get(Valmistumispyynto_.virkailijanKuittausaika)),
                             cb.and(
                             cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
-                            cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika))
+                            cb.isNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika))
                             )
                         )
                     )
