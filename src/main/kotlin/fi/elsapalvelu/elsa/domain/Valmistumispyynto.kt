@@ -167,7 +167,7 @@ data class Valmistumispyynto(
             valmistumispyynto: Valmistumispyynto,
             isAvoin: Boolean
         ): ValmistumispyynnonTila {
-            return if (isAvoin || valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika != null)
+            return if (isAvoin || valmistumispyynto.erikoistujanKuittausaika != null)
                 fromValmistumispyyntoNotReturned(valmistumispyynto)
             else if (valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika != null)
                 ValmistumispyynnonTila.VASTUUHENKILON_TARKASTUS_PALAUTETTU
@@ -197,7 +197,7 @@ data class Valmistumispyynto(
             valmistumispyynto: Valmistumispyynto,
             isAvoin: Boolean
         ): ValmistumispyynnonTila {
-            return if (isAvoin || valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika != null)
+            return if (isAvoin || valmistumispyynto.erikoistujanKuittausaika != null)
                 fromValmistumispyyntoNotReturned(valmistumispyynto)
             else if (valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika != null)
                 ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU
@@ -208,14 +208,12 @@ data class Valmistumispyynto(
             valmistumispyynto: Valmistumispyynto,
             isAvoin: Boolean
         ): ValmistumispyynnonTila {
-            return if (isAvoin) fromValmistumispyyntoNotReturned(valmistumispyynto)
+            return if (isAvoin || valmistumispyynto.erikoistujanKuittausaika != null) fromValmistumispyyntoNotReturned(valmistumispyynto)
             else if (valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika != null)
                 ValmistumispyynnonTila.VASTUUHENKILON_TARKASTUS_PALAUTETTU
             else if (valmistumispyynto.virkailijanPalautusaika != null)
                 ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU
-            else if (valmistumispyynto.erikoistujanKuittausaika == null &&
-                valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika != null
-            )
+            else if (valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika != null)
                 ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU
             else fromValmistumispyyntoNotReturned(valmistumispyynto)
         }
