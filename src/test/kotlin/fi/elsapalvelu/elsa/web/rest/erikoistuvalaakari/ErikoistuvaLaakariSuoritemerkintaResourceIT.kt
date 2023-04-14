@@ -5,6 +5,8 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.SuoritemerkintaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.service.dto.SuoritemerkinnanSuoriteDTO
+import fi.elsapalvelu.elsa.service.dto.UusiSuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritemerkintaMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -104,11 +106,22 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
         val databaseSizeBeforeCreate = suoritemerkintaRepository.findAll().size
 
-        val suoritemerkintaDTO = suoritemerkintaMapper.toDto(suoritemerkinta)
+        val uusiSuoritemerkintaDTO = UusiSuoritemerkintaDTO(
+            suoritemerkinta.suorituspaiva,
+            suoritemerkinta.lisatiedot,
+            suoritemerkinta.tyoskentelyjakso?.id,
+            listOf(
+                SuoritemerkinnanSuoriteDTO(
+                    suoritemerkinta.arviointiasteikonTaso,
+                    suoritemerkinta.vaativuustaso,
+                    suoritemerkinta.suorite?.id
+                )
+            )
+        )
         restSuoritemerkintaMockMvc.perform(
             post("/api/erikoistuva-laakari/suoritemerkinnat")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(suoritemerkintaDTO))
+                .content(convertObjectToJsonBytes(uusiSuoritemerkintaDTO))
                 .with(csrf())
         ).andExpect(status().isCreated)
 
@@ -120,26 +133,6 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         assertThat(testSuoritemerkinta.vaativuustaso).isEqualTo(DEFAULT_VAATIVUUSTASO)
         assertThat(testSuoritemerkinta.lisatiedot).isEqualTo(DEFAULT_LISATIEDOT)
         assertThat(testSuoritemerkinta.lukittu).isEqualTo(DEFAULT_LUKITTU)
-    }
-
-    @Test
-    @Transactional
-    fun createSuoritemerkintaWithExistingId() {
-        initTest()
-
-        val databaseSizeBeforeCreate = suoritemerkintaRepository.findAll().size
-
-        suoritemerkinta.id = 1L
-        val suoritemerkintaDTO = suoritemerkintaMapper.toDto(suoritemerkinta)
-        restSuoritemerkintaMockMvc.perform(
-            post("/api/erikoistuva-laakari/suoritemerkinnat")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(suoritemerkintaDTO))
-                .with(csrf())
-        ).andExpect(status().isBadRequest)
-
-        val suoritemerkintaList = suoritemerkintaRepository.findAll()
-        assertThat(suoritemerkintaList).hasSize(databaseSizeBeforeCreate)
     }
 
     @Test
@@ -440,7 +433,8 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
         requireNotNull(erikoistuvaLaakari)
-        val newOpintooikeus = OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        val newOpintooikeus =
+            OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
         OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, newOpintooikeus)
 
         val suoritemerkintaForAnotherOpintooikeus = createEntity(em, newOpintooikeus.erikoisala)
@@ -448,7 +442,8 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         em.persist(tyoskentelyjakso)
 
         suoritemerkintaForAnotherOpintooikeus.tyoskentelyjakso = tyoskentelyjakso
-        suoritemerkintaForAnotherOpintooikeus.arviointiasteikko = erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintoopas?.arviointiasteikko
+        suoritemerkintaForAnotherOpintooikeus.arviointiasteikko =
+            erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintoopas?.arviointiasteikko
 
         em.persist(suoritemerkintaForAnotherOpintooikeus)
 
@@ -456,7 +451,11 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.suoritemerkinnat").value(Matchers.hasSize<Any>(1)))
-            .andExpect(jsonPath("$.suoritemerkinnat[0].id").value(suoritemerkintaForAnotherOpintooikeus.id as Any))
+            .andExpect(
+                jsonPath("$.suoritemerkinnat[0].id").value(
+                    suoritemerkintaForAnotherOpintooikeus.id as Any
+                )
+            )
     }
 
     @Test
@@ -511,7 +510,8 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         }
 
         suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
-        suoritemerkinta.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
+        suoritemerkinta.arviointiasteikko =
+            tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
     }
 
     companion object {

@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.repository.SuoritemerkintaRepository
 import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.SuoritemerkintaService
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
+import fi.elsapalvelu.elsa.service.dto.UusiSuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritemerkintaMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -19,6 +20,37 @@ class SuoritemerkintaServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val suoritemerkintaMapper: SuoritemerkintaMapper
 ) : SuoritemerkintaService {
+    override fun create(
+        uusiSuoritemerkintaDTO: UusiSuoritemerkintaDTO,
+        userId: String
+    ): List<SuoritemerkintaDTO>? {
+        tyoskentelyjaksoRepository.findByIdOrNull(uusiSuoritemerkintaDTO.tyoskentelyjaksoId!!)
+            ?.let { tyoskentelyjakso ->
+                val kirjautunutErikoistuvaLaakari =
+                    erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+                if (kirjautunutErikoistuvaLaakari != null
+                    && kirjautunutErikoistuvaLaakari == tyoskentelyjakso.opintooikeus?.erikoistuvaLaakari
+                ) {
+                    uusiSuoritemerkintaDTO.suoritteet?.map {
+                        suoritemerkintaMapper.toEntity(
+                            SuoritemerkintaDTO(
+                                tyoskentelyjaksoId = uusiSuoritemerkintaDTO.tyoskentelyjaksoId,
+                                suorituspaiva = uusiSuoritemerkintaDTO.suorituspaiva,
+                                lisatiedot = uusiSuoritemerkintaDTO.lisatiedot,
+                                suoriteId = it.suoriteId,
+                                arviointiasteikonTaso = it.arviointiasteikonTaso,
+                                vaativuustaso = it.vaativuustaso,
+                                arviointiasteikko = uusiSuoritemerkintaDTO.arviointiasteikko
+                            )
+                        )
+                    }?.let { s ->
+                        return suoritemerkintaRepository.saveAll(s)
+                            .map { suoritemerkintaMapper.toDto(it) }
+                    }
+                }
+            }
+        return null
+    }
 
     override fun save(suoritemerkintaDTO: SuoritemerkintaDTO, userId: String): SuoritemerkintaDTO? {
         tyoskentelyjaksoRepository.findByIdOrNull(suoritemerkintaDTO.tyoskentelyjaksoId!!)

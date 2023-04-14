@@ -1,10 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
-import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaFormDTO
-import fi.elsapalvelu.elsa.service.dto.SuoritteenKategoriaDTO
-import fi.elsapalvelu.elsa.service.dto.SuoritteetTableDTO
+import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -37,29 +34,18 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
 
     @PostMapping("/suoritemerkinnat")
     fun createSuoritemerkinta(
-        @Valid @RequestBody suoritemerkintaDTO: SuoritemerkintaDTO,
+        @Valid @RequestBody uusiSuoritemerkintaDTO: UusiSuoritemerkintaDTO,
         principal: Principal?
-    ): ResponseEntity<SuoritemerkintaDTO> {
-        if (suoritemerkintaDTO.id != null) {
-            throw BadRequestAlertException(
-                "Uusi suoritemerkinta ei saa sisältää ID:tä",
-                ENTITY_NAME,
-                "idexists"
-            )
-        }
-
-        // Uutta suoritemerkintää ei voi luoda lukittuna
-        suoritemerkintaDTO.lukittu = false
-
+    ): ResponseEntity<List<SuoritemerkintaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 
-        suoritemerkintaDTO.arviointiasteikko =
+        uusiSuoritemerkintaDTO.arviointiasteikko =
             arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
-        suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
+        suoritemerkintaService.create(uusiSuoritemerkintaDTO, user.id!!)?.let {
             return ResponseEntity
-                .created(URI("/api/suoritemerkinnat/${it.id}"))
+                .created(URI("/api/suoritemerkinnat"))
                 .body(it)
         } ?: throw BadRequestAlertException(
             "Uuden suoritemerkinnän työskentelyjakso täytyy olla oma.",
