@@ -1,9 +1,12 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
+import fi.elsapalvelu.elsa.service.dto.UusiSuoritemerkintaDTO
 import java.time.LocalDate
 
 interface SuoritemerkintaService {
+
+    fun create(uusiSuoritemerkintaDTO: UusiSuoritemerkintaDTO, userId: String): List<SuoritemerkintaDTO>?
 
     fun save(suoritemerkintaDTO: SuoritemerkintaDTO, userId: String): SuoritemerkintaDTO?
 
