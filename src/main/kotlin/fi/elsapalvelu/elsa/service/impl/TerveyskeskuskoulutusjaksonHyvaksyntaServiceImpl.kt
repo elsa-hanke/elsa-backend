@@ -203,7 +203,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
     override fun create(opintooikeusId: Long): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
         opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
-            val hyvaksynta = TerveyskeskuskoulutusjaksonHyvaksynta(opintooikeus = it)
+            val hyvaksynta = TerveyskeskuskoulutusjaksonHyvaksynta(opintooikeus = it, erikoistujaLahettanyt = true)
             terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(hyvaksynta)
 
             mailService.sendEmailFromTemplate(
