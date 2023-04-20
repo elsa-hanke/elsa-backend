@@ -16,7 +16,8 @@ class VirkailijaKayttajahallintaResource(
     asetusService: AsetusService,
     opintoopasService: OpintoopasService,
     kayttajahallintaValidationService: KayttajahallintaValidationService,
-    mailService: MailService
+    mailService: MailService,
+    opintooikeusService: OpintooikeusService
 ) : KayttajahallintaResource(
     erikoistuvaLaakariService,
     userService,
@@ -26,5 +27,6 @@ class VirkailijaKayttajahallintaResource(
     asetusService,
     opintoopasService,
     kayttajahallintaValidationService,
-    mailService
+    mailService,
+    opintooikeusService
 )

@@ -32,7 +32,8 @@ open class KayttajahallintaResource(
     private val asetusService: AsetusService,
     private val opintoopasService: OpintoopasService,
     private val kayttajahallintaValidationService: KayttajahallintaValidationService,
-    private val mailService: MailService
+    private val mailService: MailService,
+    private val opintooikeusService: OpintooikeusService
 ) {
     @GetMapping("/erikoistuvat-laakarit")
     fun getErikoistuvatLaakarit(
@@ -219,7 +220,9 @@ open class KayttajahallintaResource(
 
         if (opintoopasService.findOne(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!) == null) {
             throw BadRequestAlertException(
-                "Opinto-opasta ei löydy.", KAYTTAJA_ENTITY_NAME, "dataillegal.opinto-opasta-ei-loydy"
+                "Opinto-opasta ei löydy.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.opinto-opasta-ei-loydy"
             )
         }
 
@@ -235,7 +238,10 @@ open class KayttajahallintaResource(
         @PathVariable id: Long, principal: Principal?
     ): ResponseEntity<Void> {
         val erikoistuvaLaakari = getErikoistuvaLaakariByIdOrThrow(id)
-        validateCurrentUserIsAllowedToManageErikoistuvaLaakari(principal, erikoistuvaLaakari.kayttajaId!!)
+        validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
+            principal,
+            erikoistuvaLaakari.kayttajaId!!
+        )
         erikoistuvaLaakariService.resendInvitation(id)
         return ResponseEntity.noContent().build()
     }
@@ -246,7 +252,10 @@ open class KayttajahallintaResource(
     ): ResponseEntity<Void> {
         val erikoistuvaLaakari = tryToGetErikoistuvaLaakariByKayttajaId(id)
         if (erikoistuvaLaakari != null) {
-            validateCurrentUserIsAllowedToManageErikoistuvaLaakari(principal, erikoistuvaLaakari.kayttajaId!!)
+            validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
+                principal,
+                erikoistuvaLaakari.kayttajaId!!
+            )
         } else {
             val kayttaja = getKayttajaOrThrow(id)
             validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id!!)
@@ -261,7 +270,10 @@ open class KayttajahallintaResource(
     ): ResponseEntity<Void> {
         val erikoistuvaLaakari = tryToGetErikoistuvaLaakariByKayttajaId(id)
         if (erikoistuvaLaakari != null) {
-            validateCurrentUserIsAllowedToManageErikoistuvaLaakari(principal, erikoistuvaLaakari.id!!)
+            validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
+                principal,
+                erikoistuvaLaakari.id!!
+            )
         } else {
             val kayttaja = getKayttajaOrThrow(id)
             validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id!!)
@@ -277,12 +289,19 @@ open class KayttajahallintaResource(
         principal: Principal?
     ): ResponseEntity<Void> {
         val erikoistuvaLaakariDTO = getErikoistuvaLaakariByUserIdOrThrow(userId)
-        validateCurrentUserIsAllowedToManageErikoistuvaLaakari(principal, erikoistuvaLaakariDTO.kayttajaId!!)
+        validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
+            principal,
+            erikoistuvaLaakariDTO.kayttajaId!!
+        )
         val sahkoposti = updateErikoistuvaLaakariDTO.sahkoposti
 
         val userDTO = userService.getUser(userId)
         validateEmailNotExists(sahkoposti, userDTO)
         userService.updateEmail(sahkoposti, userId)
+        opintooikeusService.updateOppaanPaivamaarat(
+            userId,
+            updateErikoistuvaLaakariDTO.opintooikeudet ?: listOf()
+        )
 
         return ResponseEntity.ok().build()
     }
@@ -362,7 +381,10 @@ open class KayttajahallintaResource(
         validateEmailNotExists(sahkoposti, userDTO)
         validateEppnNotExists(eppn, userDTO)
 
-        kayttajaService.saveKayttajahallintaKayttaja(kayttajahallintaKayttajaDTO, kayttajaId = kayttajaId)
+        kayttajaService.saveKayttajahallintaKayttaja(
+            kayttajahallintaKayttajaDTO,
+            kayttajaId = kayttajaId
+        )
         return ResponseEntity.ok().build()
     }
 
@@ -382,7 +404,10 @@ open class KayttajahallintaResource(
         validateEmailNotExists(sahkoposti, userDTO)
         validateEppnNotExists(eppn, userDTO)
 
-        kayttajaService.saveKayttajahallintaKayttaja(kayttajahallintaKayttajaDTO, kayttajaId = kayttajaId)
+        kayttajaService.saveKayttajahallintaKayttaja(
+            kayttajahallintaKayttajaDTO,
+            kayttajaId = kayttajaId
+        )
         return ResponseEntity.ok().build()
     }
 
@@ -481,7 +506,10 @@ open class KayttajahallintaResource(
     }
 
     private fun validateEmailNotExists(sahkoposti: String, userDTO: UserDTO? = null) {
-        if ((userDTO == null || userDTO.email?.lowercase() != sahkoposti.lowercase()) && userService.existsByEmail(sahkoposti)) {
+        if ((userDTO == null || userDTO.email?.lowercase() != sahkoposti.lowercase()) && userService.existsByEmail(
+                sahkoposti
+            )
+        ) {
             throw BadRequestAlertException(
                 "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
                 KAYTTAJA_ENTITY_NAME,
@@ -523,7 +551,10 @@ open class KayttajahallintaResource(
         }
     }
 
-    private fun validateCurrentUserIsAllowedToManageKayttaja(principal: Principal?, kayttajaId: Long) {
+    private fun validateCurrentUserIsAllowedToManageKayttaja(
+        principal: Principal?,
+        kayttajaId: Long
+    ) {
         val virkailijaOrPaakayttajaUser = userService.getAuthenticatedUser(principal)
         if (hasVirkailijaRole(virkailijaOrPaakayttajaUser)) {
             if (!kayttajahallintaValidationService.validateVirkailijaIsAllowedToManageKayttaja(
@@ -581,11 +612,12 @@ open class KayttajahallintaResource(
 
         )
 
-    private fun getKayttajaOrThrow(kayttajaId: Long): KayttajaDTO = kayttajaService.findOne(kayttajaId).orElseThrow {
-        BadRequestAlertException(
-            "Käyttäjää ei löydy", KAYTTAJA_ENTITY_NAME, "dataillegal.kayttajaa-ei-loydy"
-        )
-    }
+    private fun getKayttajaOrThrow(kayttajaId: Long): KayttajaDTO =
+        kayttajaService.findOne(kayttajaId).orElseThrow {
+            BadRequestAlertException(
+                "Käyttäjää ei löydy", KAYTTAJA_ENTITY_NAME, "dataillegal.kayttajaa-ei-loydy"
+            )
+        }
 
     private fun getKayttajaByUserIdOrThrow(userId: String): KayttajaDTO =
         kayttajaService.findByUserId(userId).orElseThrow {
@@ -604,16 +636,14 @@ open class KayttajahallintaResource(
         }
 
     private fun getErikoistuvaLaakariByKayttajaIdOrThrow(kayttajaId: Long): ErikoistuvaLaakariDTO =
-        erikoistuvaLaakariService.findOneByKayttajaId(kayttajaId) ?: throw
-        BadRequestAlertException(
+        erikoistuvaLaakariService.findOneByKayttajaId(kayttajaId) ?: throw BadRequestAlertException(
             ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR,
             ERIKOISTUVA_LAAKARI_ENTITY_NAME,
             "dataillegal.erikoistuvaa-laakaria-ei-loydy"
         )
 
     private fun getErikoistuvaLaakariByUserIdOrThrow(userId: String): ErikoistuvaLaakariDTO =
-        erikoistuvaLaakariService.findOneByKayttajaUserId(userId) ?: throw
-        BadRequestAlertException(
+        erikoistuvaLaakariService.findOneByKayttajaUserId(userId) ?: throw BadRequestAlertException(
             ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR,
             ERIKOISTUVA_LAAKARI_ENTITY_NAME,
             "dataillegal.erikoistuvaa-laakaria-ei-loydy"
