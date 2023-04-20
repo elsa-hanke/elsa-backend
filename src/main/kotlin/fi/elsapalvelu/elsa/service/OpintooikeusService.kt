@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.service.dto.OpintooikeusDTO
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaOpintooikeusDTO
 
 interface OpintooikeusService {
     fun findAllValidByErikoistuvaLaakariKayttajaUserId(userId: String): List<OpintooikeusDTO>
@@ -20,4 +21,9 @@ interface OpintooikeusService {
     fun setOpintooikeusKaytossa(userId: String, opintooikeusId: Long)
 
     fun updateMuokkausoikeudet(userId: String, muokkausoikeudet: Boolean)
+
+    fun updateOppaanPaivamaarat(
+        userId: String,
+        opintooikeudet: List<KayttajahallintaOpintooikeusDTO>
+    )
 }

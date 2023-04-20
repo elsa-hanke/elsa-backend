@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.OpintooikeusService
 import fi.elsapalvelu.elsa.service.constants.OPINTOOIKEUS_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.OpintooikeusDTO
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaOpintooikeusDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintooikeusMapper
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
@@ -110,6 +111,18 @@ class OpintooikeusServiceImpl(
                 it.muokkausoikeudetVirkailijoilla = muokkausoikeudet
                 opintooikeusRepository.save(it)
             }
+    }
+
+    override fun updateOppaanPaivamaarat(
+        userId: String,
+        opintooikeudet: List<KayttajahallintaOpintooikeusDTO>
+    ) {
+        val oikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+        oikeudet.forEach {
+            it.osaamisenArvioinninOppaanPvm =
+                opintooikeudet.firstOrNull { o -> o.id == it.id }?.osaamisenArvioinninOppaanPvm
+        }
+        opintooikeusRepository.saveAll(oikeudet)
     }
 
     private fun getImpersonatedOpintooikeusId(): Long? {
