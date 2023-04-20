@@ -8,7 +8,9 @@ data class KayttajahallintaErikoistuvaLaakariUpdateDTO(
 
     @get: NotEmpty
     @get: Email
-    var sahkoposti: String
+    var sahkoposti: String,
+
+    var opintooikeudet: List<KayttajahallintaOpintooikeusDTO>? = listOf()
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaErikoistuvaLaakariUpdateDTO"
