@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.OpintoopasRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.OpintooikeusService
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.LocalDate
 import jakarta.persistence.EntityNotFoundException
+import org.springframework.data.repository.findByIdOrNull
 
 @Service
 @Transactional
@@ -26,7 +28,8 @@ class OpintooikeusServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val opintooikeusMapper: OpintooikeusMapper,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
-    private val clock: Clock
+    private val clock: Clock,
+    private val opintoopasRepository: OpintoopasRepository
 ) : OpintooikeusService {
     override fun findAllValidByErikoistuvaLaakariKayttajaUserId(userId: String): List<OpintooikeusDTO> {
         return opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
@@ -113,12 +116,17 @@ class OpintooikeusServiceImpl(
             }
     }
 
-    override fun updateOppaanPaivamaarat(
+    override fun updateOpintooikeudet(
         userId: String,
         opintooikeudet: List<KayttajahallintaOpintooikeusDTO>
     ) {
         val oikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         oikeudet.forEach {
+            opintooikeudet.firstOrNull { o -> o.id == it.id }?.let { o ->
+                it.osaamisenArvioinninOppaanPvm = o.osaamisenArvioinninOppaanPvm
+                opintoopasRepository.findByIdOrNull(o.opintoopas)
+                    ?.let { opas -> it.opintoopas = opas }
+            }
             it.osaamisenArvioinninOppaanPvm =
                 opintooikeudet.firstOrNull { o -> o.id == it.id }?.osaamisenArvioinninOppaanPvm
         }

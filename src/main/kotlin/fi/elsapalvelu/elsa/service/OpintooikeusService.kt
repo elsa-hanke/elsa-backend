@@ -22,7 +22,7 @@ interface OpintooikeusService {
 
     fun updateMuokkausoikeudet(userId: String, muokkausoikeudet: Boolean)
 
-    fun updateOppaanPaivamaarat(
+    fun updateOpintooikeudet(
         userId: String,
         opintooikeudet: List<KayttajahallintaOpintooikeusDTO>
     )
