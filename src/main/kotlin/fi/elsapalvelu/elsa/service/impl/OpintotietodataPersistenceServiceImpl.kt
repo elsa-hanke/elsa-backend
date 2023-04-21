@@ -399,12 +399,13 @@ class OpintotietodataPersistenceServiceImpl(
             asetusStr.takeIf { it != opintooikeus.asetus?.nimi }?.let {
                 findAsetusOrLogError(it, opintooikeusDTO.yliopisto, userId)?.let { asetus ->
                     opintooikeus.asetus = asetus
-                    handleAsetusUpdated(
+                    // Oppaan ja osaamisen arvioinnin pvm päivitys ei toimi oikein, poistetaan toistaiseksi
+                    /*handleAsetusUpdated(
                         opintooikeus,
                         opintooikeusDTO.opintooikeudenPaattymispaiva,
                         opintooikeusDTO.yliopisto,
                         userId
-                    )
+                    )*/
                 } ?: return
             }
             opintooikeus.muokkausaika = Instant.now()
