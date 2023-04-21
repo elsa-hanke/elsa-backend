@@ -165,6 +165,11 @@ open class KayttajahallintaResource(
         return ResponseEntity.ok(form)
     }
 
+    @GetMapping("/opintooppaat")
+    fun getOpintooppaat(principal: Principal?): ResponseEntity<List<OpintoopasSimpleDTO>> {
+        return ResponseEntity.ok(opintoopasService.findAll())
+    }
+
     @GetMapping("/yliopistot")
     fun getYliopistotByRole(principal: Principal?): ResponseEntity<Set<YliopistoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
@@ -298,7 +303,7 @@ open class KayttajahallintaResource(
         val userDTO = userService.getUser(userId)
         validateEmailNotExists(sahkoposti, userDTO)
         userService.updateEmail(sahkoposti, userId)
-        opintooikeusService.updateOppaanPaivamaarat(
+        opintooikeusService.updateOpintooikeudet(
             userId,
             updateErikoistuvaLaakariDTO.opintooikeudet ?: listOf()
         )
