@@ -7,7 +7,9 @@ data class KayttajahallintaOpintooikeusDTO(
 
     var id: Long? = null,
 
-    var osaamisenArvioinninOppaanPvm: LocalDate? = null
+    var osaamisenArvioinninOppaanPvm: LocalDate? = null,
+
+    var opintoopas: Long? = null
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaOpintooikeusDTO"
