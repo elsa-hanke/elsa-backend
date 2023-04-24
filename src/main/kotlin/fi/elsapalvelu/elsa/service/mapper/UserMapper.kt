@@ -40,7 +40,8 @@ class UserMapper {
                     eppn = userDTO.eppn,
                     activated = userDTO.activated,
                     langKey = userDTO.langKey,
-                    authorities = authoritiesFromStrings(userDTO.authorities)
+                    authorities = authoritiesFromStrings(userDTO.authorities),
+                    activeAuthority = Authority(name = userDTO.activeAuthority)
                 )
             }
         }
