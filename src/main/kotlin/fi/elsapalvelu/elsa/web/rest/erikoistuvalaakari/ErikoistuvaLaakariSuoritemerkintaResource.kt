@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
-import jakarta.validation.Valid
 
 private const val ENTITY_NAME = "suoritemerkinta"
 
@@ -26,7 +26,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     private val suoritteenKategoriaService: SuoritteenKategoriaService,
     private val suoritemerkintaService: SuoritemerkintaService,
     private val arviointiasteikkoService: ArviointiasteikkoService,
-    private val opintooikeusService: OpintooikeusService
+    private val opintooikeusService: OpintooikeusService,
+    private val suoriteService: SuoriteService
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -115,12 +116,32 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
             .findAllByOpintooikeusId(opintooikeusId).let {
                 toSortedSuoritteenKategoriat(it)
             }
+        table.aiemmatKategoriat =
+            suoritteenKategoriaService.findAllExpiredByOpintooikeusId(opintooikeusId).let {
+                toSortedSuoritteenKategoriat(it)
+            }
         table.suoritemerkinnat = suoritemerkintaService
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toSet()
 
         table.arviointiasteikko = arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
 
         return ResponseEntity.ok(table)
+    }
+
+    @GetMapping("/suoritemerkinnat-rajaimet")
+    fun getSuoritemerkinnatRajaimet(
+        principal: Principal?
+    ): ResponseEntity<SuoritemerkinnatOptionsDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val options = SuoritemerkinnatOptionsDTO()
+        options.tyoskentelyjaksot = tyoskentelyjaksoService
+            .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
+        options.suoritteet =
+            suoriteService.findAllOpintooikeusId(opintooikeusId).toMutableSet()
+
+        return ResponseEntity.ok(options)
     }
 
     @GetMapping("/suoritemerkinta-lomake")

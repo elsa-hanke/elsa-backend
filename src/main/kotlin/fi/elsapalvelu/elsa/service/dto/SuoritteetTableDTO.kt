@@ -7,6 +7,8 @@ class SuoritteetTableDTO(
 
     var suoritteenKategoriat: Set<SuoritteenKategoriaDTO> = setOf(),
 
+    var aiemmatKategoriat: Set<SuoritteenKategoriaDTO> = setOf(),
+
     var suoritemerkinnat: Set<SuoritemerkintaDTO> = setOf(),
 
     var arviointiasteikko: ArviointiasteikkoDTO? = null

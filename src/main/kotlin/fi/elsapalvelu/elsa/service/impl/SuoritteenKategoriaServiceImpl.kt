@@ -44,6 +44,15 @@ class SuoritteenKategoriaServiceImpl(
         } ?: listOf()
     }
 
+    override fun findAllExpiredByOpintooikeusId(opintooikeusId: Long): List<SuoritteenKategoriaDTO> {
+        return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            suoritteenKategoriaRepository.findAllByErikoisalaIdAndExpired(
+                it.erikoisala?.id,
+                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+            ).map(suoritteenKategoriaMapper::toDto)
+        } ?: listOf()
+    }
+
     override fun findAllByErikoisalaId(erikoisalaId: Long): List<SuoritteenKategoriaSimpleDTO> {
         return suoritteenKategoriaRepository.findAllByErikoisalaId(erikoisalaId)
             .map(suoritteenKategoriaSimpleMapper::toDto)

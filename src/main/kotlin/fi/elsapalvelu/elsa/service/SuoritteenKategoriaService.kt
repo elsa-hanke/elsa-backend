@@ -11,6 +11,8 @@ interface SuoritteenKategoriaService {
 
     fun findAllByOpintooikeusId(opintooikeusId: Long): List<SuoritteenKategoriaDTO>
 
+    fun findAllExpiredByOpintooikeusId(opintooikeusId: Long): List<SuoritteenKategoriaDTO>
+
     fun findAllByErikoisalaId(erikoisalaId: Long): List<SuoritteenKategoriaSimpleDTO>
 
     fun findAllByErikoisalaIdWithKokonaisuudet(erikoisalaId: Long): List<SuoritteenKategoriaDTO>
