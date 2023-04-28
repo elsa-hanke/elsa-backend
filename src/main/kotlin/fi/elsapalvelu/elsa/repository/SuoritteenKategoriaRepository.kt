@@ -23,6 +23,16 @@ interface SuoritteenKategoriaRepository : JpaRepository<SuoritteenKategoria, Lon
     fun findAllByErikoisalaIdAndValid(id: Long?, valid: LocalDate): List<SuoritteenKategoria>
 
     @Query(
+        "select distinct sk from SuoritteenKategoria sk " +
+            "left join sk.erikoisala e " +
+            "left join fetch sk.suoritteet s " +
+            "where e.id = ?1 " +
+            "and s.kategoria.id = sk.id " +
+            "and s.voimassaolonPaattymispaiva < ?2"
+    )
+    fun findAllByErikoisalaIdAndExpired(id: Long?, valid: LocalDate): List<SuoritteenKategoria>
+
+    @Query(
         """
     select distinct sk from SuoritteenKategoria sk
     left join fetch sk.suoritteet s
