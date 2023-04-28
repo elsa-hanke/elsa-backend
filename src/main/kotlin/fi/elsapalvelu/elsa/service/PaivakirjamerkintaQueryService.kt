@@ -51,31 +51,43 @@ class PaivakirjamerkintaQueryService(
                     }
             }
             if (criteria.paivamaara != null) {
-                specification =
-                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
-                        if (criteria.paivamaara!!.specified != null) {
+                if (criteria.paivamaara!!.specified != null) {
+                    specification =
+                        specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                             if (criteria.paivamaara!!.specified) cb.isNotNull(
                                 root.get(
                                     Paivakirjamerkinta_.paivamaara
                                 )
                             ) else cb.isNull(root.get(Paivakirjamerkinta_.paivamaara))
-                        } else if (criteria.paivamaara!!.greaterThanOrEqual != null) {
+                        }
+                }
+                if (criteria.paivamaara!!.greaterThanOrEqual != null) {
+                    specification =
+                        specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                             cb.greaterThanOrEqualTo(
                                 root.get(Paivakirjamerkinta_.paivamaara),
                                 criteria.paivamaara!!.greaterThanOrEqual
                             )
-                        } else if (criteria.paivamaara!!.lessThanOrEqual != null) {
+                        }
+                }
+                if (criteria.paivamaara!!.lessThanOrEqual != null) {
+                    specification =
+                        specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                             cb.lessThanOrEqualTo(
                                 root.get(Paivakirjamerkinta_.paivamaara),
                                 criteria.paivamaara!!.lessThanOrEqual
                             )
-                        } else {
+                        }
+                }
+                if (criteria.paivamaara!!.equals != null) {
+                    specification =
+                        specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                             cb.equal(
                                 root.get(Paivakirjamerkinta_.paivamaara),
                                 criteria.paivamaara!!.equals
                             )
                         }
-                    }
+                }
             }
             if (criteria.oppimistapahtumanNimi != null) {
                 specification =
