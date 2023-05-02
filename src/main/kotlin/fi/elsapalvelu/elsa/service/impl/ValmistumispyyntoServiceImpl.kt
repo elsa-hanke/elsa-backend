@@ -562,6 +562,25 @@ class ValmistumispyyntoServiceImpl(
         return null
     }
 
+    override fun getValmistumispyynnonAsiakirjaVirkailija(
+        valmistumispyyntoId: Long,
+        yliopistoId: Long?,
+        asiakirjaId: Long
+    ): AsiakirjaDTO? {
+        valmistumispyyntoRepository.findByIdOrNull(valmistumispyyntoId)?.let {
+            if (it.opintooikeus?.yliopisto?.id == yliopistoId &&
+                (it.yhteenvetoAsiakirja?.id == asiakirjaId || it.liitteetAsiakirja?.id == asiakirjaId)) {
+                asiakirjaRepository.findByIdOrNull(asiakirjaId)?.let { asiakirja ->
+                    val result = asiakirjaMapper.toDto(asiakirja)
+                    result.asiakirjaData?.fileInputStream =
+                        ByteArrayInputStream(asiakirja.asiakirjaData?.data)
+                    return result
+                }
+            }
+        }
+        return null
+    }
+
     private fun tarkistaAllekirjoitus(valmistumispyynto: Valmistumispyynto) {
         val yliopisto = valmistumispyynto.opintooikeus?.yliopisto?.nimi!!
         if (valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika != null
