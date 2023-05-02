@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20230502142015" author="jhipster">
+        <addColumn tableName="valmistumispyynnon_tarkistus">
+            <column name="terveyskeskustyo_tarkistettu" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <update tableName="valmistumispyynnon_tarkistus">
+            <column name="terveyskeskustyo_tarkistettu" value="true"/>
+            <where>valmistumispyynto_id in (select id from valmistumispyynto where virkailijan_kuittausaika is not null)
+            </where>
+        </update>
+
+        <addColumn tableName="valmistumispyynnon_tarkistus_audit">
+            <column name="terveyskeskustyo_tarkistettu" type="boolean"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
