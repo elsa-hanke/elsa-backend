@@ -23,6 +23,8 @@ data class ValmistumispyynnonTarkistusUpdateDTO(
 
     var ltTutkintoSuorituspaiva: LocalDate? = null,
 
+    var terveyskeskustyoTarkistettu: Boolean? = false,
+
     var yliopistosairaalanUlkopuolinenTyoTarkistettu: Boolean? = false,
 
     var yliopistosairaalatyoTarkistettu: Boolean? = false,

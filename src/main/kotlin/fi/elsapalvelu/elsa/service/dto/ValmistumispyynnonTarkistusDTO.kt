@@ -31,6 +31,8 @@ data class ValmistumispyynnonTarkistusDTO(
 
     var terveyskeskustyoOpintosuoritusId: Long? = null,
 
+    var terveyskeskustyoTarkistettu: Boolean? = false,
+
     var yliopistosairaalanUlkopuolinenTyoTarkistettu: Boolean? = false,
 
     var yliopistosairaalatyoTarkistettu: Boolean? = false,
