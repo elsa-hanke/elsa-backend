@@ -203,7 +203,8 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
                 user,
                 alkamispaiva = LocalDate.ofEpochDay(30L),
                 paattymispaiva = LocalDate.ofEpochDay(100L),
-                tyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
+                tyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
+                kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
             )
         )
 
