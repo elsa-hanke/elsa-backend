@@ -164,7 +164,7 @@ server:
     session:
       cookie:
         http-only: true
-      timeout: 3600s
+      timeout: 7200s
 
 cloud:
   aws:
