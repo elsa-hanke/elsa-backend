@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/api/virkailija")
 class VirkailijaValmistumispyyntoResource(
     private val userService: UserService,
+    private val kayttajaService: KayttajaService,
     private val valmistumispyyntoService: ValmistumispyyntoService
 ) {
     @GetMapping("/valmistumispyynnot")
@@ -72,9 +73,10 @@ class VirkailijaValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirja(
-            user.id!!,
+        val kayttaja = kayttajaService.findByUserId(user.id!!)
+        val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirjaVirkailija(
             valmistumispyyntoId,
+            kayttaja.orElse(null)?.yliopistot?.firstOrNull()?.id,
             asiakirjaId
         )
 

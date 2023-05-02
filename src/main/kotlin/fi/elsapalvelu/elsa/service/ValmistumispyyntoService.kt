@@ -88,4 +88,10 @@ interface ValmistumispyyntoService {
         valmistumispyyntoId: Long,
         asiakirjaId: Long
     ): AsiakirjaDTO?
+
+    fun getValmistumispyynnonAsiakirjaVirkailija(
+        valmistumispyyntoId: Long,
+        yliopistoId: Long?,
+        asiakirjaId: Long
+    ): AsiakirjaDTO?
 }
