@@ -47,4 +47,9 @@ interface TyoskentelyjaksoRepository : JpaRepository<Tyoskentelyjakso, Long> {
         kaytannonKoulutus: KaytannonKoulutusTyyppi
     ): List<Tyoskentelyjakso>
 
+    fun existsByOpintooikeusIdAndKaytannonKoulutus(
+        id: Long,
+        kaytannonKoulutus: KaytannonKoulutusTyyppi
+    ): Boolean
+
 }

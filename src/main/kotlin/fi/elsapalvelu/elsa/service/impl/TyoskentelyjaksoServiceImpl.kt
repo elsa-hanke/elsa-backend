@@ -132,7 +132,8 @@ class TyoskentelyjaksoServiceImpl(
                     this.lisattypvm = LocalDateTime.now()
                     this.opintooikeus = opintooikeus
                     this.tyoskentelyjakso = tyoskentelyjakso
-                    this.asiakirjaData?.data = asiakirjaDTO.asiakirjaData?.fileInputStream?.readAllBytes()
+                    this.asiakirjaData?.data =
+                        asiakirjaDTO.asiakirjaData?.fileInputStream?.readAllBytes()
                 }
             }
 
@@ -364,6 +365,7 @@ class TyoskentelyjaksoServiceImpl(
                     }
                     tilastotCounter.terveyskeskusSuoritettu += tutkintoonHyvaksyttavaPituus
                 }
+
                 YLIOPISTOLLINEN_SAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
                 else -> tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu += tyoskentelyjaksonPituus
             }
@@ -373,12 +375,15 @@ class TyoskentelyjaksoServiceImpl(
                 OMAN_ERIKOISALAN_KOULUTUS ->
                     kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS] =
                         kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS]!! + tyoskentelyjaksonPituus
+
                 OMAA_ERIKOISALAA_TUKEVA_KOULUTUS ->
                     kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS] =
                         kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS]!! + tyoskentelyjaksonPituus
+
                 TUTKIMUSTYO ->
                     kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO] =
                         kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO]!! + tyoskentelyjaksonPituus
+
                 TERVEYSKESKUSTYO ->
                     kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO] =
                         kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO]!! + tyoskentelyjaksonPituus
@@ -489,6 +494,16 @@ class TyoskentelyjaksoServiceImpl(
             return tyoskentelyjaksoMapper.toDto(result)
         }
         return null
+    }
+
+    override fun existsByKaytannonKoulutus(
+        opintooikeusId: Long,
+        kaytannonKoulutusTyyppi: KaytannonKoulutusTyyppi
+    ): Boolean {
+        return tyoskentelyjaksoRepository.existsByOpintooikeusIdAndKaytannonKoulutus(
+            opintooikeusId,
+            kaytannonKoulutusTyyppi
+        )
     }
 
     data class TilastotCounter(

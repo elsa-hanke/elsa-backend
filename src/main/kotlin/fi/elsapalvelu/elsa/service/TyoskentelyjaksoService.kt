@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotDTO
@@ -53,4 +54,6 @@ interface TyoskentelyjaksoService {
         addedFiles: Set<AsiakirjaDTO>?,
         deletedFiles: Set<Int>?
     ): TyoskentelyjaksoDTO?
+
+    fun existsByKaytannonKoulutus(opintooikeusId: Long, kaytannonKoulutusTyyppi: KaytannonKoulutusTyyppi): Boolean?
 }
