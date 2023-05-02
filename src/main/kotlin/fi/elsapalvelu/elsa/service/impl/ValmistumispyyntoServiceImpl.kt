@@ -132,7 +132,7 @@ class ValmistumispyyntoServiceImpl(
             else VANHENTUNUT_SUORITUS_YEARS_EHL
         val vanhojaTyoskentelyjaksojaExists =
             tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeusId).asSequence().filter {
-                it.tyoskentelypaikka?.tyyppi != TyoskentelyjaksoTyyppi.TERVEYSKESKUS
+                it.kaytannonKoulutus != KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
             }.any {
                 it.alkamispaiva?.isBefore(LocalDate.now(clock).minusYears(vanhentunutSuoritusYears)) == true
             }
