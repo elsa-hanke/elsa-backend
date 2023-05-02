@@ -893,6 +893,10 @@ class ValmistumispyyntoServiceImpl(
                 vanhojaTyoskentelyjaksojaOrSuorituksiaExists = vanhatSuorituksetDTO.vanhojaTyoskentelyjaksojaOrSuorituksiaExists,
                 kuulusteluVanhentunut = vanhatSuorituksetDTO.kuulusteluVanhentunut
             )
+            dto.tutkimustyotaTehty = tyoskentelyjaksoService.existsByKaytannonKoulutus(
+                it,
+                KaytannonKoulutusTyyppi.TUTKIMUSTYO
+            )
         }
 
         return dto
