@@ -331,6 +331,7 @@ class ValmistumispyyntoServiceImpl(
                 valmistumispyynnonTarkistusDTO.aiempiElKoulutusSuorituspaiva
             tarkistus.ltTutkintoSuoritettu = valmistumispyynnonTarkistusDTO.ltTutkintoSuoritettu
             tarkistus.ltTutkintoSuorituspaiva = valmistumispyynnonTarkistusDTO.ltTutkintoSuorituspaiva
+            tarkistus.terveyskeskustyoTarkistettu = valmistumispyynnonTarkistusDTO.terveyskeskustyoTarkistettu
             tarkistus.yliopistosairaalanUlkopuolinenTyoTarkistettu =
                 valmistumispyynnonTarkistusDTO.yliopistosairaalanUlkopuolinenTyoTarkistettu
             tarkistus.yliopistosairaalatyoTarkistettu =

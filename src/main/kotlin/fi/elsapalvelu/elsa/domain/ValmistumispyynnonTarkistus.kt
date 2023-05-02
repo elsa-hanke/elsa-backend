@@ -50,6 +50,9 @@ data class ValmistumispyynnonTarkistus(
     @Column(name = "lt_tutkinto_suorituspaiva")
     var ltTutkintoSuorituspaiva: LocalDate? = null,
 
+    @Column(name = "terveyskeskustyo_tarkistettu")
+    var terveyskeskustyoTarkistettu: Boolean? = false,
+
     @Column(name = "yliopistosairaalan_ulkopuolinen_tyo_tarkistettu")
     var yliopistosairaalanUlkopuolinenTyoTarkistettu: Boolean? = false,
 
