@@ -33,6 +33,9 @@ data class Opintooikeus(
     @Column(name = "opintooikeuden_paattymispaiva")
     var opintooikeudenPaattymispaiva: LocalDate? = null,
 
+    @Column(name = "viimeinen_katselupaiva")
+    var viimeinenKatselupaiva: LocalDate? = null,
+
     @Column(name = "opiskelijatunnus")
     var opiskelijatunnus: String? = null,
 

@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.AvoinAsiaTyyppiEnum
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.extensions.pattern
 import fi.elsapalvelu.elsa.repository.*
@@ -72,7 +73,9 @@ class EtusivuServiceImpl(
                 seurattavatOpintooikeudet.addAll(
                     opintooikeusRepository.findByErikoisalaAndYliopisto(
                         it.erikoisala?.id!!,
-                        it.yliopisto?.id!!
+                        it.yliopisto?.id!!,
+                        OpintooikeudenTila.allowedTilat(),
+                        OpintooikeudenTila.endedTilat()
                     )
                 )
             }
@@ -103,7 +106,11 @@ class EtusivuServiceImpl(
                 seurantaDTO.erikoisalat?.addAll(it.erikoisalat!!)
             }
             seurantaDTO.erikoisalat = seurantaDTO.erikoisalat?.sorted()?.toMutableSet()
-            opintooikeusRepository.findByKouluttajaValtuutus(kayttaja.id!!).forEach {
+            opintooikeusRepository.findByKouluttajaValtuutus(
+                kayttaja.id!!,
+                OpintooikeudenTila.allowedTilat(),
+                OpintooikeudenTila.endedTilat()
+            ).forEach {
                 seurantaDTO.erikoistujienEteneminen?.add(
                     getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(it)
                 )
@@ -261,7 +268,11 @@ class EtusivuServiceImpl(
         mapAloituskeskusteluPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
         mapVastuuhenkilonarvioPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
         mapSeurantajaksotPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
-        mapTerveyskeskuskoulutusjaksoPalautettuOrHaettavissaIfExists(avoimetAsiatList, opintooikeusId, locale)
+        mapTerveyskeskuskoulutusjaksoPalautettuOrHaettavissaIfExists(
+            avoimetAsiatList,
+            opintooikeusId,
+            locale
+        )
         mapValmistumispyyntoPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
 
         return avoimetAsiatList.sortedBy { it.pvm }
@@ -631,7 +642,8 @@ class EtusivuServiceImpl(
         opintooikeusId: Long,
         locale: Locale
     ) {
-        val hyvaksynta = terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(opintooikeusId)
+        val hyvaksynta =
+            terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(opintooikeusId)
         if (hyvaksynta != null) {
             if (!hyvaksynta.virkailijanKorjausehdotus.isNullOrBlank() || !hyvaksynta.vastuuhenkilonKorjausehdotus.isNullOrBlank()) {
                 avoimetAsiatList.add(
@@ -648,9 +660,9 @@ class EtusivuServiceImpl(
                 )
             }
         } else if (terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(
-                    opintooikeusId
-                )
-            ) {
+                opintooikeusId
+            )
+        ) {
             avoimetAsiatList.add(
                 AvoinAsiaDTO(
                     tyyppi = AvoinAsiaTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO,

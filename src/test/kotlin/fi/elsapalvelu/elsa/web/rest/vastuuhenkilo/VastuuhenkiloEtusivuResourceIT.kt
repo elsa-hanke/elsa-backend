@@ -437,7 +437,7 @@ class VastuuhenkiloEtusivuResourceIT {
         restEtusivuMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.erikoistujienEteneminen").value(hasSize<Int>(1)))
+            .andExpect(jsonPath("$.erikoistujienEteneminen").value(hasSize<Int>(2)))
     }
 
     @Test
