@@ -77,8 +77,10 @@ class ErikoistuvaLaakariServiceImpl(
         )
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        val asetus = asetusRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!)
-        val opintoopas = opintoopasRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!)
+        val asetus =
+            asetusRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!)
+        val opintoopas =
+            opintoopasRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!)
 
         // Asetetaan mahdollisesti muille olemassaoleville opinto-oikeuksille kaytossa = false, koska käytössä voi
         // olla vain yksi kerrallaan.
@@ -93,10 +95,12 @@ class ErikoistuvaLaakariServiceImpl(
             osaamisenArvioinninOppaanPvm = kayttajahallintaErikoistuvaLaakariDTO.osaamisenArvioinninOppaanPvm,
             erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = yliopistoMapper.toEntity(
-                yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).orElse(null)
+                yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!)
+                    .orElse(null)
             ),
             erikoisala = erikoisalaMapper.toEntity(
-                erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!).orElse(null)
+                erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!)
+                    .orElse(null)
             ),
             asetus = asetus,
             opintoopas = opintoopas,
@@ -127,7 +131,8 @@ class ErikoistuvaLaakariServiceImpl(
         userId: String, criteria: KayttajahallintaCriteria, pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+            kayttajaRepository.findOneByUserId(userId)
+                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         return erikoistuvaLaakariQueryService.findErikoistuvatByCriteria(
             criteria, pageable, kayttaja.user?.langKey
         )
@@ -138,9 +143,11 @@ class ErikoistuvaLaakariServiceImpl(
         userId: String, criteria: KayttajahallintaCriteria, pageable: Pageable
     ): Page<KayttajahallintaKayttajaListItemDTO> {
         val kayttaja =
-            kayttajaRepository.findOneByUserId(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+            kayttajaRepository.findOneByUserId(userId)
+                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         val yliopisto =
-            kayttaja.yliopistot.firstOrNull() ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
+            kayttaja.yliopistot.firstOrNull()
+                ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
 
         return erikoistuvaLaakariQueryService.findErikoistuvatByCriteriaAndYliopistoId(
             criteria, pageable, yliopisto.id, kayttaja.user?.langKey
@@ -196,7 +203,10 @@ class ErikoistuvaLaakariServiceImpl(
         userId: String
     ): ErikoistuvaLaakariDTO? {
         erikoistuvaLaakariRepository.findOneByKayttajaUserIdWithValidOpintooikeudet(
-            userId, LocalDate.now(), OpintooikeusServiceImpl.allowedOpintooikeusTilat()
+            userId,
+            LocalDate.now(),
+            OpintooikeudenTila.allowedTilat(),
+            OpintooikeudenTila.endedTilat()
         )?.let {
             return erikoistuvaLaakariMapper.toDto(it)
         }
@@ -214,31 +224,19 @@ class ErikoistuvaLaakariServiceImpl(
         return null
     }
 
-    override fun findAllForVastuuhenkilo(kayttajaId: Long): List<ErikoistuvaLaakariDTO> {
-        val erikoistuvatLaakarit: MutableSet<ErikoistuvaLaakariDTO> = mutableSetOf()
-        val kayttaja = kayttajaRepository.findById(kayttajaId).orElse(null)
-        kayttaja?.yliopistotAndErikoisalat?.forEach {
-            erikoistuvatLaakarit.addAll(
-                erikoistuvaLaakariRepository.findAllForVastuuhenkilo(
-                    it.erikoisala?.id!!, it.yliopisto?.id!!
-                ).map(erikoistuvaLaakariMapper::toDto)
-            )
-        }
-        return erikoistuvatLaakarit.toList()
-    }
-
     override fun resendInvitation(id: Long) {
         erikoistuvaLaakariRepository.findByIdOrNull(id)?.let { erikoistuvaLaakari ->
-            verificationTokenService.findOne(erikoistuvaLaakari.kayttaja?.user?.id!!)?.let { token ->
-                mailService.sendEmailFromTemplate(
-                    erikoistuvaLaakari.kayttaja?.user!!,
-                    templateName = "uusiErikoistuvaLaakari.html",
-                    titleKey = "email.uusierikoistuvalaakari.title",
-                    properties = mapOf(
-                        Pair(MailProperty.ID, token),
+            verificationTokenService.findOne(erikoistuvaLaakari.kayttaja?.user?.id!!)
+                ?.let { token ->
+                    mailService.sendEmailFromTemplate(
+                        erikoistuvaLaakari.kayttaja?.user!!,
+                        templateName = "uusiErikoistuvaLaakari.html",
+                        titleKey = "email.uusierikoistuvalaakari.title",
+                        properties = mapOf(
+                            Pair(MailProperty.ID, token),
+                        )
                     )
-                )
-            }
+                }
         }
     }
 

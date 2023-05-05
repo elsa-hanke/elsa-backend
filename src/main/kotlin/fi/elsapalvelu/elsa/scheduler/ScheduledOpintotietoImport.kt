@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.impl.OpintooikeusServiceImpl
 import kotlinx.coroutines.*
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
@@ -47,35 +48,34 @@ class ScheduledOpintotietoImport(
             opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
                 .associateBy { it.getYliopisto() }
         val now = LocalDate.now()
-        opintooikeusRepository.findAll().filter {
-            now.isAfter(it.opintooikeudenMyontamispaiva) && now.isBefore(
-                it.opintooikeudenPaattymispaiva?.plusMonths(2)
-            )
-        }.distinctBy { Pair(it.erikoistuvaLaakari?.id, it.yliopisto?.id) }.forEach {
-            val user = it.erikoistuvaLaakari?.kayttaja?.user!!
-            getHetu(user, cipher, originalKey)?.let { hetu ->
-                runBlocking {
-                    try {
-                        opintotietoServices[it.yliopisto?.nimi]?.fetchOpintotietodata(hetu)
-                            ?.let { data ->
-                                opintotietodataPersistenceService.createOrUpdateOpintotieto(
-                                    user.id!!,
-                                    data
-                                )
-                            }
-                        opintosuoritusServices[it.yliopisto?.nimi]?.fetchOpintosuoritukset(hetu)
-                            ?.let { data ->
-                                opintosuorituksetPersistenceService.createOrUpdateIfChanged(
-                                    user.id!!,
-                                    data
-                                )
-                            }
-                    } catch (e: Exception) {
-                        log.error("OpintotietoImport virhe: ${e.message}")
+        opintooikeusRepository.findAllValid(
+            now, OpintooikeudenTila.allowedTilat(), OpintooikeudenTila.endedTilat()
+        )
+            .distinctBy { Pair(it.erikoistuvaLaakari?.id, it.yliopisto?.id) }.forEach {
+                val user = it.erikoistuvaLaakari?.kayttaja?.user!!
+                getHetu(user, cipher, originalKey)?.let { hetu ->
+                    runBlocking {
+                        try {
+                            opintotietoServices[it.yliopisto?.nimi]?.fetchOpintotietodata(hetu)
+                                ?.let { data ->
+                                    opintotietodataPersistenceService.createOrUpdateOpintotieto(
+                                        user.id!!,
+                                        data
+                                    )
+                                }
+                            opintosuoritusServices[it.yliopisto?.nimi]?.fetchOpintosuoritukset(hetu)
+                                ?.let { data ->
+                                    opintosuorituksetPersistenceService.createOrUpdateIfChanged(
+                                        user.id!!,
+                                        data
+                                    )
+                                }
+                        } catch (e: Exception) {
+                            log.error("OpintotietoImport virhe: ${e.message}")
+                        }
                     }
                 }
             }
-        }
         log.info(
             "OpintotietoImport completed in ${
                 Duration.between(timestamp, LocalDateTime.now()).toSeconds()
