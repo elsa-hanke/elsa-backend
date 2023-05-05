@@ -127,8 +127,6 @@ class OpintooikeusServiceImpl(
                 opintoopasRepository.findByIdOrNull(o.opintoopas)
                     ?.let { opas -> it.opintoopas = opas }
             }
-            it.osaamisenArvioinninOppaanPvm =
-                opintooikeudet.firstOrNull { o -> o.id == it.id }?.osaamisenArvioinninOppaanPvm
         }
         opintooikeusRepository.saveAll(oikeudet)
     }
