@@ -10,7 +10,6 @@ import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
-import fi.elsapalvelu.elsa.service.PeppiOuluClientBuilder
 import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.PeppiOpintooikeudenTila

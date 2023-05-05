@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <property name="endDate" value="now() + interval '6 months'" dbms="postgresql" />
+    <property name="endDate" value="now() + 180" dbms="h2" />
+
+    <changeSet id="20230504151405" author="jhipster">
+        <addColumn tableName="opintooikeus">
+            <column name="viimeinen_katselupaiva" type="date">
+            </column>
+        </addColumn>
+        <update tableName="opintooikeus">
+            <column name="viimeinen_katselupaiva" valueComputed="${endDate}"/>
+            <where>tila in ('PERUUTETTU', 'VALMISTUNUT')
+            </where>
+        </update>
+
+        <addColumn tableName="opintooikeus_audit">
+            <column name="viimeinen_katselupaiva" type="date"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -28,6 +28,7 @@ import jakarta.persistence.EntityNotFoundException
 import jakarta.transaction.Transactional
 
 private const val SUU_JA_LEUKAKIRURGIA_VIRTA_PATEVYYSKOODI = "esl"
+private const val PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET = 6L
 
 @Service
 @Transactional
@@ -297,6 +298,11 @@ class OpintotietodataPersistenceServiceImpl(
                 userId
             )
                 ?: return
+        var viimeinenKatselupaiva: LocalDate? = null
+        if (OpintooikeudenTila.endedTilat().contains(opintooikeudenTila)) {
+            viimeinenKatselupaiva = LocalDate.now(clock).plusMonths(
+                PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET)
+        }
         val opintooikeudenAlkamispaiva = checkOpintooikeudenAlkamispaivaValidDateExistsOrLogError(
             opintooikeusDTO.opintooikeudenAlkamispaiva, opintooikeusDTO.yliopisto, userId
         ) ?: return
@@ -328,6 +334,7 @@ class OpintotietodataPersistenceServiceImpl(
             yliopistoOpintooikeusId = opintooikeusId,
             opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
             opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
+            viimeinenKatselupaiva = viimeinenKatselupaiva,
             opiskelijatunnus = opintooikeusDTO.opiskelijatunnus,
             asetus = asetus,
             osaamisenArvioinninOppaanPvm = LocalDate.now(clock),
@@ -393,6 +400,10 @@ class OpintotietodataPersistenceServiceImpl(
                 }
 
             opintooikeudenTila.takeIf { it != opintooikeus.tila }?.let {
+                if (OpintooikeudenTila.endedTilat().contains(opintooikeudenTila)) {
+                    opintooikeus.viimeinenKatselupaiva = LocalDate.now(clock).plusMonths(
+                        PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET)
+                }
                 opintooikeus.tila = it
             }
 

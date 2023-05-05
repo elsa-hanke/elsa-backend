@@ -52,5 +52,13 @@ enum class OpintooikeudenTila {
                 else -> null
             }
         }
+
+        fun allowedTilat(): List<OpintooikeudenTila> {
+            return listOf(AKTIIVINEN, AKTIIVINEN_EI_LASNA, PASSIIVINEN)
+        }
+
+        fun endedTilat(): List<OpintooikeudenTila> {
+            return listOf(PERUUTETTU, VALMISTUNUT)
+        }
     }
 }

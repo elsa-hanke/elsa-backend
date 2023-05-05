@@ -20,33 +20,16 @@ interface ErikoistuvaLaakariRepository : JpaRepository<ErikoistuvaLaakari, Long>
 
     @Query(
         """
-        select distinct e from ErikoistuvaLaakari e
-        join e.opintooikeudet o
-        where o.kaytossa = true and current_time between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
-        and o.erikoisala.id = :erikoisalaId and o.yliopisto.id = :yliopistoId
-        """
-    )
-    fun findAllForVastuuhenkilo(erikoisalaId: Long, yliopistoId: Long): List<ErikoistuvaLaakari>
-
-    @Query(
-        """
-        select distinct e from ErikoistuvaLaakari e
-        join e.opintooikeudet o
-        where o.yliopisto.id = :yliopistoId
-        """
-    )
-    fun findAllByYliopistoId(pageable: Pageable, yliopistoId: Long): Page<ErikoistuvaLaakari>
-
-    @Query(
-        """
         select distinct e from ErikoistuvaLaakari e join fetch e.opintooikeudet o where e.kayttaja.user.id = :userId
-        and :betweenDate between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
-        and o.tila in :validStates and o.erikoisala.liittynytElsaan = true
+        and :now >= o.opintooikeudenMyontamispaiva
+        and (o.tila in :validStates or (o.tila in :endedStates and :now <= o.viimeinenKatselupaiva))
+        and o.erikoisala.liittynytElsaan = true
         """
     )
     fun findOneByKayttajaUserIdWithValidOpintooikeudet(
         userId: String,
-        betweenDate: LocalDate,
-        validStates: List<OpintooikeudenTila>
+        now: LocalDate,
+        validStates: List<OpintooikeudenTila>,
+        endedStates: List<OpintooikeudenTila>
     ): ErikoistuvaLaakari?
 }

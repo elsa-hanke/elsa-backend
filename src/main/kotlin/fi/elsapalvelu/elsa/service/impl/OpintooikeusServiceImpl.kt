@@ -33,7 +33,10 @@ class OpintooikeusServiceImpl(
 ) : OpintooikeusService {
     override fun findAllValidByErikoistuvaLaakariKayttajaUserId(userId: String): List<OpintooikeusDTO> {
         return opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
-            userId, LocalDate.now(clock), allowedOpintooikeusTilat()
+            userId,
+            LocalDate.now(clock),
+            OpintooikeudenTila.allowedTilat(),
+            OpintooikeudenTila.endedTilat()
         ).map(opintooikeusMapper::toDto)
     }
 
@@ -63,13 +66,16 @@ class OpintooikeusServiceImpl(
 
     override fun findAllByTerveyskoulutusjaksoSuorittamatta(): List<Opintooikeus> {
         return opintooikeusRepository.findAllByTerveyskoulutusjaksoSuorittamatta(
-            LocalDate.now(clock), allowedOpintooikeusTilat()
+            LocalDate.now(clock), OpintooikeudenTila.allowedTilat()
         )
     }
 
     override fun onOikeus(user: User): Boolean {
         if (opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
-                user.id!!, LocalDate.now(clock), allowedOpintooikeusTilat()
+                user.id!!,
+                LocalDate.now(clock),
+                OpintooikeudenTila.allowedTilat(),
+                OpintooikeudenTila.endedTilat()
             ).any()
         ) {
             return true
@@ -82,12 +88,16 @@ class OpintooikeusServiceImpl(
         val opintooikeusKaytossa =
             opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(user.id!!)
                 ?: return
-        if (opintooikeusKaytossa.opintooikeudenPaattymispaiva!! < LocalDate.now() || !allowedOpintooikeusTilat().contains(
-                opintooikeusKaytossa.tila
-            ) || opintooikeusKaytossa.erikoisala?.liittynytElsaan == false
+        if ((opintooikeusKaytossa.viimeinenKatselupaiva != null && LocalDate.now()
+                .isAfter(opintooikeusKaytossa.viimeinenKatselupaiva))
+            || opintooikeusKaytossa.tila == OpintooikeudenTila.VANHENTUNUT
+            || opintooikeusKaytossa.erikoisala?.liittynytElsaan == false
         ) {
             opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
-                user.id!!, LocalDate.now(clock), allowedOpintooikeusTilat()
+                user.id!!,
+                LocalDate.now(clock),
+                OpintooikeudenTila.allowedTilat(),
+                OpintooikeudenTila.endedTilat()
             ).elementAtOrNull(0)?.let {
                 opintooikeusKaytossa.kaytossa = false
                 it.kaytossa = true
@@ -143,15 +153,5 @@ class OpintooikeusServiceImpl(
             return principal.getFirstAttribute("opintooikeusId") as Long
         }
         return null
-    }
-
-    companion object {
-        @JvmStatic
-        fun allowedOpintooikeusTilat(): List<OpintooikeudenTila> = listOf(
-            OpintooikeudenTila.AKTIIVINEN,
-            OpintooikeudenTila.AKTIIVINEN_EI_LASNA,
-            OpintooikeudenTila.PASSIIVINEN,
-            OpintooikeudenTila.VALMISTUNUT
-        )
     }
 }

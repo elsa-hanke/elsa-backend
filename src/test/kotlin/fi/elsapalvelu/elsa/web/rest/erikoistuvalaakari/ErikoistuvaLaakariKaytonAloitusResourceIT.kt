@@ -93,14 +93,16 @@ class ErikoistuvaLaakariKaytonAloitusResourceIT {
             erikoistuvaLaakari,
             LocalDate.ofEpochDay(0L),
             LocalDate.ofEpochDay(3650L),
-            tila
+            tila,
+            if (endedStates().contains(tila)) LocalDate.ofEpochDay(3730L) else null
         )
         OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(
             em,
             erikoistuvaLaakari,
             LocalDate.ofEpochDay(700L),
             LocalDate.ofEpochDay(4350L),
-            tila
+            tila,
+            if (endedStates().contains(tila)) LocalDate.ofEpochDay(4530L) else null
         )
 
         val kaytonAloitusDTO = KaytonAloitusDTO(sahkoposti = DEFAULT_EMAIL, opintooikeusId = opintooikeus.id)
@@ -217,13 +219,9 @@ class ErikoistuvaLaakariKaytonAloitusResourceIT {
             em,
             erikoistuvaLaakari,
             LocalDate.ofEpochDay(0L),
-            LocalDate.ofEpochDay(730L)
-        )
-        OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(
-            em,
-            erikoistuvaLaakari,
-            LocalDate.ofEpochDay(365L),
-            LocalDate.ofEpochDay(965L)
+            LocalDate.ofEpochDay(730L),
+            OpintooikeudenTila.VALMISTUNUT,
+            LocalDate.ofEpochDay(910L)
         )
 
         val kaytonAloitusDTO = KaytonAloitusDTO(sahkoposti = DEFAULT_EMAIL, opintooikeusId = opintooikeus.id)
@@ -280,7 +278,7 @@ class ErikoistuvaLaakariKaytonAloitusResourceIT {
 
         @JvmStatic
         fun invalidStates(): List<OpintooikeudenTila> =
-            listOf(OpintooikeudenTila.VANHENTUNUT, OpintooikeudenTila.PERUUTETTU)
+            listOf(OpintooikeudenTila.VANHENTUNUT)
 
         @JvmStatic
         fun validStates(): List<OpintooikeudenTila> =
@@ -288,8 +286,15 @@ class ErikoistuvaLaakariKaytonAloitusResourceIT {
                 OpintooikeudenTila.AKTIIVINEN,
                 OpintooikeudenTila.AKTIIVINEN_EI_LASNA,
                 OpintooikeudenTila.PASSIIVINEN,
+                OpintooikeudenTila.PERUUTETTU,
                 OpintooikeudenTila.VALMISTUNUT
             )
+
+        @JvmStatic
+        fun endedStates(): List<OpintooikeudenTila> = listOf(
+            OpintooikeudenTila.PERUUTETTU,
+            OpintooikeudenTila.VALMISTUNUT
+        )
 
     }
 }

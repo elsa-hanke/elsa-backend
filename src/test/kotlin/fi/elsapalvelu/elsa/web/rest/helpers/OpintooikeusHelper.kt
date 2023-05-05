@@ -25,7 +25,8 @@ class OpintooikeusHelper {
             erikoistuvaLaakari: ErikoistuvaLaakari,
             alkamispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
             paattymispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
-            tila: OpintooikeudenTila = OpintooikeudenTila.AKTIIVINEN
+            tila: OpintooikeudenTila = OpintooikeudenTila.AKTIIVINEN,
+            viimeinenKatselupaiva: LocalDate? = null
         ): Opintooikeus {
             val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
             em.persist(yliopisto)
@@ -58,7 +59,8 @@ class OpintooikeusHelper {
                 opintoopas = opintoopas,
                 asetus = asetus,
                 kaytossa = false,
-                tila = tila
+                tila = tila,
+                viimeinenKatselupaiva = viimeinenKatselupaiva
             )
             em.persist(opintooikeus)
             em.flush()

@@ -33,14 +33,30 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>,
         join o.erikoistuvaLaakari e
         join e.kayttaja k
         join k.user u
-        where :betweenDate between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
-        and o.tila in :validStates and o.erikoisala.liittynytElsaan = true and u.id = :userId
+        where :now >= o.opintooikeudenMyontamispaiva
+        and (o.tila in :validStates or (o.tila in :endedStates and :now <= o.viimeinenKatselupaiva))
+        and o.erikoisala.liittynytElsaan = true and u.id = :userId
         """
     )
     fun findAllValidByErikoistuvaLaakariKayttajaUserId(
         userId: String,
-        betweenDate: LocalDate,
-        validStates: List<OpintooikeudenTila>
+        now: LocalDate,
+        validStates: List<OpintooikeudenTila>,
+        endedStates: List<OpintooikeudenTila>
+    ): List<Opintooikeus>
+
+    @Query(
+        """
+        select o from Opintooikeus o
+        where :now >= o.opintooikeudenMyontamispaiva
+        and (o.tila in :validStates or (o.tila in :endedStates and :now <= o.viimeinenKatselupaiva))
+        and o.erikoisala.liittynytElsaan = true
+        """
+    )
+    fun findAllValid(
+        now: LocalDate,
+        validStates: List<OpintooikeudenTila>,
+        endedStates: List<OpintooikeudenTila>
     ): List<Opintooikeus>
 
     @Query(
@@ -48,7 +64,7 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>,
         select o from Opintooikeus o
         join o.erikoistuvaLaakari e
         where o.id = :id and e.id = :erikoistuvaLaakariId
-        and :paiva between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        and :paiva >= o.opintooikeudenMyontamispaiva
         """
     )
     fun findOneByIdAndErikoistuvaLaakariIdAndBetweenDate(
@@ -60,36 +76,46 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>,
     @Query(
         """
         select o from Opintooikeus o
-        where current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        where current_date >= o.opintooikeudenMyontamispaiva
+        and (o.tila in :validStates or (o.tila in :endedStates and current_date <= o.viimeinenKatselupaiva))
         and o.erikoisala.id = :erikoisalaId and o.yliopisto.id = :yliopistoId
         """
     )
-    fun findByErikoisalaAndYliopisto(erikoisalaId: Long, yliopistoId: Long): List<Opintooikeus>
+    fun findByErikoisalaAndYliopisto(
+        erikoisalaId: Long,
+        yliopistoId: Long,
+        validStates: List<OpintooikeudenTila>,
+        endedStates: List<OpintooikeudenTila>
+    ): List<Opintooikeus>
 
     @Query(
         """
         select o from Opintooikeus o
         join o.erikoistuvaLaakari e
         join o.annetutValtuutukset v
-        where current_date between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        where current_date >= o.opintooikeudenMyontamispaiva
+        and (o.tila in :validStates or (o.tila in :endedStates and current_date <= o.viimeinenKatselupaiva))
         and v.valtuutettu.id = :kayttajaId
         and current_date between v.alkamispaiva and v.paattymispaiva
         """
     )
-    fun findByKouluttajaValtuutus(kayttajaId: Long): List<Opintooikeus>
+    fun findByKouluttajaValtuutus(
+        kayttajaId: Long, validStates: List<OpintooikeudenTila>,
+        endedStates: List<OpintooikeudenTila>
+    ): List<Opintooikeus>
 
     fun findOneById(id: Long): Opintooikeus?
 
     @Query(
         """
         select o from Opintooikeus o
-        where :betweenDate between o.opintooikeudenMyontamispaiva and o.opintooikeudenPaattymispaiva
+        where :now >= o.opintooikeudenMyontamispaiva
         and o.tila in :validStates and o.erikoisala.liittynytElsaan = true
         and o.terveyskoulutusjaksoSuoritettu = false
         """
     )
     fun findAllByTerveyskoulutusjaksoSuorittamatta(
-        betweenDate: LocalDate,
+        now: LocalDate,
         validStates: List<OpintooikeudenTila>
     ): List<Opintooikeus>
 }
