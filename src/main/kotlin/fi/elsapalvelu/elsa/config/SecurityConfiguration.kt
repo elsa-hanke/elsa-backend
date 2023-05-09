@@ -263,10 +263,6 @@ class SecurityConfiguration(
             DefaultRelyingPartyRegistrationResolver(registrations)
         val authenticationRequestResolver =
             OpenSaml4AuthenticationRequestResolver(registrationResolver)
-        authenticationRequestResolver.setRelayStateResolver {
-            val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
-            attr.request.getParameter("RelayState")
-        }
         authenticationRequestResolver.setAuthnRequestCustomizer { context: AuthnRequestContext ->
             if (context.authnRequest.issuer.value != null && context.authnRequest.issuer.value!!.contains(
                     "haka"
