@@ -62,6 +62,14 @@ import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
+/**
+ * Jos relay state jää tyhjäksi, redirect strategialla allekirjoitettuihin SAML pyyntöihin
+ * tulee ylimääräinen query parametri, joka sekoittaa allekirjoituksen tarkistuksen.
+ * Kierretään lisäämällä oma vakio parametri jos pyynnössä ei ole mukana relay statea.
+ * @see OpenSaml4AuthenticationRequestResolver
+ */
+private const val DEFAULT_RELAY_STATE = "elsa"
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
@@ -265,7 +273,7 @@ class SecurityConfiguration(
             OpenSaml4AuthenticationRequestResolver(registrationResolver)
         authenticationRequestResolver.setRelayStateResolver {
             val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
-            attr.request.getParameter("RelayState")
+            attr.request.getParameter("RelayState") ?: DEFAULT_RELAY_STATE
         }
         authenticationRequestResolver.setAuthnRequestCustomizer { context: AuthnRequestContext ->
             if (context.authnRequest.issuer.value != null && context.authnRequest.issuer.value!!.contains(
@@ -341,7 +349,7 @@ class SecurityConfiguration(
         var tokenUser: User? = null
 
         // Kutsuttu käyttäjä
-        if (verificationToken != null) {
+        if (verificationToken != null && verificationToken != DEFAULT_RELAY_STATE) {
             verificationTokenRepository.findById(verificationToken).ifPresent {
                 tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
                 userService.createOrUpdateUserWithToken(
