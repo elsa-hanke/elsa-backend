@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 @Service
 @Transactional(readOnly = true)
@@ -34,8 +35,7 @@ class ErikoistujienSeurantaQueryService(
             if (criteria?.nimi != null) {
                 val nimiPredicate = criteria.nimi.toNimiPredicate(user, cb, langkey)
                 cb.and(yliopistoPredicate, nimiPredicate)
-            }
-            else yliopistoPredicate
+            } else yliopistoPredicate
         }
         return opintooikeusRepository.findAll(specification, pageable)
     }
@@ -63,6 +63,15 @@ class ErikoistujienSeurantaQueryService(
                             root.join(Opintooikeus_.erikoisala, JoinType.INNER)
                                 .get(Erikoisala_.id),
                             it.equals
+                        )
+                    }
+            }
+            if (it.naytaPaattyneet == null || it.naytaPaattyneet == false) {
+                specification =
+                    specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.greaterThanOrEqualTo(
+                            root.get(Opintooikeus_.opintooikeudenPaattymispaiva),
+                            LocalDate.now()
                         )
                     }
             }

@@ -11,7 +11,9 @@ data class ErikoistujanEteneminenCriteria(
 
     var erikoisalaId: LongFilter? = null,
 
-    var asetusId: LongFilter? = null
+    var asetusId: LongFilter? = null,
+
+    var naytaPaattyneet: Boolean? = null
 
 ) : Serializable, Criteria {
 
