@@ -127,7 +127,8 @@ class VirkailijaEtusivuResourceIT {
                 em,
                 yliopisto = defaultYliopisto,
                 erikoisala = erikoisala1,
-                asetus = asetus1
+                asetus = asetus1,
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(2)
             ).apply {
                 kayttaja?.user?.firstName = "John"
                 kayttaja?.user?.lastName = "Doe"
@@ -138,7 +139,8 @@ class VirkailijaEtusivuResourceIT {
             em,
             yliopisto = defaultYliopisto,
             erikoisala = erikoisala2,
-            asetus = asetus2
+            asetus = asetus2,
+            opintooikeudenPaattymispaiva = LocalDate.now().plusYears(1)
         ).apply {
             kayttaja?.user?.firstName = "John Don"
             kayttaja?.user?.lastName = "Doe"
