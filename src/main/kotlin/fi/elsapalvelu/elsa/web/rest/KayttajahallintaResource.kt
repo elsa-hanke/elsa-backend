@@ -311,6 +311,43 @@ open class KayttajahallintaResource(
         return ResponseEntity.ok().build()
     }
 
+    @PatchMapping("/kouluttajat/{kayttajaId}")
+    fun patchKouluttaja(
+        @PathVariable kayttajaId: Long,
+        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+
+        val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
+        val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
+
+        validateEmailNotExists(sahkoposti, userDTO)
+
+        kayttajaService.saveKayttajahallintaKayttaja(
+            kayttajahallintaKayttajaDTO,
+            kayttajaId = kayttajaId
+        )
+        return ResponseEntity.ok().build()
+    }
+
+    @PutMapping("/kouluttajat/{kayttajaId}/kutsu")
+    fun resendKouluttajaInvitation(
+        @PathVariable kayttajaId: Long, principal: Principal?
+    ): ResponseEntity<Void> {
+        val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+
+        val virkailijaOrPaakayttajaUser = userService.getAuthenticatedUser(principal)
+        kayttajaService.resendInvitation(
+            kayttajaId,
+            virkailijaOrPaakayttajaUser.firstName,
+            virkailijaOrPaakayttajaUser.lastName
+        )
+        return ResponseEntity.noContent().build()
+    }
+
     @PostMapping("/virkailijat")
     fun createVirkailija(
         @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
@@ -500,8 +537,8 @@ open class KayttajahallintaResource(
         return yliopistoService.findAll().toMutableSet()
     }
 
-    private fun validateEppnNotExists(eppn: String, userDTO: UserDTO? = null) {
-        if ((userDTO == null || userDTO.eppn != eppn) && userService.existsByEppn(eppn)) {
+    private fun validateEppnNotExists(eppn: String?, userDTO: UserDTO? = null) {
+        if ((userDTO == null || userDTO.eppn != eppn) && (eppn != null && userService.existsByEppn(eppn))) {
             throw BadRequestAlertException(
                 "Samalla yliopiston käyttäjätunnuksella löytyy jo toinen käyttäjä.",
                 KAYTTAJA_ENTITY_NAME,
