@@ -19,8 +19,7 @@ data class KayttajahallintaKayttajaDTO(
 
     var yliopisto: YliopistoDTO? = null,
 
-    @get: NotEmpty
-    var eppn: String,
+    var eppn: String? = null,
 
     var yliopistotAndErikoisalat: Set<KayttajaYliopistoErikoisalaDTO> = setOf(),
 

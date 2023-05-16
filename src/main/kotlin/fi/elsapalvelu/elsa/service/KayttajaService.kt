@@ -87,4 +87,6 @@ interface KayttajaService {
         kayttajanYliopistot: List<KayttajaYliopistoErikoisalatDTO>?,
         oikeusPaivittaaErikoisaloja: Boolean
     )
+
+    fun resendInvitation(id: Long, etunimi: String?, sukunimi: String?)
 }
