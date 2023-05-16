@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.service.VerificationTokenService
 import fi.elsapalvelu.elsa.service.constants.ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.constants.VASTUUHENKILO_NOT_FOUND_ERROR
@@ -46,7 +47,8 @@ class KayttajaServiceImpl(
     private val kayttajaQueryService: KayttajaQueryService,
     private val vastuuhenkilonTehtavatyyppiRepository: VastuuhenkilonTehtavatyyppiRepository,
     private val vastuuhenkilonTehtavatyyppiMapper: VastuuhenkilonTehtavatyyppiMapper,
-    private val mailService: MailService
+    private val mailService: MailService,
+    private val verificationTokenService: VerificationTokenService
 ) : KayttajaService {
 
     override fun save(kayttajaDTO: KayttajaDTO): KayttajaDTO {
@@ -386,6 +388,23 @@ class KayttajaServiceImpl(
         }
     }
 
+    override fun resendInvitation(id: Long, etunimi: String?, sukunimi: String?) {
+        kayttajaRepository.findByIdOrNull(id)?.let { kayttaja ->
+            verificationTokenService.findOne(kayttaja.user?.id!!)
+                ?.let { token ->
+                    mailService.sendEmailFromTemplate(
+                        kayttaja.user!!,
+                        templateName = "uusiKouluttaja.html",
+                        titleKey = "email.uusikouluttaja.title",
+                        properties = mapOf(
+                            Pair(MailProperty.ID, token),
+                            Pair(MailProperty.NAME, "$etunimi $sukunimi")
+                        )
+                    )
+                }
+        }
+    }
+
     private fun saveYliopistotAndErikoisalat(
         kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
         kayttaja: Kayttaja
@@ -466,7 +485,10 @@ class KayttajaServiceImpl(
     ): Kayttaja {
         existingKayttaja.user?.email = kayttajahallintaKayttajaDTO.sahkoposti
 
-        if (existingKayttaja.tila == KayttajatilinTila.KUTSUTTU) {
+        if (existingKayttaja.user?.activeAuthority == Authority(KOULUTTAJA)) {
+            existingKayttaja.user?.firstName = kayttajahallintaKayttajaDTO.etunimi
+            existingKayttaja.user?.lastName = kayttajahallintaKayttajaDTO.sukunimi
+        } else if (existingKayttaja.tila == KayttajatilinTila.KUTSUTTU) {
             existingKayttaja.user?.eppn = kayttajahallintaKayttajaDTO.eppn
         }
 
