@@ -75,6 +75,15 @@ class ErikoistujienSeurantaQueryService(
                         )
                     }
             }
+            specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                cb.or(
+                    cb.isNull(root.get(Opintooikeus_.viimeinenKatselupaiva)),
+                    cb.greaterThanOrEqualTo(
+                        root.get(Opintooikeus_.viimeinenKatselupaiva),
+                        LocalDate.now()
+                    )
+                )
+            }
         }
         return specification
     }
