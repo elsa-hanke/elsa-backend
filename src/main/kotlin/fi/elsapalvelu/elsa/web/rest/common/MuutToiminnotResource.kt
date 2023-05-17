@@ -31,6 +31,18 @@ class MuutToiminnotResource(
         return ResponseEntity.ok(kayttajaService.findKouluttajatFromSameYliopisto(user.id!!))
     }
 
+    @GetMapping("/kouluttajat-vastuuhenkilot")
+    fun getKouluttajatJaVastuuhenkilot(
+        principal: Principal?
+    ): ResponseEntity<List<KayttajaDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(
+            kayttajaService.findKouluttajatAndVastuuhenkilotFromSameYliopisto(
+                user.id!!
+            )
+        )
+    }
+
     @GetMapping("/yliopistot")
     fun getYliopistot(
         principal: Principal?
