@@ -18,7 +18,8 @@ class TyoskentelyjaksoMockHelper {
             alkamispaiva: LocalDate?,
             paattymispaiva: LocalDate?,
             osaaikaprosentti: Int = 100,
-            keskeytykset: MutableSet<Keskeytysaika> = mutableSetOf()
+            keskeytykset: MutableSet<Keskeytysaika> = mutableSetOf(),
+            hyvaksyttyAiemmin: Boolean? = false
         ): Tyoskentelyjakso {
             val tyoskentelyjaksoMock = mock(Tyoskentelyjakso::class.java)
             `when`(tyoskentelyjaksoMock.id).thenReturn(id)
@@ -28,6 +29,7 @@ class TyoskentelyjaksoMockHelper {
             `when`(tyoskentelyjaksoMock.keskeytykset).thenReturn(keskeytykset)
             `when`(tyoskentelyjaksoMock.tyoskentelypaikka).thenReturn(mock(Tyoskentelypaikka::class.java))
             `when`(tyoskentelyjaksoMock.opintooikeus).thenReturn(mock(Opintooikeus::class.java))
+            `when`(tyoskentelyjaksoMock.hyvaksyttyAiempaanErikoisalaan).thenReturn(hyvaksyttyAiemmin)
 
             return tyoskentelyjaksoMock
         }

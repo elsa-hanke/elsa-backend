@@ -853,4 +853,17 @@ class TyoskentelyjaksonPituusCounterServiceTest {
         assertThat(hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[1973]).isEqualTo(30.0)
         assertThat(hyvaksiluettavatCounterData.hyvaksiluettavatDays).isEmpty()
     }
+
+    @Test
+    fun `test calculate with aiemmin hyvaksytty toiselle erikoisalalle`() {
+        val tyoskentelyjakso = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
+            null,
+            LocalDate.ofEpochDay(0L),
+            LocalDate.ofEpochDay(58L), 100, mutableSetOf(), true
+        )
+        val tyoskentelyJaksonPituusDays =
+            tyoskentelyjaksonPituusCounterService.calculateInDays(tyoskentelyjakso, 0.0)
+
+        assertThat(tyoskentelyJaksonPituusDays).isEqualTo(29.5)
+    }
 }
