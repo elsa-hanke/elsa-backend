@@ -402,7 +402,8 @@
     <div th:if="${sateilusuojakoulutusVaadittu > 0}">
         <h4 th:text="#{valmistumisenyhteenveto.sateilysuojakoulutus}"></h4>
         <p class="mb-1">
-            <em class="fas fa-check-circle success"></em>
+            <em th:if="${sateilusuojakoulutusSuoritettu >= sateilusuojakoulutusVaadittu}" class="fas fa-check-circle success"></em>
+            <em th:unless="${sateilusuojakoulutusSuoritettu >= sateilusuojakoulutusVaadittu}" class="fas fa-exclamation-circle danger"></em>
             <span style="margin-left: 0.5rem" th:text="#{valmistumisenyhteenveto.suoritettu}"></span>
             <span
                 th:text="${#strings.replace(sateilusuojakoulutusSuoritettu,'.0','')}"></span>
@@ -412,7 +413,8 @@
     </div>
     <h4 th:text="#{valmistumisenyhteenveto.johtamiskoulutus}"></h4>
     <p class="mb-1">
-        <em class="fas fa-check-circle success"></em>
+        <em th:if="${johtamiskoulutusSuoritettu >= johtamiskoulutusVaadittu}" class="fas fa-check-circle success"></em>
+        <em th:unless="${johtamiskoulutusSuoritettu >= johtamiskoulutusVaadittu}" class="fas fa-exclamation-circle danger"></em>
         <span style="margin-left: 0.5rem" th:text="#{valmistumisenyhteenveto.suoritettu}"></span>
         <span
             th:text="${#strings.replace(johtamiskoulutusSuoritettu,'.0','')}"></span>
