@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <property name="endDate" value="now() + interval '6 months'" dbms="postgresql" />
+    <property name="endDate" value="now() + 180" dbms="h2" />
+
+    <changeSet id="20230517154438" author="jhipster">
+        <addColumn tableName="opintoopas_audit">
+            <column name="nimi_sv" type="varchar(255)">
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
