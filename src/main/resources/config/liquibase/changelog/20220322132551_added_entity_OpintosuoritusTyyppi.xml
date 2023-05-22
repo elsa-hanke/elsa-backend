@@ -22,7 +22,7 @@
                           tableName="opintosuoritus_tyyppi"/>
     </changeSet>
 
-    <changeSet id="20220322132551-data" context="!test" author="jhipster">
+    <changeSet id="20220322132551-data" author="jhipster">
         <insert tableName="opintosuoritus_tyyppi">
             <column name="nimi" value="JOHTAMISOPINTO"/>
         </insert>

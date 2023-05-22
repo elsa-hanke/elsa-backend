@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository
 interface OpintosuoritusKurssikoodiRepository : JpaRepository<OpintosuoritusKurssikoodi, Long> {
 
     fun findAllByYliopistoNimi(yliopisto: YliopistoEnum): List<OpintosuoritusKurssikoodi>
+
+    fun findByIdAndYliopistoNimi(id: Long, yliopisto: YliopistoEnum): OpintosuoritusKurssikoodi?
 }
