@@ -9,7 +9,9 @@ data class KayttajahallintaKayttajaWrapperDTO(
 
     var kayttaja: KayttajaDTO? = null,
 
-    var erikoistuvaLaakari: ErikoistuvaLaakariDTO? = null
+    var erikoistuvaLaakari: ErikoistuvaLaakariDTO? = null,
+
+    var voiPoistaa: Boolean? = null
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaKayttajaWrapperDTO"

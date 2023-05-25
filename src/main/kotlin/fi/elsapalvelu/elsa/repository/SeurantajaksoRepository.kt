@@ -25,4 +25,6 @@ interface SeurantajaksoRepository : JpaRepository<Seurantajakso, Long> {
         """
     )
     fun findAvoinByKouluttajaUserId(userId: String): List<Seurantajakso>
+
+    fun existsByKouluttajaId(id: Long): Boolean
 }

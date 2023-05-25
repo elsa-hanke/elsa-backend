@@ -63,4 +63,6 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
     @Modifying
     @Query("update KoulutussopimuksenKouluttaja k set k.kouluttaja.id = :newKayttaja where k.kouluttaja.id = :currentKayttaja")
     fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+
+    fun existsByKouluttajatId(id: Long): Boolean
 }

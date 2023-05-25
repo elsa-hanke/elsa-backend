@@ -54,4 +54,8 @@ interface UserService {
     ): User?
 
     fun updateRooli(rooli: String, userId: String)
+
+    fun updateKouluttajaReferences(oldId: Long, newId: Long)
+
+    fun delete(id: String)
 }

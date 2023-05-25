@@ -89,4 +89,6 @@ interface KayttajaService {
     )
 
     fun resendInvitation(id: Long, etunimi: String?, sukunimi: String?)
+
+    fun canDeleteKouluttaja(id: Long): Boolean
 }

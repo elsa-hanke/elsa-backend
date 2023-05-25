@@ -40,6 +40,8 @@ interface KouluttajavaltuutusRepository : JpaRepository<Kouluttajavaltuutus, Lon
         valtuutettuId: String
     ): Optional<Kouluttajavaltuutus>
 
+    fun findByValtuutettuId(valtuutettuId: Long): List<Kouluttajavaltuutus>
+
     @Transactional
     @Modifying
     @Query("update Kouluttajavaltuutus k set k.valtuutettu.id = :newKayttajaId where k.valtuutettu.id = :currentKayttajaId")

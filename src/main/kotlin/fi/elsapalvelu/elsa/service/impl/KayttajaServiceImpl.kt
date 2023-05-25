@@ -48,7 +48,14 @@ class KayttajaServiceImpl(
     private val vastuuhenkilonTehtavatyyppiRepository: VastuuhenkilonTehtavatyyppiRepository,
     private val vastuuhenkilonTehtavatyyppiMapper: VastuuhenkilonTehtavatyyppiMapper,
     private val mailService: MailService,
-    private val verificationTokenService: VerificationTokenService
+    private val verificationTokenService: VerificationTokenService,
+    private val suoritusarviointiRepository: SuoritusarviointiRepository,
+    private val seurantajaksoRepository: SeurantajaksoRepository,
+    private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
+    private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
+    private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
+    private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
+    private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
 ) : KayttajaService {
 
     override fun save(kayttajaDTO: KayttajaDTO): KayttajaDTO {
@@ -403,6 +410,16 @@ class KayttajaServiceImpl(
                     )
                 }
         }
+    }
+
+    override fun canDeleteKouluttaja(id: Long): Boolean {
+        return !suoritusarviointiRepository.existsByArvioinninAntajaId(id)
+            && !seurantajaksoRepository.existsByKouluttajaId(id)
+            && !koejaksonKoulutussopimusRepository.existsByKouluttajatId(id)
+            && !koejaksonAloituskeskusteluRepository.existsByLahikouluttajaIdOrLahiesimiesId(id, id)
+            && !koejaksonValiarviointiRepository.existsByLahikouluttajaIdOrLahiesimiesId(id, id)
+            && !koejaksonKehittamistoimenpiteetRepository.existsByLahikouluttajaIdOrLahiesimiesId(id, id)
+            && !koejaksonLoppukeskusteluRepository.existsByLahikouluttajaIdOrLahiesimiesId(id, id)
     }
 
     private fun saveYliopistotAndErikoisalat(
