@@ -182,4 +182,24 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         opintooikeusService.updateMuokkausoikeudet(user.id!!, muokkausoikeudet)
         return ResponseEntity.ok().build()
     }
+
+    @GetMapping("/kouluttajat")
+    fun getKouluttajat(
+        principal: Principal?
+    ): ResponseEntity<List<KayttajaDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(kayttajaService.findKouluttajatFromSameErikoisala(user.id!!))
+    }
+
+    @GetMapping("/kouluttajat-vastuuhenkilot")
+    fun getKouluttajatJaVastuuhenkilot(
+        principal: Principal?
+    ): ResponseEntity<List<KayttajaDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(
+            kayttajaService.findKouluttajatAndVastuuhenkilotFromSameYliopisto(
+                user.id!!
+            )
+        )
+    }
 }
