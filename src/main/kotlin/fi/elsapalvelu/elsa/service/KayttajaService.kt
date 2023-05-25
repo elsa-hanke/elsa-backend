@@ -28,7 +28,7 @@ interface KayttajaService {
 
     fun findByUserId(id: String): Optional<KayttajaDTO>
 
-    fun findKouluttajatFromSameYliopisto(userId: String): List<KayttajaDTO>
+    fun findKouluttajatFromSameErikoisala(userId: String): List<KayttajaDTO>
 
     fun findVastuuhenkiloByYliopistoErikoisalaAndTehtavatyyppi(
         userId: String,
