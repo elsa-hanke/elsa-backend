@@ -120,12 +120,11 @@ class KayttajaServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun findKouluttajatFromSameYliopisto(userId: String): List<KayttajaDTO> {
+    override fun findKouluttajatFromSameErikoisala(userId: String): List<KayttajaDTO> {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             val opintooikeus = it.getOpintooikeusKaytossa()
-            return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
+            return kayttajaRepository.findAllByAuthoritiesAndErikoisala(
                 listOf(KOULUTTAJA),
-                opintooikeus?.yliopisto?.id,
                 opintooikeus?.erikoisala?.id
             ).map(kayttajaMapper::toDto)
         } ?: return listOf()
@@ -161,11 +160,16 @@ class KayttajaServiceImpl(
     override fun findKouluttajatAndVastuuhenkilotFromSameYliopisto(userId: String): List<KayttajaDTO> {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             val opintooikeus = it.getOpintooikeusKaytossa()
-            return kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
-                listOf(KOULUTTAJA, VASTUUHENKILO),
-                opintooikeus?.yliopisto?.id,
+            val result = kayttajaRepository.findAllByAuthoritiesAndErikoisala(
+                listOf(KOULUTTAJA),
                 opintooikeus?.erikoisala?.id
-            ).map(kayttajaMapper::toDto)
+            )
+            result.addAll(
+                kayttajaRepository.findAllByAuthoritiesAndYliopistoAndErikoisala(
+                    listOf(VASTUUHENKILO), opintooikeus?.yliopisto?.id, opintooikeus?.erikoisala?.id
+                )
+            )
+            return result.map(kayttajaMapper::toDto)
         } ?: return listOf()
     }
 
