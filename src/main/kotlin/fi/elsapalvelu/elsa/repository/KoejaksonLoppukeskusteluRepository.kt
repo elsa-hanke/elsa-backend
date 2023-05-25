@@ -59,4 +59,6 @@ interface KoejaksonLoppukeskusteluRepository : JpaRepository<KoejaksonLoppukesku
     @Modifying
     @Query("update KoejaksonLoppukeskustelu l set l.lahiesimies.id = :newKayttaja where l.lahiesimies.id = :currentKayttaja")
     fun changeEsimies(currentKayttaja: Long, newKayttaja: Long)
+
+    fun existsByLahikouluttajaIdOrLahiesimiesId(kouluttajaId: Long, lahiesimiesId: Long): Boolean
 }

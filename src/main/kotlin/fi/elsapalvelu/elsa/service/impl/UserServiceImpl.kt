@@ -140,7 +140,8 @@ class UserServiceImpl(
     }
 
     override fun updateEmail(email: String, userId: String) {
-        val user = userRepository.findById(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+        val user = userRepository.findById(userId)
+            .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         user.email = email
     }
 
@@ -244,11 +245,17 @@ class UserServiceImpl(
     }
 
     override fun updateRooli(rooli: String, userId: String) {
-        val user = userRepository.findById(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+        val user = userRepository.findById(userId)
+            .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         user.activeAuthority = Authority(name = rooli)
     }
 
-    private fun updateKouluttajaReferences(oldId: Long, newId: Long) {
+    override fun updateKouluttajaReferences(oldId: Long, newId: Long) {
+        kouluttajavaltuutusRepository.deleteAll(
+            kouluttajavaltuutusRepository.findByValtuutettuId(
+                newId
+            )
+        )
         kouluttajavaltuutusRepository.changeKouluttaja(oldId, newId)
         suoritusarviointiRepository.changeKouluttaja(oldId, newId)
         koejaksonKoulutussopimusRepository.changeKouluttaja(oldId, newId)
@@ -260,6 +267,13 @@ class UserServiceImpl(
         koejaksonKehittamistoimenpiteetRepository.changeEsimies(oldId, newId)
         koejaksonLoppukeskusteluRepository.changeKouluttaja(oldId, newId)
         koejaksonLoppukeskusteluRepository.changeEsimies(oldId, newId)
+    }
+
+    override fun delete(id: String) {
+        verificationTokenRepository.findOneByUserId(id)?.let {
+            verificationTokenRepository.deleteById(it.id!!)
+        }
+        userRepository.deleteById(id)
     }
 
     private fun validateUserFirstAndLastName(
