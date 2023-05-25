@@ -60,4 +60,6 @@ interface KoejaksonKehittamistoimenpiteetRepository :
     @Modifying
     @Query("update KoejaksonKehittamistoimenpiteet k set k.lahiesimies.id = :newKayttaja where k.lahiesimies.id = :currentKayttaja")
     fun changeEsimies(currentKayttaja: Long, newKayttaja: Long)
+
+    fun existsByLahikouluttajaIdOrLahiesimiesId(kouluttajaId: Long, lahiesimiesId: Long): Boolean
 }

@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
@@ -70,13 +72,14 @@ open class KayttajahallintaResource(
         criteria: KayttajahallintaCriteria, pageable: Pageable, principal: Principal?
     ): ResponseEntity<Page<KayttajahallintaKayttajaListItemDTO>> {
         val user = userService.getAuthenticatedUser(principal)
+        val paged = if (criteria.findAll == true) Pageable.unpaged() else pageable
         val kouluttajat = if (hasVirkailijaRole(user)) {
             kayttajaService.findByKayttajahallintaCriteriaFromSameYliopisto(
-                user.id!!, KOULUTTAJA, criteria, pageable
+                user.id!!, KOULUTTAJA, criteria, paged
             )
         } else {
             kayttajaService.findByKayttajahallintaCriteria(
-                user.id!!, KOULUTTAJA, criteria, pageable
+                user.id!!, KOULUTTAJA, criteria, paged
             )
         }
         return ResponseEntity.ok(kouluttajat)
@@ -145,11 +148,49 @@ open class KayttajahallintaResource(
         val kayttaja = getKayttajaOrThrow(id)
         validateCurrentUserIsAllowedToManageKayttaja(principal, id)
 
+        var voiPoistaa = false
+        if (kayttaja.authorities?.contains(Authority(name = KOULUTTAJA)) == true) {
+            voiPoistaa = kayttajaService.canDeleteKouluttaja(kayttaja.id!!)
+        }
+
         return ResponseEntity.ok(
             KayttajahallintaKayttajaWrapperDTO(
-                kayttaja = kayttaja
+                kayttaja = kayttaja,
+                voiPoistaa = voiPoistaa
             )
         )
+    }
+
+    @DeleteMapping("/kayttajat/{id}")
+    fun deleteKayttaja(
+        @PathVariable id: Long, principal: Principal?,
+        @Valid @RequestBody kayttajahallintaReassignedKouluttajaDTO: KayttajahallintaReassignedKouluttajaDTO
+    ): ResponseEntity<Void> {
+        val kayttaja = getKayttajaOrThrow(id)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, id)
+
+        if (kayttaja.authorities?.contains(Authority(name = KOULUTTAJA)) == false || kayttaja.tila != KayttajatilinTila.KUTSUTTU) {
+            throw BadRequestAlertException(
+                "Vain kutsutun kouluttajan saa poistaa.",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.kayttajaa-ei-saa-poistaa"
+            )
+        }
+
+        kayttajahallintaReassignedKouluttajaDTO.reassignedKayttajaId?.let {
+            userService.updateKouluttajaReferences(
+                kayttaja.id!!,
+                it
+            )
+        }
+
+        val userId = kayttaja.userId
+        kayttajaService.delete(kayttaja.id!!)
+        userService.delete(userId!!)
+
+        return ResponseEntity
+            .noContent()
+            .build()
     }
 
     @GetMapping("/erikoistuva-laakari-lomake")
@@ -281,6 +322,15 @@ open class KayttajahallintaResource(
             )
         } else {
             val kayttaja = getKayttajaOrThrow(id)
+            if (kayttaja.authorities?.contains(Authority(name = KOULUTTAJA)) == true
+                && kayttaja.tila == KayttajatilinTila.KUTSUTTU
+            ) {
+                throw BadRequestAlertException(
+                    "Kutsuttua kouluttajaa ei voi passivoida.",
+                    KAYTTAJA_ENTITY_NAME,
+                    "dataillegal.kutsuttua-kouluttajaa-ei-voi-passivoida"
+                )
+            }
             validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id!!)
         }
         kayttajaService.passivateKayttaja(id)
@@ -538,7 +588,10 @@ open class KayttajahallintaResource(
     }
 
     private fun validateEppnNotExists(eppn: String?, userDTO: UserDTO? = null) {
-        if ((userDTO == null || userDTO.eppn != eppn) && (eppn != null && userService.existsByEppn(eppn))) {
+        if ((userDTO == null || userDTO.eppn != eppn) && (eppn != null && userService.existsByEppn(
+                eppn
+            ))
+        ) {
             throw BadRequestAlertException(
                 "Samalla yliopiston käyttäjätunnuksella löytyy jo toinen käyttäjä.",
                 KAYTTAJA_ENTITY_NAME,
