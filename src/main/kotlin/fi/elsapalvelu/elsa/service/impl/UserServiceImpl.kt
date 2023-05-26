@@ -45,6 +45,7 @@ class UserServiceImpl(
     private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
+    private val seurantajaksoRepository: SeurantajaksoRepository,
     private val entityManager: EntityManager
 ) : UserService {
 
@@ -267,6 +268,7 @@ class UserServiceImpl(
         koejaksonKehittamistoimenpiteetRepository.changeEsimies(oldId, newId)
         koejaksonLoppukeskusteluRepository.changeKouluttaja(oldId, newId)
         koejaksonLoppukeskusteluRepository.changeEsimies(oldId, newId)
+        seurantajaksoRepository.changeKouluttaja(oldId, newId)
     }
 
     override fun delete(id: String) {
