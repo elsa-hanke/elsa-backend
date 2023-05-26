@@ -2,8 +2,10 @@ package fi.elsapalvelu.elsa.repository
 
 import fi.elsapalvelu.elsa.domain.Seurantajakso
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 @Repository
 interface SeurantajaksoRepository : JpaRepository<Seurantajakso, Long> {
@@ -27,4 +29,9 @@ interface SeurantajaksoRepository : JpaRepository<Seurantajakso, Long> {
     fun findAvoinByKouluttajaUserId(userId: String): List<Seurantajakso>
 
     fun existsByKouluttajaId(id: Long): Boolean
+
+    @Transactional
+    @Modifying
+    @Query("update Seurantajakso s set s.kouluttaja.id = :newKayttaja where s.kouluttaja.id = :currentKayttaja")
+    fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
 }
