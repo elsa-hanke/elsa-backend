@@ -1,10 +1,12 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
 import fi.elsapalvelu.elsa.service.ArviointityokaluService
+import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.YliopistoService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.HakaYliopistoDTO
+import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,10 +17,20 @@ import java.security.Principal
 @RestController
 @RequestMapping("/api/")
 class MuutToiminnotResource(
+    private val kayttajaService: KayttajaService,
     private val yliopistoService: YliopistoService,
     private val userService: UserService,
     private val arviointityokaluService: ArviointityokaluService
 ) {
+
+    @GetMapping("/kouluttajat")
+    fun getKouluttajat(
+        principal: Principal?
+    ): ResponseEntity<List<KayttajaDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(kayttajaService.findKouluttajatFromSameErikoisala(user.id!!))
+    }
+
     @GetMapping("/yliopistot")
     fun getYliopistot(
         principal: Principal?
