@@ -424,7 +424,7 @@ class TyoskentelyjaksoServiceImpl(
                 val amountOfReducedDays =
                     tyoskentelyjaksonPituusCounterService.calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
                         it,
-                        if (it.tyoskentelyjakso?.hyvaksyttyAiempaanErikoisalaan == true) tyoskentelyjaksoFactor / 2 else tyoskentelyjaksoFactor,
+                        tyoskentelyjaksoFactor,
                         hyvaksiluettavatCounter
                     )
                 result.putIfAbsent(it.tyoskentelyjakso!!.id!!, 0.0)

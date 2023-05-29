@@ -37,10 +37,7 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
 
         // Ei huomioida tulevaisuuden jaksoja
         if (daysBetween > 0) {
-            var tyoskentelyjaksoFactor = tyoskentelyjakso.osaaikaprosentti!!.toDouble() / 100.0
-            if (tyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan) {
-                tyoskentelyjaksoFactor /= 2
-            }
+            val tyoskentelyjaksoFactor = tyoskentelyjakso.osaaikaprosentti!!.toDouble() / 100.0
             var result = tyoskentelyjaksoFactor * daysBetween
 
             // Vähennetään keskeytykset
