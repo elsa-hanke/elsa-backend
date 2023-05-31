@@ -23,9 +23,9 @@ interface KoejaksonAloituskeskusteluRepository : JpaRepository<KoejaksonAloitusk
 
     @Query(
         "select ak from KoejaksonAloituskeskustelu ak " +
-            "where ak.id = :id and ak.lahikouluttajaHyvaksynyt = true and ak.lahiesimiesHyvaksynyt = true " +
+            "where ak.id = :id and (ak.lahikouluttaja.user.id = :vastuuhenkiloUserId or ak.lahiesimies.user.id = :vastuuhenkiloUserId or ak.lahikouluttajaHyvaksynyt = true and ak.lahiesimiesHyvaksynyt = true " +
             "and ak.opintooikeus.id in (select va.opintooikeus.id from KoejaksonVastuuhenkilonArvio va " +
-            "where va.vastuuhenkilo.user.id = :vastuuhenkiloUserId)"
+            "where va.vastuuhenkilo.user.id = :vastuuhenkiloUserId))"
     )
     fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
         id: Long,
