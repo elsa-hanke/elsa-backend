@@ -23,9 +23,9 @@ interface KoejaksonValiarviointiRepository : JpaRepository<KoejaksonValiarvioint
 
     @Query(
         "select va from KoejaksonValiarviointi va " +
-            "where va.id = :id and va.lahikouluttajaHyvaksynyt = true and va.lahiesimiesHyvaksynyt = true " +
+            "where va.id = :id and (va.lahikouluttaja.user.id = :vastuuhenkiloUserId or va.lahiesimies.user.id = :vastuuhenkiloUserId or va.lahikouluttajaHyvaksynyt = true and va.lahiesimiesHyvaksynyt = true " +
             "and va.opintooikeus.id in (select va.opintooikeus.id from KoejaksonVastuuhenkilonArvio va " +
-            "where va.vastuuhenkilo.user.id = :vastuuhenkiloUserId)"
+            "where va.vastuuhenkilo.user.id = :vastuuhenkiloUserId))"
     )
     fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
         id: Long,

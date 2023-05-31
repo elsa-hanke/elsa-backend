@@ -82,8 +82,28 @@ class KoejaksonVaiheetServiceImpl(
         vainAvoimet: Boolean
     ): List<KoejaksonVaiheDTO> {
         val resultMap = HashMap<Long, MutableList<KoejaksonVaiheDTO>>()
+        val kayttajaId = kayttajaRepository.findOneByUserId(userId).get().id
 
         applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(userId, resultMap, vainAvoimet)
+        applyKoejaksonVaiheetStartingFromLoppukeskustelut(
+            userId,
+            resultMap,
+            kayttajaId,
+            vainAvoimet
+        )
+        applyKoejaksonVaiheetStartingFromKehittamistoimenpiteet(
+            userId,
+            resultMap,
+            kayttajaId,
+            vainAvoimet
+        )
+        applyKoejaksonVaiheetStartingFromValiarvioinnit(userId, resultMap, kayttajaId, vainAvoimet)
+        applyKoejaksonVaiheetStartingFromAloituskeskustelut(
+            userId,
+            resultMap,
+            kayttajaId,
+            vainAvoimet
+        )
         applyKoulutussopimuksetForVastuuhenkilo(userId, resultMap, vainAvoimet)
 
         return sortKoejaksonVaiheet(resultMap)

@@ -15,6 +15,7 @@ import java.security.Principal
 import java.util.*
 
 private const val ENTITY_NAME = "seurantajakso"
+
 open class SeurantakeskustelutResource(
     private val userService: UserService,
     private val seurantajaksoService: SeurantajaksoService

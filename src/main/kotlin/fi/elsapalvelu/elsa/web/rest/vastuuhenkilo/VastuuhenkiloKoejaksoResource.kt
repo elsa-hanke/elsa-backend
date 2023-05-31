@@ -3,13 +3,13 @@ package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URLEncoder
 import java.security.Principal
-import jakarta.validation.Valid
 
 private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 private const val ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO = "koejakson_vastuuhenkilon_arvio"
