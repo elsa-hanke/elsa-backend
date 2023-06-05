@@ -416,14 +416,14 @@ class KayttajaServiceImpl(
         }
     }
 
-    override fun canDeleteKouluttaja(id: Long): Boolean {
-        return !suoritusarviointiRepository.existsByArvioinninAntajaId(id)
-            && !seurantajaksoRepository.existsByKouluttajaId(id)
-            && !koejaksonKoulutussopimusRepository.existsByKouluttajatId(id)
-            && !koejaksonAloituskeskusteluRepository.existsByLahikouluttajaIdOrLahiesimiesId(id, id)
-            && !koejaksonValiarviointiRepository.existsByLahikouluttajaIdOrLahiesimiesId(id, id)
-            && !koejaksonKehittamistoimenpiteetRepository.existsByLahikouluttajaIdOrLahiesimiesId(id, id)
-            && !koejaksonLoppukeskusteluRepository.existsByLahikouluttajaIdOrLahiesimiesId(id, id)
+    override fun avoimiaTehtavia(id: Long): Boolean {
+        return suoritusarviointiRepository.existsByArvioinninAntajaIdAndArviointiAikaNull(id)
+            || seurantajaksoRepository.existsByKouluttajaIdAndHyvaksyttyFalse(id)
+            || koejaksonKoulutussopimusRepository.existsByKouluttajatIdAndVastuuhenkiloHyvaksynytFalse(id)
+            || koejaksonAloituskeskusteluRepository.existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(id, id)
+            || koejaksonValiarviointiRepository.existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(id, id)
+            || koejaksonKehittamistoimenpiteetRepository.existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(id, id)
+            || koejaksonLoppukeskusteluRepository.existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(id, id)
     }
 
     private fun saveYliopistotAndErikoisalat(

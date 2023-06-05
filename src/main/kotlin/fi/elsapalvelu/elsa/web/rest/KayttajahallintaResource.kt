@@ -148,15 +148,15 @@ open class KayttajahallintaResource(
         val kayttaja = getKayttajaOrThrow(id)
         validateCurrentUserIsAllowedToManageKayttaja(principal, id)
 
-        var voiPoistaa = false
+        var avoimiaTehtavia = false
         if (kayttaja.authorities?.contains(Authority(name = KOULUTTAJA)) == true) {
-            voiPoistaa = kayttajaService.canDeleteKouluttaja(kayttaja.id!!)
+            avoimiaTehtavia = kayttajaService.avoimiaTehtavia(kayttaja.id!!)
         }
 
         return ResponseEntity.ok(
             KayttajahallintaKayttajaWrapperDTO(
                 kayttaja = kayttaja,
-                voiPoistaa = voiPoistaa
+                avoimiaTehtavia = avoimiaTehtavia
             )
         )
     }
@@ -312,7 +312,8 @@ open class KayttajahallintaResource(
 
     @PatchMapping("/kayttajat/{id}/passivoi")
     fun passivateKayttaja(
-        @PathVariable id: Long, principal: Principal?
+        @PathVariable id: Long, principal: Principal?,
+        @Valid @RequestBody kayttajahallintaReassignedKouluttajaDTO: KayttajahallintaReassignedKouluttajaDTO
     ): ResponseEntity<Void> {
         val erikoistuvaLaakari = tryToGetErikoistuvaLaakariByKayttajaId(id)
         if (erikoistuvaLaakari != null) {
@@ -332,6 +333,13 @@ open class KayttajahallintaResource(
                 )
             }
             validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id!!)
+
+            kayttajahallintaReassignedKouluttajaDTO.reassignedKayttajaId?.let {
+                userService.updateAvoinKouluttajaReferences(
+                    kayttaja.id!!,
+                    it
+                )
+            }
         }
         kayttajaService.passivateKayttaja(id)
         return ResponseEntity.ok().build()

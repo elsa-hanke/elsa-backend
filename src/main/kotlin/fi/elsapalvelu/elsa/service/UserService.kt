@@ -57,5 +57,7 @@ interface UserService {
 
     fun updateKouluttajaReferences(oldId: Long, newId: Long)
 
+    fun updateAvoinKouluttajaReferences(oldId: Long, newId: Long)
+
     fun delete(id: String)
 }

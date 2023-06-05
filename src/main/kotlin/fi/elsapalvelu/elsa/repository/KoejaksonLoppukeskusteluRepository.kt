@@ -57,8 +57,18 @@ interface KoejaksonLoppukeskusteluRepository : JpaRepository<KoejaksonLoppukesku
 
     @Transactional
     @Modifying
+    @Query("update KoejaksonLoppukeskustelu l set l.lahikouluttaja.id = :newKayttaja where l.lahikouluttaja.id = :currentKayttaja and l.lahiesimiesHyvaksynyt = false")
+    fun changeAvoinKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+
+    @Transactional
+    @Modifying
     @Query("update KoejaksonLoppukeskustelu l set l.lahiesimies.id = :newKayttaja where l.lahiesimies.id = :currentKayttaja")
     fun changeEsimies(currentKayttaja: Long, newKayttaja: Long)
 
-    fun existsByLahikouluttajaIdOrLahiesimiesId(kouluttajaId: Long, lahiesimiesId: Long): Boolean
+    @Transactional
+    @Modifying
+    @Query("update KoejaksonLoppukeskustelu l set l.lahiesimies.id = :newKayttaja where l.lahiesimies.id = :currentKayttaja and l.lahiesimiesHyvaksynyt = false")
+    fun changeAvoinEsimies(currentKayttaja: Long, newKayttaja: Long)
+
+    fun existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(kouluttajaId: Long, lahiesimiesId: Long): Boolean
 }
