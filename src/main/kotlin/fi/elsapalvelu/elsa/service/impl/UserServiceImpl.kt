@@ -271,6 +271,20 @@ class UserServiceImpl(
         seurantajaksoRepository.changeKouluttaja(oldId, newId)
     }
 
+    override fun updateAvoinKouluttajaReferences(oldId: Long, newId: Long) {
+        suoritusarviointiRepository.changeAvoinKouluttaja(oldId, newId)
+        koejaksonKoulutussopimusRepository.changeAvoinKouluttaja(oldId, newId)
+        koejaksonAloituskeskusteluRepository.changeAvoinKouluttaja(oldId, newId)
+        koejaksonAloituskeskusteluRepository.changeAvoinEsimies(oldId, newId)
+        koejaksonValiarviointiRepository.changeAvoinKouluttaja(oldId, newId)
+        koejaksonValiarviointiRepository.changeAvoinEsimies(oldId, newId)
+        koejaksonKehittamistoimenpiteetRepository.changeAvoinKouluttaja(oldId, newId)
+        koejaksonKehittamistoimenpiteetRepository.changeAvoinEsimies(oldId, newId)
+        koejaksonLoppukeskusteluRepository.changeAvoinKouluttaja(oldId, newId)
+        koejaksonLoppukeskusteluRepository.changeAvoinEsimies(oldId, newId)
+        seurantajaksoRepository.changeAvoinKouluttaja(oldId, newId)
+    }
+
     override fun delete(id: String) {
         verificationTokenRepository.findOneByUserId(id)?.let {
             verificationTokenRepository.deleteById(it.id!!)
