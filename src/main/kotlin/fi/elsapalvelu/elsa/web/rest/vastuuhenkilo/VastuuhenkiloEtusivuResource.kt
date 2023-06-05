@@ -1,11 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
-import fi.elsapalvelu.elsa.service.EtusivuService
-import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaDTO
+import fi.elsapalvelu.elsa.service.dto.EtusivuSeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoListItemDTO
 import org.springframework.data.domain.Pageable
@@ -21,7 +19,8 @@ class VastuuhenkiloEtusivuResource(
     private val userService: UserService,
     private val etusivuService: EtusivuService,
     private val koejaksonVaiheetService: KoejaksonVaiheetService,
-    private val valmistumispyyntoService: ValmistumispyyntoService
+    private val valmistumispyyntoService: ValmistumispyyntoService,
+    private val seurantajaksoService: SeurantajaksoService
 ) {
 
     @GetMapping("/erikoistujien-seuranta")
@@ -56,6 +55,16 @@ class VastuuhenkiloEtusivuResource(
                 NimiErikoisalaAndAvoinCriteria(avoin = true),
                 Pageable.unpaged()
             ).content
+        )
+    }
+
+    @GetMapping("/seurantajaksot")
+    fun getSeurantajaksot(
+        principal: Principal?
+    ): ResponseEntity<List<EtusivuSeurantajaksoDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(
+            seurantajaksoService.findAvoinByKouluttajaUserId(user.id!!)
         )
     }
 }
