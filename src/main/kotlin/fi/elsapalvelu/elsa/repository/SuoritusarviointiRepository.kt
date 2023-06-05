@@ -57,9 +57,14 @@ interface SuoritusarviointiRepository :
     @Query("update Suoritusarviointi s set s.arvioinninAntaja.id = :newKayttaja where s.arvioinninAntaja.id = :currentKayttaja")
     fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
 
+    @Transactional
+    @Modifying
+    @Query("update Suoritusarviointi s set s.arvioinninAntaja.id = :newKayttaja where s.arvioinninAntaja.id = :currentKayttaja and s.arviointiAika is null")
+    fun changeAvoinKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+
     fun findAllByArvioinninAntajaUserIdAndArviointiAikaNull(userId: String): List<Suoritusarviointi>
 
     fun existsByArvioitavatKokonaisuudetArvioitavaKokonaisuusId(arvioitavaKokonaisuusId: Long): Boolean
 
-    fun existsByArvioinninAntajaId(id: Long): Boolean
+    fun existsByArvioinninAntajaIdAndArviointiAikaNull(id: Long): Boolean
 }

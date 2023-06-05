@@ -57,8 +57,18 @@ interface KoejaksonValiarviointiRepository : JpaRepository<KoejaksonValiarvioint
 
     @Transactional
     @Modifying
+    @Query("update KoejaksonValiarviointi v set v.lahikouluttaja.id = :newKayttaja where v.lahikouluttaja.id = :currentKayttaja and v.lahiesimiesHyvaksynyt = false")
+    fun changeAvoinKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+
+    @Transactional
+    @Modifying
     @Query("update KoejaksonValiarviointi v set v.lahiesimies.id = :newKayttaja where v.lahiesimies.id = :currentKayttaja")
     fun changeEsimies(currentKayttaja: Long, newKayttaja: Long)
 
-    fun existsByLahikouluttajaIdOrLahiesimiesId(kouluttajaId: Long, lahiesimiesId: Long): Boolean
+    @Transactional
+    @Modifying
+    @Query("update KoejaksonValiarviointi v set v.lahiesimies.id = :newKayttaja where v.lahiesimies.id = :currentKayttaja and v.lahiesimiesHyvaksynyt = false")
+    fun changeAvoinEsimies(currentKayttaja: Long, newKayttaja: Long)
+
+    fun existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(kouluttajaId: Long, lahiesimiesId: Long): Boolean
 }

@@ -58,8 +58,18 @@ interface KoejaksonKehittamistoimenpiteetRepository :
 
     @Transactional
     @Modifying
+    @Query("update KoejaksonKehittamistoimenpiteet k set k.lahikouluttaja.id = :newKayttaja where k.lahikouluttaja.id = :currentKayttaja and k.lahiesimiesHyvaksynyt = false")
+    fun changeAvoinKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+
+    @Transactional
+    @Modifying
     @Query("update KoejaksonKehittamistoimenpiteet k set k.lahiesimies.id = :newKayttaja where k.lahiesimies.id = :currentKayttaja")
     fun changeEsimies(currentKayttaja: Long, newKayttaja: Long)
 
-    fun existsByLahikouluttajaIdOrLahiesimiesId(kouluttajaId: Long, lahiesimiesId: Long): Boolean
+    @Transactional
+    @Modifying
+    @Query("update KoejaksonKehittamistoimenpiteet k set k.lahiesimies.id = :newKayttaja where k.lahiesimies.id = :currentKayttaja and k.lahiesimiesHyvaksynyt = false")
+    fun changeAvoinEsimies(currentKayttaja: Long, newKayttaja: Long)
+
+    fun existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(kouluttajaId: Long, lahiesimiesId: Long): Boolean
 }

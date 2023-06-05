@@ -64,5 +64,10 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
     @Query("update KoulutussopimuksenKouluttaja k set k.kouluttaja.id = :newKayttaja where k.kouluttaja.id = :currentKayttaja")
     fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
 
-    fun existsByKouluttajatId(id: Long): Boolean
+    @Transactional
+    @Modifying
+    @Query("update KoulutussopimuksenKouluttaja k set k.kouluttaja.id = :newKayttaja where k.kouluttaja.id = :currentKayttaja and k.id in (select k2.id from KoulutussopimuksenKouluttaja k2 where k2.koulutussopimus.vastuuhenkiloHyvaksynyt = false)")
+    fun changeAvoinKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+
+    fun existsByKouluttajatIdAndVastuuhenkiloHyvaksynytFalse(id: Long): Boolean
 }

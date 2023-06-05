@@ -11,7 +11,7 @@ data class KayttajahallintaKayttajaWrapperDTO(
 
     var erikoistuvaLaakari: ErikoistuvaLaakariDTO? = null,
 
-    var voiPoistaa: Boolean? = null
+    var avoimiaTehtavia: Boolean? = null
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaKayttajaWrapperDTO"

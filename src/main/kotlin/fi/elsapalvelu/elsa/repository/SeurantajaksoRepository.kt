@@ -28,10 +28,15 @@ interface SeurantajaksoRepository : JpaRepository<Seurantajakso, Long> {
     )
     fun findAvoinByKouluttajaUserId(userId: String): List<Seurantajakso>
 
-    fun existsByKouluttajaId(id: Long): Boolean
+    fun existsByKouluttajaIdAndHyvaksyttyFalse(id: Long): Boolean
 
     @Transactional
     @Modifying
     @Query("update Seurantajakso s set s.kouluttaja.id = :newKayttaja where s.kouluttaja.id = :currentKayttaja")
     fun changeKouluttaja(currentKayttaja: Long, newKayttaja: Long)
+
+    @Transactional
+    @Modifying
+    @Query("update Seurantajakso s set s.kouluttaja.id = :newKayttaja where s.kouluttaja.id = :currentKayttaja and s.hyvaksytty = false")
+    fun changeAvoinKouluttaja(currentKayttaja: Long, newKayttaja: Long)
 }
