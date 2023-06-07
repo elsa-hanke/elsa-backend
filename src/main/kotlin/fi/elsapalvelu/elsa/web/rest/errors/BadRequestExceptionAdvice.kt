@@ -19,7 +19,7 @@ class BadRequestExceptionAdvice {
     private val log = LoggerFactory.getLogger(javaClass)
     @ExceptionHandler(BadRequestAlertException::class)
     fun handleBadRequestException(e: BadRequestAlertException): ProblemDetail {
-        log.warn(e.message, e)
+        log.warn(e.message ?: e.defaultMessage, e)
         val body = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.defaultMessage)
         body.setProperty("message", "error.${e.errorKey}")
         body.setProperty("params", e.entityName)
