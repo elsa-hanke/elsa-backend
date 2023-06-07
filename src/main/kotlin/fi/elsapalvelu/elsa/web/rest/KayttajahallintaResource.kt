@@ -348,6 +348,13 @@ open class KayttajahallintaResource(
                     KAYTTAJA_ENTITY_NAME,
                     "dataillegal.kutsuttua-kouluttajaa-ei-voi-passivoida"
                 )
+            } else if (kayttaja.authorities?.contains(Authority(name = VASTUUHENKILO)) == true
+                && kayttaja.yliopistotAndErikoisalat?.any { it.vastuuhenkilonTehtavat.isNotEmpty() } == true) {
+                throw BadRequestAlertException(
+                    "Vastuuhenkilöä ei voi passivoida jos siihen liittyy vastuualueita.",
+                    KAYTTAJA_ENTITY_NAME,
+                    "dataillegal.vastuuhenkiloa-vastuualueilla-ei-voi-passivoida"
+                )
             }
             validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id!!)
 
