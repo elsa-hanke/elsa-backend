@@ -29,7 +29,8 @@ interface KayttajaRepository : JpaRepository<Kayttaja, Long>, JpaSpecificationEx
 
     @Query(
         "select k from Kayttaja k join k.user u left join u.authorities a left join k.yliopistotAndErikoisalat y " +
-            "where a.name in :authorities and k.id = y.kayttaja.id and y.yliopisto.id = :yliopistoId and y.erikoisala.id = :erikoisalaId"
+            "where a.name in :authorities and k.id = y.kayttaja.id and y.yliopisto.id = :yliopistoId and y.erikoisala.id = :erikoisalaId " +
+            "and k.tila != fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila.PASSIIVINEN"
     )
     fun findAllByAuthoritiesAndYliopistoAndErikoisala(
         authorities: List<String>,
@@ -39,7 +40,8 @@ interface KayttajaRepository : JpaRepository<Kayttaja, Long>, JpaSpecificationEx
 
     @Query(
         "select k from Kayttaja k join k.user u left join u.authorities a left join k.yliopistotAndErikoisalat y " +
-            "where a.name in :authorities and k.id = y.kayttaja.id and y.yliopisto.id = :yliopistoId"
+            "where a.name in :authorities and k.id = y.kayttaja.id and y.yliopisto.id = :yliopistoId " +
+            "and k.tila != fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila.PASSIIVINEN"
     )
     fun findAllByAuthoritiesAndYliopisto(
         authorities: List<String>,
@@ -48,7 +50,8 @@ interface KayttajaRepository : JpaRepository<Kayttaja, Long>, JpaSpecificationEx
 
     @Query(
         "select k from Kayttaja k join k.user u left join u.authorities a left join k.yliopistotAndErikoisalat y " +
-            "where a.name in :authorities and k.id = y.kayttaja.id and y.erikoisala.id = :erikoisalaId"
+            "where a.name in :authorities and k.id = y.kayttaja.id and y.erikoisala.id = :erikoisalaId " +
+            "and k.tila != fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila.PASSIIVINEN"
     )
     fun findAllByAuthoritiesAndErikoisala(
         authorities: List<String>,
