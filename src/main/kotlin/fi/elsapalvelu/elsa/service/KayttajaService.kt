@@ -91,4 +91,6 @@ interface KayttajaService {
     fun resendInvitation(id: Long, etunimi: String?, sukunimi: String?)
 
     fun avoimiaTehtavia(id: Long): Boolean
+
+    fun findAllKouluttajat(): List<KayttajaDTO>
 }

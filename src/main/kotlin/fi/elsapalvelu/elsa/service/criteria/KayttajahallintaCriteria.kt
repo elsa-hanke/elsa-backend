@@ -14,9 +14,7 @@ data class KayttajahallintaCriteria(
 
     var useaOpintooikeus: BooleanFilter? = null,
 
-    var vastuuhenkilonTehtavatyyppiId: LongFilter? = null,
-
-    var findAll: Boolean? = false
+    var vastuuhenkilonTehtavatyyppiId: LongFilter? = null
 
 ) : Serializable, Criteria {
 

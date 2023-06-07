@@ -72,14 +72,13 @@ open class KayttajahallintaResource(
         criteria: KayttajahallintaCriteria, pageable: Pageable, principal: Principal?
     ): ResponseEntity<Page<KayttajahallintaKayttajaListItemDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val paged = if (criteria.findAll == true) Pageable.unpaged() else pageable
         val kouluttajat = if (hasVirkailijaRole(user)) {
             kayttajaService.findByKayttajahallintaCriteriaFromSameYliopisto(
-                user.id!!, KOULUTTAJA, criteria, paged
+                user.id!!, KOULUTTAJA, criteria, pageable
             )
         } else {
             kayttajaService.findByKayttajahallintaCriteria(
-                user.id!!, KOULUTTAJA, criteria, paged
+                user.id!!, KOULUTTAJA, criteria, pageable
             )
         }
         return ResponseEntity.ok(kouluttajat)
@@ -149,7 +148,9 @@ open class KayttajahallintaResource(
         validateCurrentUserIsAllowedToManageKayttaja(principal, id)
 
         var avoimiaTehtavia = false
-        if (kayttaja.authorities?.contains(Authority(name = KOULUTTAJA)) == true) {
+        if (kayttaja.authorities?.contains(Authority(name = KOULUTTAJA)) == true
+            || kayttaja.authorities?.contains(Authority(name = VASTUUHENKILO)) == true
+        ) {
             avoimiaTehtavia = kayttajaService.avoimiaTehtavia(kayttaja.id!!)
         }
 
@@ -159,6 +160,22 @@ open class KayttajahallintaResource(
                 avoimiaTehtavia = avoimiaTehtavia
             )
         )
+    }
+
+    @GetMapping("/kayttajat/{id}/korvaavat")
+    fun getKorvaavatKouluttajat(
+        @PathVariable id: Long
+    ): ResponseEntity<List<KayttajaDTO>> {
+        val kayttaja = getKayttajaOrThrow(id)
+        val kouluttajat = kayttajaService.findAllKouluttajat()
+        if (kayttaja.authorities?.contains(Authority(name = VASTUUHENKILO)) == true) {
+            return ResponseEntity.ok(
+                kouluttajat + kayttajaService.findVastuuhenkilotFromSameYliopistoAndErikoisala(
+                    id
+                )
+            )
+        }
+        return ResponseEntity.ok(kouluttajat)
     }
 
     @DeleteMapping("/kayttajat/{id}")
