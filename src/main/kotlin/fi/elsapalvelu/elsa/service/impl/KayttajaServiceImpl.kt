@@ -428,6 +428,7 @@ class KayttajaServiceImpl(
 
     override fun findAllKouluttajat(): List<KayttajaDTO> {
         return kayttajaRepository.findAllByUserAuthorities(listOf(KOULUTTAJA))
+            .filter { it.tila != KayttajatilinTila.PASSIIVINEN }
             .map(kayttajaMapper::toDto)
     }
 
