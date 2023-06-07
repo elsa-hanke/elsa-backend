@@ -71,5 +71,12 @@ interface KoejaksonKehittamistoimenpiteetRepository :
     @Query("update KoejaksonKehittamistoimenpiteet k set k.lahiesimies.id = :newKayttaja where k.lahiesimies.id = :currentKayttaja and k.lahiesimiesHyvaksynyt = false")
     fun changeAvoinEsimies(currentKayttaja: Long, newKayttaja: Long)
 
-    fun existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(kouluttajaId: Long, lahiesimiesId: Long): Boolean
+    @Query(
+        """
+        select case when count(k)> 0 then true else false end
+        from KoejaksonKehittamistoimenpiteet k
+        where k.lahiesimiesHyvaksynyt = false and (k.lahikouluttaja.id = :kouluttajaId or k.lahiesimies.id = :kouluttajaId)
+        """
+    )
+    fun existsAvoinForKouluttaja(kouluttajaId: Long): Boolean
 }
