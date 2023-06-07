@@ -70,5 +70,12 @@ interface KoejaksonValiarviointiRepository : JpaRepository<KoejaksonValiarvioint
     @Query("update KoejaksonValiarviointi v set v.lahiesimies.id = :newKayttaja where v.lahiesimies.id = :currentKayttaja and v.lahiesimiesHyvaksynyt = false")
     fun changeAvoinEsimies(currentKayttaja: Long, newKayttaja: Long)
 
-    fun existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(kouluttajaId: Long, lahiesimiesId: Long): Boolean
+    @Query(
+        """
+        select case when count(k)> 0 then true else false end
+        from KoejaksonValiarviointi k
+        where k.lahiesimiesHyvaksynyt = false and (k.lahikouluttaja.id = :kouluttajaId or k.lahiesimies.id = :kouluttajaId)
+        """
+    )
+    fun existsAvoinForKouluttaja(kouluttajaId: Long): Boolean
 }

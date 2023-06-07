@@ -420,10 +420,15 @@ class KayttajaServiceImpl(
         return suoritusarviointiRepository.existsByArvioinninAntajaIdAndArviointiAikaNull(id)
             || seurantajaksoRepository.existsByKouluttajaIdAndHyvaksyttyFalse(id)
             || koejaksonKoulutussopimusRepository.existsByKouluttajatIdAndVastuuhenkiloHyvaksynytFalse(id)
-            || koejaksonAloituskeskusteluRepository.existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(id, id)
-            || koejaksonValiarviointiRepository.existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(id, id)
-            || koejaksonKehittamistoimenpiteetRepository.existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(id, id)
-            || koejaksonLoppukeskusteluRepository.existsByLahikouluttajaIdOrLahiesimiesIdAndLahiesimiesHyvaksynytFalse(id, id)
+            || koejaksonAloituskeskusteluRepository.existsAvoinForKouluttaja(id)
+            || koejaksonValiarviointiRepository.existsAvoinForKouluttaja(id)
+            || koejaksonKehittamistoimenpiteetRepository.existsAvoinForKouluttaja(id)
+            || koejaksonLoppukeskusteluRepository.existsAvoinForKouluttaja(id)
+    }
+
+    override fun findAllKouluttajat(): List<KayttajaDTO> {
+        return kayttajaRepository.findAllByUserAuthorities(listOf(KOULUTTAJA))
+            .map(kayttajaMapper::toDto)
     }
 
     private fun saveYliopistotAndErikoisalat(
