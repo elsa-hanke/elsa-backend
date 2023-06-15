@@ -163,19 +163,16 @@ open class KayttajahallintaResource(
     }
 
     @GetMapping("/kayttajat/{id}/korvaavat")
-    fun getKorvaavatKouluttajat(
+    fun getKorvaavatHenkilot(
         @PathVariable id: Long
     ): ResponseEntity<List<KayttajaDTO>> {
         val kayttaja = getKayttajaOrThrow(id)
-        val kouluttajat = kayttajaService.findAllKouluttajat()
         if (kayttaja.authorities?.contains(Authority(name = VASTUUHENKILO)) == true) {
             return ResponseEntity.ok(
-                kouluttajat + kayttajaService.findVastuuhenkilotFromSameYliopistoAndErikoisala(
-                    id
-                )
+                kayttajaService.findVastuuhenkilotFromSameYliopistoAndErikoisala(id)
             )
         }
-        return ResponseEntity.ok(kouluttajat)
+        return ResponseEntity.ok(kayttajaService.findAllKouluttajat())
     }
 
     @DeleteMapping("/kayttajat/{id}")
