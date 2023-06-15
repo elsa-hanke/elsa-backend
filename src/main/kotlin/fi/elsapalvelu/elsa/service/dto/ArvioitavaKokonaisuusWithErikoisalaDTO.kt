@@ -23,7 +23,9 @@ data class ArvioitavaKokonaisuusWithErikoisalaDTO(
     var voimassaoloLoppuu: LocalDate? = null,
 
     @get: NotNull
-    var kategoria: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO? = null
+    var kategoria: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO? = null,
+
+    var voiPoistaa: Boolean? = null
 
 ) : Serializable {
 
