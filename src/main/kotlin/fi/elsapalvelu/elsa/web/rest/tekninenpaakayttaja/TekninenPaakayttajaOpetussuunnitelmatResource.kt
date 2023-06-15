@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URI
 import jakarta.validation.Valid
+import java.security.Principal
 
 private const val OPINTOOPAS_ENTITY_NAME = "opintoopas"
 private const val ERIKOISALA_ENTITY_NAME = "erikoisala"
@@ -173,6 +174,17 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
         return ResponseEntity.ok(arvioitavaKokonaisuusService.update(arvioitavaKokonaisuusDTO))
     }
 
+    @DeleteMapping("/arvioitavatkokonaisuudet/{id}")
+    fun deleteArvioitavaKokonaisuus(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        arvioitavaKokonaisuusService.delete(id)
+        return ResponseEntity
+            .noContent()
+            .build()
+    }
+
     @GetMapping("/erikoisalat/{id}/suoritteenkategoriat")
     fun getSuoritteenKategoriat(@PathVariable id: Long): ResponseEntity<List<SuoritteenKategoriaSimpleDTO>> {
         return ResponseEntity.ok(suoritteenKategoriaService.findAllByErikoisalaId(id))
@@ -249,6 +261,17 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
         validateSuoritteenVoimassaolo(suoriteDTO)
         validateSuoritemerkinnat(suoriteDTO)
         return ResponseEntity.ok(suoriteService.update(suoriteDTO))
+    }
+
+    @DeleteMapping("/suoritteet/{id}")
+    fun deleteSuorite(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        suoriteService.delete(id)
+        return ResponseEntity
+            .noContent()
+            .build()
     }
 
     private fun validateOpintoopas(opintoopasDTO: OpintoopasDTO) {

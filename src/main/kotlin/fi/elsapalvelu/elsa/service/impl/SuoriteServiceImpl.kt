@@ -2,11 +2,13 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.SuoriteRepository
+import fi.elsapalvelu.elsa.repository.SuoritemerkintaRepository
 import fi.elsapalvelu.elsa.service.SuoriteService
 import fi.elsapalvelu.elsa.service.dto.SuoriteDTO
 import fi.elsapalvelu.elsa.service.dto.SuoriteWithErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoriteMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoriteWithErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.SuoritteenKategoriaWithErikoisalaMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,7 +21,9 @@ class SuoriteServiceImpl(
     private val suoriteRepository: SuoriteRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val suoriteMapper: SuoriteMapper,
-    private val suoriteWithErikoisalaMapper: SuoriteWithErikoisalaMapper
+    private val suoriteWithErikoisalaMapper: SuoriteWithErikoisalaMapper,
+    private val suoritteenKategoriaWithErikoisalaMapper: SuoritteenKategoriaWithErikoisalaMapper,
+    private val suoritemerkintaRepository: SuoritemerkintaRepository
 ) : SuoriteService {
 
     override fun create(suoriteDTO: SuoriteWithErikoisalaDTO): SuoriteWithErikoisalaDTO {
@@ -47,6 +51,9 @@ class SuoriteServiceImpl(
                 it.voimassaolonAlkamispaiva = suoriteDTO.voimassaolonAlkamispaiva
                 it.voimassaolonPaattymispaiva = suoriteDTO.voimassaolonPaattymispaiva
                 it.vaadittulkm = suoriteDTO.vaadittulkm
+                suoriteDTO.kategoria?.let { kategoria ->
+                    it.kategoria = suoritteenKategoriaWithErikoisalaMapper.toEntity(kategoria)
+                }
 
                 val result = suoriteRepository.save(it)
 
@@ -67,8 +74,12 @@ class SuoriteServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<SuoriteWithErikoisalaDTO> {
-        return suoriteRepository.findById(id)
+        val result = suoriteRepository.findById(id)
             .map(suoriteWithErikoisalaMapper::toDto)
+        result.ifPresent {
+            it.voiPoistaa = !suoritemerkintaRepository.existsBySuoriteId(it.id!!)
+        }
+        return result
     }
 
     override fun delete(id: Long) {

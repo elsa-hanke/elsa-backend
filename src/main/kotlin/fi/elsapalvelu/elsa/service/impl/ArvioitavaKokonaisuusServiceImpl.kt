@@ -2,11 +2,13 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.ArvioitavaKokonaisuusRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.service.ArvioitavaKokonaisuusService
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusDTO
 import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusWithErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusMapper
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusWithErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.ArvioitavanKokonaisuudenKategoriaSimpleMapper
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -21,7 +23,9 @@ class ArvioitavaKokonaisuusServiceImpl(
     private val arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository,
     private val arvioitavaKokonaisuusMapper: ArvioitavaKokonaisuusMapper,
     private val arvioitavaKokonaisuusWithErikoisalaMapper: ArvioitavaKokonaisuusWithErikoisalaMapper,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val arvioitavanKokonaisuudenKategoriaSimpleMapper: ArvioitavanKokonaisuudenKategoriaSimpleMapper,
+    private val suoritusarviointiRepository: SuoritusarviointiRepository
 ) : ArvioitavaKokonaisuusService {
 
     override fun create(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO {
@@ -50,6 +54,9 @@ class ArvioitavaKokonaisuusServiceImpl(
                 it.voimassaoloLoppuu = arvioitavaKokonaisuusDTO.voimassaoloLoppuu
                 it.kuvaus = arvioitavaKokonaisuusDTO.kuvaus
                 it.kuvausSv = arvioitavaKokonaisuusDTO.kuvausSv
+                arvioitavaKokonaisuusDTO.kategoria?.let { kategoria ->
+                    it.kategoria = arvioitavanKokonaisuudenKategoriaSimpleMapper.toEntity(kategoria)
+                }
 
                 val result = arvioitavaKokonaisuusRepository.save(it)
 
@@ -90,8 +97,15 @@ class ArvioitavaKokonaisuusServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<ArvioitavaKokonaisuusWithErikoisalaDTO> {
-        return arvioitavaKokonaisuusRepository.findById(id)
+        val result = arvioitavaKokonaisuusRepository.findById(id)
             .map(arvioitavaKokonaisuusWithErikoisalaMapper::toDto)
+        result.ifPresent {
+            it.voiPoistaa =
+                !suoritusarviointiRepository.existsByArvioitavatKokonaisuudetArvioitavaKokonaisuusId(
+                    it.id!!
+                )
+        }
+        return result
     }
 
     override fun delete(id: Long) {

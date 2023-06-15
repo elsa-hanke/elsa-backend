@@ -21,7 +21,9 @@ data class SuoriteWithErikoisalaDTO(
     var vaadittulkm: Int? = null,
 
     @get: NotNull
-    var kategoria: SuoritteenKategoriaWithErikoisalaDTO? = null
+    var kategoria: SuoritteenKategoriaWithErikoisalaDTO? = null,
+
+    var voiPoistaa: Boolean? = null
 
 ) : Serializable {
 
