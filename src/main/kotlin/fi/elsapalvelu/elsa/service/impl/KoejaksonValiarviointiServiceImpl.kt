@@ -1,10 +1,12 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KoejaksonValiarviointi
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KoejaksonValiarviointiService
 import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.MailProperty
@@ -194,11 +196,21 @@ class KoejaksonValiarviointiServiceImpl(
         id: Long,
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonValiarviointiDTO> {
-        return koejaksonValiarviointiRepository.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
-            id,
-            vastuuhenkiloUserId
-        )
-            .map(this::mapValiarviointi)
+        val valiarviointi = koejaksonValiarviointiRepository.findOneByIdAndLahiesimiesHyvaksynytTrue(id).orElse(null)
+            ?: return Optional.empty()
+        val vastuuhenkilo =
+            kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                listOf(VASTUUHENKILO),
+                valiarviointi.opintooikeus?.yliopisto?.id,
+                valiarviointi.opintooikeus?.erikoisala?.id,
+                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+            )
+        if (valiarviointi.lahikouluttaja?.user?.id == vastuuhenkiloUserId
+            || valiarviointi.lahiesimies?.user?.id == vastuuhenkiloUserId
+            || vastuuhenkilo?.user?.id == vastuuhenkiloUserId) {
+            return Optional.of(valiarviointi).map(this::mapValiarviointi)
+        }
+        return Optional.empty()
     }
 
     override fun delete(id: Long) {

@@ -173,12 +173,21 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
         // Sähköposti vastuuhenkilölle
         if (vastuuhenkilonArvio.virkailijanKuittausaika != null) {
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(vastuuhenkilonArvio.vastuuhenkilo?.id!!).get().user!!,
-                templateName = "vastuuhenkilonArvioKuitattava.html",
-                titleKey = "email.vastuuhenkilonarviokuitattava.title",
-                properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
-            )
+            val vastuuhenkilo =
+                kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                    listOf(VASTUUHENKILO),
+                    vastuuhenkilonArvio.opintooikeus?.yliopisto?.id,
+                    vastuuhenkilonArvio.opintooikeus?.erikoisala?.id,
+                    VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+                )
+            vastuuhenkilo?.user?.let {
+                mailService.sendEmailFromTemplate(
+                    it,
+                    templateName = "vastuuhenkilonArvioKuitattava.html",
+                    titleKey = "email.vastuuhenkilonarviokuitattava.title",
+                    properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
+                )
+            }
         }
     }
 
@@ -356,10 +365,20 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         id: Long,
         userId: String
     ): Optional<KoejaksonVastuuhenkilonArvioDTO> {
-        val arvio =
-            koejaksonVastuuhenkilonArvioRepository.findOneByIdAndVastuuhenkiloUserId(id, userId)
-        arvio.ifPresent { tarkistaAllekirjoitus(it) }
-        return arvio.map(this::mapVastuuhenkilonArvio)
+        val arvio = koejaksonVastuuhenkilonArvioRepository.findById(id).orElse(null)
+            ?: return Optional.empty()
+        val vastuuhenkilo =
+            kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                listOf(VASTUUHENKILO),
+                arvio.opintooikeus?.yliopisto?.id,
+                arvio.opintooikeus?.erikoisala?.id,
+                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+            )
+        if (vastuuhenkilo?.user?.id == userId) {
+            tarkistaAllekirjoitus(arvio)
+            return Optional.of(arvio).map(this::mapVastuuhenkilonArvio)
+        }
+        return Optional.empty()
     }
 
     override fun existsByIdAndVastuuhenkiloUserId(
@@ -450,7 +469,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         result.tila = KoejaksoTila.fromVastuuhenkilonArvio(
             vastuuhenkilonArvio,
             (authentication.principal as Saml2AuthenticatedPrincipal).name,
-            authentication.authorities.any { it.authority == OPINTOHALLINNON_VIRKAILIJA })
+            authentication.authorities.any { it.authority == OPINTOHALLINNON_VIRKAILIJA },
+            authentication.authorities.any { it.authority == VASTUUHENKILO })
         return result
     }
 }

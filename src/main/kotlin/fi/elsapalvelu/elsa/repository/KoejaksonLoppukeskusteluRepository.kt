@@ -23,16 +23,7 @@ interface KoejaksonLoppukeskusteluRepository : JpaRepository<KoejaksonLoppukesku
 
     fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonLoppukeskustelu>
 
-    @Query(
-        "select lk from KoejaksonLoppukeskustelu lk " +
-            "where lk.id = :id and (lk.lahikouluttaja.user.id = :vastuuhenkiloUserId or lk.lahiesimies.user.id = :vastuuhenkiloUserId or lk.lahikouluttajaHyvaksynyt = true and lk.lahiesimiesHyvaksynyt = true " +
-            "and lk.opintooikeus.id in (select va.opintooikeus.id from KoejaksonVastuuhenkilonArvio va " +
-            "where va.vastuuhenkilo.user.id = :vastuuhenkiloUserId))"
-    )
-    fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
-        id: Long,
-        vastuuhenkiloUserId: String
-    ): Optional<KoejaksonLoppukeskustelu>
+    fun findOneByIdAndLahiesimiesHyvaksynytTrue(id: Long): Optional<KoejaksonLoppukeskustelu>
 
     @Query(
         "select l from KoejaksonLoppukeskustelu l left join l.lahikouluttaja lk left join l.lahiesimies le " +

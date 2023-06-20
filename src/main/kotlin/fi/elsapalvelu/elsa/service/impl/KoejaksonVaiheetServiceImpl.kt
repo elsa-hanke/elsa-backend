@@ -23,7 +23,6 @@ import jakarta.persistence.EntityNotFoundException
 @Service
 @Transactional
 class KoejaksonVaiheetServiceImpl(
-    private val koejaksonKoulutussopimusService: KoejaksonKoulutussopimusService,
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper,
     private val aloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
@@ -617,7 +616,7 @@ class KoejaksonVaiheetServiceImpl(
         return KoejaksonVaiheDTO(
             vastuuhenkilonArvioDTO.id,
             KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
-            KoejaksoTila.fromVastuuhenkilonArvio(true, vastuuhenkilonArvioDTO, userId),
+            KoejaksoTila.fromVastuuhenkilonArvio(true, vastuuhenkilonArvioDTO, userId, vastuuhenkilo = true),
             vastuuhenkilonArvioDTO.erikoistuvanNimi,
             vastuuhenkilonArvioDTO.erikoistuvanAvatar,
             vastuuhenkilonArvioDTO.muokkauspaiva
