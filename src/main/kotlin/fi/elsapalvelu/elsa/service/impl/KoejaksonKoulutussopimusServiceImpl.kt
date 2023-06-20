@@ -30,7 +30,6 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
-    private val kayttajaService: KayttajaService,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val userRepository: UserRepository,
     private val asiakirjaRepository: AsiakirjaRepository,
@@ -56,6 +55,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             if (koulutussopimus.lahetetty) koulutussopimus.erikoistuvanAllekirjoitusaika =
                 LocalDate.now()
             koulutussopimus.korjausehdotus = null
+            koulutussopimus.vastuuhenkilonKorjausehdotus = null
             koulutussopimus.vastuuhenkilo = null
             koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
@@ -236,12 +236,21 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         // Sähköposti vastuuhenkilölle hyväksytystä sopimuksesta
         if (result.kouluttajat?.all { it.sopimusHyvaksytty } == true) {
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.vastuuhenkilo?.id!!).get().user!!,
-                templateName = "koulutussopimusVastuuhenkilolle.html",
-                titleKey = "email.koulutussopimusvastuuhenkilolle.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
-            )
+            val vastuuhenkilo =
+                kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                    listOf(VASTUUHENKILO),
+                    koulutussopimus.opintooikeus?.yliopisto?.id,
+                    koulutussopimus.opintooikeus?.erikoisala?.id,
+                    VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+                )
+            vastuuhenkilo?.user?.let {
+                mailService.sendEmailFromTemplate(
+                    it,
+                    templateName = "koulutussopimusVastuuhenkilolle.html",
+                    titleKey = "email.koulutussopimusvastuuhenkilolle.title",
+                    properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                )
+            }
         }
 
         // Sähköposti erikoistuvalle ja toiselle kouluttajalle palautetusta sopimuksesta
@@ -383,11 +392,19 @@ class KoejaksonKoulutussopimusServiceImpl(
         id: Long,
         userId: String
     ): Optional<KoejaksonKoulutussopimusDTO> {
-        val koulutussopimus = koejaksonKoulutussopimusRepository.findOneByIdAndVastuuhenkiloUserId(
-            id,
-            userId
-        )
-        return koulutussopimus.map(koejaksonKoulutussopimusMapper::toDto)
+        val koulutussopimus = koejaksonKoulutussopimusRepository.findById(id).orElse(null)
+            ?: return Optional.empty()
+        val vastuuhenkilo =
+            kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                listOf(VASTUUHENKILO),
+                koulutussopimus.opintooikeus?.yliopisto?.id,
+                koulutussopimus.opintooikeus?.erikoisala?.id,
+                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+            )
+        if (vastuuhenkilo?.user?.id == userId) {
+            return Optional.of(koulutussopimus).map(koejaksonKoulutussopimusMapper::toDto)
+        }
+        return Optional.empty()
     }
 
     override fun delete(id: Long) {

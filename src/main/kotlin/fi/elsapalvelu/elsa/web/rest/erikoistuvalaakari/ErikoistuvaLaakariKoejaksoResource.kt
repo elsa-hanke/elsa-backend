@@ -188,14 +188,6 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        if (koulutussopimusDTO.vastuuhenkilo?.id != koulutussopimus.get().vastuuhenkilo?.id) {
-            throw BadRequestAlertException(
-                "Vastuuhenkilöä ei voi vaihtaa.",
-                ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal.vastuuhenkiloa-ei-saa-vaihtaa"
-            )
-        }
-
         if (koulutussopimus.get().lahetetty == true) {
             throw BadRequestAlertException(
                 "Lähetettyä koulutussopimusta ei saa muokata.",
@@ -537,14 +529,6 @@ class ErikoistuvaLaakariKoejaksoResource(
                 "Koejakson vastuuhenkilön arviota ei löydy.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
                 "dataillegal.koejakson-vastuuhenkilon-arviota-ei-loydy"
-            )
-        }
-
-        if (vastuuhenkilonArvio.get().vastuuhenkilo?.id != vastuuhenkilonArvioDTO.vastuuhenkilo?.id) {
-            throw BadRequestAlertException(
-                "Vastuuhenkilöä ei saa vaihtaa.",
-                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal.vastuuhenkiloa-ei-saa-vaihtaa"
             )
         }
 

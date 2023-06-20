@@ -89,7 +89,8 @@ enum class KoejaksoTila {
             loppukeskusteluHyvaksytty: Boolean,
             vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO?,
             userId: String? = null,
-            virkailija: Boolean = false
+            virkailija: Boolean = false,
+            vastuuhenkilo: Boolean = false
         ): KoejaksoTila {
             return if (!loppukeskusteluHyvaksytty) EI_AKTIIVINEN
             else if (vastuuhenkilonArvioDTO == null) UUSI
@@ -100,9 +101,9 @@ enum class KoejaksoTila {
                 } else {
                     ODOTTAA_VASTUUHENKILON_ALLEKIRJOITUSTA
                 }
-            } else if (vastuuhenkilonArvioDTO.virkailija?.sopimusHyvaksytty == true && vastuuhenkilonArvioDTO.vastuuhenkilo?.kayttajaUserId != userId) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
+            } else if (vastuuhenkilonArvioDTO.virkailija?.sopimusHyvaksytty == true && !vastuuhenkilo) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
             else if (virkailija && vastuuhenkilonArvioDTO.virkailija?.sopimusHyvaksytty != true && vastuuhenkilonArvioDTO.erikoistuvanKuittausaika != null) ODOTTAA_HYVAKSYNTAA
-            else if (vastuuhenkilonArvioDTO.vastuuhenkilo?.kayttajaUserId == userId && vastuuhenkilonArvioDTO.vastuuhenkilonKorjausehdotus != null) PALAUTETTU_KORJATTAVAKSI
+            else if (vastuuhenkilo && vastuuhenkilonArvioDTO.vastuuhenkilonKorjausehdotus != null) PALAUTETTU_KORJATTAVAKSI
             else if (vastuuhenkilonArvioDTO.erikoistuvanKuittausaika == null && (!vastuuhenkilonArvioDTO.virkailijanKorjausehdotus.isNullOrBlank() || !vastuuhenkilonArvioDTO.vastuuhenkilonKorjausehdotus.isNullOrBlank())) PALAUTETTU_KORJATTAVAKSI
             else ODOTTAA_HYVAKSYNTAA
         }
@@ -110,7 +111,8 @@ enum class KoejaksoTila {
         fun fromVastuuhenkilonArvio(
             vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio?,
             userId: String? = null,
-            virkailija: Boolean = false
+            virkailija: Boolean = false,
+            vastuuhenkilo: Boolean = false
         ): KoejaksoTila {
             return if (vastuuhenkilonArvio?.allekirjoitettu == true) ALLEKIRJOITETTU
             else if (vastuuhenkilonArvio?.vastuuhenkiloHyvaksynyt == true) {
@@ -119,9 +121,9 @@ enum class KoejaksoTila {
                 } else {
                     ODOTTAA_VASTUUHENKILON_ALLEKIRJOITUSTA
                 }
-            } else if (vastuuhenkilonArvio?.virkailijaHyvaksynyt == true && vastuuhenkilonArvio.vastuuhenkilo?.user?.id != userId) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
+            } else if (vastuuhenkilonArvio?.virkailijaHyvaksynyt == true && !vastuuhenkilo) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
             else if (virkailija && vastuuhenkilonArvio?.virkailijaHyvaksynyt == false && vastuuhenkilonArvio.erikoistuvanKuittausaika != null) ODOTTAA_HYVAKSYNTAA
-            else if (vastuuhenkilonArvio?.vastuuhenkilo?.user?.id == userId && vastuuhenkilonArvio?.vastuuhenkilonKorjausehdotus != null) PALAUTETTU_KORJATTAVAKSI
+            else if (vastuuhenkilo && vastuuhenkilonArvio?.vastuuhenkilonKorjausehdotus != null) PALAUTETTU_KORJATTAVAKSI
             else if (!vastuuhenkilonArvio?.virkailijanKorjausehdotus.isNullOrBlank() || !vastuuhenkilonArvio?.vastuuhenkilonKorjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
             else ODOTTAA_HYVAKSYNTAA
         }

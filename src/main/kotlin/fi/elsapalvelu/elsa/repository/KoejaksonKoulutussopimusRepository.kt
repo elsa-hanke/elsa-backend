@@ -16,11 +16,6 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
         userId: String
     ): Optional<KoejaksonKoulutussopimus>
 
-    fun findOneByIdAndVastuuhenkiloUserId(
-        id: Long,
-        userId: String
-    ): Optional<KoejaksonKoulutussopimus>
-
     fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonKoulutussopimus>
 
     @Query(

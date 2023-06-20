@@ -37,6 +37,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
@@ -310,7 +311,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(sopimus.koejaksonAlkamispaiva).isEqualTo(koejaksonKoulutussopimusDTO.koejaksonAlkamispaiva)
         assertThat(sopimus.lahetetty).isEqualTo(koejaksonKoulutussopimusDTO.lahetetty)
         assertThat(sopimus.muokkauspaiva).isNotNull
-        assertThat(sopimus.vastuuhenkilo?.id).isEqualTo(koejaksonKoulutussopimusDTO.vastuuhenkilo?.id)
+        assertNull(sopimus.vastuuhenkilo)
         assertThat(sopimus.vastuuhenkiloHyvaksynyt).isFalse
         assertThat(sopimus.vastuuhenkilonKuittausaika).isNull()
         assertThat(sopimus.korjausehdotus).isNull()
@@ -328,26 +329,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val koulutuspaikkaDTO = koejaksonKoulutussopimusDTO.koulutuspaikat?.iterator()?.next()
         assertThat(koulutuspaikka?.nimi).isEqualTo(koulutuspaikkaDTO?.nimi)
         assertThat(koulutuspaikka?.yliopisto?.id).isEqualTo(koulutuspaikkaDTO?.yliopistoId)
-    }
-
-    @Test
-    @Transactional
-    fun shouldNotCreateKoulutussopimusWithDifferentVastuuhenkiloThanAllowed() {
-        initKoejakso()
-
-        val erikoisala = ErikoisalaHelper.createEntity()
-        em.persist(erikoisala)
-        val vastuuhenkilo = createVastuuhenkilo(erikoisala = erikoisala)
-        koejaksonKoulutussopimus.vastuuhenkilo = vastuuhenkilo
-
-        val koejaksonKoulutussopimusDTO =
-            koejaksonKoulutussopimusMapper.toDto(koejaksonKoulutussopimus)
-        restKoejaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/koejakso/koulutussopimus")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(koejaksonKoulutussopimusDTO))
-                .with(csrf())
-        ).andExpect(status().is5xxServerError)
     }
 
     @Test
@@ -408,33 +389,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
             testKoulutussopimus.kouluttajat?.filter { it.kouluttaja?.id == updatedKouluttaja.id }
                 ?.get(0)
         assertThat(testKouluttaja?.kouluttaja?.user?.id).isEqualTo(updatedKouluttaja.user?.id)
-    }
-
-    @Test
-    @Transactional
-    fun shouldNotUpdateKoulutussopimusWithDifferentVastuuhenkilo() {
-        initKoejakso()
-
-        koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
-
-        val id = koejaksonKoulutussopimus.id
-        assertNotNull(id)
-        val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
-        em.detach(updatedKoulutussopimus)
-
-        val erikoisala = ErikoisalaHelper.createEntity()
-        em.persist(erikoisala)
-        val updatedVastuuhenkilo = createVastuuhenkilo(erikoisala = erikoisala)
-        updatedKoulutussopimus.vastuuhenkilo = updatedVastuuhenkilo
-
-        val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
-
-        restKoejaksoMockMvc.perform(
-            put("/api/erikoistuva-laakari/koejakso/koulutussopimus")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(koulutussopimusDTO))
-                .with(csrf())
-        ).andExpect(status().isBadRequest)
     }
 
     @Test
@@ -889,7 +843,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(arviointi.opintooikeus?.yliopisto?.nimi.toString()).isEqualTo(
             koejaksonVastuuhenkilonArvioDTO.erikoistuvanYliopisto
         )
-        assertThat(arviointi.vastuuhenkilo?.id).isEqualTo(koejaksonVastuuhenkilonArvioDTO.vastuuhenkilo?.id)
+        assertNull(arviointi.vastuuhenkilo)
         assertThat(arviointi.muokkauspaiva).isNotNull
     }
 
@@ -908,33 +862,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.vastuuhenkilo.id").value(vastuuhenkilo.id))
-    }
-
-    @Test
-    @Transactional
-    fun shouldNotCreateVastuuhenkilonArvioWithDifferentVastuuhenkiloThanAllowed() {
-        initKoejakso()
-
-        koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
-        koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
-        koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
-        koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
-        koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
-
-        val erikoisala = ErikoisalaHelper.createEntity()
-        em.persist(erikoisala)
-        val updatedVastuuhenkilo = createVastuuhenkilo(erikoisala = erikoisala)
-        koejaksonVastuuhenkilonArvio.vastuuhenkilo = updatedVastuuhenkilo
-
-        val koejaksonVastuuhenkilonArvioDTO =
-            koejaksonVastuuhenkilonArvioMapper.toDto(koejaksonVastuuhenkilonArvio)
-
-        restKoejaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/koejakso/vastuuhenkilonarvio")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(koejaksonVastuuhenkilonArvioDTO))
-                .with(csrf())
-        ).andExpect(status().is5xxServerError)
     }
 
     @Test

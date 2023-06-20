@@ -1,7 +1,9 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KoejaksonAloituskeskustelu
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
 import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.MailProperty
@@ -296,11 +298,21 @@ class KoejaksonAloituskeskusteluServiceImpl(
         id: Long,
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonAloituskeskusteluDTO> {
-        return koejaksonAloituskeskusteluRepository.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
-            id,
-            vastuuhenkiloUserId
-        )
-            .map(koejaksonAloituskeskusteluMapper::toDto)
+        val aloituskeskustelu = koejaksonAloituskeskusteluRepository.findOneByIdAndLahiesimiesHyvaksynytTrue(id).orElse(null)
+            ?: return Optional.empty()
+        val vastuuhenkilo =
+            kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                listOf(VASTUUHENKILO),
+                aloituskeskustelu.opintooikeus?.yliopisto?.id,
+                aloituskeskustelu.opintooikeus?.erikoisala?.id,
+                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+            )
+        if (aloituskeskustelu.lahikouluttaja?.user?.id == vastuuhenkiloUserId
+            || aloituskeskustelu.lahiesimies?.user?.id == vastuuhenkiloUserId
+            || vastuuhenkilo?.user?.id == vastuuhenkiloUserId) {
+            return Optional.of(aloituskeskustelu).map(koejaksonAloituskeskusteluMapper::toDto)
+        }
+        return Optional.empty()
     }
 
     override fun delete(id: Long) {

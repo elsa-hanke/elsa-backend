@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
@@ -11,6 +12,7 @@ import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
+import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.hamcrest.collection.IsCollectionWithSize.hasSize
 import org.junit.jupiter.api.BeforeEach
@@ -696,6 +698,17 @@ class VastuuhenkiloEtusivuResourceIT {
         val kouluttaja = KayttajaHelper.createEntity(em)
         kayttajaRepository.save(kouluttaja)
 
+        val vastuualue = em.findAll(VastuuhenkilonTehtavatyyppi::class)
+            .first { it.nimi == VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN }
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
+            kayttaja = vastuuhenkilo,
+            yliopisto = erikoistuvaLaakari.opintooikeudet.first().yliopisto,
+            erikoisala = erikoistuvaLaakari.opintooikeudet.first().erikoisala,
+            vastuuhenkilonTehtavat = mutableSetOf(vastuualue)
+        )
+        kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
+        vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
+
         val koulutussopimus =
             KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
         koulutussopimus.lahetetty = true
@@ -782,6 +795,5 @@ class VastuuhenkiloEtusivuResourceIT {
 
         vastuuhenkilo = KayttajaHelper.createEntity(em, user)
         em.persist(vastuuhenkilo)
-
     }
 }
