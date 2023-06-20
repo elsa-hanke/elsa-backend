@@ -87,7 +87,7 @@ class KoejaksonVaiheetServiceImpl(
         val kayttaja = kayttajaRepository.findOneByUserId(userId).get()
         val kayttajaId = kayttaja.id
 
-        applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(userId, resultMap, vainAvoimet)
+        applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(kayttaja, resultMap, vainAvoimet)
         applyKoejaksonVaiheetStartingFromLoppukeskustelut(
             userId,
             resultMap,
@@ -161,16 +161,26 @@ class KoejaksonVaiheetServiceImpl(
     }
 
     private fun applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(
-        userId: String,
+        kayttaja: Kayttaja,
         resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>,
         vainAvoimet: Boolean
     ) {
         val vastuuhenkilonArviot =
-            if (vainAvoimet) vastuuhenkilonArvioRepository.findAllAvoinByVastuuhenkilo(
-                userId
-            ) else vastuuhenkilonArvioRepository.findAllByVastuuhenkiloUserIdAndVirkailijaHyvaksynytTrue(
-                userId
-            )
+            kayttaja.yliopistotAndErikoisalat.filter {
+                it.vastuuhenkilonTehtavat.map { t -> t.nimi }.contains(
+                    VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+                )
+            }.map {
+                if (vainAvoimet) {
+                    vastuuhenkilonArvioRepository.findAllAvoinByVastuuhenkilo(
+                        it.yliopisto?.id!!, it.erikoisala?.id!!
+                    )
+                } else {
+                    vastuuhenkilonArvioRepository.findAllByVastuuhenkilo(
+                        it.yliopisto?.id!!, it.erikoisala?.id!!
+                    )
+                }
+            }.flatten()
         vastuuhenkilonArviot.associate {
             koejaksonVastuuhenkilonArvioService.tarkistaAllekirjoitus(it)
             getOpintooikeusIdOrElseThrow(it.opintooikeus) to vastuuhenkilonArvioMapper.toDto(it)
@@ -180,7 +190,7 @@ class KoejaksonVaiheetServiceImpl(
                 return@forEach
             }
             resultMap[opintooikeusId] = mutableListOf()
-            val result = mapVastuuhenkilonArvio(it.value, userId)
+            val result = mapVastuuhenkilonArvio(it.value, kayttaja.user?.id!!)
 
             if (!vainAvoimet) {
                 result.apply {
@@ -382,19 +392,22 @@ class KoejaksonVaiheetServiceImpl(
         vainAvoimet: Boolean
     ) {
         val koulutussopimukset =
-            if (vainAvoimet) {
-                kayttaja.yliopistotAndErikoisalat.filter {
-                    it.vastuuhenkilonTehtavat.map { t -> t.nimi }.contains(
-                        VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
-                    )
-                }.map {
+            kayttaja.yliopistotAndErikoisalat.filter {
+                it.vastuuhenkilonTehtavat.map { t -> t.nimi }.contains(
+                    VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+                )
+            }.map {
+                if (vainAvoimet) {
                     koejaksonKoulutussopimusRepository.findAllAvoinForVastuuhenkilo(
                         it.yliopisto?.id!!, it.erikoisala?.id!!
                     )
-                }.flatten()
-            } else {
-                koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(kayttaja.user?.id!!)
-            }
+                } else {
+                    koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(
+                        it.yliopisto?.id!!,
+                        it.erikoisala?.id!!
+                    )
+                }
+            }.flatten()
         koulutussopimukset.associate {
             getOpintooikeusIdOrElseThrow(it.opintooikeus) to koejaksonKoulutussopimusMapper.toDto(
                 it
