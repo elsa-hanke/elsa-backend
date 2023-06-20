@@ -35,6 +35,8 @@ data class KoejaksonKoulutussopimusDTO(
 
     var korjausehdotus: String? = null,
 
+    var vastuuhenkilonKorjausehdotus: String? = null,
+
     var kouluttajat: MutableSet<KoulutussopimuksenKouluttajaDTO>? = mutableSetOf(),
 
     var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikkaDTO>? = mutableSetOf(),

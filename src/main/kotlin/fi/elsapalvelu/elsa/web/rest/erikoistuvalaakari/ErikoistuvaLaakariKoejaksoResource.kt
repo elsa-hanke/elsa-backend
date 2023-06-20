@@ -53,7 +53,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             .ifPresent {
                 result.koulutussopimus = it
             }
-        result.koulutusSopimuksenTila = KoejaksoTila.fromSopimus(result.koulutussopimus)
+        result.koulutusSopimuksenTila = KoejaksoTila.fromSopimus(result.koulutussopimus, false)
 
         koejaksonAloituskeskusteluService.findByOpintooikeusId(opintooikeusId)
             .ifPresent {

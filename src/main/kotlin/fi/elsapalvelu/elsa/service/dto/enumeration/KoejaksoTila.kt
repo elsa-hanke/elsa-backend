@@ -20,11 +20,12 @@ enum class KoejaksoTila {
     companion object {
         fun fromSopimus(
             koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO?,
+            isVastuuhenkilo: Boolean,
             kayttajaId: Long? = null
         ): KoejaksoTila {
             return if (koejaksonKoulutussopimusDTO == null) UUSI
             else if (koejaksonKoulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true) HYVAKSYTTY
-            else if (!koejaksonKoulutussopimusDTO.korjausehdotus.isNullOrBlank()) PALAUTETTU_KORJATTAVAKSI
+            else if (!koejaksonKoulutussopimusDTO.korjausehdotus.isNullOrBlank() || ((koejaksonKoulutussopimusDTO.lahetetty == false || isVastuuhenkilo) && !koejaksonKoulutussopimusDTO.vastuuhenkilonKorjausehdotus.isNullOrBlank())) PALAUTETTU_KORJATTAVAKSI
             else if (koejaksonKoulutussopimusDTO.lahetetty == false) TALLENNETTU_KESKENERAISENA
             else if (koejaksonKoulutussopimusDTO.kouluttajat?.all { it.sopimusHyvaksytty == true } == true) {
                 if (koejaksonKoulutussopimusDTO.kouluttajat?.find { it.kayttajaId == kayttajaId } != null) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
