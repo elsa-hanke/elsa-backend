@@ -22,16 +22,7 @@ interface KoejaksonKehittamistoimenpiteetRepository :
         userId: String
     ): Optional<KoejaksonKehittamistoimenpiteet>
 
-    @Query(
-        "select kt from KoejaksonKehittamistoimenpiteet kt " +
-            "where kt.id = :id and (kt.lahikouluttaja.user.id = :vastuuhenkiloUserId or kt.lahiesimies.user.id = :vastuuhenkiloUserId or kt.lahikouluttajaHyvaksynyt = true and kt.lahiesimiesHyvaksynyt = true " +
-            "and kt.opintooikeus.id in (select va.opintooikeus.id from KoejaksonVastuuhenkilonArvio va " +
-            "where va.vastuuhenkilo.user.id = :vastuuhenkiloUserId))"
-    )
-    fun findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
-        id: Long,
-        vastuuhenkiloUserId: String
-    ): Optional<KoejaksonKehittamistoimenpiteet>
+    fun findOneByIdAndLahiesimiesHyvaksynytTrue(id: Long): Optional<KoejaksonKehittamistoimenpiteet>
 
     fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonKehittamistoimenpiteet>
 

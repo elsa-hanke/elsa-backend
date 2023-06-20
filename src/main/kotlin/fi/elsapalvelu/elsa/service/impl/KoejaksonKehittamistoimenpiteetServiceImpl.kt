@@ -1,10 +1,12 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.KoejaksonKehittamistoimenpiteet
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKehittamistoimenpiteetRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KoejaksonKehittamistoimenpiteetService
 import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.MailProperty
@@ -217,11 +219,23 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         id: Long,
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
-        return koejaksonKehittamistoimenpiteetRepository.findOneByIdHyvaksyttyAndBelongsToVastuuhenkilo(
-            id,
-            vastuuhenkiloUserId
-        )
-            .map(this::mapKehittamistoimenpiteet)
+        val kehittamistoimenpiteet =
+            koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahiesimiesHyvaksynytTrue(id).orElse(null)
+                ?: return Optional.empty()
+
+        val vastuuhenkilo =
+            kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                listOf(VASTUUHENKILO),
+                kehittamistoimenpiteet.opintooikeus?.yliopisto?.id,
+                kehittamistoimenpiteet.opintooikeus?.erikoisala?.id,
+                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+            )
+        if (kehittamistoimenpiteet.lahikouluttaja?.user?.id == vastuuhenkiloUserId
+            || kehittamistoimenpiteet.lahiesimies?.user?.id == vastuuhenkiloUserId
+            || vastuuhenkilo?.user?.id == vastuuhenkiloUserId) {
+            return Optional.of(kehittamistoimenpiteet).map(this::mapKehittamistoimenpiteet)
+        }
+        return Optional.empty()
     }
 
     private fun applyWithKehittamistoimenpiteetDescription(

@@ -257,5 +257,6 @@
     <include file="config/liquibase/changelog/20230504151405_modify_entity_Opintooikeus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20230517154438_modify_entity_Opintoopas.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20230619130654_modify_entity_KoejaksonKoulutussopimus.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20230620121212_modify_entity_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
