@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.Opintooikeus
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
 import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
@@ -82,7 +84,8 @@ class KoejaksonVaiheetServiceImpl(
         vainAvoimet: Boolean
     ): List<KoejaksonVaiheDTO> {
         val resultMap = HashMap<Long, MutableList<KoejaksonVaiheDTO>>()
-        val kayttajaId = kayttajaRepository.findOneByUserId(userId).get().id
+        val kayttaja = kayttajaRepository.findOneByUserId(userId).get()
+        val kayttajaId = kayttaja.id
 
         applyKoejaksonVaiheetStartingFromVastuuhenkilonArvio(userId, resultMap, vainAvoimet)
         applyKoejaksonVaiheetStartingFromLoppukeskustelut(
@@ -104,7 +107,7 @@ class KoejaksonVaiheetServiceImpl(
             kayttajaId,
             vainAvoimet
         )
-        applyKoulutussopimuksetForVastuuhenkilo(userId, resultMap, vainAvoimet)
+        applyKoulutussopimuksetForVastuuhenkilo(kayttaja, resultMap, vainAvoimet)
 
         return sortKoejaksonVaiheet(resultMap)
     }
@@ -369,19 +372,29 @@ class KoejaksonVaiheetServiceImpl(
         }.forEach {
             val opintooikeusId = it.key
             resultMap.putIfAbsent(opintooikeusId, mutableListOf())
-            resultMap[opintooikeusId]!!.add(mapKoulutussopimus(it.value, kayttajaId))
+            resultMap[opintooikeusId]!!.add(mapKoulutussopimus(it.value, false, kayttajaId))
         }
     }
 
     private fun applyKoulutussopimuksetForVastuuhenkilo(
-        userId: String,
+        kayttaja: Kayttaja,
         resultMap: HashMap<Long, MutableList<KoejaksonVaiheDTO>>,
         vainAvoimet: Boolean
     ) {
         val koulutussopimukset =
-            if (vainAvoimet) koejaksonKoulutussopimusRepository.findAllAvoinByVastuuhenkiloUserId(
-                userId
-            ) else koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(userId)
+            if (vainAvoimet) {
+                kayttaja.yliopistotAndErikoisalat.filter {
+                    it.vastuuhenkilonTehtavat.map { t -> t.nimi }.contains(
+                        VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+                    )
+                }.map {
+                    koejaksonKoulutussopimusRepository.findAllAvoinForVastuuhenkilo(
+                        it.yliopisto?.id!!, it.erikoisala?.id!!
+                    )
+                }.flatten()
+            } else {
+                koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(kayttaja.user?.id!!)
+            }
         koulutussopimukset.associate {
             getOpintooikeusIdOrElseThrow(it.opintooikeus) to koejaksonKoulutussopimusMapper.toDto(
                 it
@@ -389,7 +402,7 @@ class KoejaksonVaiheetServiceImpl(
         }.forEach {
             val opintooikeusId = it.key
             resultMap.putIfAbsent(opintooikeusId, mutableListOf())
-            resultMap[opintooikeusId]!!.add(mapKoulutussopimus(it.value))
+            resultMap[opintooikeusId]!!.add(mapKoulutussopimus(it.value, true))
         }
     }
 
@@ -471,12 +484,13 @@ class KoejaksonVaiheetServiceImpl(
 
     private fun mapKoulutussopimus(
         koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO,
+        isVastuuhenkilo: Boolean,
         kayttajaId: Long? = null
     ): KoejaksonVaiheDTO {
         return KoejaksonVaiheDTO(
             koejaksonKoulutussopimusDTO.id,
             KoejaksoTyyppi.KOULUTUSSOPIMUS,
-            KoejaksoTila.fromSopimus(koejaksonKoulutussopimusDTO, kayttajaId),
+            KoejaksoTila.fromSopimus(koejaksonKoulutussopimusDTO, isVastuuhenkilo, kayttajaId),
             koejaksonKoulutussopimusDTO.erikoistuvanNimi,
             koejaksonKoulutussopimusDTO.erikoistuvanAvatar,
             koejaksonKoulutussopimusDTO.muokkauspaiva

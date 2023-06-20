@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
@@ -42,10 +43,6 @@ class KoejaksonKoulutussopimusServiceImpl(
         opintooikeusId: Long
     ): KoejaksonKoulutussopimusDTO? {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
-            validateVastuuhenkilo(
-                it.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-                koejaksonKoulutussopimusDTO
-            )
             var koulutussopimus =
                 koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
             koulutussopimus.opintooikeus = it
@@ -59,6 +56,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             if (koulutussopimus.lahetetty) koulutussopimus.erikoistuvanAllekirjoitusaika =
                 LocalDate.now()
             koulutussopimus.korjausehdotus = null
+            koulutussopimus.vastuuhenkilo = null
             koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
             it.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
@@ -129,8 +127,16 @@ class KoejaksonKoulutussopimusServiceImpl(
             }
         }
 
-        if (koulutussopimus.vastuuhenkilo?.user?.id == userId) {
-            koulutussopimus = handleVastuuhenkilo(koulutussopimus, updatedKoulutussopimus)
+        val vastuuhenkilo =
+            kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                listOf(VASTUUHENKILO),
+                koulutussopimus.opintooikeus?.yliopisto?.id,
+                koulutussopimus.opintooikeus?.erikoisala?.id,
+                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+            )
+        if (vastuuhenkilo?.user?.id == userId) {
+            koulutussopimus =
+                handleVastuuhenkilo(koulutussopimus, updatedKoulutussopimus, vastuuhenkilo)
 
             koulutussopimus.vastuuhenkilo?.user?.let {
                 it.phoneNumber = koejaksonKoulutussopimusDTO.vastuuhenkilo?.puhelin
@@ -149,19 +155,6 @@ class KoejaksonKoulutussopimusServiceImpl(
         return dto
     }
 
-    private fun validateVastuuhenkilo(
-        userId: String,
-        koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO
-    ) {
-        if (kayttajaService.findVastuuhenkiloByYliopistoErikoisalaAndTehtavatyyppi(
-                userId,
-                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
-            ).id != koejaksonKoulutussopimusDTO.vastuuhenkilo?.id
-        ) {
-            throw java.lang.IllegalArgumentException("Vastuuhenkilöä ei saa vaihtaa")
-        }
-    }
-
     private fun handleErikoistuva(
         koulutussopimus: KoejaksonKoulutussopimus,
         updated: KoejaksonKoulutussopimus
@@ -169,7 +162,6 @@ class KoejaksonKoulutussopimusServiceImpl(
         koulutussopimus.apply {
             koejaksonAlkamispaiva = updated.koejaksonAlkamispaiva
             lahetetty = updated.lahetetty
-            vastuuhenkilo = updated.vastuuhenkilo
         }
         koulutussopimus.kouluttajat?.clear()
         updated.kouluttajat?.let { koulutussopimus.kouluttajat?.addAll(it) }
@@ -223,6 +215,10 @@ class KoejaksonKoulutussopimusServiceImpl(
         if (updated.korjausehdotus.isNullOrBlank()) {
             kouluttaja.sopimusHyvaksytty = true
             kouluttaja.kuittausaika = LocalDate.now(ZoneId.systemDefault())
+
+            if (koulutussopimus.kouluttajat?.all { it.sopimusHyvaksytty } == true) {
+                koulutussopimus.vastuuhenkilonKorjausehdotus = null
+            }
         }
         // Palautettu korjattavaksi
         else {
@@ -283,16 +279,18 @@ class KoejaksonKoulutussopimusServiceImpl(
 
     private fun handleVastuuhenkilo(
         koulutussopimus: KoejaksonKoulutussopimus,
-        updated: KoejaksonKoulutussopimus
+        updated: KoejaksonKoulutussopimus,
+        vastuuhenkilo: Kayttaja
     ): KoejaksonKoulutussopimus {
         // Hyväksytty
         if (updated.korjausehdotus.isNullOrBlank()) {
             koulutussopimus.vastuuhenkiloHyvaksynyt = true
             koulutussopimus.vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            koulutussopimus.vastuuhenkilo = vastuuhenkilo
         }
         // Palautettu korjattavaksi
         else {
-            koulutussopimus.korjausehdotus = updated.korjausehdotus
+            koulutussopimus.vastuuhenkilonKorjausehdotus = updated.korjausehdotus
             koulutussopimus.lahetetty = false
             koulutussopimus.erikoistuvanAllekirjoitusaika = null
 
@@ -335,7 +333,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                     titleKey = "email.koulutussopimuspalautettu.title",
                     properties = mapOf(
                         Pair(MailProperty.NAME, erikoistuvaLaakari.getName()),
-                        Pair(MailProperty.TEXT, result.korjausehdotus!!)
+                        Pair(MailProperty.TEXT, result.vastuuhenkilonKorjausehdotus!!)
                     )
                 )
             }

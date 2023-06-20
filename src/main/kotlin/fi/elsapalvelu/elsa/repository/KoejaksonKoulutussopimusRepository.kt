@@ -26,7 +26,7 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
     @Query(
         "select ks " +
             "from KoejaksonKoulutussopimus ks join ks.kouluttajat ko join ko.kouluttaja k " +
-            "where k.user.id = :userId and (ks.lahetetty = true or ks.korjausehdotus != null)"
+            "where k.user.id = :userId and (ks.lahetetty = true or ks.korjausehdotus != null or ks.vastuuhenkilonKorjausehdotus != null)"
     )
     fun findAllByKouluttajatKouluttajaUserId(
         userId: String
@@ -44,7 +44,7 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
     @Query(
         "select ks " +
             "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt " +
-            "where ks.vastuuhenkilo.user.id = :userId and (ks.korjausehdotus != null or not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false))"
+            "where ks.vastuuhenkilonKorjausehdotus != null or not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false)"
     )
     fun findAllByVastuuhenkiloUserId(
         userId: String
@@ -52,11 +52,12 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
 
     @Query(
         "select ks " +
-            "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt " +
-            "where ks.vastuuhenkilo.user.id = :userId and ks.vastuuhenkiloHyvaksynyt = false and not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false)"
+            "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt join ks.opintooikeus o " +
+            "where o.yliopisto.id = :yliopistoId and o.erikoisala.id = :erikoisalaId and ks.vastuuhenkiloHyvaksynyt = false and not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false)"
     )
-    fun findAllAvoinByVastuuhenkiloUserId(
-        userId: String
+    fun findAllAvoinForVastuuhenkilo(
+        yliopistoId: Long,
+        erikoisalaId: Long
     ): List<KoejaksonKoulutussopimus>
 
     @Transactional

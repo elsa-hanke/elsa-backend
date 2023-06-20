@@ -54,17 +54,6 @@ class KouluttajaKoejaksoResource(
             )
         }
 
-        if (koulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty == true
-            || koulutussopimusDTO.vastuuhenkilo?.kuittausaika != null
-        ) {
-            throw BadRequestAlertException(
-                "Koulutussopimus ei saa sisältää vastuuhenkilön kuittausta. " +
-                    "Vastuuhenkilö määrittelee sen.",
-                ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal.koulutussopimus-ei-saa-sisaltaa-vastuuhenkilon-kuittausta"
-            )
-        }
-
         val user = userService.getAuthenticatedUser(principal)
 
         val existingKoulutussopimusDTO =

@@ -50,6 +50,9 @@ data class KoejaksonKoulutussopimus(
     @Column(name = "korjausehdotus")
     var korjausehdotus: String? = null,
 
+    @Column(name = "vastuuhenkilon_korjausehdotus")
+    var vastuuhenkilonKorjausehdotus: String? = null,
+
     @OneToMany(mappedBy = "koulutussopimus", cascade = [CascadeType.ALL], orphanRemoval = true)
     var kouluttajat: MutableSet<KoulutussopimuksenKouluttaja>? = mutableSetOf(),
 
