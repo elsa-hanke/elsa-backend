@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTableDTO
@@ -61,14 +62,11 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         opintooikeusId: Long
     ): KoejaksonVastuuhenkilonArvioDTO? {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
-            validateVastuuhenkilo(
-                it.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-                koejaksonVastuuhenkilonArvioDTO
-            )
             var vastuuhenkilonArvio =
                 koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
             vastuuhenkilonArvio.opintooikeus = it
             vastuuhenkilonArvio.virkailija = null
+            vastuuhenkilonArvio.vastuuhenkilo = null
             vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
             vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
@@ -79,19 +77,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             }
 
             koejaksonVastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvio)
-        }
-    }
-
-    private fun validateVastuuhenkilo(
-        userId: String,
-        vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO
-    ) {
-        if (kayttajaService.findVastuuhenkiloByYliopistoErikoisalaAndTehtavatyyppi(
-                userId,
-                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
-            ).id != vastuuhenkilonArvioDTO.vastuuhenkilo?.id
-        ) {
-            throw java.lang.IllegalArgumentException("Vastuuhenkilöä ei saa vaihtaa")
         }
     }
 
@@ -109,6 +94,14 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
 
+        val vastuuhenkilo =
+            kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                listOf(VASTUUHENKILO),
+                vastuuhenkilonArvio.opintooikeus?.yliopisto?.id,
+                vastuuhenkilonArvio.opintooikeus?.erikoisala?.id,
+                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+            )
+
         if (kirjautunutErikoistuvaLaakari != null
             && kirjautunutErikoistuvaLaakari == vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari
         ) {
@@ -117,10 +110,11 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 koejaksonVastuuhenkilonArvioDTO.erikoistuvanSahkoposti,
                 koejaksonVastuuhenkilonArvioDTO.erikoistuvanPuhelinnumero
             )
-        } else if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
+        } else if (vastuuhenkilo?.user?.id == userId) {
             handleVastuuhenkilo(
                 vastuuhenkilonArvio,
                 updatedVastuuhenkilonArvio,
+                vastuuhenkilo,
                 koejaksonVastuuhenkilonArvioDTO.vastuuhenkilonSahkoposti,
                 koejaksonVastuuhenkilonArvioDTO.vastuuhenkilonPuhelinnumero
             )
@@ -191,11 +185,13 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private fun handleVastuuhenkilo(
         vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio,
         updated: KoejaksonVastuuhenkilonArvio,
+        vastuuhenkilo: Kayttaja,
         email: String?,
         phoneNumber: String?
     ) {
         // Hyväksytty
         if (updated.vastuuhenkilonKorjausehdotus.isNullOrBlank()) {
+            vastuuhenkilonArvio.vastuuhenkilo = vastuuhenkilo
             vastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = true
             vastuuhenkilonArvio.vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
             vastuuhenkilonArvio.koejaksoHyvaksytty = updated.koejaksoHyvaksytty

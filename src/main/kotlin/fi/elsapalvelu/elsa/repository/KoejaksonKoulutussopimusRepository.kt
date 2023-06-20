@@ -43,11 +43,12 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
 
     @Query(
         "select ks " +
-            "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt " +
-            "where ks.vastuuhenkilonKorjausehdotus != null or not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false)"
+            "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt join ks.opintooikeus o " +
+            "where o.yliopisto.id = :yliopistoId and o.erikoisala.id = :erikoisalaId and (ks.vastuuhenkilonKorjausehdotus != null or not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false))"
     )
     fun findAllByVastuuhenkiloUserId(
-        userId: String
+        yliopistoId: Long,
+        erikoisalaId: Long
     ): List<KoejaksonKoulutussopimus>
 
     @Query(

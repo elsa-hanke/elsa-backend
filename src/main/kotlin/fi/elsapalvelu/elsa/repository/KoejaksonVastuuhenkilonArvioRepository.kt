@@ -24,23 +24,25 @@ interface KoejaksonVastuuhenkilonArvioRepository :
     @Query(
         """
         select a
-        from KoejaksonVastuuhenkilonArvio a join a.vastuuhenkilo v
-        where v.user.id = :userId and (a.virkailijaHyvaksynyt = true or a.vastuuhenkilonKorjausehdotus is not null)
+        from KoejaksonVastuuhenkilonArvio a join a.opintooikeus o
+        where o.yliopisto.id = :yliopistoId and o.erikoisala.id = :erikoisalaId and (a.virkailijaHyvaksynyt = true or a.vastuuhenkilonKorjausehdotus is not null)
         """
     )
-    fun findAllByVastuuhenkiloUserIdAndVirkailijaHyvaksynytTrue(
-        userId: String
+    fun findAllByVastuuhenkilo(
+        yliopistoId: Long,
+        erikoisalaId: Long
     ): List<KoejaksonVastuuhenkilonArvio>
 
     @Query(
         """
         select a
-        from KoejaksonVastuuhenkilonArvio a join a.vastuuhenkilo v
-        where v.user.id = :userId and a.virkailijaHyvaksynyt = true and a.vastuuhenkiloHyvaksynyt = false
+        from KoejaksonVastuuhenkilonArvio a join a.opintooikeus o
+        where o.yliopisto.id = :yliopistoId and o.erikoisala.id = :erikoisalaId and a.virkailijaHyvaksynyt = true and a.vastuuhenkiloHyvaksynyt = false
         """
     )
     fun findAllAvoinByVastuuhenkilo(
-        userId: String
+        yliopistoId: Long,
+        erikoisalaId: Long
     ): List<KoejaksonVastuuhenkilonArvio>
 
     @Query(
