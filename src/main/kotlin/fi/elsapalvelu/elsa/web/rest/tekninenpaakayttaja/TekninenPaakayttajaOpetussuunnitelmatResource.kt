@@ -350,9 +350,10 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     private fun validateArvioitavaKokonaisuusArvioinnit(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO) {
         if (suoritusarviointiService.existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusDTO.id!!)) {
             arvioitavaKokonaisuusService.findOne(arvioitavaKokonaisuusDTO.id!!).orElse(null)?.let {
-                if (arvioitavaKokonaisuusDTO.voimassaoloAlkaa!!.isAfter(it.voimassaoloAlkaa) || arvioitavaKokonaisuusDTO.voimassaoloLoppuu?.isBefore(
+                if (arvioitavaKokonaisuusDTO.voimassaoloAlkaa!!.isAfter(it.voimassaoloAlkaa)
+                    || (it.voimassaoloLoppuu != null && arvioitavaKokonaisuusDTO.voimassaoloLoppuu?.isBefore(
                         it.voimassaoloLoppuu
-                    ) == true
+                    ) == true)
                 ) {
                     throw BadRequestAlertException(
                         "Arvioitavan kokonaisuuden voimassaoloa ei saa lyhentää, jos siihen liittyy suoritusarviointeja",
@@ -380,9 +381,10 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     private fun validateSuoritemerkinnat(suoriteDTO: SuoriteWithErikoisalaDTO) {
         if (suoritemerkintaService.existsBySuoriteId(suoriteDTO.id!!)) {
             suoriteService.findOne(suoriteDTO.id!!).orElse(null)?.let {
-                if (suoriteDTO.voimassaolonAlkamispaiva!!.isAfter(it.voimassaolonAlkamispaiva) || suoriteDTO.voimassaolonPaattymispaiva?.isBefore(
+                if (suoriteDTO.voimassaolonAlkamispaiva!!.isAfter(it.voimassaolonAlkamispaiva)
+                    || (it.voimassaolonPaattymispaiva != null && suoriteDTO.voimassaolonPaattymispaiva?.isBefore(
                         it.voimassaolonPaattymispaiva
-                    ) == true
+                    ) == true)
                 ) {
                     throw BadRequestAlertException(
                         "Suoritteen voimassaoloa ei saa lyhentää, jos siihen liittyy suoritemerkintöjä",
