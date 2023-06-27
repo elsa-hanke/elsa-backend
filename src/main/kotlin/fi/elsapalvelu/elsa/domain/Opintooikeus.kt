@@ -135,6 +135,7 @@ data class Opintooikeus(
 
     @OneToOne(
         mappedBy = "opintooikeus",
+        fetch = FetchType.LAZY,
         cascade = [CascadeType.ALL],
         orphanRemoval = true
     )
