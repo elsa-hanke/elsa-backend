@@ -176,7 +176,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 erikoistuvanSyntymaaika = it.erikoistuvaLaakari?.syntymaaika,
                 erikoistuvanYliopisto = it.yliopisto?.nimi,
                 laillistamispaiva = it.erikoistuvaLaakari?.laillistamispaiva,
-                laillistamispaivanLiite = it.erikoistuvaLaakari?.laillistamispaivanLiitetiedosto,
+                laillistamispaivanLiite = it.erikoistuvaLaakari?.laillistamistodistus?.data,
                 laillistamispaivanLiitteenNimi = it.erikoistuvaLaakari?.laillistamispaivanLiitetiedostonNimi,
                 laillistamispaivanLiitteenTyyppi = it.erikoistuvaLaakari?.laillistamispaivanLiitetiedostonTyyppi,
                 asetus = it.asetus?.nimi,

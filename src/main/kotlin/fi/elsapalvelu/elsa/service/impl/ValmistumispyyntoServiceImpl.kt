@@ -106,7 +106,7 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyyntoDTO =
             valmistumispyynto?.let { valmistumispyyntoMapper.toDto(it) } ?: ValmistumispyyntoDTO().apply {
                 erikoistujanLaillistamispaiva = opintooikeus.erikoistuvaLaakari?.laillistamispaiva
-                erikoistujanLaillistamistodistus = opintooikeus.erikoistuvaLaakari?.laillistamispaivanLiitetiedosto
+                erikoistujanLaillistamistodistus = opintooikeus.erikoistuvaLaakari?.laillistamistodistus?.data
                 erikoistujanLaillistamistodistusNimi =
                     opintooikeus.erikoistuvaLaakari?.laillistamispaivanLiitetiedostonNimi
                 erikoistujanLaillistamistodistusTyyppi =

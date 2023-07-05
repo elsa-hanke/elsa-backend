@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20230705141626" author="jhipster">
+        <addColumn tableName="erikoistuva_laakari">
+            <column name="laillistamistodistus_id" type="bigint">
+                <constraints unique="true" nullable="true" uniqueConstraintName="ux_erikoistuva_laakari_laillistamistodistus_id"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="asiakirja_data">
+            <column name="erikoistuva_laakari_id" type="bigint">
+            </column>
+        </addColumn>
+
+        <sql dbms="postgresql">
+            WITH ins AS (
+                INSERT INTO asiakirja_data(data, erikoistuva_laakari_id)
+                SELECT e.laillistamispaivan_liitetiedosto, e.id
+                FROM erikoistuva_laakari e
+                WHERE e.laillistamispaivan_liitetiedosto is not null
+                RETURNING *
+                )
+            UPDATE erikoistuva_laakari e
+            SET laillistamistodistus_id = ins.id
+            FROM ins
+            WHERE ins.erikoistuva_laakari_id = e.id
+        </sql>
+
+        <dropColumn tableName="asiakirja_data" columnName="erikoistuva_laakari_id"/>
+        <dropColumn tableName="erikoistuva_laakari" columnName="laillistamispaivan_liitetiedosto"/>
+
+    </changeSet>
+
+</databaseChangeLog>

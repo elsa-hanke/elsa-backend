@@ -37,7 +37,7 @@ interface TerveyskeskuskoulutusjaksonHyvaksyntaMapper :
             target = "laillistamispaiva"
         ),
         Mapping(
-            source = "opintooikeus.erikoistuvaLaakari.laillistamispaivanLiitetiedosto",
+            source = "opintooikeus.erikoistuvaLaakari.laillistamistodistus.data",
             target = "laillistamispaivanLiite"
         ),
         Mapping(

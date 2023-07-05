@@ -341,7 +341,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         initValmistumispyynnonHyvaksyjat()
 
         erikoistuvaLaakari.laillistamispaiva = null
-        erikoistuvaLaakari.laillistamispaivanLiitetiedosto = null
+        erikoistuvaLaakari.laillistamistodistus = null
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = null
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = null
 
@@ -365,7 +365,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         initMockFile()
 
         erikoistuvaLaakari.laillistamispaiva = null
-        erikoistuvaLaakari.laillistamispaivanLiitetiedosto = null
+        erikoistuvaLaakari.laillistamistodistus = null
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = null
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = null
 
@@ -385,7 +385,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
         assertThat(erikoistuvaLaakari?.laillistamispaiva).isEqualTo(laillistamispaiva)
-        assertThat(erikoistuvaLaakari?.laillistamispaivanLiitetiedosto).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        assertThat(erikoistuvaLaakari?.laillistamistodistus?.data).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
         assertThat(erikoistuvaLaakari?.laillistamispaivanLiitetiedostonNimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(erikoistuvaLaakari?.laillistamispaivanLiitetiedostonTyyppi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI)
     }
@@ -398,7 +398,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         initMockFile()
 
         erikoistuvaLaakari.laillistamispaiva = null
-        erikoistuvaLaakari.laillistamispaivanLiitetiedosto = null
+        erikoistuvaLaakari.laillistamistodistus = null
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = null
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = null
 
@@ -547,7 +547,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         em.persist(valmistumispyynto)
 
         erikoistuvaLaakari.laillistamispaiva = null
-        erikoistuvaLaakari.laillistamispaivanLiitetiedosto = null
+        erikoistuvaLaakari.laillistamistodistus = null
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = null
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = null
 

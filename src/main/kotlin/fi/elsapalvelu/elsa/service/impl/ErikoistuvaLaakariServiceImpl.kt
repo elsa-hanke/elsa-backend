@@ -177,7 +177,7 @@ class ErikoistuvaLaakariServiceImpl(
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             return LaillistamispaivaDTO(
                 laillistamispaiva = it.laillistamispaiva,
-                laillistamistodistus = it.laillistamispaivanLiitetiedosto,
+                laillistamistodistus = it.laillistamistodistus?.data,
                 laillistamistodistusNimi = it.laillistamispaivanLiitetiedostonNimi,
                 laillistamistodistusTyyppi = it.laillistamispaivanLiitetiedostonTyyppi
             )
@@ -191,7 +191,7 @@ class ErikoistuvaLaakariServiceImpl(
     ): Boolean {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             return it.laillistamispaiva != null &&
-                it.laillistamispaivanLiitetiedosto != null &&
+                it.laillistamistodistus != null &&
                 it.laillistamispaivanLiitetiedostonNimi != null
                 && it.laillistamispaivanLiitetiedostonTyyppi != null
         }
@@ -256,7 +256,7 @@ class ErikoistuvaLaakariServiceImpl(
             }
 
             if (laillistamispaivanLiitetiedosto != null) {
-                it.laillistamispaivanLiitetiedosto = laillistamispaivanLiitetiedosto
+                it.laillistamistodistus = AsiakirjaData(data = laillistamispaivanLiitetiedosto)
                 it.laillistamispaivanLiitetiedostonNimi = laillistamispaivanLiitetiedostonNimi
                 it.laillistamispaivanLiitetiedostonTyyppi = laillistamispaivanLiitetiedostonTyyppi
                 updated = true

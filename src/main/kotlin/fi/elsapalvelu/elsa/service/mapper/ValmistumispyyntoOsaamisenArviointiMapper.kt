@@ -29,7 +29,7 @@ interface ValmistumispyyntoOsaamisenArviointiMapper : EntityMapper<Valmistumispy
             target = "erikoistujanLaillistamispaiva"
         ),
         Mapping(
-            source = "opintooikeus.erikoistuvaLaakari.laillistamispaivanLiitetiedosto",
+            source = "opintooikeus.erikoistuvaLaakari.laillistamistodistus.data",
             target = "erikoistujanLaillistamistodistus"
         ),
         Mapping(
