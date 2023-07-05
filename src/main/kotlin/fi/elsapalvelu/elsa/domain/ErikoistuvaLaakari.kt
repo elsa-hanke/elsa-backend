@@ -7,6 +7,8 @@ import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
 
 @Entity
 @Table(name = "erikoistuva_laakari")
@@ -33,8 +35,13 @@ data class ErikoistuvaLaakari(
     @Column(name = "laillistamispaiva")
     var laillistamispaiva: LocalDate? = null,
 
-    @Column(name = "laillistamispaivan_liitetiedosto")
-    var laillistamispaivanLiitetiedosto: ByteArray? = null,
+    @OneToOne(
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    @JoinColumn(unique = true)
+    var laillistamistodistus: AsiakirjaData? = null,
 
     @Column(name = "laillistamispaivan_liitetiedoston_nimi")
     var laillistamispaivanLiitetiedostonNimi: String? = null,

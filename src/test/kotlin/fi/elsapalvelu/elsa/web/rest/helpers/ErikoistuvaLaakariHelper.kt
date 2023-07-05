@@ -57,7 +57,7 @@ class ErikoistuvaLaakariHelper {
             erikoistuvaLaakari.syntymaaika = LocalDate.ofEpochDay(5L)
             erikoistuvaLaakari.kayttaja = kayttaja
             erikoistuvaLaakari.laillistamispaiva = laillistamispaiva
-            erikoistuvaLaakari.laillistamispaivanLiitetiedosto = laillistamistodistusData
+            erikoistuvaLaakari.laillistamistodistus = AsiakirjaData(data = laillistamistodistusData)
             erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = laillistamistodistusNimi
             erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = laillistamistodistusTyyppi
             em.persist(erikoistuvaLaakari)

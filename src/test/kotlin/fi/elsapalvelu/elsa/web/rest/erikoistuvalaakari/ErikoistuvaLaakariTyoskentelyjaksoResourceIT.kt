@@ -1486,7 +1486,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
 
         assertEquals(laillistamispaiva, erikoistuvaLaakari?.laillistamispaiva)
-        assertThat(erikoistuvaLaakari?.laillistamispaivanLiitetiedosto).isNotNull
+        assertThat(erikoistuvaLaakari?.laillistamistodistus).isNotNull
         assertEquals(
             AsiakirjaHelper.ASIAKIRJA_PNG_NIMI,
             erikoistuvaLaakari?.laillistamispaivanLiitetiedostonNimi
