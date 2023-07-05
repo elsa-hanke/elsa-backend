@@ -671,12 +671,12 @@ class ValmistumispyyntoServiceImpl(
             id = it.id,
             erikoistujanNimi = it.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
             tila = tila,
-            tapahtumanAjankohta = getPalautettuDateIfExists(it, tila) ?: it.muokkauspaiva,
+            tapahtumanAjankohta = getValmistumispyyntoTapahtumaAjankohtaDate(it, tila) ?: it.muokkauspaiva,
             isAvoinForCurrentKayttaja = isAvoin
         )
     }
 
-    private fun getPalautettuDateIfExists(
+    private fun getValmistumispyyntoTapahtumaAjankohtaDate(
         valmistumispyynto: Valmistumispyynto,
         tila: ValmistumispyynnonTila
     ) = when (tila) {
@@ -686,6 +686,8 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyynto.virkailijanPalautusaika
         ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU ->
             valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika
+        ValmistumispyynnonTila.ALLEKIRJOITETTU ->
+            valmistumispyynto.allekirjoitusaika
         else -> null
     }
 
