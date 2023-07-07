@@ -458,15 +458,16 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             && !sarakesignService.getApiUrl(yliopisto).isNullOrBlank()
             && koejaksonVastuuhenkilonArvio.sarakeSignRequestId != null
         ) {
-            val status =
+            val response =
                 sarakesignService.tarkistaAllekirjoitus(
                     koejaksonVastuuhenkilonArvio.sarakeSignRequestId,
                     yliopisto
-                )?.status
+                )
 
-            if (status == 3) { // Completed
+            if (response?.status == 3) { // Completed
                 koejaksonVastuuhenkilonArvio.allekirjoitettu = true
-            } else if (status == 4) { // Aborted
+                koejaksonVastuuhenkilonArvio.allekirjoitusaika = response.finished?.withZoneSameInstant(ZoneId.systemDefault())?.toLocalDate()
+            } else if (response?.status == 4) { // Aborted
                 koejaksonVastuuhenkilonArvio.virkailijanKorjausehdotus = "Allekirjoitus keskeytetty"
                 koejaksonVastuuhenkilonArvio.erikoistuvanKuittausaika = null
                 koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
