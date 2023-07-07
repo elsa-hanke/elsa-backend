@@ -83,7 +83,10 @@ data class KoejaksonVastuuhenkilonArvio(
         cascade = [CascadeType.ALL],
         orphanRemoval = true
     )
-    var asiakirjat: MutableSet<Asiakirja> = mutableSetOf()
+    var asiakirjat: MutableSet<Asiakirja> = mutableSetOf(),
+
+    @Column(name = "allekirjoitusaika", nullable = false)
+    var allekirjoitusaika: LocalDate? = null,
 
 ) : Serializable {
 
@@ -113,7 +116,8 @@ data class KoejaksonVastuuhenkilonArvio(
             "vastuuhenkilo=$vastuuhenkilo, " +
             "vastuuhenkiloAllekirjoittanut=$vastuuhenkiloHyvaksynyt, " +
             "vastuuhenkilonKuittausaika=$vastuuhenkilonKuittausaika, " +
-            "muokkauspaiva=$muokkauspaiva)"
+            "muokkauspaiva=$muokkauspaiva, " +
+            "allekirjoitusaika='$allekirjoitusaika')"
     }
 
     companion object {
