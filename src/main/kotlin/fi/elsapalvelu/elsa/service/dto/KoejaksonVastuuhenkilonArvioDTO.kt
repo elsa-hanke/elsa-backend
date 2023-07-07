@@ -64,7 +64,9 @@ data class KoejaksonVastuuhenkilonArvioDTO(
 
     var tila: KoejaksoTila? = null,
 
-    var asiakirjat: List<AsiakirjaDTO>? = listOf()
+    var asiakirjat: List<AsiakirjaDTO>? = listOf(),
+
+    var allekirjoitusaika: LocalDate? = null,
 
 ) : Serializable {
     override fun toString() = "KoejaksonVastuuhenkilonArvioDTO"
