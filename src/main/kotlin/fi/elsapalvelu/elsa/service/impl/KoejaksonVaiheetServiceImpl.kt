@@ -132,7 +132,7 @@ class KoejaksonVaiheetServiceImpl(
                         KoejaksoTila.fromVastuuhenkilonArvio(arvio, virkailija = true),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getAvatar(),
-                        arvio.muokkauspaiva
+                        arvio.allekirjoitusaika ?: arvio.muokkauspaiva
                     )
                 }
             }
