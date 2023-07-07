@@ -62,7 +62,9 @@ data class KoejaksonVastuuhenkilonArvioDTO(
 
     var vastuuhenkilonKorjausehdotus: String? = null,
 
-    var tila: KoejaksoTila? = null
+    var tila: KoejaksoTila? = null,
+
+    var asiakirjat: List<AsiakirjaDTO>? = listOf()
 
 ) : Serializable {
     override fun toString() = "KoejaksonVastuuhenkilonArvioDTO"

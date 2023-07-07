@@ -30,6 +30,8 @@ interface AsiakirjaService {
 
     fun findOne(id: Long, opintooikeusId: Long): AsiakirjaDTO?
 
+    fun findById(id: Long): AsiakirjaDTO?
+
     fun delete(id: Long, opintooikeusId: Long)
 
     fun delete(ids: List<Long>, opintooikeusId: Long)

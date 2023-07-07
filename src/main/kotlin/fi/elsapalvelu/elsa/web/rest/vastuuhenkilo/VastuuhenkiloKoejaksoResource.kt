@@ -176,6 +176,40 @@ class VastuuhenkiloKoejaksoResource(
         return ResponseEntity.notFound().build()
     }
 
+    @GetMapping("/koejakso/vastuuhenkilonarvio/{id}/liite/{asiakirjaId}")
+    fun getVastuuhenkilonArvioLiite(
+        @PathVariable id: Long,
+        @PathVariable asiakirjaId: Long,
+        principal: Principal?
+    ): ResponseEntity<ByteArray> {
+        val user = userService.getAuthenticatedUser(principal)
+        koejaksonVastuuhenkilonArvioService.findOneByIdAndVastuuhenkiloUserId(id, user.id!!)
+            .orElse(null)?.let {
+            it.asiakirjat?.firstOrNull { asiakirja -> asiakirja.id == asiakirjaId }
+                ?.let { asiakirja ->
+                    asiakirjaService.findById(asiakirja.id!!)?.let { asiakirjaWithData ->
+                        asiakirjaWithData.asiakirjaData?.fileInputStream?.use { data ->
+                            return ResponseEntity.ok()
+                                .header(
+                                    HttpHeaders.CONTENT_DISPOSITION,
+                                    "attachment; filename=\"" + URLEncoder.encode(
+                                        asiakirja.nimi,
+                                        "UTF-8"
+                                    ) + "\""
+                                )
+                                .header(
+                                    HttpHeaders.CONTENT_TYPE,
+                                    asiakirja.tyyppi + "; charset=UTF-8"
+                                )
+                                .body(data.readBytes())
+                        }
+                    }
+                }
+        }
+
+        return ResponseEntity.notFound().build()
+    }
+
     @PutMapping("/koejakso/vastuuhenkilonarvio")
     fun updateVastuuhenkilonArvio(
         @Valid @RequestBody vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,

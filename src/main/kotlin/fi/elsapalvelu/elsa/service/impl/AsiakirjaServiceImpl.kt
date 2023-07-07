@@ -120,6 +120,16 @@ class AsiakirjaServiceImpl(
         return null
     }
 
+    @Transactional(readOnly = true)
+    override fun findById(id: Long): AsiakirjaDTO? {
+        asiakirjaRepository.findById(id).orElse(null)?.let {
+            return asiakirjaMapper.toDto(it).apply {
+                asiakirjaData?.fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data)
+            }
+        }
+        return null
+    }
+
     override fun delete(id: Long, opintooikeusId: Long) {
         asiakirjaRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
             deleteKoulutussuunnitelmaReferenceIfExists(id)

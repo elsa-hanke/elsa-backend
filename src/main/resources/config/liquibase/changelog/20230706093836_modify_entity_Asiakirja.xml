@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20230706093836" author="jhipster">
+        <addColumn tableName="asiakirja">
+            <column name="koejakson_vastuuhenkilon_arvio_id" type="bigint">
+            </column>
+        </addColumn>
+
+        <addColumn tableName="asiakirja_audit">
+            <column name="koejakson_vastuuhenkilon_arvio_id" type="bigint">
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

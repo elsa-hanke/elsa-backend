@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
@@ -11,10 +12,7 @@ import fi.elsapalvelu.elsa.service.mapper.*
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
-import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.core.IsNull
 import org.junit.jupiter.api.BeforeEach
@@ -36,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
+import org.springframework.mock.web.MockMultipartFile
+import java.io.File
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -83,6 +83,9 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     private lateinit var koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
 
     @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
+    @Autowired
     private lateinit var em: EntityManager
 
     @Autowired
@@ -105,6 +108,8 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
 
     private lateinit var vastuuhenkilo: Kayttaja
+
+    private lateinit var tempFile: File
 
     @BeforeEach
     fun setup() {
@@ -821,10 +826,13 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         val koejaksonVastuuhenkilonArvioDTO =
             koejaksonVastuuhenkilonArvioMapper.toDto(koejaksonVastuuhenkilonArvio)
+        val vastuuhenkilonArvioJson =
+            objectMapper.writeValueAsString(koejaksonVastuuhenkilonArvioDTO)
+
         restKoejaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/koejakso/vastuuhenkilonarvio")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(koejaksonVastuuhenkilonArvioDTO))
+            multipart("/api/erikoistuva-laakari/koejakso/vastuuhenkilonarvio")
+                .param("vastuuhenkilonArvioJson", vastuuhenkilonArvioJson)
+                .with { it.method = "POST"; it }
                 .with(csrf())
         ).andExpect(status().isCreated)
 
@@ -881,12 +889,14 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         val updatedVastuuhenkilo = createVastuuhenkilo(erikoisala = erikoisala)
         updatedVastuuhenkilonArvio.vastuuhenkilo = updatedVastuuhenkilo
 
-        val vastuuhenkilonArvioDTO = koejaksonVastuuhenkilonArvioMapper.toDto(updatedVastuuhenkilonArvio)
+        val vastuuhenkilonArvioDTO =
+            koejaksonVastuuhenkilonArvioMapper.toDto(updatedVastuuhenkilonArvio)
+        val vastuuhenkilonArvioJson = objectMapper.writeValueAsString(vastuuhenkilonArvioDTO)
 
         restKoejaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/koejakso/vastuuhenkilonarvio")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(vastuuhenkilonArvioDTO))
+            multipart("/api/erikoistuva-laakari/koejakso/vastuuhenkilonarvio")
+                .param("vastuuhenkilonArvioJson", vastuuhenkilonArvioJson)
+                .with { it.method = "POST"; it }
                 .with(csrf())
         ).andExpect(status().isBadRequest)
     }
@@ -895,6 +905,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Transactional
     fun createVastuuhenkilonArvioWithoutLoppukeskustelu() {
         initKoejakso()
+        initMockFile()
 
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
@@ -905,10 +916,21 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         val koejaksonVastuuhenkilonArvioDTO =
             koejaksonVastuuhenkilonArvioMapper.toDto(koejaksonVastuuhenkilonArvio)
+        val vastuuhenkilonArvioJson =
+            objectMapper.writeValueAsString(koejaksonVastuuhenkilonArvioDTO)
+
         restKoejaksoMockMvc.perform(
-            post("/api/erikoistuva-laakari/koejakso/vastuuhenkilonarvio")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(koejaksonVastuuhenkilonArvioDTO))
+            multipart("/api/erikoistuva-laakari/koejakso/vastuuhenkilonarvio")
+                .file(
+                    MockMultipartFile(
+                        "arviointiFiles",
+                        AsiakirjaHelper.ASIAKIRJA_PDF_NIMI,
+                        AsiakirjaHelper.ASIAKIRJA_PDF_TYYPPI,
+                        tempFile.readBytes()
+                    )
+                )
+                .param("vastuuhenkilonArvioJson", vastuuhenkilonArvioJson)
+                .with { it.method = "POST"; it }
                 .with(csrf())
         ).andExpect(status().isBadRequest)
 
@@ -968,6 +990,12 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
     }
 
+    fun initMockFile() {
+        tempFile = File.createTempFile("file", "pdf")
+        tempFile.writeBytes(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        tempFile.deleteOnExit()
+    }
+
     private fun createVastuuhenkilo(
         yliopisto: Yliopisto? = null,
         erikoisala: Erikoisala? = null,
@@ -985,10 +1013,10 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
         val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
         val yliopistoErikoisala = KayttajaYliopistoErikoisala(
-                kayttaja = vastuuhenkilo,
-                yliopisto = yliopisto ?: opintooikeus?.yliopisto,
-                erikoisala = erikoisala ?: opintooikeus?.erikoisala
-            )
+            kayttaja = vastuuhenkilo,
+            yliopisto = yliopisto ?: opintooikeus?.yliopisto,
+            erikoisala = erikoisala ?: opintooikeus?.erikoisala
+        )
         em.persist(yliopistoErikoisala)
 
         if (addTehtavatyyppiForKoejakso) {
