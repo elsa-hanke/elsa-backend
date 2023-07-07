@@ -76,7 +76,14 @@ data class KoejaksonVastuuhenkilonArvio(
     var sarakeSignRequestId: String? = null,
 
     @Column(name = "allekirjoitettu", nullable = false)
-    var allekirjoitettu: Boolean = false
+    var allekirjoitettu: Boolean = false,
+
+    @OneToMany(
+        mappedBy = "koejaksonVastuuhenkilonArvio",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    )
+    var asiakirjat: MutableSet<Asiakirja> = mutableSetOf()
 
 ) : Serializable {
 

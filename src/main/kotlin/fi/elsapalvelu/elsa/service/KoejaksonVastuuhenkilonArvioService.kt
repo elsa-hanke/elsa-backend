@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.KoejaksonVastuuhenkilonArvio
+import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import java.util.*
 
@@ -8,12 +9,15 @@ interface KoejaksonVastuuhenkilonArvioService {
 
     fun create(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
-        opintooikeusId: Long
+        opintooikeusId: Long,
+        asiakirjat: Set<AsiakirjaDTO>?
     ): KoejaksonVastuuhenkilonArvioDTO?
 
     fun update(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
-        userId: String
+        userId: String,
+        asiakirjat: Set<AsiakirjaDTO>? = null,
+        deletedAsiakirjaIds: Set<Int>? = null
     ): KoejaksonVastuuhenkilonArvioDTO
 
     fun findOne(id: Long): Optional<KoejaksonVastuuhenkilonArvioDTO>

@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
@@ -13,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
 import jakarta.validation.Valid
+import org.springframework.web.multipart.MultipartFile
 
 private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 private const val ENTITY_KOEJAKSON_ALOITUSKESKUSTELU = "koejakson_aloituskeskustelu"
@@ -36,7 +39,9 @@ class ErikoistuvaLaakariKoejaksoResource(
     private val erikoisalaService: ErikoisalaService,
     private val kayttajaService: KayttajaService,
     private val yliopistoService: YliopistoService,
-    private val opintooikeusService: OpintooikeusService
+    private val opintooikeusService: OpintooikeusService,
+    private val fileValidationService: FileValidationService,
+    private val objectMapper: ObjectMapper
 ) {
 
     @Value("\${jhipster.clientApp.name}")
@@ -459,7 +464,8 @@ class ErikoistuvaLaakariKoejaksoResource(
 
     @PostMapping("/koejakso/vastuuhenkilonarvio")
     fun createVastuuhenkilonArvio(
-        @Valid @RequestBody vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
+        @Valid @RequestParam vastuuhenkilonArvioJson: String,
+        @RequestParam(required = false) asiakirjaFiles: List<MultipartFile>?,
         principal: Principal?
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -476,45 +482,58 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        if (vastuuhenkilonArvioDTO.id != null) {
-            throw BadRequestAlertException(
-                "Uusi vastuuhenkilön arvio ei saa sisältää ID:tä",
-                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "idexists"
-            )
-        }
+        vastuuhenkilonArvioJson.let {
+            objectMapper.readValue(it, KoejaksonVastuuhenkilonArvioDTO::class.java)
+        }?.let { vastuuhenkilonArvioDTO ->
 
-        if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true
-            || vastuuhenkilonArvioDTO.vastuuhenkilo?.kuittausaika != null
-        ) {
-            throw BadRequestAlertException(
-                "Erikoistuvan koejakson vastuuhenkilön arvio ei saa sisältää vastuuhenkilön " +
-                    "kuittausta. Vastuuhenkilö määrittelee sen.",
-                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal.erikoistuvan-koejakson-vastuuhenkion-arvio-ei-saa-sisaltaa-vastuuhenkilon-kuittausta"
-            )
-        }
+            if (vastuuhenkilonArvioDTO.id != null) {
+                throw BadRequestAlertException(
+                    "Uusi vastuuhenkilön arvio ei saa sisältää ID:tä",
+                    ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
+                    "idexists"
+                )
+            }
 
-        val loppukeskustelu =
-            koejaksonLoppukeskusteluService.findByOpintooikeusId(opintooikeusId)
-        if (!loppukeskustelu.isPresent || loppukeskustelu.get().lahiesimies?.sopimusHyvaksytty != true) {
-            throw BadRequestAlertException(
-                "Loppukeskustelu täytyy hyväksyä ennen vastuuhenkilön arviota.",
-                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal.loppukeskustelu-taytyy-hyvaksya-ennen-vastuuhenkilon-arviota"
-            )
-        }
+            if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true
+                || vastuuhenkilonArvioDTO.vastuuhenkilo?.kuittausaika != null
+            ) {
+                throw BadRequestAlertException(
+                    "Erikoistuvan koejakson vastuuhenkilön arvio ei saa sisältää vastuuhenkilön " +
+                        "kuittausta. Vastuuhenkilö määrittelee sen.",
+                    ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
+                    "dataillegal.erikoistuvan-koejakson-vastuuhenkion-arvio-ei-saa-sisaltaa-vastuuhenkilon-kuittausta"
+                )
+            }
 
-        koejaksonVastuuhenkilonArvioService.create(vastuuhenkilonArvioDTO, opintooikeusId)?.let {
-            return ResponseEntity
-                .created(URI("/api/koejakso/vastuuhenkilonarvio/${it.id}"))
-                .body(it)
+            val loppukeskustelu =
+                koejaksonLoppukeskusteluService.findByOpintooikeusId(opintooikeusId)
+            if (!loppukeskustelu.isPresent || loppukeskustelu.get().lahiesimies?.sopimusHyvaksytty != true) {
+                throw BadRequestAlertException(
+                    "Loppukeskustelu täytyy hyväksyä ennen vastuuhenkilön arviota.",
+                    ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
+                    "dataillegal.loppukeskustelu-taytyy-hyvaksya-ennen-vastuuhenkilon-arviota"
+                )
+            }
+
+            val asiakirjat = getMappedFiles(asiakirjaFiles, opintooikeusId) ?: mutableSetOf()
+
+            koejaksonVastuuhenkilonArvioService.create(
+                vastuuhenkilonArvioDTO,
+                opintooikeusId,
+                asiakirjat
+            )?.let {
+                return ResponseEntity
+                    .created(URI("/api/koejakso/vastuuhenkilonarvio/${it.id}"))
+                    .body(it)
+            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @PutMapping("/koejakso/vastuuhenkilonarvio")
     fun updateVastuuhenkilonArvio(
-        @Valid @RequestBody vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
+        @Valid @RequestParam vastuuhenkilonArvioJson: String,
+        @RequestParam asiakirjaFiles: List<MultipartFile>?,
+        @RequestParam deletedAsiakirjaIdsJson: String?,
         principal: Principal?
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -532,24 +551,38 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        if (vastuuhenkilonArvioDTO.id == null) {
-            throw BadRequestAlertException(
-                "Virheellinen id",
-                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "idnull"
-            )
-        }
+        vastuuhenkilonArvioJson.let {
+            objectMapper.readValue(it, KoejaksonVastuuhenkilonArvioDTO::class.java)
+        }?.let { vastuuhenkilonArvioDTO ->
+            if (vastuuhenkilonArvioDTO.id == null) {
+                throw BadRequestAlertException(
+                    "Virheellinen id",
+                    ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
+                    "idnull"
+                )
+            }
 
-        if (vastuuhenkilonArvio.get().virkailija?.sopimusHyvaksytty == true) {
-            throw BadRequestAlertException(
-                "Hyväksyttyä sopimusta ei voi muokata",
-                ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal.erikoistuva-ei-voi-allekirjoittaa-sopimusta-jos-esimies-ei-ole-kuitannut-sita"
-            )
-        }
+            if (vastuuhenkilonArvio.get().virkailija?.sopimusHyvaksytty == true) {
+                throw BadRequestAlertException(
+                    "Hyväksyttyä sopimusta ei voi muokata",
+                    ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
+                    "dataillegal.erikoistuva-ei-voi-allekirjoittaa-sopimusta-jos-esimies-ei-ole-kuitannut-sita"
+                )
+            }
 
-        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id!!)
-        return ResponseEntity.ok(result)
+            val asiakirjat = getMappedFiles(asiakirjaFiles, opintooikeusId) ?: mutableSetOf()
+            val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let {
+                objectMapper.readValue(it, mutableSetOf<Int>()::class.java)
+            }
+
+            val result = koejaksonVastuuhenkilonArvioService.update(
+                vastuuhenkilonArvioDTO,
+                user.id!!,
+                asiakirjat,
+                deletedAsiakirjaIds
+            )
+            return ResponseEntity.ok(result)
+        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     private fun validateKoulutussopimus(koulutussopimusDTO: KoejaksonKoulutussopimusDTO) {
@@ -611,5 +644,23 @@ class ErikoistuvaLaakariKoejaksoResource(
                 "dataillegal.erikoistuva-ei-voi-allekirjoittaa-sopimusta-jos-esimies-ei-ole-kuitannut-sita"
             )
         }
+    }
+
+    private fun getMappedFiles(
+        files: List<MultipartFile>?,
+        opintooikeusId: Long
+    ): MutableSet<AsiakirjaDTO>? {
+        files?.let {
+            if (!fileValidationService.validate(it, opintooikeusId)) {
+                throw BadRequestAlertException(
+                    "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
+                    ErikoistuvaLaakariTeoriakoulutusResource.ASIAKIRJA_ENTITY_NAME,
+                    "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
+                )
+            }
+            return it.map { file -> file.mapAsiakirja() }.toMutableSet()
+        }
+
+        return null
     }
 }
