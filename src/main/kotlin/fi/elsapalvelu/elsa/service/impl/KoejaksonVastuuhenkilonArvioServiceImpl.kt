@@ -7,15 +7,16 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTableDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
+import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
-import org.springframework.security.core.AuthenticatedPrincipal
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -40,7 +41,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
     private val userRepository: UserRepository,
-    private val kayttajaService: KayttajaService,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val koejaksonAloituskeskusteluService: KoejaksonAloituskeskusteluService,
@@ -54,12 +54,14 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val sarakesignService: SarakesignService,
     private val keskeytysaikaService: KeskeytysaikaService,
     private val pdfService: PdfService,
-    private val applicationProperties: ApplicationProperties
+    private val applicationProperties: ApplicationProperties,
+    private val asiakirjaMapper: AsiakirjaMapper
 ) : KoejaksonVastuuhenkilonArvioService {
 
     override fun create(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
-        opintooikeusId: Long
+        opintooikeusId: Long,
+        asiakirjat: Set<AsiakirjaDTO>?
     ): KoejaksonVastuuhenkilonArvioDTO? {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
             var vastuuhenkilonArvio =
@@ -68,6 +70,20 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             vastuuhenkilonArvio.virkailija = null
             vastuuhenkilonArvio.vastuuhenkilo = null
             vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
+
+            asiakirjat?.let { asiakirja ->
+                val asiakirjaEntities = asiakirja.map { asiakirjaDTO ->
+                    asiakirjaMapper.toEntity(asiakirjaDTO).apply {
+                        this.lisattypvm = LocalDateTime.now()
+                        this.opintooikeus = it
+                        this.koejaksonVastuuhenkilonArvio = vastuuhenkilonArvio
+                        this.asiakirjaData?.data = asiakirjaDTO.asiakirjaData?.fileInputStream?.readAllBytes()
+                    }
+                }
+
+                vastuuhenkilonArvio.asiakirjat.addAll(asiakirjaEntities)
+            }
+
             vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
             it.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
@@ -82,7 +98,9 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
     override fun update(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
-        userId: String
+        userId: String,
+        asiakirjat: Set<AsiakirjaDTO>?,
+        deletedAsiakirjaIds: Set<Int>?
     ): KoejaksonVastuuhenkilonArvioDTO {
         val vastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioRepository.findById(koejaksonVastuuhenkilonArvioDTO.id!!)
@@ -108,7 +126,9 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             handleErikoistuja(
                 vastuuhenkilonArvio,
                 koejaksonVastuuhenkilonArvioDTO.erikoistuvanSahkoposti,
-                koejaksonVastuuhenkilonArvioDTO.erikoistuvanPuhelinnumero
+                koejaksonVastuuhenkilonArvioDTO.erikoistuvanPuhelinnumero,
+                asiakirjat,
+                deletedAsiakirjaIds
             )
         } else if (vastuuhenkilo?.user?.id == userId) {
             handleVastuuhenkilo(
@@ -134,9 +154,30 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private fun handleErikoistuja(
         vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio,
         email: String?,
-        phoneNumber: String?
+        phoneNumber: String?,
+        asiakirjat: Set<AsiakirjaDTO>?,
+        deletedAsiakirjaIds: Set<Int>?
     ) {
         vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
+
+        asiakirjat?.let { asiakirja ->
+            val asiakirjaEntities = asiakirja.map { asiakirjaDTO ->
+                asiakirjaMapper.toEntity(asiakirjaDTO).apply {
+                    this.lisattypvm = LocalDateTime.now()
+                    this.opintooikeus = vastuuhenkilonArvio.opintooikeus
+                    this.koejaksonVastuuhenkilonArvio = vastuuhenkilonArvio
+                    this.asiakirjaData?.data = asiakirjaDTO.asiakirjaData?.fileInputStream?.readAllBytes()
+                }
+            }
+
+            vastuuhenkilonArvio.asiakirjat.addAll(asiakirjaEntities)
+        }
+
+        deletedAsiakirjaIds?.map { x -> x.toLong() }?.let {
+            vastuuhenkilonArvio.asiakirjat.removeIf { asiakirja ->
+                asiakirja.id in it
+            }
+        }
 
         koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
