@@ -185,6 +185,34 @@ class VastuuhenkiloKoejaksoResourceIT {
 
     @Test
     @Transactional
+    fun getAloituskeskusteluAsKouluttaja() {
+        initTest()
+
+        koejaksonAloituskeskustelu.lahikouluttaja = vastuuhenkilo
+
+        val id = koejaksonAloituskeskustelu.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/aloituskeskustelu/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonAloituskeskustelu.id))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonAloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonAloituskeskustelu.opintooikeus?.opiskelijatunnus))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonAloituskeskustelu.opintooikeus?.yliopisto?.nimi.toString()))
+            .andExpect(jsonPath("$.erikoistuvanSahkoposti").value(koejaksonAloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email))
+            .andExpect(jsonPath("$.lahetetty").value(koejaksonAloituskeskustelu.lahetetty))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonAloituskeskustelu.lahikouluttaja?.id))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonAloituskeskustelu.lahiesimies?.id))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
     fun getAloituskeskustelu_LahiEsimiesNotAccepted_ExpectNotFound() {
         initTest()
 
@@ -234,6 +262,32 @@ class VastuuhenkiloKoejaksoResourceIT {
 
         koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
         koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
+
+        val id = koejaksonValiarviointi.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/valiarviointi/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonValiarviointi.id))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonValiarviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonValiarviointi.opintooikeus?.opiskelijatunnus))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonValiarviointi.opintooikeus?.yliopisto?.nimi.toString()))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonValiarviointi.lahikouluttaja?.id))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonValiarviointi.lahiesimies?.id))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getValiarviointiAsKouluttaja() {
+        initTest()
+
+        koejaksonValiarviointi.lahikouluttaja = vastuuhenkilo
 
         val id = koejaksonValiarviointi.id
         assertNotNull(id)
@@ -331,6 +385,36 @@ class VastuuhenkiloKoejaksoResourceIT {
 
     @Test
     @Transactional
+    fun getKehittamistoimenpiteetAsKouluttaja() {
+        initTest()
+
+        val id = koejaksonKehittamistoimenpiteet.id
+        assertNotNull(id)
+
+        koejaksonKehittamistoimenpiteet.lahikouluttaja = vastuuhenkilo
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonKehittamistoimenpiteet.id as Any))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKehittamistoimenpiteet.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
+            .andExpect(
+                jsonPath("$.erikoistuvanOpiskelijatunnus").value(
+                    koejaksonKehittamistoimenpiteet.opintooikeus?.opiskelijatunnus
+                )
+            )
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKehittamistoimenpiteet.opintooikeus?.yliopisto?.nimi.toString()))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonKehittamistoimenpiteet.lahikouluttaja?.id))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonKehittamistoimenpiteet.lahiesimies?.id))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
     fun getKehittamistoimenpiteet_LahiEsimiesNotAccepted_ExpectNotFound() {
         initTest()
 
@@ -383,6 +467,32 @@ class VastuuhenkiloKoejaksoResourceIT {
 
         koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
         koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(koejaksonLoppukeskustelu.id))
+            .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonLoppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonLoppukeskustelu.opintooikeus?.opiskelijatunnus))
+            .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonLoppukeskustelu.opintooikeus?.yliopisto?.nimi.toString()))
+            .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonLoppukeskustelu.lahikouluttaja?.id))
+            .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonLoppukeskustelu.lahiesimies?.id))
+            .andExpect(jsonPath("$.korjausehdotus").isEmpty)
+    }
+
+    @Test
+    @Transactional
+    fun getLoppukeskusteluAsKouluttaja() {
+        initTest()
+
+        val id = koejaksonLoppukeskustelu.id
+        assertNotNull(id)
+
+        koejaksonLoppukeskustelu.lahikouluttaja = vastuuhenkilo
 
         restKoejaksoMockMvc.perform(
             get(

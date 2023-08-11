@@ -196,7 +196,7 @@ class KoejaksonValiarviointiServiceImpl(
         id: Long,
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonValiarviointiDTO> {
-        val valiarviointi = koejaksonValiarviointiRepository.findOneByIdAndLahiesimiesHyvaksynytTrue(id).orElse(null)
+        val valiarviointi = koejaksonValiarviointiRepository.findById(id).orElse(null)
             ?: return Optional.empty()
         val vastuuhenkilo =
             kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
@@ -207,7 +207,7 @@ class KoejaksonValiarviointiServiceImpl(
             )
         if (valiarviointi.lahikouluttaja?.user?.id == vastuuhenkiloUserId
             || valiarviointi.lahiesimies?.user?.id == vastuuhenkiloUserId
-            || vastuuhenkilo?.user?.id == vastuuhenkiloUserId) {
+            || (vastuuhenkilo?.user?.id == vastuuhenkiloUserId && valiarviointi.lahiesimiesHyvaksynyt)) {
             return Optional.of(valiarviointi).map(this::mapValiarviointi)
         }
         return Optional.empty()

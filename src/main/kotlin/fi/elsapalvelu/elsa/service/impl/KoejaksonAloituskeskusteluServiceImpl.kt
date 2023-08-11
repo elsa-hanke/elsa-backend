@@ -298,7 +298,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         id: Long,
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonAloituskeskusteluDTO> {
-        val aloituskeskustelu = koejaksonAloituskeskusteluRepository.findOneByIdAndLahiesimiesHyvaksynytTrue(id).orElse(null)
+        val aloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(id).orElse(null)
             ?: return Optional.empty()
         val vastuuhenkilo =
             kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
@@ -309,7 +309,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
             )
         if (aloituskeskustelu.lahikouluttaja?.user?.id == vastuuhenkiloUserId
             || aloituskeskustelu.lahiesimies?.user?.id == vastuuhenkiloUserId
-            || vastuuhenkilo?.user?.id == vastuuhenkiloUserId) {
+            || (vastuuhenkilo?.user?.id == vastuuhenkiloUserId && aloituskeskustelu.lahiesimiesHyvaksynyt)) {
             return Optional.of(aloituskeskustelu).map(koejaksonAloituskeskusteluMapper::toDto)
         }
         return Optional.empty()
