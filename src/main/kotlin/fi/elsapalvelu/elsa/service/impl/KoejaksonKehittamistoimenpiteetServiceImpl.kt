@@ -220,7 +220,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
         val kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetRepository.findOneByIdAndLahiesimiesHyvaksynytTrue(id).orElse(null)
+            koejaksonKehittamistoimenpiteetRepository.findById(id).orElse(null)
                 ?: return Optional.empty()
 
         val vastuuhenkilo =
@@ -232,7 +232,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             )
         if (kehittamistoimenpiteet.lahikouluttaja?.user?.id == vastuuhenkiloUserId
             || kehittamistoimenpiteet.lahiesimies?.user?.id == vastuuhenkiloUserId
-            || vastuuhenkilo?.user?.id == vastuuhenkiloUserId) {
+            || (vastuuhenkilo?.user?.id == vastuuhenkiloUserId && kehittamistoimenpiteet.lahiesimiesHyvaksynyt)) {
             return Optional.of(kehittamistoimenpiteet).map(this::mapKehittamistoimenpiteet)
         }
         return Optional.empty()

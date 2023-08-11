@@ -193,7 +193,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
         id: Long,
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonLoppukeskusteluDTO> {
-        val loppukeskustelu = koejaksonLoppukeskusteluRepository.findOneByIdAndLahiesimiesHyvaksynytTrue(id).orElse(null)
+        val loppukeskustelu = koejaksonLoppukeskusteluRepository.findById(id).orElse(null)
             ?: return Optional.empty()
         val vastuuhenkilo =
             kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
@@ -204,7 +204,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
             )
         if (loppukeskustelu.lahikouluttaja?.user?.id == vastuuhenkiloUserId
             || loppukeskustelu.lahiesimies?.user?.id == vastuuhenkiloUserId
-            || vastuuhenkilo?.user?.id == vastuuhenkiloUserId) {
+            || (vastuuhenkilo?.user?.id == vastuuhenkiloUserId && loppukeskustelu.lahiesimiesHyvaksynyt)) {
             return Optional.of(loppukeskustelu).map(this::mapLoppukeskustelu)
         }
         return Optional.empty()
