@@ -261,5 +261,6 @@
     <include file="config/liquibase/changelog/20230705141626_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20230706093836_modify_entity_Asiakirja.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20230707111300_modify_entity_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20230816091200_modify_entity_KoejaksonVastuuhenkilonArvio.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
