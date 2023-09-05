@@ -543,8 +543,8 @@ class TyoskentelyjaksonPituusCounterServiceTest {
 
         val keskeytysaikaMock4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
             null,
-            LocalDate.ofEpochDay(900L),
-            LocalDate.ofEpochDay(910L),
+            LocalDate.ofEpochDay(660L),
+            LocalDate.ofEpochDay(670L),
             100,
             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
         )
