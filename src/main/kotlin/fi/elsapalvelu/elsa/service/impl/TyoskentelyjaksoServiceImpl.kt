@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import jakarta.validation.ValidationException
+import java.time.LocalDate
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
@@ -417,15 +418,18 @@ class TyoskentelyjaksoServiceImpl(
                     tyoskentelyjaksot
                 )
         }
+        val now = LocalDate.now()
         tyoskentelyjaksot.map { it.keskeytykset }.flatten()
             .sortedBy { it.alkamispaiva }.forEach {
                 val tyoskentelyjaksoFactor =
                     it.tyoskentelyjakso?.osaaikaprosentti!!.toDouble() / 100.0
+                val endDate = it.tyoskentelyjakso?.paattymispaiva ?: now
                 val amountOfReducedDays =
                     tyoskentelyjaksonPituusCounterService.calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
                         it,
                         tyoskentelyjaksoFactor,
-                        hyvaksiluettavatCounter
+                        hyvaksiluettavatCounter,
+                        if (endDate.isAfter(now)) now else endDate
                     )
                 result.putIfAbsent(it.tyoskentelyjakso!!.id!!, 0.0)
                 result[it.tyoskentelyjakso!!.id!!] =
