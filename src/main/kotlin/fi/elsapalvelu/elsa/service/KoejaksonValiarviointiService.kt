@@ -36,5 +36,6 @@ interface KoejaksonValiarviointiService {
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonValiarviointiDTO>
 
-    fun delete(id: Long)
+    fun delete(id: Long, userId: String)
+
 }

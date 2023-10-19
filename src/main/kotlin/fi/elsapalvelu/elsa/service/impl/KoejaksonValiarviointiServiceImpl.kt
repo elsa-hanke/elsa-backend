@@ -7,12 +7,10 @@ import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.KoejaksonValiarviointiService
-import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
-import fi.elsapalvelu.elsa.service.MailProperty
-import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonValiarviointiDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonValiarviointiMapper
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,6 +19,7 @@ import java.time.ZoneId
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
 
+private const val ENTITY_KOEJAKSON_VALIARVIOINTI = "koejakson_valiarviointi"
 
 @Service
 @Transactional
@@ -31,7 +30,8 @@ class KoejaksonValiarviointiServiceImpl(
     private val kayttajaRepository: KayttajaRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
-    private val kouluttajavaltuutusService: KouluttajavaltuutusService
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService,
+    private val opintooikeusService: OpintooikeusService
 ) : KoejaksonValiarviointiService {
 
     override fun create(
@@ -213,8 +213,19 @@ class KoejaksonValiarviointiServiceImpl(
         return Optional.empty()
     }
 
-    override fun delete(id: Long) {
-        koejaksonValiarviointiRepository.deleteById(id)
+    override fun delete(id: Long, userId: String) {
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+        koejaksonValiarviointiRepository.findByIdOrNull(id)?.let { koejaksonValiarviointi ->
+            if (koejaksonValiarviointi.opintooikeus?.id == opintooikeusId) {
+                koejaksonValiarviointiRepository.deleteById(id)
+            } else {
+                throw BadRequestAlertException(
+                    "Koejakson väliarvioinnin opinto-oikeus ei täsmää kutsun tehneen käyttäjän opinto-oikeutta",
+                    ENTITY_KOEJAKSON_VALIARVIOINTI, "",
+                )
+            }
+        }
     }
 
     private fun mapValiarviointi(valiarviointi: KoejaksonValiarviointi): KoejaksonValiarviointiDTO {
