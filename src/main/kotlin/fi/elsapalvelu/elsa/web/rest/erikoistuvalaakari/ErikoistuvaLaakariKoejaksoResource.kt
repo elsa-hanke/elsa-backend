@@ -407,6 +407,18 @@ class ErikoistuvaLaakariKoejaksoResource(
             } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
+    @DeleteMapping("/koejakso/kehittamistoimenpiteet/{id}")
+    fun deleteKehittamistoimenpiteet(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        val user = userService.getAuthenticatedUser(principal)
+        koejaksonKehittamistoimenpiteetService.delete(id, user.id!!)
+        return ResponseEntity
+            .noContent()
+            .build()
+    }
+
     @PostMapping("/koejakso/loppukeskustelu")
     fun createLoppukeskustelu(
         @Valid @RequestBody loppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
