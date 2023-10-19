@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.service.OpintooikeusService
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.domain.KoejaksonKehittamistoimenpiteet
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
@@ -21,6 +23,7 @@ import java.time.ZoneId
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
 
+private const val ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET = "koejakson_kehittamistoimenpiteet"
 
 @Service
 @Transactional
@@ -31,7 +34,8 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
-    private val kouluttajavaltuutusService: KouluttajavaltuutusService
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService,
+    private val opintooikeusService: OpintooikeusService,
 ) : KoejaksonKehittamistoimenpiteetService {
 
     override fun create(
@@ -259,8 +263,19 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         return kehittamistoimenpiteetDto
     }
 
-    override fun delete(id: Long) {
-        koejaksonKehittamistoimenpiteetRepository.deleteById(id)
+    override fun delete(id: Long, userId: String) {
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+        koejaksonKehittamistoimenpiteetRepository.findByIdOrNull(id)?.let { koejaksonKehittamistoimenpiteet ->
+            if (koejaksonKehittamistoimenpiteet.opintooikeus?.id == opintooikeusId) {
+                koejaksonKehittamistoimenpiteetRepository.deleteById(id)
+            } else {
+                throw BadRequestAlertException(
+                    "Koejakson kehittämistoimenpidelomakkeen opinto-oikeus ei täsmää kutsun tehneen käyttäjän opinto-oikeutta",
+                    ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET, "",
+                )
+            }
+        }
     }
 
     private fun mapKehittamistoimenpiteet(kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet): KoejaksonKehittamistoimenpiteetDTO {
@@ -273,4 +288,5 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
             }
         return result
     }
+
 }

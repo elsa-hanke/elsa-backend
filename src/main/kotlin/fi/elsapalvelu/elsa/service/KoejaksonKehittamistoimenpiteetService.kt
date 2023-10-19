@@ -36,5 +36,6 @@ interface KoejaksonKehittamistoimenpiteetService {
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonKehittamistoimenpiteetDTO>
 
-    fun delete(id: Long)
+    fun delete(id: Long, userId: String)
+
 }
