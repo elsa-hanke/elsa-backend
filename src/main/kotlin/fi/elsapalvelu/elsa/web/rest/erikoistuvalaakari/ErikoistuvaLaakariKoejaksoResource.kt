@@ -292,6 +292,18 @@ class ErikoistuvaLaakariKoejaksoResource(
         return ResponseEntity.ok(result)
     }
 
+    @DeleteMapping("/koejakso/aloituskeskustelu/{id}")
+    fun deleteAloituskeskustelu(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        val user = userService.getAuthenticatedUser(principal)
+        koejaksonAloituskeskusteluService.delete(id, user.id!!)
+        return ResponseEntity
+            .noContent()
+            .build()
+    }
+
     @PostMapping("/koejakso/valiarviointi")
     fun createValiarviointi(
         @Valid @RequestBody valiarviointiDTO: KoejaksonValiarviointiDTO,

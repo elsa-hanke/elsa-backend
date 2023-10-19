@@ -36,5 +36,6 @@ interface KoejaksonAloituskeskusteluService {
         vastuuhenkiloUserId: String
     ): Optional<KoejaksonAloituskeskusteluDTO>
 
-    fun delete(id: Long)
+    fun delete(id: Long, userId: String)
+
 }
