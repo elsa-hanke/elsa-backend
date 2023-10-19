@@ -4,12 +4,10 @@ import fi.elsapalvelu.elsa.domain.KoejaksonLoppukeskustelu
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.KoejaksonLoppukeskusteluService
-import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
-import fi.elsapalvelu.elsa.service.MailProperty
-import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonLoppukeskusteluDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonLoppukeskusteluMapper
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -17,6 +15,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
+
+private const val ENTITY_KOEJAKSON_LOPPUKESKUSTELU = "koejakson_loppukeskustelu"
 
 @Service
 @Transactional
@@ -29,7 +29,8 @@ class KoejaksonLoppukeskusteluServiceImpl(
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
     private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
-    private val kouluttajavaltuutusService: KouluttajavaltuutusService
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService,
+    private val opintooikeusService: OpintooikeusService
 ) : KoejaksonLoppukeskusteluService {
 
     override fun create(
@@ -210,8 +211,19 @@ class KoejaksonLoppukeskusteluServiceImpl(
         return Optional.empty()
     }
 
-    override fun delete(id: Long) {
-        koejaksonLoppukeskusteluRepository.deleteById(id)
+    override fun delete(id: Long, userId: String) {
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+        koejaksonLoppukeskusteluRepository.findByIdOrNull(id)?.let { koejaksonLoppukeskustelu ->
+            if (koejaksonLoppukeskustelu.opintooikeus?.id == opintooikeusId) {
+                koejaksonLoppukeskusteluRepository.deleteById(id)
+            } else {
+                throw BadRequestAlertException(
+                    "Koejakson loppukeskustelun opinto-oikeus ei täsmää kutsun tehneen käyttäjän opinto-oikeutta",
+                    ENTITY_KOEJAKSON_LOPPUKESKUSTELU, "",
+                )
+            }
+        }
     }
 
     private fun mapLoppukeskustelu(loppukeskustelu: KoejaksonLoppukeskustelu): KoejaksonLoppukeskusteluDTO {
