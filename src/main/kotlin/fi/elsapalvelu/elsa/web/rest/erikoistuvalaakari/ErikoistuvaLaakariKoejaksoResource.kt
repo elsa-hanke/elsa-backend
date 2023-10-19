@@ -435,6 +435,18 @@ class ErikoistuvaLaakariKoejaksoResource(
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
+    @DeleteMapping("/koejakso/loppukeskustelu/{id}")
+    fun deleteLoppukeskustelu(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        val user = userService.getAuthenticatedUser(principal)
+        koejaksonLoppukeskusteluService.delete(id, user.id!!)
+        return ResponseEntity
+            .noContent()
+            .build()
+    }
+
     @GetMapping("/vastuuhenkilonarvio-lomake")
     fun getVastuuhenkilonArvioForm(principal: Principal?): ResponseEntity<VastuuhenkilonArvioFormDTO> {
         val form = VastuuhenkilonArvioFormDTO().apply {
