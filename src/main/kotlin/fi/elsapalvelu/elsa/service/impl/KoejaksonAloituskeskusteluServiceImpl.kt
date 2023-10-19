@@ -4,12 +4,10 @@ import fi.elsapalvelu.elsa.domain.KoejaksonAloituskeskustelu
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.KoejaksonAloituskeskusteluService
-import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
-import fi.elsapalvelu.elsa.service.MailProperty
-import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonAloituskeskusteluDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonAloituskeskusteluMapper
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,6 +16,7 @@ import java.time.ZoneId
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
 
+private const val ENTITY_KOEJAKSON_ALOITUSKESKUSTELU = "koejakson_aloituskeskustelu"
 
 @Service
 @Transactional
@@ -29,7 +28,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
     private val kayttajaRepository: KayttajaRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val userRepository: UserRepository,
-    private val kouluttajavaltuutusService: KouluttajavaltuutusService
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService,
+    private val opintooikeusService: OpintooikeusService,
 ) : KoejaksonAloituskeskusteluService {
 
     override fun create(
@@ -315,7 +315,20 @@ class KoejaksonAloituskeskusteluServiceImpl(
         return Optional.empty()
     }
 
-    override fun delete(id: Long) {
-        koejaksonAloituskeskusteluRepository.deleteById(id)
+    override fun delete(id: Long, userId: String) {
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+        koejaksonAloituskeskusteluRepository.findByIdOrNull(id)?.let { koejaksonAloituskeskustelu ->
+            if (koejaksonAloituskeskustelu.opintooikeus?.id == opintooikeusId) {
+                koejaksonAloituskeskusteluRepository.deleteById(id)
+            } else {
+                throw BadRequestAlertException(
+                    "Koejakson aloituskeskustelun opinto-oikeus ei täsmää kutsun tehneen käyttäjän opinto-oikeutta",
+                    ENTITY_KOEJAKSON_ALOITUSKESKUSTELU, "",
+                )
+            }
+
+        }
     }
+
 }
