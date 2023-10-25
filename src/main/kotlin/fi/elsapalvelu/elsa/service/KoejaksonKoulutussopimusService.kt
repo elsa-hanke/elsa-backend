@@ -32,5 +32,6 @@ interface KoejaksonKoulutussopimusService {
         userId: String
     ): Optional<KoejaksonKoulutussopimusDTO>
 
-    fun delete(id: Long)
+    fun delete(id: Long, userId: String)
+
 }
