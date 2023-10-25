@@ -7,7 +7,7 @@ import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
-import org.hibernate.engine.jdbc.BlobProxy
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
 
+private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 
 @Service
 @Transactional
@@ -34,7 +35,8 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val userRepository: UserRepository,
     private val asiakirjaRepository: AsiakirjaRepository,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
-    private val pdfService: PdfService
+    private val pdfService: PdfService,
+    private val opintooikeusService: OpintooikeusService
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -407,8 +409,21 @@ class KoejaksonKoulutussopimusServiceImpl(
         return Optional.empty()
     }
 
-    override fun delete(id: Long) {
-        koejaksonKoulutussopimusRepository.deleteById(id)
+    override fun delete(id: Long, userId: String) {
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+        koejaksonKoulutussopimusRepository.findByIdOrNull(id)?.let { koejaksonKoulutussopimus ->
+            if (koejaksonKoulutussopimus.opintooikeus?.id == opintooikeusId) {
+
+                koejaksonKoulutussopimusRepository.deleteById(id)
+
+            } else {
+                throw BadRequestAlertException(
+                    "Koejakson koulutussopimuksen opinto-oikeus ei täsmää kutsun tehneen käyttäjän opinto-oikeutta",
+                    ENTITY_KOEJAKSON_SOPIMUS, "",
+                )
+            }
+        }
     }
 
     private fun luoPdf(
@@ -433,4 +448,5 @@ class KoejaksonKoulutussopimusServiceImpl(
             )
         )
     }
+
 }
