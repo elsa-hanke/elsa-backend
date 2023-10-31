@@ -156,7 +156,7 @@ class VastuuhenkiloKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        if (koejaksonVastuuhenkilonArvioService.existsByIdAndVastuuhenkiloUserId(id, user.id!!)) {
+        if (koejaksonVastuuhenkilonArvioService.findOneByIdAndVastuuhenkiloUserId(id, user.id!!).isPresent) {
             val asiakirja = asiakirjaService.findByIdAndLiitettykoejaksoon(asiakirjaId)
 
             asiakirja?.asiakirjaData?.fileInputStream?.use {
