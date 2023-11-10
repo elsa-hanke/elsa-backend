@@ -521,6 +521,8 @@ class SecurityConfiguration(
                                 lastName,
                                 it
                             )
+                        } else {
+                            log.info("Kirjautuessa ladatut opintotiedot olivat tyhjät käyttäjälle: $userId")
                         }
                     }
                 } catch (ex: Exception) {
