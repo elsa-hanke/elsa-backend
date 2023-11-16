@@ -22,6 +22,10 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 
 @Service
 @Transactional
@@ -55,34 +59,36 @@ class EtusivuServiceImpl(
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
         val seurantaDTO = ErikoistujienSeurantaDTO()
 
-        kayttaja?.let {
-            seurantaDTO.kayttajaYliopistoErikoisalat =
-                kayttaja.yliopistotAndErikoisalat.groupBy { it.yliopisto }.map {
-                    KayttajaErikoisalatPerYliopistoDTO(
-                        yliopistoNimi = it.key?.nimi.toString(),
-                        erikoisalat = it.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
-                            .sorted()
+        runBlocking {
+            kayttaja?.let {
+                seurantaDTO.kayttajaYliopistoErikoisalat =
+                    kayttaja.yliopistotAndErikoisalat.groupBy { it.yliopisto }.map {
+                        KayttajaErikoisalatPerYliopistoDTO(
+                            yliopistoNimi = it.key?.nimi.toString(),
+                            erikoisalat = it.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
+                                .sorted()
+                        )
+                    }
+                seurantaDTO.kayttajaYliopistoErikoisalat?.forEach {
+                    seurantaDTO.erikoisalat?.addAll(it.erikoisalat!!)
+                }
+                seurantaDTO.erikoisalat = seurantaDTO.erikoisalat?.sorted()?.toMutableSet()
+                val seurattavatOpintooikeudet: MutableList<Opintooikeus> = mutableListOf()
+                kayttaja.yliopistotAndErikoisalat.forEach {
+                    seurattavatOpintooikeudet.addAll(
+                        opintooikeusRepository.findByErikoisalaAndYliopisto(
+                            it.erikoisala?.id!!,
+                            it.yliopisto?.id!!,
+                            OpintooikeudenTila.allowedTilat(),
+                            OpintooikeudenTila.endedTilat()
+                        )
                     )
                 }
-            seurantaDTO.kayttajaYliopistoErikoisalat?.forEach {
-                seurantaDTO.erikoisalat?.addAll(it.erikoisalat!!)
-            }
-            seurantaDTO.erikoisalat = seurantaDTO.erikoisalat?.sorted()?.toMutableSet()
-            val seurattavatOpintooikeudet: MutableList<Opintooikeus> = mutableListOf()
-            kayttaja.yliopistotAndErikoisalat.forEach {
-                seurattavatOpintooikeudet.addAll(
-                    opintooikeusRepository.findByErikoisalaAndYliopisto(
-                        it.erikoisala?.id!!,
-                        it.yliopisto?.id!!,
-                        OpintooikeudenTila.allowedTilat(),
-                        OpintooikeudenTila.endedTilat()
+                seurattavatOpintooikeudet.forEach {
+                    seurantaDTO.erikoistujienEteneminen?.add(
+                        getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(it)
                     )
-                )
-            }
-            seurattavatOpintooikeudet.forEach {
-                seurantaDTO.erikoistujienEteneminen?.add(
-                    getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(it)
-                )
+                }
             }
         }
 
@@ -93,34 +99,36 @@ class EtusivuServiceImpl(
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
         val seurantaDTO = ErikoistujienSeurantaDTO()
 
-        kayttaja?.let {
-            seurantaDTO.kayttajaYliopistoErikoisalat =
-                kayttaja.yliopistotAndErikoisalat.groupBy { it.yliopisto }.map {
-                    KayttajaErikoisalatPerYliopistoDTO(
-                        yliopistoNimi = it.key?.nimi.toString(),
-                        erikoisalat = it.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
-                            .sorted()
+        runBlocking {
+            kayttaja?.let {
+                seurantaDTO.kayttajaYliopistoErikoisalat =
+                    kayttaja.yliopistotAndErikoisalat.groupBy { it.yliopisto }.map {
+                        KayttajaErikoisalatPerYliopistoDTO(
+                            yliopistoNimi = it.key?.nimi.toString(),
+                            erikoisalat = it.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
+                                .sorted()
+                        )
+                    }
+                seurantaDTO.kayttajaYliopistoErikoisalat?.forEach {
+                    seurantaDTO.erikoisalat?.addAll(it.erikoisalat!!)
+                }
+                seurantaDTO.erikoisalat = seurantaDTO.erikoisalat?.sorted()?.toMutableSet()
+                opintooikeusRepository.findByKouluttajaValtuutus(
+                    kayttaja.id!!,
+                    OpintooikeudenTila.allowedTilat(),
+                    OpintooikeudenTila.endedTilat()
+                ).forEach {
+                    seurantaDTO.erikoistujienEteneminen?.add(
+                        getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(it)
                     )
                 }
-            seurantaDTO.kayttajaYliopistoErikoisalat?.forEach {
-                seurantaDTO.erikoisalat?.addAll(it.erikoisalat!!)
-            }
-            seurantaDTO.erikoisalat = seurantaDTO.erikoisalat?.sorted()?.toMutableSet()
-            opintooikeusRepository.findByKouluttajaValtuutus(
-                kayttaja.id!!,
-                OpintooikeudenTila.allowedTilat(),
-                OpintooikeudenTila.endedTilat()
-            ).forEach {
-                seurantaDTO.erikoistujienEteneminen?.add(
-                    getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(it)
-                )
             }
         }
 
         return seurantaDTO
     }
 
-    private fun getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus: Opintooikeus): ErikoistujanEteneminenDTO {
+    private suspend fun getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus: Opintooikeus): ErikoistujanEteneminenDTO = coroutineScope {
         val eteneminen = ErikoistujanEteneminenDTO()
 
         // Erikoistujan tiedot
@@ -135,36 +143,30 @@ class EtusivuServiceImpl(
         eteneminen.asetus = opintooikeus.asetus?.nimi
         eteneminen.erikoisala = opintooikeus.erikoisala?.nimi
 
-        // Työskentelyjaksot
-        eteneminen.tyoskentelyjaksoTilastot = tyoskentelyjaksoService.getTilastot(opintooikeus)
+        // Use async to run sub-functions concurrently
+        val tyoskentelyjaksoTilastotDeferred = async { tyoskentelyjaksoService.getTilastot(opintooikeus) }
+        val suoritusarvioinnitMapDeferred = async { getSuoritusarvioinnitMap(opintooikeus.id!!) }
+        val seurantajaksotDeferred = async { seurantajaksoRepository.findByOpintooikeusId(opintooikeus.id!!) }
+        val suoritemerkinnatMapDeferred = async { getSuoritemerkinnatMap(opintooikeus.id!!) }
+        val opintosuorituksetDeferred = async { opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!).asSequence() }
 
-        // Suoritusarvioinnit
-        val suoritusarvioinnitMap = getSuoritusarvioinnitMap(opintooikeus.id!!)
+        // Await all the results
+        eteneminen.tyoskentelyjaksoTilastot = tyoskentelyjaksoTilastotDeferred.await()
+        val suoritusarvioinnitMap = suoritusarvioinnitMapDeferred.await()
         eteneminen.arviointienKeskiarvo = getArviointienKeskiarvo(suoritusarvioinnitMap)
-        eteneminen.arviointienLkm =
-            getArvioitavatKokonaisuudetVahintaanYksiArvioLkm(suoritusarvioinnitMap)
-        eteneminen.arvioitavienKokonaisuuksienLkm =
-            getArvioitavienKokonaisuuksienLkm(opintooikeus, suoritusarvioinnitMap.keys)
-
-        // Seurantajaksot
-        val seurantajaksot = seurantajaksoRepository.findByOpintooikeusId(opintooikeus.id!!)
+        eteneminen.arviointienLkm = getArvioitavatKokonaisuudetVahintaanYksiArvioLkm(suoritusarvioinnitMap)
+        eteneminen.arvioitavienKokonaisuuksienLkm = getArvioitavienKokonaisuuksienLkm(opintooikeus, suoritusarvioinnitMap.keys)
+        val seurantajaksot = seurantajaksotDeferred.await()
         eteneminen.seurantajaksotLkm = seurantajaksot.size
-        eteneminen.seurantajaksonHuoletLkm =
-            seurantajaksot.filter { jakso -> jakso.huolenaiheet != null }.size
-
-        // Suoritemerkinnät
-        val suoritemerkinnatMap = getSuoritemerkinnatMap(opintooikeus.id!!)
+        eteneminen.seurantajaksonHuoletLkm = seurantajaksot.filter { jakso -> jakso.huolenaiheet != null }.size
+        val suoritemerkinnatMap = suoritemerkinnatMapDeferred.await()
         eteneminen.suoritemerkinnatLkm = getSuoritemerkinnatLkm(suoritemerkinnatMap)
-        eteneminen.vaaditutSuoritemerkinnatLkm =
-            getVaaditutSuoritemerkinnatLkm(opintooikeus, suoritemerkinnatMap.values.flatten())
-
-        val opintosuoritukset =
-            opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!).asSequence()
+        eteneminen.vaaditutSuoritemerkinnatLkm = getVaaditutSuoritemerkinnatLkm(opintooikeus, suoritemerkinnatMap.values.flatten())
+        val opintosuoritukset = opintosuorituksetDeferred.await()
         eteneminen.koejaksoTila = getKoejaksoTila(opintooikeus, opintosuoritukset)
-        eteneminen.terveyskeskuskoulutusjaksoSuoritettu =
-            getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
+        eteneminen.terveyskeskuskoulutusjaksoSuoritettu = getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
 
-        return eteneminen
+        return@coroutineScope eteneminen
     }
 
     override fun getErikoistujienSeurantaForVirkailija(
