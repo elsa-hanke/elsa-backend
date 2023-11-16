@@ -23,7 +23,6 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 
@@ -55,7 +54,10 @@ class EtusivuServiceImpl(
     private val messageSource: MessageSource
 ) : EtusivuService {
 
-    override fun getErikoistujienSeurantaForVastuuhenkilo(userId: String): ErikoistujienSeurantaDTO {
+    override fun getErikoistujienSeurantaForVastuuhenkilo(
+        userId: String,
+        pageable: Pageable
+    ): ErikoistujienSeurantaDTO {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
         val seurantaDTO = ErikoistujienSeurantaDTO()
 
@@ -80,7 +82,8 @@ class EtusivuServiceImpl(
                             it.erikoisala?.id!!,
                             it.yliopisto?.id!!,
                             OpintooikeudenTila.allowedTilat(),
-                            OpintooikeudenTila.endedTilat()
+                            OpintooikeudenTila.endedTilat(),
+                            pageable
                         )
                     )
                 }
@@ -128,7 +131,9 @@ class EtusivuServiceImpl(
         return seurantaDTO
     }
 
-    private suspend fun getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus: Opintooikeus): ErikoistujanEteneminenDTO = coroutineScope {
+    private suspend fun getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(
+        opintooikeus: Opintooikeus
+    ): ErikoistujanEteneminenDTO = coroutineScope {
         val eteneminen = ErikoistujanEteneminenDTO()
 
         // Erikoistujan tiedot

@@ -2,6 +2,8 @@ package fi.elsapalvelu.elsa.repository
 
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
@@ -85,8 +87,9 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>,
         erikoisalaId: Long,
         yliopistoId: Long,
         validStates: List<OpintooikeudenTila>,
-        endedStates: List<OpintooikeudenTila>
-    ): List<Opintooikeus>
+        endedStates: List<OpintooikeudenTila>,
+        pageable: Pageable
+    ): Page<Opintooikeus>
 
     @Query(
         """
