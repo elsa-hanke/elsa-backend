@@ -7,7 +7,9 @@ import org.springframework.data.domain.Pageable
 
 interface EtusivuService {
 
-    fun getErikoistujienSeurantaForVastuuhenkilo(userId: String, pageable: Pageable): ErikoistujienSeurantaDTO
+    fun getErikoistujienSeurantaVastuuhenkiloRajaimet(userId: String): ErikoistujienSeurantaDTO
+
+    fun getErikoistujienSeurantaForVastuuhenkilo(userId: String, pageable: Pageable): Page<ErikoistujanEteneminenDTO>?
 
     fun getErikoistujienSeurantaForKouluttaja(userId: String): ErikoistujienSeurantaDTO
 
