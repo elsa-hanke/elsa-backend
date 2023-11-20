@@ -87,4 +87,5 @@ class ErikoistujienSeurantaQueryService(
         }
         return specification
     }
+
 }

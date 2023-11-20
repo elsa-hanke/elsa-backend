@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import org.springframework.data.domain.Page
@@ -32,11 +33,12 @@ class VastuuhenkiloEtusivuResource(
 
     @GetMapping("/erikoistujien-seuranta")
     fun getErikoistujienSeurantaList(
+        criteria: ErikoistujanEteneminenCriteria,
         pageable: Pageable,
         principal: Principal?
     ): ResponseEntity<Page<ErikoistujanEteneminenDTO>?> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaForVastuuhenkilo(user.id!!, pageable))
+        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaForVastuuhenkilo(user.id!!, criteria, pageable))
     }
 
     @GetMapping("/koejaksot")
