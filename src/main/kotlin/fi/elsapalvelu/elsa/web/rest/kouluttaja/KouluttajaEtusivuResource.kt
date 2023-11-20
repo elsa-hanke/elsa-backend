@@ -8,6 +8,8 @@ import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaDTO
 import fi.elsapalvelu.elsa.service.dto.EtusivuSeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.KatseluoikeusDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -25,10 +27,11 @@ class KouluttajaEtusivuResource(
 
     @GetMapping("/erikoistujien-seuranta")
     fun getErikoistujienSeurantaList(
+        pageable: Pageable,
         principal: Principal?
-    ): ResponseEntity<ErikoistujienSeurantaDTO> {
+    ): ResponseEntity<Page<ErikoistujienSeurantaDTO>?> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaForKouluttaja(user.id!!))
+        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaForKouluttaja(user.id!!, pageable))
     }
 
     @GetMapping("/koejaksot")

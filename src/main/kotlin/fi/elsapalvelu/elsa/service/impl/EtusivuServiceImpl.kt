@@ -78,24 +78,27 @@ class EtusivuServiceImpl(
 
     override fun getErikoistujienSeurantaForVastuuhenkilo(
         userId: String,
+        criteria: ErikoistujanEteneminenCriteria,
         pageable: Pageable
     ): Page<ErikoistujanEteneminenDTO>? {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
         kayttaja?.let {
             kayttaja.yliopistotAndErikoisalat.forEach {
-                return opintooikeusRepository.findByErikoisalaAndYliopisto(
-                    it.erikoisala?.id!!,
+                return erikoistujienSeurantaQueryService.findByCriteriaAndYliopistoId(
+                    criteria,
+                    pageable,
                     it.yliopisto?.id!!,
-                    OpintooikeudenTila.allowedTilat(),
-                    OpintooikeudenTila.endedTilat(),
-                    pageable
+                    it.kayttaja?.user?.langKey
                 ).map { opintooikeus -> getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus) }
             }
         }
         return null
     }
 
-    override fun getErikoistujienSeurantaForKouluttaja(userId: String): ErikoistujienSeurantaDTO {
+    override fun getErikoistujienSeurantaForKouluttaja(
+        userId: String,
+        pageable: Pageable
+    ): Page<ErikoistujienSeurantaDTO>? {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
         val seurantaDTO = ErikoistujienSeurantaDTO()
         kayttaja?.let {
@@ -121,7 +124,8 @@ class EtusivuServiceImpl(
                 )
             }
         }
-        return seurantaDTO
+        // return seurantaDTO
+        return null
     }
 
     private fun getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus: Opintooikeus): ErikoistujanEteneminenDTO {

@@ -9,9 +9,13 @@ interface EtusivuService {
 
     fun getErikoistujienSeurantaVastuuhenkiloRajaimet(userId: String): ErikoistujienSeurantaDTO
 
-    fun getErikoistujienSeurantaForVastuuhenkilo(userId: String, pageable: Pageable): Page<ErikoistujanEteneminenDTO>?
+    fun getErikoistujienSeurantaForVastuuhenkilo(
+        userId: String, criteria: ErikoistujanEteneminenCriteria, pageable: Pageable
+    ): Page<ErikoistujanEteneminenDTO>?
 
-    fun getErikoistujienSeurantaForKouluttaja(userId: String): ErikoistujienSeurantaDTO
+    fun getErikoistujienSeurantaForKouluttaja(
+        userId: String, pageable: Pageable
+    ): Page<ErikoistujienSeurantaDTO>?
 
     fun getErikoistujienSeurantaForVirkailija(
         userId: String,
