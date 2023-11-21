@@ -40,6 +40,40 @@ class ErikoistujienSeurantaQueryService(
         return opintooikeusRepository.findAll(specification, pageable)
     }
 
+    @Transactional(readOnly = true)
+    fun findByErikoisalaAndYliopisto(
+        criteria: ErikoistujanEteneminenCriteria?,
+        pageable: Pageable,
+        langkey: String?,
+        yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisala> = mutableSetOf(),
+    ): Page<Opintooikeus> {
+        val specification = createSpecification(criteria) { root, _, cb ->
+            val user: Join<Kayttaja, User> = root.join(Opintooikeus_.erikoistuvaLaakari)
+                .join(ErikoistuvaLaakari_.kayttaja)
+                .join(Kayttaja_.user)
+
+            val yliopisto: Path<Yliopisto> = root.get(Opintooikeus_.yliopisto)
+
+            if (yliopistotAndErikoisalat.isNotEmpty()) {
+                val orPredicates = yliopistotAndErikoisalat.map { ye ->
+                    cb.and(
+                        cb.equal(yliopisto.get(Yliopisto_.id), ye.yliopisto!!.id),
+                        cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), ye.erikoisala!!.id)
+                    )
+                }.toTypedArray()
+                cb.or(*orPredicates)
+            } else {
+                if (criteria?.nimi != null) {
+                    val nimiPredicate = criteria.nimi.toNimiPredicate(user, cb, langkey)
+                    nimiPredicate
+                } else {
+                    cb.isTrue(cb.literal(true))
+                }
+            }
+        }
+        return opintooikeusRepository.findAll(specification, pageable)
+    }
+
     protected fun createSpecification(
         criteria: ErikoistujanEteneminenCriteria?,
         spec: Specification<Opintooikeus?>? = null
@@ -74,6 +108,18 @@ class ErikoistujienSeurantaQueryService(
                             LocalDate.now()
                         )
                     }
+            }
+            if (it.tila != null) {
+                it.tila.let { tilaList ->
+                    specification =
+                        specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                            cb.or(
+                                *tilaList!!.map { tilaValue ->
+                                    cb.equal(root.get(Opintooikeus_.tila), tilaValue)
+                                }.toTypedArray()
+                            )
+                        }
+                }
             }
             specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                 cb.or(

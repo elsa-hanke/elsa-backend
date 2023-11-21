@@ -82,15 +82,14 @@ class EtusivuServiceImpl(
         pageable: Pageable
     ): Page<ErikoistujanEteneminenDTO>? {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
-        kayttaja?.let {
-            kayttaja.yliopistotAndErikoisalat.forEach {
-                return erikoistujienSeurantaQueryService.findByCriteriaAndYliopistoId(
-                    criteria,
-                    pageable,
-                    it.yliopisto?.id!!,
-                    it.kayttaja?.user?.langKey
-                ).map { opintooikeus -> getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus) }
-            }
+        criteria.tila = OpintooikeudenTila.allowedTilat() + OpintooikeudenTila.endedTilat()
+        kayttaja?.let { k ->
+            return erikoistujienSeurantaQueryService.findByErikoisalaAndYliopisto(
+                criteria,
+                pageable,
+                k.user?.langKey,
+                k.yliopistotAndErikoisalat
+            ).map { opintooikeus -> getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus) }
         }
         return null
     }
