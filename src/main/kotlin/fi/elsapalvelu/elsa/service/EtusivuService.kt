@@ -14,8 +14,10 @@ interface EtusivuService {
     ): Page<ErikoistujanEteneminenDTO>?
 
     fun getErikoistujienSeurantaForKouluttaja(
-        userId: String, pageable: Pageable
-    ): Page<ErikoistujienSeurantaDTO>?
+        userId: String,
+        criteria: ErikoistujanEteneminenCriteria,
+        pageable: Pageable
+    ): Page<ErikoistujanEteneminenDTO>?
 
     fun getErikoistujienSeurantaForVirkailija(
         userId: String,
