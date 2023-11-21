@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
@@ -46,6 +47,8 @@ class ErikoistujienSeurantaQueryService(
         pageable: Pageable,
         langkey: String?,
         yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisala> = mutableSetOf(),
+        validStates: List<OpintooikeudenTila>,
+        endedStates: List<OpintooikeudenTila>,
     ): Page<Opintooikeus> {
         val specification = createSpecification(criteria) { root, _, cb ->
             val user: Join<Kayttaja, User> = root.join(Opintooikeus_.erikoistuvaLaakari)
@@ -53,23 +56,48 @@ class ErikoistujienSeurantaQueryService(
                 .join(Kayttaja_.user)
 
             val yliopisto: Path<Yliopisto> = root.get(Opintooikeus_.yliopisto)
+            val validStatesExpression = root.get(Opintooikeus_.tila)
+            val endedStatesExpression = root.get(Opintooikeus_.tila)
+
+            val tilaPredicate = cb.or(
+                validStatesExpression.`in`(validStates),
+                cb.and(
+                    endedStatesExpression.`in`(endedStates),
+                    cb.lessThanOrEqualTo(root.get(Opintooikeus_.viimeinenKatselupaiva), LocalDate.now())
+                )
+            )
 
             if (yliopistotAndErikoisalat.isNotEmpty()) {
                 val orPredicates = yliopistotAndErikoisalat.map { ye ->
                     cb.and(
                         cb.equal(yliopisto.get(Yliopisto_.id), ye.yliopisto!!.id),
-                        cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), ye.erikoisala!!.id)
+                        cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), ye.erikoisala!!.id),
+                        tilaPredicate
                     )
                 }.toTypedArray()
                 cb.or(*orPredicates)
             } else {
                 if (criteria?.nimi != null) {
                     val nimiPredicate = criteria.nimi.toNimiPredicate(user, cb, langkey)
-                    nimiPredicate
+                    cb.and(tilaPredicate, nimiPredicate)
                 } else {
-                    cb.isTrue(cb.literal(true))
+                    cb.isTrue(tilaPredicate)
                 }
             }
+        }
+        return opintooikeusRepository.findAll(specification, pageable)
+    }
+
+    @Transactional(readOnly = true)
+    fun findByKouluttajaValtuutus(
+        criteria: ErikoistujanEteneminenCriteria?,
+        pageable: Pageable,
+        kayttajaId: Long,
+        validStates: List<OpintooikeudenTila>,
+        endedStates: List<OpintooikeudenTila>,
+    ): Page<Opintooikeus> {
+        val specification = createSpecification(criteria) { root, _, cb ->
+            cb.isTrue(cb.literal(true))
         }
         return opintooikeusRepository.findAll(specification, pageable)
     }
@@ -108,18 +136,6 @@ class ErikoistujienSeurantaQueryService(
                             LocalDate.now()
                         )
                     }
-            }
-            if (it.tila != null) {
-                it.tila.let { tilaList ->
-                    specification =
-                        specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
-                            cb.or(
-                                *tilaList!!.map { tilaValue ->
-                                    cb.equal(root.get(Opintooikeus_.tila), tilaValue)
-                                }.toTypedArray()
-                            )
-                        }
-                }
             }
             specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                 cb.or(

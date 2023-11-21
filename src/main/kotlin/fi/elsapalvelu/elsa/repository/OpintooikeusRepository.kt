@@ -103,7 +103,8 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>,
         """
     )
     fun findByKouluttajaValtuutus(
-        kayttajaId: Long, validStates: List<OpintooikeudenTila>,
+        kayttajaId: Long,
+        validStates: List<OpintooikeudenTila>,
         endedStates: List<OpintooikeudenTila>
     ): List<Opintooikeus>
 
