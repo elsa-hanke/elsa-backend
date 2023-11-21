@@ -1,11 +1,14 @@
 package fi.elsapalvelu.elsa.service.criteria
 
+import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import tech.jhipster.service.Criteria
 import tech.jhipster.service.filter.LongFilter
 import tech.jhipster.service.filter.StringFilter
 import java.io.Serializable
 
 data class ErikoistujanEteneminenCriteria(
+
+    var tila: List<OpintooikeudenTila>?,
 
     var nimi: StringFilter? = null,
 
@@ -19,6 +22,7 @@ data class ErikoistujanEteneminenCriteria(
 
     constructor(other: ErikoistujanEteneminenCriteria) :
         this(
+            other.tila,
             other.nimi?.copy(),
             other.erikoisalaId?.copy(),
             other.asetusId?.copy()
