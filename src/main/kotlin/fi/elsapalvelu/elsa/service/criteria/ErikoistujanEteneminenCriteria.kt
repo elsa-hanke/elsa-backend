@@ -8,8 +8,6 @@ import java.io.Serializable
 
 data class ErikoistujanEteneminenCriteria(
 
-    var tila: List<OpintooikeudenTila>?,
-
     var nimi: StringFilter? = null,
 
     var erikoisalaId: LongFilter? = null,
@@ -22,7 +20,6 @@ data class ErikoistujanEteneminenCriteria(
 
     constructor(other: ErikoistujanEteneminenCriteria) :
         this(
-            other.tila,
             other.nimi?.copy(),
             other.erikoisalaId?.copy(),
             other.asetusId?.copy()

@@ -79,16 +79,17 @@ class EtusivuServiceImpl(
     override fun getErikoistujienSeurantaForVastuuhenkilo(
         userId: String,
         criteria: ErikoistujanEteneminenCriteria,
-        pageable: Pageable
+        pageable: Pageable,
     ): Page<ErikoistujanEteneminenDTO>? {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
-        criteria.tila = OpintooikeudenTila.allowedTilat() + OpintooikeudenTila.endedTilat()
         kayttaja?.let { k ->
             return erikoistujienSeurantaQueryService.findByErikoisalaAndYliopisto(
                 criteria,
                 pageable,
                 k.user?.langKey,
-                k.yliopistotAndErikoisalat
+                k.yliopistotAndErikoisalat,
+                OpintooikeudenTila.allowedTilat(),
+                OpintooikeudenTila.endedTilat()
             ).map { opintooikeus -> getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus) }
         }
         return null
@@ -96,34 +97,19 @@ class EtusivuServiceImpl(
 
     override fun getErikoistujienSeurantaForKouluttaja(
         userId: String,
-        pageable: Pageable
-    ): Page<ErikoistujienSeurantaDTO>? {
+        criteria: ErikoistujanEteneminenCriteria,
+        pageable: Pageable,
+    ): Page<ErikoistujanEteneminenDTO>? {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
-        val seurantaDTO = ErikoistujienSeurantaDTO()
-        kayttaja?.let {
-            seurantaDTO.kayttajaYliopistoErikoisalat =
-                kayttaja.yliopistotAndErikoisalat.groupBy { it.yliopisto }.map {
-                    KayttajaErikoisalatPerYliopistoDTO(
-                        yliopistoNimi = it.key?.nimi.toString(),
-                        erikoisalat = it.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
-                            .sorted()
-                    )
-                }
-            seurantaDTO.kayttajaYliopistoErikoisalat?.forEach {
-                seurantaDTO.erikoisalat?.addAll(it.erikoisalat!!)
-            }
-            seurantaDTO.erikoisalat = seurantaDTO.erikoisalat?.sorted()?.toMutableSet()
-            opintooikeusRepository.findByKouluttajaValtuutus(
-                kayttaja.id!!,
+        kayttaja?.let {k ->
+            return erikoistujienSeurantaQueryService.findByKouluttajaValtuutus(
+                criteria,
+                pageable,
+                k.id!!,
                 OpintooikeudenTila.allowedTilat(),
                 OpintooikeudenTila.endedTilat()
-            ).forEach {
-                seurantaDTO.erikoistujienEteneminen?.add(
-                    getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(it)
-                )
-            }
+            ).map { opintooikeus -> getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus) }
         }
-        // return seurantaDTO
         return null
     }
 
