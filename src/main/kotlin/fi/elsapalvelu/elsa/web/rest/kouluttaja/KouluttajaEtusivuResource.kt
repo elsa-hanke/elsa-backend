@@ -23,6 +23,15 @@ class KouluttajaEtusivuResource(
     private val seurantajaksoService: SeurantajaksoService
 ) {
 
+    @GetMapping("/erikoistujien-seuranta-rajaimet")
+    fun getErikoistujienSeurantaRajaimet(
+        pageable: Pageable,
+        principal: Principal?
+    ): ResponseEntity<ErikoistujienSeurantaDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaVastuuhenkiloRajaimet(user.id!!))
+    }
+
     @GetMapping("/erikoistujien-seuranta")
     fun getErikoistujienSeurantaList(
         criteria: ErikoistujanEteneminenCriteria,

@@ -22,9 +22,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runBlocking
 
 @Service
 @Transactional
@@ -93,6 +90,28 @@ class EtusivuServiceImpl(
             ).map { opintooikeus -> getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus) }
         }
         return null
+    }
+
+    override fun getErikoistujienSeurantaKouluttajaRajaimet(
+        userId: String
+    ): ErikoistujienSeurantaDTO {
+        val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
+        val seurantaDTO = ErikoistujienSeurantaDTO()
+        kayttaja?.let {
+            seurantaDTO.kayttajaYliopistoErikoisalat =
+                kayttaja.yliopistotAndErikoisalat.groupBy { it.yliopisto }.map {
+                    KayttajaErikoisalatPerYliopistoDTO(
+                        yliopistoNimi = it.key?.nimi.toString(),
+                        erikoisalat = it.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
+                            .sorted()
+                    )
+                }
+            seurantaDTO.kayttajaYliopistoErikoisalat?.forEach {
+                seurantaDTO.erikoisalat?.addAll(it.erikoisalat!!)
+            }
+            seurantaDTO.erikoisalat = seurantaDTO.erikoisalat?.sorted()?.toMutableSet()
+        }
+        return seurantaDTO
     }
 
     override fun getErikoistujienSeurantaForKouluttaja(
