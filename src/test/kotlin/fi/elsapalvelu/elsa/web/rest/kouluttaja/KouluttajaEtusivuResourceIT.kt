@@ -130,7 +130,7 @@ class KouluttajaEtusivuResourceIT {
         kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
         kouluttaja.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
-        restEtusivuMockMvc.perform(get("/api/kouluttaja/etusivu/erikoistujien-seuranta"))
+        restEtusivuMockMvc.perform(get("/api/kouluttaja/etusivu/erikoistujien-seuranta-rajaimet"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat").value(hasSize<Int>(1)))
@@ -250,59 +250,59 @@ class KouluttajaEtusivuResourceIT {
         restEtusivuMockMvc.perform(get("/api/kouluttaja/etusivu/erikoistujien-seuranta"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.erikoistujienEteneminen").value(hasSize<Int>(1)))
+            .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
             .andExpect(
-                jsonPath("$.erikoistujienEteneminen[0].opintooikeusId").value(
+                jsonPath("$.content[0].opintooikeusId").value(
                     erikoistuvaLaakari.getOpintooikeusKaytossa()?.id
                 )
             )
             .andExpect(
-                jsonPath("$.erikoistujienEteneminen[0].erikoistuvaLaakariEtuNimi").value(
+                jsonPath("$.content[0].erikoistuvaLaakariEtuNimi").value(
                     erikoistuvaLaakari.kayttaja?.user?.firstName
                 )
             )
             .andExpect(
-                jsonPath("$.erikoistujienEteneminen[0].erikoistuvaLaakariSukuNimi").value(
+                jsonPath("$.content[0].erikoistuvaLaakariSukuNimi").value(
                     erikoistuvaLaakari.kayttaja?.user?.lastName
                 )
             )
             .andExpect(
-                jsonPath("$.erikoistujienEteneminen[0].erikoistuvaLaakariSyntymaaika").value(
+                jsonPath("$.content[0].erikoistuvaLaakariSyntymaaika").value(
                     erikoistuvaLaakari.syntymaaika.toString()
                 )
             )
             .andExpect(
-                jsonPath("$.erikoistujienEteneminen[0].tyoskentelyjaksoTilastot.tyoskentelyaikaYhteensa").value(
+                jsonPath("$.content[0].tyoskentelyjaksoTilastot.tyoskentelyaikaYhteensa").value(
                     5
                 )
             )
-            .andExpect(jsonPath("$.erikoistujienEteneminen[0].arviointienKeskiarvo").value(3.5))
-            .andExpect(jsonPath("$.erikoistujienEteneminen[0].arviointienLkm").value(2))
+            .andExpect(jsonPath("$.content[0].arviointienKeskiarvo").value(3.5))
+            .andExpect(jsonPath("$.content[0].arviointienLkm").value(2))
             .andExpect(
-                jsonPath("$.erikoistujienEteneminen[0].arvioitavienKokonaisuuksienLkm").value(
+                jsonPath("$.content[0].arvioitavienKokonaisuuksienLkm").value(
                     2
                 )
             )
-            .andExpect(jsonPath("$.erikoistujienEteneminen[0].seurantajaksotLkm").value(2))
-            .andExpect(jsonPath("$.erikoistujienEteneminen[0].seurantajaksonHuoletLkm").value(1))
-            .andExpect(jsonPath("$.erikoistujienEteneminen[0].suoritemerkinnatLkm").value(1))
-            .andExpect(jsonPath("$.erikoistujienEteneminen[0].koejaksoTila").value(KoejaksoTila.EI_AKTIIVINEN.toString()))
+            .andExpect(jsonPath("$.content[0].seurantajaksotLkm").value(2))
+            .andExpect(jsonPath("$.content[0].seurantajaksonHuoletLkm").value(1))
+            .andExpect(jsonPath("$.content[0].suoritemerkinnatLkm").value(1))
+            .andExpect(jsonPath("$.content[0].koejaksoTila").value(KoejaksoTila.EI_AKTIIVINEN.toString()))
             .andExpect(
-                jsonPath("$.erikoistujienEteneminen[0].opintooikeudenMyontamispaiva").value(
+                jsonPath("$.content[0].opintooikeudenMyontamispaiva").value(
                     erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintooikeudenMyontamispaiva?.format(
                         DateTimeFormatter.ofPattern("yyyy-MM-dd")
                     )
                 )
             )
             .andExpect(
-                jsonPath("$.erikoistujienEteneminen[0].opintooikeudenPaattymispaiva").value(
+                jsonPath("$.content[0].opintooikeudenPaattymispaiva").value(
                     erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintooikeudenPaattymispaiva?.format(
                         DateTimeFormatter.ofPattern("yyyy-MM-dd")
                     )
                 )
             )
-            .andExpect(jsonPath("$.erikoistujienEteneminen[0].asetus").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.asetus?.nimi))
-            .andExpect(jsonPath("$.erikoistujienEteneminen[0].erikoisala").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala?.nimi))
+            .andExpect(jsonPath("$.content[0].asetus").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.asetus?.nimi))
+            .andExpect(jsonPath("$.content[0].erikoisala").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala?.nimi))
     }
 
     @Test
