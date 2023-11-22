@@ -13,6 +13,8 @@ interface EtusivuService {
         userId: String, criteria: ErikoistujanEteneminenCriteria, pageable: Pageable
     ): Page<ErikoistujanEteneminenDTO>?
 
+    fun getErikoistujienSeurantaKouluttajaRajaimet(userId: String): ErikoistujienSeurantaDTO
+
     fun getErikoistujienSeurantaForKouluttaja(
         userId: String,
         criteria: ErikoistujanEteneminenCriteria,

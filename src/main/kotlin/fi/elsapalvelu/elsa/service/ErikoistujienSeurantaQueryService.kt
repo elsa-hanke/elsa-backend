@@ -99,7 +99,32 @@ class ErikoistujienSeurantaQueryService(
         endedStates: List<OpintooikeudenTila>,
     ): Page<Opintooikeus> {
         val specification = createSpecification(criteria) { root, _, cb ->
-            cb.isTrue(cb.literal(true))
+            // val erikoistuvaLaakari: Join<Opintooikeus?, ErikoistuvaLaakari> = root.join(Opintooikeus_.erikoistuvaLaakari)
+            val annetutValtuutukset: Join<Opintooikeus?, Kouluttajavaltuutus> = root.join(Opintooikeus_.annetutValtuutukset)
+
+            val myontamispaivaPredicate = cb.greaterThanOrEqualTo(
+                root.get(Opintooikeus_.opintooikeudenMyontamispaiva),
+                LocalDate.now()
+            )
+            val tilaPredicate = cb.or(
+                root.get(Opintooikeus_.tila).`in`(validStates),
+                cb.and(
+                    root.get(Opintooikeus_.tila).`in`(endedStates),
+                    cb.lessThanOrEqualTo(root.get(Opintooikeus_.viimeinenKatselupaiva), LocalDate.now())
+                )
+            )
+            val valtuutettuIdPredicate = cb.equal(annetutValtuutukset.get(Kouluttajavaltuutus_.valtuutettu)
+                .get(Kayttaja_.id), kayttajaId)
+            val alkamispaivaPredicate = cb.lessThanOrEqualTo(
+                annetutValtuutukset.get(Kouluttajavaltuutus_.alkamispaiva),
+                LocalDate.now()
+            )
+            val paattymispaivaPredicate = cb.greaterThanOrEqualTo(
+                annetutValtuutukset.get(Kouluttajavaltuutus_.paattymispaiva),
+                LocalDate.now()
+            )
+            val dateBetweenPredicate = cb.and(alkamispaivaPredicate, paattymispaivaPredicate)
+            cb.and(myontamispaivaPredicate, tilaPredicate, valtuutettuIdPredicate, dateBetweenPredicate)
         }
         return opintooikeusRepository.findAll(specification, pageable)
     }
