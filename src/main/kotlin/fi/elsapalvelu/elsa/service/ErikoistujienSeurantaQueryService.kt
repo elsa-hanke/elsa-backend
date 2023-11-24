@@ -55,15 +55,13 @@ class ErikoistujienSeurantaQueryService(
                 .join(ErikoistuvaLaakari_.kayttaja)
                 .join(Kayttaja_.user)
 
-            val yliopisto: Path<Yliopisto> = root.get(Opintooikeus_.yliopisto)
             val validStatesExpression = root.get(Opintooikeus_.tila)
             val endedStatesExpression = root.get(Opintooikeus_.tila)
 
-            // val myontamispaivaPredicate = cb.greaterThanOrEqualTo(
-            //     root.get(Opintooikeus_.opintooikeudenMyontamispaiva),
-            //     LocalDate.now()
-            // )
-
+            val myontamispaivaPredicate = cb.lessThanOrEqualTo(
+                root.get(Opintooikeus_.opintooikeudenMyontamispaiva),
+                LocalDate.now()
+            )
             val tilaPredicate = cb.or(
                 validStatesExpression.`in`(validStates),
                 cb.and(
@@ -71,20 +69,19 @@ class ErikoistujienSeurantaQueryService(
                     cb.lessThanOrEqualTo(root.get(Opintooikeus_.viimeinenKatselupaiva), LocalDate.now())
                 )
             )
-
             val orPredicates = yliopistotAndErikoisalat.map { ye ->
                 cb.and(
-                    cb.equal(yliopisto.get(Yliopisto_.id), ye.yliopisto!!.id),
-                    cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), ye.erikoisala!!.id),
-                    tilaPredicate
+                    cb.equal(root.get(Opintooikeus_.yliopisto).get(Yliopisto_.id), ye.yliopisto!!.id),
+                    cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), ye.erikoisala!!.id)
                 )
             }.toTypedArray()
+            val combinedOrPredicate = cb.or(*orPredicates)
 
             if (criteria?.nimi != null) {
                 val nimiPredicate = criteria.nimi.toNimiPredicate(user, cb, langkey)
-                cb.and(/*myontamispaivaPredicate,*/ *orPredicates, tilaPredicate, nimiPredicate)
+                cb.and(myontamispaivaPredicate, combinedOrPredicate, tilaPredicate, nimiPredicate)
             } else {
-                cb.and(/*myontamispaivaPredicate,*/ *orPredicates, tilaPredicate)
+                cb.and(myontamispaivaPredicate, combinedOrPredicate, tilaPredicate)
             }
         }
         return opintooikeusRepository.findAll(specification, pageable)
