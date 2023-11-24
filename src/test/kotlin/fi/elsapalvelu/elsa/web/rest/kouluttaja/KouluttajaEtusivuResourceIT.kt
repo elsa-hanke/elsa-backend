@@ -109,7 +109,7 @@ class KouluttajaEtusivuResourceIT {
 
     @Test
     @Transactional
-    fun getErikoistujienSeurantaEmptyList() {
+    fun getErikoistujienSeurantaRajaimet() {
         initTest()
 
         val yliopisto1 =
@@ -148,7 +148,35 @@ class KouluttajaEtusivuResourceIT {
                 )
             )
             .andExpect(jsonPath("$.erikoisalat").value(hasSize<Int>(1)))
-            .andExpect(jsonPath("$.erikoistujienEteneminen").value(hasSize<Int>(0)))
+    }
+
+    @Test
+    @Transactional
+    fun getErikoistujienSeurantaEmptyList() {
+        initTest()
+
+        val yliopisto1 =
+            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
+
+        val erikoisala1 = erikoisalaRepository.save(
+            Erikoisala(
+                nimi = "Erikoisala 1",
+                tyyppi = ErikoisalaTyyppi.LAAKETIEDE
+            )
+        )
+
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
+            kayttaja = kouluttaja,
+            yliopisto = yliopisto1,
+            erikoisala = erikoisala1
+        )
+        kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
+        kouluttaja.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
+
+        restEtusivuMockMvc.perform(get("/api/kouluttaja/etusivu/erikoistujien-seuranta"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.content").value(hasSize<Int>(0)))
     }
 
     @Test
@@ -247,7 +275,8 @@ class KouluttajaEtusivuResourceIT {
         seurantajakso.huolenaiheet = "huolenaiheet"
         seurantajaksoRepository.save(seurantajakso)
 
-        restEtusivuMockMvc.perform(get("/api/kouluttaja/etusivu/erikoistujien-seuranta"))
+        val query = "?page=0&size=20&sort=opintooikeudenPaattymispaiva,asc&naytaPaattyneet=false"
+        restEtusivuMockMvc.perform(get("/api/kouluttaja/etusivu/erikoistujien-seuranta" + query))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
