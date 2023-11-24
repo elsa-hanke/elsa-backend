@@ -99,10 +99,9 @@ class ErikoistujienSeurantaQueryService(
         endedStates: List<OpintooikeudenTila>,
     ): Page<Opintooikeus> {
         val specification = createSpecification(criteria) { root, _, cb ->
-            // val erikoistuvaLaakari: Join<Opintooikeus?, ErikoistuvaLaakari> = root.join(Opintooikeus_.erikoistuvaLaakari)
             val annetutValtuutukset: Join<Opintooikeus?, Kouluttajavaltuutus> = root.join(Opintooikeus_.annetutValtuutukset)
 
-            val myontamispaivaPredicate = cb.greaterThanOrEqualTo(
+            val myontamispaivaPredicate = cb.lessThanOrEqualTo(
                 root.get(Opintooikeus_.opintooikeudenMyontamispaiva),
                 LocalDate.now()
             )
