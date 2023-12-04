@@ -7,7 +7,9 @@ import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import jakarta.persistence.criteria.*
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -38,7 +40,11 @@ class ErikoistujienSeurantaQueryService(
                 cb.and(yliopistoPredicate, nimiPredicate)
             } else yliopistoPredicate
         }
-        return opintooikeusRepository.findAll(specification, pageable)
+        val existingSort = pageable.sort
+        val sortById = Sort.by(Sort.Order.asc(Opintooikeus_.ID))
+        val finalSort = existingSort.and(sortById)
+        val pageableWithSort = PageRequest.of(pageable.pageNumber, pageable.pageSize, finalSort)
+        return opintooikeusRepository.findAll(specification, pageableWithSort)
     }
 
     @Transactional(readOnly = true)
@@ -84,7 +90,11 @@ class ErikoistujienSeurantaQueryService(
                 cb.and(myontamispaivaPredicate, combinedOrPredicate, tilaPredicate)
             }
         }
-        return opintooikeusRepository.findAll(specification, pageable)
+        val existingSort = pageable.sort
+        val sortById = Sort.by(Sort.Order.asc(Opintooikeus_.ID))
+        val finalSort = existingSort.and(sortById)
+        val pageableWithSort = PageRequest.of(pageable.pageNumber, pageable.pageSize, finalSort)
+        return opintooikeusRepository.findAll(specification, pageableWithSort)
     }
 
     @Transactional(readOnly = true)
@@ -122,7 +132,11 @@ class ErikoistujienSeurantaQueryService(
             val dateBetweenPredicate = cb.and(alkamispaivaPredicate, paattymispaivaPredicate)
             cb.and(myontamispaivaPredicate, tilaPredicate, valtuutettuIdPredicate, dateBetweenPredicate)
         }
-        return opintooikeusRepository.findAll(specification, pageable)
+        val existingSort = pageable.sort
+        val sortById = Sort.by(Sort.Order.asc(Opintooikeus_.ID))
+        val finalSort = existingSort.and(sortById)
+        val pageableWithSort = PageRequest.of(pageable.pageNumber, pageable.pageSize, finalSort)
+        return opintooikeusRepository.findAll(specification, pageableWithSort)
     }
 
     protected fun createSpecification(
