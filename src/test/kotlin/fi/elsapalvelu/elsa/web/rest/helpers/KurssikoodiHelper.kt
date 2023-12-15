@@ -19,14 +19,15 @@ class KurssikoodiHelper {
             em: EntityManager,
             tunniste: String? = DEFAULT_TUNNISTE,
             tyyppi: OpintosuoritusTyyppiEnum? = DEFAULT_TYYPPI,
-            yliopisto: Yliopisto?
+            yliopisto: Yliopisto?,
+            isOsakokonaisuus: Boolean = false
         ): OpintosuoritusKurssikoodi {
             val opintosuoritusTyyppi =
                 em.findAll(OpintosuoritusTyyppi::class).first { it.nimi == tyyppi }
             val kurssikoodi = OpintosuoritusKurssikoodi(
                 tunniste = tunniste,
                 tyyppi = opintosuoritusTyyppi,
-                isOsakokonaisuus = false,
+                isOsakokonaisuus = isOsakokonaisuus,
                 yliopisto = yliopisto ?: em.findAll(Yliopisto::class).first()
             )
             em.persist(kurssikoodi)
