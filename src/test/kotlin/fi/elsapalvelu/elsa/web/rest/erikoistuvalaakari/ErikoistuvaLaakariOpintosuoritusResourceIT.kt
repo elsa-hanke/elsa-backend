@@ -176,6 +176,7 @@ class ErikoistuvaLaakariOpintosuoritusResourceIT {
             .andExpect(jsonPath("$.opintosuoritukset[1].tyyppi.nimi").value(opintosuoritus2Tyyppi.toString()))
     }
 
+    /* ELSA-328 changes this logic
     @Test
     @Transactional
     fun getOpintosuorituksetShouldNotReturnOpintosuoritusWithOsakokonaisuusKurssikoodi() {
@@ -217,6 +218,7 @@ class ErikoistuvaLaakariOpintosuoritusResourceIT {
             .andExpect(jsonPath("$.opintosuoritukset").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.opintosuoritukset[0].osakokonaisuudet").value(Matchers.hasSize<Any>(1)))
     }
+    */
 
     @Test
     @Transactional
