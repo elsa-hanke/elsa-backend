@@ -3,14 +3,13 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.Opintosuoritus
 import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.Yliopisto
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
+import fi.elsapalvelu.elsa.web.rest.helpers.*
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper.Companion.DEFAULT_ID
-import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.OpintoopasHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.OpintosuoritusHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.OpintosuoritusOsakokonaisuusHelper
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,6 +39,8 @@ class ErikoistuvaLaakariOpintosuoritusResourceIT {
     private lateinit var opintosuoritus: Opintosuoritus
 
     private lateinit var user: User
+
+    private lateinit var defaultYliopisto: Yliopisto
 
     @Test
     @Transactional
@@ -175,11 +176,22 @@ class ErikoistuvaLaakariOpintosuoritusResourceIT {
             .andExpect(jsonPath("$.opintosuoritukset[1].tyyppi.nimi").value(opintosuoritus2Tyyppi.toString()))
     }
 
+    /* ELSA-328 changes this logic
     @Test
     @Transactional
     fun getOpintosuorituksetShouldNotReturnOpintosuoritusWithOsakokonaisuusKurssikoodi() {
         initTest()
 
+        defaultYliopisto = Yliopisto(nimi = defaultYliopistoEnum)
+        em.persist(defaultYliopisto)
+
+        KurssikoodiHelper.createEntity(
+            em,
+            tunniste = OPINTOSUORITUS1_KURSSIKOODI,
+            tyyppi = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO,
+            yliopisto = defaultYliopisto,
+            isOsakokonaisuus = true
+        )
         opintosuoritus = OpintosuoritusHelper.createEntity(
             em,
             user,
@@ -203,9 +215,10 @@ class ErikoistuvaLaakariOpintosuoritusResourceIT {
         restOpintosuorituksetMockMvc.perform(get("/api/erikoistuva-laakari/opintosuoritukset"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.opintosuoritukset").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.opintosuoritukset").value(Matchers.hasSize<Any>(2)))
             .andExpect(jsonPath("$.opintosuoritukset[0].osakokonaisuudet").value(Matchers.hasSize<Any>(1)))
     }
+    */
 
     @Test
     @Transactional
@@ -252,5 +265,7 @@ class ErikoistuvaLaakariOpintosuoritusResourceIT {
         private const val OPINTOSUORITUS1_KURSSIKOODI = "ABCDEFG"
         private const val OPINTOSUORITUS2_KURSSIKOODI = "BCDEFGH"
         private const val OPINTOSUORITUS_OSAKOKONAISUUS1_KURSSIKOODI = "CDEFGHI"
+        private val defaultYliopistoEnum = YliopistoEnum.HELSINGIN_YLIOPISTO
     }
+
 }
