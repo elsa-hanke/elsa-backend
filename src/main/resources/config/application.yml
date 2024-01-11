@@ -249,7 +249,7 @@ application:
       api-key:
       endpoint-url: https://mixqa.uef.fi/api/v1/elsa
   feedback:
-    to: elsa@tuni.fi
+    to: rosa.lindell@oulu.fi
   opintohallintoemail:
     hki:
     oulu:
