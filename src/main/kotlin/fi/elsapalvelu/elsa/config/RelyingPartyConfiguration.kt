@@ -109,6 +109,7 @@ class RelyingPartyConfiguration(
                         .registrationId(it.hakaId!!)
                         .assertingPartyDetails { party: RelyingPartyRegistration.AssertingPartyDetails.Builder ->
                             party.entityId(it.hakaEntityId!!)
+                            party.wantAuthnRequestsSigned(true)
                         }
                         .signingX509Credentials { signing -> signing.add(signingCredential) }
                         .decryptionX509Credentials { decryption ->
