@@ -11,5 +11,11 @@
             </column>
         </addColumn>
 
+        <addColumn tableName="koejakson_loppukeskustelu_audit">
+            <column name="koejakson_paattymispaiva" type="date">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
     </changeSet>
 </databaseChangeLog>
