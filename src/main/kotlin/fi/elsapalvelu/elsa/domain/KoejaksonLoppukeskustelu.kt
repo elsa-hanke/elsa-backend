@@ -62,7 +62,10 @@ data class KoejaksonLoppukeskustelu(
     var korjausehdotus: String? = null,
 
     @Column(name = "erikoistuvan_kuittausaika", nullable = false)
-    var erikoistuvanKuittausaika: LocalDate? = null
+    var erikoistuvanKuittausaika: LocalDate? = null,
+
+    @Column(name = "koejakson_paattymispaiva")
+    var koejaksonPaattymispaiva: LocalDate? = null,
 
 ) : Serializable {
 

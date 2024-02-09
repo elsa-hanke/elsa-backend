@@ -50,7 +50,9 @@ data class KoejaksonLoppukeskusteluDTO(
 
     var kehittamistoimenpiteet: String? = null,
 
-    var kehittamistoimenpiteetRiittavat: Boolean? = null
+    var kehittamistoimenpiteetRiittavat: Boolean? = null,
+
+    var koejaksonPaattymispaiva: LocalDate? = null,
 
 ) : Serializable {
     override fun toString() = "KoejaksonLoppukeskusteluDTO"
