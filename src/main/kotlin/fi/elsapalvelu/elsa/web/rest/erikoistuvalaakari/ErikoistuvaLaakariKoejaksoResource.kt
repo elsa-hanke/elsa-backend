@@ -16,6 +16,7 @@ import java.net.URI
 import java.security.Principal
 import jakarta.validation.Valid
 import org.springframework.web.multipart.MultipartFile
+import java.util.Date
 
 private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 private const val ENTITY_KOEJAKSON_ALOITUSKESKUSTELU = "koejakson_aloituskeskustelu"
