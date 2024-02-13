@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20240213090000-1-data" author="jhipster">
+        <loadData
+            file="config/liquibase/data/erikoisala_yek.csv"
+            separator=";"
+            tableName="erikoisala">
+            <column name="id" type="numeric"/>
+            <column name="nimi" type="string"/>
+            <column name="tyyppi" type="string"/>
+            <column name="virta_patevyyskoodi" type="string"/>
+            <column name="liittynyt_elsaan" type="boolean"/>
+        </loadData>
+    </changeSet>
+
+</databaseChangeLog>
