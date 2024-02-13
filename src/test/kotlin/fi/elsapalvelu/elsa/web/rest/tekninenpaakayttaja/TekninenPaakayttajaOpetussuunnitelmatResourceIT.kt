@@ -94,7 +94,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$").value(Matchers.hasSize<Int>(60)))
+            .andExpect(jsonPath("$").value(Matchers.hasSize<Int>(61)))
     }
 
     @Test
