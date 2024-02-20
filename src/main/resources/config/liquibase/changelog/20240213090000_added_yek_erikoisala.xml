@@ -4,7 +4,16 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
-    <changeSet id="20240213090000-1-data" author="jhipster">
+    <changeSet id="20240213090000-1-sequence" author="jhipster">
+        <addAutoIncrement columnName="id"
+                          columnDataType="bigint"
+                          generationType="ALWAYS"
+                          incrementBy="1"
+                          startWith="62"
+                          tableName="erikoisala"/>
+    </changeSet>
+
+    <changeSet id="20240213090000-2-data" author="jhipster">
         <loadData
             file="config/liquibase/data/erikoisala_yek.csv"
             separator=";"
