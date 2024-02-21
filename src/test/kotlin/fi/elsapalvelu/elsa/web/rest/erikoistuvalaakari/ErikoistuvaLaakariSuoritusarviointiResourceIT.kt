@@ -281,7 +281,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
-            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(60)))
+            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(61)))
             .andExpect(
                 jsonPath("$.arvioitavanKokonaisuudenKategoriat").value(
                     Matchers.hasSize<Any>(
