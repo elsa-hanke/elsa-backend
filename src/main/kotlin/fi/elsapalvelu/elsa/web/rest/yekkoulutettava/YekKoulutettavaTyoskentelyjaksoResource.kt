@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Value
@@ -17,6 +18,7 @@ import jakarta.validation.ValidationException
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import jakarta.persistence.EntityNotFoundException
+import org.springframework.security.access.prepost.PreAuthorize
 import java.time.LocalDate
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
@@ -63,6 +65,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
         }?.let {
+            it.kaytannonKoulutus = KaytannonKoulutusTyyppi.OMAN_ERIKOISALAN_KOULUTUS
             val opintooikeusId =
                 opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
             validateNewTyoskentelyjaksoDTO(it)
