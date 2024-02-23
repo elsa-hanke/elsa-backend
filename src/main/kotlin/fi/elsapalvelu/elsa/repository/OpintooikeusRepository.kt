@@ -18,6 +18,8 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>,
 
     fun findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId: String): Opintooikeus?
 
+    fun findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrueAndErikoisalaId(userId: String, erikoisalaId: Long): Opintooikeus?
+
     fun findOneByErikoistuvaLaakariIdAndYliopistoOpintooikeusId(
         erikoistuvaLaakariId: Long,
         yliopistoOpintooikeusId: String

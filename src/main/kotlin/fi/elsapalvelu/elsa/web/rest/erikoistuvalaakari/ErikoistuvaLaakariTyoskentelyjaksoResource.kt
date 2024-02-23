@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
@@ -131,15 +132,22 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksotTableDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeus =
+            opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        if (opintooikeus.erikoisalaId == YEK_ERIKOISALA_ID) {
+            throw BadRequestAlertException(
+                "Erikoistuvan työskentelyjaksoihin ei pääse YEK erikoisalan opinto-oikeudella",
+                TYOSKENTELYJAKSO_ENTITY_NAME,
+                "yekopintooikeus"
+            )
+        }
         val table = TyoskentelyjaksotTableDTO()
         table.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
+            .findAllByOpintooikeusId(opintooikeus.id!!).toMutableSet()
         table.keskeytykset = keskeytysaikaService
-            .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
-        table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeusId)
-        terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)?.let {
+            .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeus.id!!).toMutableSet()
+        table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeus.id!!)
+        terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeus.id!!)?.let {
             table.terveyskeskuskoulutusjaksonTila = it.tila
             table.terveyskeskuskoulutusjaksonKorjausehdotus =
                 if (it.virkailijanKorjausehdotus != null) it.virkailijanKorjausehdotus else it.vastuuhenkilonKorjausehdotus
