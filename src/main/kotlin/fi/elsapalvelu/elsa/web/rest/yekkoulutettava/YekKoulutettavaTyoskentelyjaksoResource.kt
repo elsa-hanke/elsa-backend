@@ -21,8 +21,6 @@ import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.security.access.prepost.PreAuthorize
 import java.time.LocalDate
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
