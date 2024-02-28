@@ -64,6 +64,18 @@ class OpintooikeusServiceImpl(
         throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
     }
 
+    override fun findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
+        userId: String, erikoisalaId: Long
+    ): Long {
+        getImpersonatedOpintooikeusId()?.let { return it }
+        opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrueAndErikoisalaId(userId, erikoisalaId)
+            ?.let {
+                return it.id!!
+            }
+
+        throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
+    }
+
     override fun findAllByTerveyskoulutusjaksoSuorittamatta(): List<Opintooikeus> {
         return opintooikeusRepository.findAllByTerveyskoulutusjaksoSuorittamatta(
             LocalDate.now(clock), OpintooikeudenTila.allowedTilat()

@@ -7,6 +7,7 @@ class ErikoisalaHelper {
 
     companion object {
 
+        private const val DEFAULT_ID = 62L
         private const val DEFAULT_NIMI = "AAAAAAAAAA"
         private const val DEFAULT_VIRTAPATEVYYSKOODI = "FFFFFFFFFF"
         private const val UPDATED_NIMI = "BBBBBBBBBB"
@@ -42,5 +43,22 @@ class ErikoisalaHelper {
                 liittynytElsaan = true
             )
         }
+
+        @JvmStatic
+        fun createEntityWithId(
+            id: Long = DEFAULT_ID,
+            nimi: String = DEFAULT_NIMI,
+            virtaPatevyyskoodi: String? = DEFAULT_VIRTAPATEVYYSKOODI,
+            tyyppi: ErikoisalaTyyppi = DEFAULT_TYYPPI
+        ): Erikoisala {
+            return Erikoisala(
+                id = id,
+                nimi = nimi,
+                tyyppi = tyyppi,
+                virtaPatevyyskoodi = virtaPatevyyskoodi,
+                liittynytElsaan = true
+            )
+        }
+
     }
 }

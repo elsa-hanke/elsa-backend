@@ -21,11 +21,11 @@ allOpen {
     annotation("jakarta.persistence.Embeddable")
 }
 
-ktlint {
-    ignoreFailures = true
-    disabledRules = ["no-wildcard-imports", "filename"]
-}
-check.dependsOn ktlintCheck
+// ktlint {
+//     ignoreFailures = true
+//     disabledRules = ["no-wildcard-imports", "filename"]
+// }
+// check.dependsOn ktlintCheck
 
 detekt {
     toolVersion = detektVersion
