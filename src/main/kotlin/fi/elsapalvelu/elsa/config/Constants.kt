@@ -10,3 +10,6 @@ const val ERIKOISTUVA_LAAKARI_SISU_KOULUTUS = "urn:code:education-classification
 const val ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS = "urn:code:education-classification:koulutus_775201"
 const val ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS = "775101"
 const val ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS = "775201"
+const val YEK_KOULUTETTAVA_SISU_KOULUTUS = "urn:code:education-classification:koulutus_xxxxxx"
+const val YEK_KOULUTETTAVA_PEPPI_KOULUTUS = "xxxxxx"
+const val YEK_ERIKOISALA_ID: Long = 61L

@@ -210,8 +210,8 @@ class SecurityConfiguration(
                         ERIKOISTUVA_LAAKARI,
                         ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
                     )
-                    .requestMatchers("/api/erikoistuva-laakari/**")
-                    .hasAuthority(ERIKOISTUVA_LAAKARI)
+                    .requestMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
+                    .requestMatchers("/api/yek-koulutettava/**").hasAuthority(YEK_KOULUTETTAVA)
                     .requestMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
                     .requestMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
                     .requestMatchers("/api/tekninen-paakayttaja/**")
@@ -220,6 +220,7 @@ class SecurityConfiguration(
                     .requestMatchers(HttpMethod.PUT, "/api/kayttaja")
                     .hasAnyAuthority(
                         ERIKOISTUVA_LAAKARI,
+                        YEK_KOULUTETTAVA,
                         KOULUTTAJA,
                         VASTUUHENKILO,
                         OPINTOHALLINNON_VIRKAILIJA,
@@ -444,12 +445,19 @@ class SecurityConfiguration(
         tokenUser: User?,
         hetu: String?
     ): Boolean =
-        (existingUser == null || hasErikoistuvaLaakariRole(existingUser)
-            || hasKouluttajaRole(existingUser))
-            && (tokenUser == null || hasErikoistuvaLaakariRole(tokenUser)) && hetu != null
+        (existingUser == null ||
+            hasErikoistuvaLaakariRole(existingUser) || hasYekKoulutettavaRole(existingUser) ||
+            hasKouluttajaRole(existingUser)
+            )
+            && (tokenUser == null || hasErikoistuvaLaakariRole(tokenUser)
+            || hasYekKoulutettavaRole(tokenUser)
+                ) && hetu != null
 
     private fun hasErikoistuvaLaakariRole(user: User): Boolean =
         user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))
+
+    private fun hasYekKoulutettavaRole(user: User): Boolean =
+        user.authorities.contains(Authority(name = YEK_KOULUTETTAVA))
 
     private fun hasKouluttajaRole(user: User): Boolean =
         user.authorities.contains(Authority(name = KOULUTTAJA))
