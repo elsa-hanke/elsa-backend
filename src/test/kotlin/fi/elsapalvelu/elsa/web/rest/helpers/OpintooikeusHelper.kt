@@ -7,8 +7,8 @@ import fi.elsapalvelu.elsa.domain.Yliopisto
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.web.rest.findAll
-import java.time.LocalDate
 import jakarta.persistence.EntityManager
+import java.time.LocalDate
 
 class OpintooikeusHelper {
 
@@ -79,6 +79,55 @@ class OpintooikeusHelper {
             erikoistuvaLaakari.opintooikeudet.find { it.id == opintooikeus.id }?.let {
                 it.kaytossa = true
             }
+        }
+
+        @JvmStatic
+        fun addOpintooikeusForYekKoulutettava(
+            em: EntityManager,
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            alkamispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
+            paattymispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
+            tila: OpintooikeudenTila = OpintooikeudenTila.AKTIIVINEN,
+            viimeinenKatselupaiva: LocalDate? = null
+        ): Opintooikeus {
+            val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
+            em.persist(yliopisto)
+
+            val erikoisala = ErikoisalaHelper.createEntityWithId(61L)
+
+            val opintoopas = OpintoopasHelper.createEntity(em, erikoisala = erikoisala)
+            em.persist(opintoopas)
+            em.flush()
+
+            val asetus: Asetus
+            if (em.findAll(Asetus::class).isEmpty()) {
+                asetus = Asetus(nimi = DEFAULT_ASETUS)
+                em.persist(asetus)
+                em.flush()
+            } else {
+                asetus = em.findAll(Asetus::class).get(0)
+            }
+
+            val opintooikeus = Opintooikeus(
+                opintooikeudenMyontamispaiva = alkamispaiva,
+                opintooikeudenPaattymispaiva = paattymispaiva,
+                opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
+                osaamisenArvioinninOppaanPvm = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
+                erikoistuvaLaakari = erikoistuvaLaakari,
+                yliopisto = yliopisto,
+                erikoisala = erikoisala,
+                opintoopas = opintoopas,
+                asetus = asetus,
+                kaytossa = false,
+                tila = tila,
+                viimeinenKatselupaiva = viimeinenKatselupaiva
+            )
+            em.persist(opintooikeus)
+            em.flush()
+
+            erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
+
+            return opintooikeus
         }
     }
 }
