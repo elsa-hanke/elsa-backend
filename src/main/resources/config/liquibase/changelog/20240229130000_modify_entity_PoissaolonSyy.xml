@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20240229130000-data" author="jhipster">
+
+        <insert tableName="poissaolon_syy">
+            <column name="id" value="18"/>
+            <column name="nimi" value="Äitiysloma, isyysloma, vanhempainvapaa (palkallinen/palkaton), lapsi 4"/>
+            <column name="vahennystyyppi" value="VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI"/>
+            <column name="voimassaolon_alkamispaiva" value="2020-08-01"/>
+            <column name="vahennetaan_kerran" value="true"/>
+        </insert>
+
+        <insert tableName="poissaolon_syy">
+            <column name="id" value="19"/>
+            <column name="nimi" value="Äitiysloma, isyysloma, vanhempainvapaa (palkallinen/palkaton), lapsi 5"/>
+            <column name="vahennystyyppi" value="VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI"/>
+            <column name="voimassaolon_alkamispaiva" value="2020-08-01"/>
+            <column name="vahennetaan_kerran" value="true"/>
+        </insert>
+
+        <insert tableName="poissaolon_syy">
+            <column name="id" value="20"/>
+            <column name="nimi" value="Äitiysloma, isyysloma, vanhempainvapaa (palkallinen/palkaton), lapsi 6"/>
+            <column name="vahennystyyppi" value="VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI"/>
+            <column name="voimassaolon_alkamispaiva" value="2020-08-01"/>
+            <column name="vahennetaan_kerran" value="true"/>
+        </insert>
+
+    </changeSet>
+
+    <changeSet id="20240229130000-sequence" author="jhipster">
+
+        <addAutoIncrement columnName="id"
+                          columnDataType="bigint"
+                          generationType="ALWAYS"
+                          incrementBy="1"
+                          startWith="21"
+                          tableName="poissaolon_syy"/>
+
+    </changeSet>
+
+</databaseChangeLog>
