@@ -31,7 +31,7 @@ import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.ValidationException
 import org.springframework.web.multipart.MultipartFile
 
-private const val TERVEYSKESKUS_HYVAKSYNTA_MINIMIPITUUS = 273.75 // 9kk
+private const val TERVEYSKESKUS_HYVAKSYNTA_MINIMIPITUUS = 272.75 // 9kk
 
 @Service
 @Transactional
