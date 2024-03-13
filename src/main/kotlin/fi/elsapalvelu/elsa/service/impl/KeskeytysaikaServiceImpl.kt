@@ -5,9 +5,9 @@ import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.KeskeytysaikaService
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
+import jakarta.validation.ValidationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import jakarta.validation.ValidationException
 
 @Service
 @Transactional
@@ -50,7 +50,7 @@ class KeskeytysaikaServiceImpl(
     override fun findAllByTyoskentelyjaksoOpintooikeusId(
         opintooikeusId: Long
     ): List<KeskeytysaikaDTO> {
-        return keskeytysaikaRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
+        return keskeytysaikaRepository.findAllByTyoskentelyjaksoOpintooikeusIdOrderByAlkamispaivaAsc(opintooikeusId)
             .map(keskeytysaikaMapper::toDto)
     }
 
