@@ -13,14 +13,14 @@ import fi.elsapalvelu.elsa.service.constants.OPINTOOIKEUS_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.OpintooikeusDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaOpintooikeusDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintooikeusMapper
+import jakarta.persistence.EntityNotFoundException
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.LocalDate
-import jakarta.persistence.EntityNotFoundException
-import org.springframework.data.repository.findByIdOrNull
 
 @Service
 @Transactional
@@ -71,6 +71,22 @@ class OpintooikeusServiceImpl(
         opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrueAndErikoisalaId(userId, erikoisalaId)
             ?.let {
                 return it.id!!
+            }
+
+        throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
+    }
+
+    override fun findOneByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
+        userId: String, erikoisalaId: Long
+    ): OpintooikeusDTO {
+        getImpersonatedOpintooikeusId()?.let {
+            return opintooikeusMapper.toDto(
+                opintooikeusRepository.findById(it).get()
+            )
+        }
+        opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrueAndErikoisalaId(userId, erikoisalaId)
+            ?.let {
+                return opintooikeusMapper.toDto(it)
             }
 
         throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
