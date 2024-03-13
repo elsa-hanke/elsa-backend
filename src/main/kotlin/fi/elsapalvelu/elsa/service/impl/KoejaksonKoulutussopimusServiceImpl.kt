@@ -58,7 +58,13 @@ class KoejaksonKoulutussopimusServiceImpl(
                 LocalDate.now()
             koulutussopimus.korjausehdotus = null
             koulutussopimus.vastuuhenkilonKorjausehdotus = null
-            koulutussopimus.vastuuhenkilo = null
+            koulutussopimus.vastuuhenkilo =
+                kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                    listOf(VASTUUHENKILO),
+                    koulutussopimus.opintooikeus?.yliopisto?.id,
+                    koulutussopimus.opintooikeus?.erikoisala?.id,
+                    VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+                )
             koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
             it.erikoistuvaLaakari?.kayttaja?.user?.let { user ->

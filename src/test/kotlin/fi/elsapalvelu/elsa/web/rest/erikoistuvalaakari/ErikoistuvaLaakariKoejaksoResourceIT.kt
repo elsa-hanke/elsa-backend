@@ -13,6 +13,8 @@ import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
+import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper.Companion.DEFAULT_NIMIKE
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.core.IsNull
 import org.junit.jupiter.api.BeforeEach
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
@@ -31,11 +34,10 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
+import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
-import jakarta.persistence.EntityManager
-import org.springframework.mock.web.MockMultipartFile
-import java.io.File
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -316,7 +318,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(sopimus.koejaksonAlkamispaiva).isEqualTo(koejaksonKoulutussopimusDTO.koejaksonAlkamispaiva)
         assertThat(sopimus.lahetetty).isEqualTo(koejaksonKoulutussopimusDTO.lahetetty)
         assertThat(sopimus.muokkauspaiva).isNotNull
-        assertNull(sopimus.vastuuhenkilo)
+        assertEquals(sopimus.vastuuhenkilo?.nimike, DEFAULT_NIMIKE)
         assertThat(sopimus.vastuuhenkiloHyvaksynyt).isFalse
         assertThat(sopimus.vastuuhenkilonKuittausaika).isNull()
         assertThat(sopimus.korjausehdotus).isNull()
