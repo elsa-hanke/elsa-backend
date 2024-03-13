@@ -9,5 +9,7 @@ interface KeskeytysaikaRepository : JpaRepository<Keskeytysaika, Long> {
 
     fun findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId: Long): List<Keskeytysaika>
 
+    fun findAllByTyoskentelyjaksoOpintooikeusIdOrderByAlkamispaivaAsc(opintooikeusId: Long): List<Keskeytysaika>
+
     fun findOneByIdAndTyoskentelyjaksoOpintooikeusId(id: Long, opintooikeusId: Long): Keskeytysaika?
 }
