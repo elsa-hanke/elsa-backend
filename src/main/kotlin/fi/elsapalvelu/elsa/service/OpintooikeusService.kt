@@ -14,6 +14,8 @@ interface OpintooikeusService {
 
     fun findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(userId: String, erikoisalaId: Long): Long
 
+    fun findOneByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(userId: String, erikoisalaId: Long): OpintooikeusDTO
+
     fun findAllByTerveyskoulutusjaksoSuorittamatta(): List<Opintooikeus>
 
     fun onOikeus(user: User): Boolean
