@@ -20,4 +20,14 @@ interface OpintosuoritusRepository : JpaRepository<Opintosuoritus, Long> {
     )
     fun findAllByOpintooikeusId(opintooikeusId: Long): List<Opintosuoritus>
 
+    @Query(
+        """
+            select distinct o from Opintosuoritus o left join fetch o.osakokonaisuudet
+            where o.opintooikeus.id = :opintooikeusId and o.tyyppi.id = :tyyppiId
+            and o.kurssikoodi not in
+            (select kk.tunniste from OpintosuoritusKurssikoodi kk where kk.isOsakokonaisuus = true)
+        """
+    )
+    fun findAllByOpintooikeusIdAndTyyppiId(opintooikeusId: Long, tyyppiId: Long): List<Opintosuoritus>
+
 }

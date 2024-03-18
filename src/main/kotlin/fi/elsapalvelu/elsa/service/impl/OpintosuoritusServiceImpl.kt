@@ -39,4 +39,32 @@ class OpintosuoritusServiceImpl(
             opintooikeus?.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
         )
     }
+
+    @Transactional(readOnly = true)
+    override fun getOpintosuorituksetByOpintooikeusIdAndTyyppiId(
+        opintooikeusId: Long, tyyppiId: Long
+    ): OpintosuorituksetDTO {
+        val opintosuorituksetList =
+            opintosuoritusRepository.findAllByOpintooikeusIdAndTyyppiId(
+                opintooikeusId, tyyppiId
+            ).map(opintosuoritusMapper::toDto).sortedByDescending { it.suorituspaiva }
+        val opintooikeus = opintooikeusRepository.findOneById(opintooikeusId)
+
+        return OpintosuorituksetDTO(
+            opintosuorituksetList,
+            opintosuorituksetList.filter { opintosuoritus ->
+                opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.JOHTAMISOPINTO
+            }.sumOf { johtamisopinto ->
+                johtamisopinto.opintopisteet ?: 0.0
+            },
+            opintooikeus?.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
+            opintosuorituksetList.filter { opintosuoritus ->
+                opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS
+            }.sumOf { sateilysuojakoulutus ->
+                sateilysuojakoulutus.opintopisteet ?: 0.0
+            },
+            opintooikeus?.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
+        )
+    }
+
 }
