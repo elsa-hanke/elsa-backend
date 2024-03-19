@@ -266,6 +266,6 @@
     <include file="config/liquibase/changelog/20240213090000_added_yek_erikoisala.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20240221161400_insert_yek_koulutettava_role.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20240229130000_modify_entity_PoissaolonSyy.xml" relativeToChangelogFile="false"/>
-
+    <include file="config/liquibase/changelog/20240319000000_modify_entity_Erikoisala.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->
