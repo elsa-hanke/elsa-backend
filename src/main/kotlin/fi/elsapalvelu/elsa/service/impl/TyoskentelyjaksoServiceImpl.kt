@@ -1,23 +1,26 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi.*
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi.*
-import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
+import fi.elsapalvelu.elsa.repository.KuntaRepository
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
-import org.hibernate.engine.jdbc.BlobProxy
+import jakarta.validation.ValidationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
-import jakarta.validation.ValidationException
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
@@ -274,7 +277,8 @@ class TyoskentelyjaksoServiceImpl(
                 vahennettavatMap,
                 kaytannonKoulutusSuoritettuMap,
                 tyoskentelyjaksotSuoritettu,
-                opintooikeus.opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus
+                opintooikeus.opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus,
+                isYek = opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
             )
         }
 
@@ -342,7 +346,8 @@ class TyoskentelyjaksoServiceImpl(
         vahennettavatMap: Map<Long, Double>,
         kaytannonKoulutusSuoritettuMap: MutableMap<KaytannonKoulutusTyyppi, Double>,
         tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>,
-        terveyskeskusMaksimi: Double?
+        terveyskeskusMaksimi: Double?,
+        isYek: Boolean = false
     ) {
         val tyoskentelyjaksonPituus =
             tyoskentelyjaksonPituusCounterService.calculateInDays(
@@ -353,22 +358,43 @@ class TyoskentelyjaksoServiceImpl(
 
         if (tyoskentelyjaksonPituus > 0) {
             // Summataan suoritettu aika koulutustyypettäin
-            when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
-                TERVEYSKESKUS -> {
-                    // Yli maksimin menevät pituudet jätetään huomiotta
-                    if (terveyskeskusMaksimi != null && terveyskeskusMaksimi != 0.0) {
-                        if (tilastotCounter.terveyskeskusSuoritettu == terveyskeskusMaksimi) {
-                            tutkintoonHyvaksyttavaPituus = 0.0
-                        } else if (tilastotCounter.terveyskeskusSuoritettu + tyoskentelyjaksonPituus > terveyskeskusMaksimi) {
-                            tutkintoonHyvaksyttavaPituus =
-                                terveyskeskusMaksimi - tilastotCounter.terveyskeskusSuoritettu
+            if (isYek) {
+                when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
+                    TERVEYSKESKUS -> {
+                        // Yli maksimin menevät pituudet jätetään huomiotta
+                        if (terveyskeskusMaksimi != null && terveyskeskusMaksimi != 0.0) {
+                            if (tilastotCounter.terveyskeskusSuoritettu == terveyskeskusMaksimi) {
+                                tutkintoonHyvaksyttavaPituus = 0.0
+                            } else if (tilastotCounter.terveyskeskusSuoritettu + tyoskentelyjaksonPituus > terveyskeskusMaksimi) {
+                                tutkintoonHyvaksyttavaPituus =
+                                    terveyskeskusMaksimi - tilastotCounter.terveyskeskusSuoritettu
+                            }
                         }
+                        tilastotCounter.terveyskeskusSuoritettu += tutkintoonHyvaksyttavaPituus
                     }
-                    tilastotCounter.terveyskeskusSuoritettu += tutkintoonHyvaksyttavaPituus
-                }
 
-                YLIOPISTOLLINEN_SAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
-                else -> tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu += tyoskentelyjaksonPituus
+                    YLIOPISTOLLINEN_SAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
+                    KESKUSSAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
+                    else -> tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu += tyoskentelyjaksonPituus
+                }
+            } else {
+                when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
+                    TERVEYSKESKUS -> {
+                        // Yli maksimin menevät pituudet jätetään huomiotta
+                        if (terveyskeskusMaksimi != null && terveyskeskusMaksimi != 0.0) {
+                            if (tilastotCounter.terveyskeskusSuoritettu == terveyskeskusMaksimi) {
+                                tutkintoonHyvaksyttavaPituus = 0.0
+                            } else if (tilastotCounter.terveyskeskusSuoritettu + tyoskentelyjaksonPituus > terveyskeskusMaksimi) {
+                                tutkintoonHyvaksyttavaPituus =
+                                    terveyskeskusMaksimi - tilastotCounter.terveyskeskusSuoritettu
+                            }
+                        }
+                        tilastotCounter.terveyskeskusSuoritettu += tutkintoonHyvaksyttavaPituus
+                    }
+
+                    YLIOPISTOLLINEN_SAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
+                    else -> tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu += tyoskentelyjaksonPituus
+                }
             }
 
             // Summataan suoritettu aika käytännön koulutuksettain
