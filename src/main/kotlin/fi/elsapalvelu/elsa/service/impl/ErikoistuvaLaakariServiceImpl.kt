@@ -179,7 +179,8 @@ class ErikoistuvaLaakariServiceImpl(
                 laillistamispaiva = it.laillistamispaiva,
                 laillistamistodistus = it.laillistamistodistus?.data,
                 laillistamistodistusNimi = it.laillistamispaivanLiitetiedostonNimi,
-                laillistamistodistusTyyppi = it.laillistamispaivanLiitetiedostonTyyppi
+                laillistamistodistusTyyppi = it.laillistamispaivanLiitetiedostonTyyppi,
+                laakarikoulutusSuoritettuSuomiTaiBelgia = it.laakarikoulutusSuoritettuSuomiTaiBelgia
             )
         }
 
