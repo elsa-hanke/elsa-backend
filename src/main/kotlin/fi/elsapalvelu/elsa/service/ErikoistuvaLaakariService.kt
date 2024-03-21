@@ -51,4 +51,9 @@ interface ErikoistuvaLaakariService {
         laillistamispaivanLiitetiedostonNimi: String?,
         laillistamispaivanLiitetiedostonTyyppi: String?
     )
+
+    fun updateLaakarikoulutusSuoritettuSuomiTaiBelgia(
+        userId: String,
+        laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean?
+    )
 }
