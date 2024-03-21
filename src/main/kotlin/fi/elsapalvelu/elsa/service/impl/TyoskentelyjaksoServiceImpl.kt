@@ -285,17 +285,17 @@ class TyoskentelyjaksoServiceImpl(
 
         val yhteensaVaadittuVahintaan =
             opintooikeus.opintoopas?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
-        val arvioErikoistumiseenHyvaksyttavista =
+        var arvioErikoistumiseenHyvaksyttavista =
             min(
                 yhteensaVaadittuVahintaan / 2,
                 tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu
             ) +
                 tilastotCounter.nykyiselleErikoisalalleSuoritettu
 
-        tilastotCounter.tyoskentelyaikaYhteensa = max(0.0, tilastotCounter.tyoskentelyaikaYhteensa)
-
         if (isYek && opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia == true)
-            tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu += 365.0
+            arvioErikoistumiseenHyvaksyttavista += 365.0
+
+        tilastotCounter.tyoskentelyaikaYhteensa = max(0.0, tilastotCounter.tyoskentelyaikaYhteensa)
 
         return TyoskentelyjaksotTilastotDTO(
             tyoskentelyaikaYhteensa = tilastotCounter.tyoskentelyaikaYhteensa,
