@@ -46,6 +46,8 @@ data class ErikoistumisenEdistyminenDTO (
 
     var opintooikeudenPaattymispaiva: LocalDate? = null,
 
-    var terveyskeskuskoulutusjaksoSuoritettu: Boolean? = null
+    var terveyskeskuskoulutusjaksoSuoritettu: Boolean? = null,
+
+    var laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean? = false
 
 ) : Serializable
