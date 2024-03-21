@@ -9,6 +9,8 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.impl.UserServiceImpl
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import jakarta.persistence.EntityExistsException
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
@@ -20,8 +22,6 @@ import java.net.URI
 import java.security.Principal
 import java.time.LocalDate
 import java.util.*
-import jakarta.persistence.EntityExistsException
-import jakarta.validation.Valid
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 
@@ -65,6 +65,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         @Valid @ModelAttribute omatTiedotDTO: OmatTiedotDTO,
         @RequestParam(required = false) laillistamispaiva: LocalDate?,
         @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
+        @RequestParam(required = false) laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean?,
         principal: Principal?
     ): UserDTO {
         val userId = userService.getAuthenticatedUser(principal).id!!
@@ -86,6 +87,10 @@ class ErikoistuvaLaakariMuutToiminnotResource(
             laillistamispaivanLiite?.bytes,
             laillistamispaivanLiite?.originalFilename,
             laillistamispaivanLiite?.contentType
+        )
+
+        erikoistuvaLaakariService.updateLaakarikoulutusSuoritettuSuomiTaiBelgia(
+            user.id!!, laakarikoulutusSuoritettuSuomiTaiBelgia
         )
 
         return userService.updateUserDetails(omatTiedotDTO, userId)
