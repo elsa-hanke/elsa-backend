@@ -15,6 +15,7 @@ import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttaja
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
 import fi.elsapalvelu.elsa.service.mapper.ErikoistuvaLaakariMapper
 import fi.elsapalvelu.elsa.service.mapper.YliopistoMapper
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -23,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.LocalDate
 import java.util.*
-import jakarta.persistence.EntityNotFoundException
 
 @Service
 @Transactional
@@ -179,7 +179,8 @@ class ErikoistuvaLaakariServiceImpl(
                 laillistamispaiva = it.laillistamispaiva,
                 laillistamistodistus = it.laillistamistodistus?.data,
                 laillistamistodistusNimi = it.laillistamispaivanLiitetiedostonNimi,
-                laillistamistodistusTyyppi = it.laillistamispaivanLiitetiedostonTyyppi
+                laillistamistodistusTyyppi = it.laillistamispaivanLiitetiedostonTyyppi,
+                laakarikoulutusSuoritettuSuomiTaiBelgia = it.laakarikoulutusSuoritettuSuomiTaiBelgia
             )
         }
 
@@ -267,4 +268,17 @@ class ErikoistuvaLaakariServiceImpl(
             }
         }
     }
+
+    override fun updateLaakarikoulutusSuoritettuSuomiTaiBelgia(
+        userId: String,
+        laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean?
+    ) {
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+            if (laakarikoulutusSuoritettuSuomiTaiBelgia != null) {
+                it.laakarikoulutusSuoritettuSuomiTaiBelgia = laakarikoulutusSuoritettuSuomiTaiBelgia
+                erikoistuvaLaakariRepository.save(it)
+            }
+        }
+    }
+
 }

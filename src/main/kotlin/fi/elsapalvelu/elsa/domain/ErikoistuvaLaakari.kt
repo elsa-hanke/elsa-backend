@@ -1,14 +1,12 @@
 package fi.elsapalvelu.elsa.domain
 
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
 import java.time.LocalDate
-import jakarta.persistence.*
-import jakarta.validation.constraints.NotEmpty
-import jakarta.validation.constraints.NotNull
-import org.hibernate.envers.Audited
-import org.hibernate.envers.RelationTargetAuditMode
 
 @Entity
 @Table(name = "erikoistuva_laakari")
@@ -47,7 +45,10 @@ data class ErikoistuvaLaakari(
     var laillistamispaivanLiitetiedostonNimi: String? = null,
 
     @Column(name = "laillistamispaivan_liitetiedoston_tyyppi")
-    var laillistamispaivanLiitetiedostonTyyppi: String? = null
+    var laillistamispaivanLiitetiedostonTyyppi: String? = null,
+
+    @Column(name = "laakarikoulutussuoritettusuomitaibelgia")
+    var laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean? = false
 
 ) : Serializable {
 

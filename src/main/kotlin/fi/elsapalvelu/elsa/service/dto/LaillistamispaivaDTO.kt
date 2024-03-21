@@ -11,7 +11,9 @@ data class LaillistamispaivaDTO(
 
     var laillistamistodistusNimi: String? = null,
 
-    var laillistamistodistusTyyppi: String? = null
+    var laillistamistodistusTyyppi: String? = null,
+
+    var laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean? = false
 
 ) : Serializable {
 
