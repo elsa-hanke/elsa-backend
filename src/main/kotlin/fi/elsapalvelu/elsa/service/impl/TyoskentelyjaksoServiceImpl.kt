@@ -253,7 +253,6 @@ class TyoskentelyjaksoServiceImpl(
     @Transactional(readOnly = true)
     override fun getTilastot(opintooikeusId: Long): TyoskentelyjaksotTilastotDTO {
         val opintooikeus = opintooikeusRepository.findById(opintooikeusId).get()
-
         return getTilastot(opintooikeus)
     }
 
@@ -270,6 +269,8 @@ class TyoskentelyjaksoServiceImpl(
 
         val vahennettavatMap = getVahennettavatPaivat(tyoskentelyjaksot)
 
+        val isYek = opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
+
         tyoskentelyjaksot.map {
             getTyoskentelyjaksoTilastot(
                 it,
@@ -278,18 +279,21 @@ class TyoskentelyjaksoServiceImpl(
                 kaytannonKoulutusSuoritettuMap,
                 tyoskentelyjaksotSuoritettu,
                 opintooikeus.opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus,
-                isYek = opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
+                isYek = isYek
             )
         }
 
         val yhteensaVaadittuVahintaan =
             opintooikeus.opintoopas?.kaytannonKoulutuksenVahimmaispituus ?: 0.0
-        val arvioErikoistumiseenHyvaksyttavista =
+        var arvioErikoistumiseenHyvaksyttavista =
             min(
                 yhteensaVaadittuVahintaan / 2,
                 tilastotCounter.hyvaksyttyToiselleErikoisalalleSuoritettu
             ) +
                 tilastotCounter.nykyiselleErikoisalalleSuoritettu
+
+        if (isYek && opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia == true)
+            arvioErikoistumiseenHyvaksyttavista += 365.0
 
         tilastotCounter.tyoskentelyaikaYhteensa = max(0.0, tilastotCounter.tyoskentelyaikaYhteensa)
 

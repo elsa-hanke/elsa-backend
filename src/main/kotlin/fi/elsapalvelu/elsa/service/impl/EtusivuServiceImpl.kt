@@ -12,6 +12,7 @@ import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.mapper.ArviointiasteikkoMapper
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.context.MessageSource
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -21,7 +22,6 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
-import jakarta.persistence.EntityNotFoundException
 
 @Service
 @Transactional
@@ -132,7 +132,9 @@ class EtusivuServiceImpl(
         return null
     }
 
-    private fun getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus: Opintooikeus): ErikoistujanEteneminenDTO {
+    private fun getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(
+        opintooikeus: Opintooikeus
+    ): ErikoistujanEteneminenDTO {
         val eteneminen = ErikoistujanEteneminenDTO()
 
         // Erikoistujan tiedot
@@ -146,6 +148,8 @@ class EtusivuServiceImpl(
         eteneminen.opintooikeudenPaattymispaiva = opintooikeus.opintooikeudenPaattymispaiva
         eteneminen.asetus = opintooikeus.asetus?.nimi
         eteneminen.erikoisala = opintooikeus.erikoisala?.nimi
+        eteneminen.laakarikoulutusSuoritettuSuomiTaiBelgia =
+            opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia
 
         // Työskentelyjaksot
         eteneminen.tyoskentelyjaksoTilastot = tyoskentelyjaksoService.getTilastot(opintooikeus)
@@ -261,7 +265,8 @@ class EtusivuServiceImpl(
                     getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset),
                     it.opintooikeudenMyontamispaiva,
                     it.opintooikeudenPaattymispaiva,
-                    getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
+                    getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset),
+                    opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia
                 )
             }
     }
