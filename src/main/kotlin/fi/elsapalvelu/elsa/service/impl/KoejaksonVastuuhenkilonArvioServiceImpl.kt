@@ -86,6 +86,14 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
             vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
+            // Sähköposti virkailijalle
+            mailService.sendEmailFromTemplate(
+                to = it.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
+                templateName = "virkailijaKoejaksoTarkastettavissa.html",
+                titleKey = "email.virkailijakoejaksotarkastettavissa.title",
+                properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
+            )
+
             it.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
                 user.email = koejaksonVastuuhenkilonArvioDTO.erikoistuvanSahkoposti
                 user.phoneNumber = koejaksonVastuuhenkilonArvioDTO.erikoistuvanPuhelinnumero

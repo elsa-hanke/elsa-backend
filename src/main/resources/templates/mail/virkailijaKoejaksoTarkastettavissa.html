@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fi" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>[ELSA-palvelu] Olet saanut  koejakson tarkastettavaksi</title>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
+    <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
+</head>
+<body>
+<p>
+    Hei,
+</p>
+<p>
+    Olet saanut ELSA-palveluun koejakson tarkistettavaksi.
+
+    Pääset tarkistamaan koejakson alla olevan linkin kautta:
+</p>
+<p>
+    <a th:href="${url}" th:text="${url}"
+       th:with="url=(@{|${baseUrl}/koejakso/virkailijan-tarkistus/${id}|})"></a>
+</p>
+<p>
+    HUOM! Tähän sähköpostiviestiin ei voi vastata.
+</p>
+<p>
+    <span>Terveisin, </span>
+    <br/>
+    <em>ELSA-palvelu</em>
+</p>
+</body>
+</html>
+
