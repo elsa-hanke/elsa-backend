@@ -1,25 +1,26 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.service.OpintooikeusService
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoDTO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoSuoritustenTilaDTO
+import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
+import java.net.URI
 import java.security.Principal
+
+private const val VALMISTUMISPYYNTO_ENTITY_NAME = "valmistumispyyntö"
 
 @RestController
 @RequestMapping("/api/yek-koulutettava")
 class YekKoulutettavaValmistumispyyntoResource(
-  private val userService: UserService,
-  private val opintooikeusService: OpintooikeusService,
-  private val valmistumispyyntoService: ValmistumispyyntoService
-  // private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
-  // private val fileValidationService: FileValidationService
+    private val userService: UserService,
+    private val opintooikeusService: OpintooikeusService,
+    private val valmistumispyyntoService: ValmistumispyyntoService,
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
+    private val fileValidationService: FileValidationService
 ) {
 
     @GetMapping("/valmistumispyynto")
@@ -51,7 +52,7 @@ class YekKoulutettavaValmistumispyyntoResource(
         return ResponseEntity.ok(form)
     }
 
-    /*
+
     @PostMapping("/valmistumispyynto")
     fun createValmistumispyynto(
       @Valid uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
@@ -59,7 +60,10 @@ class YekKoulutettavaValmistumispyyntoResource(
       principal: Principal?
     ): ResponseEntity<ValmistumispyyntoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
+                user.id!!, YEK_ERIKOISALA_ID
+            )
         val erikoisalaTyyppi = valmistumispyyntoService.findErikoisalaTyyppiByOpintooikeusId(opintooikeusId)
         val vanhatSuorituksetDTO =
             valmistumispyyntoService.findSuoritustenTila(opintooikeusId, erikoisalaTyyppi)
@@ -82,17 +86,18 @@ class YekKoulutettavaValmistumispyyntoResource(
                 .body(result)
         }
     }
-    */
 
-    /*
     @PutMapping("/valmistumispyynto")
     fun updateValmistumispyynto(
-      @Valid uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
-      @RequestParam(required = false) laillistamistodistus: MultipartFile?,
-      principal: Principal?
+        @Valid uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
+        @RequestParam(required = false) laillistamistodistus: MultipartFile?,
+        principal: Principal?
     ): ResponseEntity<ValmistumispyyntoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
+                user.id!!, YEK_ERIKOISALA_ID
+            )
         val erikoisalaTyyppi = valmistumispyyntoService.findErikoisalaTyyppiByOpintooikeusId(opintooikeusId)
         val vanhatSuorituksetDTO =
             valmistumispyyntoService.findSuoritustenTila(opintooikeusId, erikoisalaTyyppi)
@@ -125,9 +130,9 @@ class YekKoulutettavaValmistumispyyntoResource(
     }
 
     private fun validateLaillistamispaivaAndTodistus(
-      user: UserDTO,
-      uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
-      laillistamistodistus: MultipartFile?
+        user: UserDTO,
+        uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
+        laillistamistodistus: MultipartFile?
     ) {
         if ((uusiValmistumispyyntoDTO.laillistamispaiva == null || laillistamistodistus == null) &&
             !erikoistuvaLaakariService.laillistamispaivaAndTodistusExists(
@@ -169,6 +174,5 @@ class YekKoulutettavaValmistumispyyntoResource(
             }
         }
     }
-    */
 
 }
