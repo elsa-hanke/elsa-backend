@@ -96,8 +96,25 @@ class VirkailijaEtusivuResource(
             valmistumispyyntoService.findAllForVirkailijaByCriteria(
                 user.id!!,
                 NimiErikoisalaAndAvoinCriteria(avoin = true),
+                listOf(),
                 Pageable.unpaged()
             ).content
         )
     }
+
+    @GetMapping("/koulutettavien-valmistumispyynnot")
+    fun getKoulutettavienValmistumispyynnot(
+        principal: Principal?
+    ): ResponseEntity<List<ValmistumispyyntoListItemDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(
+            valmistumispyyntoService.findAllForVirkailijaByCriteria(
+                user.id!!,
+                NimiErikoisalaAndAvoinCriteria(avoin = true),
+                listOf(YEK_ERIKOISALA_ID),
+                Pageable.unpaged()
+            ).content
+        )
+    }
+
 }

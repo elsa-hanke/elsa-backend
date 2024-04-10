@@ -27,6 +27,7 @@ interface ValmistumispyyntoService {
     fun findAllForVirkailijaByCriteria(
         userId: String,
         valmistumispyyntoCriteria: NimiErikoisalaAndAvoinCriteria,
+        erikoisalaIds: List<Long>,
         pageable: Pageable
     ): Page<ValmistumispyyntoListItemDTO>
 
