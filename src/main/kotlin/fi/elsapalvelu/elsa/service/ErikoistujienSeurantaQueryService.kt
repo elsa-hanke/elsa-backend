@@ -60,12 +60,14 @@ class ErikoistujienSeurantaQueryService(
                 .join(ErikoistuvaLaakari_.kayttaja)
                 .join(Kayttaja_.user)
             val yliopisto: Path<Yliopisto> = root.get(Opintooikeus_.yliopisto)
-            val yliopistoPredicate = cb.and(cb.equal(yliopisto.get(Yliopisto_.id), yliopistoId))
-
+            val yliopistoPredicate = cb.equal(yliopisto.get(Yliopisto_.id), yliopistoId)
+            val erikoisalaPredicate = cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), erikoisalaId)
             if (criteria?.nimi != null) {
                 val nimiPredicate = criteria.nimi.toNimiPredicate(user, cb, langkey)
-                cb.and(yliopistoPredicate, nimiPredicate)
-            } else yliopistoPredicate
+                cb.and(yliopistoPredicate, nimiPredicate, erikoisalaPredicate)
+            } else {
+                cb.and(yliopistoPredicate, erikoisalaPredicate)
+            }
         }
         val existingSort = pageable.sort
         val sortById = Sort.by(Sort.Order.asc(Opintooikeus_.ID))
