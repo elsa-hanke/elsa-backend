@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
+import jakarta.persistence.criteria.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tech.jhipster.service.filter.LongFilter
 import tech.jhipster.service.filter.StringFilter
-import jakarta.persistence.criteria.*
 
 @Service
 @Transactional(readOnly = true)
@@ -51,18 +51,19 @@ class ValmistumispyyntoQueryService(
                             cb.isNotNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
                             cb.isNotNull(root.get(Valmistumispyynto_.virkailijanKuittausaika)),
                             cb.and(
-                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
-                            cb.isNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika))
+                                cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
+                                cb.isNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika))
                             )
                         )
                     )
                 }
-                getErikoisalaPredicate(
-                    criteria?.erikoisalaId,
-                    opintooikeusJoin,
-                    cb
-                )?.let {
-                    predicates.add(it)
+                if (erikoisalaIds.isNotEmpty()) {
+                    getErikoisalatPredicate(
+                        erikoisalaIds,
+                        opintooikeusJoin
+                    )?.let {
+                        predicates.add(it)
+                    }
                 }
             } else {
                 getVastuuhenkiloPredicate(
@@ -83,6 +84,7 @@ class ValmistumispyyntoQueryService(
         }
         return valmistumispyyntoRepository.findAll(specification, pageable)
     }
+
 
     private fun getVastuuhenkiloPredicate(
         role: ValmistumispyynnonHyvaksyjaRole,
@@ -114,6 +116,7 @@ class ValmistumispyyntoQueryService(
                     hyvaksyjaPredicate
                 )
             )
+
             ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA -> arvioijaPredicate
             else -> hyvaksyjaPredicate
         }
