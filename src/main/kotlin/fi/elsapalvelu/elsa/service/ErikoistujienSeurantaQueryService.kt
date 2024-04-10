@@ -48,6 +48,33 @@ class ErikoistujienSeurantaQueryService(
     }
 
     @Transactional(readOnly = true)
+    fun findByCriteriaAndYliopistoIdAndErikoisalaId(
+        criteria: ErikoistujanEteneminenCriteria?,
+        pageable: Pageable,
+        yliopistoId: Long,
+        erikoisalaId: Long,
+        langkey: String?
+    ): Page<Opintooikeus> {
+        val specification = createSpecification(criteria) { root, _, cb ->
+            val user: Join<Kayttaja, User> = root.join(Opintooikeus_.erikoistuvaLaakari)
+                .join(ErikoistuvaLaakari_.kayttaja)
+                .join(Kayttaja_.user)
+            val yliopisto: Path<Yliopisto> = root.get(Opintooikeus_.yliopisto)
+            val yliopistoPredicate = cb.and(cb.equal(yliopisto.get(Yliopisto_.id), yliopistoId))
+
+            if (criteria?.nimi != null) {
+                val nimiPredicate = criteria.nimi.toNimiPredicate(user, cb, langkey)
+                cb.and(yliopistoPredicate, nimiPredicate)
+            } else yliopistoPredicate
+        }
+        val existingSort = pageable.sort
+        val sortById = Sort.by(Sort.Order.asc(Opintooikeus_.ID))
+        val finalSort = existingSort.and(sortById)
+        val pageableWithSort = PageRequest.of(pageable.pageNumber, pageable.pageSize, finalSort)
+        return opintooikeusRepository.findAll(specification, pageableWithSort)
+    }
+
+    @Transactional(readOnly = true)
     fun findByErikoisalaAndYliopisto(
         criteria: ErikoistujanEteneminenCriteria?,
         pageable: Pageable,

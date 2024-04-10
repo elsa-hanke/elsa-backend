@@ -62,9 +62,8 @@ class VirkailijaEtusivuResource(
         principal: Principal?
     ): ResponseEntity<Page<ErikoistujanEteneminenVirkailijaDTO>> {
         val userId = userService.getAuthenticatedUser(principal).id!!
-        // toistaiseksi käy sama kuin erikoistujille
         val koulutettavat =
-            etusivuService.getErikoistujienSeurantaForVirkailija(userId, criteria, pageable)
+            etusivuService.getKoulutettavienSeurantaForVirkailija(userId, criteria, pageable)
         return ResponseEntity.ok(koulutettavat)
     }
 
