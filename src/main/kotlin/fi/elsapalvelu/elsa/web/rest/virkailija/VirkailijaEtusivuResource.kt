@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
@@ -10,7 +11,6 @@ import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoListItemDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -32,7 +32,6 @@ class VirkailijaEtusivuResource(
         val form = ErikoistujienSeurantaOptionsVirkailijaDTO()
         form.erikoisalat = erikoisalaService.findAllByLiittynytElsaan().toSet()
         form.asetukset = asetusService.findAll().toSet()
-
         return ResponseEntity.ok(form)
     }
 
@@ -46,6 +45,27 @@ class VirkailijaEtusivuResource(
         val erikoistujat =
             etusivuService.getErikoistujienSeurantaForVirkailija(userId, criteria, pageable)
         return ResponseEntity.ok(erikoistujat)
+    }
+
+    @GetMapping("/koulutettavien-seuranta-rajaimet")
+    fun getKoulutettavienSeurantaRajaimet(): ResponseEntity<ErikoistujienSeurantaOptionsVirkailijaDTO> {
+        val form = ErikoistujienSeurantaOptionsVirkailijaDTO()
+        form.erikoisalat = erikoisalaService.findAllByIdIs(YEK_ERIKOISALA_ID).toSet()
+        form.asetukset = asetusService.findAll().toSet() // todo vaatii rajaimia kun asetus asiat selvillä
+        return ResponseEntity.ok(form)
+    }
+
+    @GetMapping("/koulutettavien-seuranta")
+    fun getKoulutettavienSeurantaList(
+        criteria: ErikoistujanEteneminenCriteria,
+        pageable: Pageable,
+        principal: Principal?
+    ): ResponseEntity<Page<ErikoistujanEteneminenVirkailijaDTO>> {
+        val userId = userService.getAuthenticatedUser(principal).id!!
+        // toistaiseksi käy sama kuin erikoistujille
+        val koulutettavat =
+            etusivuService.getErikoistujienSeurantaForVirkailija(userId, criteria, pageable)
+        return ResponseEntity.ok(koulutettavat)
     }
 
     @GetMapping("/yliopisto")
