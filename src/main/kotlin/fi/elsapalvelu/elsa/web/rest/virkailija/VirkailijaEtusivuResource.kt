@@ -97,6 +97,7 @@ class VirkailijaEtusivuResource(
                 user.id!!,
                 NimiErikoisalaAndAvoinCriteria(avoin = true),
                 listOf(),
+                listOf(YEK_ERIKOISALA_ID),
                 Pageable.unpaged()
             ).content
         )
@@ -112,6 +113,7 @@ class VirkailijaEtusivuResource(
                 user.id!!,
                 NimiErikoisalaAndAvoinCriteria(avoin = true),
                 listOf(YEK_ERIKOISALA_ID),
+                listOf(),
                 Pageable.unpaged()
             ).content
         )

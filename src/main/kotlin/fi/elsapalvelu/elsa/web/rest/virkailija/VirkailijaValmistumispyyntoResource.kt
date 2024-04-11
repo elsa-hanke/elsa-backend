@@ -34,6 +34,7 @@ class VirkailijaValmistumispyyntoResource(
                 user.id!!,
                 criteria,
                 listOf(),
+                listOf(),
                 pageable
             )
 

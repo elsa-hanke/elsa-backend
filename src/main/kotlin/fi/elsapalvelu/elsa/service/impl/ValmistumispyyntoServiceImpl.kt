@@ -402,6 +402,7 @@ class ValmistumispyyntoServiceImpl(
             pageable,
             yliopisto.id!!,
             getErikoisalaIds(kayttaja),
+            listOf(),
             kayttaja.user?.langKey
         ).map {
             val isAvoin = valmistumispyyntoCriteria.avoin == true
@@ -414,6 +415,7 @@ class ValmistumispyyntoServiceImpl(
         userId: String,
         valmistumispyyntoCriteria: NimiErikoisalaAndAvoinCriteria,
         erikoisalaIds: List<Long>,
+        excludedErikoisalaIds: List<Long>,
         pageable: Pageable
     ): Page<ValmistumispyyntoListItemDTO> {
         val kayttaja = getKayttaja(userId)
@@ -424,6 +426,7 @@ class ValmistumispyyntoServiceImpl(
             pageable,
             kayttaja.yliopistot.first().id!!,
             erikoisalaIds,
+            excludedErikoisalaIds,
             kayttaja.user?.langKey
         ).map {
             val isAvoin = valmistumispyyntoCriteria.avoin == true

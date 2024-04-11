@@ -28,6 +28,7 @@ class ValmistumispyyntoQueryService(
         pageable: Pageable,
         yliopistoId: Long,
         erikoisalaIds: List<Long>,
+        excludedErikoisalaIds: List<Long>,
         langkey: String?
     ): Page<Valmistumispyynto> {
         val specification: Specification<Valmistumispyynto> = Specification.where { root, cq, cb ->
@@ -65,6 +66,15 @@ class ValmistumispyyntoQueryService(
                         predicates.add(it)
                     }
                 }
+                if (excludedErikoisalaIds.isNotEmpty()) {
+                    getExcludedErikoisalatPredicate(
+                        excludedErikoisalaIds,
+                        opintooikeusJoin,
+                        cb
+                    )?.let {
+                        predicates.add(it)
+                    }
+                }
             } else {
                 getVastuuhenkiloPredicate(
                     role,
@@ -74,6 +84,15 @@ class ValmistumispyyntoQueryService(
                 ).let { predicates.add(it) }
                 getErikoisalatPredicate(erikoisalaIds, opintooikeusJoin)?.let {
                     predicates.add(it)
+                }
+                if (excludedErikoisalaIds.isNotEmpty()) {
+                    getExcludedErikoisalatPredicate(
+                        excludedErikoisalaIds,
+                        opintooikeusJoin,
+                        cb
+                    )?.let {
+                        predicates.add(it)
+                    }
                 }
             }
 
@@ -197,6 +216,15 @@ class ValmistumispyyntoQueryService(
     ): Predicate? {
         val erikoisala: Path<Erikoisala> = opintooikeusJoin.get(Opintooikeus_.erikoisala)
         return (erikoisala.get(Erikoisala_.id)).`in`(erikoisalaIds)
+    }
+
+    private fun getExcludedErikoisalatPredicate(
+        excludedErikoisalaIds: List<Long>,
+        opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus>,
+        cb: CriteriaBuilder
+    ): Predicate? {
+        val erikoisala: Path<Erikoisala> = opintooikeusJoin.get(Opintooikeus_.erikoisala)
+        return cb.not((erikoisala.get(Erikoisala_.id)).`in`(excludedErikoisalaIds))
     }
 
     private fun getNimiPredicate(
