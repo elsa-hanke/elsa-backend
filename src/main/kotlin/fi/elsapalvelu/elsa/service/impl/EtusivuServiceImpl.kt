@@ -196,7 +196,8 @@ class EtusivuServiceImpl(
                     criteria,
                     pageable,
                     it.id!!,
-                    k.user?.langKey
+                    k.user?.langKey,
+                    YEK_ERIKOISALA_ID
                 ).map { opintooikeus ->
                     val opintosuoritukset =
                         opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!)
