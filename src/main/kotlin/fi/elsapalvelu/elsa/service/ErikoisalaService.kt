@@ -17,4 +17,7 @@ interface ErikoisalaService {
     fun findOne(id: Long): Optional<ErikoisalaDTO>
 
     fun delete(id: Long)
+
+    fun findAllByIdIs(erikoisalaId: Long): List<ErikoisalaDTO>
+
 }

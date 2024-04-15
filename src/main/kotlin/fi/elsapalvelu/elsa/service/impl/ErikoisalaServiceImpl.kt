@@ -49,4 +49,10 @@ class ErikoisalaServiceImpl(
     override fun delete(id: Long) {
         erikoisalaRepository.deleteById(id)
     }
+
+    override fun findAllByIdIs(erikoisalaId: Long): List<ErikoisalaDTO> {
+        return erikoisalaRepository.findAllByIdIs(erikoisalaId)
+            .map(erikoisalaMapper::toDto)
+    }
+
 }

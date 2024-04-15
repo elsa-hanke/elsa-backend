@@ -24,21 +24,20 @@ import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
 import fi.elsapalvelu.elsa.service.mapper.*
-import org.hibernate.engine.jdbc.BlobProxy
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 import org.thymeleaf.context.Context
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
-import jakarta.persistence.EntityNotFoundException
-import org.springframework.web.multipart.MultipartFile
 
 private const val VANHENTUNUT_KUULUSTELU_YEARS = 4L
 private const val VANHENTUNUT_SUORITUS_YEARS_EL = 10L
@@ -403,6 +402,7 @@ class ValmistumispyyntoServiceImpl(
             pageable,
             yliopisto.id!!,
             getErikoisalaIds(kayttaja),
+            listOf(),
             kayttaja.user?.langKey
         ).map {
             val isAvoin = valmistumispyyntoCriteria.avoin == true
@@ -414,6 +414,8 @@ class ValmistumispyyntoServiceImpl(
     override fun findAllForVirkailijaByCriteria(
         userId: String,
         valmistumispyyntoCriteria: NimiErikoisalaAndAvoinCriteria,
+        erikoisalaIds: List<Long>,
+        excludedErikoisalaIds: List<Long>,
         pageable: Pageable
     ): Page<ValmistumispyyntoListItemDTO> {
         val kayttaja = getKayttaja(userId)
@@ -423,7 +425,8 @@ class ValmistumispyyntoServiceImpl(
             hyvaksyjaRole,
             pageable,
             kayttaja.yliopistot.first().id!!,
-            listOf(),
+            erikoisalaIds,
+            excludedErikoisalaIds,
             kayttaja.user?.langKey
         ).map {
             val isAvoin = valmistumispyyntoCriteria.avoin == true

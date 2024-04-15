@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.AvoinAsiaTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
@@ -195,6 +196,51 @@ class EtusivuServiceImpl(
                     criteria,
                     pageable,
                     it.id!!,
+                    k.user?.langKey,
+                    YEK_ERIKOISALA_ID
+                ).map { opintooikeus ->
+                    val opintosuoritukset =
+                        opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!)
+                            .asSequence()
+                    ErikoistujanEteneminenVirkailijaDTO(
+                        opintooikeus.id,
+                        opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName,
+                        opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.lastName,
+                        opintooikeus.erikoistuvaLaakari?.syntymaaika,
+                        opintooikeus.erikoisala?.nimi,
+                        opintooikeus.asetus?.nimi,
+                        getKoejaksoTila(opintooikeus, opintosuoritukset),
+                        opintooikeus.opintooikeudenMyontamispaiva,
+                        opintooikeus.opintooikeudenPaattymispaiva,
+                        tyoskentelyjaksoService.getTilastot(opintooikeus),
+                        getTeoriakoulutuksetTuntimaara(opintooikeus.id!!),
+                        opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara,
+                        getJohtamisopinnotSuoritettu(opintosuoritukset),
+                        opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
+                        getSateilysuojakoulutuksetSuoritettu(opintosuoritukset),
+                        opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara,
+                        getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset),
+                        getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
+                    )
+                }
+            }
+        }
+        return null
+    }
+
+    override fun getKoulutettavienSeurantaForVirkailija(
+        userId: String,
+        criteria: ErikoistujanEteneminenCriteria,
+        pageable: Pageable
+    ): Page<ErikoistujanEteneminenVirkailijaDTO>? {
+        kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
+            // Opintohallinnon virkailija toimii vain yhden yliopiston alla.
+            k.yliopistot.firstOrNull()?.let {
+                return erikoistujienSeurantaQueryService.findByCriteriaAndYliopistoIdAndErikoisalaId(
+                    criteria,
+                    pageable,
+                    it.id!!,
+                    YEK_ERIKOISALA_ID,
                     k.user?.langKey
                 ).map { opintooikeus ->
                     val opintosuoritukset =

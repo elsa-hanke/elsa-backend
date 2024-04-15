@@ -27,6 +27,12 @@ interface EtusivuService {
         pageable: Pageable
     ): Page<ErikoistujanEteneminenVirkailijaDTO>?
 
+    fun getKoulutettavienSeurantaForVirkailija(
+        userId: String,
+        criteria: ErikoistujanEteneminenCriteria,
+        pageable: Pageable
+    ): Page<ErikoistujanEteneminenVirkailijaDTO>?
+
     fun getErikoistumisenSeurantaForErikoistuja(userId: String): ErikoistumisenEdistyminenDTO?
 
     fun getAvoimetAsiatForErikoistuja(userId: String): List<AvoinAsiaDTO>?

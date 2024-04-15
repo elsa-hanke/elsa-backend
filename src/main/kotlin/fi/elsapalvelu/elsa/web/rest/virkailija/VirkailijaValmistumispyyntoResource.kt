@@ -1,17 +1,21 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
-import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.KayttajaService
+import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
-import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusDTO
+import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusUpdateDTO
+import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoListItemDTO
+import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import java.net.URLEncoder
 import java.security.Principal
-import jakarta.validation.Valid
-import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/api/virkailija")
@@ -29,6 +33,8 @@ class VirkailijaValmistumispyyntoResource(
             valmistumispyyntoService.findAllForVirkailijaByCriteria(
                 user.id!!,
                 criteria,
+                listOf(),
+                listOf(),
                 pageable
             )
 

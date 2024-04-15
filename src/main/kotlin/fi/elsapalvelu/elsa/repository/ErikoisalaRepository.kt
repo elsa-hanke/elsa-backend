@@ -10,4 +10,7 @@ interface ErikoisalaRepository : JpaRepository<Erikoisala, Long> {
     fun findOneByVirtaPatevyyskoodi(virtaPatevyyskoodi: String): Erikoisala?
 
     fun findAllByLiittynytElsaanTrue(): List<Erikoisala>
+
+    fun findAllByIdIs(erikoisalaId: Long): List<Erikoisala>
+
 }
