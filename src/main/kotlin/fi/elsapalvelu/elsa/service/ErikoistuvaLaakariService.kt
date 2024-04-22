@@ -56,4 +56,6 @@ interface ErikoistuvaLaakariService {
         userId: String,
         laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean?
     )
+
+    fun updateAktiivinenOpintooikeus(userId: String, opintooikeusId: Long)
 }

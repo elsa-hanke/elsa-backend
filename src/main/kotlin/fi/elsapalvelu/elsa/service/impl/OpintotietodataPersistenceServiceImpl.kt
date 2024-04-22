@@ -173,6 +173,7 @@ class OpintotietodataPersistenceServiceImpl(
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
+        erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
     }
 
@@ -349,6 +350,7 @@ class OpintotietodataPersistenceServiceImpl(
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
+        erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
     }
 
