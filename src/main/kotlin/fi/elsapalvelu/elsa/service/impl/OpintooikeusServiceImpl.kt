@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
@@ -57,6 +58,16 @@ class OpintooikeusServiceImpl(
     override fun findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId: String): Long {
         getImpersonatedOpintooikeusId()?.let { return it }
         opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId)
+            ?.let {
+                return it.id!!
+            }
+
+        throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
+    }
+
+    override fun findOneByErikoisalaIdAndErikoistuvaLaakariKayttajaUserId(erikoisalaId: Long, userId: String): Long {
+        getImpersonatedOpintooikeusId()?.let { return it }
+        opintooikeusRepository.findOneByErikoisalaIdAndErikoistuvaLaakariKayttajaUserId(erikoisalaId, userId)
             ?.let {
                 return it.id!!
             }
@@ -142,6 +153,22 @@ class OpintooikeusServiceImpl(
                     opintooikeus.kaytossa = false
                 }
                 preferredOpintooikeus.kaytossa = true
+
+                if (preferredOpintooikeus.erikoisala?.id != YEK_ERIKOISALA_ID) {
+                    erikoistuva.aktiivinenOpintooikeus = preferredOpintooikeus.id
+                }
+            }
+        }
+    }
+
+    override fun setAktiivinenOpintooikeusKaytossa(userId: String) {
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { erikoistuva ->
+            erikoistuva.opintooikeudet.forEach { opintooikeus ->
+                if (opintooikeus.id == erikoistuva.aktiivinenOpintooikeus) {
+                    opintooikeus.kaytossa = true
+                } else {
+                    opintooikeus.kaytossa = false
+                }
             }
         }
     }

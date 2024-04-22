@@ -1,14 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
-import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
-import fi.elsapalvelu.elsa.security.KOULUTTAJA
-import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.ErikoisalaService
-import fi.elsapalvelu.elsa.service.KayttajaService
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.YliopistoService
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.security.*
+import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.ResponseEntity
@@ -28,6 +23,7 @@ class KayttajaResource(
     private val kayttajaService: KayttajaService,
     private val yliopistoService: YliopistoService,
     private val erikoisalaService: ErikoisalaService,
+    private val opintooikeusService: OpintooikeusService,
     private val objectMapper: ObjectMapper
 ) {
 
@@ -149,6 +145,15 @@ class KayttajaResource(
         }
 
         userService.updateRooli(rooli, userId)
+
+        if (rooli == YEK_KOULUTETTAVA) {
+            opintooikeusService.findOneByErikoisalaIdAndErikoistuvaLaakariKayttajaUserId(YEK_ERIKOISALA_ID, userId).let {
+                opintooikeusService.setOpintooikeusKaytossa(userId, it)
+            }
+        } else if (rooli == ERIKOISTUVA_LAAKARI) {
+            opintooikeusService.setAktiivinenOpintooikeusKaytossa(userId)
+        }
+
         return ResponseEntity.noContent().build()
     }
 }

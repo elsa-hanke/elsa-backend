@@ -12,6 +12,8 @@ interface OpintooikeusService {
 
     fun findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId: String): Long
 
+    fun findOneByErikoisalaIdAndErikoistuvaLaakariKayttajaUserId(erikoisalaId: Long, userId: String): Long
+
     fun findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(userId: String, erikoisalaId: Long): Long
 
     fun findOneByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(userId: String, erikoisalaId: Long): OpintooikeusDTO
@@ -23,6 +25,8 @@ interface OpintooikeusService {
     fun checkOpintooikeusKaytossaValid(user: User)
 
     fun setOpintooikeusKaytossa(userId: String, opintooikeusId: Long)
+
+    fun setAktiivinenOpintooikeusKaytossa(userId: String)
 
     fun updateMuokkausoikeudet(userId: String, muokkausoikeudet: Boolean)
 
