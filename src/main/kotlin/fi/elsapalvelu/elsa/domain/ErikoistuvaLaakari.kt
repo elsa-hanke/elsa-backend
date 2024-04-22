@@ -48,7 +48,10 @@ data class ErikoistuvaLaakari(
     var laillistamispaivanLiitetiedostonTyyppi: String? = null,
 
     @Column(name = "laakarikoulutussuoritettusuomitaibelgia")
-    var laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean? = false
+    var laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean? = false,
+
+    @Column(name = "aktiivinen_opintooikeus")
+    var aktiivinenOpintooikeus: Long? = null
 
 ) : Serializable {
 

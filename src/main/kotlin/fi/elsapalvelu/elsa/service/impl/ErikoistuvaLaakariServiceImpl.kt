@@ -111,6 +111,7 @@ class ErikoistuvaLaakariServiceImpl(
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
+        erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
         val token = verificationTokenService.save(user.id!!)
@@ -278,6 +279,12 @@ class ErikoistuvaLaakariServiceImpl(
                 it.laakarikoulutusSuoritettuSuomiTaiBelgia = laakarikoulutusSuoritettuSuomiTaiBelgia
                 erikoistuvaLaakariRepository.save(it)
             }
+        }
+    }
+
+    override fun updateAktiivinenOpintooikeus(userId: String, opintooikeusId: Long) {
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+            it.aktiivinenOpintooikeus = opintooikeusId
         }
     }
 
