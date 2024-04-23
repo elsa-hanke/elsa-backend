@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.security
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
@@ -99,6 +100,7 @@ class ElsaSwitchUserFilter(
         val opintooikeus = opintooikeusRepository.findById(opintooikeusId.toLong()).orElseThrow {
             InternalAuthenticationServiceException("Erikoistuvaa lääkäriä ei löydy")
         }
+        val yekOikeus = opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
         val erikoistuvaLaakari = opintooikeus.erikoistuvaLaakari
         val principal =
             SecurityContextHolder.getContext().authentication.principal as Saml2AuthenticatedPrincipal
@@ -129,7 +131,8 @@ class ElsaSwitchUserFilter(
                 "nameIDFormat" to currentPrincipal.attributes["nameIDFormat"],
                 "nameIDQualifier" to currentPrincipal.attributes["nameIDQualifier"],
                 "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"],
-                "opintooikeusId" to listOf(opintooikeus.id)
+                "opintooikeusId" to listOf(opintooikeus.id),
+                "yek" to listOf(yekOikeus)
             )
         )
         if (currentPrincipal.relyingPartyRegistrationId != null) {
