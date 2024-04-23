@@ -13,6 +13,7 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserGran
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import jakarta.validation.Valid
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 
@@ -33,6 +34,16 @@ class KayttajaResource(
         val user = userService.getUser(userId)
         val authorities =
             (principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
+
+        val samlPrincipal = principal.principal as Saml2AuthenticatedPrincipal
+        val yekOikeus = samlPrincipal.getFirstAttribute("yek") as Boolean?
+        val opintooikeusId = samlPrincipal.getFirstAttribute("opintooikeusId") as Long?
+
+        if (yekOikeus == true) {
+            user.activeAuthority = YEK_KOULUTETTAVA
+        } else if (opintooikeusId != null) {
+            user.activeAuthority = ERIKOISTUVA_LAAKARI
+        }
 
         user.impersonated =
             authorities.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED) || authorities.contains(
