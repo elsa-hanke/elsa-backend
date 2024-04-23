@@ -89,5 +89,6 @@ open class UserDTO(
         ", lastModifiedBy='" + lastModifiedBy + '\'' +
         ", lastModifiedDate=" + lastModifiedDate +
         ", authorities=" + authorities +
+        ", activeAuthority=" + activeAuthority +
         "}"
 }

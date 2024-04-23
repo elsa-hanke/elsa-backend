@@ -196,6 +196,13 @@ class SecurityConfiguration(
                     .requestMatchers("/api/auth-info").denyAll()
                     .requestMatchers("/api/login/impersonate")
                     .hasAnyAuthority(VASTUUHENKILO, KOULUTTAJA, OPINTOHALLINNON_VIRKAILIJA)
+                    .requestMatchers(HttpMethod.GET, "/api/erikoistuva-laakari")
+                    .hasAnyAuthority(
+                        ERIKOISTUVA_LAAKARI,
+                        YEK_KOULUTETTAVA,
+                        ERIKOISTUVA_LAAKARI_IMPERSONATED,
+                        ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+                    )
                     .requestMatchers(HttpMethod.GET, "/api/erikoistuva-laakari/**")
                     .hasAnyAuthority(
                         ERIKOISTUVA_LAAKARI,
