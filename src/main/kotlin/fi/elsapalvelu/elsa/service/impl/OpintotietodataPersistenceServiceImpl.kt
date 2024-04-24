@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
@@ -193,9 +194,20 @@ class OpintotietodataPersistenceServiceImpl(
         val user = erikoistuvaLaakari.kayttaja?.user!!
         var opintooikeusHerate: OpintooikeusHerate? = null
         opintooikeudet.takeIf { it.size > 2 }?.takeIf {
-            opintooikeusHerate =
-                opintooikeusHerateRepository.findOneByErikoistuvaLaakariKayttajaUserId(user.id!!)
-            opintooikeusHerate?.useaVoimassaolevaHerateLahetetty == null
+            // YEK opinto-oikeutta ei oteta huomioon opinto-oikeuksien määrän tarkistuksessa
+            if (it.size == 3 && it.any { oikeus ->
+                    findErikoisalaOrLogError(
+                            oikeus.erikoisalaTunnisteList,
+                            oikeus.yliopisto,
+                            user.id!!
+                        )?.id == YEK_ERIKOISALA_ID
+            }) {
+                false
+            } else {
+                opintooikeusHerate =
+                    opintooikeusHerateRepository.findOneByErikoistuvaLaakariKayttajaUserId(user.id!!)
+                opintooikeusHerate?.useaVoimassaolevaHerateLahetetty == null
+            }
         }?.let {
             mailService.sendEmailFromTemplate(
                 user,
