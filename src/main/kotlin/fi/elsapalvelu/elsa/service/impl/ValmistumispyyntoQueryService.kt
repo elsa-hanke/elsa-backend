@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.extensions.toNimiPredicate
@@ -41,11 +42,14 @@ class ValmistumispyyntoQueryService(
                     predicates.add(
                         cb.and(
                             cb.isNotNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika)),
-                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
                             cb.isNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
                             cb.isNull(root.get(Valmistumispyynto_.virkailijanKuittausaika))
                         )
                     )
+
+                    if (!erikoisalaIds.contains(YEK_ERIKOISALA_ID)) {
+                        predicates.add(cb.and(cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika))))
+                    }
                 } else {
                     predicates.add(
                         cb.or(

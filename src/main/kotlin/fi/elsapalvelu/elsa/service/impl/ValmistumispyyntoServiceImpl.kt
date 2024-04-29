@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.Valmistumispyynto.Companion.fromValmistumispyyntoArvioija
 import fi.elsapalvelu.elsa.domain.Valmistumispyynto.Companion.fromValmistumispyyntoArvioijaHyvaksyja
@@ -395,13 +396,14 @@ class ValmistumispyyntoServiceImpl(
     ): Page<ValmistumispyyntoListItemDTO> {
         val kayttaja = getKayttaja(userId)
         val yliopisto = getYliopisto(kayttaja)
-        val hyvaksyjaRole = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja) ?: return Page.empty()
+        val yek = valmistumispyyntoCriteria.erikoisalaId?.equals == YEK_ERIKOISALA_ID
+        val hyvaksyjaRole = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja, yek) ?: return Page.empty()
         return valmistumispyyntoQueryService.findValmistumispyynnotByCriteria(
             valmistumispyyntoCriteria,
             hyvaksyjaRole,
             pageable,
             yliopisto.id!!,
-            getErikoisalaIds(kayttaja),
+            if (yek) listOf(YEK_ERIKOISALA_ID) else getErikoisalaIds(kayttaja),
             listOf(),
             kayttaja.user?.langKey
         ).map {
@@ -739,14 +741,18 @@ class ValmistumispyyntoServiceImpl(
     }
 
     private fun getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(
-        kayttaja: Kayttaja
+        kayttaja: Kayttaja,
+        yek: Boolean = false
     ): ValmistumispyynnonHyvaksyjaRole? {
         val vastuuhenkilonTehtavat =
             kayttaja.yliopistotAndErikoisalat.firstOrNull()?.vastuuhenkilonTehtavat?.map { it.nimi }
                 ?: throw EntityNotFoundException(
                     KAYTTAJA_YLIOPISTO_ERIKOISALA_NOT_FOUND_ERROR
                 )
-        return if (
+        return if (yek)
+            if (vastuuhenkilonTehtavat.contains(VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS)) ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA
+            else null
+        else if (
             vastuuhenkilonTehtavat.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI) &&
             vastuuhenkilonTehtavat.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA)
         )

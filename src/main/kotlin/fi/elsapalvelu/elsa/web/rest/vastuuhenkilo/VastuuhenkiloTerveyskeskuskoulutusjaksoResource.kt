@@ -32,16 +32,6 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
     private val asiakirjaService: AsiakirjaService
 ) {
 
-    @GetMapping("/onko-terveyskeskuskoulutusjakso-vastuuhenkilo")
-    fun getOnkoTerveyskeskuskoulutusjaksoVastuuhenkilo(principal: Principal?): ResponseEntity<Boolean> {
-        val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!)
-        return ResponseEntity.ok(kayttaja.get().yliopistotAndErikoisalat?.any {
-            it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
-                .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
-        })
-    }
-
     @GetMapping("/terveyskeskuskoulutusjaksot")
     fun getTerveyskeskuskoulutusjaksot(
         principal: Principal?,

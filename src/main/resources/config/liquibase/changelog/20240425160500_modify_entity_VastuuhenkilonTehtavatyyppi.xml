@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20240425160500" author="jhipster">
+        <insert tableName="vastuuhenkilon_tehtavatyyppi">
+            <column name="nimi" value="YEK_KOULUTUS"/>
+        </insert>
+        <insert tableName="rel_erikoisala_vastuuhenkilon_tehtavatyyppi">
+            <column name="erikoisala_id" value="50" />
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="5"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
