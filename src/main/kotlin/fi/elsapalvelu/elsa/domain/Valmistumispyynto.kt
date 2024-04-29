@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -219,7 +220,7 @@ data class Valmistumispyynto(
         }
 
         private fun fromValmistumispyyntoNotReturned(valmistumispyynto: Valmistumispyynto): ValmistumispyynnonTila {
-            return if (valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika == null)
+            return if (valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika == null && valmistumispyynto.opintooikeus?.erikoisala?.id != YEK_ERIKOISALA_ID)
                 ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKASTUSTA
             else if (valmistumispyynto.virkailijanKuittausaika == null)
                 ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKASTUSTA

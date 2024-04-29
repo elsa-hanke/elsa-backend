@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import tech.jhipster.service.filter.LongFilter
 import java.security.Principal
 
 @RestController
@@ -63,6 +65,22 @@ class VastuuhenkiloEtusivuResource(
             valmistumispyyntoService.findAllForVastuuhenkiloByCriteria(
                 user.id!!,
                 NimiErikoisalaAndAvoinCriteria(avoin = true),
+                Pageable.unpaged()
+            ).content
+        )
+    }
+
+    @GetMapping("/yek-valmistumispyynnot")
+    fun getYekValmistumispyynnot(
+        principal: Principal?
+    ): ResponseEntity<List<ValmistumispyyntoListItemDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val erikoisalaFilter = LongFilter()
+        erikoisalaFilter.equals = YEK_ERIKOISALA_ID
+        return ResponseEntity.ok(
+            valmistumispyyntoService.findAllForVastuuhenkiloByCriteria(
+                user.id!!,
+                NimiErikoisalaAndAvoinCriteria(avoin = true, erikoisalaId = erikoisalaFilter),
                 Pageable.unpaged()
             ).content
         )

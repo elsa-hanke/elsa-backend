@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
@@ -33,8 +34,8 @@ class VirkailijaValmistumispyyntoResource(
             valmistumispyyntoService.findAllForVirkailijaByCriteria(
                 user.id!!,
                 criteria,
-                listOf(),
-                listOf(),
+                criteria.erikoisalaId?.let { listOf(it.equals) } ?: listOf(),
+                if (criteria.erikoisalaId?.equals == YEK_ERIKOISALA_ID) listOf() else listOf(YEK_ERIKOISALA_ID),
                 pageable
             )
 
