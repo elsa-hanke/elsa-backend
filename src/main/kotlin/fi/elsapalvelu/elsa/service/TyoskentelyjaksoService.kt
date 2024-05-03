@@ -24,6 +24,8 @@ interface TyoskentelyjaksoService {
 
     fun findAllByOpintooikeusId(opintooikeusId: Long): List<TyoskentelyjaksoDTO>
 
+    fun findAllByOpintooikeusIdWithKeskeytykset(opintooikeusId: Long): List<TyoskentelyjaksoDTO>
+
     fun findAllByOpintooikeusIdForKoejakso(opintooikeusId: Long): List<TyoskentelyjaksoDTO>
 
     fun validateByLiitettyKoejaksoon(opintooikeusId: Long): Triple<Boolean, Boolean, Boolean>

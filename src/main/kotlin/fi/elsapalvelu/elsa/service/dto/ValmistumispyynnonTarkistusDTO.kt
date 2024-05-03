@@ -25,6 +25,8 @@ data class ValmistumispyynnonTarkistusDTO(
 
     var tyoskentelyjaksotTilastot: TyoskentelyjaksotTilastotKoulutustyypitDTO? = null,
 
+    var tyoskentelyjaksot: TyoskentelyjaksotKoulutustyypitDTO? = null,
+
     var terveyskeskustyoHyvaksyttyPvm: LocalDate? = null,
 
     var terveyskeskustyoHyvaksyntaId: Long? = null,

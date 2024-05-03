@@ -125,7 +125,7 @@ class ValmistumispyyntoQueryService(
             root,
             cb,
             criteria?.avoin,
-            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
+            if (criteria?.erikoisalaId?.equals == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS else VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         )
 
         return when (role) {
@@ -152,44 +152,69 @@ class ValmistumispyyntoQueryService(
         tehtavatyyppiEnum: VastuuhenkilonTehtavatyyppiEnum
     ): Predicate {
         if (avoin == true) {
-            return if (tehtavatyyppiEnum == VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI) {
-                cb.and(
-                    cb.isNotNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika)),
-                    cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
-                    cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaPalautusaika)),
-                )
-            } else {
-                cb.and(
-                    cb.or(
-                        cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
-                        cb.isNull(root.get(Valmistumispyynto_.allekirjoitusaika))
-                    ),
-                    cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
-                    cb.isNotNull(root.get(Valmistumispyynto_.virkailijanKuittausaika)),
-                    cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika))
-                )
+            return when (tehtavatyyppiEnum) {
+                VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS -> {
+                    cb.and(
+                        cb.or(
+                            cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
+                            cb.isNull(root.get(Valmistumispyynto_.allekirjoitusaika))
+                        ),
+                        cb.isNotNull(root.get(Valmistumispyynto_.virkailijanKuittausaika)),
+                        cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika))
+                    )
+                }
+                VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI -> {
+                    cb.and(
+                        cb.isNotNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika)),
+                        cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
+                        cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaPalautusaika)),
+                    )
+                }
+                else -> {
+                    cb.and(
+                        cb.or(
+                            cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
+                            cb.isNull(root.get(Valmistumispyynto_.allekirjoitusaika))
+                        ),
+                        cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
+                        cb.isNotNull(root.get(Valmistumispyynto_.virkailijanKuittausaika)),
+                        cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika))
+                    )
+                }
             }
         } else {
-            return if (tehtavatyyppiEnum == VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI) {
-                cb.or(
-                    cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
-                    cb.and(
-                        cb.isNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika)),
-                        cb.or(
-                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaPalautusaika)),
-                            cb.isNotNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
-                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika))
+            return when (tehtavatyyppiEnum) {
+                VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS -> {
+                    cb.or(
+                        cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
+                        cb.and(
+                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
+                            cb.isNotNull(root.get(Valmistumispyynto_.allekirjoitusaika))
                         )
                     )
-                )
-            } else {
-                cb.or(
-                    cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
-                    cb.and(
-                        cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
-                        cb.isNotNull(root.get(Valmistumispyynto_.allekirjoitusaika))
+                }
+                VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI -> {
+                    cb.or(
+                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
+                            cb.and(
+                                cb.isNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika)),
+                                cb.or(
+                                    cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaPalautusaika)),
+                                    cb.isNotNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
+                                    cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika))
+                                )
+                            )
                     )
-                )
+                }
+                else -> {
+                    cb.or(
+                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
+                            cb.and(
+                                cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
+                                cb.isNotNull(root.get(Valmistumispyynto_.allekirjoitusaika))
+                            )
+                    )
+                }
             }
         }
     }

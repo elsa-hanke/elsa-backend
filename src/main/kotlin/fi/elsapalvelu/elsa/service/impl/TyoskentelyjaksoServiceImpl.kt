@@ -15,6 +15,7 @@ import fi.elsapalvelu.elsa.service.TyoskentelyjaksonPituusCounterService
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
+import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoWithKeskeytysajatMapper
 import jakarta.validation.ValidationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -32,6 +33,7 @@ class TyoskentelyjaksoServiceImpl(
     private val kuntaRepository: KuntaRepository,
     private val erikoisalaRepository: ErikoisalaRepository,
     private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper,
+    private val tyoskentelyjaksoWithKeskeytysajatMapper: TyoskentelyjaksoWithKeskeytysajatMapper,
     private val asiakirjaMapper: AsiakirjaMapper,
     private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
     private val opintooikeusRepository: OpintooikeusRepository
@@ -184,6 +186,11 @@ class TyoskentelyjaksoServiceImpl(
     override fun findAllByOpintooikeusId(opintooikeusId: Long): List<TyoskentelyjaksoDTO> {
         return tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeusId)
             .map(tyoskentelyjaksoMapper::toDto)
+    }
+
+    override fun findAllByOpintooikeusIdWithKeskeytykset(opintooikeusId: Long): List<TyoskentelyjaksoDTO> {
+        return tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeusId)
+            .map(tyoskentelyjaksoWithKeskeytysajatMapper::toDto)
     }
 
     override fun findAllByOpintooikeusIdForKoejakso(opintooikeusId: Long): List<TyoskentelyjaksoDTO> {
