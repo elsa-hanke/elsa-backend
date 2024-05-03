@@ -24,6 +24,11 @@ interface AsiakirjaService {
         yliopistoIds: List<Long>?
     ): AsiakirjaDTO?
 
+    fun findByIdAndYliopistoId(
+        id: Long,
+        yliopistoIds: List<Long>?
+    ): AsiakirjaDTO?
+
     fun findByIdAndLiitettykoejaksoon(id: Long): AsiakirjaDTO?
 
     fun findByIdAndLiitettykoejaksoonByYliopisto(id: Long, yliopistoIds: List<Long>?): AsiakirjaDTO?

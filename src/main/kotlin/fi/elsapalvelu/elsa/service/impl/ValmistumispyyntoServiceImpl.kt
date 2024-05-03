@@ -100,7 +100,7 @@ class ValmistumispyyntoServiceImpl(
         val yliopistoId = opintooikeus.yliopisto?.id!!
         val erikoisalaId = opintooikeus.erikoisala?.id!!
         val vastuuhenkiloOsaamisenarvioija =
-            getVastuuhenkiloOsaamisenArvioija(yliopistoId, erikoisalaId)
+            if (erikoisalaId != YEK_ERIKOISALA_ID) getVastuuhenkiloOsaamisenArvioija(yliopistoId, erikoisalaId) else null
         val vastuuhenkiloHyvaksyja = getVastuuhenkiloHyvaksyja(yliopistoId, erikoisalaId)
         valmistumispyynto?.let { tarkistaAllekirjoitus(it) }
         val valmistumispyyntoDTO =
@@ -115,8 +115,8 @@ class ValmistumispyyntoServiceImpl(
 
         return valmistumispyyntoDTO.apply {
             this.tila = tila
-            vastuuhenkiloOsaamisenArvioijaNimi = vastuuhenkiloOsaamisenarvioija.getNimi()
-            vastuuhenkiloOsaamisenArvioijaNimike = vastuuhenkiloOsaamisenarvioija.nimike
+            vastuuhenkiloOsaamisenArvioijaNimi = vastuuhenkiloOsaamisenarvioija?.getNimi()
+            vastuuhenkiloOsaamisenArvioijaNimike = vastuuhenkiloOsaamisenarvioija?.nimike
             vastuuhenkiloHyvaksyjaNimi = vastuuhenkiloHyvaksyja.getNimi()
             vastuuhenkiloHyvaksyjaNimike = vastuuhenkiloHyvaksyja.nimike
         }
@@ -189,15 +189,13 @@ class ValmistumispyyntoServiceImpl(
                 user.phoneNumber = uusiValmistumispyyntoDTO.erikoistujanPuhelinnumero
                 userRepository.save(user)
             }
-            val vastuuhenkiloOsaamisenArvioijaUser =
-                getVastuuhenkiloOsaamisenArvioija(opintooikeus.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!
             getValmistumispyyntoByOpintooikeusId(opintooikeusId).apply {
                 vastuuhenkiloOsaamisenArvioijaKorjausehdotus = null
                 vastuuhenkiloOsaamisenArvioijaPalautusaika = null
                 erikoistujanKuittausaika = LocalDate.now()
                 this.selvitysVanhentuneistaSuorituksista = uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista
 
-                if (vastuuhenkiloOsaamisenArvioijaKuittausaika != null) {
+                if (vastuuhenkiloOsaamisenArvioijaKuittausaika != null || opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID) {
                     virkailijanPalautusaika = null
                     sendMailNotificationOdottaaVirkailijanTarkastusta(
                         opintooikeus.yliopisto!!.nimi!!,
@@ -206,7 +204,11 @@ class ValmistumispyyntoServiceImpl(
                 }
             }.let {
                 valmistumispyyntoRepository.save(it).let { saved ->
-                    sendMailNotificationUusiValmistumispyynto(vastuuhenkiloOsaamisenArvioijaUser, saved)
+                    if (it.opintooikeus?.erikoisala?.id != YEK_ERIKOISALA_ID) {
+                        val vastuuhenkiloOsaamisenArvioijaUser =
+                            getVastuuhenkiloOsaamisenArvioija(opintooikeus.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!
+                        sendMailNotificationUusiValmistumispyynto(vastuuhenkiloOsaamisenArvioijaUser, saved)
+                    }
                     return valmistumispyyntoMapper.toDto(saved)
                         .apply { tila = ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKASTUSTA }
                 }
@@ -772,13 +774,21 @@ class ValmistumispyyntoServiceImpl(
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI
         ) ?: throw EntityNotFoundException("Vastuuhenkilöä, joka hyväksyisi osaamisen arvioinnin, ei löydy.")
 
-    private fun getVastuuhenkiloHyvaksyja(yliopistoId: Long, erikoisalaId: Long) =
-        kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+    private fun getVastuuhenkiloHyvaksyja(yliopistoId: Long, erikoisalaId: Long): Kayttaja {
+        if (erikoisalaId == YEK_ERIKOISALA_ID) {
+            return kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
+                listOf(VASTUUHENKILO),
+                yliopistoId,
+                VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS
+            ) ?: throw EntityNotFoundException("Vastuuhenkilöä, joka hyväksyisi valmistumispyynnon, ei löydy.")
+        }
+        return kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
             listOf(VASTUUHENKILO),
             yliopistoId,
             erikoisalaId,
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         ) ?: throw EntityNotFoundException("Vastuuhenkilöä, joka hyväksyisi valmistumispyynnon, ei löydy.")
+    }
 
     private fun getVirkailijat(yliopistoId: Long) =
         kayttajaRepository.findAllByAuthoritiesAndRelYliopisto(
@@ -928,6 +938,15 @@ class ValmistumispyyntoServiceImpl(
                 it,
                 KaytannonKoulutusTyyppi.TUTKIMUSTYO
             )
+
+            if (opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                val tyoskentelyjaksot = tyoskentelyjaksoService.findAllByOpintooikeusIdWithKeskeytykset(it)
+                dto.tyoskentelyjaksot = TyoskentelyjaksotKoulutustyypitDTO(
+                    terveyskeskus = tyoskentelyjaksot.filter { t -> t.tyoskentelypaikka?.tyyppi == TyoskentelyjaksoTyyppi.TERVEYSKESKUS },
+                    yliopistosairaala = tyoskentelyjaksot.filter { t -> t.tyoskentelypaikka?.tyyppi in listOf(TyoskentelyjaksoTyyppi.YLIOPISTOLLINEN_SAIRAALA, TyoskentelyjaksoTyyppi.KESKUSSAIRAALA) },
+                    yliopistosairaaloidenUlkopuolinen = tyoskentelyjaksot.filter { t -> t.tyoskentelypaikka?.tyyppi in listOf(TyoskentelyjaksoTyyppi.YKSITYINEN, TyoskentelyjaksoTyyppi.MUU) }
+                )
+            }
         }
 
         return dto

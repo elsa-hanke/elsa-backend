@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
@@ -23,7 +24,8 @@ import java.security.Principal
 class VirkailijaValmistumispyyntoResource(
     private val userService: UserService,
     private val kayttajaService: KayttajaService,
-    private val valmistumispyyntoService: ValmistumispyyntoService
+    private val valmistumispyyntoService: ValmistumispyyntoService,
+    private val asiakirjaService: AsiakirjaService
 ) {
     @GetMapping("/valmistumispyynnot")
     fun getAllValmistumispyynnot(
@@ -97,6 +99,30 @@ class VirkailijaValmistumispyyntoResource(
                 .body(it.readBytes())
         }
 
+        return ResponseEntity.notFound().build()
+    }
+
+    @GetMapping("/valmistumispyynto/tyoskentelyjakso-liite/{id}")
+    fun getValmistumispyyntoTyoskentelyjaksoLiite(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<ByteArray> {
+        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = kayttajaService.findByUserId(user.id!!)
+        val asiakirja = asiakirjaService
+            .findByIdAndYliopistoId(
+                id,
+                kayttaja.orElse(null)?.yliopistot?.map { it.id!! })
+
+        asiakirja?.asiakirjaData?.fileInputStream?.use {
+            return ResponseEntity.ok()
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
+                )
+                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
+                .body(it.readBytes())
+        }
         return ResponseEntity.notFound().build()
     }
 }
