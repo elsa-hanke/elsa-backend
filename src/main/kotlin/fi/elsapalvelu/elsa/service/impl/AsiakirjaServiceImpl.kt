@@ -83,6 +83,21 @@ class AsiakirjaServiceImpl(
         return null
     }
 
+    override fun findByIdAndYliopistoId(id: Long, yliopistoIds: List<Long>?): AsiakirjaDTO? {
+        yliopistoIds?.let {
+            asiakirjaRepository.findOneByIdAndYliopistoId(
+                id,
+                it
+            )?.let { asiakirja ->
+                val result = asiakirjaMapper.toDto(asiakirja)
+                result.asiakirjaData?.fileInputStream =
+                    ByteArrayInputStream(asiakirja.asiakirjaData?.data)
+                return result
+            }
+        }
+        return null
+    }
+
     override fun findByIdAndLiitettykoejaksoon(id: Long): AsiakirjaDTO? {
         asiakirjaRepository.findOneByIdAndTyoskentelyjaksoLiitettyKoejaksoonTrue(id)
             ?.let { asiakirja ->
