@@ -167,12 +167,19 @@ class ValmistumispyyntoServiceImpl(
                 selvitysVanhentuneistaSuorituksista = uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista,
                 erikoistujanKuittausaika = LocalDate.now()
             )
-            val vastuuhenkiloOsaamisenArvioijaUser = getVastuuhenkiloOsaamisenArvioija(
-                opintooikeus.yliopisto?.id!!,
-                opintooikeus.erikoisala?.id!!
-            ).user!!
             valmistumispyyntoRepository.save(valmistumispyynto).let { saved ->
-                sendMailNotificationUusiValmistumispyynto(vastuuhenkiloOsaamisenArvioijaUser, saved)
+                if (saved.opintooikeus?.erikoisala?.id != YEK_ERIKOISALA_ID) {
+                    val vastuuhenkiloOsaamisenArvioijaUser = getVastuuhenkiloOsaamisenArvioija(
+                        opintooikeus.yliopisto?.id!!,
+                        opintooikeus.erikoisala?.id!!
+                    ).user!!
+                    sendMailNotificationUusiValmistumispyynto(vastuuhenkiloOsaamisenArvioijaUser, saved)
+                } else {
+                    sendMailNotificationOdottaaVirkailijanTarkastusta(
+                        opintooikeus.yliopisto!!.nimi!!,
+                        saved.id!!
+                    )
+                }
                 return valmistumispyyntoMapper.toDto(saved)
                     .apply { tila = ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKASTUSTA }
             }
@@ -271,35 +278,31 @@ class ValmistumispyyntoServiceImpl(
         }
 
         val yliopisto = getYliopisto(kayttaja)
-        val valmistumispyynto = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja).takeIf {
-            it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA ||
-                it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA
-        }?.let {
-            val valmistumispyynto =
-                getValmistumispyyntoByYliopistoIdAndErikoisalaIdsOrThrow(
-                    id,
-                    yliopisto.id!!,
-                    getErikoisalaIds(kayttaja)
-                )
-            valmistumispyynto.vastuuhenkiloHyvaksyja = kayttaja
+        val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(id, yliopisto.id!!)
+        val yek = valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
+        getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja, yek) ?: throw getValmistumispyyntoNotFoundException()
 
-            if (hyvaksyntaFormDTO.korjausehdotus != null) {
-                valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika = LocalDate.now()
-                valmistumispyynto.vastuuhenkiloHyvaksyjaKorjausehdotus = hyvaksyntaFormDTO.korjausehdotus
-                valmistumispyynto.erikoistujanKuittausaika = null
-                valmistumispyynto.virkailijanKuittausaika = null
-                sendMailNotificationHyvaksyjaPalauttanut(valmistumispyynto)
-            } else {
-                valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = LocalDate.now()
-                val result = valmistumispyyntoRepository.save(valmistumispyynto)
-                result.valmistumispyynnonTarkistus?.let {
-                    luoYhteenvetoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
-                    luoLiitteetPdf(valmistumispyynto)
-                    luoErikoistujanTiedotPdf(valmistumispyynto)
-                }
+        if (!yek && !getErikoisalaIds(kayttaja).contains(valmistumispyynto.opintooikeus?.erikoisala?.id)) {
+            throw getValmistumispyyntoNotFoundException()
+        }
+
+        valmistumispyynto.vastuuhenkiloHyvaksyja = kayttaja
+
+        if (hyvaksyntaFormDTO.korjausehdotus != null) {
+            valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika = LocalDate.now()
+            valmistumispyynto.vastuuhenkiloHyvaksyjaKorjausehdotus = hyvaksyntaFormDTO.korjausehdotus
+            valmistumispyynto.erikoistujanKuittausaika = null
+            valmistumispyynto.virkailijanKuittausaika = null
+            sendMailNotificationHyvaksyjaPalauttanut(valmistumispyynto)
+        } else {
+            valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = LocalDate.now()
+            val result = valmistumispyyntoRepository.save(valmistumispyynto)
+            result.valmistumispyynnonTarkistus?.let {
+                luoYhteenvetoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
+                luoLiitteetPdf(valmistumispyynto)
+                luoErikoistujanTiedotPdf(valmistumispyynto)
             }
-            valmistumispyynto
-        } ?: throw getValmistumispyyntoNotFoundException()
+        }
 
         val valmistumispyynnonTarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoId(valmistumispyynto.id!!)
 
@@ -500,15 +503,15 @@ class ValmistumispyyntoServiceImpl(
     ): ValmistumispyynnonTarkistusDTO? {
         val kayttaja = getKayttaja(userId)
         val yliopisto = getYliopisto(kayttaja)
-        val tarkistus = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja).takeIf {
-            it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA ||
-                it == ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA
-        }?.let {
-            valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdForHyvaksyja(
-                id,
-                yliopisto.id!!,
-                getErikoisalaIds(kayttaja))
-        } ?: throw getValmistumispyyntoNotFoundException()
+        val tarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdForHyvaksyja(id, yliopisto.id!!)
+            ?: throw getValmistumispyyntoNotFoundException()
+        val yek = tarkistus.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
+        getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja, yek) ?: throw getValmistumispyyntoNotFoundException()
+
+        if (!yek && !getErikoisalaIds(kayttaja).contains(tarkistus.valmistumispyynto?.opintooikeus
+                ?.erikoisala?.id)) {
+            throw getValmistumispyyntoNotFoundException()
+        }
 
         tarkistus.valmistumispyynto?.let { tarkistaAllekirjoitus(it) }
 
@@ -588,6 +591,28 @@ class ValmistumispyyntoServiceImpl(
         return null
     }
 
+    override fun getValmistumispyynnonTyoskentelyjaksoAsiakirja(userId: String, valmistumispyyntoId: Long, asiakirjaId: Long): AsiakirjaDTO? {
+        val kayttaja = getKayttaja(userId)
+        valmistumispyyntoRepository.findByIdOrNull(valmistumispyyntoId)?.let {valmistumispyynto ->
+            if (kayttaja.yliopistotAndErikoisalat.any {
+                it.yliopisto?.id == valmistumispyynto.opintooikeus?.yliopisto?.id
+                    && (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }.contains(VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS)
+                    || it.erikoisala?.id == valmistumispyynto.opintooikeus?.erikoisala?.id && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))}
+                ) {
+                asiakirjaRepository.findByIdOrNull(asiakirjaId)?.let { asiakirja ->
+                    if (asiakirja.tyoskentelyjakso?.opintooikeus?.id != valmistumispyynto.opintooikeus?.id) {
+                        return null
+                    }
+                    val result = asiakirjaMapper.toDto(asiakirja)
+                    result.asiakirjaData?.fileInputStream =
+                        ByteArrayInputStream(asiakirja.asiakirjaData?.data)
+                    return result
+                }
+            }
+        }
+        return null
+    }
+
     private fun tarkistaAllekirjoitus(valmistumispyynto: Valmistumispyynto) {
         val yliopisto = valmistumispyynto.opintooikeus?.yliopisto?.nimi!!
         if (valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika != null
@@ -623,6 +648,13 @@ class ValmistumispyyntoServiceImpl(
 
     private fun getErikoisalaIds(kayttaja: Kayttaja) = kayttaja.yliopistotAndErikoisalat.map { it.erikoisala?.id!! }
 
+    private fun getValmistumispyyntoByYliopistoIdOrThrow(
+        id: Long,
+        yliopistoId: Long
+    ) =
+        valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id,yliopistoId)
+            ?: throw getValmistumispyyntoNotFoundException()
+
     private fun getValmistumispyyntoByYliopistoIdAndErikoisalaIdsOrThrow(
         id: Long,
         yliopistoId: Long,
@@ -654,7 +686,7 @@ class ValmistumispyyntoServiceImpl(
     private fun getValmistumispyynnonTilaForVirkailija(valmistumispyynto: Valmistumispyynto): ValmistumispyynnonTila {
         val isAvoin =
             valmistumispyynto.erikoistujanKuittausaika != null &&
-                valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika != null &&
+                (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID || valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika != null) &&
                 valmistumispyynto.virkailijanKuittausaika == null &&
                 valmistumispyynto.virkailijanPalautusaika == null
         return fromValmistumispyyntoVirkailija(valmistumispyynto, isAvoin)

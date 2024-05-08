@@ -15,12 +15,11 @@ interface ValmistumispyynnonTarkistusRepository : JpaRepository<Valmistumispyynn
 
     @Query("""
         select t from ValmistumispyynnonTarkistus t join t.valmistumispyynto p join p.opintooikeus o
-        where p.id = :id and o.yliopisto.id = :yliopistoId and o.erikoisala.id in :erikoisalaIds
+        where p.id = :id and o.yliopisto.id = :yliopistoId
     """)
     fun findByValmistumispyyntoIdForHyvaksyja(
         id: Long,
-        yliopistoId: Long,
-        erikoisalaIds: List<Long>
+        yliopistoId: Long
     ): ValmistumispyynnonTarkistus?
 
 }

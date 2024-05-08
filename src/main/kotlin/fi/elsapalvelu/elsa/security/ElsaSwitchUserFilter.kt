@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.security
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.Opintooikeus
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
@@ -166,6 +167,12 @@ class ElsaSwitchUserFilter(
                 it.erikoisala?.id == opintooikeus.erikoisala?.id &&
                     it.yliopisto?.id == opintooikeus.yliopisto?.id
             } != null) return ERIKOISTUVA_LAAKARI_IMPERSONATED
+
+        if (authorityNames.contains(VASTUUHENKILO) && opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
+            && kirjautunutKayttaja.yliopistotAndErikoisalat.any {
+                it.yliopisto?.id == opintooikeus.yliopisto?.id
+                    && it.vastuuhenkilonTehtavat.map { t -> t.nimi }.contains(VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS) })
+            return ERIKOISTUVA_LAAKARI_IMPERSONATED
 
         if (authorityNames.contains(OPINTOHALLINNON_VIRKAILIJA) && kirjautunutKayttaja.yliopistot.find {
                 it.id == opintooikeus.yliopisto?.id
