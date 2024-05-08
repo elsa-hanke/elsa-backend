@@ -226,6 +226,7 @@ data class Valmistumispyynto(
                 ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKASTUSTA
             else if (valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika == null)
                 ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
+            else if (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) ValmistumispyynnonTila.HYVAKSYTTY
             else if (valmistumispyynto.allekirjoitusaika == null) ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA
             else ValmistumispyynnonTila.ALLEKIRJOITETTU
         }

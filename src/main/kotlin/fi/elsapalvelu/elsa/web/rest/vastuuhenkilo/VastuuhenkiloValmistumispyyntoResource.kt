@@ -138,6 +138,27 @@ class VastuuhenkiloValmistumispyyntoResource(
         return ResponseEntity.notFound().build()
     }
 
+    @GetMapping("/valmistumispyynto/{valmistumispyyntoId}/tyoskentelyjakso-liite/{asiakirjaId}")
+    fun getValmistumispyyntoTyoskentelyjaksoLiite(
+        @PathVariable valmistumispyyntoId: Long,
+        @PathVariable asiakirjaId: Long,
+        principal: Principal?
+    ): ResponseEntity<ByteArray> {
+        val user = userService.getAuthenticatedUser(principal)
+        val asiakirja = valmistumispyyntoService.getValmistumispyynnonTyoskentelyjaksoAsiakirja(user.id!!, valmistumispyyntoId, asiakirjaId)
+
+        asiakirja?.asiakirjaData?.fileInputStream?.use {
+            return ResponseEntity.ok()
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
+                )
+                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
+                .body(it.readBytes())
+        }
+        return ResponseEntity.notFound().build()
+    }
+
     private fun validateOsaamisenArviointiDto(osaamisenArviointiDTO: ValmistumispyyntoOsaamisenArviointiFormDTO) {
         if ((osaamisenArviointiDTO.osaaminenRiittavaValmistumiseen == null ||
                 osaamisenArviointiDTO.osaaminenRiittavaValmistumiseen == false) &&

@@ -155,10 +155,7 @@ class ValmistumispyyntoQueryService(
             return when (tehtavatyyppiEnum) {
                 VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS -> {
                     cb.and(
-                        cb.or(
-                            cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
-                            cb.isNull(root.get(Valmistumispyynto_.allekirjoitusaika))
-                        ),
+                        cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
                         cb.isNotNull(root.get(Valmistumispyynto_.virkailijanKuittausaika)),
                         cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika))
                     )
@@ -187,10 +184,7 @@ class ValmistumispyyntoQueryService(
                 VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS -> {
                     cb.or(
                         cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
-                        cb.and(
-                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
-                            cb.isNotNull(root.get(Valmistumispyynto_.allekirjoitusaika))
-                        )
+                        cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
                     )
                 }
                 VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI -> {
