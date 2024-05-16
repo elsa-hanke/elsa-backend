@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>YEK-koulutuksen valmistumisen yhteenveto</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+          rel="stylesheet" type="text/css"/>
+    <style>
+        hr {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 0;
+            border-top: 1px solid rgba(34, 34, 34, 0.1);
+        }
+
+        th {
+            text-align: left;
+        }
+
+        td {
+            padding-bottom: 2px;
+        }
+
+        table {
+            border-spacing: 0;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .w-50 {
+            width: 50%;
+        }
+
+        .col-2 {
+            flex: 0 0 66.6666666667%;
+            max-width: 66.6666666667%;
+        }
+
+        .col-4 {
+            flex: 0 0 33.3333333333%;
+            max-width: 33.3333333333%;
+        }
+
+        h4 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            margin-top: 0;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .danger {
+            color: #fb462f;
+        }
+
+        .mb-0 {
+            margin-bottom: 0;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.5rem;
+        }
+
+        .mt-2 {
+            margin-top: 0.5rem;
+        }
+
+        .tyoskentelyjaksot {
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding-top: 1rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+            display: flex
+        }
+
+        .tyoskentelyjaksot-container {
+            width: 100%;
+            padding-left: 18px;
+        }
+
+        .tyoskentelyjakso-kestot {
+            display: flex;
+        }
+
+        .tyoskentelyjakso-kestot-column {
+            margin-right: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .duration-text {
+            font-size: 1.25rem;
+        }
+
+        .text-size-sm {
+            font-size: 0.8125000003rem;
+        }
+
+        .muut-tarkistukset-table thead th {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .muut-tarkistukset-table td {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .koulutustyypit {
+            border-collapse: collapse;
+        }
+
+        .koulutustyypit td {
+            padding-top: 0.2rem;
+            padding-bottom: 0.2rem;
+            padding-right: 0.3rem;
+        }
+
+        .koulutustyypit-yhteensa td {
+            font-weight: bold;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .kaytannonkoulutus td {
+            padding-top: 0.2rem;
+            padding-bottom: 0.2rem;
+            padding-right: 0.3rem;
+        }
+
+        .tyoskentelyjaksot-table {
+            border-collapse: collapse;
+        }
+
+        .tyoskentelyjaksot-table thead th {
+            border-bottom: 1px solid #dee2e6;
+            padding-right: 0.7rem;
+        }
+
+        .tyoskentelyjaksot-table td {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            padding-right: 0.7rem;
+            vertical-align: top;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .teoriakoulutukset-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .teoriakoulutukset-table thead th {
+            border-bottom: 1px solid #dee2e6;
+            padding-right: 0.3rem;
+        }
+
+        .teoriakoulutukset-table td {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            padding-right: 0.3rem;
+            vertical-align: top;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .text-muted {
+            color: #808080
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1 th:text="#{valmistumisenyhteenveto_yek.title}"></h1>
+    <hr/>
+    <div>
+        <table>
+            <caption></caption>
+            <tr>
+                <th style="width: 12rem" th:text="#{valmistumisenyhteenveto_yek.koulutettavaLaakari}"></th>
+                <td th:text="${tarkistus.valmistumispyynto.erikoistujanNimi + ', ' + tarkistus.valmistumispyynto.erikoistujanErikoisala}">
+                </td>
+            </tr>
+            <tr>
+                <th th:text="#{valmistumisenyhteenveto_yek.opiskelijanumero}"></th>
+                <td th:text="${tarkistus.valmistumispyynto.erikoistujanOpiskelijatunnus}"></td>
+            </tr>
+            <tr>
+                <th th:text="#{valmistumisenyhteenveto_yek.syntymaaika}"></th>
+                <td th:text="${#temporals.format(tarkistus.valmistumispyynto.erikoistujanSyntymaaika, 'dd.MM.yyyy')}">
+                </td>
+            </tr>
+            <tr>
+                <th th:text="#{valmistumisenyhteenveto_yek.yliopisto}"></th>
+                <td th:text="#{${tarkistus.valmistumispyynto.erikoistujanYliopisto}}"></td>
+            </tr>
+            <tr>
+                <th th:text="#{valmistumisenyhteenveto_yek.opintooikeudenMyontamispaiva}"></th>
+                <td th:text="${#temporals.format(tarkistus.valmistumispyynto.opintooikeudenMyontamispaiva, 'dd.MM.yyyy')}">
+                </td>
+            </tr>
+            <tr>
+                <th th:text="#{valmistumisenyhteenveto_yek.laillistamispaiva}"></th>
+                <td th:text="${#temporals.format(tarkistus.valmistumispyynto.erikoistujanLaillistamispaiva, 'dd.MM.yyyy')}">
+                </td>
+            </tr>
+            <tr>
+                <th th:text="#{valmistumisenyhteenveto_yek.asetus}"></th>
+                <td th:text="${tarkistus.valmistumispyynto.erikoistujanAsetus}"></td>
+            </tr>
+            <tr th:if="${tarkistus.valmistumispyynto.virkailijanSaate != null}">
+                <th th:text="#{valmistumisenyhteenveto_yek.lisatiedotVirkailijalta}"></th>
+                <td th:text="${tarkistus.valmistumispyynto.virkailijanSaate}"></td>
+            </tr>
+        </table>
+    </div>
+    <hr/>
+    <h3 th:text="#{valmistumisenyhteenveto_yek.teoriakoulutus}"></h3>
+    <h4 th:text="#{valmistumisenyhteenveto_yek.teoriakoulutus}"></h4>
+    <p class="mb-1">
+        <span th:if="${teoriakoulutusSuoritettu >= teoriakoulutusVaadittu}">
+            <em class="fas fa-check-circle success"></em>
+            <span style="margin-left: 0.5rem" th:text="#{valmistumisenyhteenveto_yek.suoritettu}"></span>
+        </span>
+        <span th:unless="${teoriakoulutusSuoritettu >= teoriakoulutusVaadittu}">
+            <em class="fas fa-exclamation-circle danger"></em>
+            <span style="margin-left: 0.5rem" th:text="#{valmistumisenyhteenveto_yek.eiSuoritettu}"></span>
+        </span>
+    </p>
+    <hr/>
+    <h3 th:text="#{valmistumisenyhteenveto_yek.tyoskentelyjaksot}"></h3>
+    <h4>
+        <span th:text="#{valmistumisenyhteenveto_yek.terveyskeskustyo}"></span>
+        <span th:text="#{valmistumisenyhteenveto_yek.vah}"></span>
+        <span th:text="${terveyskeskusVaadittuVahintaan}"></span>
+    </h4>
+    <p class="mb-1">
+        <span th:text="#{valmistumisenyhteenveto_yek.suoritettu}"></span>
+        <span th:text="${terveyskeskusSuoritettu}"></span>
+    </p>
+    <p>
+        <em class="fas fa-check-circle success"></em>
+        <span th:if="${tarkistus.terveyskeskustyoHyvaksyttyPvm != null}" style="margin-left: 0.5rem"
+              th:text="#{valmistumisenyhteenveto_yek.kestoJaSuorituksetTarkistettu}"></span>
+        <span th:if="${tarkistus.terveyskeskustyoHyvaksyttyPvm != null}" th:text="${#temporals.format(tarkistus.terveyskeskustyoHyvaksyttyPvm, 'dd.MM.yyyy')}"></span>
+        <span th:unless="${tarkistus.terveyskeskustyoHyvaksyttyPvm != null}" th:text="#{valmistumisenyhteenveto_yek.kestoPoissaolotJaVanheneminenTarkistettu}"></span>
+    </p>
+    <h4>
+        <span th:text="#{valmistumisenyhteenveto_yek.sairaalatyo}"></span>
+        <span th:text="#{valmistumisenyhteenveto_yek.vah}"></span>
+        <span th:text="${sairaalaVaadittuVahintaan}"></span>
+    </h4>
+    <p class="mb-1">
+        <span th:text="#{valmistumisenyhteenveto_yek.suoritettu}"></span>
+        <span th:text="${sairaalaSuoritettu}"></span>
+    </p>
+    <p th:if="${tarkistus.yliopistosairaalanUlkopuolinenTyoTarkistettu}">
+        <em class="fas fa-check-circle success"></em>
+        <span style="margin-left: 0.5rem"
+              th:text="#{valmistumisenyhteenveto_yek.kestoPoissaolotJaVanheneminenTarkistettu}"></span>
+    </p>
+    <h4 th:text="#{valmistumisenyhteenveto_yek.muu}"></h4>
+    <p class="mb-1">
+        <span th:text="#{valmistumisenyhteenveto_yek.suoritettu}"></span>
+        <span th:text="${yliopistosairaaloidenUlkopuolinenSuoritettu}"></span>
+    </p>
+    <p th:if="${tarkistus.yliopistosairaalanUlkopuolinenTyoTarkistettu}">
+        <em class="fas fa-check-circle success"></em>
+        <span style="margin-left: 0.5rem"
+              th:text="#{valmistumisenyhteenveto_yek.kestoPoissaolotJaVanheneminenTarkistettu}"></span>
+    </p>
+    <h4>
+        <span th:text="#{valmistumisenyhteenveto_yek.kokonaistyoaika}"></span>
+        <span th:text="#{valmistumisenyhteenveto_yek.vah}"></span>
+        <span th:text="${yhteensaVaadittuVahintaan}"></span>
+    </h4>
+    <p class="mb-1">
+        <span th:text="#{valmistumisenyhteenveto_yek.suoritettu}"></span>
+        <span th:text="${yhteensaSuoritettu}"></span>
+    </p>
+    <p th:if="${tarkistus.yliopistosairaalanUlkopuolinenTyoTarkistettu}">
+        <em class="fas fa-check-circle success"></em>
+        <span style="margin-left: 0.5rem"
+              th:text="#{valmistumisenyhteenveto_yek.kestoPoissaolotJaVanheneminenTarkistettu}"></span>
+    </p>
+    <hr/>
+    <h3 th:text="#{valmistumisenyhteenveto_yek.muutTarkistukset}"></h3>
+    <h4 th:text="#{valmistumisenyhteenveto_yek.vanhatSuoritukset}" style="margin-top: 1rem"></h4>
+    <p th:if="${tarkistus.suoritustenTila.vanhojaTyoskentelyjaksojaOrSuorituksiaExists}"
+       th:text="#{valmistumisenyhteenveto_yek.vanhojaSuorituksiaOn}"></p>
+    <p th:unless="${tarkistus.suoritustenTila.vanhojaTyoskentelyjaksojaOrSuorituksiaExists}"
+       th:text="#{valmistumisenyhteenveto_yek.vanhojaSuorituksiaEiOle}"></p>
+    <div th:if="${tarkistus.valmistumispyynto.selvitysVanhentuneistaSuorituksista != null}">
+        <h4 th:text="#{valmistumisenyhteenveto_yek.selvitysVanhentuneistaSuorituksista}"
+            style="margin-top: 1rem"></h4>
+        <p th:text="${tarkistus.valmistumispyynto.selvitysVanhentuneistaSuorituksista}"></p>
+    </div>
+    <hr/>
+    <h3 th:text="#{valmistumisenyhteenveto_yek.tarkistanut}"></h3>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{valmistumisenyhteenveto_yek.paivays}"></h4>
+            <p class="mb-0"
+               th:text="${#temporals.format(tarkistus.valmistumispyynto.virkailijanKuittausaika, 'dd.MM.yyyy')}">
+            </p>
+        </div>
+        <div class="col-2">
+            <h4 th:text="#{valmistumisenyhteenveto_yek.nimiJaNimike}"></h4>
+            <p class="mb-0"
+               th:text="${tarkistus.valmistumispyynto.virkailijaNimi} + ', ' + #{valmistumisenyhteenveto_yek.virkailija}">
+            </p>
+        </div>
+    </div>
+    <h3 th:text="#{valmistumisenyhteenveto_yek.hyvaksynyt}"></h3>
+    <div class="row">
+        <div class="col-4">
+            <h4 th:text="#{valmistumisenyhteenveto_yek.paivays}"></h4>
+            <p class="mb-0"
+               th:text="${#temporals.format(tarkistus.valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika, 'dd.MM.yyyy')}">
+            </p>
+        </div>
+        <div class="col-2">
+            <h4 th:text="#{valmistumisenyhteenveto_yek.nimiJaNimike}"></h4>
+            <p class="mb-0"
+               th:text="${tarkistus.valmistumispyynto.vastuuhenkiloHyvaksyjaNimi}">
+                <span
+                    th:text="${tarkistus.valmistumisenyhteenveto.vastuuhenkiloHyvaksyjaNimike != null} ? ', ' + ${tarkistus.valmistumisenyhteenveto.vastuuhenkiloHyvaksyjaNimike} : ''"></span>
+            </p>
+        </div>
+    </div>
+    <hr/>
+    <h3 th:text="#{valmistumisenyhteenveto_yek.tyoskentelyjaksot}"></h3>
+    <div class="tyoskentelyjaksot">
+        <div class="tyoskentelyjaksot-container">
+            <div style="margin-bottom: 1.5rem">
+                <div id="tyoskentelyjakso-kestot" class="tyoskentelyjakso-kestot">
+                    <div class="tyoskentelyjakso-kestot-column">
+                        <div class="duration-text" th:text="${tyoskentelyaikaYhteensa}"></div>
+                        <div class="text-size-sm"
+                              th:text="#{valmistumisenyhteenveto_yek.tyoskentelyaikaYhteensa}"></div>
+                    </div>
+                    <div class="tyoskentelyjakso-kestot-column">
+                        <div class="duration-text" th:text="${arvioErikoistumiseenHyvaksyttavista}"></div>
+                        <div class="text-size-sm"
+                              th:text="#{valmistumisenyhteenveto_yek.arvioErikoistumiseenHyvaksyttavista}"></div>
+                    </div>
+                    <div class="tyoskentelyjakso-kestot-column">
+                        <div class="duration-text" th:text="${arvioPuuttuvastaKoulutuksesta}"></div>
+                        <div class="text-size-sm"
+                              th:text="#{valmistumisenyhteenveto_yek.arvioPuuttuvasta}"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row w-50">
+                <div>
+                    <label for="koulutustyypit" th:text="#{valmistumisenyhteenveto_yek.koulutustyypit}"></label>
+                    <table id="koulutustyypit" class="koulutustyypit">
+                        <caption></caption>
+                        <thead><tr><th></th><th></th><th></th><th></th></tr></thead>
+                        <tr>
+                            <td th:text="#{valmistumisenyhteenveto_yek.terveyskeskus}"></td>
+                            <td th:text="${terveyskeskusSuoritettu}"></td>
+                            <td th:text="'/' + #{valmistumisenyhteenveto_yek.vah}"></td>
+                            <td th:text="${terveyskeskusVaadittuVahintaan}"></td>
+                        </tr>
+                        <tr>
+                            <td th:text="#{valmistumisenyhteenveto_yek.sairaala}"></td>
+                            <td th:text="${sairaalaSuoritettu}"></td>
+                            <td th:text="'/' + #{valmistumisenyhteenveto_yek.vah}"></td>
+                            <td th:text="${sairaalaVaadittuVahintaan}"></td>
+                        </tr>
+                        <tr>
+                            <td th:text="#{valmistumisenyhteenveto_yek.muut}"></td>
+                            <td th:text="${muuSuoritettu}"></td>
+                            <td th:text="'/' + #{valmistumisenyhteenveto_yek.vah}"></td>
+                            <td th:text="${muuVaadittuVahintaan}"></td>
+                        </tr>
+                        <tr class="koulutustyypit-yhteensa">
+                            <td th:text="#{valmistumisenyhteenveto_yek.yhteensa}"></td>
+                            <td th:text="${yhteensaSuoritettu}"></td>
+                            <td th:text="'/' + #{valmistumisenyhteenveto_yek.vah}"></td>
+                            <td th:text="${yhteensaVaadittuVahintaan}"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div th:if="${laakarikoulutusSuoritettuSuomiTaiBelgia}">
+                <div class="mt-2">
+                    <em class="fas fa-info-circle text-muted"></em>
+                    <span th:text="#{valmistumisenyhteenveto_yek.aiempiHyvaksiluettuSuoritus}">
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table class="tyoskentelyjaksot-table">
+        <caption></caption>
+        <thead>
+        <tr>
+            <th th:text="#{valmistumisenyhteenveto_yek.tyoskentelypaikka}"></th>
+            <th th:text="#{valmistumisenyhteenveto_yek.ajankohta}"></th>
+            <th th:text="#{valmistumisenyhteenveto_yek.tyoskentelyaika}"></th>
+            <th th:text="#{valmistumisenyhteenveto_yek.tyoaika}"></th>
+            <th th:text="#{valmistumisenyhteenveto_yek.tyyppi}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="tyoskentelyjakso: ${tyoskentelyjaksot}">
+            <td th:text="${tyoskentelyjakso.tyoskentelypaikka.nimi}"></td>
+            <td th:text="${#temporals.format(tyoskentelyjakso.alkamispaiva, 'dd.MM.yyyy')} + '-' + (${tyoskentelyjakso.paattymispaiva != null} ? ${#temporals.format(tyoskentelyjakso.paattymispaiva, 'dd.MM.yyyy')} : '')">
+            </td>
+            <td th:text="${tyoskentelyjaksotSuoritettu[tyoskentelyjakso.id]}"></td>
+            <td th:text="${tyoskentelyjakso.osaaikaprosentti} + '%'"></td>
+            <td th:text="#{${tyoskentelyjakso.tyoskentelypaikka.tyyppi}}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <hr/>
+    <h3 th:text="#{valmistumisenyhteenveto_yek.teoriakoulutukset}"></h3>
+    <table class="teoriakoulutukset-table">
+        <caption></caption>
+        <thead>
+        <tr>
+            <th th:text="#{valmistumisenyhteenveto_yek.koulutus}"></th>
+            <th th:text="#{valmistumisenyhteenveto_yek.suorituspvm}"></th>
+            <th th:text="#{valmistumisenyhteenveto_yek.merkinta}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="teoriakoulutus: ${teoriakoulutukset}">
+            <td th:text="${teoriakoulutus.nimi_fi}"></td>
+            <td th:text="${#temporals.format(teoriakoulutus.suorituspaiva, 'dd.MM.yyyy')}">
+            </td>
+            <td>
+                <em class=" fas fa-check-circle success"></em>
+                <span th:text="#{valmistumisenyhteenveto_yek.suoritettu}" style="margin-left: 0.5rem"></span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
