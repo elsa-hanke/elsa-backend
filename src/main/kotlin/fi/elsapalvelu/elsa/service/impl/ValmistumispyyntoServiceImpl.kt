@@ -85,7 +85,9 @@ class ValmistumispyyntoServiceImpl(
     private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository,
     private val seurantajaksoService: SeurantajaksoService,
     private val userRepository: UserRepository,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
+    private val opintosuoritusService: OpintosuoritusService,
+    private val opintosuoritusTyyppiService: OpintosuoritusTyyppiService
 ) : ValmistumispyyntoService {
 
     @Transactional(readOnly = true)
@@ -298,9 +300,14 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = LocalDate.now()
             val result = valmistumispyyntoRepository.save(valmistumispyynto)
             result.valmistumispyynnonTarkistus?.let {
-                luoYhteenvetoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
-                luoLiitteetPdf(valmistumispyynto)
-                luoErikoistujanTiedotPdf(valmistumispyynto)
+                if (it.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                    luoYEKYhteenvetoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
+                    luoLiitteetPdf(valmistumispyynto)
+                } else {
+                    luoYhteenvetoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
+                    luoLiitteetPdf(valmistumispyynto)
+                    luoErikoistujanTiedotPdf(valmistumispyynto)
+                }
             }
         }
 
@@ -1069,7 +1076,57 @@ class ValmistumispyyntoServiceImpl(
         ) {
             lahetaAllekirjoitettavaksi(valmistumispyynto, asiakirja)
         }
+    }
 
+    private fun luoYEKYhteenvetoPdf(valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO, valmistumispyynto: Valmistumispyynto) {
+        val locale = Locale.forLanguageTag("fi")
+        val context = Context(locale).apply {
+            setVariable("tarkistus", valmistumispyynnonTarkistusDTO)
+            setVariable("teoriakoulutusSuoritettu", valmistumispyynnonTarkistusDTO.teoriakoulutusSuoritettu)
+            setVariable("teoriakoulutusVaadittu", valmistumispyynnonTarkistusDTO.teoriakoulutusVaadittu)
+
+            valmistumispyynto.opintooikeus?.let {
+                val tyoskentelyjaksotTilastot = tyoskentelyjaksoService.getTilastot(it)
+                setVariable("tyoskentelyaikaYhteensa", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yhteensaSuoritettu).format())
+                setVariable("arvioErikoistumiseenHyvaksyttavista", daysToPeriod(tyoskentelyjaksotTilastot.arvioErikoistumiseenHyvaksyttavista).format())
+                setVariable("arvioPuuttuvastaKoulutuksesta", daysToPeriod(tyoskentelyjaksotTilastot.arvioPuuttuvastaKoulutuksesta).format())
+                setVariable("terveyskeskusSuoritettu", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.terveyskeskusSuoritettu).format())
+                setVariable("terveyskeskusVaadittuVahintaan", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.terveyskeskusVaadittuVahintaan).format())
+                setVariable("sairaalaSuoritettu", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yliopistosairaalaSuoritettu).format())
+                setVariable("sairaalaVaadittuVahintaan", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yliopistosairaalaVaadittuVahintaan).format())
+                setVariable("muuSuoritettu", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenSuoritettu).format())
+                setVariable("muuVaadittuVahintaan", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yliopistosairaaloidenUlkopuolinenVaadittuVahintaan).format())
+                setVariable("yhteensaSuoritettu", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yhteensaSuoritettu).format())
+                setVariable("yhteensaVaadittuVahintaan", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yhteensaVaadittuVahintaan).format())
+
+                val tyoskentelyjaksot = tyoskentelyjaksoService.findAllByOpintooikeusId(it.id!!)
+                setVariable("tyoskentelyjaksot", tyoskentelyjaksot.sortedByDescending { jakso -> jakso.alkamispaiva })
+                setVariable("tyoskentelyjaksotSuoritettu", tyoskentelyjaksotTilastot.tyoskentelyjaksot.groupBy { jakso -> jakso.id }.mapValues { jakso -> daysToPeriod(jakso.value.sumOf { value -> value.suoritettu }).format() })
+                setVariable("laakarikoulutusSuoritettuSuomiTaiBelgia", valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia)
+
+                val opintosuoritusTyyppi = opintosuoritusTyyppiService.findAll()?.first { it.nimi == OpintosuoritusTyyppiEnum.YLEISLAAKETIETEEN_ERITYISKOULUTUS }
+                val opintosuoritukset = opintosuoritusService.getOpintosuorituksetByOpintooikeusIdAndTyyppiId(
+                    it.id!!, opintosuoritusTyyppi?.id!!
+                )
+                setVariable("teoriakoulutukset", opintosuoritukset.opintosuoritukset)
+            }
+        }
+        val outputStream = ByteArrayOutputStream()
+        pdfService.luoPdf("pdf/valmistumisenyhteenveto_yek.html", context, outputStream)
+        val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+
+        val asiakirja = asiakirjaRepository.save(
+            Asiakirja(
+                opintooikeus = valmistumispyynto.opintooikeus,
+                nimi = "valmistumisen_yhteenveto_yek_${timestamp}.pdf",
+                tyyppi = MediaType.APPLICATION_PDF_VALUE,
+                lisattypvm = LocalDateTime.now(),
+                asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
+            )
+        )
+
+        valmistumispyynto.yhteenvetoAsiakirja = asiakirja
+        valmistumispyyntoRepository.save(valmistumispyynto)
     }
 
     private fun luoLiitteetPdf(valmistumispyynto: Valmistumispyynto) {
