@@ -39,6 +39,10 @@ data class OpintoopasDTO(
 
     var yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusKuukaudet: Int? = null,
 
+    var yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusVuodet: Int? = null,
+
+    var yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusKuukaudet: Int? = null,
+
     @get: NotNull
     var erikoisalanVaatimaTeoriakoulutustenVahimmaismaara: Double? = null,
 

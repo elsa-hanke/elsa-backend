@@ -80,6 +80,12 @@ class OpintoopasServiceImpl(
             opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusVuodet,
             opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusKuukaudet
         )
+        if (opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusVuodet != null || opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusKuukaudet != null) {
+            opintoopas.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituus = toDays(
+                opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusVuodet,
+                opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusKuukaudet
+            )
+        }
         val result = opintoopasRepository.save(opintoopas)
 
         return opintoopasMapper.toDto(result)
@@ -113,6 +119,13 @@ class OpintoopasServiceImpl(
             opas.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus?.toYears()
         dto.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusKuukaudet =
             opas.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus?.toMonths()
+
+        if (opas.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituus != null) {
+            dto.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusVuodet =
+                opas.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituus?.toYears()
+            dto.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusKuukaudet =
+                opas.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituus?.toMonths()
+        }
         return dto
     }
 
