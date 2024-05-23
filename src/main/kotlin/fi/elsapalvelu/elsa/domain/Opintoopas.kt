@@ -42,7 +42,7 @@ data class Opintoopas(
     @Column(name = "terveyskeskuskoulutusjakson_vahimmaispituus", nullable = false)
     var terveyskeskuskoulutusjaksonVahimmaispituus: Double? = null,
 
-    @Column(name = "terveyskeskuskoulutusjakson_maksimipituus", nullable = false)
+    @Column(name = "terveyskeskuskoulutusjakson_maksimipituus")
     var terveyskeskuskoulutusjaksonMaksimipituus: Double? = null,
 
     @get: NotNull
@@ -52,6 +52,9 @@ data class Opintoopas(
     @get: NotNull
     @Column(name = "yliopistosairaalan_ulkopuolisen_tyoskentelyn_vahimmaispituus", nullable = false)
     var yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus: Double? = null,
+
+    @Column(name = "yliopistosairaalan_ulkopuolisen_tyoskentelyn_maksimipituus")
+    var yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituus: Double? = null,
 
     @get: NotNull
     @Column(name = "erikoisalan_vaatima_teoriakoulutusten_vahimmaismaara", nullable = false)
