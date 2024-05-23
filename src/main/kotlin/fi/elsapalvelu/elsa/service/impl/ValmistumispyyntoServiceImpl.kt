@@ -213,7 +213,9 @@ class ValmistumispyyntoServiceImpl(
                 }
             }.let {
                 valmistumispyyntoRepository.save(it).let { saved ->
-                    if (it.opintooikeus?.erikoisala?.id != YEK_ERIKOISALA_ID) {
+                    if (it.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                        sendMailNotificationOdottaaVirkailijanTarkastustaYek(opintooikeus.yliopisto!!.nimi!!, saved.id!!)
+                    } else {
                         val vastuuhenkiloOsaamisenArvioijaUser =
                             getVastuuhenkiloOsaamisenArvioija(opintooikeus.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!
                         sendMailNotificationUusiValmistumispyynto(vastuuhenkiloOsaamisenArvioijaUser, saved)
@@ -303,6 +305,7 @@ class ValmistumispyyntoServiceImpl(
                 if (it.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
                     luoYEKYhteenvetoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
                     luoLiitteetPdf(valmistumispyynto)
+                    sendMailNotificationHyvaksytty(valmistumispyynto)
                 } else {
                     luoYhteenvetoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
                     luoLiitteetPdf(valmistumispyynto)
@@ -864,6 +867,18 @@ class ValmistumispyyntoServiceImpl(
         )
     }
 
+    private fun sendMailNotificationOdottaaVirkailijanTarkastustaYek(
+        erikoistujanYliopisto: YliopistoEnum,
+        valmistumispyyntoId: Long
+    ) {
+        mailService.sendEmailFromTemplate(
+            to = erikoistujanYliopisto.getOpintohallintoEmailAddress(applicationProperties),
+            templateName = "valmistumispyyntoTarkastettavissaYek.html",
+            titleKey = "email.valmistumispyyntoTarkastettavissa.title",
+            properties = mapOf(Pair(MailProperty.ID, valmistumispyyntoId.toString()))
+        )
+    }
+
     private fun sendMailNotificationOdottaaHyvaksyntaa(
         valmistumispyynto: Valmistumispyynto
     ) {
@@ -910,12 +925,40 @@ class ValmistumispyyntoServiceImpl(
 
         val nimi = valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()
 
+        if (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
+            mailService.sendEmailFromTemplate(
+                valmistumispyynto.virkailija?.user!!,
+                templateName = "valmistumispyyntoPalautettuMuutYek.html",
+                titleKey = "email.valmistumispyyntoPalautettuMuut.title",
+                titleProperties = arrayOf("$nimi"),
+                properties = mapOf(Pair(MailProperty.NAME, nimi.toString()))
+            )
+        } else {
+            mailService.sendEmailFromTemplate(
+                valmistumispyynto.virkailija?.user!!,
+                templateName = "valmistumispyyntoPalautettuMuut.html",
+                titleKey = "email.valmistumispyyntoPalautettuMuut.title",
+                titleProperties = arrayOf("$nimi"),
+                properties = mapOf(Pair(MailProperty.NAME, nimi.toString()))
+            )
+        }
+    }
+
+    private fun sendMailNotificationHyvaksytty(
+        valmistumispyynto: Valmistumispyynto
+    ) {
+        mailService.sendEmailFromTemplate(
+            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
+            templateName = "valmistumispyyntoHyvaksytty.html",
+            titleKey = "email.valmistumispyyntoHyvaksytty.title",
+            properties = mapOf()
+        )
+
         mailService.sendEmailFromTemplate(
             valmistumispyynto.virkailija?.user!!,
-            templateName = "valmistumispyyntoPalautettuMuut.html",
-            titleKey = "email.valmistumispyyntoPalautettuMuut.title",
-            titleProperties = arrayOf("$nimi"),
-            properties = mapOf(Pair(MailProperty.NAME, nimi.toString()))
+            templateName = "valmistumispyyntoHyvaksyttyVirkailija.html",
+            titleKey = "email.valmistumispyyntoHyvaksytty.title",
+            properties = mapOf()
         )
     }
 
