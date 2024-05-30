@@ -37,5 +37,7 @@ interface EtusivuService {
 
     fun getAvoimetAsiatForErikoistuja(userId: String): List<AvoinAsiaDTO>?
 
+    fun getAvoimetAsiatForYekKoulutettava(userId: String): List<AvoinAsiaDTO>?
+
     fun getVanhenevatKatseluoikeudetForKouluttaja(userId: String): List<KatseluoikeusDTO>?
 }

@@ -341,6 +341,27 @@ class EtusivuServiceImpl(
         return avoimetAsiatList.sortedBy { it.pvm }
     }
 
+    override fun getAvoimetAsiatForYekKoulutettava(userId: String): List<AvoinAsiaDTO>? {
+        val avoimetAsiatList = mutableListOf<AvoinAsiaDTO>()
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+        val user = userRepository.findById(userId)
+            .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+        var locale = Locale.forLanguageTag("fi")
+        if (user.langKey != null) locale = Locale.forLanguageTag(user.langKey)
+
+        mapVanhenevatKatseluoikeudetToAvoimetAsiatIfExists(avoimetAsiatList, opintooikeusId, locale)
+        mapTerveyskeskuskoulutusjaksoPalautettuOrHaettavissaIfExists(
+            avoimetAsiatList,
+            opintooikeusId,
+            locale,
+            true
+        )
+        mapValmistumispyyntoPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
+
+        return avoimetAsiatList.sortedBy { it.pvm }
+    }
+
     override fun getVanhenevatKatseluoikeudetForKouluttaja(userId: String): List<KatseluoikeusDTO>? {
         return kouluttajavaltuutusRepository.findAllByValtuutettuUserIdAndPaattymispaivaBeforeAndPaattymispaivaAfter(
             userId,
@@ -703,7 +724,8 @@ class EtusivuServiceImpl(
     private fun mapTerveyskeskuskoulutusjaksoPalautettuOrHaettavissaIfExists(
         avoimetAsiatList: MutableList<AvoinAsiaDTO>,
         opintooikeusId: Long,
-        locale: Locale
+        locale: Locale,
+        yek: Boolean = false
     ) {
         val hyvaksynta =
             terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(opintooikeusId)
@@ -722,9 +744,8 @@ class EtusivuServiceImpl(
                     )
                 )
             }
-        } else if (terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(
-                opintooikeusId
-            )
+        } else if (!yek && terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(opintooikeusId)
+            || (yek && terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettuYek(opintooikeusId))
         ) {
             avoimetAsiatList.add(
                 AvoinAsiaDTO(
