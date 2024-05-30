@@ -22,7 +22,7 @@ class YekKoulutettavaEtusivuResource(
         principal: Principal?
     ): ResponseEntity<List<AvoinAsiaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(etusivuService.getAvoimetAsiatForErikoistuja(user.id!!))
+        return ResponseEntity.ok(etusivuService.getAvoimetAsiatForYekKoulutettava(user.id!!))
     }
 
     @GetMapping("/erikoistumisen-edistyminen")

@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.TerveyskeskuskoulutusjaksonHyvaksynta
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
@@ -147,7 +148,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
         opintooikeusRepository.findById(opintooikeusId).orElse(null)?.let {
             val tyoskentelyjaksot =
-                tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
+                if (it.erikoisala?.id == YEK_ERIKOISALA_ID)  tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(opintooikeusId, TyoskentelyjaksoTyyppi.TERVEYSKESKUS)
+                else tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
                     opintooikeusId,
                     TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
                     KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
@@ -195,6 +197,17 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 opintooikeusId,
                 TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
                 KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
+            )
+        val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
+
+        return suoritettuPituus >= TERVEYSKESKUS_HYVAKSYNTA_MINIMIPITUUS
+    }
+
+    override fun getTerveyskoulutusjaksoSuoritettuYek(opintooikeusId: Long): Boolean {
+        val tyoskentelyjaksot =
+            tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
+                opintooikeusId,
+                TyoskentelyjaksoTyyppi.TERVEYSKESKUS
             )
         val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
 

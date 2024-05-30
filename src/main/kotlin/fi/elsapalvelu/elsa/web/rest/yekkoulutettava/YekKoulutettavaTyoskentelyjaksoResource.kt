@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import jakarta.validation.Valid
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -18,6 +17,7 @@ import fi.elsapalvelu.elsa.service.dto.*
 import jakarta.validation.ValidationException
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
+import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.security.access.prepost.PreAuthorize
 import java.time.LocalDate
@@ -45,11 +45,9 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     private val opintooikeusService: OpintooikeusService,
     private val koulutusjaksoService: KoulutusjaksoService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
-    private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService
+    private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
+    private val opintosuoritusService: OpintosuoritusService
 ) {
-
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
 
     @PostMapping("/tyoskentelyjaksot")
     fun createTyoskentelyjakso(
@@ -143,11 +141,21 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         table.keskeytykset = keskeytysaikaService
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
         table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeusId)
-        terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)?.let {
-            table.terveyskeskuskoulutusjaksonTila = it.tila
-            table.terveyskeskuskoulutusjaksonKorjausehdotus =
-                if (it.virkailijanKorjausehdotus != null) it.virkailijanKorjausehdotus else it.vastuuhenkilonKorjausehdotus
-            table.terveyskeskuskoulutusjaksonHyvaksymispvm = it.vastuuhenkilonKuittausaika
+
+        val terveyskeskusSuoritus = opintosuoritusService.getTerveyskoulutusjaksoSuoritetusPvm(opintooikeusId)
+        if (terveyskeskusSuoritus != null) {
+            table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY
+            table.terveyskeskuskoulutusjaksonHyvaksymispvm = terveyskeskusSuoritus
+        } else {
+            val hyvaksynta = terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)
+            if (hyvaksynta != null) {
+                table.terveyskeskuskoulutusjaksonTila = hyvaksynta.tila
+                table.terveyskeskuskoulutusjaksonKorjausehdotus =
+                    if (hyvaksynta.virkailijanKorjausehdotus != null) hyvaksynta.virkailijanKorjausehdotus else hyvaksynta.vastuuhenkilonKorjausehdotus
+                table.terveyskeskuskoulutusjaksonHyvaksymispvm = hyvaksynta.vastuuhenkilonKuittausaika
+            } else if (terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettuYek(opintooikeusId)) {
+                table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.UUSI
+            }
         }
 
         return ResponseEntity.ok(table)
