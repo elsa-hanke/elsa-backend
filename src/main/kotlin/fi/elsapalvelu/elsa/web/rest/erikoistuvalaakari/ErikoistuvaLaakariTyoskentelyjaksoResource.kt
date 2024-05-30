@@ -6,8 +6,8 @@ import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -46,11 +46,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val opintooikeusService: OpintooikeusService,
     private val koulutusjaksoService: KoulutusjaksoService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
-    private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService
+    private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
+    private val opintosuoritusService: OpintosuoritusService
 ) {
-
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
 
     @PostMapping("/tyoskentelyjaksot")
     fun createTyoskentelyjakso(
@@ -147,11 +145,21 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         table.keskeytykset = keskeytysaikaService
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeus.id!!).toMutableSet()
         table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeus.id!!)
-        terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeus.id!!)?.let {
-            table.terveyskeskuskoulutusjaksonTila = it.tila
-            table.terveyskeskuskoulutusjaksonKorjausehdotus =
-                if (it.virkailijanKorjausehdotus != null) it.virkailijanKorjausehdotus else it.vastuuhenkilonKorjausehdotus
-            table.terveyskeskuskoulutusjaksonHyvaksymispvm = it.vastuuhenkilonKuittausaika
+
+        val terveyskeskusSuoritus = opintosuoritusService.getTerveyskoulutusjaksoSuoritetusPvm(opintooikeus.id!!)
+        if (terveyskeskusSuoritus != null) {
+            table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY
+            table.terveyskeskuskoulutusjaksonHyvaksymispvm = terveyskeskusSuoritus
+        } else {
+            val hyvaksynta = terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeus.id!!)
+            if (hyvaksynta != null) {
+                table.terveyskeskuskoulutusjaksonTila = hyvaksynta.tila
+                table.terveyskeskuskoulutusjaksonKorjausehdotus =
+                    if (hyvaksynta.virkailijanKorjausehdotus != null) hyvaksynta.virkailijanKorjausehdotus else hyvaksynta.vastuuhenkilonKorjausehdotus
+                table.terveyskeskuskoulutusjaksonHyvaksymispvm = hyvaksynta.vastuuhenkilonKuittausaika
+            } else if (terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(opintooikeus.id!!)) {
+                table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.UUSI
+            }
         }
 
         return ResponseEntity.ok(table)
@@ -475,6 +483,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+
+        if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(opintooikeusId)) {
+            throw BadRequestAlertException(
+                "Terveyskeskuskoulutusjakson hyväksynnästä on jo opintosuoritus",
+                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
+                "dataillegal.terveyskeskuskoulutusjaksolla-on-opintosuoritus"
+            )
+        }
 
         if (!terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(
                 opintooikeusId

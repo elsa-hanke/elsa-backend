@@ -41,6 +41,11 @@ interface TyoskentelyjaksoRepository : JpaRepository<Tyoskentelyjakso, Long> {
 
     fun findAllByOpintooikeusIdAndLiitettyKoejaksoonTrue(opintooikeusId: Long): List<Tyoskentelyjakso>
 
+    fun findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
+        id: Long,
+        tyyppi: TyoskentelyjaksoTyyppi
+    ): List<Tyoskentelyjakso>
+
     fun findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
         id: Long,
         tyyppi: TyoskentelyjaksoTyyppi,

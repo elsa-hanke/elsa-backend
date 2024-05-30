@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.dto.enumeration
 import fi.elsapalvelu.elsa.domain.TerveyskeskuskoulutusjaksonHyvaksynta
 
 enum class TerveyskeskuskoulutusjaksoTila {
+    UUSI,
     ODOTTAA_VIRKAILIJAN_TARKISTUSTA,
     ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA,
     PALAUTETTU_KORJATTAVAKSI,

@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 @Service
 class OpintosuoritusServiceImpl(
@@ -65,6 +66,16 @@ class OpintosuoritusServiceImpl(
             },
             opintooikeus?.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
         )
+    }
+
+    override fun getTerveyskoulutusjaksoSuoritettu(opintooikeusId: Long): Boolean {
+        val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeusId).asSequence()
+        return opintosuoritukset.any { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO && it.hyvaksytty }
+    }
+
+    override fun getTerveyskoulutusjaksoSuoritetusPvm(opintooikeusId: Long): LocalDate? {
+        val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeusId).asSequence()
+        return opintosuoritukset.firstOrNull { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO && it.hyvaksytty }?.suorituspaiva
     }
 
 }
