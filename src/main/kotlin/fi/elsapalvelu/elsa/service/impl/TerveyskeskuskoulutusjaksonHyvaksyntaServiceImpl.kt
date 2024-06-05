@@ -164,7 +164,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
                     listOf(VASTUUHENKILO),
                     it.yliopisto?.id,
-                    VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
+                    if (it.erikoisala?.id == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS
+                    else VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
                 )
                     ?.let { v ->
                         kayttajaMapper.toDto(v)
@@ -408,7 +409,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
     private fun mapTerveyskeskuskoulutusjakso(hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta): TerveyskeskuskoulutusjaksonHyvaksyntaDTO {
         val tyoskentelyjaksot =
-            tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
+            if (hyvaksynta.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
+                hyvaksynta.opintooikeus?.id!!,
+                TyoskentelyjaksoTyyppi.TERVEYSKESKUS)
+            else tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
                 hyvaksynta.opintooikeus?.id!!,
                 TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
                 KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
@@ -432,6 +436,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         result.tyoskentelyjaksot = tyoskentelyjaksot.map(tyoskentelyjaksoMapper::toDto)
         result.tila = TerveyskeskuskoulutusjaksoTila.fromHyvaksynta(hyvaksynta)
         result.opintooikeusId = hyvaksynta.opintooikeus?.id
+        result.erikoisalaId = hyvaksynta.opintooikeus?.erikoisala?.id
 
         return result
     }
