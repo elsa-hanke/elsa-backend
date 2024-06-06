@@ -3,23 +3,22 @@ package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
+import fi.elsapalvelu.elsa.extensions.mapAsiakirja
+import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.Valid
+import jakarta.validation.ValidationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
-import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.*
-import jakarta.validation.ValidationException
-import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import fi.elsapalvelu.elsa.extensions.mapAsiakirja
-import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
-import jakarta.persistence.EntityNotFoundException
-import org.springframework.security.access.prepost.PreAuthorize
 import java.time.LocalDate
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
@@ -551,6 +550,28 @@ class YekKoulutettavaTyoskentelyjaksoResource(
             .let {
                 return ResponseEntity.ok(it)
             }
+    }
+
+    @GetMapping("/ensimmainen-tyoskentelyjakso")
+    fun getEnsimmainenTyoskentelyjakso(
+        principal: Principal?
+    ): ResponseEntity<TyoskentelyjaksoDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+
+        val tyoskentelyjaksot: MutableSet<TyoskentelyjaksoDTO> = tyoskentelyjaksoService
+            .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
+
+        val ensimmainenTyoskentelyjakso = tyoskentelyjaksot
+            .filter { it.alkamispaiva != null }
+            .minByOrNull { it.alkamispaiva!! }
+
+        return if (ensimmainenTyoskentelyjakso != null) {
+            ResponseEntity.ok(ensimmainenTyoskentelyjakso)
+        } else {
+            ResponseEntity.ok().build()
+        }
     }
 
     private fun getMappedFiles(
