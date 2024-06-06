@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.TerveyskeskuskoulutusjaksonHyvaksyntaRepository
@@ -104,6 +105,11 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
                 )
             }
         }
+        if (criteria?.erikoisalaId == null) {
+            specification = specification.and(
+                buildExcludedErikoisalaSpecification(YEK_ERIKOISALA_ID)
+            )
+        }
         return specification
     }
 
@@ -113,6 +119,15 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
                 root.join("opintooikeus")
             val erikoisala: Join<Opintooikeus, Erikoisala> = opintooikeus.join("erikoisala")
             criteriaBuilder.equal(erikoisala.get<Long>("id"), erikoisalaId)
+        }
+    }
+
+    fun buildExcludedErikoisalaSpecification(excludedErikoisalaId: Long): Specification<TerveyskeskuskoulutusjaksonHyvaksynta?>? {
+        return Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> { root: Root<TerveyskeskuskoulutusjaksonHyvaksynta?>, _: CriteriaQuery<*>?, criteriaBuilder: CriteriaBuilder ->
+            val opintooikeus: Join<TerveyskeskuskoulutusjaksonHyvaksynta, Opintooikeus> =
+                root.join("opintooikeus")
+            val erikoisala: Join<Opintooikeus, Erikoisala> = opintooikeus.join("erikoisala")
+            criteriaBuilder.not(criteriaBuilder.equal(erikoisala.get<Long>("id"), excludedErikoisalaId))
         }
     }
 }

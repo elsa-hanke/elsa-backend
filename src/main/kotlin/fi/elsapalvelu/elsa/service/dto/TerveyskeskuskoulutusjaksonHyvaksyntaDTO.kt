@@ -60,7 +60,9 @@ data class TerveyskeskuskoulutusjaksonHyvaksyntaDTO(
 
     var vastuuhenkilonKuittausaika: LocalDate? = null,
 
-    var opintooikeusId: Long? = null
+    var opintooikeusId: Long? = null,
+
+    var erikoisalaId: Long? = null
 
 ) : Serializable {
 
