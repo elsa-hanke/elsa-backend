@@ -164,8 +164,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
                     listOf(VASTUUHENKILO),
                     it.yliopisto?.id,
-                    if (it.erikoisala?.id == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS
-                    else VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
+                    VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
                 )
                     ?.let { v ->
                         kayttajaMapper.toDto(v)
