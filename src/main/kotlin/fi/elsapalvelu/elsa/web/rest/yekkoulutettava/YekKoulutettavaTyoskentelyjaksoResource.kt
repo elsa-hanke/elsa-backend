@@ -564,8 +564,8 @@ class YekKoulutettavaTyoskentelyjaksoResource(
             .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
 
         val ensimmainenTyoskentelyjakso = tyoskentelyjaksot
-            .filter { it.alkamispaiva != null }
-            .minByOrNull { it.alkamispaiva!! }
+            .filter { it.id != null }
+            .minByOrNull { it.id!! }
 
         return if (ensimmainenTyoskentelyjakso != null) {
             ResponseEntity.ok(ensimmainenTyoskentelyjakso)
