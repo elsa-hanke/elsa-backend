@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20240611132400" author="jhipster">
+        <update tableName="vastuuhenkilon_tehtavatyyppi">
+            <column name="nimi" value="YEK_TERVEYSKESKUSKOULUTUSJAKSO"/>
+            <where>nimi='YEK_KOULUTUS'</where>
+        </update>
+        <insert tableName="vastuuhenkilon_tehtavatyyppi">
+            <column name="nimi" value="YEK_VALMISTUMINEN"/>
+        </insert>
+        <insert tableName="rel_erikoisala_vastuuhenkilon_tehtavatyyppi">
+            <column name="erikoisala_id" value="50" />
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="6"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20240611132400-data-1" author="jhipster">
+        <preConditions  onFail="MARK_RAN">
+            <sqlCheck  expectedResult="1">SELECT COUNT(*) FROM kayttaja_yliopisto_erikoisala where yliopisto_id = 1 and erikoisala_id = 50</sqlCheck>
+        </preConditions>
+        <insert tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi">
+            <column name="kayttaja_yliopisto_erikoisala_id" valueComputed="(select id from kayttaja_yliopisto_erikoisala where yliopisto_id = 1 and erikoisala_id = 50)"/>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="5"/>
+        </insert>
+        <insert tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi">
+            <column name="kayttaja_yliopisto_erikoisala_id" valueComputed="(select id from kayttaja_yliopisto_erikoisala where yliopisto_id = 1 and erikoisala_id = 50)"/>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="6"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20240611132400-data-2" author="jhipster">
+        <preConditions  onFail="MARK_RAN">
+            <sqlCheck  expectedResult="1">SELECT COUNT(*) FROM kayttaja_yliopisto_erikoisala where yliopisto_id = 2 and erikoisala_id = 50</sqlCheck>
+        </preConditions>
+        <insert tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi">
+            <column name="kayttaja_yliopisto_erikoisala_id" valueComputed="(select id from kayttaja_yliopisto_erikoisala where yliopisto_id = 2 and erikoisala_id = 50)"/>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="5"/>
+        </insert>
+        <insert tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi">
+            <column name="kayttaja_yliopisto_erikoisala_id" valueComputed="(select id from kayttaja_yliopisto_erikoisala where yliopisto_id = 2 and erikoisala_id = 50)"/>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="6"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20240611132400-data-3" author="jhipster">
+        <preConditions  onFail="MARK_RAN">
+            <sqlCheck  expectedResult="1">SELECT COUNT(*) FROM kayttaja_yliopisto_erikoisala where yliopisto_id = 3 and erikoisala_id = 50</sqlCheck>
+        </preConditions>
+        <insert tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi">
+            <column name="kayttaja_yliopisto_erikoisala_id" valueComputed="(select id from kayttaja_yliopisto_erikoisala where yliopisto_id = 3 and erikoisala_id = 50)"/>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="5"/>
+        </insert>
+        <insert tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi">
+            <column name="kayttaja_yliopisto_erikoisala_id" valueComputed="(select id from kayttaja_yliopisto_erikoisala where yliopisto_id = 3 and erikoisala_id = 50)"/>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="6"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20240611132400-data-4" author="jhipster">
+        <preConditions  onFail="MARK_RAN">
+            <sqlCheck  expectedResult="1">SELECT COUNT(*) FROM kayttaja_yliopisto_erikoisala where yliopisto_id = 4 and erikoisala_id = 50</sqlCheck>
+        </preConditions>
+        <insert tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi">
+            <column name="kayttaja_yliopisto_erikoisala_id" valueComputed="(select id from kayttaja_yliopisto_erikoisala where yliopisto_id = 4 and erikoisala_id = 50)"/>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="5"/>
+        </insert>
+        <insert tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi">
+            <column name="kayttaja_yliopisto_erikoisala_id" valueComputed="(select id from kayttaja_yliopisto_erikoisala where yliopisto_id = 4 and erikoisala_id = 50)"/>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="6"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20240611132400-data-5" author="jhipster">
+        <preConditions  onFail="MARK_RAN">
+            <sqlCheck  expectedResult="1">SELECT COUNT(*) FROM kayttaja_yliopisto_erikoisala where yliopisto_id = 5 and erikoisala_id = 50</sqlCheck>
+        </preConditions>
+        <insert tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi">
+            <column name="kayttaja_yliopisto_erikoisala_id" valueComputed="(select id from kayttaja_yliopisto_erikoisala where yliopisto_id = 5 and erikoisala_id = 50)"/>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="5"/>
+        </insert>
+        <insert tableName="rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi">
+            <column name="kayttaja_yliopisto_erikoisala_id" valueComputed="(select id from kayttaja_yliopisto_erikoisala where yliopisto_id = 5 and erikoisala_id = 50)"/>
+            <column name="vastuuhenkilon_tehtavatyyppi_id" value="6"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
