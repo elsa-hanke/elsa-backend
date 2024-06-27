@@ -70,15 +70,6 @@ class VastuuhenkiloValmistumispyyntoResource(
         return ResponseEntity.ok(arviointienTila)
     }
 
-    @GetMapping("/valmistumispyynnon-hyvaksyja-role")
-    fun getValmistumispyynnonHyvaksyjaRole(principal: Principal?): ResponseEntity<ValmistumispyynnonHyvaksyjaRole?> {
-        val user = userService.getAuthenticatedUser(principal)
-        val valmistumispyynnonHyvaksyjaRole =
-            valmistumispyyntoService.getValmistumispyynnonHyvaksyjaRole(user.id!!)
-
-        return ResponseEntity.ok(valmistumispyynnonHyvaksyjaRole)
-    }
-
     @PutMapping("/valmistumispyynnon-arviointi/{id}")
     fun updateValmistumispyynto(
         @PathVariable id: Long,
