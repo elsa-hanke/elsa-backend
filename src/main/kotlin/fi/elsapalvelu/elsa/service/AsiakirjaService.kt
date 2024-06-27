@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalaDTO
 
 interface AsiakirjaService {
 
@@ -22,6 +23,12 @@ interface AsiakirjaService {
         id: Long,
         tyyppi: TyoskentelyjaksoTyyppi,
         yliopistoIds: List<Long>?
+    ): AsiakirjaDTO?
+
+    fun findByIdAndTyoskentelyjaksoTyyppiForVastuuhenkilo(
+        id: Long,
+        tyyppi: TyoskentelyjaksoTyyppi,
+        yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisalaDTO>?
     ): AsiakirjaDTO?
 
     fun findByIdAndYliopistoId(

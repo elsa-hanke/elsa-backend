@@ -29,10 +29,21 @@ interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
     @Query(
         """
         select a from Asiakirja a join a.tyoskentelyjakso t join t.tyoskentelypaikka p join t.opintooikeus o
-        where a.id = :id and p.tyyppi = :tyyppi and o.yliopisto.id in :yliopistoIds
+        where a.id = :id and p.tyyppi = :tyyppi
     """
     )
     fun findOneByIdAndTyoskentelyjaksoTyoskentelypaikkaTyyppi(
+        id: Long,
+        tyyppi: TyoskentelyjaksoTyyppi
+    ): Asiakirja?
+
+    @Query(
+        """
+        select a from Asiakirja a join a.tyoskentelyjakso t join t.tyoskentelypaikka p join t.opintooikeus o
+        where a.id = :id and p.tyyppi = :tyyppi and o.yliopisto.id in :yliopistoIds
+    """
+    )
+    fun findOneByIdAndTyoskentelyjaksoTyoskentelypaikkaTyyppiAndYliopistoIds(
         id: Long,
         tyyppi: TyoskentelyjaksoTyyppi,
         yliopistoIds: List<Long>

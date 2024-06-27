@@ -16,9 +16,9 @@ interface TerveyskeskuskoulutusjaksonHyvaksyntaService {
         yliopistoIds: List<Long>
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO?
 
-    fun findByIdAndYliopistoIdVastuuhenkilo(
+    fun findByIdAndVastuuhenkiloUserId(
         id: Long,
-        yliopistoIds: List<Long>
+        userId: String
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO?
 
     fun findByOpintooikeusId(opintooikeusId: Long): TerveyskeskuskoulutusjaksonHyvaksyntaDTO?

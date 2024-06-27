@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.Kayttaja
+import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.TerveyskeskuskoulutusjaksonHyvaksynta
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
@@ -31,6 +32,7 @@ import java.time.LocalDate
 import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.ValidationException
 import org.springframework.web.multipart.MultipartFile
+import kotlin.jvm.optionals.getOrNull
 
 private const val TERVEYSKESKUS_HYVAKSYNTA_MINIMIPITUUS = 272.25 // 9kk
 
@@ -65,14 +67,27 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         return null
     }
 
-    override fun findByIdAndYliopistoIdVastuuhenkilo(
+    override fun findByIdAndVastuuhenkiloUserId(
         id: Long,
-        yliopistoIds: List<Long>
+        userId: String
     ): TerveyskeskuskoulutusjaksonHyvaksyntaDTO? {
-        terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByIdAndYliopistoIdForVastuuhenkilo(
-            id,
-            yliopistoIds
-        )?.let {
+        val hyvaksynta = terveyskeskuskoulutusjaksonHyvaksyntaRepository.findById(id).getOrNull()
+        val kayttaja = kayttajaRepository.findOneByUserId(userId).get()
+
+        kayttaja.yliopistotAndErikoisalat.filter {
+            hyvaksynta?.opintooikeus?.yliopisto?.id == it.yliopisto?.id &&
+                if (hyvaksynta?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                    it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+                        .contains(VastuuhenkilonTehtavatyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO)
+                } else {
+                    it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+                        .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
+                }
+        }.ifEmpty {
+            return null
+        }
+
+        hyvaksynta?.let {
             val result = mapTerveyskeskuskoulutusjakso(it)
             if (it.vastuuhenkilonKorjausehdotus != null) {
                 result.tila = TerveyskeskuskoulutusjaksoTila.PALAUTETTU_KORJATTAVAKSI
@@ -124,7 +139,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 pageable,
                 k.yliopistotAndErikoisalat.filter {
                     it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
-                        .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
+                        .contains(
+                            if (criteria.erikoisalaId?.equals == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO
+                            else VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
+                        )
                 }
                     .map { it.yliopisto?.id!! },
                 false,
@@ -160,12 +178,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 throw ValidationException()
             }
 
-            val vastuuhenkilo =
-                kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
-                    listOf(VASTUUHENKILO),
-                    it.yliopisto?.id,
-                    VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
-                )
+            val vastuuhenkilo = getVastuuhenkilo(it)
                     ?.let { v ->
                         kayttajaMapper.toDto(v)
                     } ?: throw EntityNotFoundException(VASTUUHENKILO_NOT_FOUND_ERROR)
@@ -248,12 +261,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
         return terveyskeskuskoulutusjaksonHyvaksyntaRepository.findById(id)
             .orElse(null)?.let {
-                val vastuuhenkilo =
-                    kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
-                        listOf(VASTUUHENKILO),
-                        it.opintooikeus?.yliopisto?.id,
-                        VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
-                    )
+                val vastuuhenkilo = getVastuuhenkilo(it.opintooikeus)
                 if (it.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId) {
                     return handleErikoistuja(it)
                 } else if (isVirkailija) {
@@ -418,12 +426,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             )
         val suoritettuPituus = getKokonaispituus(tyoskentelyjaksot)
 
-        val vastuuhenkilo =
-            kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
-                listOf(VASTUUHENKILO),
-                hyvaksynta.opintooikeus?.yliopisto?.id,
-                VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
-            )
+        val vastuuhenkilo = getVastuuhenkilo(hyvaksynta.opintooikeus)
                 ?.let { v ->
                     kayttajaMapper.toDto(v)
                 } ?: throw EntityNotFoundException(VASTUUHENKILO_NOT_FOUND_ERROR)
@@ -453,5 +456,14 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         }
 
         return suoritettuPituus
+    }
+
+    private fun getVastuuhenkilo(opintooikeus: Opintooikeus?): Kayttaja? {
+        return kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
+            listOf(VASTUUHENKILO),
+            opintooikeus?.yliopisto?.id,
+            if (opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO
+            else VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
+        )
     }
 }
