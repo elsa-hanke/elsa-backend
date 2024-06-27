@@ -171,7 +171,7 @@ class ElsaSwitchUserFilter(
         if (authorityNames.contains(VASTUUHENKILO) && opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
             && kirjautunutKayttaja.yliopistotAndErikoisalat.any {
                 it.yliopisto?.id == opintooikeus.yliopisto?.id
-                    && it.vastuuhenkilonTehtavat.map { t -> t.nimi }.contains(VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS) })
+                    && it.vastuuhenkilonTehtavat.map { t -> t.nimi }.contains(VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN) })
             return ERIKOISTUVA_LAAKARI_IMPERSONATED
 
         if (authorityNames.contains(OPINTOHALLINNON_VIRKAILIJA) && kirjautunutKayttaja.yliopistot.find {
