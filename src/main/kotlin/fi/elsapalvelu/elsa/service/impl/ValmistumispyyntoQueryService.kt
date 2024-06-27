@@ -23,9 +23,8 @@ class ValmistumispyyntoQueryService(
 ) {
 
     @Transactional(readOnly = true)
-    fun findValmistumispyynnotByCriteria(
+    fun findValmistumispyynnotByCriteriaForVirkailija(
         criteria: NimiErikoisalaAndAvoinCriteria?,
-        role: ValmistumispyynnonHyvaksyjaRole,
         pageable: Pageable,
         yliopistoId: Long,
         erikoisalaIds: List<Long>,
@@ -37,52 +36,74 @@ class ValmistumispyyntoQueryService(
             val opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus> =
                 root.join(Valmistumispyynto_.opintooikeus)
 
-            if (role == ValmistumispyynnonHyvaksyjaRole.VIRKAILIJA) {
-                if (criteria?.avoin == true) {
-                    predicates.add(
-                        cb.and(
-                            cb.isNotNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika)),
-                            cb.isNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
-                            cb.isNull(root.get(Valmistumispyynto_.virkailijanKuittausaika))
-                        )
+            if (criteria?.avoin == true) {
+                predicates.add(
+                    cb.and(
+                        cb.isNotNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika)),
+                        cb.isNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
+                        cb.isNull(root.get(Valmistumispyynto_.virkailijanKuittausaika))
                     )
+                )
 
-                    if (!erikoisalaIds.contains(YEK_ERIKOISALA_ID)) {
-                        predicates.add(cb.and(cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika))))
-                    }
-                } else {
-                    predicates.add(
-                        cb.or(
-                            cb.isNotNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
-                            cb.isNotNull(root.get(Valmistumispyynto_.virkailijanKuittausaika)),
-                            cb.and(
-                                cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
-                                cb.isNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika))
-                            )
-                        )
-                    )
-                }
-                if (erikoisalaIds.isNotEmpty()) {
-                    getErikoisalatPredicate(
-                        erikoisalaIds,
-                        opintooikeusJoin
-                    )?.let {
-                        predicates.add(it)
-                    }
-                }
-                if (excludedErikoisalaIds.isNotEmpty()) {
-                    getExcludedErikoisalatPredicate(
-                        excludedErikoisalaIds,
-                        opintooikeusJoin,
-                        cb
-                    )?.let {
-                        predicates.add(it)
-                    }
+                if (!erikoisalaIds.contains(YEK_ERIKOISALA_ID)) {
+                    predicates.add(cb.and(cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika))))
                 }
             } else {
+                predicates.add(
+                    cb.or(
+                        cb.isNotNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
+                        cb.isNotNull(root.get(Valmistumispyynto_.virkailijanKuittausaika)),
+                        cb.and(
+                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
+                            cb.isNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika))
+                        )
+                    )
+                )
+            }
+            if (erikoisalaIds.isNotEmpty()) {
+                getErikoisalatPredicate(
+                    erikoisalaIds,
+                    opintooikeusJoin
+                )?.let {
+                    predicates.add(it)
+                }
+            }
+            if (excludedErikoisalaIds.isNotEmpty()) {
+                getExcludedErikoisalatPredicate(
+                    excludedErikoisalaIds,
+                    opintooikeusJoin,
+                    cb
+                )?.let {
+                    predicates.add(it)
+                }
+            }
+            getYliopistoPredicate(yliopistoId, opintooikeusJoin, cb).let { predicates.add(it) }
+            getNimiPredicate(criteria?.erikoistujanNimi, opintooikeusJoin, cb, langkey)?.let { predicates.add(it) }
+
+            cb.and(*predicates.toTypedArray())
+        }
+        return valmistumispyyntoRepository.findAll(specification, pageable)
+    }
+
+    @Transactional(readOnly = true)
+    fun findValmistumispyynnotByCriteria(
+        criteria: NimiErikoisalaAndAvoinCriteria?,
+        role: List<Pair<Long, ValmistumispyynnonHyvaksyjaRole>>,
+        pageable: Pageable,
+        yliopistoId: Long,
+        erikoisalaIds: List<Long>,
+        excludedErikoisalaIds: List<Long>,
+        langkey: String?
+    ): Page<Valmistumispyynto> {
+        val specification: Specification<Valmistumispyynto> = Specification.where { root, cq, cb ->
+            val predicates: MutableList<Predicate> = mutableListOf()
+            val opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus> =
+                root.join(Valmistumispyynto_.opintooikeus)
+
                 getVastuuhenkiloPredicate(
                     role,
                     criteria,
+                    opintooikeusJoin,
                     root,
                     cb
                 ).let { predicates.add(it) }
@@ -98,7 +119,6 @@ class ValmistumispyyntoQueryService(
                         predicates.add(it)
                     }
                 }
-            }
 
             getYliopistoPredicate(yliopistoId, opintooikeusJoin, cb).let { predicates.add(it) }
             getNimiPredicate(criteria?.erikoistujanNimi, opintooikeusJoin, cb, langkey)?.let { predicates.add(it) }
@@ -110,11 +130,30 @@ class ValmistumispyyntoQueryService(
 
 
     private fun getVastuuhenkiloPredicate(
-        role: ValmistumispyynnonHyvaksyjaRole,
+        role: List<Pair<Long, ValmistumispyynnonHyvaksyjaRole>>,
         criteria: NimiErikoisalaAndAvoinCriteria?,
+        opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus>,
         root: Root<Valmistumispyynto>,
         cb: CriteriaBuilder
     ): Predicate {
+        val erikoisala: Path<Erikoisala> = opintooikeusJoin.get(Opintooikeus_.erikoisala)
+        val predicates: MutableList<Predicate> = mutableListOf()
+
+        role.forEach {
+            predicates.add(
+                cb.and(
+                    cb.equal(erikoisala.get(Erikoisala_.id), it.first),
+                    getRolePredicate(it.second, criteria, root, cb)
+                )
+            )
+        }
+
+        return cb.or(*predicates.toTypedArray())
+
+
+    }
+
+    private fun getRolePredicate(role: ValmistumispyynnonHyvaksyjaRole, criteria: NimiErikoisalaAndAvoinCriteria?, root: Root<Valmistumispyynto>, cb: CriteriaBuilder): Predicate {
         val arvioijaPredicate = getVastuuhenkiloPredicateByTehtavatyyppi(
             root,
             cb,
@@ -125,7 +164,7 @@ class ValmistumispyyntoQueryService(
             root,
             cb,
             criteria?.avoin,
-            if (criteria?.erikoisalaId?.equals == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS else VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
+            if (criteria?.erikoisalaId?.equals == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN else VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         )
 
         return when (role) {
@@ -153,13 +192,14 @@ class ValmistumispyyntoQueryService(
     ): Predicate {
         if (avoin == true) {
             return when (tehtavatyyppiEnum) {
-                VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS -> {
+                VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN -> {
                     cb.and(
                         cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
                         cb.isNotNull(root.get(Valmistumispyynto_.virkailijanKuittausaika)),
                         cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika))
                     )
                 }
+
                 VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI -> {
                     cb.and(
                         cb.isNotNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika)),
@@ -167,6 +207,7 @@ class ValmistumispyyntoQueryService(
                         cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaPalautusaika)),
                     )
                 }
+
                 else -> {
                     cb.and(
                         cb.or(
@@ -181,32 +222,34 @@ class ValmistumispyyntoQueryService(
             }
         } else {
             return when (tehtavatyyppiEnum) {
-                VastuuhenkilonTehtavatyyppiEnum.YEK_KOULUTUS -> {
+                VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN -> {
                     cb.or(
                         cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
                         cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
                     )
                 }
+
                 VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI -> {
                     cb.or(
-                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
-                            cb.and(
-                                cb.isNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika)),
-                                cb.or(
-                                    cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaPalautusaika)),
-                                    cb.isNotNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
-                                    cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika))
-                                )
+                        cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
+                        cb.and(
+                            cb.isNull(root.get(Valmistumispyynto_.erikoistujanKuittausaika)),
+                            cb.or(
+                                cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaPalautusaika)),
+                                cb.isNotNull(root.get(Valmistumispyynto_.virkailijanPalautusaika)),
+                                cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika))
                             )
+                        )
                     )
                 }
+
                 else -> {
                     cb.or(
-                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
-                            cb.and(
-                                cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
-                                cb.isNotNull(root.get(Valmistumispyynto_.allekirjoitusaika))
-                            )
+                        cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
+                        cb.and(
+                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
+                            cb.isNotNull(root.get(Valmistumispyynto_.allekirjoitusaika))
+                        )
                     )
                 }
             }

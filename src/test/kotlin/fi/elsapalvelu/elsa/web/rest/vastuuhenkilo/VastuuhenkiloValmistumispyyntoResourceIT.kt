@@ -69,56 +69,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
     @Test
     @Transactional
-    fun getValmistumispyynnonHyvaksyjaRoleOsaamisenArvioija() {
-        initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
-
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNNON_HYVAKSYJA_ROLE_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
-    }
-
-    @Test
-    @Transactional
-    fun getValmistumispyynnonHyvaksyjaRoleHyvaksyja() {
-        initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
-
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNNON_HYVAKSYJA_ROLE_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA.toString()))
-    }
-
-    @Test
-    @Transactional
-    fun getValmistumispyynnonHyvaksyjaRoleArvioijaHyvaksyja() {
-        initTest(
-            listOf(
-                VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI,
-                VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
-            )
-        )
-
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNNON_HYVAKSYJA_ROLE_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA.toString()))
-    }
-
-    @Test
-    @Transactional
     fun getValmistumispyynnotForOsaamisenArvioijaTilaOdottaaOsaamisenArviointiaAvoin() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -136,6 +86,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKASTUSTA.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(true))
     }
 
@@ -162,6 +113,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(true))
     }
 
@@ -193,6 +145,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(true))
     }
 
@@ -220,6 +173,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(true))
     }
 
@@ -252,6 +206,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(true))
     }
 
@@ -341,6 +296,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.VASTUUHENKILON_TARKASTUS_PALAUTETTU.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(palautusaika.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -366,6 +322,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKASTUSTA.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -435,6 +392,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(palautusaika.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -461,6 +419,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -488,6 +447,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(palautusaika.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -520,6 +480,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(palautusaika.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -547,6 +508,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(palautusaika.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -577,6 +539,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(hyvaksyjaPalautusaika.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -612,6 +575,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(hyvaksyjaPalautusaika.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -639,6 +603,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -666,6 +631,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ALLEKIRJOITETTU.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -693,6 +659,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ALLEKIRJOITETTU.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
@@ -720,6 +687,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ALLEKIRJOITETTU.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
+            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
     }
 
