@@ -1,11 +1,14 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.KoulutussuunnitelmaRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.slf4j.LoggerFactory
@@ -69,7 +72,7 @@ class AsiakirjaServiceImpl(
         yliopistoIds: List<Long>?
     ): AsiakirjaDTO? {
         yliopistoIds?.let {
-            asiakirjaRepository.findOneByIdAndTyoskentelyjaksoTyoskentelypaikkaTyyppi(
+            asiakirjaRepository.findOneByIdAndTyoskentelyjaksoTyoskentelypaikkaTyyppiAndYliopistoIds(
                 id,
                 tyyppi,
                 it
@@ -78,6 +81,33 @@ class AsiakirjaServiceImpl(
                 result.asiakirjaData?.fileInputStream =
                     ByteArrayInputStream(asiakirja.asiakirjaData?.data)
                 return result
+            }
+        }
+        return null
+    }
+
+    override fun findByIdAndTyoskentelyjaksoTyyppiForVastuuhenkilo(
+        id: Long,
+        tyyppi: TyoskentelyjaksoTyyppi,
+        yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisalaDTO>?
+    ): AsiakirjaDTO? {
+        yliopistotAndErikoisalat?.let {
+            asiakirjaRepository.findOneByIdAndTyoskentelyjaksoTyoskentelypaikkaTyyppi(
+                id,
+                tyyppi
+            )?.let { asiakirja ->
+                if (yliopistotAndErikoisalat.any {
+                    it.yliopisto?.id == asiakirja.tyoskentelyjakso?.opintooikeus?.yliopisto?.id
+                        && it.vastuuhenkilonTehtavat.map { vastuualue -> vastuualue.nimi }.contains(
+                                if (asiakirja.tyoskentelyjakso?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO
+                                else VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN) }
+                    ) {
+                    val result = asiakirjaMapper.toDto(asiakirja)
+                    result.asiakirjaData?.fileInputStream =
+                        ByteArrayInputStream(asiakirja.asiakirjaData?.data)
+                    return result
+                }
+                return null
             }
         }
         return null

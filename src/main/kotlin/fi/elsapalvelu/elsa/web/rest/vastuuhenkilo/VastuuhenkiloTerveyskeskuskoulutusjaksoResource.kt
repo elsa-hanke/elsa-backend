@@ -54,15 +54,10 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!).get()
-        val yliopistoIds = kayttaja.yliopistotAndErikoisalat?.filter {
-            it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
-                .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
-        }?.map { it.yliopisto?.id!! }.orEmpty()
         try {
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndYliopistoIdVastuuhenkilo(
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndVastuuhenkiloUserId(
                 id,
-                yliopistoIds
+                user.id!!
             )
                 .let {
                     if (it == null) return ResponseEntity.notFound().build()
@@ -90,15 +85,11 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
         val kayttaja = kayttajaService.findByUserId(user.id!!).orElse(null)
-        val yliopistoIds = kayttaja?.yliopistotAndErikoisalat?.filter {
-            it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
-                .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)
-        }?.map { it.yliopisto?.id!! }.orEmpty()
         val asiakirja = asiakirjaService
-            .findByIdAndTyoskentelyjaksoTyyppi(
+            .findByIdAndTyoskentelyjaksoTyyppiForVastuuhenkilo(
                 id,
                 TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
-                yliopistoIds
+                kayttaja.yliopistotAndErikoisalat
             )
         asiakirja?.asiakirjaData?.fileInputStream?.use {
             return ResponseEntity.ok()
