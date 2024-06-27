@@ -83,8 +83,6 @@ interface ValmistumispyyntoService {
         userId: String
     ): ValmistumispyyntoArviointienTilaDTO?
 
-    fun getValmistumispyynnonHyvaksyjaRole(userId: String): ValmistumispyynnonHyvaksyjaRole?
-
     fun getValmistumispyynnonAsiakirja(
         userId: String,
         valmistumispyyntoId: Long,

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import java.io.Serializable
 import java.time.LocalDate
@@ -14,7 +15,9 @@ data class ValmistumispyyntoListItemDTO(
 
     var tapahtumanAjankohta: LocalDate? = null,
 
-    var isAvoinForCurrentKayttaja: Boolean = false
+    var isAvoinForCurrentKayttaja: Boolean = false,
+
+    var rooli: ValmistumispyynnonHyvaksyjaRole? = null
 
 ): Serializable {
     override fun toString() = "ValmistumispyyntoListItemDTO"
