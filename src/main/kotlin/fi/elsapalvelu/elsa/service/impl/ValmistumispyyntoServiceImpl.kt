@@ -1033,17 +1033,24 @@ class ValmistumispyyntoServiceImpl(
                 }
                 dto.terveyskeskustyoHyvaksyntaId = hyvaksynta.id
             }
+
+            val opintooikeus = getOpintooikeus(it)
             val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it)
-            opintosuoritukset
-                .firstOrNull { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO }
+            val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(opintooikeus.erikoistuvaLaakari?.id!!, YEK_ERIKOISALA_ID)
+            (opintosuoritukset + yekSuoritukset)
+                .firstOrNull { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO
+                    || suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO }
                 ?.let { suoritus ->
                     dto.terveyskeskustyoOpintosuoritusId = suoritus.id
                 }
             val teoriakoulutukset = teoriakoulutusRepository.findAllByOpintooikeusId(it)
+            // YEK teoriakoulutukset lasketaan opintosuoritteista, riittää että yksi suoritus löytyy
             dto.teoriakoulutusSuoritettu =
-                teoriakoulutukset.filter { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara != null }
+                if (opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                    if (opintosuoritukset.count { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS } > 0) opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
+                    else 0.0
+                } else teoriakoulutukset.filter { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara != null }
                     .sumOf { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara!! }
-            val opintooikeus = getOpintooikeus(it)
             dto.teoriakoulutusVaadittu =
                 opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
             val sateilysuojakoulutukset =
@@ -1311,10 +1318,8 @@ class ValmistumispyyntoServiceImpl(
                     valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia
                 )
 
-                val opintosuoritusTyyppi = opintosuoritusTyyppiService.findAll()
-                    ?.first { it.nimi == OpintosuoritusTyyppiEnum.YLEISLAAKETIETEEN_ERITYISKOULUTUS }
-                val opintosuoritukset = opintosuoritusService.getOpintosuorituksetByOpintooikeusIdAndTyyppiId(
-                    it.id!!, opintosuoritusTyyppi?.id!!
+                val opintosuoritukset = opintosuoritusService.getOpintosuorituksetByOpintooikeusIdAndTyyppi(
+                    it.id!!, OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS
                 )
                 setVariable("teoriakoulutukset", opintosuoritukset.opintosuoritukset)
             }

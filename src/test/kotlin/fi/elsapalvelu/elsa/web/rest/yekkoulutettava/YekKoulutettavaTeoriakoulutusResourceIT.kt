@@ -87,7 +87,7 @@ class YekKoulutettavaTeoriakoulutusResourceIT {
         val opintooikeus = OpintooikeusHelper.addOpintooikeusForYekKoulutettava(em, erikoistuvaLaakari)
         OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, opintooikeus)
 
-        val opintosuoritusTyyppi = OpintosuoritusTyyppiEnum.YLEISLAAKETIETEEN_ERITYISKOULUTUS
+        val opintosuoritusTyyppi = OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS
 
         opintosuoritus = OpintosuoritusHelper.createEntity(
             em,

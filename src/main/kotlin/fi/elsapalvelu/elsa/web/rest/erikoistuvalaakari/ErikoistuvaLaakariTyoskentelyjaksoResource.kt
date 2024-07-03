@@ -146,7 +146,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeus.id!!).toMutableSet()
         table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeus.id!!)
 
-        val terveyskeskusSuoritus = opintosuoritusService.getTerveyskoulutusjaksoSuoritetusPvm(opintooikeus.id!!)
+        val erikoistuvaLaakariId = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.id!!
+        val terveyskeskusSuoritus = opintosuoritusService.getTerveyskoulutusjaksoSuoritusPvm(opintooikeus.id!!, erikoistuvaLaakariId)
         if (terveyskeskusSuoritus != null) {
             table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY
             table.terveyskeskuskoulutusjaksonHyvaksymispvm = terveyskeskusSuoritus
@@ -483,8 +484,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val erikoistuvaLaakariId = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.id!!
 
-        if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(opintooikeusId)) {
+        if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(opintooikeusId, erikoistuvaLaakariId)) {
             throw BadRequestAlertException(
                 "Terveyskeskuskoulutusjakson hyväksynnästä on jo opintosuoritus",
                 TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,

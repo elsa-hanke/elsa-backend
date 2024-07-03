@@ -1,9 +1,7 @@
 package fi.elsapalvelu.elsa.scheduler
 
-import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
-import fi.elsapalvelu.elsa.repository.OpintosuoritusRepository
 import fi.elsapalvelu.elsa.service.*
 import kotlinx.coroutines.runBlocking
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
@@ -32,7 +30,7 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
         runBlocking {
             try {
                 opintooikeusService.findAllByTerveyskoulutusjaksoSuorittamatta().forEach {
-                    if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(it.id!!)) {
+                    if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(it.id!!, it.erikoistuvaLaakari?.id!!)) {
                         it.terveyskoulutusjaksoSuoritettu = true
                         opintooikeusRepository.save(it)
                     }
