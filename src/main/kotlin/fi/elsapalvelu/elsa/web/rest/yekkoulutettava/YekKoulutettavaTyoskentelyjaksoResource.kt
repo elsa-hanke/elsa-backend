@@ -141,7 +141,8 @@ class YekKoulutettavaTyoskentelyjaksoResource(
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
         table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeusId)
 
-        val terveyskeskusSuoritus = opintosuoritusService.getTerveyskoulutusjaksoSuoritetusPvm(opintooikeusId)
+        val erikoistuvaLaakariId = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.id!!
+        val terveyskeskusSuoritus = opintosuoritusService.getTerveyskoulutusjaksoSuoritusPvm(opintooikeusId, erikoistuvaLaakariId)
         if (terveyskeskusSuoritus != null) {
             table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY
             table.terveyskeskuskoulutusjaksonHyvaksymispvm = terveyskeskusSuoritus

@@ -121,7 +121,7 @@ class EtusivuServiceImpl(
         pageable: Pageable,
     ): Page<ErikoistujanEteneminenDTO>? {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
-        kayttaja?.let {k ->
+        kayttaja?.let { k ->
             return erikoistujienSeurantaQueryService.findByKouluttajaValtuutus(
                 criteria,
                 pageable,
@@ -177,9 +177,13 @@ class EtusivuServiceImpl(
 
         val opintosuoritukset =
             opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!).asSequence()
+        val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
+            opintooikeus.erikoistuvaLaakari?.id!!,
+            YEK_ERIKOISALA_ID
+        )
         eteneminen.koejaksoTila = getKoejaksoTila(opintooikeus, opintosuoritukset)
         eteneminen.terveyskeskuskoulutusjaksoSuoritettu =
-            getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
+            getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset + yekSuoritukset)
 
         return eteneminen
     }
@@ -202,6 +206,10 @@ class EtusivuServiceImpl(
                     val opintosuoritukset =
                         opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!)
                             .asSequence()
+                    val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
+                        opintooikeus.erikoistuvaLaakari?.id!!,
+                        YEK_ERIKOISALA_ID
+                    )
                     ErikoistujanEteneminenVirkailijaDTO(
                         opintooikeus.id,
                         opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName,
@@ -213,14 +221,18 @@ class EtusivuServiceImpl(
                         opintooikeus.opintooikeudenMyontamispaiva,
                         opintooikeus.opintooikeudenPaattymispaiva,
                         tyoskentelyjaksoService.getTilastot(opintooikeus),
-                        getTeoriakoulutuksetTuntimaara(opintooikeus.id!!),
+                        getTeoriakoulutuksetTuntimaara(
+                            opintooikeus.id!!,
+                            opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID,
+                            opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
+                        ),
                         opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara,
                         getJohtamisopinnotSuoritettu(opintosuoritukset),
                         opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
                         getSateilysuojakoulutuksetSuoritettu(opintosuoritukset),
                         opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara,
                         getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset),
-                        getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
+                        getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset + yekSuoritukset)
                     )
                 }
             }
@@ -246,6 +258,10 @@ class EtusivuServiceImpl(
                     val opintosuoritukset =
                         opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!)
                             .asSequence()
+                    val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
+                        opintooikeus.erikoistuvaLaakari?.id!!,
+                        YEK_ERIKOISALA_ID
+                    )
                     ErikoistujanEteneminenVirkailijaDTO(
                         opintooikeus.id,
                         opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName,
@@ -257,14 +273,18 @@ class EtusivuServiceImpl(
                         opintooikeus.opintooikeudenMyontamispaiva,
                         opintooikeus.opintooikeudenPaattymispaiva,
                         tyoskentelyjaksoService.getTilastot(opintooikeus),
-                        getTeoriakoulutuksetTuntimaara(opintooikeus.id!!),
+                        getTeoriakoulutuksetTuntimaara(
+                            opintooikeus.id!!,
+                            opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID,
+                            opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
+                        ),
                         opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara,
                         getJohtamisopinnotSuoritettu(opintosuoritukset),
                         opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
                         getSateilysuojakoulutuksetSuoritettu(opintosuoritukset),
                         opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara,
                         getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset),
-                        getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset)
+                        getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset + yekSuoritukset)
                     )
                 }
             }
@@ -284,6 +304,10 @@ class EtusivuServiceImpl(
                 val suoritemerkinnat = suoritemerkinnatMap.values.flatten()
                 val opintosuoritukset =
                     opintosuoritusRepository.findAllByOpintooikeusId(it.id!!).asSequence()
+                val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
+                    opintooikeus.erikoistuvaLaakari?.id!!,
+                    YEK_ERIKOISALA_ID
+                )
                 val arviointiasteikko =
                     it.opintoopas?.arviointiasteikko?.let { arviointiasteikkoMapper.toDto(it) }
 
@@ -300,7 +324,11 @@ class EtusivuServiceImpl(
                     ),
                     getSuoriteOsaAlueetVaadittuLkm(it, suoritemerkinnatMap),
                     tyoskentelyjaksoService.getTilastot(it),
-                    getTeoriakoulutuksetTuntimaara(it.id!!),
+                    getTeoriakoulutuksetTuntimaara(
+                        it.id!!,
+                        opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID,
+                        opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
+                    ),
                     it.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara,
                     getJohtamisopinnotSuoritettu(opintosuoritukset),
                     it.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
@@ -311,7 +339,7 @@ class EtusivuServiceImpl(
                     getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset),
                     it.opintooikeudenMyontamispaiva,
                     it.opintooikeudenPaattymispaiva,
-                    getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset),
+                    getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset + yekSuoritukset),
                     opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia
                 )
             }
@@ -563,8 +591,15 @@ class EtusivuServiceImpl(
         voimassaoloAlkaaDate <= osaamisenArvioinninOppaanPvm &&
             (voimassaoloPaattyy == null || voimassaoloPaattyy >= osaamisenArvioinninOppaanPvm)
 
-    private fun getTeoriakoulutuksetTuntimaara(opintooikeusId: Long): Double =
-        teoriakoulutusRepository.findAllByOpintooikeusId(opintooikeusId).sumOf { t ->
+    private fun getTeoriakoulutuksetTuntimaara(opintooikeusId: Long, yek: Boolean, vaadittu: Double?): Double =
+        if (yek) {
+            if (opintosuoritusRepository.findAllByOpintooikeusIdAndTyyppi(
+                    opintooikeusId,
+                    OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS
+                ).isNotEmpty()
+            ) vaadittu ?: 0.0
+            else 0.0
+        } else teoriakoulutusRepository.findAllByOpintooikeusId(opintooikeusId).sumOf { t ->
             t.erikoistumiseenHyvaksyttavaTuntimaara ?: 0.0
         }
 
@@ -626,7 +661,10 @@ class EtusivuServiceImpl(
         opintosuoritukset.any { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.KOEJAKSO && it.hyvaksytty }
 
     private fun getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset: Sequence<Opintosuoritus>): Boolean {
-        return opintosuoritukset.any { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO && it.hyvaksytty }
+        return opintosuoritukset.any {
+            (it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO
+                || it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO) && it.hyvaksytty
+        }
     }
 
     private fun mapKoulutussopimusPalautettuIfExists(

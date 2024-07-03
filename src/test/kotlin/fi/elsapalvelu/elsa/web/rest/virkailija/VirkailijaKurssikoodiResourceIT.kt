@@ -115,7 +115,7 @@ class VirkailijaKurssikoodiResourceIT {
                 MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                MockMvcResultMatchers.jsonPath("$").value(IsCollectionWithSize.hasSize<Int>(6))
+                MockMvcResultMatchers.jsonPath("$").value(IsCollectionWithSize.hasSize<Int>(10))
             )
     }
 
