@@ -340,7 +340,8 @@ class EtusivuServiceImpl(
                     it.opintooikeudenMyontamispaiva,
                     it.opintooikeudenPaattymispaiva,
                     getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset + yekSuoritukset),
-                    opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia
+                    opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia,
+                    yekSuoritukset.firstOrNull { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_PATEVYYS }?.suorituspaiva
                 )
             }
     }
