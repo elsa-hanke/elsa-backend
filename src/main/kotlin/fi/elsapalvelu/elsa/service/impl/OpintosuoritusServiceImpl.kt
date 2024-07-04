@@ -20,10 +20,14 @@ class OpintosuoritusServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getOpintosuorituksetByOpintooikeusId(opintooikeusId: Long): OpintosuorituksetDTO {
-        val opintosuorituksetList =
-            opintosuoritusRepository.findAllByOpintooikeusId(opintooikeusId).map(opintosuoritusMapper::toDto)
-                .sortedByDescending { it.suorituspaiva }
         val opintooikeus = opintooikeusRepository.findOneById(opintooikeusId)
+        val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
+            opintooikeus?.erikoistuvaLaakari?.id!!,
+            YEK_ERIKOISALA_ID
+        ).filter { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_PATEVYYS }
+        val opintosuorituksetList =
+            (yekSuoritukset + opintosuoritusRepository.findAllByOpintooikeusId(opintooikeusId)).map(opintosuoritusMapper::toDto)
+                .sortedByDescending { it.suorituspaiva }
 
         return OpintosuorituksetDTO(
             opintosuorituksetList,
@@ -32,13 +36,13 @@ class OpintosuoritusServiceImpl(
             }.sumOf { johtamisopinto ->
                 johtamisopinto.opintopisteet ?: 0.0
             },
-            opintooikeus?.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
+            opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
             opintosuorituksetList.filter { opintosuoritus ->
                 opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS
             }.sumOf { sateilysuojakoulutus ->
                 sateilysuojakoulutus.opintopisteet ?: 0.0
             },
-            opintooikeus?.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
+            opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
         )
     }
 
@@ -71,7 +75,10 @@ class OpintosuoritusServiceImpl(
 
     override fun getTerveyskoulutusjaksoSuoritettu(opintooikeusId: Long, erikoistuvaLaakariId: Long): Boolean {
         val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeusId).asSequence()
-        val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(erikoistuvaLaakariId, YEK_ERIKOISALA_ID).asSequence()
+        val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
+            erikoistuvaLaakariId,
+            YEK_ERIKOISALA_ID
+        ).asSequence()
         return (opintosuoritukset + yekSuoritukset).any {
             (it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO
                 || it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO) && it.hyvaksytty
@@ -80,7 +87,10 @@ class OpintosuoritusServiceImpl(
 
     override fun getTerveyskoulutusjaksoSuoritusPvm(opintooikeusId: Long, erikoistuvaLaakariId: Long): LocalDate? {
         val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeusId).asSequence()
-        val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(erikoistuvaLaakariId, YEK_ERIKOISALA_ID).asSequence()
+        val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
+            erikoistuvaLaakariId,
+            YEK_ERIKOISALA_ID
+        ).asSequence()
         return (opintosuoritukset + yekSuoritukset).firstOrNull {
             (it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO
                 || it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO) && it.hyvaksytty
