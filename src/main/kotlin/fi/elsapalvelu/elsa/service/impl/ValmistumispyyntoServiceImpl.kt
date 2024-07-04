@@ -847,9 +847,9 @@ class ValmistumispyyntoServiceImpl(
                         )
                     )
             } else if (
-                    vastuuhenkilonTehtavat.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI) &&
-                    vastuuhenkilonTehtavat.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA)
-                ) {
+                vastuuhenkilonTehtavat.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI) &&
+                vastuuhenkilonTehtavat.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA)
+            ) {
                 roles.add(
                     Pair(
                         it.erikoisala?.id!!,
@@ -1036,12 +1036,22 @@ class ValmistumispyyntoServiceImpl(
 
             val opintooikeus = getOpintooikeus(it)
             val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it)
-            val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(opintooikeus.erikoistuvaLaakari?.id!!, YEK_ERIKOISALA_ID)
+            val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
+                opintooikeus.erikoistuvaLaakari?.id!!,
+                YEK_ERIKOISALA_ID
+            )
             (opintosuoritukset + yekSuoritukset)
-                .firstOrNull { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO
-                    || suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO }
+                .firstOrNull { suoritus ->
+                    suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO
+                        || suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO
+                }
                 ?.let { suoritus ->
                     dto.terveyskeskustyoOpintosuoritusId = suoritus.id
+                }
+            yekSuoritukset.firstOrNull { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_PATEVYYS }
+                ?.let { suoritus ->
+                    dto.yekSuoritettu = true
+                    dto.yekSuorituspaiva = suoritus.suorituspaiva
                 }
             val teoriakoulutukset = teoriakoulutusRepository.findAllByOpintooikeusId(it)
             // YEK teoriakoulutukset lasketaan opintosuoritteista, riittää että yksi suoritus löytyy
@@ -1482,26 +1492,26 @@ class ValmistumispyyntoServiceImpl(
         val suoritteenKategoriat =
             suoritteenKategoriaRepository.findAllByErikoisalaId(valmistumispyynto.opintooikeus?.erikoisala?.id!!)
                 .sortedBy { it.nimi }.map {
-                SuoritteenKategoriaWithSuoritemerkinnatDTO(
-                    id = it.id,
-                    nimi = it.nimi,
-                    nimiSv = it.nimiSv,
-                    arviointiasteikko = valmistumispyynto.opintooikeus?.opintoopas?.arviointiasteikko?.nimi,
-                    suoritteet = it.suoritteet.sortedBy { s -> s.nimi }.map { s ->
-                        SuoriteWithSuoritemerkinnatDTO(
-                            id = s.id,
-                            nimi = s.nimi,
-                            nimiSv = s.nimiSv,
-                            voimassaolonAlkamispaiva = s.voimassaolonAlkamispaiva,
-                            voimassaolonPaattymispaiva = s.voimassaolonPaattymispaiva,
-                            vaadittulkm = s.vaadittulkm,
-                            suoritemerkinnat = suoritemerkinnat[s.id]?.sortedByDescending { m -> m.suorituspaiva }
-                                ?.map(suoritemerkintaMapper::toDto) ?: listOf()
-                        )
-                    },
-                    jarjestysnumero = it.jarjestysnumero
-                )
-            }
+                    SuoritteenKategoriaWithSuoritemerkinnatDTO(
+                        id = it.id,
+                        nimi = it.nimi,
+                        nimiSv = it.nimiSv,
+                        arviointiasteikko = valmistumispyynto.opintooikeus?.opintoopas?.arviointiasteikko?.nimi,
+                        suoritteet = it.suoritteet.sortedBy { s -> s.nimi }.map { s ->
+                            SuoriteWithSuoritemerkinnatDTO(
+                                id = s.id,
+                                nimi = s.nimi,
+                                nimiSv = s.nimiSv,
+                                voimassaolonAlkamispaiva = s.voimassaolonAlkamispaiva,
+                                voimassaolonPaattymispaiva = s.voimassaolonPaattymispaiva,
+                                vaadittulkm = s.vaadittulkm,
+                                suoritemerkinnat = suoritemerkinnat[s.id]?.sortedByDescending { m -> m.suorituspaiva }
+                                    ?.map(suoritemerkintaMapper::toDto) ?: listOf()
+                            )
+                        },
+                        jarjestysnumero = it.jarjestysnumero
+                    )
+                }
         val locale = Locale.forLanguageTag("fi")
         val context = Context(locale).apply {
             setVariable("suoritteenKategoriat", suoritteenKategoriat)
@@ -1565,7 +1575,8 @@ class ValmistumispyyntoServiceImpl(
         val locale = Locale.forLanguageTag("fi")
 
         seurantajaksot.forEach {
-            val jaksonTiedot = seurantajaksoService.findSeurantajaksonTiedot(it.opintooikeusId!!,
+            val jaksonTiedot = seurantajaksoService.findSeurantajaksonTiedot(
+                it.opintooikeusId!!,
                 it.alkamispaiva!!,
                 it.paattymispaiva!!,
                 it.koulutusjaksot?.map { k -> k.id!! }.orEmpty()
