@@ -34,7 +34,7 @@ version = "0.0.1-SNAPSHOT"
 
 description = ""
 
-assert System.properties["java.specification.version"] == "11" || "12" || "13" || "14" || "15" || "16" || "17"
+assert System.properties["java.specification.version"] == "13" || "14" || "15" || "16" || "17"
 
 apply from: "gradle/docker.gradle"
 apply from: "gradle/sonar.gradle"
