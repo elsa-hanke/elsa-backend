@@ -1035,11 +1035,13 @@ class ValmistumispyyntoServiceImpl(
             }
 
             val opintooikeus = getOpintooikeus(it)
-            val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it)
-            val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
+            val yekOikeus = opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
+            val yekTyypit = listOf(OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS, OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO, OpintosuoritusTyyppiEnum.YEK_PATEVYYS)
+            val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it).filter { suoritus -> if (yekOikeus) yekTyypit.contains(suoritus.tyyppi?.nimi) else !yekTyypit.contains(suoritus.tyyppi?.nimi) }
+            val yekSuoritukset = if (!yekOikeus) opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
                 opintooikeus.erikoistuvaLaakari?.id!!,
                 YEK_ERIKOISALA_ID
-            )
+            ) else listOf()
             (opintosuoritukset + yekSuoritukset)
                 .firstOrNull { suoritus ->
                     suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO
