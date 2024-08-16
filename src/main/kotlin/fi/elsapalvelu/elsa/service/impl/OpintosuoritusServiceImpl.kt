@@ -21,12 +21,18 @@ class OpintosuoritusServiceImpl(
     @Transactional(readOnly = true)
     override fun getOpintosuorituksetByOpintooikeusId(opintooikeusId: Long): OpintosuorituksetDTO {
         val opintooikeus = opintooikeusRepository.findOneById(opintooikeusId)
-        val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
-            opintooikeus?.erikoistuvaLaakari?.id!!,
-            YEK_ERIKOISALA_ID
-        ).filter { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_PATEVYYS }
+        val yekOikeus = opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
+        val yekTyypit = listOf(OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS, OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO, OpintosuoritusTyyppiEnum.YEK_PATEVYYS)
+        val yekSuoritukset =
+            if (!yekOikeus) opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
+                opintooikeus?.erikoistuvaLaakari?.id!!,
+                YEK_ERIKOISALA_ID
+                ).filter { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_PATEVYYS }
+            else listOf()
+        val filteredSuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeusId)
+            .filter { if (yekOikeus) yekTyypit.contains(it.tyyppi?.nimi) else !yekTyypit.contains(it.tyyppi?.nimi) }
         val opintosuorituksetList =
-            (yekSuoritukset + opintosuoritusRepository.findAllByOpintooikeusId(opintooikeusId)).map(opintosuoritusMapper::toDto)
+            (yekSuoritukset + filteredSuoritukset).map(opintosuoritusMapper::toDto)
                 .sortedByDescending { it.suorituspaiva }
 
         return OpintosuorituksetDTO(
@@ -36,13 +42,13 @@ class OpintosuoritusServiceImpl(
             }.sumOf { johtamisopinto ->
                 johtamisopinto.opintopisteet ?: 0.0
             },
-            opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
+            opintooikeus?.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
             opintosuorituksetList.filter { opintosuoritus ->
                 opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS
             }.sumOf { sateilysuojakoulutus ->
                 sateilysuojakoulutus.opintopisteet ?: 0.0
             },
-            opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
+            opintooikeus?.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
         )
     }
 
