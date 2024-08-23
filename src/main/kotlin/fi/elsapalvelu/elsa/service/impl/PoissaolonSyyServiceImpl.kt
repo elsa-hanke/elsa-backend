@@ -46,4 +46,11 @@ class PoissaolonSyyServiceImpl(
     override fun delete(id: Long) {
         poissaolonSyyRepository.deleteById(id)
     }
+
+    override fun findAll(): List<PoissaolonSyyDTO> {
+        poissaolonSyyRepository.findAll().let {
+            return poissaolonSyyMapper.toDto(it)
+        }
+    }
+
 }
