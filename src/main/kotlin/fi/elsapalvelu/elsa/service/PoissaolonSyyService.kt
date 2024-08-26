@@ -10,4 +10,7 @@ interface PoissaolonSyyService {
     fun findOne(id: Long): PoissaolonSyyDTO?
 
     fun delete(id: Long)
+
+    fun findAll(): List<PoissaolonSyyDTO>
+
 }
