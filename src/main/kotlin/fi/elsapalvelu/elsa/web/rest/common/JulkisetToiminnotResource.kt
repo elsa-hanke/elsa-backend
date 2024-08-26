@@ -3,7 +3,9 @@ package fi.elsapalvelu.elsa.web.rest.common
 import fi.elsapalvelu.elsa.domain.enumeration.ApplicationSettingTyyppi
 import fi.elsapalvelu.elsa.service.ApplicationSettingService
 import fi.elsapalvelu.elsa.service.IlmoitusService
+import fi.elsapalvelu.elsa.service.PoissaolonSyyService
 import fi.elsapalvelu.elsa.service.dto.IlmoitusDTO
+import fi.elsapalvelu.elsa.service.dto.PoissaolonSyyDTO
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -19,7 +21,8 @@ import java.time.temporal.ChronoUnit
 @RequestMapping("/api/julkinen/")
 class JulkisetToiminnotResource(
     private val applicationSettingService: ApplicationSettingService,
-    private val ilmoitusService: IlmoitusService
+    private val ilmoitusService: IlmoitusService,
+    private val poissaolonSyyService: PoissaolonSyyService
 ) {
 
     @GetMapping("/seuraava-paivitys")
@@ -62,4 +65,14 @@ class JulkisetToiminnotResource(
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
+
+    @GetMapping("/poissaolon-syyt")
+    fun getIlmoitus(
+        principal: Principal?
+    ): ResponseEntity<List<PoissaolonSyyDTO>> {
+        return poissaolonSyyService.findAll().let {
+            ResponseEntity.ok(it)
+        } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+    }
+
 }
