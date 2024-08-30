@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.Opintooikeus
+import fi.elsapalvelu.elsa.domain.Opintoopas
 import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi.*
@@ -270,7 +271,7 @@ class TyoskentelyjaksoServiceImpl(
             tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeus.id!!)
         val tilastotCounter = TilastotCounter()
         val kaytannonKoulutusSuoritettuMap =
-            KaytannonKoulutusTyyppi.values().map { it to 0.0 }.toMap().toMutableMap()
+            KaytannonKoulutusTyyppi.entries.associateWith { 0.0 }.toMutableMap()
         val tyoskentelyjaksotSuoritettu =
             mutableSetOf<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>()
 
@@ -285,7 +286,7 @@ class TyoskentelyjaksoServiceImpl(
                 vahennettavatMap,
                 kaytannonKoulutusSuoritettuMap,
                 tyoskentelyjaksotSuoritettu,
-                opintooikeus.opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus,
+                opintooikeus.opintoopas,
                 isYek = isYek
             )
         }
@@ -329,7 +330,7 @@ class TyoskentelyjaksoServiceImpl(
                 yhteensaVaadittuVahintaan = yhteensaVaadittuVahintaan,
                 yhteensaSuoritettu = arvioErikoistumiseenHyvaksyttavista
             ),
-            kaytannonKoulutus = KaytannonKoulutusTyyppi.values().map {
+            kaytannonKoulutus = KaytannonKoulutusTyyppi.entries.map {
                 TyoskentelyjaksotTilastotKaytannonKoulutusDTO(
                     kaytannonKoulutus = it,
                     suoritettu = kaytannonKoulutusSuoritettuMap[it]!!
@@ -360,7 +361,7 @@ class TyoskentelyjaksoServiceImpl(
         vahennettavatMap: Map<Long, Double>,
         kaytannonKoulutusSuoritettuMap: MutableMap<KaytannonKoulutusTyyppi, Double>,
         tyoskentelyjaksotSuoritettu: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>,
-        terveyskeskusMaksimi: Double?,
+        opintoopas: Opintoopas?,
         isYek: Boolean = false
     ) {
         val tyoskentelyjaksonPituus =
@@ -368,15 +369,14 @@ class TyoskentelyjaksoServiceImpl(
                 tyoskentelyjakso,
                 vahennettavatMap[tyoskentelyjakso.id]
             )
+        val terveyskeskusMaksimi = opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus
+        val yliopistosairaalanUlkopuolinenMaksimi = opintoopas?.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituus
+
         var tutkintoonHyvaksyttavaPituus = tyoskentelyjaksonPituus
 
         if (tyoskentelyjaksonPituus > 0) {
             // Summataan suoritettu aika koulutustyypettäin
             if (isYek) {
-                val yliopistosairaalaMaksimi = 182.5
-                val keskussairaalaMaksimi = 182.5
-                val muutMaksimi = 182.5
-
                 when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
                     TERVEYSKESKUS -> {
                         // Yli maksimin menevät pituudet jätetään huomiotta
@@ -391,32 +391,17 @@ class TyoskentelyjaksoServiceImpl(
                         tilastotCounter.terveyskeskusSuoritettu += tutkintoonHyvaksyttavaPituus
                     }
 
-                    YLIOPISTOLLINEN_SAIRAALA -> {
-                        if (tilastotCounter.yliopistosairaalaSuoritettu == yliopistosairaalaMaksimi) {
-                            tutkintoonHyvaksyttavaPituus = 0.0
-                        } else if (tilastotCounter.yliopistosairaalaSuoritettu + tyoskentelyjaksonPituus > yliopistosairaalaMaksimi) {
-                            tutkintoonHyvaksyttavaPituus =
-                                yliopistosairaalaMaksimi - tilastotCounter.yliopistosairaalaSuoritettu
-                        }
-                        tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
-                    }
-
-                    KESKUSSAIRAALA -> {
-                        if (tilastotCounter.yliopistosairaalaSuoritettu == keskussairaalaMaksimi) {
-                            tutkintoonHyvaksyttavaPituus = 0.0
-                        } else if (tilastotCounter.yliopistosairaalaSuoritettu + tyoskentelyjaksonPituus > keskussairaalaMaksimi) {
-                            tutkintoonHyvaksyttavaPituus =
-                                keskussairaalaMaksimi - tilastotCounter.yliopistosairaalaSuoritettu
-                        }
-                        tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
-                    }
+                    YLIOPISTOLLINEN_SAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
+                    KESKUSSAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
 
                     else -> {
-                        if (tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu == muutMaksimi) {
-                            tutkintoonHyvaksyttavaPituus = 0.0
-                        } else if (tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu + tyoskentelyjaksonPituus > muutMaksimi) {
-                            tutkintoonHyvaksyttavaPituus =
-                                muutMaksimi - tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu
+                        if (yliopistosairaalanUlkopuolinenMaksimi != null && yliopistosairaalanUlkopuolinenMaksimi != 0.0) {
+                            if (tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu == yliopistosairaalanUlkopuolinenMaksimi) {
+                                tutkintoonHyvaksyttavaPituus = 0.0
+                            } else if (tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu + tyoskentelyjaksonPituus > yliopistosairaalanUlkopuolinenMaksimi) {
+                                tutkintoonHyvaksyttavaPituus =
+                                    yliopistosairaalanUlkopuolinenMaksimi - tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu
+                            }
                         }
                         tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu += tyoskentelyjaksonPituus
                     }
@@ -468,8 +453,7 @@ class TyoskentelyjaksoServiceImpl(
             }
 
             // Summataan työskentelyaika yhteensä
-            tilastotCounter.tyoskentelyaikaYhteensa +=
-                if (isYek) tyoskentelyjaksonPituus else tutkintoonHyvaksyttavaPituus
+            tilastotCounter.tyoskentelyaikaYhteensa += tutkintoonHyvaksyttavaPituus
 
             // Kootaan työskentelyjaksojen suoritetut työskentelyajat
             tyoskentelyjaksotSuoritettu.add(
