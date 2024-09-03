@@ -1,7 +1,9 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
@@ -109,10 +111,19 @@ class ErikoistujienSeurantaQueryService(
                 )
             )
             val orPredicates = yliopistotAndErikoisalat.map { ye ->
-                cb.and(
-                    cb.equal(root.get(Opintooikeus_.yliopisto).get(Yliopisto_.id), ye.yliopisto!!.id),
-                    cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), ye.erikoisala!!.id)
-                )
+                if (criteria?.erikoisalaId?.equals == YEK_ERIKOISALA_ID && ye.vastuuhenkilonTehtavat.any {
+                    it.nimi == VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN || it.nimi == VastuuhenkilonTehtavatyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO
+                }) {
+                    cb.and(
+                        cb.equal(root.get(Opintooikeus_.yliopisto).get(Yliopisto_.id), ye.yliopisto!!.id),
+                        cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), YEK_ERIKOISALA_ID)
+                    )
+                } else {
+                    cb.and(
+                        cb.equal(root.get(Opintooikeus_.yliopisto).get(Yliopisto_.id), ye.yliopisto!!.id),
+                        cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), ye.erikoisala!!.id)
+                    )
+                }
             }.toTypedArray()
             val combinedOrPredicate = cb.or(*orPredicates)
 

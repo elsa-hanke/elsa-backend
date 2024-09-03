@@ -4,10 +4,7 @@ import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
-import fi.elsapalvelu.elsa.service.dto.ErikoistujanEteneminenVirkailijaDTO
-import fi.elsapalvelu.elsa.service.dto.ErikoistujienSeurantaOptionsVirkailijaDTO
-import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoListItemDTO
+import fi.elsapalvelu.elsa.service.dto.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
@@ -47,20 +44,12 @@ class VirkailijaEtusivuResource(
         return ResponseEntity.ok(erikoistujat)
     }
 
-    @GetMapping("/koulutettavien-seuranta-rajaimet")
-    fun getKoulutettavienSeurantaRajaimet(): ResponseEntity<ErikoistujienSeurantaOptionsVirkailijaDTO> {
-        val form = ErikoistujienSeurantaOptionsVirkailijaDTO()
-        form.erikoisalat = erikoisalaService.findAllByIdIs(YEK_ERIKOISALA_ID).toSet()
-        form.asetukset = asetusService.findAll().toSet() // todo vaatii rajaimia kun asetus asiat selvillä
-        return ResponseEntity.ok(form)
-    }
-
     @GetMapping("/koulutettavien-seuranta")
     fun getKoulutettavienSeurantaList(
         criteria: ErikoistujanEteneminenCriteria,
         pageable: Pageable,
         principal: Principal?
-    ): ResponseEntity<Page<ErikoistujanEteneminenVirkailijaDTO>> {
+    ): ResponseEntity<Page<KoulutettavanEteneminenDTO>> {
         val userId = userService.getAuthenticatedUser(principal).id!!
         val koulutettavat =
             etusivuService.getKoulutettavienSeurantaForVirkailija(userId, criteria, pageable)

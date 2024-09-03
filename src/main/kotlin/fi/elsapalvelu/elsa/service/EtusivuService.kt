@@ -13,6 +13,10 @@ interface EtusivuService {
         userId: String, criteria: ErikoistujanEteneminenCriteria, pageable: Pageable
     ): Page<ErikoistujanEteneminenDTO>?
 
+    fun getKoulutettavienSeurantaForVastuuhenkilo(
+        userId: String, criteria: ErikoistujanEteneminenCriteria, pageable: Pageable
+    ): Page<KoulutettavanEteneminenDTO>?
+
     fun getErikoistujienSeurantaKouluttajaRajaimet(userId: String): ErikoistujienSeurantaDTO
 
     fun getErikoistujienSeurantaForKouluttaja(
@@ -31,7 +35,7 @@ interface EtusivuService {
         userId: String,
         criteria: ErikoistujanEteneminenCriteria,
         pageable: Pageable
-    ): Page<ErikoistujanEteneminenVirkailijaDTO>?
+    ): Page<KoulutettavanEteneminenDTO>?
 
     fun getErikoistumisenSeurantaForErikoistuja(userId: String): ErikoistumisenEdistyminenDTO?
 

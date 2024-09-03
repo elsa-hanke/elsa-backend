@@ -21,7 +21,8 @@ class VastuuhenkiloEtusivuResource(
     private val etusivuService: EtusivuService,
     private val koejaksonVaiheetService: KoejaksonVaiheetService,
     private val valmistumispyyntoService: ValmistumispyyntoService,
-    private val seurantajaksoService: SeurantajaksoService
+    private val seurantajaksoService: SeurantajaksoService,
+    private val kayttajaService: KayttajaService
 ) {
 
     @GetMapping("/erikoistujien-seuranta-rajaimet")
@@ -41,6 +42,18 @@ class VastuuhenkiloEtusivuResource(
     ): ResponseEntity<Page<ErikoistujanEteneminenDTO>?> {
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaForVastuuhenkilo(user.id!!, criteria, pageable))
+    }
+
+    @GetMapping("/koulutettavien-seuranta")
+    fun getKoulutettavienSeurantaList(
+        criteria: ErikoistujanEteneminenCriteria,
+        pageable: Pageable,
+        principal: Principal?
+    ): ResponseEntity<Page<KoulutettavanEteneminenDTO>> {
+        val userId = userService.getAuthenticatedUser(principal).id!!
+        val koulutettavat =
+            etusivuService.getKoulutettavienSeurantaForVastuuhenkilo(userId, criteria, pageable)
+        return ResponseEntity.ok(koulutettavat)
     }
 
     @GetMapping("/koejaksot")
@@ -94,5 +107,13 @@ class VastuuhenkiloEtusivuResource(
         return ResponseEntity.ok(
             seurantajaksoService.findAvoinByKouluttajaUserId(user.id!!)
         )
+    }
+
+    @GetMapping("/yliopisto")
+    fun getYliopisto(principal: Principal?): ResponseEntity<String> {
+        val userId = userService.getAuthenticatedUser(principal).id!!
+        val yliopistoNimi =
+            kayttajaService.findByUserId(userId).get().yliopistotAndErikoisalat?.firstOrNull()?.yliopisto?.nimi
+        return ResponseEntity.ok(yliopistoNimi)
     }
 }
