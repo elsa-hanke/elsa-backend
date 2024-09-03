@@ -93,6 +93,25 @@ class EtusivuServiceImpl(
         return null
     }
 
+    override fun getKoulutettavienSeurantaForVastuuhenkilo(
+        userId: String,
+        criteria: ErikoistujanEteneminenCriteria,
+        pageable: Pageable
+    ): Page<KoulutettavanEteneminenDTO>? {
+        val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
+        kayttaja?.let { k ->
+            return erikoistujienSeurantaQueryService.findByErikoisalaAndYliopisto(
+                criteria,
+                pageable,
+                k.user?.langKey,
+                k.yliopistotAndErikoisalat,
+                OpintooikeudenTila.allowedTilat(),
+                OpintooikeudenTila.endedTilat()
+            ).map { opintooikeus -> mapKoulutettavanEdistyminen(opintooikeus) }
+        }
+        return null
+    }
+
     override fun getErikoistujienSeurantaKouluttajaRajaimet(
         userId: String
     ): ErikoistujienSeurantaDTO {
@@ -244,7 +263,7 @@ class EtusivuServiceImpl(
         userId: String,
         criteria: ErikoistujanEteneminenCriteria,
         pageable: Pageable
-    ): Page<ErikoistujanEteneminenVirkailijaDTO>? {
+    ): Page<KoulutettavanEteneminenDTO>? {
         kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
             // Opintohallinnon virkailija toimii vain yhden yliopiston alla.
             k.yliopistot.firstOrNull()?.let {
@@ -254,39 +273,7 @@ class EtusivuServiceImpl(
                     it.id!!,
                     YEK_ERIKOISALA_ID,
                     k.user?.langKey
-                ).map { opintooikeus ->
-                    val opintosuoritukset =
-                        opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!)
-                            .asSequence()
-                    val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
-                        opintooikeus.erikoistuvaLaakari?.id!!,
-                        YEK_ERIKOISALA_ID
-                    )
-                    ErikoistujanEteneminenVirkailijaDTO(
-                        opintooikeus.id,
-                        opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName,
-                        opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.lastName,
-                        opintooikeus.erikoistuvaLaakari?.syntymaaika,
-                        opintooikeus.erikoisala?.nimi,
-                        opintooikeus.asetus?.nimi,
-                        getKoejaksoTila(opintooikeus, opintosuoritukset),
-                        opintooikeus.opintooikeudenMyontamispaiva,
-                        opintooikeus.opintooikeudenPaattymispaiva,
-                        tyoskentelyjaksoService.getTilastot(opintooikeus),
-                        getTeoriakoulutuksetTuntimaara(
-                            opintooikeus.id!!,
-                            opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID,
-                            opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
-                        ),
-                        opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara,
-                        getJohtamisopinnotSuoritettu(opintosuoritukset),
-                        opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
-                        getSateilysuojakoulutuksetSuoritettu(opintosuoritukset),
-                        opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara,
-                        getValtakunnallisetKuulustelutSuoritettuLkm(opintosuoritukset),
-                        getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset + yekSuoritukset)
-                    )
-                }
+                ).map { opintooikeus -> mapKoulutettavanEdistyminen(opintooikeus) }
             }
         }
         return null
@@ -829,4 +816,24 @@ class EtusivuServiceImpl(
         valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika
             ?: valmistumispyynto.virkailijanPalautusaika
             ?: valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika
+
+    private fun mapKoulutettavanEdistyminen(opintooikeus: Opintooikeus): KoulutettavanEteneminenDTO {
+        val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
+            opintooikeus.erikoistuvaLaakari?.id!!,
+            YEK_ERIKOISALA_ID
+        )
+        return KoulutettavanEteneminenDTO(
+            opintooikeusId = opintooikeus.id,
+            etunimi = opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName,
+            sukunimi = opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.lastName,
+            syntymaaika = opintooikeus.erikoistuvaLaakari?.syntymaaika,
+            erikoisala = opintooikeus.erikoisala?.nimi,
+            asetus = opintooikeus.asetus?.nimi,
+            opintooikeudenMyontamispaiva = opintooikeus.opintooikeudenMyontamispaiva,
+            opintooikeudenPaattymispaiva = opintooikeus.opintooikeudenPaattymispaiva,
+            tyoskentelyjaksoTilastot = tyoskentelyjaksoService.getTilastot(opintooikeus),
+            teoriakoulutuksetSuoritettu = yekSuoritukset.any { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS },
+            yekSuoritettu = yekSuoritukset.any { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_PATEVYYS }
+        )
+    }
 }
