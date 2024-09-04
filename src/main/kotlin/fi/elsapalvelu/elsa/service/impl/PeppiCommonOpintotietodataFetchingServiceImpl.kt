@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS
+import fi.elsapalvelu.elsa.config.YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila.Companion.fromPeppiOpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
@@ -52,13 +53,17 @@ class PeppiCommonOpintotietodataFetchingServiceImpl(
                             syntymaaika = student.birthDate?.tryParseToLocalDate(),
                             opintooikeudet = student.entitlements?.filter { e ->
                                 e.koulutusKoodi == ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS ||
-                                    e.koulutusKoodi == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS
+                                    e.koulutusKoodi == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS ||
+                                    e.erikoisalat?.any { ea -> ea.avain == YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI } == true
                             }?.map {
                                 OpintotietoOpintooikeusDataDTO(
                                     id = it.opiskeluoikeusNumero,
                                     opintooikeudenAlkamispaiva = it.alkamispaiva?.tryParseToLocalDate(),
                                     opintooikeudenPaattymispaiva = it.paattymispaiva?.tryParseToLocalDate(),
-                                    erikoisalaTunnisteList = it.erikoisalat?.map { e -> e.avain },
+                                    erikoisalaTunnisteList = it.erikoisalat?.map { e -> e.avain }?.filter { avain ->
+                                        it.koulutusKoodi == ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS ||
+                                        it.koulutusKoodi == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS ||
+                                        avain == YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI },
                                     asetus = convertPeppiAsetusString(it.asetus, endpointUrl),
                                     tila = fromPeppiOpintooikeudenTila(it.tila),
                                     yliopisto = yliopistoEnum
