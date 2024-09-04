@@ -4,6 +4,7 @@ import com.apollographql.apollo3.exception.ApolloException
 import fi.elsapalvelu.elsa.OpintotietodataPeppiOuluQuery
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS
+import fi.elsapalvelu.elsa.config.YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
@@ -36,7 +37,8 @@ class PeppiOuluOpintotietodataFetchingServiceImpl(
                     syntymaaika = it.dateOfBirth?.tryParseToLocalDate(),
                     opintooikeudet = it.studyRights?.filter { opintooikeus ->
                         (opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS ||
-                            opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS)
+                            opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS) ||
+                            opintooikeus.virtaPatevyyskoodi == YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI
                     }?.map { opintooikeus ->
                         val erikoisalaTunniste = opintooikeus.virtaPatevyyskoodi
                         OpintotietoOpintooikeusDataDTO(
