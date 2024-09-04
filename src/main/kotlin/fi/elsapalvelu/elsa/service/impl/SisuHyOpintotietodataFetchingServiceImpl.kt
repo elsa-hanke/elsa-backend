@@ -4,6 +4,7 @@ import com.apollographql.apollo3.exception.ApolloException
 import fi.elsapalvelu.elsa.OpintotietodataSisuHyQuery
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_SISU_KOULUTUS
+import fi.elsapalvelu.elsa.config.YEK_KOULUTETTAVA_SISU_HY_KOULUTUS
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila.Companion.fromSisuOpintooikeudenTilaStr
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
@@ -35,7 +36,9 @@ class SisuHyOpintotietodataFetchingServiceImpl(
                     syntymaaika = it.dateOfBirth?.tryParseToLocalDate(),
                     opintooikeudet = it.studyRights?.filter { opintooikeus ->
                         (opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_LAAKARI_SISU_KOULUTUS ||
-                            opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS)
+                            opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS ||
+                            opintooikeus.acceptedSelectionPath?.educationPhase1GroupId == YEK_KOULUTETTAVA_SISU_HY_KOULUTUS
+                            )
                     }?.map { opintooikeus ->
                         val erikoisalaTunniste = opintooikeus.acceptedSelectionPath?.educationPhase1GroupId
                         OpintotietoOpintooikeusDataDTO(

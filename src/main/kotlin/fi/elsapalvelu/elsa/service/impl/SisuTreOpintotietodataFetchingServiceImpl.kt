@@ -3,9 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS
-import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_SISU_KOULUTUS
+import fi.elsapalvelu.elsa.config.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila.Companion.fromSisuOpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
@@ -53,7 +51,8 @@ class SisuTreOpintotietodataFetchingServiceImpl(
                             syntymaaika = studyRightResponse.dateOfBirth?.tryParseToLocalDate(),
                             opintooikeudet = studyRightResponse.studyrights?.filter {
                                 it.phase1EducationClassificationUrn == ERIKOISTUVA_LAAKARI_SISU_KOULUTUS ||
-                                    it.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS
+                                    it.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS ||
+                                    it.specialisation == YEK_KOULUTETTAVA_SISU_TRE_KOULUTUS
                             }?.map {
                                 OpintotietoOpintooikeusDataDTO(
                                     id = it.id,
