@@ -180,7 +180,7 @@ class ValmistumispyyntoServiceImpl(
                     ).user!!
                     sendMailNotificationUusiValmistumispyynto(vastuuhenkiloOsaamisenArvioijaUser, saved)
                 } else {
-                    sendMailNotificationOdottaaVirkailijanTarkastusta(
+                    sendMailNotificationOdottaaVirkailijanTarkastustaYek(
                         opintooikeus.yliopisto!!.nimi!!,
                         saved.id!!
                     )
@@ -207,7 +207,9 @@ class ValmistumispyyntoServiceImpl(
                 erikoistujanKuittausaika = LocalDate.now()
                 this.selvitysVanhentuneistaSuorituksista = uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista
 
-                if (vastuuhenkiloOsaamisenArvioijaKuittausaika != null || opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                if (opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                    virkailijanPalautusaika = null
+                } else if (vastuuhenkiloOsaamisenArvioijaKuittausaika != null) {
                     virkailijanPalautusaika = null
                     sendMailNotificationOdottaaVirkailijanTarkastusta(
                         opintooikeus.yliopisto!!.nimi!!,
@@ -221,7 +223,7 @@ class ValmistumispyyntoServiceImpl(
                             opintooikeus.yliopisto!!.nimi!!,
                             saved.id!!
                         )
-                    } else {
+                    } else if (saved.vastuuhenkiloOsaamisenArvioijaKuittausaika == null) {
                         val vastuuhenkiloOsaamisenArvioijaUser =
                             getVastuuhenkiloOsaamisenArvioija(
                                 opintooikeus.yliopisto?.id!!,
@@ -417,7 +419,11 @@ class ValmistumispyyntoServiceImpl(
                     it.valmistumispyynto?.vastuuhenkiloHyvaksyjaKorjausehdotus = null
                     it.valmistumispyynto?.vastuuhenkiloHyvaksyjaPalautusaika = null
                     it.valmistumispyynto?.virkailijanKorjausehdotus = null
-                    sendMailNotificationOdottaaHyvaksyntaa(it.valmistumispyynto!!)
+                    if (it.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                        sendMailNotificationOdottaaHyvaksyntaaYek(it.valmistumispyynto!!)
+                    } else {
+                        sendMailNotificationOdottaaHyvaksyntaa(it.valmistumispyynto!!)
+                    }
                 }
 
                 it.valmistumispyynto?.let { pyynto -> valmistumispyyntoRepository.save(pyynto) }
@@ -936,7 +942,7 @@ class ValmistumispyyntoServiceImpl(
         mailService.sendEmailFromTemplate(
             to = erikoistujanYliopisto.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoTarkastettavissaYek.html",
-            titleKey = "email.valmistumispyyntoTarkastettavissa.title",
+            titleKey = "email.yekValmistumispyyntoTarkastettavissa.title",
             properties = mapOf(Pair(MailProperty.ID, valmistumispyyntoId.toString()))
         )
     }
@@ -949,6 +955,18 @@ class ValmistumispyyntoServiceImpl(
             getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!,
             templateName = "valmistumispyyntoTarkastettavissa.html",
             titleKey = "email.valmistumispyyntoTarkastettavissa.title",
+            properties = mapOf(Pair(MailProperty.ID, valmistumispyynto.id.toString()))
+        )
+    }
+
+    private fun sendMailNotificationOdottaaHyvaksyntaaYek(
+        valmistumispyynto: Valmistumispyynto
+    ) {
+        val opintooikeus = valmistumispyynto.opintooikeus
+        mailService.sendEmailFromTemplate(
+            getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!,
+            templateName = "valmistumispyyntoTarkastettavissaYek.html",
+            titleKey = "email.yekValmistumispyyntoTarkastettavissa.title",
             properties = mapOf(Pair(MailProperty.ID, valmistumispyynto.id.toString()))
         )
     }
