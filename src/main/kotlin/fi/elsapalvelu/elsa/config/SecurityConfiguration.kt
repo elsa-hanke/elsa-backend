@@ -224,6 +224,13 @@ class SecurityConfiguration(
                         ERIKOISTUVA_LAAKARI_IMPERSONATED,
                         ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
                     )
+                    .requestMatchers(
+                        "/api/yek-koulutettava/tyoskentelyjaksot/**"
+                    )
+                    .hasAnyAuthority(
+                        YEK_KOULUTETTAVA,
+                        ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+                    )
                     .requestMatchers("/api/yek-koulutettava/**").hasAuthority(YEK_KOULUTETTAVA)
                     .requestMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
                     .requestMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
