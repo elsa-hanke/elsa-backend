@@ -67,7 +67,7 @@ class JulkisetToiminnotResource(
     }
 
     @GetMapping("/poissaolon-syyt")
-    fun getIlmoitus(
+    fun getPoissaolonSyyt(
         principal: Principal?
     ): ResponseEntity<List<PoissaolonSyyDTO>> {
         return poissaolonSyyService.findAll().let {
