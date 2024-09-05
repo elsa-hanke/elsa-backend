@@ -234,8 +234,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
             mailService.sendEmailFromTemplate(
                 to = it.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
-                templateName = "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
-                titleKey = "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
+                templateName = if (it.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusTarkastettavissa.html" else "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
+                titleKey = if (it.erikoisala?.id == YEK_ERIKOISALA_ID) "email.yektkkjaksonhyvaksymishakemustarkastettavissa.title" else "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, hyvaksynta.id.toString()),
                     Pair(MailProperty.URL_PATH, "terveyskeskuskoulutusjakson-tarkistus")
@@ -325,8 +325,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         if (result.virkailijaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
                 to = vastuuhenkilo?.user?.email,
-                templateName = "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
-                titleKey = "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
+                templateName = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusTarkastettavissa.html" else "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
+                titleKey = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "email.yektkkjaksonhyvaksymishakemustarkastettavissa.title" else "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, result.id.toString()),
                     Pair(MailProperty.URL_PATH, "terveyskeskuskoulutusjakson-hyvaksynta")
@@ -389,8 +389,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             )
             mailService.sendEmailFromTemplate(
                 to = hyvaksynta.virkailija?.user?.email,
-                templateName = "tkkjaksonHyvaksymishakemusHyvaksytty.html",
-                titleKey = "email.tkkjaksonhyvaksymishakemushyvaksytty.title",
+                templateName = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusHyvaksytty.html" else "tkkjaksonHyvaksymishakemusHyvaksytty.html",
+                titleKey = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "email.yektkkjaksonhyvaksymishakemushyvaksytty.title" else "email.tkkjaksonhyvaksymishakemushyvaksytty.title",
                 properties = mapOf(
                     Pair(
                         MailProperty.URL_PATH,
