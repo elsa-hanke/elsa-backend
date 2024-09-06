@@ -23,6 +23,9 @@ variables:
   - name: IMAGE_REPO_NAME_SHARED
     value: 'ecr-shared-backend'
 
+# no PR triggers
+pr: none
+
 stages:
   - stage: Build
     displayName: Build and push stage
