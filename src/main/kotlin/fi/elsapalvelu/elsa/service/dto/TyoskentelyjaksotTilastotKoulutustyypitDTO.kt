@@ -16,6 +16,8 @@ class TyoskentelyjaksotTilastotKoulutustyypitDTO(
 
     var yliopistosairaaloidenUlkopuolinenVaadittuVahintaan: Double,
 
+    var yliopistosairaaloidenUlkopuolinenMaksimipituus: Double?,
+
     var yliopistosairaaloidenUlkopuolinenSuoritettu: Double,
 
     var yhteensaVaadittuVahintaan: Double,
