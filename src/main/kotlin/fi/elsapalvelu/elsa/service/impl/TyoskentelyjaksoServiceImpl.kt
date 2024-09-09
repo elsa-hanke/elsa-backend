@@ -322,6 +322,7 @@ class TyoskentelyjaksoServiceImpl(
                 terveyskeskusSuoritettu = tilastotCounter.terveyskeskusSuoritettu,
                 yliopistosairaalaVaadittuVahintaan = opintooikeus.opintoopas?.yliopistosairaalajaksonVahimmaispituus
                     ?: 0.0,
+                yliopistosairaaloidenUlkopuolinenMaksimipituus = opintooikeus.opintoopas?.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituus,
                 yliopistosairaalaSuoritettu = tilastotCounter.yliopistosairaalaSuoritettu,
                 yliopistosairaaloidenUlkopuolinenVaadittuVahintaan =
                 opintooikeus.opintoopas?.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituus
@@ -403,7 +404,7 @@ class TyoskentelyjaksoServiceImpl(
                                     yliopistosairaalanUlkopuolinenMaksimi - tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu
                             }
                         }
-                        tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu += tyoskentelyjaksonPituus
+                        tilastotCounter.yliopistosairaaloidenUlkopuolinenSuoritettu += tutkintoonHyvaksyttavaPituus
                     }
                 }
             } else {
