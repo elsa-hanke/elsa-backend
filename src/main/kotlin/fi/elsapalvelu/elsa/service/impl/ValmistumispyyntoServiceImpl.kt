@@ -1007,7 +1007,7 @@ class ValmistumispyyntoServiceImpl(
 
         if (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
             mailService.sendEmailFromTemplate(
-                valmistumispyynto.virkailija?.user!!,
+                valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
                 templateName = "valmistumispyyntoPalautettuMuutYek.html",
                 titleKey = "email.valmistumispyyntoPalautettuMuut.title",
                 titleProperties = arrayOf("$nimi"),
@@ -1015,7 +1015,7 @@ class ValmistumispyyntoServiceImpl(
             )
         } else {
             mailService.sendEmailFromTemplate(
-                valmistumispyynto.virkailija?.user!!,
+                valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
                 templateName = "valmistumispyyntoPalautettuMuut.html",
                 titleKey = "email.valmistumispyyntoPalautettuMuut.title",
                 titleProperties = arrayOf("$nimi"),
@@ -1035,7 +1035,7 @@ class ValmistumispyyntoServiceImpl(
         )
 
         mailService.sendEmailFromTemplate(
-            valmistumispyynto.virkailija?.user!!,
+            valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoHyvaksyttyVirkailija.html",
             titleKey = "email.valmistumispyyntoHyvaksytty.title",
             properties = mapOf()
