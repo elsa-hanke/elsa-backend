@@ -26,9 +26,12 @@ data class KayttajahallintaErikoistujaJaKouluttajaListItemDTO(
     var kayttajatilinTila: KayttajatilinTila? = null,
 
     @get: NotNull
+    var authorities: List<String>? = listOf(),
+
+    @get: NotNull
     var sahkoposti: String,
 
-) : Serializable {
+    ) : Serializable {
     override fun toString() = "KayttajahallintaKayttajaListItemDTO"
 }
 
