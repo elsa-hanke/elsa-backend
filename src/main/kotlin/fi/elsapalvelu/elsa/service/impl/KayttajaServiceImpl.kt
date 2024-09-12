@@ -17,6 +17,7 @@ import fi.elsapalvelu.elsa.service.constants.VASTUUHENKILO_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ReassignedVastuuhenkilonTehtavaTyyppi
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistujaJaKouluttajaListItemDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaWrapperDTO
@@ -24,14 +25,14 @@ import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.KayttajaYliopistoErikoisalaMapper
 import fi.elsapalvelu.elsa.service.mapper.UserMapper
 import fi.elsapalvelu.elsa.service.mapper.VastuuhenkilonTehtavatyyppiMapper
+import jakarta.persistence.EntityExistsException
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import jakarta.persistence.EntityExistsException
-import jakarta.persistence.EntityNotFoundException
 
 @Service
 @Transactional
@@ -290,6 +291,8 @@ class KayttajaServiceImpl(
         )
     }
 
+
+
     override fun activateKayttaja(kayttajaId: Long) {
         val kayttaja =
             kayttajaRepository.findById(kayttajaId)
@@ -432,6 +435,23 @@ class KayttajaServiceImpl(
             .map(kayttajaMapper::toDto)
     }
 
+    override fun findByCriteriaAndAuthorities(
+        userId: String,
+        criteria: KayttajahallintaCriteria,
+        pageable: Pageable,
+        authorities: List<String>
+    ): Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO> {
+        val kayttaja =
+            kayttajaRepository.findOneByUserId(userId)
+                .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+        return kayttajaQueryService.findByCriteriaAndAuthorities(
+            criteria,
+            pageable,
+            kayttaja.user?.langKey,
+            authorities,
+        )
+    }
+
     private fun saveYliopistotAndErikoisalat(
         kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
         kayttaja: Kayttaja
@@ -524,4 +544,5 @@ class KayttajaServiceImpl(
 
     private fun getKayttajaYliopistoErikoisalaNotFoundException() =
         EntityNotFoundException("KayttajaYliopistoErikoisala entiteettiä ei löydy")
+
 }

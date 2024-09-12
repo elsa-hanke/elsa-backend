@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalatDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistujaJaKouluttajaListItemDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaWrapperDTO
@@ -93,4 +94,13 @@ interface KayttajaService {
     fun avoimiaTehtavia(id: Long): Boolean
 
     fun findAllKouluttajat(): List<KayttajaDTO>
+
+    fun findByCriteriaAndAuthorities(
+        userId: String,
+        criteria: KayttajahallintaCriteria,
+        pageable: Pageable,
+        authorities: List<String>
+    ): Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO>
+
+
 }
