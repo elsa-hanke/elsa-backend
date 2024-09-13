@@ -228,9 +228,13 @@
     <hr/>
     <h3 th:text="#{vastuuhenkilonarvio.vastuuhenkilo}"></h3>
     <h4 th:text="#{vastuuhenkilonarvio.vastuuhenkilonNimi}"></h4>
-    <p th:text="${arvio.vastuuhenkilo.nimi}">
-        <span
-            th:text="${arvio.vastuuhenkilo.nimike != null} ? ', ' + ${arvio.vastuuhenkilo.nimike} : ''"></span>
+    <p th:if="${arvio.vastuuhenkilo.nimike == null}"
+       th:text="${arvio.vastuuhenkilo.nimi}"
+       class="mb-0">
+    </p>
+    <p th:unless="${arvio.vastuuhenkilo.nimike == null}"
+       th:text="${arvio.vastuuhenkilo.nimi} + ', ' + ${arvio.vastuuhenkilo.nimike}"
+       class="mb-0">
     </p>
     <div class="row">
         <div class="col-4">
@@ -283,9 +287,13 @@
         </div>
         <div class="col-2">
             <h4 th:text="#{vastuuhenkilonarvio.nimiJaNimike}"></h4>
-            <p th:text="${arvio.vastuuhenkilo.nimi}">
-                <span
-                    th:text="${arvio.vastuuhenkilo.nimike != null} ? ', ' + ${arvio.vastuuhenkilo.nimike} : ''"></span>
+            <p th:if="${arvio.vastuuhenkilo.nimike == null}"
+               th:text="${arvio.vastuuhenkilo.nimi}"
+               class="mb-0">
+            </p>
+            <p th:unless="${arvio.vastuuhenkilo.nimike == null}"
+               th:text="${arvio.vastuuhenkilo.nimi} + ', ' + ${arvio.vastuuhenkilo.nimike}"
+               class="mb-0">
             </p>
         </div>
     </div>
