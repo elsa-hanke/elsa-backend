@@ -131,9 +131,13 @@
     <hr/>
     <h3 th:text="#{koulutussopimus.vastuuhenkilo}"></h3>
     <h4 th:text="#{koulutussopimus.vastuuhenkilo.nimi}"></h4>
-    <p th:text="${sopimus.vastuuhenkilo.nimi}">
-        <span
-            th:text="${sopimus.vastuuhenkilo.nimike != null} ? ', ' + ${sopimus.vastuuhenkilo.nimike} : ''"></span>
+    <p th:if="${sopimus.vastuuhenkilo.nimike == null}"
+       th:text="${sopimus.vastuuhenkilo.nimi}"
+       class="mb-0">
+    </p>
+    <p th:unless="${sopimus.vastuuhenkilo.nimike == null}"
+       th:text="${sopimus.vastuuhenkilo.nimi} + ', ' + ${sopimus.vastuuhenkilo.nimike}"
+       class="mb-0">
     </p>
     <div class="row">
         <div class="col-4">
@@ -176,9 +180,13 @@
         </div>
         <div class="col-2">
             <h4 th:text="#{koulutussopimus.nimiJaNimike}"></h4>
-            <p th:text="${sopimus.vastuuhenkilo.nimi}">
-                <span
-                    th:text="${sopimus.vastuuhenkilo.nimike != null} ? ', ' + ${sopimus.vastuuhenkilo.nimike} : ''"></span>
+            <p th:if="${sopimus.vastuuhenkilo.nimike == null}"
+               th:text="${sopimus.vastuuhenkilo.nimi}"
+               class="mb-0">
+            </p>
+            <p th:unless="${sopimus.vastuuhenkilo.nimike == null}"
+               th:text="${sopimus.vastuuhenkilo.nimi} + ', ' + ${sopimus.vastuuhenkilo.nimike}"
+               class="mb-0">
             </p>
         </div>
     </div>
