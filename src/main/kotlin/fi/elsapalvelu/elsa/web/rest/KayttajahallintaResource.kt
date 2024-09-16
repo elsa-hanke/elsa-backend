@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
@@ -236,7 +237,7 @@ open class KayttajahallintaResource(
         @PathVariable yliopistoId: Long
     ): ResponseEntity<KayttajahallintaVastuuhenkilonTehtavatFormDTO> {
         val form = KayttajahallintaVastuuhenkilonTehtavatFormDTO(
-            erikoisalat = erikoisalaService.findAllWithTehtavatyypit().toSet(),
+            erikoisalat = erikoisalaService.findAllWithTehtavatyypit().filter { it.id != YEK_ERIKOISALA_ID }.toSet(),
             vastuuhenkilot = kayttajaService.findVastuuhenkilotByYliopisto(yliopistoId).map {
                 KayttajahallintaFormVastuuhenkiloDTO(
                     id = it.id,
