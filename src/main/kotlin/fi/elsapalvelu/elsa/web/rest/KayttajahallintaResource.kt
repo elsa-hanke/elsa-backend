@@ -615,6 +615,17 @@ open class KayttajahallintaResource(
         return ResponseEntity.ok(kayttajat)
     }
 
+    @PatchMapping("/yhdista-kayttajatilit")
+    fun yhdistaKayttajatilit(
+        @Valid @RequestBody kayttajienYhdistaminenDto: KayttajienYhdistaminenDTO,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        System.out.println(kayttajienYhdistaminenDto.ensimmainenKayttajaId)
+        System.out.println(kayttajienYhdistaminenDto.toinenKayttajaId)
+        System.out.println(kayttajienYhdistaminenDto.yhteinenSahkoposti)
+        return ResponseEntity.ok().build()
+    }
+
     private fun getYliopistotByRole(user: UserDTO): MutableSet<YliopistoDTO> {
         if (hasVirkailijaRole(user)) {
             val kayttaja = getKayttajaByUserIdOrThrow(user.id!!)
