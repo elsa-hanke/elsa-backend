@@ -33,7 +33,8 @@ open class KayttajahallintaResource(
     private val opintoopasService: OpintoopasService,
     private val kayttajahallintaValidationService: KayttajahallintaValidationService,
     private val mailService: MailService,
-    private val opintooikeusService: OpintooikeusService
+    private val opintooikeusService: OpintooikeusService,
+    private val kayttajienYhdistaminenService: KayttajienYhdistaminenService
 ) {
     @GetMapping("/erikoistuvat-laakarit")
     fun getErikoistuvatLaakarit(
@@ -620,9 +621,7 @@ open class KayttajahallintaResource(
         @Valid @RequestBody kayttajienYhdistaminenDto: KayttajienYhdistaminenDTO,
         principal: Principal?
     ): ResponseEntity<Void> {
-        System.out.println(kayttajienYhdistaminenDto.ensimmainenKayttajaId)
-        System.out.println(kayttajienYhdistaminenDto.toinenKayttajaId)
-        System.out.println(kayttajienYhdistaminenDto.yhteinenSahkoposti)
+        kayttajienYhdistaminenService.yhdistaKayttajatilit(kayttajienYhdistaminenDto)
         return ResponseEntity.ok().build()
     }
 
