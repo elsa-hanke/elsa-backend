@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.periodLessThan
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.OpintotietodataPersistenceService
@@ -173,6 +174,11 @@ class OpintotietodataPersistenceServiceImpl(
         )
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 
+        erikoistuvaLaakari.kayttaja?.user?.let {
+            it.authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
+            it.activeAuthority = Authority(name = ERIKOISTUVA_LAAKARI)
+            userRepository.save(it)
+        }
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
         erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
@@ -266,11 +272,7 @@ class OpintotietodataPersistenceServiceImpl(
         syntymaaika: LocalDate
     ): ErikoistuvaLaakari {
         val userDTO = userService.createUser(cipher, originalKey, hetu, etunimi, sukunimi)
-        var user = userRepository.findById(userDTO.id!!).orElseThrow()
-
-        user.authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
-        user.activeAuthority = Authority(name = ERIKOISTUVA_LAAKARI)
-        user = userRepository.save(user)
+        val user = userRepository.findById(userDTO.id!!).orElseThrow()
 
         val kayttaja = kayttajaRepository.save(
             Kayttaja(
@@ -361,6 +363,17 @@ class OpintotietodataPersistenceServiceImpl(
         )
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 
+        val user = erikoistuvaLaakari.kayttaja?.user
+        val yek = opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
+        if (yek && user?.authorities?.map { it.name }?.contains(YEK_KOULUTETTAVA) == false) {
+            user.authorities.add(Authority(name = YEK_KOULUTETTAVA))
+            user.activeAuthority = Authority(name = YEK_KOULUTETTAVA)
+            userRepository.save(user)
+        } else if (!yek && user?.authorities?.map { it.name }?.contains(ERIKOISTUVA_LAAKARI) == false) {
+            user.authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
+            user.activeAuthority = Authority(name = ERIKOISTUVA_LAAKARI)
+            userRepository.save(user)
+        }
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
         erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)

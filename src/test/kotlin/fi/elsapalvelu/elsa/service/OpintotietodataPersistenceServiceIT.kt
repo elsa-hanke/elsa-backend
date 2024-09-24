@@ -374,7 +374,7 @@ class OpintotietodataPersistenceServiceIT {
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
-        assertUserProperties(existingUser)
+        assertUserProperties(existingUser, false)
 
         val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(existingUser.id!!)
         assertThat(opintooikeudet).size().isEqualTo(0)
@@ -400,7 +400,7 @@ class OpintotietodataPersistenceServiceIT {
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
-        assertUserProperties(existingUser)
+        assertUserProperties(existingUser, false)
 
         val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(existingUser.id!!)
         assertThat(opintooikeudet).size().isEqualTo(0)
@@ -426,7 +426,7 @@ class OpintotietodataPersistenceServiceIT {
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
-        assertUserProperties(existingUser)
+        assertUserProperties(existingUser, false)
 
         val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(existingUser.id!!)
         assertThat(opintooikeudet).size().isEqualTo(0)
@@ -454,7 +454,7 @@ class OpintotietodataPersistenceServiceIT {
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
-        assertUserProperties(existingUser)
+        assertUserProperties(existingUser, false)
 
         val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(existingUser.id!!)
         assertThat(opintooikeudet).size().isEqualTo(0)
@@ -480,7 +480,7 @@ class OpintotietodataPersistenceServiceIT {
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
-        assertUserProperties(existingUser)
+        assertUserProperties(existingUser, false)
 
         val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(existingUser.id!!)
         assertThat(opintooikeudet).size().isEqualTo(0)
@@ -506,7 +506,7 @@ class OpintotietodataPersistenceServiceIT {
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
-        assertUserProperties(existingUser)
+        assertUserProperties(existingUser, false)
 
         val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(existingUser.id!!)
         assertThat(opintooikeudet).size().isEqualTo(0)
@@ -532,7 +532,7 @@ class OpintotietodataPersistenceServiceIT {
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
-        assertUserProperties(existingUser)
+        assertUserProperties(existingUser, false)
 
         val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(existingUser.id!!)
         assertThat(opintooikeudet).size().isEqualTo(0)
@@ -778,7 +778,7 @@ class OpintotietodataPersistenceServiceIT {
 
         val existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
         assertNotNull(existingUser)
-        assertUserProperties(existingUser)
+        assertUserProperties(existingUser, false)
 
         val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(existingUser.id!!)
         assertThat(opintooikeudet).size().isEqualTo(1)
@@ -839,12 +839,16 @@ class OpintotietodataPersistenceServiceIT {
         )
     }
 
-    private fun assertUserProperties(existingUser: User) {
+    private fun assertUserProperties(existingUser: User, checkAuthorities: Boolean = true) {
         assertThat(existingUser.firstName).isEqualTo(etunimi)
         assertThat(existingUser.lastName).isEqualTo(sukunimi)
         assertThat(existingUser.hetu).isNotNull
-        assertThat(existingUser.authorities).contains(Authority(ERIKOISTUVA_LAAKARI))
         assertThat(existingUser.activated).isEqualTo(true)
+
+        if (checkAuthorities) {
+            assertThat(existingUser.authorities).contains(Authority(ERIKOISTUVA_LAAKARI))
+            assertThat(existingUser.activeAuthority).isEqualTo(Authority(ERIKOISTUVA_LAAKARI))
+        }
     }
 
     private fun assertOpintooikeusDataNotUpdated(opintooikeus: Opintooikeus) {
