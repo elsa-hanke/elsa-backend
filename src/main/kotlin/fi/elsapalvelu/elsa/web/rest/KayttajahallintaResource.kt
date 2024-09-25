@@ -620,9 +620,9 @@ open class KayttajahallintaResource(
     fun yhdistaKayttajatilit(
         @Valid @RequestBody kayttajienYhdistaminenDto: KayttajienYhdistaminenDTO,
         principal: Principal?
-    ): ResponseEntity<Void> {
-        kayttajienYhdistaminenService.yhdistaKayttajatilit(kayttajienYhdistaminenDto)
-        return ResponseEntity.ok().build()
+    ): List<KayttajienYhdistaminenResult> {
+        return kayttajienYhdistaminenService.yhdistaKayttajatilit(kayttajienYhdistaminenDto)
+        // return ResponseEntity.ok().build()
     }
 
     private fun getYliopistotByRole(user: UserDTO): MutableSet<YliopistoDTO> {
