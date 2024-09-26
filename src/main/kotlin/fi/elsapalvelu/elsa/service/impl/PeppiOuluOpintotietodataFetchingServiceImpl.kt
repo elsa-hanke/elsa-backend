@@ -46,7 +46,7 @@ class PeppiOuluOpintotietodataFetchingServiceImpl(
                             tila = mapOpintooikeudenTila(opintooikeus.state),
                             opintooikeudenAlkamispaiva = opintooikeus.valid?.startDate?.tryParseToLocalDate(),
                             opintooikeudenPaattymispaiva = opintooikeus.valid?.endDate?.tryParseToLocalDate(),
-                            asetus = opintooikeus.decreeOnUniversityDegrees?.shortName?.fi,
+                            asetus = convertPeppiAsetusString(opintooikeus.decreeOnUniversityDegrees?.shortName?.fi),
                             erikoisalaTunnisteList = if (erikoisalaTunniste != null) listOf(erikoisalaTunniste) else null,
                             opiskelijatunnus = it.studentNumber,
                             yliopisto = YliopistoEnum.OULUN_YLIOPISTO
@@ -78,6 +78,14 @@ class PeppiOuluOpintotietodataFetchingServiceImpl(
             PeppiOpintooikeudenTila.GRADUATED.toString() -> OpintooikeudenTila.VALMISTUNUT
             PeppiOpintooikeudenTila.RESIGNED.toString() -> OpintooikeudenTila.PERUUTETTU
             else -> null
+        }
+    }
+
+    private fun convertPeppiAsetusString(peppiAsetus: String?): String? {
+        return if (peppiAsetus == "TA-2020") {
+            "55/2020"
+        } else {
+            peppiAsetus
         }
     }
 }
