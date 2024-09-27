@@ -79,6 +79,9 @@ class KayttajienYhdistaminenServiceImpl(
             )
         }
 
+        // forced rollback for debugging reasons
+        // TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
+
         return tilanne
     }
 
@@ -268,7 +271,7 @@ class KayttajienYhdistaminenServiceImpl(
             user.authorities.add(authority)
             userRepository.save(user)
             log.info(
-                "lisaaKayttajalleRooli lisätty rooli {} käyttäjälle id:llä {}",
+                "lisaaKayttajalleRooli lisätty rooli {} käyttäjälle jhi_user id:llä {}",
                 authority.name,
                 user.id
             )
