@@ -107,7 +107,7 @@ class KayttajaQueryService(
                 predicates.add(it)
             }
             if (activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name && yliopistot.isNotEmpty()) {
-                getKayttajaYliopistotPredicate(yliopistot, root, cb).let {
+                getKayttajaYliopistotFromYliopistotAndErikoisalatPredicate(yliopistot, root).let {
                     predicates.add(it)
                 }
             }
@@ -169,16 +169,6 @@ class KayttajaQueryService(
     ): Predicate? {
         val rootJoin = root.join(Kayttaja_.yliopistot)
         return cb.`in`(rootJoin.get(Yliopisto_.id)).value(yliopistoId)
-    }
-
-    private fun getKayttajaYliopistotPredicate(
-        yliopistoIds: List<Long?>,
-        root: Root<Kayttaja>,
-        cb: CriteriaBuilder
-    ): Predicate {
-        val rootJoin = root.join(Kayttaja_.yliopistot)
-        val nonNullYliopistoIds = yliopistoIds.filterNotNull()
-        return rootJoin.get(Yliopisto_.id).`in`(nonNullYliopistoIds)
     }
 
     private fun getErikoisalaPredicate(
@@ -248,4 +238,14 @@ class KayttajaQueryService(
             kayttajatilinTila = kayttaja.tila,
             sahkoposti =  kayttaja.user?.email!!
         )
+
+    private fun getKayttajaYliopistotFromYliopistotAndErikoisalatPredicate(
+        yliopistoIds: List<Long?>,
+        root: Root<Kayttaja>
+    ): Predicate {
+        val rootJoin = root.join(Kayttaja_.yliopistotAndErikoisalat)
+        val nonNullYliopistoIds = yliopistoIds.filterNotNull()
+        return rootJoin.get(KayttajaYliopistoErikoisala_.yliopisto).`in`(nonNullYliopistoIds)
+    }
+
 }
