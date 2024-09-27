@@ -81,7 +81,7 @@ jobs:
         run: |
           ./gradlew jib -Pprod -Djib.to.image=$ECR_REPOSITORY:${{ steps.image-tag.outputs.image-tag }}
 
-  backend-deploy-dev:
+  deploy-dev:
     runs-on: ubuntu-latest
     needs: build-image
     if: github.ref == 'refs/heads/main'
@@ -119,7 +119,7 @@ jobs:
           cluster: elsa-dev-cluster
           wait-for-service-stability: true
 
-  backend-deploy-maintenance-page-staging:
+  deploy-maintenance-page-staging:
     runs-on: ubuntu-latest
     needs: build-image
     if: startsWith(github.ref, 'refs/heads/release/')
@@ -133,16 +133,13 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
           aws-region: eu-west-1
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
       - name: Deploy static site to S3 bucket
-        run: aws s3 sync src/main/resources/templates/huoltokatko.html s3://testi.elsapalvelu.fi/index.html
+        run: aws s3 mv src/main/resources/templates/huoltokatko.html s3://testi.elsapalvelu.fi/index.html
       - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
 
-  backend-deploy-staging:
+  deploy-staging:
     runs-on: ubuntu-latest
     needs: build-image
     if: startsWith(github.ref, 'refs/heads/release/')
@@ -183,9 +180,9 @@ jobs:
           cluster: elsa-staging-cluster
           wait-for-service-stability: true
 
-  backend-deploy-maintenance-page-prod:
+  deploy-maintenance-page-prod:
     runs-on: ubuntu-latest
-    needs: build-image
+    needs: [build-image, deploy-staging]
     if: startsWith(github.ref, 'refs/heads/release/')
     environment: production
 
@@ -197,18 +194,15 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
           aws-region: eu-west-1
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
       - name: Deploy static site to S3 bucket
-        run: aws s3 sync src/main/resources/templates/huoltokatko.html s3://elsapalvelu.fi/index.html
+        run: aws s3 mv src/main/resources/templates/huoltokatko.html s3://elsapalvelu.fi/index.html
       - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
 
-  backend-deploy-prod:
+  deploy-prod:
     runs-on: ubuntu-latest
-    needs: build-image
+    needs: [build-image, deploy-staging]
     if: startsWith(github.ref, 'refs/heads/release/')
     environment: production
 
