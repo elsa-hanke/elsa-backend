@@ -445,10 +445,12 @@ class KayttajaServiceImpl(
             kayttajaRepository.findOneByUserId(userId)
                 .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         return kayttajaQueryService.findByCriteriaAndAuthorities(
+            kayttaja.user!!.activeAuthority!!.name.toString(),
             criteria,
             pageable,
             kayttaja.user?.langKey,
             authorities,
+            kayttaja.yliopistot.map { it.id }.toList()
         )
     }
 

@@ -87,10 +87,12 @@ class KayttajaQueryService(
 
     @Transactional(readOnly = true)
     fun findByCriteriaAndAuthorities(
+        activeAuthority: String,
         criteria: KayttajahallintaCriteria?,
         pageable: Pageable,
         langkey: String?,
-        authorities: List<String>
+        authorities: List<String>,
+        yliopistot: List<Long?>
     ): Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO> {
         val specification: Specification<Kayttaja> = Specification.where { root, cq, cb ->
             val predicates: MutableList<Predicate> = mutableListOf()
@@ -103,6 +105,11 @@ class KayttajaQueryService(
             }
             getErikoisalaPredicate(criteria?.erikoisalaId, root, cq, cb)?.let {
                 predicates.add(it)
+            }
+            if (activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name && yliopistot.isNotEmpty()) {
+                getKayttajaYliopistotPredicate(yliopistot, root, cb).let {
+                    predicates.add(it)
+                }
             }
 
             cb.and(*predicates.toTypedArray())
@@ -162,6 +169,16 @@ class KayttajaQueryService(
     ): Predicate? {
         val rootJoin = root.join(Kayttaja_.yliopistot)
         return cb.`in`(rootJoin.get(Yliopisto_.id)).value(yliopistoId)
+    }
+
+    private fun getKayttajaYliopistotPredicate(
+        yliopistoIds: List<Long?>,
+        root: Root<Kayttaja>,
+        cb: CriteriaBuilder
+    ): Predicate {
+        val rootJoin = root.join(Kayttaja_.yliopistot)
+        val nonNullYliopistoIds = yliopistoIds.filterNotNull()
+        return rootJoin.get(Yliopisto_.id).`in`(nonNullYliopistoIds)
     }
 
     private fun getErikoisalaPredicate(
