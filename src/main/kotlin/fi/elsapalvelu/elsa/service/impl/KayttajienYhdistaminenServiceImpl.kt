@@ -81,7 +81,7 @@ class KayttajienYhdistaminenServiceImpl(
         }
 
         // forced rollback for debugging reasons
-        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
+        // TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
 
         return tilanne
     }
