@@ -17,7 +17,8 @@ class TekninenPaakayttajaKayttajahallintaResource(
     opintoopasService: OpintoopasService,
     kayttajahallintaValidationService: KayttajahallintaValidationService,
     mailService: MailService,
-    opintooikeusService: OpintooikeusService
+    opintooikeusService: OpintooikeusService,
+    kayttajienYhdistaminenService: KayttajienYhdistaminenService
 ) : KayttajahallintaResource(
     erikoistuvaLaakariService,
     userService,
@@ -28,5 +29,6 @@ class TekninenPaakayttajaKayttajahallintaResource(
     opintoopasService,
     kayttajahallintaValidationService,
     mailService,
-    opintooikeusService
+    opintooikeusService,
+    kayttajienYhdistaminenService
 )
