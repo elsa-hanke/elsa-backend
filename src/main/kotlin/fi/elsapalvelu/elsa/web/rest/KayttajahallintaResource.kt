@@ -4,16 +4,14 @@ import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
-import fi.elsapalvelu.elsa.security.KOULUTTAJA
-import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
-import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
-import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
@@ -21,7 +19,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 import java.security.Principal
-import jakarta.validation.Valid
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 private const val ERIKOISTUVA_LAAKARI_ENTITY_NAME = "erikoistuvaLaakari"
@@ -36,7 +33,8 @@ open class KayttajahallintaResource(
     private val opintoopasService: OpintoopasService,
     private val kayttajahallintaValidationService: KayttajahallintaValidationService,
     private val mailService: MailService,
-    private val opintooikeusService: OpintooikeusService
+    private val opintooikeusService: OpintooikeusService,
+    private val kayttajienYhdistaminenService: KayttajienYhdistaminenService
 ) {
     @GetMapping("/erikoistuvat-laakarit")
     fun getErikoistuvatLaakarit(
@@ -347,7 +345,8 @@ open class KayttajahallintaResource(
                     "dataillegal.kutsuttua-kouluttajaa-ei-voi-passivoida"
                 )
             } else if (kayttaja.authorities?.contains(Authority(name = VASTUUHENKILO)) == true
-                && kayttaja.yliopistotAndErikoisalat?.any { it.vastuuhenkilonTehtavat.isNotEmpty() } == true) {
+                && kayttaja.yliopistotAndErikoisalat?.any { it.vastuuhenkilonTehtavat.isNotEmpty() } == true
+            ) {
                 throw BadRequestAlertException(
                     "Vastuuhenkilöä ei voi passivoida jos siihen liittyy vastuualueita.",
                     KAYTTAJA_ENTITY_NAME,
@@ -605,6 +604,28 @@ open class KayttajahallintaResource(
 
         val result = kayttajaService.saveVastuuhenkilo(kayttajahallintaKayttajaDTO, kayttajaId)
         return ResponseEntity.ok(result)
+    }
+
+    @GetMapping("/erikoistujat-ja-kouluttajat")
+    fun getErikoistujatJaKouluttajat(
+        criteria: KayttajahallintaCriteria, pageable: Pageable, principal: Principal?
+    ): ResponseEntity<Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO>> {
+        val user = userService.getAuthenticatedUser(principal)
+        val kayttajat = kayttajaService.findByCriteriaAndAuthorities(
+            user.id!!,
+            criteria,
+            pageable,
+            listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA, KOULUTTAJA)
+        )
+        return ResponseEntity.ok(kayttajat)
+    }
+
+    @PatchMapping("/yhdista-kayttajatilit")
+    fun yhdistaKayttajatilit(
+        @Valid @RequestBody kayttajienYhdistaminenDto: KayttajienYhdistaminenDTO,
+        principal: Principal?
+    ): List<KayttajienYhdistaminenResult> {
+        return kayttajienYhdistaminenService.yhdistaKayttajatilit(kayttajienYhdistaminenDto)
     }
 
     private fun getYliopistotByRole(user: UserDTO): MutableSet<YliopistoDTO> {
