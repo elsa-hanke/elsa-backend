@@ -107,7 +107,7 @@ class KayttajaQueryService(
                 predicates.add(it)
             }
             if (activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name && yliopistot.isNotEmpty()) {
-                getKayttajaYliopistotFromYliopistotAndErikoisalatPredicate(yliopistot, root).let {
+                getOpintooikeusYliopistoPredicate(yliopistot.get(0), root, cq, cb)?.let {
                     predicates.add(it)
                 }
             }
@@ -236,16 +236,26 @@ class KayttajaQueryService(
             },
             authorities = kayttaja.user?.authorities?.takeIf { it.isNotEmpty() }?.map { a -> a.name!! }?.toList(),
             kayttajatilinTila = kayttaja.tila,
-            sahkoposti =  kayttaja.user?.email!!
+            sahkoposti = kayttaja.user?.email!!
         )
 
-    private fun getKayttajaYliopistotFromYliopistotAndErikoisalatPredicate(
-        yliopistoIds: List<Long?>,
-        root: Root<Kayttaja>
-    ): Predicate {
-        val rootJoin = root.join(Kayttaja_.yliopistotAndErikoisalat)
-        val nonNullYliopistoIds = yliopistoIds.filterNotNull()
-        return rootJoin.get(KayttajaYliopistoErikoisala_.yliopisto).`in`(nonNullYliopistoIds)
+
+    private fun getOpintooikeusYliopistoPredicate(
+        yliopistoId: Long?,
+        root: Root<Kayttaja>,
+        cq: CriteriaQuery<*>,
+        cb: CriteriaBuilder
+    ): Predicate? {
+        val subquery = cq.subquery(Long::class.java)
+        val subRoot = subquery.from(Opintooikeus::class.java)
+        val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
+        val yliopistoJoin = subRoot.join(Opintooikeus_.yliopisto)
+        subquery.select(subRoot.get(Opintooikeus_.id))
+        subquery.where(
+            cb.equal(yliopistoJoin.get(Yliopisto_.id), yliopistoId),
+            cb.equal(root.get(Kayttaja_.id), rootJoin.get(ErikoistuvaLaakari_.kayttaja))
+        )
+        return cb.exists(subquery)
     }
 
 }
