@@ -98,8 +98,7 @@ interface KayttajaService {
     fun findByCriteriaAndAuthorities(
         userId: String,
         criteria: KayttajahallintaCriteria,
-        pageable: Pageable,
-        authorities: List<String>
+        pageable: Pageable
     ): Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO>
 
 
