@@ -14,7 +14,6 @@ import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.interceptor.TransactionAspectSupport
 
 @Service
 @Transactional
@@ -252,6 +251,7 @@ class KayttajienYhdistaminenServiceImpl(
     private fun poistaToinenKayttaja(tilanne: ArrayList<KayttajienYhdistaminenResult>, toinenKayttaja: Kayttaja) {
         try {
             kayttajaRepository.delete(toinenKayttaja)
+            toinenKayttaja.user?.let { userRepository.delete(it) }
             log.info(
                 "poistaToinenKayttaja poistettu käyttäjä id:llä {}",
                 toinenKayttaja.id
