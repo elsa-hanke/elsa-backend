@@ -87,7 +87,7 @@ class KayttajaQueryService(
 
     @Transactional(readOnly = true)
     fun findByCriteriaAndAuthorities(
-        activeAuthority: String,
+        activeAuthority: String?,
         criteria: KayttajahallintaCriteria?,
         pageable: Pageable,
         langkey: String?,
@@ -106,7 +106,7 @@ class KayttajaQueryService(
             getErikoisalaPredicate(criteria?.erikoisalaId, root, cq, cb)?.let {
                 predicates.add(it)
             }
-            if (activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name && yliopistot.isNotEmpty()) {
+            if (activeAuthority != null && activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name && yliopistot.isNotEmpty()) {
                 getOpintooikeusYliopistoPredicate(yliopistot.get(0), root, cq, cb)?.let {
                     predicates.add(it)
                 }

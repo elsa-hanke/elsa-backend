@@ -4,9 +4,7 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.security.KOULUTTAJA
-import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
-import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
@@ -28,6 +26,7 @@ import fi.elsapalvelu.elsa.service.mapper.VastuuhenkilonTehtavatyyppiMapper
 import jakarta.persistence.EntityExistsException
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -438,20 +437,43 @@ class KayttajaServiceImpl(
     override fun findByCriteriaAndAuthorities(
         userId: String,
         criteria: KayttajahallintaCriteria,
-        pageable: Pageable,
-        authorities: List<String>
+        pageable: Pageable
     ): Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO> {
         val kayttaja =
             kayttajaRepository.findOneByUserId(userId)
                 .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
-        return kayttajaQueryService.findByCriteriaAndAuthorities(
-            kayttaja.user!!.activeAuthority!!.name.toString(),
-            criteria,
-            pageable,
-            kayttaja.user?.langKey,
-            authorities,
-            kayttaja.yliopistot.map { it.id }.toList()
-        )
+
+        val activeAuthority = kayttaja.user!!.activeAuthority!!.name.toString()
+        if ((activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name)) {
+            val erikoistuvat = kayttajaQueryService.findByCriteriaAndAuthorities(
+                activeAuthority,
+                criteria,
+                pageable,
+                kayttaja.user?.langKey,
+                listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA),
+                kayttaja.yliopistot.map { it.id }.toList()
+            )
+            val kouluttajat = kayttajaQueryService.findByCriteriaAndAuthorities(
+                null,
+                criteria,
+                pageable,
+                kayttaja.user?.langKey,
+                listOf(KOULUTTAJA),
+                kayttaja.yliopistot.map { it.id }.toList()
+            )
+            val combinedContent = (erikoistuvat.content + kouluttajat.content).distinctBy { it.kayttajaId }
+            return PageImpl(combinedContent, pageable, erikoistuvat.totalElements + kouluttajat.totalElements)
+        } else {
+            // tekninen pääkäyttäjä
+            return kayttajaQueryService.findByCriteriaAndAuthorities(
+                activeAuthority,
+                criteria,
+                pageable,
+                kayttaja.user?.langKey,
+                listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA, KOULUTTAJA),
+                kayttaja.yliopistot.map { it.id }.toList()
+            )
+        }
     }
 
     private fun saveYliopistotAndErikoisalat(
