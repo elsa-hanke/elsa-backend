@@ -176,7 +176,7 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: elsa-staging-backend
+          service: elsa-staging-backend-service
           cluster: elsa-staging-cluster
           wait-for-service-stability: true
 
@@ -237,6 +237,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: elsa-prod-backend
+          service: elsa-prod-backend-service
           cluster: elsa-prod-cluster
           wait-for-service-stability: true
