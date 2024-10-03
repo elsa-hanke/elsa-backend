@@ -4,7 +4,10 @@ import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
-import fi.elsapalvelu.elsa.security.*
+import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
+import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
@@ -614,8 +617,7 @@ open class KayttajahallintaResource(
         val kayttajat = kayttajaService.findByCriteriaAndAuthorities(
             user.id!!,
             criteria,
-            pageable,
-            listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA, KOULUTTAJA)
+            pageable
         )
         return ResponseEntity.ok(kayttajat)
     }
