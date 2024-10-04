@@ -148,7 +148,7 @@ class KayttajienYhdistaminenServiceImpl(
                 .findAllByLahikouluttajaUserIdOrLahiesimiesUserId(toinenKayttaja.user!!.id!!)
             aloituskeskustelut.forEach {
                 if (it.lahikouluttaja!!.id!!.equals(toinenKayttaja.id!!)) {
-                    it.lahikouluttaja!!.id = ensimmainenKayttaja.id!!
+                    it.lahikouluttaja = ensimmainenKayttaja
                     log.info(
                         "KoejaksonAloituskeskustelut id {} lahikouluttaja id vaihdettu käyttäjään id:llä {}",
                         it.id,
@@ -156,7 +156,7 @@ class KayttajienYhdistaminenServiceImpl(
                     )
                 }
                 if (it.lahiesimies!!.id!!.equals(toinenKayttaja.id!!)) {
-                    it.lahiesimies!!.id = ensimmainenKayttaja.id!!
+                    it.lahiesimies = ensimmainenKayttaja
                     log.info(
                         "KoejaksonAloituskeskustelut id {} lahiesimies id vaihdettu käyttäjään id:llä {}",
                         it.id,
