@@ -92,13 +92,26 @@ class KayttajienYhdistaminenServiceImpl(
         try {
             val valtuutukset = kouluttajavaltuutusRepository.findByValtuutettuId(toinenKayttaja.id!!)
             valtuutukset.forEach {
-                it.valtuutettu = ensimmainenKayttaja
-                kouluttajavaltuutusRepository.save(it)
-                log.info(
-                    "Siirretty kouluttajavaltuutus id {} käyttäjän nimiin id:llä {}",
-                    it.id,
-                    ensimmainenKayttaja.id
-                )
+                val olemassaOlevaValtuutus = kouluttajavaltuutusRepository
+                    .findByValtuuttajaOpintooikeusIdAndValtuutettuUserId(it.valtuuttajaOpintooikeus!!.id!!,
+                        ensimmainenKayttaja.user!!.id!!
+                    )
+                if (olemassaOlevaValtuutus.isEmpty) {
+                    it.valtuutettu = ensimmainenKayttaja
+                    kouluttajavaltuutusRepository.save(it)
+                    log.info(
+                        "Siirretty kouluttajavaltuutus id {} käyttäjän nimiin id:llä {}",
+                        it.id,
+                        ensimmainenKayttaja.id
+                    )
+                } else {
+                    kouluttajavaltuutusRepository.delete(it)
+                    log.info(
+                        "Kouluttajavaltuutus id {} käyttäjälle id:llä {} oli jo olemassa, joten poistettiin siirrettävä rivi.",
+                        it.id,
+                        ensimmainenKayttaja.id
+                    )
+                }
             }
             tilanne.add(KayttajienYhdistaminenResult("Kouluttajavaltuutukset", true))
         } catch (e: Exception) {
