@@ -125,10 +125,10 @@ class KayttajienYhdistaminenServiceImpl(
     ) {
         try {
             toinenKayttaja.yliopistotAndErikoisalat.forEach {
-                val exists = ensimmainenKayttaja.yliopistotAndErikoisalat.any { ek ->
-                    ek.yliopisto == it.yliopisto && ek.erikoisala == it.erikoisala
-                }
-                if (!exists) {
+                val exists = kayttajaYliopistoErikoisalaRepository.findAllByYliopistoIdAndErikoisalaIdAndKayttajaId(
+                    it.yliopisto!!.id!!, it.erikoisala!!.id!!, ensimmainenKayttaja.id!!
+                )
+                if (exists.isEmpty()) {
                     kayttajaYliopistoErikoisalaRepository.save(
                         KayttajaYliopistoErikoisala(
                             kayttaja = ensimmainenKayttaja,
