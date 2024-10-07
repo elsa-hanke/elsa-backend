@@ -66,6 +66,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         @RequestParam(required = false) laillistamispaiva: LocalDate?,
         @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
         @RequestParam(required = false) laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean?,
+        @RequestParam(required = false) laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia: Boolean?,
         principal: Principal?
     ): UserDTO {
         val userId = userService.getAuthenticatedUser(principal).id!!
@@ -90,7 +91,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         )
 
         erikoistuvaLaakariService.updateLaakarikoulutusSuoritettuSuomiTaiBelgia(
-            user.id!!, laakarikoulutusSuoritettuSuomiTaiBelgia
+            user.id!!, laakarikoulutusSuoritettuSuomiTaiBelgia, laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
         )
 
         return userService.updateUserDetails(omatTiedotDTO, userId)

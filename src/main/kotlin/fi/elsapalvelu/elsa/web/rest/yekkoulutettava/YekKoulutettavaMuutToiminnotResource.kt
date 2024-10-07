@@ -23,6 +23,7 @@ class YekKoulutettavaMuutToiminnotResource(
         @RequestParam(required = false) laillistamispaiva: LocalDate?,
         @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
         @RequestParam(required = false) laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean?,
+        @RequestParam(required = false) laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia: Boolean?,
         principal: Principal?
     ) {
         val user = userService.getAuthenticatedUser(principal)
@@ -35,7 +36,7 @@ class YekKoulutettavaMuutToiminnotResource(
         )
 
         erikoistuvaLaakariService.updateLaakarikoulutusSuoritettuSuomiTaiBelgia(
-            user.id!!, laakarikoulutusSuoritettuSuomiTaiBelgia
+            user.id!!, laakarikoulutusSuoritettuSuomiTaiBelgia, laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
         )
     }
 

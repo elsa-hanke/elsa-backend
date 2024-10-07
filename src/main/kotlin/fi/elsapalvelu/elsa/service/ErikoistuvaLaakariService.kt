@@ -54,7 +54,8 @@ interface ErikoistuvaLaakariService {
 
     fun updateLaakarikoulutusSuoritettuSuomiTaiBelgia(
         userId: String,
-        laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean?
+        laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean?,
+        laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia: Boolean?
     )
 
     fun updateAktiivinenOpintooikeus(userId: String, opintooikeusId: Long)
