@@ -50,6 +50,9 @@ data class ErikoistuvaLaakari(
     @Column(name = "laakarikoulutussuoritettusuomitaibelgia")
     var laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean? = false,
 
+    @Column(name = "laakarikoulutussuoritettumuukuinsuomitaibelgia")
+    var laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia: Boolean? = false,
+
     @Column(name = "aktiivinen_opintooikeus")
     var aktiivinenOpintooikeus: Long? = null
 

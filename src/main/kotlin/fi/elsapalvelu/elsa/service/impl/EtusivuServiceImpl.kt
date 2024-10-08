@@ -170,6 +170,8 @@ class EtusivuServiceImpl(
         eteneminen.erikoisala = opintooikeus.erikoisala?.nimi
         eteneminen.laakarikoulutusSuoritettuSuomiTaiBelgia =
             opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia
+        eteneminen.laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia =
+            opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
 
         // Työskentelyjaksot
         eteneminen.tyoskentelyjaksoTilastot = tyoskentelyjaksoService.getTilastot(opintooikeus)

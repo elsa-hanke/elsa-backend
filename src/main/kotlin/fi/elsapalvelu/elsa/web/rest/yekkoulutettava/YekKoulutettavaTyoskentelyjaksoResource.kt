@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
@@ -14,6 +15,8 @@ import jakarta.validation.ValidationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
@@ -714,19 +717,19 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     }
 
     private fun validateMuokkausoikeudet(principal: Principal?, userId: String, entity: String) {
-        // if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
-        //         .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
-        // ) {
-        //     val opintooikeus =
-        //         opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
-        //     if (!opintooikeus.muokkausoikeudetVirkailijoilla) {
-        //         throw BadRequestAlertException(
-        //             "Ei oikeuksia muokata erikoistujan tietoja",
-        //             entity,
-        //             "dataillegal.ei-oikeuksia-muokata-erikoistujan-tietoja"
-        //         )
-        //     }
-        // }
+        if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
+                .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
+        ) {
+            val opintooikeus =
+                opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+            if (!opintooikeus.muokkausoikeudetVirkailijoilla) {
+                throw BadRequestAlertException(
+                    "Ei oikeuksia muokata yek koulutettavan tietoja",
+                    entity,
+                    "dataillegal.ei-oikeuksia-muokata-erikoistujan-tietoja"
+                )
+            }
+        }
     }
 
     private fun throwOverlappingTyoskentelyjaksotException() {
