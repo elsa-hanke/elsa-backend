@@ -225,7 +225,8 @@ class SecurityConfiguration(
                         ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
                     )
                     .requestMatchers(
-                        "/api/yek-koulutettava/tyoskentelyjaksot/**"
+                        "/api/yek-koulutettava/tyoskentelyjaksot/**",
+                        "/api/yek-koulutettava/laillistamispaiva"
                     )
                     .hasAnyAuthority(
                         YEK_KOULUTETTAVA,
