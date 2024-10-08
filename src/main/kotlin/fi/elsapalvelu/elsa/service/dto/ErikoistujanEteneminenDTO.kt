@@ -42,6 +42,8 @@ data class ErikoistujanEteneminenDTO(
 
     var terveyskeskuskoulutusjaksoSuoritettu: Boolean? = null,
 
-    var laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean? = false
+    var laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean? = false,
+
+    var laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia: Boolean? = false
 
 ) : Serializable

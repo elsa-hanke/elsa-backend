@@ -8,6 +8,9 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import jakarta.persistence.EntityNotFoundException
+import jakarta.validation.Valid
+import jakarta.validation.ValidationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -19,9 +22,6 @@ import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
 import java.time.LocalDate
-import jakarta.persistence.EntityNotFoundException
-import jakarta.validation.Valid
-import jakarta.validation.ValidationException
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
@@ -735,4 +735,5 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             "dataillegal.terveyskeskuskoulutusjaksoon-liitettya-tyoskentelyjaksoa-ei-voi-paivittaa"
         )
     }
+
 }

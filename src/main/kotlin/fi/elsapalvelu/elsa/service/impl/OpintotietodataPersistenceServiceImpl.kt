@@ -373,9 +373,9 @@ class OpintotietodataPersistenceServiceImpl(
             user.authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
             user.activeAuthority = Authority(name = ERIKOISTUVA_LAAKARI)
             userRepository.save(user)
+            erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
         }
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
-        erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
     }
 
