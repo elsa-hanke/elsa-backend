@@ -181,7 +181,8 @@ class ErikoistuvaLaakariServiceImpl(
                 laillistamistodistus = it.laillistamistodistus?.data,
                 laillistamistodistusNimi = it.laillistamispaivanLiitetiedostonNimi,
                 laillistamistodistusTyyppi = it.laillistamispaivanLiitetiedostonTyyppi,
-                laakarikoulutusSuoritettuSuomiTaiBelgia = it.laakarikoulutusSuoritettuSuomiTaiBelgia
+                laakarikoulutusSuoritettuSuomiTaiBelgia = it.laakarikoulutusSuoritettuSuomiTaiBelgia,
+                laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia = it.laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
             )
         }
 
@@ -272,11 +273,13 @@ class ErikoistuvaLaakariServiceImpl(
 
     override fun updateLaakarikoulutusSuoritettuSuomiTaiBelgia(
         userId: String,
-        laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean?
+        laakarikoulutusSuoritettuSuomiTaiBelgia: Boolean?,
+        laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia: Boolean?
     ) {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             if (laakarikoulutusSuoritettuSuomiTaiBelgia != null) {
                 it.laakarikoulutusSuoritettuSuomiTaiBelgia = laakarikoulutusSuoritettuSuomiTaiBelgia
+                it.laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia = laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
                 erikoistuvaLaakariRepository.save(it)
             }
         }
