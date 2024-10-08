@@ -8,4 +8,7 @@ import org.springframework.stereotype.Repository
 interface KayttajaYliopistoErikoisalaRepository : JpaRepository<KayttajaYliopistoErikoisala, Long> {
 
     fun findAllByYliopistoIdAndErikoisalaId(yliopistoId: Long, erikoisalaId: Long): List<KayttajaYliopistoErikoisala>
+
+    fun findAllByYliopistoIdAndErikoisalaIdAndKayttajaId(yliopistoId: Long, erikoisalaId: Long, kayttajaId: Long): List<KayttajaYliopistoErikoisala>
+
 }
