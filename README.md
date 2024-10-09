@@ -1,7 +1,5 @@
 # ELSA-palvelun backend
 
-[![Build Status](https://dev.azure.com/elsa-hanke/ELSA/_apis/build/status/elsa-hanke.elsa-backend?branchName=main)](https://dev.azure.com/elsa-hanke/ELSA/_build/latest?definitionId=4&branchName=main)
-
 ## Kehittäminen
 
 Käynnistä Postgres tietokanta komennolla:
