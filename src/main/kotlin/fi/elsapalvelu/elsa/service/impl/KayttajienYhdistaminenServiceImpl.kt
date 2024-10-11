@@ -24,6 +24,9 @@ class KayttajienYhdistaminenServiceImpl(
     private val kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository,
     private val verificationTokenRepository: VerificationTokenRepository,
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
+    private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
+    private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
+    private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val suoritusarviointiRepository: SuoritusarviointiRepository
 ) : KayttajienYhdistaminenService {
@@ -47,7 +50,12 @@ class KayttajienYhdistaminenServiceImpl(
 
             kasitteleKouluttajavaltuutukset(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             kasitteleKayttajaYliopistoErikoisalat(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
+
             kasitteleKoejaksonAloituskeskustelut(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
+            kasitteleKoejaksonValiarvioinnit(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
+            kasitteleKoejaksonLoppukeskustelut(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
+            kasitteleKoejaksonKehittamistoimenpiteet(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
+
             kasitteleKoulutussopimuket(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             kasitteleSuoritusArvioinnnit(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             poistaVerificationToken(tilanne, toinenKayttaja.get())
@@ -182,6 +190,108 @@ class KayttajienYhdistaminenServiceImpl(
         } catch (e: Exception) {
             tilanne.add(KayttajienYhdistaminenResult("KoejaksonAloituskeskustelut", false))
             log.error("KoejaksonAloituskeskustelut käsittelyssä virhe {}", e.message.toString())
+        }
+    }
+
+    private fun kasitteleKoejaksonValiarvioinnit(
+        tilanne: ArrayList<KayttajienYhdistaminenResult>,
+        ensimmainenKayttaja: Kayttaja,
+        toinenKayttaja: Kayttaja
+    ) {
+        try {
+            val valiarvioinnit = koejaksonValiarviointiRepository
+                .findAllByLahikouluttajaUserIdOrLahiesimiesUserId(toinenKayttaja.user!!.id!!)
+            valiarvioinnit.forEach {
+                if (it.lahikouluttaja!!.id!!.equals(toinenKayttaja.id!!)) {
+                    it.lahikouluttaja = ensimmainenKayttaja
+                    log.info(
+                        "KoejaksonValiarviointi id {} lahikouluttaja id vaihdettu käyttäjään id:llä {}",
+                        it.id,
+                        ensimmainenKayttaja.id
+                    )
+                }
+                if (it.lahiesimies!!.id!!.equals(toinenKayttaja.id!!)) {
+                    it.lahiesimies = ensimmainenKayttaja
+                    log.info(
+                        "KoejaksonValiarviointi id {} lahiesimies id vaihdettu käyttäjään id:llä {}",
+                        it.id,
+                        ensimmainenKayttaja.id
+                    )
+                }
+                koejaksonValiarviointiRepository.save(it)
+            }
+            tilanne.add(KayttajienYhdistaminenResult("KoejaksonValiarviointi", true))
+        } catch (e: Exception) {
+            tilanne.add(KayttajienYhdistaminenResult("KoejaksonValiarviointi", false))
+            log.error("KoejaksonValiarviointi käsittelyssä virhe {}", e.message.toString())
+        }
+    }
+
+    private fun kasitteleKoejaksonLoppukeskustelut(
+        tilanne: ArrayList<KayttajienYhdistaminenResult>,
+        ensimmainenKayttaja: Kayttaja,
+        toinenKayttaja: Kayttaja
+    ) {
+        try {
+            val loppukeskustelut = koejaksonLoppukeskusteluRepository
+                .findAllByLahikouluttajaUserIdOrLahiesimiesUserId(toinenKayttaja.user!!.id!!)
+            loppukeskustelut.forEach {
+                if (it.lahikouluttaja!!.id!!.equals(toinenKayttaja.id!!)) {
+                    it.lahikouluttaja = ensimmainenKayttaja
+                    log.info(
+                        "KoejaksonLoppukeskustelu id {} lahikouluttaja id vaihdettu käyttäjään id:llä {}",
+                        it.id,
+                        ensimmainenKayttaja.id
+                    )
+                }
+                if (it.lahiesimies!!.id!!.equals(toinenKayttaja.id!!)) {
+                    it.lahiesimies = ensimmainenKayttaja
+                    log.info(
+                        "KoejaksonLoppukeskustelu id {} lahiesimies id vaihdettu käyttäjään id:llä {}",
+                        it.id,
+                        ensimmainenKayttaja.id
+                    )
+                }
+                koejaksonLoppukeskusteluRepository.save(it)
+            }
+            tilanne.add(KayttajienYhdistaminenResult("KoejaksonLoppukeskustelu", true))
+        } catch (e: Exception) {
+            tilanne.add(KayttajienYhdistaminenResult("KoejaksonLoppukeskustelu", false))
+            log.error("KoejaksonLoppukeskustelu käsittelyssä virhe {}", e.message.toString())
+        }
+    }
+
+    private fun kasitteleKoejaksonKehittamistoimenpiteet(
+        tilanne: ArrayList<KayttajienYhdistaminenResult>,
+        ensimmainenKayttaja: Kayttaja,
+        toinenKayttaja: Kayttaja
+    ) {
+        try {
+            val kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository
+                .findAllByLahikouluttajaUserIdOrLahiesimiesUserId(toinenKayttaja.user!!.id!!)
+            kehittamistoimenpiteet.forEach {
+                if (it.lahikouluttaja!!.id!!.equals(toinenKayttaja.id!!)) {
+                    it.lahikouluttaja = ensimmainenKayttaja
+                    log.info(
+                        "KoejaksonKehittamistoimenpiteet id {} lahikouluttaja id vaihdettu käyttäjään id:llä {}",
+                        it.id,
+                        ensimmainenKayttaja.id
+                    )
+                }
+                if (it.lahiesimies!!.id!!.equals(toinenKayttaja.id!!)) {
+                    it.lahiesimies = ensimmainenKayttaja
+                    log.info(
+                        "KoejaksonKehittamistoimenpiteet id {} lahiesimies id vaihdettu käyttäjään id:llä {}",
+                        it.id,
+                        ensimmainenKayttaja.id
+                    )
+                }
+                koejaksonKehittamistoimenpiteetRepository.save(it)
+            }
+            tilanne.add(KayttajienYhdistaminenResult("KoejaksonKehittamistoimenpiteet", true))
+        } catch (e: Exception) {
+            tilanne.add(KayttajienYhdistaminenResult("KoejaksonKehittamistoimenpiteet", false))
+            log.error("KoejaksonKehittamistoimenpiteet käsittelyssä virhe {}", e.message.toString())
         }
     }
 
