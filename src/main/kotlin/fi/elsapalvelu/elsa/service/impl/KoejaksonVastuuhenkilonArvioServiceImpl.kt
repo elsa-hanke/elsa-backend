@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
@@ -512,7 +513,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             koejaksonLoppukeskusteluService.findByOpintooikeusId(opintoOikeusId).orElse(null)
         result.muutOpintooikeudet =
             opintooikeusService.findAllValidByErikoistuvaLaakariKayttajaUserId(vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!)
-                .filter { it.id != opintoOikeusId }
+                .filter { it.id != opintoOikeusId && it.erikoisalaId != YEK_ERIKOISALA_ID }
         val koulutussopimus = koulutussopimusRepository.findByOpintooikeusId(opintoOikeusId)
         result.koulutussopimusHyvaksytty =
             koulutussopimus.isPresent && koulutussopimus.get().vastuuhenkiloHyvaksynyt == true
