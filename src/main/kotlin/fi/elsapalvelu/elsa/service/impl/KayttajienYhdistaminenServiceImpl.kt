@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.service.KayttajienYhdistaminenService
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajienYhdistaminenDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajienYhdistaminenResult
@@ -28,7 +29,8 @@ class KayttajienYhdistaminenServiceImpl(
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
-    private val suoritusarviointiRepository: SuoritusarviointiRepository
+    private val suoritusarviointiRepository: SuoritusarviointiRepository,
+    private val seurantajaksoRepository: SeurantajaksoRepository
 ) : KayttajienYhdistaminenService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -42,7 +44,7 @@ class KayttajienYhdistaminenServiceImpl(
         val ensimmainenAuthority: Authority? = ensimmainenKayttaja.get().user?.activeAuthority
         val toinenAuthority: Authority? = toinenKayttaja.get().user?.activeAuthority
 
-        if (ensimmainenAuthority == Authority(ERIKOISTUVA_LAAKARI) && toinenAuthority == Authority(KOULUTTAJA)) {
+        if (ensimmainenAuthority == Authority(ERIKOISTUVA_LAAKARI) || ensimmainenAuthority == Authority(YEK_KOULUTETTAVA) && toinenAuthority == Authority(KOULUTTAJA)) {
             log.info(
                 "Käyttäjätilien yhdistäminen kutsuttu erikoistuvalle id {} ja kouluttajalle id {}",
                 ensimmainenKayttaja.get().id, toinenKayttaja.get().id
@@ -56,6 +58,7 @@ class KayttajienYhdistaminenServiceImpl(
             kasitteleKoejaksonLoppukeskustelut(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             kasitteleKoejaksonKehittamistoimenpiteet(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
 
+            kasitteleSeurantajaksot(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             kasitteleKoulutussopimuket(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             kasitteleSuoritusArvioinnnit(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             poistaVerificationToken(tilanne, toinenKayttaja.get())
@@ -402,5 +405,31 @@ class KayttajienYhdistaminenServiceImpl(
             tilanne.add(KayttajienYhdistaminenResult("lisaaKayttajalleRooli", true))
         }
     }
+
+    private fun kasitteleSeurantajaksot(
+        tilanne: ArrayList<KayttajienYhdistaminenResult>,
+        ensimmainenKayttaja: Kayttaja,
+        toinenKayttaja: Kayttaja
+    ) {
+        try {
+            val seurantajaksot = seurantajaksoRepository
+                .findAllByKouluttajaUserId(toinenKayttaja.user!!.id!!)
+            seurantajaksot.forEach {
+                    if (it.kouluttaja!!.id!!.equals(toinenKayttaja.id)) {
+                        it.kouluttaja = ensimmainenKayttaja
+                        log.info(
+                            "Seurantajakso id {} kouluttaja id tieto vaihdettu käyttäjään id:llä {}",
+                            it.id,
+                            ensimmainenKayttaja.id
+                        )
+                    }
+                    seurantajaksoRepository.save(it)
+                }
+                tilanne.add(KayttajienYhdistaminenResult("Seurantajaksot", true))
+            } catch (e: Exception) {
+                tilanne.add(KayttajienYhdistaminenResult("Seurantajaksot", false))
+                log.error("Seurantajaksot käsittelyssä virhe {}", e.message.toString())
+            }
+        }
 
 }
