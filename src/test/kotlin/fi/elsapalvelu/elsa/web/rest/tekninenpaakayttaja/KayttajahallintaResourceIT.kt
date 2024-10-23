@@ -109,7 +109,7 @@ class KayttajahallintaResourceIT {
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(MockMvcResultMatchers.jsonPath("$").value(Matchers.hasSize<Int>(11)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$").value(Matchers.hasSize<Int>(12)))
     }
 
     fun initTest(userId: String? = null) {
