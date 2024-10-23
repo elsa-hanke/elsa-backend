@@ -18,6 +18,8 @@ interface SeurantajaksoRepository : JpaRepository<Seurantajakso, Long> {
 
     fun findByIdAndKouluttajaUserId(id: Long, userId: String): Seurantajakso?
 
+    fun findAllByKouluttajaUserId(userId: String): List<Seurantajakso>
+
     @Query(
         """
         select sj from Seurantajakso sj
