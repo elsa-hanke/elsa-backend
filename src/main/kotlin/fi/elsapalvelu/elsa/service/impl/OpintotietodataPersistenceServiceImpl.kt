@@ -116,19 +116,15 @@ class OpintotietodataPersistenceServiceImpl(
             }
         }
 
-        val user = erikoistuvaLaakari!!.kayttaja?.user!!
-        if (!user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))) {
-            user.authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
-            userRepository.save(user)
+        erikoistuvaLaakari?.let {
+            updateNimiIfChanged(it, etunimi, sukunimi)
+
+            checkOpintooikeudetAmount(
+                filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet),
+                it
+            )
+            updateOpintooikeudet(userId, opintotietodataOpintooikeudet, it)
         }
-
-        updateNimiIfChanged(erikoistuvaLaakari, etunimi, sukunimi)
-
-        checkOpintooikeudetAmount(
-            filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet),
-            erikoistuvaLaakari
-        )
-        updateOpintooikeudet(userId, opintotietodataOpintooikeudet, erikoistuvaLaakari)
     }
 
     override fun createOrUpdateOpintotieto(userId: String, opintotietodataDTO: OpintotietodataDTO) {
