@@ -1038,7 +1038,9 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoHyvaksyttyVirkailija.html",
             titleKey = "email.valmistumispyyntoHyvaksytty.title",
-            properties = mapOf()
+            properties = mapOf(
+                Pair(MailProperty.ID, valmistumispyynto.id.toString())
+            )
         )
     }
 
