@@ -10,7 +10,7 @@ import java.net.URI
 import java.security.Principal
 import jakarta.validation.Valid
 
-private const val VALMISTUMISPYYNTO_ENTITY_NAME = "valmistumispyyntö"
+private const val VALMISTUMISPYYNTO_ENTITY_NAME = "valmistumispyynto"
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
@@ -93,6 +93,13 @@ class ErikoistuvaLaakariValmistumispyyntoResource(
         validateLaillistamispaivaAndTodistus(user, uusiValmistumispyyntoDTO, laillistamistodistus)
         validateVanhentuneetSuoritukset(uusiValmistumispyyntoDTO, vanhatSuorituksetDTO)
         validateLaillistamistodistusIfExists(laillistamistodistus)
+
+        if (valmistumispyyntoService.onkoLahetetty(opintooikeusId)) {
+            throw BadRequestAlertException(
+                "Lähetettyä valmistumispyyntöä ei saa muokata.",
+                VALMISTUMISPYYNTO_ENTITY_NAME,
+                "dataillegal.lahetettya-valmistumispyyntoa-ei-saa-muokata")
+        }
 
         erikoistuvaLaakariService.updateLaillistamispaiva(
             user.id!!,

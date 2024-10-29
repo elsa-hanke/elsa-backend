@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusDTO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoListItemDTO
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.net.URLEncoder
 import java.security.Principal
+
+private const val VALMISTUMISPYYNTO_ENTITY_NAME = "valmistumispyynto"
 
 @RestController
 @RequestMapping("/api/virkailija")
@@ -64,6 +67,14 @@ class VirkailijaValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
         val user = userService.getAuthenticatedUser(principal)
+
+        if (!valmistumispyyntoService.onkoAvoinVirkailija(user.id!!, id)) {
+            throw BadRequestAlertException(
+                "Valmistumispyyntö ei ole muokattavissa.",
+                VALMISTUMISPYYNTO_ENTITY_NAME,
+                "dataillegal.valmistumispyynto-ei-ole-muokattavissa")
+        }
+
         val tarkistus =
             valmistumispyyntoService.updateTarkistusByVirkailijaUserId(
                 id,
