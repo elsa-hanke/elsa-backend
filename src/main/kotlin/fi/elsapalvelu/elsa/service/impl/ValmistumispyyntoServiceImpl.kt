@@ -86,8 +86,7 @@ class ValmistumispyyntoServiceImpl(
     private val seurantajaksoService: SeurantajaksoService,
     private val userRepository: UserRepository,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
-    private val opintosuoritusService: OpintosuoritusService,
-    private val opintosuoritusTyyppiService: OpintosuoritusTyyppiService
+    private val opintosuoritusService: OpintosuoritusService
 ) : ValmistumispyyntoService {
 
     @Transactional(readOnly = true)
@@ -247,15 +246,12 @@ class ValmistumispyyntoServiceImpl(
         val kayttaja = getKayttaja(userId)
         val yliopisto = getYliopisto(kayttaja)
 
-        val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(id, yliopisto.id!!)
-
-        if (kayttaja.yliopistotAndErikoisalat.none {
-                it.erikoisala?.id == valmistumispyynto.opintooikeus?.erikoisala?.id
-                    && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
-                    .contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI)
-            }) {
-            throw getValmistumispyyntoNotFoundException()
-        }
+        val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
+            id,
+            kayttaja,
+            yliopisto.id!!,
+            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI
+        )
 
         valmistumispyynto.vastuuhenkiloOsaamisenArvioija = kayttaja
 
@@ -284,25 +280,14 @@ class ValmistumispyyntoServiceImpl(
         hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO
     ): ValmistumispyynnonTarkistusDTO {
         val kayttaja = getKayttaja(userId)
-
         val yliopisto = getYliopisto(kayttaja)
-        val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(id, yliopisto.id!!)
-        val yek = valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
 
-        if (!yek && kayttaja.yliopistotAndErikoisalat.none {
-                it.erikoisala?.id == valmistumispyynto.opintooikeus?.erikoisala?.id
-                    && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
-                    .contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA)
-            }) {
-            throw getValmistumispyyntoNotFoundException()
-        }
-
-        if (yek && kayttaja.yliopistotAndErikoisalat.none {
-                it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
-                    .contains(VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN)
-            }) {
-            throw getValmistumispyyntoNotFoundException()
-        }
+        val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
+            id,
+            kayttaja,
+            yliopisto.id!!,
+            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
+        )
 
         kayttaja?.user?.let { user ->
             user.email = hyvaksyntaFormDTO.sahkoposti
@@ -491,16 +476,10 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = getYliopisto(kayttaja)
         val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
             id,
-            yliopisto.id!!
+            kayttaja,
+            yliopisto.id!!,
+            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI
         )
-
-        if (kayttaja.yliopistotAndErikoisalat.none {
-                it.erikoisala?.id == valmistumispyynto.opintooikeus?.erikoisala?.id
-                    && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
-                    .contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI)
-            }) {
-            throw getValmistumispyyntoNotFoundException()
-        }
 
         tarkistaAllekirjoitus(valmistumispyynto)
 
@@ -548,8 +527,9 @@ class ValmistumispyyntoServiceImpl(
         val tarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdForHyvaksyja(id, yliopisto.id!!)
             ?: throw getValmistumispyyntoNotFoundException()
         val yek = tarkistus.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
-        getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja, yek)
-            ?: throw getValmistumispyyntoNotFoundException()
+        if (getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja, yek).isEmpty()) {
+            throw getValmistumispyyntoNotFoundException()
+        }
 
         if (!yek && !getErikoisalaIds(kayttaja).contains(
                 tarkistus.valmistumispyynto?.opintooikeus
@@ -583,16 +563,10 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = getYliopisto(kayttaja)
         val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
             id,
-            yliopisto.id!!
+            kayttaja,
+            yliopisto.id!!,
+            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI
         )
-
-        if (kayttaja.yliopistotAndErikoisalat.none {
-                it.erikoisala?.id == valmistumispyynto.opintooikeus?.erikoisala?.id
-                    && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
-                    .contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI)
-            }) {
-            throw getValmistumispyyntoNotFoundException()
-        }
 
         val opintooikeus = valmistumispyynto.opintooikeus
         val erikoistujanArvioivatKokonaisuudet = arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
@@ -691,6 +665,53 @@ class ValmistumispyyntoServiceImpl(
         return null
     }
 
+    override fun onkoLahetetty(opintooikeusId: Long): Boolean {
+        val valmistumispyynto = valmistumispyyntoRepository.findByOpintooikeusId(opintooikeusId)
+        return valmistumispyynto?.erikoistujanKuittausaika != null
+    }
+
+    override fun onkoAvoinOsaamisenTarkistaminen(userId: String, id: Long): Boolean {
+        val kayttaja = getKayttaja(userId)
+        val yliopisto = getYliopisto(kayttaja)
+        val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
+            id,
+            kayttaja,
+            yliopisto.id!!,
+            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI
+        )
+
+        return valmistumispyynto.erikoistujanKuittausaika != null
+            && valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika == null
+    }
+
+    override fun onkoAvoinVirkailija(userId: String, id: Long): Boolean {
+        val kayttaja = getKayttaja(userId)
+        val yliopisto = kayttaja.yliopistot.first()
+        val tarkistus =
+            valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdAndValmistumispyyntoOpintooikeusYliopistoId(
+                id,
+                yliopisto.id!!
+            )
+        val valmistumispyynto = tarkistus?.valmistumispyynto ?: valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)
+        return valmistumispyynto?.erikoistujanKuittausaika != null
+            && (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID || valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika != null)
+            && valmistumispyynto.virkailijanKuittausaika == null
+    }
+
+    override fun onkoAvoinHyvaksyja(userId: String, id: Long): Boolean {
+        val kayttaja = getKayttaja(userId)
+        val yliopisto = getYliopisto(kayttaja)
+        val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
+            id,
+            kayttaja,
+            yliopisto.id!!,
+            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
+        )
+
+        return valmistumispyynto.virkailijanKuittausaika != null
+            && valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika == null
+    }
+
     private fun tarkistaAllekirjoitus(valmistumispyynto: Valmistumispyynto) {
         val yliopisto = valmistumispyynto.opintooikeus?.yliopisto?.nimi!!
         if (valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika != null
@@ -729,10 +750,29 @@ class ValmistumispyyntoServiceImpl(
 
     private fun getValmistumispyyntoByYliopistoIdOrThrow(
         id: Long,
-        yliopistoId: Long
-    ) =
-        valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopistoId)
+        kayttaja: Kayttaja,
+        yliopistoId: Long,
+        tehtava: VastuuhenkilonTehtavatyyppiEnum
+    ): Valmistumispyynto {
+        val valmistumispyynto = valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopistoId)
             ?: throw getValmistumispyyntoNotFoundException()
+        val yek = valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
+
+        if (!yek && kayttaja.yliopistotAndErikoisalat.none {
+                it.erikoisala?.id == valmistumispyynto.opintooikeus?.erikoisala?.id
+                    && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+                    .contains(tehtava)
+            }) {
+            throw getValmistumispyyntoNotFoundException()
+        } else if (yek && kayttaja.yliopistotAndErikoisalat.none {
+                it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+                    .contains(VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN)
+            }) {
+            throw getValmistumispyyntoNotFoundException()
+        }
+
+        return valmistumispyynto
+    }
 
     private fun getValmistumispyyntoByOpintooikeusId(opintooikeusId: Long) =
         valmistumispyyntoRepository.findByOpintooikeusId(opintooikeusId) ?: throw EntityNotFoundException(
@@ -1056,8 +1096,14 @@ class ValmistumispyyntoServiceImpl(
 
             val opintooikeus = getOpintooikeus(it)
             val yekOikeus = opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
-            val yekTyypit = listOf(OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS, OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO, OpintosuoritusTyyppiEnum.YEK_PATEVYYS)
-            val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it).filter { suoritus -> if (yekOikeus) yekTyypit.contains(suoritus.tyyppi?.nimi) else !yekTyypit.contains(suoritus.tyyppi?.nimi) }
+            val yekTyypit = listOf(
+                OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS,
+                OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO,
+                OpintosuoritusTyyppiEnum.YEK_PATEVYYS
+            )
+            val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it).filter { suoritus ->
+                if (yekOikeus) yekTyypit.contains(suoritus.tyyppi?.nimi) else !yekTyypit.contains(suoritus.tyyppi?.nimi)
+            }
             val yekSuoritukset = if (!yekOikeus) opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
                 opintooikeus.erikoistuvaLaakari?.id!!,
                 YEK_ERIKOISALA_ID

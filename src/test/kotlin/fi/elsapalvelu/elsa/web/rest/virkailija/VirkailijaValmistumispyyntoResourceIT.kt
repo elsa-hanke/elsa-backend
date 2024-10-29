@@ -721,7 +721,7 @@ class VirkailijaValmistumispyyntoResourceIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(valmistumispyynnonTarkistusDTO))
                 .with(csrf())
-        ).andExpect(status().isOk)
+        ).andExpect(status().isBadRequest)
 
         val tarkistusList = valmistumispyynnonTarkistusRepository.findAll()
         assertThat(tarkistusList).hasSize(databaseSizeBeforeUpdate)

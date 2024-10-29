@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
-import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -15,7 +14,7 @@ import java.net.URLEncoder
 import java.security.Principal
 import jakarta.validation.Valid
 
-private const val VALMISTUMISPYYNTO_ENTITY_NAME = "valmistumispyyntö"
+private const val VALMISTUMISPYYNTO_ENTITY_NAME = "valmistumispyynto"
 
 @RestController
 @RequestMapping("/api/vastuuhenkilo")
@@ -79,6 +78,14 @@ class VastuuhenkiloValmistumispyyntoResource(
         validateOsaamisenArviointiDto(osaamisenArviointiDTO)
 
         val user = userService.getAuthenticatedUser(principal)
+
+        if (!valmistumispyyntoService.onkoAvoinOsaamisenTarkistaminen(user.id!!, id)) {
+            throw BadRequestAlertException(
+                "Valmistumispyyntö ei ole muokattavissa.",
+                VALMISTUMISPYYNTO_ENTITY_NAME,
+                "dataillegal.valmistumispyynto-ei-ole-muokattavissa")
+        }
+
         val valmistumispyynto =
             valmistumispyyntoService.updateOsaamisenArviointiByOsaamisenArvioijaUserId(
                 id,
@@ -97,6 +104,14 @@ class VastuuhenkiloValmistumispyyntoResource(
     ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
 
         val user = userService.getAuthenticatedUser(principal)
+
+        if (!valmistumispyyntoService.onkoAvoinHyvaksyja(user.id!!, id)) {
+            throw BadRequestAlertException(
+                "Valmistumispyyntö ei ole muokattavissa.",
+                VALMISTUMISPYYNTO_ENTITY_NAME,
+                "dataillegal.valmistumispyynto-ei-ole-muokattavissa")
+        }
+
         val valmistumispyynto =
             valmistumispyyntoService.updateValmistumispyyntoByHyvaksyjaUserId(
                 id,
