@@ -23,6 +23,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 @Service
 @Transactional
@@ -48,6 +49,7 @@ class EtusivuServiceImpl(
     private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaRepository: TerveyskeskuskoulutusjaksonHyvaksyntaRepository,
     private val valmistumispyyntoRepository: ValmistumispyyntoRepository,
+    private val opintosuoritusService: OpintosuoritusService,
     private val clock: Clock,
     private val messageSource: MessageSource
 ) : EtusivuService {
@@ -755,6 +757,10 @@ class EtusivuServiceImpl(
         locale: Locale,
         yek: Boolean = false
     ) {
+        val opintooikeus = opintooikeusRepository.findById(opintooikeusId).getOrNull()
+        if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(opintooikeusId, opintooikeus?.erikoistuvaLaakari?.id!!)) {
+            return
+        }
         val hyvaksynta =
             terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(opintooikeusId)
         if (hyvaksynta != null) {
