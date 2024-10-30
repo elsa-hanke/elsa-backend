@@ -12,6 +12,7 @@ import fi.elsapalvelu.elsa.service.KayttajienYhdistaminenService
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajienYhdistaminenDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajienYhdistaminenResult
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import jakarta.persistence.EntityManager
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -30,7 +31,8 @@ class KayttajienYhdistaminenServiceImpl(
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
-    private val seurantajaksoRepository: SeurantajaksoRepository
+    private val seurantajaksoRepository: SeurantajaksoRepository,
+    private val entityManager: EntityManager
 ) : KayttajienYhdistaminenService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -380,6 +382,8 @@ class KayttajienYhdistaminenServiceImpl(
         try {
             kayttajaRepository.delete(toinenKayttaja)
             toinenKayttaja.user?.let { userRepository.delete(it) }
+            entityManager.flush()
+
             log.info(
                 "poistaToinenKayttaja poistettu käyttäjä id:llä {}",
                 toinenKayttaja.id
