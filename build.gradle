@@ -130,7 +130,7 @@ dependencies {
     }
     implementation "org.springframework.boot:spring-boot-starter-undertow"
     implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
-    implementation "org.thymeleaf:thymeleaf-spring6:3.1.1.RELEASE"
+    implementation "org.thymeleaf:thymeleaf-spring6:3.1.2.RELEASE"
     implementation "org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE"
     implementation "org.springframework.security:spring-security-saml2-service-provider:${springSecurityVersion}"
     runtimeOnly "org.postgresql:postgresql"
@@ -143,8 +143,8 @@ dependencies {
     testImplementation "org.springframework.security:spring-security-test"
     testImplementation "com.h2database:h2:2.1.214"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
-    implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.0.0-RC1'
-    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.0.0-RC1'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.2.1'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.2.1'
     implementation 'software.amazon.awssdk:aws-core:2.20.18'
     implementation "org.apache.commons:commons-text:1.10.0"
     implementation "net.coobird:thumbnailator:0.4.14"
