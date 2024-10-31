@@ -104,6 +104,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
                 existingKategoria = arvioitavanKokonaisuudenKategoria
             )
         em.persist(arvioitavaKokonaisuus1)
+        arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus1)
 
         arvioitavaKokonaisuus2 =
             ArvioitavaKokonaisuusHelper.createEntity(
@@ -111,6 +112,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
                 existingKategoria = arvioitavanKokonaisuudenKategoria
             )
         em.persist(arvioitavaKokonaisuus2)
+        arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus2)
 
         val suoritusarviointi1 = SuoritusarviointiHelper.createEntity(
             em,
@@ -138,6 +140,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
                 vaadittuLkm = 1
             )
         em.persist(suorite1)
+        suoritteenKategoria.suoritteet.add(suorite1)
 
         suorite2 =
             SuoriteHelper.createEntity(
@@ -146,6 +149,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
                 vaadittuLkm = 5
             )
         em.persist(suorite2)
+        suoritteenKategoria.suoritteet.add(suorite2)
 
         suoritemerkinta = SuoritemerkintaHelper.createEntity(
             em,
@@ -271,8 +275,6 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     @Test
     @Transactional
     fun getErikoistumisenEdistyminen() {
-        flushAndClear()
-
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
@@ -342,8 +344,6 @@ class ErikoistuvaLaakariEtusivuResourceIT {
             )
         )
 
-        flushAndClear()
-
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
@@ -354,7 +354,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     @Transactional
     fun `test that arvioitavaKokonaisuus not valid is calculated into amount of suoritettu if has arviointi`() {
         arvioitavaKokonaisuus1.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -367,7 +367,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     fun `test that arvioitavaKokonaisuus is calculated into amount of suoritettu if has arviointi and kategoria not valid`() {
         arvioitavaKokonaisuus1.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
         arvioitavaKokonaisuus2.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -379,7 +379,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     @Transactional
     fun `test that arvioitavaKokonaisuus not valid is calculated into total amount if has arviointi`() {
         arvioitavaKokonaisuus1.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -392,7 +392,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     fun `test that arvioitavaKokonaisuus is calculated into total amount if has arviointi and kategoria not valid`() {
         arvioitavaKokonaisuus1.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
         arvioitavaKokonaisuus2.voimassaoloLoppuu = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -404,7 +404,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     @Transactional
     fun `test that suorite not valid is calculated into required amount if has suoritemerkinta`() {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -417,7 +417,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     fun `test that suorite not valid is not calculated into required amount if not having suoritemerkinta`() {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         em.remove(suoritemerkinta)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -430,7 +430,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     fun `test that suorite is calculated into required amount if has suoritemerkinta and kategoria not valid`() {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         suorite2.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -444,7 +444,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         suorite2.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         em.remove(suoritemerkinta)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -456,7 +456,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     @Transactional
     fun `test that suorite not valid is calculated only once instead of vaadittulkm if has suoritemerkinta`() {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -469,7 +469,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     fun `test that suorite is calculated only once instead of vaadittulkm if has suoritemerkinta and kategoria not valid`() {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         suorite2.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -481,7 +481,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     @Transactional
     fun `test that suorite not valid is calculated into completed osaalueet if has suoritemerkinta`() {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -494,7 +494,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     fun `test that suorite is calculated into completed osaalueet if has suoritemerkinta and kategoria not valid`() {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         suorite2.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -508,7 +508,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     @Transactional
     fun `test that suorite not valid is calculated into osaalueet required if has suoritemerkinta`() {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -521,7 +521,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     fun `test that suorite not valid is not calculated into osaalueet required if not having suoritemerkinta`() {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         em.remove(suoritemerkinta)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -534,7 +534,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     fun `test that suorite is calculated into osaalueet required if has suoritemerkinta and kategoria not valid`() {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         suorite2.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -548,7 +548,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         suorite1.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         suorite2.voimassaolonPaattymispaiva = LocalDate.ofEpochDay(5L)
         em.remove(suoritemerkinta)
-        flushAndClear()
+        em.flush()
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/erikoistumisen-edistyminen"))
             .andExpect(status().isOk)
@@ -630,10 +630,5 @@ class ErikoistuvaLaakariEtusivuResourceIT {
     private fun initMockTime() {
         `when`(clock.instant()).thenReturn(Instant.ofEpochSecond(now))
         `when`(clock.zone).thenReturn(ZoneId.systemDefault())
-    }
-
-    private fun flushAndClear() {
-        em.flush()
-        em.clear()
     }
 }
