@@ -452,7 +452,13 @@ class EtusivuServiceImpl(
             arvioitavanKokonaisuudenKategoriaRepository.findAllByErikoisalaIdAndValid(
                 opintooikeus.erikoisala?.id,
                 opintooikeus.osaamisenArvioinninOppaanPvm!!
-            ).map { it.arvioitavatKokonaisuudet }.flatten().size
+            ).map { it.arvioitavatKokonaisuudet }.flatten().filter {
+                isValidByVoimassaDate(
+                    it.voimassaoloAlkaa!!,
+                    it.voimassaoloLoppuu,
+                    opintooikeus.osaamisenArvioinninOppaanPvm!!
+                )
+            }.size
 
         // Lisätään arvioitava kokonaisuus mukaan kokonaismäärään voimassaolosta huolimatta, jos siihen kohdistuu arviointi.
         arvioitavatKokonaisuudetWithArviointi.forEach {
@@ -497,7 +503,13 @@ class EtusivuServiceImpl(
             )
 
         var vaaditutSuoritteetLkm = suoritteenKategoriatByVoimassa.sumOf { kategoria ->
-            kategoria.suoritteet.filter { suorite -> suorite.vaadittulkm != null }
+            kategoria.suoritteet.filter { suorite ->
+                isValidByVoimassaDate(
+                    suorite.voimassaolonAlkamispaiva!!,
+                    suorite.voimassaolonPaattymispaiva,
+                    opintooikeus.osaamisenArvioinninOppaanPvm!!
+                ) && suorite.vaadittulkm != null
+            }
                 .sumOf { suorite -> suorite.vaadittulkm!! }
         }
         suoritemerkinnat.forEach {
@@ -547,7 +559,13 @@ class EtusivuServiceImpl(
                 opintooikeus.erikoisala?.id,
                 opintooikeus.osaamisenArvioinninOppaanPvm!!
             ).map { kategoria ->
-                kategoria.suoritteet.filter { it.vaadittulkm != null }
+                kategoria.suoritteet.filter {
+                    isValidByVoimassaDate(
+                        it.voimassaolonAlkamispaiva!!,
+                        it.voimassaolonPaattymispaiva,
+                        opintooikeus.osaamisenArvioinninOppaanPvm!!
+                    ) && it.vaadittulkm != null
+                }
             }.flatten().size
 
         suoritemerkinnatMap.keys.forEach {
