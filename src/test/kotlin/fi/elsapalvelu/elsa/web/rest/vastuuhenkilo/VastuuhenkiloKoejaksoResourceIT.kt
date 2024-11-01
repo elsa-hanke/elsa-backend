@@ -620,13 +620,11 @@ class VastuuhenkiloKoejaksoResourceIT {
         val id = koejaksonKoulutussopimus.id
         assertNotNull(id)
         val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
-        em.detach(updatedKoulutussopimus)
-
-        updatedKoulutussopimus.vastuuhenkiloHyvaksynyt = true
-        updatedKoulutussopimus.vastuuhenkilonKuittausaika =
-            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
-
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
+
+        koulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty = true
+        koulutussopimusDTO.vastuuhenkilo?.kuittausaika =
+            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         restKoejaksoMockMvc.perform(
             put("/api/vastuuhenkilo/koejakso/koulutussopimus")

@@ -50,7 +50,7 @@ class User(
     @Column(name = "phone_number", length = 254)
     var phoneNumber: String? = null,
 
-    @Column(name = "avatar")
+    @Column(name = "avatar", columnDefinition = "clob")
     var avatar: ByteArray? = null,
 
     @field:NotNull
