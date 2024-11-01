@@ -141,7 +141,6 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                         tila = KayttajatilinTila.KUTSUTTU
                     ),
                     UserDTO(
-                        id = UUID.randomUUID().toString(),
                         login = uusiLahikouluttajaDTO.sahkoposti,
                         email = uusiLahikouluttajaDTO.sahkoposti?.lowercase(),
                         activated = true,

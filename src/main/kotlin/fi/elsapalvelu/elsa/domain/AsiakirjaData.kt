@@ -15,7 +15,7 @@ data class AsiakirjaData(
     var id: Long? = null,
 
     @NotNull
-    @Column(name = "data", nullable = false)
+    @Column(name = "data", nullable = false, columnDefinition = "clob")
     var data: ByteArray? = null
 
 ) : Serializable {

@@ -276,16 +276,14 @@ class KouluttajaKoejaksoResourceIT {
         val id = koejaksonKoulutussopimus.id
         assertNotNull(id)
         val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(id).get()
-        em.detach(updatedKoulutussopimus)
+        val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
-        updatedKoulutussopimus.kouluttajat?.forEach {
+        koulutussopimusDTO.kouluttajat?.forEach {
             it.lahiosoite = KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE
             it.toimipaikka = KoejaksonVaiheetHelper.UPDATED_TOIMIPAIKKA
             it.postitoimipaikka = KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA
             it.sopimusHyvaksytty = true
         }
-
-        val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
         restKoejaksoMockMvc.perform(
             put("/api/kouluttaja/koejakso/koulutussopimus")
