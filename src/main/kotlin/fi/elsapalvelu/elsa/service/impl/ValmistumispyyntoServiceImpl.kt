@@ -375,6 +375,7 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)
                 ?.let {
                     tarkistus = valmistumispyynnonTarkistusUpdateMapper.toEntity(valmistumispyynnonTarkistusDTO)
+                    tarkistus?.id = null
                     tarkistus?.valmistumispyynto = it
                 }
         }
