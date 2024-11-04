@@ -203,6 +203,16 @@ class SecurityConfiguration(
                         ERIKOISTUVA_LAAKARI_IMPERSONATED,
                         ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
                     )
+                    .requestMatchers(HttpMethod.PUT, "/api/erikoistuva-laakari")
+                    .hasAnyAuthority(
+                        ERIKOISTUVA_LAAKARI,
+                        YEK_KOULUTETTAVA
+                    )
+                    .requestMatchers(HttpMethod.POST, "/api/erikoistuva-laakari/muokkausoikeudet")
+                    .hasAnyAuthority(
+                        ERIKOISTUVA_LAAKARI,
+                        YEK_KOULUTETTAVA
+                    )
                     .requestMatchers(HttpMethod.GET, "/api/erikoistuva-laakari/**")
                     .hasAnyAuthority(
                         ERIKOISTUVA_LAAKARI,
