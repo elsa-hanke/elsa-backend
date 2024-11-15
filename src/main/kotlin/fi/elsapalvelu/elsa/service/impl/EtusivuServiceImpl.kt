@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.AvoinAsiaTyyppiEnum
+import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.extensions.pattern
@@ -51,7 +52,8 @@ class EtusivuServiceImpl(
     private val valmistumispyyntoRepository: ValmistumispyyntoRepository,
     private val opintosuoritusService: OpintosuoritusService,
     private val clock: Clock,
-    private val messageSource: MessageSource
+    private val messageSource: MessageSource,
+    private val erikoisalaRepository: ErikoisalaRepository
 ) : EtusivuService {
 
     override fun getErikoistujienSeurantaVastuuhenkiloRajaimet(
@@ -758,6 +760,12 @@ class EtusivuServiceImpl(
         yek: Boolean = false
     ) {
         val opintooikeus = opintooikeusRepository.findById(opintooikeusId).getOrNull()
+        // Check if erikoisala tyyppi is HAMMASLAAKETIEDE since on that occasion, the terveyskeskuskoulutusjakso is not applicable
+        val erikoisala: Erikoisala? = erikoisalaRepository.findById(opintooikeus?.erikoisala?.id!!).getOrNull()
+        val hammaslaaketiede: ErikoisalaTyyppi = enumValueOf("HAMMASLAAKETIEDE")
+        if (erikoisala != null && erikoisala.tyyppi == hammaslaaketiede) {
+            return
+        }
         if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(opintooikeusId, opintooikeus?.erikoistuvaLaakari?.id!!)) {
             return
         }
