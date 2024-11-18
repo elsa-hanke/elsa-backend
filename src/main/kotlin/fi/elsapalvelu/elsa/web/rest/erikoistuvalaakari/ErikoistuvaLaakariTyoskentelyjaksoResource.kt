@@ -2,6 +2,8 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.domain.Erikoisala
+import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
@@ -22,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.security.Principal
 import java.time.LocalDate
+import kotlin.jvm.optionals.getOrNull
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
@@ -140,6 +143,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             )
         }
         val table = TyoskentelyjaksotTableDTO()
+
         table.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByOpintooikeusId(opintooikeus.id!!).toMutableSet()
         table.keskeytykset = keskeytysaikaService
@@ -147,6 +151,20 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeus.id!!)
 
         val erikoistuvaLaakariId = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.id!!
+
+        // If erikoisala is hammaslääketiede, return terveyskeskuskoulutus = hyväksytty since on that specialty it is not needed to be completed
+        if (opintooikeus.erikoisalaId != null && opintooikeus.erikoisalaId!!::class.simpleName == "Long") {
+            var erikoisAla: ErikoisalaDTO? = erikoisalaService.findOne(opintooikeus.erikoisalaId!!).getOrNull()
+            val hammaslaaketiede: ErikoisalaTyyppi = enumValueOf("HAMMASLAAKETIEDE")
+            if (erikoisAla != null && erikoisAla.tyyppi == hammaslaaketiede) {
+                table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY
+                table.terveyskeskuskoulutusjaksonHyvaksymispvm = null
+                table.terveyskeskuskoulutusjaksonKorjausehdotus = hammaslaaketiede.toString()
+
+                return ResponseEntity.ok(table)
+            }
+        }
+
         val terveyskeskusSuoritus = opintosuoritusService.getTerveyskoulutusjaksoSuoritusPvm(opintooikeus.id!!, erikoistuvaLaakariId)
         if (terveyskeskusSuoritus != null) {
             table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY
