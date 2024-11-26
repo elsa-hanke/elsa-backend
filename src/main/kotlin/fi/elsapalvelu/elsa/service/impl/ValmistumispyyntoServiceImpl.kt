@@ -1430,7 +1430,11 @@ class ValmistumispyyntoServiceImpl(
             val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(it.id!!)
 
             val outputStream = ByteArrayOutputStream()
-            pdfService.yhdistaAsiakirjat(tyoskentelyjaksot.flatMap { t -> t.asiakirjat }, outputStream)
+            try {
+                pdfService.yhdistaAsiakirjat(tyoskentelyjaksot.flatMap { t -> t.asiakirjat }, outputStream)
+            } catch (e: Exception) {
+                println("Virhe yhdittäessä asiakirjoja valmistumispyynnölle: ${valmistumispyynto.id}")
+            }
             val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
             val asiakirja = asiakirjaRepository.save(
