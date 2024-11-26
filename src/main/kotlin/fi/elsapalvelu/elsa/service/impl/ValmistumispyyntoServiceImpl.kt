@@ -731,7 +731,12 @@ class ValmistumispyyntoServiceImpl(
             } else if (response?.status == 4) { // Aborted
                 valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = null
             }
-            valmistumispyyntoRepository.save(valmistumispyynto)
+            try {
+                valmistumispyyntoRepository.save(valmistumispyynto)
+            } catch(e: Exception) {
+                println("Virhe tallennettaessa valmistumispyyntöä tarkistettaessa allekirjoitusta")
+                println(e)
+            }
         }
     }
 
