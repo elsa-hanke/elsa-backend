@@ -26,6 +26,7 @@ import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
 import fi.elsapalvelu.elsa.service.mapper.*
 import jakarta.persistence.EntityNotFoundException
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -88,6 +89,7 @@ class ValmistumispyyntoServiceImpl(
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val opintosuoritusService: OpintosuoritusService
 ) : ValmistumispyyntoService {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional(readOnly = true)
     override fun findErikoisalaTyyppiByOpintooikeusId(opintooikeusId: Long): ErikoisalaTyyppi =
@@ -734,8 +736,7 @@ class ValmistumispyyntoServiceImpl(
             try {
                 valmistumispyyntoRepository.save(valmistumispyynto)
             } catch(e: Exception) {
-                println("Virhe tallennettaessa valmistumispyyntöä tarkistettaessa allekirjoitusta")
-                println(e)
+                log.error("Virhe tallennettaessa valmistumispyyntöä tarkistettaessa allekirjoitusta", e)
             }
         }
     }
@@ -1433,7 +1434,7 @@ class ValmistumispyyntoServiceImpl(
             try {
                 pdfService.yhdistaAsiakirjat(tyoskentelyjaksot.flatMap { t -> t.asiakirjat }, outputStream)
             } catch (e: Exception) {
-                println("Virhe yhdittäessä asiakirjoja valmistumispyynnölle: ${valmistumispyynto.id}")
+                log.error("Virhe yhdittäessä asiakirjoja valmistumispyynnölle: ${valmistumispyynto.id}", e)
             }
             val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
