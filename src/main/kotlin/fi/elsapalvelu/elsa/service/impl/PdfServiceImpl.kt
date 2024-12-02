@@ -67,8 +67,12 @@ class PdfServiceImpl(
         val resultDocument = Document(result)
         val merger = PdfMerger(result)
         asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
-            val document = PdfDocument(PdfReader(ByteArrayInputStream(it.asiakirjaData?.data)))
-            merger.merge(document, 1, document.numberOfPages)
+            try {
+                val document = PdfDocument(PdfReader(ByteArrayInputStream(it.asiakirjaData?.data)))
+                merger.merge(document, 1, document.numberOfPages)
+            } catch (e: IOException) {
+                log.warn("Asiakirjan ${it.id} lisäys epäonnistui", e)
+            }
         }
         asiakirjat.filter { it.tyyppi == MediaType.IMAGE_JPEG_VALUE || it.tyyppi == MediaType.IMAGE_PNG_VALUE }
             .forEach {

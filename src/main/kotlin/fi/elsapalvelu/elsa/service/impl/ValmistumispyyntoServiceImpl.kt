@@ -26,6 +26,7 @@ import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
 import fi.elsapalvelu.elsa.service.mapper.*
 import jakarta.persistence.EntityNotFoundException
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -88,6 +89,7 @@ class ValmistumispyyntoServiceImpl(
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val opintosuoritusService: OpintosuoritusService
 ) : ValmistumispyyntoService {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional(readOnly = true)
     override fun findErikoisalaTyyppiByOpintooikeusId(opintooikeusId: Long): ErikoisalaTyyppi =
@@ -731,7 +733,11 @@ class ValmistumispyyntoServiceImpl(
             } else if (response?.status == 4) { // Aborted
                 valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = null
             }
-            valmistumispyyntoRepository.save(valmistumispyynto)
+            try {
+                valmistumispyyntoRepository.save(valmistumispyynto)
+            } catch(e: Exception) {
+                log.error("Virhe tallennettaessa valmistumispyyntöä tarkistettaessa allekirjoitusta", e)
+            }
         }
     }
 
@@ -1425,7 +1431,11 @@ class ValmistumispyyntoServiceImpl(
             val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(it.id!!)
 
             val outputStream = ByteArrayOutputStream()
-            pdfService.yhdistaAsiakirjat(tyoskentelyjaksot.flatMap { t -> t.asiakirjat }, outputStream)
+            try {
+                pdfService.yhdistaAsiakirjat(tyoskentelyjaksot.flatMap { t -> t.asiakirjat }, outputStream)
+            } catch (e: Exception) {
+                log.error("Virhe yhdittäessä asiakirjoja valmistumispyynnölle: ${valmistumispyynto.id}", e)
+            }
             val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
             val asiakirja = asiakirjaRepository.save(
