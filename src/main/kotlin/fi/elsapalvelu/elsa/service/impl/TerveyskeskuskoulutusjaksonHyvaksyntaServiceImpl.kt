@@ -232,6 +232,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             val hyvaksynta = TerveyskeskuskoulutusjaksonHyvaksynta(opintooikeus = it, erikoistujaLahettanyt = true)
             terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(hyvaksynta)
 
+            /* Tätä ei tarvitse enää lähettää (ELSA-511)
+            Jätetään kuitenkin talteen, mikäli tarvitseekin ottaa takaisin
             mailService.sendEmailFromTemplate(
                 to = it.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
                 templateName = if (it.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusTarkastettavissa.html" else "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
@@ -240,7 +242,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                     Pair(MailProperty.ID, hyvaksynta.id.toString()),
                     Pair(MailProperty.URL_PATH, "terveyskeskuskoulutusjakson-tarkistus")
                 )
-            )
+            )*/
 
             return terveyskeskuskoulutusjaksonHyvaksyntaMapper.toDto(hyvaksynta)
         }
