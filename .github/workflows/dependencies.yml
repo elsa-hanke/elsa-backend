@@ -24,6 +24,9 @@ jobs:
             caches
             notifications
             dependency-check-data
+      - name: NVD update
+        continue-on-error: true
+        run: ./gradlew dependencyCheckUpdate
       - name: Dependency check
         continue-on-error: true
         run: ./gradlew dependencyCheckAnalyze

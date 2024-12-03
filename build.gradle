@@ -96,6 +96,7 @@ gitProperties {
 }
 
 dependencyCheck {
+    autoUpdate = false
     failBuildOnCVSS = 5
     failOnError = true
     suppressionFile = "owasp-suppressions.xml"
