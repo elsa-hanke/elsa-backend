@@ -314,13 +314,12 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
         val databaseSizeBeforeUpdate = paivakirjamerkintaRepository.findAll().size
 
         val updatedPaivakirjamerkinta = paivakirjamerkintaRepository.findById(paivakirjamerkinta.id!!).get()
-        em.detach(updatedPaivakirjamerkinta)
-        updatedPaivakirjamerkinta.paivamaara = UPDATED_PAIVAMAARA
-        updatedPaivakirjamerkinta.oppimistapahtumanNimi = UPDATED_OPPIMISTAPAHTUMAN_NIMI
-        updatedPaivakirjamerkinta.muunAiheenNimi = UPDATED_MUUN_AIHEEN_NIMI
-        updatedPaivakirjamerkinta.reflektio = UPDATED_REFLEKTIO
-        updatedPaivakirjamerkinta.yksityinen = UPDATED_YKSITYINEN
         val paivakirjamerkintaDTO = paivakirjamerkintaMapper.toDto(updatedPaivakirjamerkinta)
+        paivakirjamerkintaDTO.paivamaara = UPDATED_PAIVAMAARA
+        paivakirjamerkintaDTO.oppimistapahtumanNimi = UPDATED_OPPIMISTAPAHTUMAN_NIMI
+        paivakirjamerkintaDTO.muunAiheenNimi = UPDATED_MUUN_AIHEEN_NIMI
+        paivakirjamerkintaDTO.reflektio = UPDATED_REFLEKTIO
+        paivakirjamerkintaDTO.yksityinen = UPDATED_YKSITYINEN
 
         restPaivakirjamerkintaMockMvc.perform(
             put(ENTITY_API_URL_ID, paivakirjamerkintaDTO.id).with(csrf())
