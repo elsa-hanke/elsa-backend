@@ -114,20 +114,20 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
     }
 
     fun buildErikoisalaSpecification(erikoisalaId: Long): Specification<TerveyskeskuskoulutusjaksonHyvaksynta?>? {
-        return Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> { root: Root<TerveyskeskuskoulutusjaksonHyvaksynta?>, _: CriteriaQuery<*>?, criteriaBuilder: CriteriaBuilder ->
+        return Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> { root, _, cb ->
             val opintooikeus: Join<TerveyskeskuskoulutusjaksonHyvaksynta, Opintooikeus> =
                 root.join("opintooikeus")
             val erikoisala: Join<Opintooikeus, Erikoisala> = opintooikeus.join("erikoisala")
-            criteriaBuilder.equal(erikoisala.get<Long>("id"), erikoisalaId)
+            cb.equal(erikoisala.get<Long>("id"), erikoisalaId)
         }
     }
 
     fun buildExcludedErikoisalaSpecification(excludedErikoisalaId: Long): Specification<TerveyskeskuskoulutusjaksonHyvaksynta?>? {
-        return Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> { root: Root<TerveyskeskuskoulutusjaksonHyvaksynta?>, _: CriteriaQuery<*>?, criteriaBuilder: CriteriaBuilder ->
+        return Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> { root, _, cb ->
             val opintooikeus: Join<TerveyskeskuskoulutusjaksonHyvaksynta, Opintooikeus> =
                 root.join("opintooikeus")
             val erikoisala: Join<Opintooikeus, Erikoisala> = opintooikeus.join("erikoisala")
-            criteriaBuilder.not(criteriaBuilder.equal(erikoisala.get<Long>("id"), excludedErikoisalaId))
+            cb.not(cb.equal(erikoisala.get<Long>("id"), excludedErikoisalaId))
         }
     }
 }
