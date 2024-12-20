@@ -784,7 +784,7 @@ class EtusivuServiceImpl(
         if (erikoisala != null && erikoisala.tyyppi == hammaslaaketiede) {
             return
         }
-        if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(opintooikeusId, opintooikeus?.erikoistuvaLaakari?.id!!)) {
+        if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(opintooikeusId, opintooikeus.erikoistuvaLaakari?.id!!)) {
             return
         }
         val hyvaksynta =

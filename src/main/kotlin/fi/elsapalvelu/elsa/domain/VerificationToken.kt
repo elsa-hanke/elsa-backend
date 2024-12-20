@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.domain
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.GenericGenerator
 import java.io.Serializable
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
@@ -13,8 +12,7 @@ import jakarta.validation.constraints.NotNull
 class VerificationToken(
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @GeneratedValue(strategy = GenerationType.UUID)
     var id: String? = null,
 
     @NotNull

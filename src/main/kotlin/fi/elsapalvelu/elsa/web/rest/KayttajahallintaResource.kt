@@ -223,7 +223,7 @@ open class KayttajahallintaResource(
     }
 
     @GetMapping("/opintooppaat")
-    fun getOpintooppaat(principal: Principal?): ResponseEntity<List<OpintoopasSimpleDTO>> {
+    fun getOpintooppaat(): ResponseEntity<List<OpintoopasSimpleDTO>> {
         return ResponseEntity.ok(opintoopasService.findAll())
     }
 
@@ -624,8 +624,7 @@ open class KayttajahallintaResource(
 
     @PatchMapping("/yhdista-kayttajatilit")
     fun yhdistaKayttajatilit(
-        @Valid @RequestBody kayttajienYhdistaminenDto: KayttajienYhdistaminenDTO,
-        principal: Principal?
+        @Valid @RequestBody kayttajienYhdistaminenDto: KayttajienYhdistaminenDTO
     ): List<KayttajienYhdistaminenResult> {
         return kayttajienYhdistaminenService.yhdistaKayttajatilit(kayttajienYhdistaminenDto)
     }

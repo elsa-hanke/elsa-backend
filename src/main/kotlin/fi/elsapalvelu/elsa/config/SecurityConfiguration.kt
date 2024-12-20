@@ -125,9 +125,9 @@ class SecurityConfiguration(
             }
         )
         authenticationProvider.setResponseAuthenticationConverter(authenticationConverter())
-        withHttpOnlyFalse.setCookieDomain(applicationProperties.getCsrf().cookie.domain)
+        withHttpOnlyFalse.setCookieCustomizer { c -> c.domain(applicationProperties.getCsrf().cookie.domain) }
         val requestHandler = CsrfTokenRequestAttributeHandler()
-        requestHandler.setCsrfRequestAttributeName(null);
+        requestHandler.setCsrfRequestAttributeName(null)
 
         val httpConfiguration = http
             .csrf { csrf ->
@@ -146,45 +146,46 @@ class SecurityConfiguration(
                 ),
                 AuthorizationFilter::class.java
             )
-            .exceptionHandling()
-            .accessDeniedHandler { request, response, _ ->
-                AuditLoggingWrapper.warn(
-                    "Access denied for " +
-                        "user: ${request.let { it?.userPrincipal?.name }}, " +
-                        "method: ${request.method}, " +
-                        "path: ${request.requestURI}}, " +
-                        "ip: ${request.getHeader("X-Forwarded-For")}"
-                )
-                response.sendError(HttpServletResponse.SC_FORBIDDEN)
+            .exceptionHandling { ex ->
+                ex.accessDeniedHandler { request, response, _ ->
+                    AuditLoggingWrapper.warn(
+                        "Access denied for " +
+                            "user: ${request.let { it?.userPrincipal?.name }}, " +
+                            "method: ${request.method}, " +
+                            "path: ${request.requestURI}}, " +
+                            "ip: ${request.getHeader("X-Forwarded-For")}"
+                    )
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN)
+                }
+                .authenticationEntryPoint { _, response, _ ->
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                }
             }
-            .authenticationEntryPoint { _, response, _ ->
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+            .headers { h ->
+                h.httpStrictTransportSecurity { sec ->
+                    // 12 months
+                    sec.maxAgeInSeconds(31536000)
+                        .includeSubDomains(true)
+                        .preload(false)
+                        .requestMatcher(AnyRequestMatcher.INSTANCE)
+                }
+                    .contentSecurityPolicy { p ->
+                        p.policyDirectives("default-src 'self'; frame-src 'self' data:; script-src 'self'" +
+                        " 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; style-src 'self' 'unsafe-inline';" +
+                        " img-src 'self' data:; font-src 'self' data:")
+                    }
+                    .referrerPolicy { p ->
+                        p.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                    }
+                    .permissionsPolicy { p ->
+                        p.policy("geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera" +
+                            " 'none'; magnetometer 'none'; gyroscope 'none'; speaker 'none'; fullscreen 'self'; payment 'none'")
+                    }
+                    h.frameOptions { o ->
+                        o.deny()
+                    }
+
             }
-            .and()
-            .headers()
-            .httpStrictTransportSecurity()
-            // 12 months
-            .maxAgeInSeconds(31536000)
-            .includeSubDomains(true)
-            .preload(false)
-            .requestMatcher(AnyRequestMatcher.INSTANCE)
-            .and()
-            .contentSecurityPolicy(
-                "default-src 'self'; frame-src 'self' data:; script-src 'self'" +
-                    " 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; style-src 'self' 'unsafe-inline';" +
-                    " img-src 'self' data:; font-src 'self' data:"
-            )
-            .and()
-            .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
-            .and()
-            .permissionsPolicy().policy(
-                "geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera" +
-                    " 'none'; magnetometer 'none'; gyroscope 'none'; speaker 'none'; fullscreen 'self'; payment 'none'"
-            )
-            .and()
-            .frameOptions()
-            .deny()
-            .and()
             .authorizeHttpRequests { authorize ->
                 authorize
                     .requestMatchers("/authorize").authenticated()
@@ -271,13 +272,13 @@ class SecurityConfiguration(
                 applicationContext.getBean(RelyingPartyRegistrationRepository::class.java)
             val relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver =
                 DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
-            httpConfiguration.saml2Login().authenticationConverter(
-                Saml2AuthenticationTokenConverter(
-                    relyingPartyRegistrationResolver
-                )
-            ).authenticationManager(ProviderManager(authenticationProvider))
+            httpConfiguration.saml2Login { l ->
+                l.authenticationConverter(Saml2AuthenticationTokenConverter(relyingPartyRegistrationResolver))
+                .authenticationManager(ProviderManager(authenticationProvider))
                 .defaultSuccessUrl("/", true)
-                .failureUrl("/kirjaudu").and()
+                .failureUrl("/kirjaudu")
+            }
+            httpConfiguration
                 .addFilterBefore(ElsaUriFilter(applicationProperties), CsrfFilter::class.java)
                 .saml2Logout { saml2 ->
                     saml2.logoutRequest { request ->
@@ -289,7 +290,7 @@ class SecurityConfiguration(
                             logoutResponseResolver(relyingPartyRegistrationResolver)
                         )
                     }
-                }.logout().logoutSuccessUrl("/")
+                }.logout { l -> l.logoutSuccessUrl("/") }
         }
         return http.build()
     }
