@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.config.LOGIN_REGEX
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.GenericGenerator
 import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
 import java.io.Serializable
@@ -23,8 +22,7 @@ import jakarta.validation.constraints.Size
 class User(
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @GeneratedValue(strategy = GenerationType.UUID)
     var id: String? = null,
 
     @field:NotNull

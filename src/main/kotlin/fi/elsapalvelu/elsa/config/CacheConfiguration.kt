@@ -25,7 +25,7 @@ class CacheConfiguration(
     jHipsterProperties: JHipsterProperties
 ) {
 
-    private val jcacheConfiguration: javax.cache.configuration.Configuration<Any, Any>
+    private final val jcacheConfiguration: javax.cache.configuration.Configuration<Any, Any>
 
     init {
         val ehcache = jHipsterProperties.cache.ehcache
