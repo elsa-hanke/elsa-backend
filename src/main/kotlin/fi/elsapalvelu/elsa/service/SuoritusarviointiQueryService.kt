@@ -54,7 +54,7 @@ class SuoritusarviointiQueryService(
         if (criteria != null) {
             if (criteria.id != null) {
                 specification =
-                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.get(Suoritusarviointi_.id),
                             criteria.id!!.equals
@@ -63,7 +63,7 @@ class SuoritusarviointiQueryService(
             }
             if (criteria.tapahtumanAjankohta != null) {
                 specification =
-                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.get(Suoritusarviointi_.tapahtumanAjankohta),
                             criteria.tapahtumanAjankohta!!.equals
@@ -72,7 +72,7 @@ class SuoritusarviointiQueryService(
             }
             if (criteria.arvioitavaTapahtuma != null) {
                 specification =
-                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.get(Suoritusarviointi_.arvioitavaTapahtuma),
                             criteria.arvioitavaTapahtuma!!.equals
@@ -81,7 +81,7 @@ class SuoritusarviointiQueryService(
             }
             if (criteria.pyynnonAika != null) {
                 specification =
-                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.get(Suoritusarviointi_.pyynnonAika),
                             criteria.pyynnonAika!!.equals
@@ -90,7 +90,7 @@ class SuoritusarviointiQueryService(
             }
             if (criteria.vaativuustaso != null) {
                 specification =
-                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.get(Suoritusarviointi_.vaativuustaso),
                             criteria.vaativuustaso!!.equals
@@ -99,7 +99,7 @@ class SuoritusarviointiQueryService(
             }
             if (criteria.sanallinenArviointi != null) {
                 specification =
-                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.get(Suoritusarviointi_.sanallinenArviointi),
                             criteria.sanallinenArviointi!!.equals
@@ -108,7 +108,7 @@ class SuoritusarviointiQueryService(
             }
             if (criteria.arviointiAika != null) {
                 specification =
-                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         if (criteria.arviointiAika!!.specified != null) {
                             if (criteria.arviointiAika!!.specified) cb.isNotNull(
                                 root.get(
@@ -125,7 +125,7 @@ class SuoritusarviointiQueryService(
             }
             if (criteria.tyoskentelyjaksoId != null) {
                 specification =
-                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.join(Suoritusarviointi_.tyoskentelyjakso, JoinType.INNER)
                                 .get(Tyoskentelyjakso_.id),
@@ -147,7 +147,7 @@ class SuoritusarviointiQueryService(
             }
             if (criteria.arvioinninAntajaId != null) {
                 specification =
-                    specification.and { root: Root<Suoritusarviointi?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.join(Suoritusarviointi_.arvioinninAntaja, JoinType.INNER)
                                 .get(Kayttaja_.id),

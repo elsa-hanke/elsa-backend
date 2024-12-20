@@ -33,30 +33,11 @@ class KayttajaQueryService(
         yliopistoId: Long,
         langkey: String?
     ): Page<KayttajahallintaKayttajaListItemDTO> {
-        val specification: Specification<Kayttaja> = Specification.where { root, cq, cb ->
-            val predicates: MutableList<Predicate> = mutableListOf()
-
-            if (authority == OPINTOHALLINNON_VIRKAILIJA) {
-                getKayttajaYliopistoPredicate(yliopistoId, root, cb)?.let {
-                    predicates.add(it)
-                }
-            } else {
-                getKayttajaYliopistoErikoisalaPredicate(yliopistoId, root, cq, cb)?.let {
-                    predicates.add(it)
-                }
-            }
-            getAuthorityPredicate(authority, root, cb).let {
-                predicates.add(it)
-            }
-            getNimiPredicate(criteria?.nimi, root, cb, langkey)?.let {
-                predicates.add(it)
-            }
-            getErikoisalaPredicate(criteria?.erikoisalaId, root, cq, cb)?.let {
-                predicates.add(it)
-            }
-
-            cb.and(*predicates.toTypedArray())
-        }
+        val specification = Specification
+            .where(hasYliopisto(authority, yliopistoId))
+            .and(hasAuthority(authority))
+            .and(hasName(criteria?.nimi, langkey))
+            .and(hasErikoisala(criteria?.erikoisalaId))
         return kayttajaRepository.findAll(specification, pageable).map { mapKayttaja(it) }
     }
 
@@ -67,21 +48,10 @@ class KayttajaQueryService(
         pageable: Pageable,
         langkey: String?
     ): Page<KayttajahallintaKayttajaListItemDTO> {
-        val specification: Specification<Kayttaja> = Specification.where { root, cq, cb ->
-            val predicates: MutableList<Predicate> = mutableListOf()
-
-            getAuthorityPredicate(authority, root, cb).let {
-                predicates.add(it)
-            }
-            getNimiPredicate(criteria?.nimi, root, cb, langkey)?.let {
-                predicates.add(it)
-            }
-            getErikoisalaPredicate(criteria?.erikoisalaId, root, cq, cb)?.let {
-                predicates.add(it)
-            }
-
-            cb.and(*predicates.toTypedArray())
-        }
+        val specification = Specification
+            .where(hasAuthority(authority))
+            .and(hasName(criteria?.nimi, langkey))
+            .and(hasErikoisala(criteria?.erikoisalaId))
         return kayttajaRepository.findAll(specification, pageable).map { mapKayttaja(it) }
     }
 
@@ -94,101 +64,89 @@ class KayttajaQueryService(
         authorities: List<String>,
         yliopistot: List<Long?>
     ): Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO> {
-        val specification: Specification<Kayttaja> = Specification.where { root, cq, cb ->
-            val predicates: MutableList<Predicate> = mutableListOf()
+        val specification = Specification
+            .where(hasAuthorities(authorities))
+            .and(hasName(criteria?.nimi, langkey))
+            .and(hasErikoisala(criteria?.erikoisalaId))
 
-            getAuthoritiesPredicate(authorities, root).let {
-                predicates.add(it)
-            }
-            getNimiPredicate(criteria?.nimi, root, cb, langkey)?.let {
-                predicates.add(it)
-            }
-            getErikoisalaPredicate(criteria?.erikoisalaId, root, cq, cb)?.let {
-                predicates.add(it)
-            }
-            if (activeAuthority != null && activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name && yliopistot.isNotEmpty()) {
-                getOpintooikeusYliopistoPredicate(yliopistot.get(0), root, cq, cb)?.let {
-                    predicates.add(it)
-                }
-            }
-
-            cb.and(*predicates.toTypedArray())
+        if (activeAuthority != null && activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name && yliopistot.isNotEmpty()) {
+            specification.and(hasOpintooikeusYliopisto(yliopistot[0]))
         }
+
         return kayttajaRepository.findAll(specification, pageable).map { mapKayttajaErikoistujaKouluttaja(it) }
     }
 
-    private fun getAuthorityPredicate(
-        authority: String,
-        root: Root<Kayttaja>,
-        cb: CriteriaBuilder
-    ): Predicate {
-        val authorityJoin: Join<User, Authority> = root.join(Kayttaja_.user).join(User_.authorities)
-        return cb.`in`(authorityJoin.get(Authority_.name)).value(authority)
+    private fun hasYliopisto(authority: String, yliopistoId: Long): Specification<Kayttaja> {
+        return (Specification<Kayttaja> { root, query, cb ->
+            if (authority == OPINTOHALLINNON_VIRKAILIJA) {
+                val rootJoin = root.join(Kayttaja_.yliopistot)
+                cb.`in`(rootJoin.get(Yliopisto_.id)).value(yliopistoId)
+            } else {
+                val subquery = query.subquery(Long::class.java)
+                val subRoot = subquery.from(KayttajaYliopistoErikoisala::class.java)
+                val rootJoin = subRoot.join(KayttajaYliopistoErikoisala_.kayttaja)
+                val yliopistoJoin = subRoot.join(KayttajaYliopistoErikoisala_.yliopisto)
+                subquery.select(subRoot.get(KayttajaYliopistoErikoisala_.id))
+                subquery.where(
+                    cb.equal(yliopistoJoin.get(Yliopisto_.id), yliopistoId),
+                    cb.equal(root.get(Kayttaja_.id), rootJoin.get(Kayttaja_.id))
+                )
+                cb.exists(subquery)
+            }
+        })
     }
 
-    private fun getAuthoritiesPredicate(
-        authorities: List<String>,
-        root: Root<Kayttaja>,
-    ): Predicate {
-        val authorityJoin: Join<User, Authority> = root.join(Kayttaja_.user).join(User_.authorities)
-        return authorityJoin.get(Authority_.name).`in`(authorities)
-    }
-
-    private fun getNimiPredicate(
-        nimiFilter: StringFilter?,
-        root: Root<Kayttaja>,
-        cb: CriteriaBuilder,
-        langkey: String?
-    ): Predicate? {
-        val user: Join<Kayttaja, User> = root.join(Kayttaja_.user)
-        return nimiFilter.toNimiPredicate(user, cb, langkey)
-    }
-
-    private fun getKayttajaYliopistoErikoisalaPredicate(
-        yliopistoId: Long,
-        root: Root<Kayttaja>,
-        cq: CriteriaQuery<*>,
-        cb: CriteriaBuilder
-    ): Predicate? {
-        val subquery = cq.subquery(Long::class.java)
-        val subRoot = subquery.from(KayttajaYliopistoErikoisala::class.java)
-        val rootJoin = subRoot.join(KayttajaYliopistoErikoisala_.kayttaja)
-        val yliopistoJoin = subRoot.join(KayttajaYliopistoErikoisala_.yliopisto)
-        subquery.select(subRoot.get(KayttajaYliopistoErikoisala_.id))
-        subquery.where(
-            cb.equal(yliopistoJoin.get(Yliopisto_.id), yliopistoId),
-            cb.equal(root.get(Kayttaja_.id), rootJoin.get(Kayttaja_.id))
-        )
-        return cb.exists(subquery)
-    }
-
-    private fun getKayttajaYliopistoPredicate(
-        yliopistoId: Long,
-        root: Root<Kayttaja>,
-        cb: CriteriaBuilder
-    ): Predicate? {
-        val rootJoin = root.join(Kayttaja_.yliopistot)
-        return cb.`in`(rootJoin.get(Yliopisto_.id)).value(yliopistoId)
-    }
-
-    private fun getErikoisalaPredicate(
-        erikoisalaId: LongFilter?,
-        root: Root<Kayttaja>,
-        cq: CriteriaQuery<*>,
-        cb: CriteriaBuilder
-    ): Predicate? {
-        return erikoisalaId?.let {
-            val subquery = cq.subquery(Long::class.java)
-            val subRoot = subquery.from(KayttajaYliopistoErikoisala::class.java)
-            val rootJoin = subRoot.join(KayttajaYliopistoErikoisala_.kayttaja)
-            val erikoisalaJoin = subRoot.join(KayttajaYliopistoErikoisala_.erikoisala)
-            subquery.select(subRoot.get(KayttajaYliopistoErikoisala_.id))
+    private fun hasOpintooikeusYliopisto(yliopistoId: Long?): Specification<Kayttaja> {
+        return (Specification<Kayttaja> { root, query, cb ->
+            val subquery = query.subquery(Long::class.java)
+            val subRoot = subquery.from(Opintooikeus::class.java)
+            val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
+            val yliopistoJoin = subRoot.join(Opintooikeus_.yliopisto)
+            subquery.select(subRoot.get(Opintooikeus_.id))
             subquery.where(
-                cb.equal(erikoisalaJoin.get(Erikoisala_.id), erikoisalaId.equals),
-                cb.equal(root.get(Kayttaja_.id), rootJoin.get(Kayttaja_.id))
+                cb.equal(yliopistoJoin.get(Yliopisto_.id), yliopistoId),
+                cb.equal(root.get(Kayttaja_.id), rootJoin.get(ErikoistuvaLaakari_.kayttaja))
             )
-            return cb.exists(subquery)
-        }
+            cb.exists(subquery)
+        })
+    }
+
+    private fun hasAuthority(authority: String): Specification<Kayttaja> {
+        return (Specification<Kayttaja> { root, _, cb ->
+            val authorityJoin: Join<User, Authority> = root.join(Kayttaja_.user).join(User_.authorities)
+            cb.`in`(authorityJoin.get(Authority_.name)).value(authority)
+        })
+    }
+
+    private fun hasAuthorities(authorities: List<String>): Specification<Kayttaja> {
+        return (Specification<Kayttaja> { root, _, _ ->
+            val authorityJoin: Join<User, Authority> = root.join(Kayttaja_.user).join(User_.authorities)
+            authorityJoin.get(Authority_.name).`in`(authorities)
+        })
+    }
+
+    private fun hasName(nimiFilter: StringFilter?, langkey: String?): Specification<Kayttaja> {
+        return (Specification<Kayttaja> { root, _, cb ->
+            val user: Join<Kayttaja, User> = root.join(Kayttaja_.user)
+            nimiFilter.toNimiPredicate(user, cb, langkey)
+        })
+    }
+
+    private fun hasErikoisala(erikoisalaId: LongFilter?): Specification<Kayttaja> {
+        return (Specification<Kayttaja> { root, query, cb ->
+            erikoisalaId?.let {
+                val subquery = query.subquery(Long::class.java)
+                val subRoot = subquery.from(KayttajaYliopistoErikoisala::class.java)
+                val rootJoin = subRoot.join(KayttajaYliopistoErikoisala_.kayttaja)
+                val erikoisalaJoin = subRoot.join(KayttajaYliopistoErikoisala_.erikoisala)
+                subquery.select(subRoot.get(KayttajaYliopistoErikoisala_.id))
+                subquery.where(
+                    cb.equal(erikoisalaJoin.get(Erikoisala_.id), erikoisalaId.equals),
+                    cb.equal(root.get(Kayttaja_.id), rootJoin.get(Kayttaja_.id))
+                )
+                cb.exists(subquery)
+            }
+        })
     }
 
     private fun mapKayttaja(kayttaja: Kayttaja) =
@@ -238,24 +196,4 @@ class KayttajaQueryService(
             kayttajatilinTila = kayttaja.tila,
             sahkoposti = kayttaja.user?.email!!
         )
-
-
-    private fun getOpintooikeusYliopistoPredicate(
-        yliopistoId: Long?,
-        root: Root<Kayttaja>,
-        cq: CriteriaQuery<*>,
-        cb: CriteriaBuilder
-    ): Predicate? {
-        val subquery = cq.subquery(Long::class.java)
-        val subRoot = subquery.from(Opintooikeus::class.java)
-        val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
-        val yliopistoJoin = subRoot.join(Opintooikeus_.yliopisto)
-        subquery.select(subRoot.get(Opintooikeus_.id))
-        subquery.where(
-            cb.equal(yliopistoJoin.get(Yliopisto_.id), yliopistoId),
-            cb.equal(root.get(Kayttaja_.id), rootJoin.get(ErikoistuvaLaakari_.kayttaja))
-        )
-        return cb.exists(subquery)
-    }
-
 }

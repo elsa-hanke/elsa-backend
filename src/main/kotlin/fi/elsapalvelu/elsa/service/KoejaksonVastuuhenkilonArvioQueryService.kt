@@ -74,11 +74,11 @@ class KoejaksonVastuuhenkilonArvioQueryService(
     }
 
     fun buildErikoisalaSpecification(erikoisalaId: Long): Specification<KoejaksonVastuuhenkilonArvio?>? {
-        return Specification<KoejaksonVastuuhenkilonArvio?> { root: Root<KoejaksonVastuuhenkilonArvio?>, _: CriteriaQuery<*>?, criteriaBuilder: CriteriaBuilder ->
+        return Specification<KoejaksonVastuuhenkilonArvio?> { root, _, cb ->
             val opintooikeus: Join<KoejaksonVastuuhenkilonArvio, Opintooikeus> =
                 root.join("opintooikeus")
             val erikoisala: Join<Opintooikeus, Erikoisala> = opintooikeus.join("erikoisala")
-            criteriaBuilder.equal(erikoisala.get<Long>("id"), erikoisalaId)
+            cb.equal(erikoisala.get<Long>("id"), erikoisalaId)
         }
     }
 }

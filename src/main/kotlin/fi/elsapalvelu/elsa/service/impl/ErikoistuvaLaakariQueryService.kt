@@ -29,24 +29,11 @@ class ErikoistuvaLaakariQueryService(
         yliopistoId: Long?,
         langkey: String?
     ): Page<KayttajahallintaKayttajaListItemDTO> {
-        val specification: Specification<ErikoistuvaLaakari> = Specification.where { root, cq, cb ->
-            val predicates: MutableList<Predicate> = mutableListOf()
-
-            getNimiPredicate(criteria?.nimi, root, cb, langkey)?.let {
-                predicates.add(it)
-            }
-            getErikoisalaPredicate(criteria?.erikoisalaId, root, cq, cb)?.let {
-                predicates.add(it)
-            }
-            getYliopistoPredicate(yliopistoId, root, cq, cb)?.let {
-                predicates.add(it)
-            }
-            getUseaOpintooikeusPredicate(criteria?.useaOpintooikeus, root, cq, cb)?.let {
-                predicates.add(it)
-            }
-
-            cb.and(*predicates.toTypedArray())
-        }
+        val specification = Specification
+            .where(hasName(criteria?.nimi, langkey))
+            .and(hasErikoisala(criteria?.erikoisalaId))
+            .and(hasYliopisto(yliopistoId))
+            .and(hasUseaOpintooikeus(criteria?.useaOpintooikeus))
         return erikoistuvaLaakariRepository.findAll(specification, pageable).map { mapErikoistuvaLaakari(it) }
     }
 
@@ -56,21 +43,10 @@ class ErikoistuvaLaakariQueryService(
         pageable: Pageable,
         langkey: String?
     ): Page<KayttajahallintaKayttajaListItemDTO> {
-        val specification: Specification<ErikoistuvaLaakari> = Specification.where { root, cq, cb ->
-            val predicates: MutableList<Predicate> = mutableListOf()
-
-            getNimiPredicate(criteria?.nimi, root, cb, langkey)?.let {
-                predicates.add(it)
-            }
-            getErikoisalaPredicate(criteria?.erikoisalaId, root, cq, cb)?.let {
-                predicates.add(it)
-            }
-            getUseaOpintooikeusPredicate(criteria?.useaOpintooikeus, root, cq, cb)?.let {
-                predicates.add(it)
-            }
-
-            cb.and(*predicates.toTypedArray())
-        }
+        val specification = Specification
+            .where(hasName(criteria?.nimi, langkey))
+            .and(hasErikoisala(criteria?.erikoisalaId))
+            .and(hasUseaOpintooikeus(criteria?.useaOpintooikeus))
         return erikoistuvaLaakariRepository.findAll(specification, pageable).map { mapErikoistuvaLaakari(it) }
     }
 
@@ -89,73 +65,61 @@ class ErikoistuvaLaakariQueryService(
             kayttajatilinTila = erikoistuvaLaakari.kayttaja?.tila
         )
 
-    private fun getNimiPredicate(
-        nimiFilter: StringFilter?,
-        root: Root<ErikoistuvaLaakari?>,
-        cb: CriteriaBuilder,
-        langkey: String?
-    ): Predicate? {
-        val user: Join<Kayttaja, User> = root.join(ErikoistuvaLaakari_.kayttaja)
-            .join(Kayttaja_.user)
-        return nimiFilter.toNimiPredicate(user, cb, langkey)
+    private fun hasName(nimiFilter: StringFilter?, langkey: String?): Specification<ErikoistuvaLaakari> {
+        return (Specification<ErikoistuvaLaakari> { root, _, cb ->
+            val user: Join<Kayttaja, User> = root.join(ErikoistuvaLaakari_.kayttaja)
+                .join(Kayttaja_.user)
+            nimiFilter.toNimiPredicate(user, cb, langkey)
+        })
     }
 
-    private fun getYliopistoPredicate(
-        yliopistoId: Long?,
-        root: Root<ErikoistuvaLaakari?>,
-        cq: CriteriaQuery<*>,
-        cb: CriteriaBuilder
-    ): Predicate? {
-        return yliopistoId?.let {
-            val subquery = cq.subquery(Long::class.java)
-            val subRoot = subquery.from(Opintooikeus::class.java)
-            val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
-            val yliopistoJoin = subRoot.join(Opintooikeus_.yliopisto)
-            subquery.select(subRoot.get(Opintooikeus_.id))
-            subquery.where(
-                cb.equal(yliopistoJoin.get(Yliopisto_.id), yliopistoId),
-                cb.equal(root.get(ErikoistuvaLaakari_.id), rootJoin.get(ErikoistuvaLaakari_.id))
-            )
-            return cb.exists(subquery)
-        }
+    private fun hasErikoisala(erikoisalaId: LongFilter?): Specification<ErikoistuvaLaakari> {
+        return (Specification<ErikoistuvaLaakari> { root, query, cb ->
+            erikoisalaId?.let {
+                val subquery = query.subquery(Long::class.java)
+                val subRoot = subquery.from(Opintooikeus::class.java)
+                val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
+                val erikoisalaJoin = subRoot.join(Opintooikeus_.erikoisala)
+                subquery.select(subRoot.get(Opintooikeus_.id))
+                subquery.where(
+                    cb.equal(erikoisalaJoin.get(Erikoisala_.id), erikoisalaId.equals),
+                    cb.equal(root.get(ErikoistuvaLaakari_.id), rootJoin.get(ErikoistuvaLaakari_.id))
+                )
+                cb.exists(subquery)
+            }
+        })
     }
 
-    private fun getErikoisalaPredicate(
-        erikoisalaId: LongFilter?,
-        root: Root<ErikoistuvaLaakari?>,
-        cq: CriteriaQuery<*>,
-        cb: CriteriaBuilder
-    ): Predicate? {
-        return erikoisalaId?.let {
-            val subquery = cq.subquery(Long::class.java)
-            val subRoot = subquery.from(Opintooikeus::class.java)
-            val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
-            val erikoisalaJoin = subRoot.join(Opintooikeus_.erikoisala)
-            subquery.select(subRoot.get(Opintooikeus_.id))
-            subquery.where(
-                cb.equal(erikoisalaJoin.get(Erikoisala_.id), erikoisalaId.equals),
-                cb.equal(root.get(ErikoistuvaLaakari_.id), rootJoin.get(ErikoistuvaLaakari_.id))
-            )
-            return cb.exists(subquery)
-        }
+    private fun hasYliopisto(yliopistoId: Long?): Specification<ErikoistuvaLaakari> {
+        return (Specification<ErikoistuvaLaakari> { root, query, cb ->
+            yliopistoId?.let {
+                val subquery = query.subquery(Long::class.java)
+                val subRoot = subquery.from(Opintooikeus::class.java)
+                val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
+                val yliopistoJoin = subRoot.join(Opintooikeus_.yliopisto)
+                subquery.select(subRoot.get(Opintooikeus_.id))
+                subquery.where(
+                    cb.equal(yliopistoJoin.get(Yliopisto_.id), yliopistoId),
+                    cb.equal(root.get(ErikoistuvaLaakari_.id), rootJoin.get(ErikoistuvaLaakari_.id))
+                )
+                cb.exists(subquery)
+            }
+        })
     }
 
-    private fun getUseaOpintooikeusPredicate(
-        useaOpintooikeus: BooleanFilter?,
-        root: Root<ErikoistuvaLaakari>,
-        cq: CriteriaQuery<*>,
-        cb: CriteriaBuilder
-    ): Predicate? {
-        return if (useaOpintooikeus?.equals == true) {
-            val subquery = cq.subquery(Long::class.java)
-            val subRoot = subquery.from(Opintooikeus::class.java)
-            val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
-            subquery.select(cb.count(subRoot.get(Opintooikeus_.id)))
-            subquery.where(cb.equal(root.get(ErikoistuvaLaakari_.id), rootJoin.get(ErikoistuvaLaakari_.id)))
-            return cb.greaterThan(subquery, 1L)
-        } else {
-            null
-        }
+    private fun hasUseaOpintooikeus(useaOpintooikeus: BooleanFilter?): Specification<ErikoistuvaLaakari> {
+        return (Specification<ErikoistuvaLaakari> { root, query, cb ->
+            if (useaOpintooikeus?.equals == true) {
+                val subquery = query.subquery(Long::class.java)
+                val subRoot = subquery.from(Opintooikeus::class.java)
+                val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
+                subquery.select(cb.count(subRoot.get(Opintooikeus_.id)))
+                subquery.where(cb.equal(root.get(ErikoistuvaLaakari_.id), rootJoin.get(ErikoistuvaLaakari_.id)))
+                cb.greaterThan(subquery, 1L)
+            } else {
+                null
+            }
+        })
     }
 }
 

@@ -43,7 +43,7 @@ class PaivakirjamerkintaQueryService(
         if (criteria != null) {
             if (criteria.id != null) {
                 specification =
-                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.get(Paivakirjamerkinta_.id),
                             criteria.id!!.equals
@@ -53,7 +53,7 @@ class PaivakirjamerkintaQueryService(
             if (criteria.paivamaara != null) {
                 if (criteria.paivamaara!!.specified != null) {
                     specification =
-                        specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        specification.and { root, _, cb ->
                             if (criteria.paivamaara!!.specified) cb.isNotNull(
                                 root.get(
                                     Paivakirjamerkinta_.paivamaara
@@ -63,7 +63,7 @@ class PaivakirjamerkintaQueryService(
                 }
                 if (criteria.paivamaara!!.greaterThanOrEqual != null) {
                     specification =
-                        specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        specification.and { root, _, cb ->
                             cb.greaterThanOrEqualTo(
                                 root.get(Paivakirjamerkinta_.paivamaara),
                                 criteria.paivamaara!!.greaterThanOrEqual
@@ -72,7 +72,7 @@ class PaivakirjamerkintaQueryService(
                 }
                 if (criteria.paivamaara!!.lessThanOrEqual != null) {
                     specification =
-                        specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        specification.and { root, _, cb ->
                             cb.lessThanOrEqualTo(
                                 root.get(Paivakirjamerkinta_.paivamaara),
                                 criteria.paivamaara!!.lessThanOrEqual
@@ -81,7 +81,7 @@ class PaivakirjamerkintaQueryService(
                 }
                 if (criteria.paivamaara!!.equals != null) {
                     specification =
-                        specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        specification.and { root, _, cb ->
                             cb.equal(
                                 root.get(Paivakirjamerkinta_.paivamaara),
                                 criteria.paivamaara!!.equals
@@ -91,7 +91,7 @@ class PaivakirjamerkintaQueryService(
             }
             if (criteria.oppimistapahtumanNimi != null) {
                 specification =
-                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.get(Paivakirjamerkinta_.oppimistapahtumanNimi),
                             criteria.oppimistapahtumanNimi!!.equals
@@ -100,7 +100,7 @@ class PaivakirjamerkintaQueryService(
             }
             if (criteria.muunAiheenNimi != null) {
                 specification =
-                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.get(Paivakirjamerkinta_.muunAiheenNimi),
                             criteria.muunAiheenNimi!!.equals
@@ -109,7 +109,7 @@ class PaivakirjamerkintaQueryService(
             }
             if (criteria.yksityinen != null) {
                 specification =
-                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.get(Paivakirjamerkinta_.yksityinen),
                             criteria.yksityinen!!.equals
@@ -118,7 +118,7 @@ class PaivakirjamerkintaQueryService(
             }
             if (criteria.aihekategoriaId != null) {
                 specification =
-                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.join(Paivakirjamerkinta_.aihekategoriat, JoinType.LEFT)
                                 .get(PaivakirjaAihekategoria_.id),
@@ -128,7 +128,7 @@ class PaivakirjamerkintaQueryService(
             }
             if (criteria.teoriakoulutusId != null) {
                 specification =
-                    specification.and { root: Root<Paivakirjamerkinta?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.join(Paivakirjamerkinta_.teoriakoulutus, JoinType.LEFT)
                                 .get(Teoriakoulutus_.id),
