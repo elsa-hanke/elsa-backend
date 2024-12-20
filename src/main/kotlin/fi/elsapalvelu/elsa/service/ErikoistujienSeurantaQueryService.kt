@@ -194,7 +194,7 @@ class ErikoistujienSeurantaQueryService(
         criteria?.let {
             it.asetusId?.let {
                 specification =
-                    specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.join(Opintooikeus_.asetus, JoinType.INNER)
                                 .get(Asetus_.id),
@@ -204,7 +204,7 @@ class ErikoistujienSeurantaQueryService(
             }
             it.erikoisalaId?.let {
                 specification =
-                    specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.equal(
                             root.join(Opintooikeus_.erikoisala, JoinType.INNER)
                                 .get(Erikoisala_.id),
@@ -214,14 +214,14 @@ class ErikoistujienSeurantaQueryService(
             }
             if (it.naytaPaattyneet == null || it.naytaPaattyneet == false) {
                 specification =
-                    specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    specification.and { root, _, cb ->
                         cb.greaterThanOrEqualTo(
                             root.get(Opintooikeus_.opintooikeudenPaattymispaiva),
                             LocalDate.now()
                         )
                     }
             }
-            specification.and { root: Root<Opintooikeus?>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+            specification.and { root, _, cb ->
                 cb.or(
                     cb.isNull(root.get(Opintooikeus_.viimeinenKatselupaiva)),
                     cb.greaterThanOrEqualTo(
