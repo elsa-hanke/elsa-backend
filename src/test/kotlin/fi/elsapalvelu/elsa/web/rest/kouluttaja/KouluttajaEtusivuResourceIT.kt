@@ -17,7 +17,6 @@ import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
@@ -33,6 +32,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import jakarta.persistence.EntityManager
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
@@ -96,7 +96,7 @@ class KouluttajaEtusivuResourceIT {
 
     private lateinit var kouluttaja: Kayttaja
 
-    @MockBean
+    @MockitoBean
     private lateinit var clock: Clock
 
     // 1 kuukausi = 31.1.1970

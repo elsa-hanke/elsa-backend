@@ -24,7 +24,6 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.Instant
@@ -35,6 +34,7 @@ import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 import jakarta.persistence.EntityManager
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import kotlin.test.assertNotNull
 
 @SpringBootTest(classes = [ElsaBackendApp::class])
@@ -77,7 +77,7 @@ class OpintotietodataPersistenceServiceIT {
     // 5 vuotta = 31.12.1974
     private val now = 157680000L
 
-    @MockBean
+    @MockitoBean
     private lateinit var clock: Clock
 
     @BeforeAll

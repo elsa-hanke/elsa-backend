@@ -18,7 +18,6 @@ import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -37,6 +36,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 private const val ENDPOINT_BASE_URL = "/api/erikoistuva-laakari"
 private const val VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT = "/valmistumispyynto-suoritusten-tila"
@@ -77,7 +77,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     // 1.1.1981
     private val now = 347155200L
 
-    @MockBean
+    @MockitoBean
     private lateinit var clock: Clock
 
     @BeforeEach

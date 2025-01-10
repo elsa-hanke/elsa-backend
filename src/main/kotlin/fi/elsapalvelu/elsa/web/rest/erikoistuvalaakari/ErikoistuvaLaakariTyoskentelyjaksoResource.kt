@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
@@ -80,6 +79,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
             }
 
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @PutMapping("/tyoskentelyjaksot")
@@ -126,6 +126,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 throw liitettyTerveyskoulutusjaksoonException(e)
             }
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @GetMapping("/tyoskentelyjaksot-taulukko")
