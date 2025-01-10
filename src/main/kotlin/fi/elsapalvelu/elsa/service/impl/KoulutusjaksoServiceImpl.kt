@@ -30,15 +30,15 @@ class KoulutusjaksoServiceImpl(
             koulutusjaksoDTO.tyoskentelyjaksot.filter {
                 it.id?.let { tyoskentelyjaksoId ->
                     tyoskentelyjaksoService.findOne(tyoskentelyjaksoId, opintooikeusId)
-                }?.let { true } ?: false
+                }?.let { true } == true
             }
 
-            val osaamistavoitteetErikoisalalla =
+            val arvioitavatKokonaisuudet =
                 arvioitavaKokonaisuusService.findAllByOpintooikeusId(opintooikeusId)
             koulutusjaksoDTO.osaamistavoitteet.filter {
-                osaamistavoitteetErikoisalalla.find { osaamistavoiteId ->
-                    osaamistavoiteId.id === it.id
-                }?.let { true } ?: false
+                arvioitavatKokonaisuudet.any { kokonaisuus ->
+                    kokonaisuus.id == it.id
+                }
             }
 
             var koulutusjakso = koulutusjaksoMapper.toEntity(koulutusjaksoDTO)

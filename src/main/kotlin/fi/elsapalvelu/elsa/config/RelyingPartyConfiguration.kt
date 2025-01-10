@@ -67,7 +67,7 @@ class RelyingPartyConfiguration(
                             .getSuomifi().samlSuomifiMetadataLocation!!
                     )
                     .registrationId("suomifi")
-                    .assertingPartyDetails { party: RelyingPartyRegistration.AssertingPartyDetails.Builder ->
+                    .assertingPartyMetadata { party ->
                         party.entityId(
                             applicationProperties.getSecurity().getSuomifi().samlSuomifiEntityId!!
                         )
@@ -107,7 +107,7 @@ class RelyingPartyConfiguration(
                     RelyingPartyRegistrations
                         .fromMetadata(ByteArrayInputStream(parseHakaFile(it.hakaEntityId!!).toByteArray()))
                         .registrationId(it.hakaId!!)
-                        .assertingPartyDetails { party: RelyingPartyRegistration.AssertingPartyDetails.Builder ->
+                        .assertingPartyMetadata { party ->
                             party.entityId(it.hakaEntityId!!)
                             party.wantAuthnRequestsSigned(true)
                         }

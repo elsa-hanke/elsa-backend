@@ -22,13 +22,6 @@ apollo {
     generateKotlinModels.set(true)
 }
 
-hibernate {
-    enhancement {
-        lazyInitialization = true
-        dirtyTracking = true
-    }
-}
-
 group = "fi.elsapalvelu.elsa"
 version = "0.0.1-SNAPSHOT"
 
@@ -77,13 +70,13 @@ tasks.register('integrationTest', Test) {
 
 check.dependsOn integrationTest
 tasks.register('testReport', TestReport) {
-    destinationDir = file("$buildDir/reports/tests")
-    reportOn test
+    destinationDirectory = file("$buildDir/reports/tests")
+    testResults.from(test)
 }
 
 tasks.register('integrationTestReport', TestReport) {
-    destinationDir = file("$buildDir/reports/tests")
-    reportOn integrationTest
+    destinationDirectory = file("$buildDir/reports/tests")
+    testResults.from(integrationTest)
 }
 
 if (!project.hasProperty("runList")) {
@@ -125,6 +118,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
     implementation "org.springframework.boot:spring-boot-starter-security"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
     implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude module: "spring-boot-starter-tomcat"
     }
@@ -156,6 +150,7 @@ dependencies {
     implementation 'com.itextpdf:kernel:8.0.5'
     implementation "com.itextpdf:html2pdf:5.0.5"
     implementation "com.itextpdf:pdfa:8.0.5"
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.4")
 }
 
 apollo {

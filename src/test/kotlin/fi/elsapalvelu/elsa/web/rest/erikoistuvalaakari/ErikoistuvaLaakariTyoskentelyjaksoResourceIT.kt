@@ -1142,9 +1142,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
 
         val pituus = 273.75
         val opintoopas = tyoskentelyjakso.opintooikeus?.opintoopas
-        opintoopas?.terveyskeskuskoulutusjaksonVahimmaispituus = pituus
-        opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus = pituus
-        opintoopasRepository.saveAndFlush(opintoopas)
+        opintoopas?.let {
+            it.terveyskeskuskoulutusjaksonVahimmaispituus = pituus
+            it.terveyskeskuskoulutusjaksonMaksimipituus = pituus
+            opintoopasRepository.saveAndFlush(it)
+        }
 
         tyoskentelyjakso.kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
         tyoskentelyjakso.tyoskentelypaikka!!.tyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
@@ -1207,8 +1209,10 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT {
         initTest()
 
         val opintoopas = tyoskentelyjakso.opintooikeus?.opintoopas
-        opintoopas?.terveyskeskuskoulutusjaksonMaksimipituus = null
-        opintoopasRepository.saveAndFlush(opintoopas)
+        opintoopas?.let {
+            it.terveyskeskuskoulutusjaksonMaksimipituus = null
+            opintoopasRepository.saveAndFlush(it)
+        }
 
         tyoskentelyjakso.kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
         tyoskentelyjakso.tyoskentelypaikka!!.tyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS

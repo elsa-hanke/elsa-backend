@@ -128,9 +128,9 @@ class HibernateTimeZoneIT {
         val resultSet = jdbcTemplate.queryForRowSet(request)
         val expectedValue = dateTimeWrapper
             .offsetTime
-            ?.toLocalTime()
-            ?.atDate(LocalDate.of(1970, Month.JANUARY, 1))
-            ?.atZone(ZoneId.systemDefault())
+            ?.withOffsetSameInstant(ZoneId.of(zoneId).rules.getOffset(Instant.now()))
+            ?.withOffsetSameLocal(OffsetDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault()).offset)
+            ?.withOffsetSameInstant(ZoneId.of(zoneId).rules.getOffset(Instant.EPOCH))
             ?.format(timeFormatter)
 
         assertThatDateStoredValueIsEqualToInsertDateValueOnGMTTimeZone(resultSet, expectedValue)

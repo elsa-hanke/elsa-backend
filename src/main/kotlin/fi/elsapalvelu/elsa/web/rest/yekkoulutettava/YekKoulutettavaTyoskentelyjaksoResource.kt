@@ -79,6 +79,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
             }
 
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
 
@@ -126,6 +127,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
                 throw liitettyTerveyskoulutusjaksoonException(e)
             }
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
     @GetMapping("/tyoskentelyjaksot-taulukko")

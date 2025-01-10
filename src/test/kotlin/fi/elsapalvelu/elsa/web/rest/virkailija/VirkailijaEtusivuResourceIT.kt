@@ -558,8 +558,10 @@ class VirkailijaEtusivuResourceIT {
         initTest()
 
         val opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa()
-        opintooikeus?.muokkausoikeudetVirkailijoilla = true
-        opintooikeusRepository.save(opintooikeus)
+        opintooikeus?.let {
+            it.muokkausoikeudetVirkailijoilla = true
+            opintooikeusRepository.save(it)
+        }
 
         tyoskentelyjakso =
             TyoskentelyjaksoHelper.createEntity(

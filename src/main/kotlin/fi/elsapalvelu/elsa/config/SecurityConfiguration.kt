@@ -105,7 +105,7 @@ class SecurityConfiguration(
                 val audience = relyingPartyRegistration.entityId
                 val recipient = relyingPartyRegistration.assertionConsumerServiceLocation
                 val assertingPartyEntityId =
-                    relyingPartyRegistration.assertingPartyDetails.entityId
+                    relyingPartyRegistration.assertingPartyMetadata.entityId
                 val params: MutableMap<String, Any> = HashMap()
                 if (assertionContainsInResponseTo(it.assertion)) {
                     val requestId = it.token.authenticationRequest.id
@@ -178,7 +178,7 @@ class SecurityConfiguration(
                     .referrerPolicy { p ->
                         p.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
                     }
-                    .permissionsPolicy { p ->
+                    .permissionsPolicyHeader { p ->
                         p.policy("geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera" +
                             " 'none'; magnetometer 'none'; gyroscope 'none'; speaker 'none'; fullscreen 'self'; payment 'none'")
                     }
