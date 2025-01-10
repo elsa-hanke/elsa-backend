@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.*
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.opensaml.saml.common.assertion.ValidationContext
 import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
 import org.opensaml.saml.saml2.core.Assertion
@@ -530,7 +531,7 @@ class SecurityConfiguration(
                         )
                     }
                 } catch (ex: Exception) {
-                    log.error("Virhe opintotietodatan haussa tai tallentamisessa: ${ex.message} ${ex.stackTrace}")
+                    log.error("Virhe opintotietodatan haussa tai tallentamisessa: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
                 }
             }
         }
@@ -566,7 +567,7 @@ class SecurityConfiguration(
                         }
                     }
                 } catch (ex: Exception) {
-                    log.error("Virhe opintotietodatan haussa tai päivittämisessä: ${ex.message} ${ex.stackTrace}")
+                    log.error("Virhe opintotietodatan haussa tai päivittämisessä: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
                 }
             }
         }
@@ -584,7 +585,7 @@ class SecurityConfiguration(
                     }
                 }
         } catch (ex: Exception) {
-            log.error("Virhe opintosuoritusten haussa tai tallentamisessa: ${ex.message} ${ex.stackTrace}")
+            log.error("Virhe opintosuoritusten haussa tai tallentamisessa: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
         }
     }
 

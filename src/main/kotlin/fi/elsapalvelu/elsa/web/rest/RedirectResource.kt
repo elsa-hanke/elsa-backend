@@ -9,9 +9,12 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.view.RedirectView
 import tech.jhipster.config.JHipsterConstants
 import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 
 @RestController
 class RedirectResource(private val env: Environment) {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @GetMapping("/")
     fun redirect2FrontendView(request: HttpServletRequest): RedirectView? {
@@ -20,12 +23,17 @@ class RedirectResource(private val env: Environment) {
 
     @GetMapping("/kirjaudu")
     fun redirect2LoginView(request: HttpServletRequest): RedirectView? {
+        if (request.session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION) == null) {
+            return RedirectView(getRedirectUrl(request) + "kirjautuminen")
+        }
         val exception: Saml2AuthenticationException =
             request.session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION) as Saml2AuthenticationException
         var exceptionMessage = LoginException.TUNTEMATON.name
 
-        if (exception.message in (LoginException.values().map { it.name })) {
+        if (exception.message in (LoginException.entries.map { it.name })) {
             exceptionMessage = exception.message!!
+        } else {
+            log.error("Unknown authentication exception: $exception")
         }
         return RedirectView(getRedirectUrl(request) + "kirjautuminen?virhe=" + exceptionMessage)
     }
