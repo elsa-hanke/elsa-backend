@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusOsakokonaisuusDTO
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -50,7 +51,7 @@ class PeppiOuluOpintosuorituksetFetchingServiceImpl(
                 )
             }
         } catch (exception: ApolloException) {
-            log.error("Opintosuoritustietoja ei saatu haettua Oulun Pepistä. Virhe: ${exception.message}")
+            log.error("Opintosuoritustietoja ei saatu haettua Oulun Pepistä. Virhe: ${exception.message} ${ExceptionUtils.getStackTrace(exception)}")
             null
         }
     }
