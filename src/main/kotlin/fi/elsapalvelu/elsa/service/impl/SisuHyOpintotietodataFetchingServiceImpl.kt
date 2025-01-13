@@ -13,6 +13,7 @@ import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -54,7 +55,7 @@ class SisuHyOpintotietodataFetchingServiceImpl(
                     })
             }
         } catch (exception: ApolloException) {
-            log.error("Opinto-oikeustietoja ei saatu haettua HY:n Sisusta. Virhe: ${exception.message}")
+            log.error("Opinto-oikeustietoja ei saatu haettua HY:n Sisusta. Virhe: ${exception.message} ${ExceptionUtils.getStackTrace(exception)}")
             return null
         }
     }
