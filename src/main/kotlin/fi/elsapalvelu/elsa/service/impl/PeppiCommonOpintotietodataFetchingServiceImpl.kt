@@ -92,7 +92,7 @@ class PeppiCommonOpintotietodataFetchingServiceImpl(
     private fun convertPeppiAsetusString(peppiAsetus: String?, endpointUrl: String): String? {
         val splittedAsetus = peppiAsetus?.split("-")
         if (splittedAsetus?.size != 2) {
-            log.error("Rajapinnasta $endpointUrl ei saatu kelvollista asetustietoa. Asetus: $peppiAsetus")
+            log.warn("Rajapinnasta $endpointUrl ei saatu kelvollista asetustietoa. Asetus: $peppiAsetus")
             return null
         }
         return "${splittedAsetus[1]}/${splittedAsetus[0]}"
