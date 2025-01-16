@@ -11,9 +11,7 @@ import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.*
 import org.apache.commons.lang3.exception.ExceptionUtils
-import org.opensaml.saml.common.assertion.ValidationContext
 import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
-import org.opensaml.saml.saml2.core.Assertion
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -28,6 +26,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.saml2.core.Saml2ResponseValidatorResult
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
@@ -52,7 +51,6 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
 import org.springframework.security.web.util.matcher.AnyRequestMatcher
 import org.springframework.util.CollectionUtils
-import org.springframework.util.StringUtils
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.filter.CorsFilter
@@ -98,33 +96,8 @@ class SecurityConfiguration(
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         val withHttpOnlyFalse = CookieCsrfTokenRepository.withHttpOnlyFalse()
         val authenticationProvider = OpenSaml4AuthenticationProvider()
-        authenticationProvider.setAssertionValidator(
-            OpenSaml4AuthenticationProvider.createDefaultAssertionValidator {
-                val relyingPartyRegistration: RelyingPartyRegistration =
-                    it.token.relyingPartyRegistration
-                val audience = relyingPartyRegistration.entityId
-                val recipient = relyingPartyRegistration.assertionConsumerServiceLocation
-                val assertingPartyEntityId =
-                    relyingPartyRegistration.assertingPartyMetadata.entityId
-                val params: MutableMap<String, Any> = HashMap()
-                if (assertionContainsInResponseTo(it.assertion)) {
-                    val requestId = it.token.authenticationRequest.id
-                    params[SAML2AssertionValidationParameters.SC_VALID_IN_RESPONSE_TO] = requestId
-                }
-                params[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] =
-                    setOf(
-                        if (audience.contains("haka")) audience.substring(
-                            0,
-                            audience.indexOf("haka")
-                        ) + "haka"; else audience
-                    )
-                params[SAML2AssertionValidationParameters.SC_VALID_RECIPIENTS] =
-                    setOf(recipient)
-                params[SAML2AssertionValidationParameters.VALID_ISSUERS] =
-                    setOf(assertingPartyEntityId)
-                ValidationContext(params)
-            }
-        )
+
+        authenticationProvider.setAssertionValidator(createAssertionValidator())
         authenticationProvider.setResponseAuthenticationConverter(authenticationConverter())
         withHttpOnlyFalse.setCookieCustomizer { c -> c.domain(applicationProperties.getCsrf().cookie.domain) }
         val requestHandler = CsrfTokenRequestAttributeHandler()
@@ -589,16 +562,21 @@ class SecurityConfiguration(
         }
     }
 
-    private fun assertionContainsInResponseTo(assertion: Assertion): Boolean {
-        if (assertion.subject == null) {
-            return false
-        }
-        for (confirmation in assertion.subject.subjectConfirmations) {
-            val confirmationData = confirmation.subjectConfirmationData ?: continue
-            if (StringUtils.hasText(confirmationData.inResponseTo)) {
-                return true
+    private fun createAssertionValidator(): Converter<OpenSaml4AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> {
+        return Converter { assertionToken ->
+            val relyingPartyRegistration: RelyingPartyRegistration = assertionToken.token.relyingPartyRegistration
+            val audience = relyingPartyRegistration.entityId
+            val validAudiences = setOf(
+                if (audience.contains("haka")) audience.substring(
+                    0,
+                    audience.indexOf("haka")
+                ) + "haka"; else audience
+            )
+
+            val validator = OpenSaml4AuthenticationProvider.createDefaultAssertionValidatorWithParameters {
+                it.put(SAML2AssertionValidationParameters.COND_VALID_AUDIENCES, validAudiences)
             }
+            validator.convert(assertionToken)
         }
-        return false
     }
 }
