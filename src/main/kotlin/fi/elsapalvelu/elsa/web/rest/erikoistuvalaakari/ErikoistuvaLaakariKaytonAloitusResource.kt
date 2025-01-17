@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.service.OpintooikeusService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.KaytonAloitusDTO
@@ -49,8 +52,14 @@ class ErikoistuvaLaakariKaytonAloitusResource(
         }
 
         opintooikeusId?.let { id ->
-            if (validOpintooikeudet.find { it.id == id } == null) {
+            val validOikeus = validOpintooikeudet.find { it.id == id }
+            if (validOikeus == null) {
                 throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+            }
+            if (validOikeus.erikoisalaId == YEK_ERIKOISALA_ID) {
+                userService.updateRooli(YEK_KOULUTETTAVA, user.id!!)
+            } else {
+                userService.updateRooli(ERIKOISTUVA_LAAKARI, user.id!!)
             }
             opintooikeusService.setOpintooikeusKaytossa(user.id!!, id)
         }
