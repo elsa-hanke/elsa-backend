@@ -402,7 +402,7 @@ class SecurityConfiguration(
         }
 
         if (existingUser == null) {
-            log.error(
+            log.warn(
                 "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
                     "Käyttäjällä ei ole käyttöoikeutta."
             )
