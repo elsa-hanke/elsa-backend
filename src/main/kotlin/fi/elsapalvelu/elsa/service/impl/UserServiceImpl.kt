@@ -179,10 +179,14 @@ class UserServiceImpl(
                 )
 
                 copyTokenUserAuthorities(existingUser, tokenUser)
-                existingUser.email = tokenUser.email?.lowercase()
+                val tokenUserMail = tokenUser.email?.lowercase()
                 copyTokenUserYliopistotAndErikoisalat(tokenKayttaja, existingKayttaja)
                 deleteTokenUser(tokenKayttaja, token, tokenUser)
                 kayttajaRepository.save(existingKayttaja)
+
+                if (existingUser.email == null) {
+                    existingUser.email = tokenUserMail
+                }
                 userRepository.save(existingUser)
             } else {
                 cipher.init(Cipher.ENCRYPT_MODE, originalKey)
