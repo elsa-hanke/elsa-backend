@@ -639,7 +639,7 @@ class OpintotietodataPersistenceServiceImpl(
         opintooikeudenTila: OpintooikeudenTila?, yliopisto: YliopistoEnum, userId: String
     ): OpintooikeudenTila? {
         return opintooikeudenTila ?: run {
-            log.error(
+            log.warn(
                 "$yliopisto, user id: $userId. Opinto-oikeuden tilaa ei ole asetettu."
             )
             return null
