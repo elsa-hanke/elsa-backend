@@ -601,7 +601,7 @@ class OpintotietodataPersistenceServiceImpl(
                 erikoisalaRepository.findOneByVirtaPatevyyskoodi(it)
             }
             return erikoisalat.takeIf { it.size == 1 }?.first() ?: run {
-                log.error(
+                log.warn(
                     "$yliopisto, user id: $userId. Yhtäkään erikoisalaa ei löytynyt Elsan tietokannasta tai erikoisaloja " +
                         "oli enemmän kuin yksi per opinto-oikeus. Erikoisalat: $erikoisalaTunnisteList"
                 )
