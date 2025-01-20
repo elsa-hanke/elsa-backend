@@ -224,7 +224,7 @@ class OpintosuorituksetPersistenceServiceImpl(
 
     private fun checkKurssikoodiExistsOrLogError(opintosuoritusDTO: OpintosuoritusDTO, userId: String): String? =
         opintosuoritusDTO.kurssikoodi ?: run {
-            log.error(
+            log.warn(
                 "${javaClass.name}: user id: $userId. Kurssikoodia ei ole asetettu" +
                     " opintosuoritukselle $opintosuoritusDTO"
             )
@@ -236,7 +236,7 @@ class OpintosuorituksetPersistenceServiceImpl(
         userId: String
     ): String? =
         osakokonaisuusDTO.kurssikoodi ?: run {
-            log.error(
+            log.warn(
                 "${javaClass.name}: user id: $userId. Kurssikoodia ei ole asetettu" +
                     " opintosuorituksen osakokonaisuudelle $osakokonaisuusDTO"
             )
@@ -248,7 +248,7 @@ class OpintosuorituksetPersistenceServiceImpl(
         opintosuoritusDTO: OpintosuoritusDTO,
         userId: String
     ): String? = opintosuoritusDTO.nimi_fi ?: run {
-        log.error(
+        log.warn(
             "${javaClass.name}: user id: $userId. Nimeä (fi) ei ole asetettu" +
                 " opintosuoritukselle $opintosuoritusDTO"
         )
@@ -259,7 +259,7 @@ class OpintosuorituksetPersistenceServiceImpl(
         opintosuoritusDTO: OpintosuoritusDTO,
         userId: String
     ): LocalDate? = opintosuoritusDTO.suorituspaiva ?: run {
-        log.error(
+        log.warn(
             "${javaClass.name}: user id: $userId. Kelvollista suorituspäivämäärää ei ole asetettu" +
                 " opintosuoritukselle $opintosuoritusDTO"
         )
@@ -272,7 +272,7 @@ class OpintosuorituksetPersistenceServiceImpl(
         osakokonaisuusDTO: OpintosuoritusOsakokonaisuusDTO,
         userId: String,
     ): String? = osakokonaisuusDTO.nimi_fi ?: run {
-        log.error(
+        log.warn(
             "${javaClass.name}: user id: $userId. Nimeä (fi) ei ole asetettu opintosuorituksen" +
                 " osakokonaisuudelle $osakokonaisuusDTO"
         )
@@ -283,7 +283,7 @@ class OpintosuorituksetPersistenceServiceImpl(
         osakokonaisuusDTO: OpintosuoritusOsakokonaisuusDTO,
         userId: String
     ): LocalDate? = osakokonaisuusDTO.suorituspaiva ?: run {
-        log.error(
+        log.warn(
             "${javaClass.name}: user id: $userId. Kelvollista suorituspäivämäärää ei ole asetettu" +
                 " opintosuorituksen osakokonaisuudelle $osakokonaisuusDTO"
         )
@@ -295,7 +295,7 @@ class OpintosuorituksetPersistenceServiceImpl(
         userId: String
     ): String? =
         opintosuoritusDTO.yliopistoOpintooikeusId ?: run {
-            log.error(
+            log.warn(
                 "${javaClass.name}: user id: $userId. Opinto-oikeus id:tä ei ole asetettu" +
                     " opintosuoritukselle $opintosuoritusDTO."
             )
@@ -307,7 +307,7 @@ class OpintosuorituksetPersistenceServiceImpl(
         userId: String
     ): Boolean? =
         opintosuoritusDTO.hyvaksytty ?: run {
-            log.error(
+            log.warn(
                 "${javaClass.name}: user id: $userId. Arviota (hyväksytty/hylätty) ei ole asetettu " +
                     "opintosuoritukselle $opintosuoritusDTO."
             )
@@ -319,7 +319,7 @@ class OpintosuorituksetPersistenceServiceImpl(
         userId: String
     ): Boolean? =
         osakokonaisuusDTO.hyvaksytty ?: run {
-            log.error(
+            log.warn(
                 "${javaClass.name}: user id: $userId. Arviota (hyväksytty/hylätty) ei ole asetettu opintosuorituksen" +
                     " osakokonaisuudelle $osakokonaisuusDTO"
             )
