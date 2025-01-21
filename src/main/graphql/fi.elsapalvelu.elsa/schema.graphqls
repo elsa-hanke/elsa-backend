@@ -376,7 +376,7 @@ type RequirementCollection {
 }
 
 type StudyRight {
-  id: ID!
+  id: ID
   acceptedSelectionPath: SelectionPath
   requestedSelectionPath: SelectionPath!
   decreeOnUniversityDegreesUrn: String
