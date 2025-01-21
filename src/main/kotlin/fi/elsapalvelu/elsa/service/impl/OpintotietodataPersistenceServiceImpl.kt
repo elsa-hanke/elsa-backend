@@ -538,7 +538,7 @@ class OpintotietodataPersistenceServiceImpl(
     private fun checkOpintooikeusIdValueExistsOrLogError(
         id: String?, yliopisto: YliopistoEnum, userId: String
     ): String? = id ?: run {
-        log.error("$yliopisto, user id: $userId. Opinto-oikeus id:tä ei ole asetettu.")
+        log.warn("$yliopisto, user id: $userId. Opinto-oikeus id:tä ei ole asetettu.")
         return null
     }
 
