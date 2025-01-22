@@ -1,14 +1,18 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.domain.Authority
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.OpintoopasRepository
+import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.service.OpintooikeusService
 import fi.elsapalvelu.elsa.service.constants.OPINTOOIKEUS_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.OpintooikeusDTO
@@ -30,7 +34,8 @@ class OpintooikeusServiceImpl(
     private val opintooikeusMapper: OpintooikeusMapper,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val clock: Clock,
-    private val opintoopasRepository: OpintoopasRepository
+    private val opintoopasRepository: OpintoopasRepository,
+    private val userRepository: UserRepository
 ) : OpintooikeusService {
     override fun findAllValidByErikoistuvaLaakariKayttajaUserId(userId: String): List<OpintooikeusDTO> {
         return opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
@@ -140,6 +145,13 @@ class OpintooikeusServiceImpl(
             ).elementAtOrNull(0)?.let {
                 opintooikeusKaytossa.kaytossa = false
                 it.kaytossa = true
+
+                if (it.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                    user.activeAuthority = Authority(name = YEK_KOULUTETTAVA)
+                } else {
+                    user.activeAuthority = Authority(name = ERIKOISTUVA_LAAKARI)
+                }
+                userRepository.save(user)
             }
         }
     }
