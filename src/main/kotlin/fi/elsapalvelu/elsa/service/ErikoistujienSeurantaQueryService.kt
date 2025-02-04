@@ -221,7 +221,7 @@ class ErikoistujienSeurantaQueryService(
                         )
                     }
             }
-            specification.and { root, _, cb ->
+            specification = specification.and { root, _, cb ->
                 cb.or(
                     cb.isNull(root.get(Opintooikeus_.viimeinenKatselupaiva)),
                     cb.greaterThanOrEqualTo(
