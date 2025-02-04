@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.LocalDate
+import javax.xml.bind.ValidationException
 
 @Service
 @Transactional
@@ -128,32 +129,16 @@ class OpintooikeusServiceImpl(
         return false
     }
 
-    override fun checkOpintooikeusKaytossaValid(user: User) {
-        val opintooikeusKaytossa =
-            opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(user.id!!)
-                ?: return
-        if ((opintooikeusKaytossa.viimeinenKatselupaiva != null && LocalDate.now()
-                .isAfter(opintooikeusKaytossa.viimeinenKatselupaiva))
-            || opintooikeusKaytossa.tila == OpintooikeudenTila.VANHENTUNUT
-            || opintooikeusKaytossa.erikoisala?.liittynytElsaan == false
-        ) {
-            opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
-                user.id!!,
-                LocalDate.now(clock),
-                OpintooikeudenTila.allowedTilat(),
-                OpintooikeudenTila.endedTilat()
-            ).elementAtOrNull(0)?.let {
-                opintooikeusKaytossa.kaytossa = false
-                it.kaytossa = true
+    override fun checkOpintooikeusAndRoles(user: User) {
+        val validOikeudet = opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
+            user.id!!,
+            LocalDate.now(clock),
+            OpintooikeudenTila.allowedTilat(),
+            OpintooikeudenTila.endedTilat()
+        )
 
-                if (it.erikoisala?.id == YEK_ERIKOISALA_ID) {
-                    user.activeAuthority = Authority(name = YEK_KOULUTETTAVA)
-                } else {
-                    user.activeAuthority = Authority(name = ERIKOISTUVA_LAAKARI)
-                }
-                userRepository.save(user)
-            }
-        }
+        updateRoles(validOikeudet, user)
+        checkOpintooikeusKaytossaValid(validOikeudet, user)
     }
 
     override fun setOpintooikeusKaytossa(userId: String, opintooikeusId: Long) {
@@ -174,14 +159,26 @@ class OpintooikeusServiceImpl(
     }
 
     override fun setAktiivinenOpintooikeusKaytossa(userId: String) {
-        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { erikoistuva ->
-            erikoistuva.opintooikeudet.forEach { opintooikeus ->
-                if (opintooikeus.id == erikoistuva.aktiivinenOpintooikeus) {
-                    opintooikeus.kaytossa = true
-                } else {
-                    opintooikeus.kaytossa = false
-                }
-            }
+        val validOikeudet = opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
+            userId,
+            LocalDate.now(clock),
+            OpintooikeudenTila.allowedTilat(),
+            OpintooikeudenTila.endedTilat())
+            .filter { it.erikoisala?.id != YEK_ERIKOISALA_ID }
+
+        if (validOikeudet.isEmpty()) {
+            throw ValidationException("Käyttäjällä ei ole voimassaolevaa opinto-oikeutta")
+        }
+
+        val aktiivinenOikeus = validOikeudet.firstOrNull { it.id == it.erikoistuvaLaakari?.aktiivinenOpintooikeus }
+
+        val opintoOikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+        opintoOikeudet.forEach { it.kaytossa = false }
+
+        if (aktiivinenOikeus == null) {
+            validOikeudet.first().kaytossa = true
+        } else {
+            aktiivinenOikeus.kaytossa = true
         }
     }
 
@@ -220,5 +217,63 @@ class OpintooikeusServiceImpl(
             return principal.getFirstAttribute("opintooikeusId") as Long
         }
         return null
+    }
+
+    private fun updateRoles(validOikeudet: List<Opintooikeus>, user: User) {
+        val yekOikeus = validOikeudet.map { it.erikoisala?.id }.contains(YEK_ERIKOISALA_ID)
+        val elOikeus = validOikeudet.filter { it.erikoisala?.id != YEK_ERIKOISALA_ID }.isNotEmpty()
+        val authorities = user.authorities
+
+        val elAuthority = authorities.find { it.name == ERIKOISTUVA_LAAKARI }
+        if (!elOikeus && elAuthority != null) {
+            authorities.remove(elAuthority)
+
+            if (user.activeAuthority == elAuthority) {
+                user.activeAuthority = authorities.firstOrNull()
+            }
+        }
+
+        val yekAuthority = authorities.find { it.name == YEK_KOULUTETTAVA }
+        if (!yekOikeus && yekAuthority != null) {
+            authorities.remove(yekAuthority)
+
+            if (user.activeAuthority == yekAuthority) {
+                user.activeAuthority = authorities.firstOrNull()
+            }
+        }
+
+        val elOikeudet = validOikeudet.filter { it.erikoisala?.id != YEK_ERIKOISALA_ID }
+
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)?.let {
+            if (elOikeus && !elOikeudet.map { it.id }.contains(it.aktiivinenOpintooikeus)) {
+                it.aktiivinenOpintooikeus = elOikeudet.first().id
+                erikoistuvaLaakariRepository.save(it)
+            }
+        }
+
+        userRepository.save(user)
+    }
+
+    private fun checkOpintooikeusKaytossaValid(validOikeudet: List<Opintooikeus>, user: User) {
+        val opintooikeusKaytossa =
+            opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(user.id!!)
+                ?: return
+        if ((opintooikeusKaytossa.viimeinenKatselupaiva != null && LocalDate.now()
+                .isAfter(opintooikeusKaytossa.viimeinenKatselupaiva))
+            || opintooikeusKaytossa.tila == OpintooikeudenTila.VANHENTUNUT
+            || opintooikeusKaytossa.erikoisala?.liittynytElsaan == false
+        ) {
+            validOikeudet.elementAtOrNull(0)?.let {
+                opintooikeusKaytossa.kaytossa = false
+                it.kaytossa = true
+
+                if (it.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                    user.activeAuthority = Authority(name = YEK_KOULUTETTAVA)
+                } else {
+                    user.activeAuthority = Authority(name = ERIKOISTUVA_LAAKARI)
+                }
+                userRepository.save(user)
+            }
+        }
     }
 }

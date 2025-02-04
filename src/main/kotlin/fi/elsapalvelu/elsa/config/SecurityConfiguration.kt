@@ -395,8 +395,8 @@ class SecurityConfiguration(
                 fetchAndUpdateOpintotietodataIfChanged(existingUser.id!!, hetu, firstName, lastName)
                 fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id!!, hetu)
 
-                if (hasErikoistuvaLaakariRole(existingUser)) {
-                    opintooikeusService.checkOpintooikeusKaytossaValid(existingUser)
+                if (hasErikoistuvaLaakariRole(existingUser) || hasYekKoulutettavaRole(existingUser)) {
+                    opintooikeusService.checkOpintooikeusAndRoles(existingUser)
                 }
             }
         }

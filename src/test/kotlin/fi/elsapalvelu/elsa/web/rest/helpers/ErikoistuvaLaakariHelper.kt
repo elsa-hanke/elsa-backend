@@ -126,6 +126,7 @@ class ErikoistuvaLaakariHelper {
             em.flush()
 
             erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
+            erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
 
             return erikoistuvaLaakari
         }
