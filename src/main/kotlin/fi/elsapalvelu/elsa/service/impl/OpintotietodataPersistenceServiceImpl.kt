@@ -359,14 +359,20 @@ class OpintotietodataPersistenceServiceImpl(
         )
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 
-        val user = erikoistuvaLaakari.kayttaja?.user
+        val user = erikoistuvaLaakari.kayttaja?.user!!
         val yek = opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
-        if (yek && user?.authorities?.map { it.name }?.contains(YEK_KOULUTETTAVA) == false) {
-            user.authorities.add(Authority(name = YEK_KOULUTETTAVA))
+        if (yek) {
+            if (user.authorities.map { it.name }.contains(YEK_KOULUTETTAVA) == false) {
+                user.authorities.add(Authority(name = YEK_KOULUTETTAVA))
+            }
+
             user.activeAuthority = Authority(name = YEK_KOULUTETTAVA)
             userRepository.save(user)
-        } else if (!yek && user?.authorities?.map { it.name }?.contains(ERIKOISTUVA_LAAKARI) == false) {
-            user.authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
+        } else {
+            if (user.authorities.map { it.name }.contains(ERIKOISTUVA_LAAKARI) == false) {
+                user.authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
+            }
+
             user.activeAuthority = Authority(name = ERIKOISTUVA_LAAKARI)
             userRepository.save(user)
             erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
