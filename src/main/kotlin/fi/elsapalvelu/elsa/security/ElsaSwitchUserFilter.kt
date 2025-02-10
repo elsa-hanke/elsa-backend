@@ -154,10 +154,8 @@ class ElsaSwitchUserFilter(
     ): String? {
         val userId = principal.name
         val kirjautunutKayttaja =
-            kayttajaRepository.findOneByUserIdWithErikoisalat(userId).orElseGet {
-                kayttajaRepository.findOneByUserIdWithYliopistot(userId)
+            kayttajaRepository.findOneByUserIdWithErikoisalat(userId)
                     .orElseThrow { EntityNotFoundException("Käyttäjä ei ole kirjautunut") }
-            }
 
         val authorityNames =
             userRepository.findByIdWithAuthorities(kirjautunutKayttaja.user?.id!!)
