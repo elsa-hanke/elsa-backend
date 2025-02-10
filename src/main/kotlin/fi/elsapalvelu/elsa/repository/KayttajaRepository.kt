@@ -16,11 +16,8 @@ interface KayttajaRepository : JpaRepository<Kayttaja, Long>, JpaSpecificationEx
     @Query("select k from Kayttaja k join fetch k.user u join fetch u.authorities where u.id = :id")
     fun findOneByUserIdWithAuthorities(id: String): Optional<Kayttaja>
 
-    @Query("select k from Kayttaja k join k.user u join fetch k.yliopistotAndErikoisalat ye left join fetch ye.vastuuhenkilonTehtavat where u.id = :id")
+    @Query("select k from Kayttaja k join k.user u left join fetch k.yliopistot left join fetch k.yliopistotAndErikoisalat ye left join fetch ye.vastuuhenkilonTehtavat where u.id = :id")
     fun findOneByUserIdWithErikoisalat(id: String): Optional<Kayttaja>
-
-    @Query("select k from Kayttaja k join k.user u join fetch k.yliopistot where u.id = :id")
-    fun findOneByUserIdWithYliopistot(id: String): Optional<Kayttaja>
 
     fun findOneByUserEmail(email: String): Optional<Kayttaja>
 
