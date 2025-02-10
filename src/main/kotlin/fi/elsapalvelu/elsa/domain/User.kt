@@ -83,8 +83,7 @@ class User(
     @BatchSize(size = 20)
     var authorities: MutableSet<Authority> = mutableSetOf(),
 
-    @NotNull
-    @ManyToOne(optional = false)
+    @ManyToOne
     @NotAudited
     @JoinColumn(name="active_authority")
     var activeAuthority: Authority? = null,
