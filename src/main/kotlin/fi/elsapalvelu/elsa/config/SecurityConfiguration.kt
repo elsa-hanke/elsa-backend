@@ -441,6 +441,11 @@ class SecurityConfiguration(
             kayttajaRepository.save(kayttaja)
         }
 
+        if (existingUser.activeAuthority == null) {
+            existingUser.activeAuthority = existingUser.authorities.first()
+            userRepository.save(existingUser)
+        }
+
         return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal),
             token.saml2Response,
             kayttaja.user?.authorities?.map { SimpleGrantedAuthority(it.name) })
