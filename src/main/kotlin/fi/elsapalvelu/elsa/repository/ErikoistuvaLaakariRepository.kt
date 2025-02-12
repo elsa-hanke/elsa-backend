@@ -21,7 +21,7 @@ interface ErikoistuvaLaakariRepository : JpaRepository<ErikoistuvaLaakari, Long>
     @Query(
         """
         select distinct e from ErikoistuvaLaakari e join fetch e.opintooikeudet o where e.kayttaja.user.id = :userId
-        and :now >= o.opintooikeudenMyontamispaiva
+        and (:now >= o.opintooikeudenMyontamispaiva or o.kaytossa)
         and (o.tila in :validStates or (o.tila in :endedStates and :now <= o.viimeinenKatselupaiva))
         and o.erikoisala.liittynytElsaan = true
         """
