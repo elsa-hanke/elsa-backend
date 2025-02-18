@@ -317,12 +317,12 @@ class ValmistumispyyntoServiceImpl(
                     luoLiitteetPdf(valmistumispyynto)
                     sendMailNotificationHyvaksytty(valmistumispyynto)
                 } else {
+                    luoLiitteetPdf(valmistumispyynto)
+                    luoErikoistujanTiedotPdf(valmistumispyynto)
                     luoYhteenvetoPdf(
                         mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)),
                         valmistumispyynto
                     )
-                    luoLiitteetPdf(valmistumispyynto)
-                    luoErikoistujanTiedotPdf(valmistumispyynto)
                 }
             }
         }
@@ -1435,7 +1435,7 @@ class ValmistumispyyntoServiceImpl(
             try {
                 pdfService.yhdistaAsiakirjat(tyoskentelyjaksot.flatMap { t -> t.asiakirjat }, outputStream)
             } catch (e: Exception) {
-                log.error("Virhe yhdittäessä asiakirjoja valmistumispyynnölle: ${valmistumispyynto.id}", e)
+                log.error("Virhe yhdistäessä asiakirjoja valmistumispyynnölle: ${valmistumispyynto.id}", e)
             }
             val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
