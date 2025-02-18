@@ -4,6 +4,7 @@ import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.NotAudited
 import java.io.Serializable
 import java.time.Instant
 
@@ -20,12 +21,33 @@ data class Arviointityokalu(
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
 
+    @Column(name = "ohjeteksti", nullable = true)
+    var ohjeteksti: String? = null,
+
     @NotNull
     @ManyToOne(optional = true)
     var kayttaja: Kayttaja? = null,
 
     @ManyToOne(optional = false)
     var kategoria: ArviointityokaluKategoria? = null,
+
+    @OneToOne(
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    @JoinColumn(unique = true)
+    var liite: AsiakirjaData? = null,
+
+    @OneToMany(
+        mappedBy = "arviointityokalu_kysymys",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @NotAudited
+    var kysymykset: MutableSet<ArviointityokaluKysymys> = mutableSetOf(),
 
     @NotNull
     @Column(name = "kaytossa")
