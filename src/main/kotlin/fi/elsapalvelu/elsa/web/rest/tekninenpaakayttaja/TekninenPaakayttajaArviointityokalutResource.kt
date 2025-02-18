@@ -1,6 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
 import fi.elsapalvelu.elsa.service.ArviointityokaluService
+import fi.elsapalvelu.elsa.service.KayttajaService
+import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluKategoriaService
 import jakarta.validation.Valid
@@ -13,7 +16,9 @@ import java.security.Principal
 @RequestMapping("/api/tekninen-paakayttaja")
 class TekninenPaakayttajaArviointityokalutResource(
     private val arviointityokaluService: ArviointityokaluService,
-    private val arviointityokaluKategoriaService: ArviointityokaluKategoriaService
+    private val arviointityokaluKategoriaService: ArviointityokaluKategoriaService,
+    private val userService: UserService,
+    private val kayttajaService: KayttajaService,
 ) {
 
     @GetMapping("/arviointityokalut/kategoriat")
@@ -51,6 +56,17 @@ class TekninenPaakayttajaArviointityokalutResource(
     ): ResponseEntity<Void> {
         arviointityokaluKategoriaService.delete(id)
         return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/arviointityokalu")
+    fun createArviointityokalu(
+        @Valid @RequestBody arviointityokaluDTO: ArviointityokaluDTO,
+        principal: Principal?
+    ): ResponseEntity<ArviointityokaluDTO> {
+        val user = userService.getAuthenticatedUser(principal)
+        return ResponseEntity.ok(arviointityokaluService.save(
+            arviointityokaluDTO, user
+        ))
     }
 
 }
