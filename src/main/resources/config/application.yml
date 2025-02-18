@@ -77,6 +77,9 @@ logging:
     org.xnio: WARN
     sun.rmi: WARN
     com.itextpdf.styledxmlparser.css.parse.syntax: OFF
+    com.itextpdf.layout.renderer: OFF
+    com.itextpdf.pdfa.PdfADocument: OFF
+    com.itextpdf.kernel.pdf.PdfReader: OFF
 
 spring:
   application:
