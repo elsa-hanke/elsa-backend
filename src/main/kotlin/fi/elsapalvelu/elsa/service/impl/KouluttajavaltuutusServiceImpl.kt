@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
+import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
@@ -127,13 +128,16 @@ class KouluttajavaltuutusServiceImpl(
     }
 
     override fun lisaaValtuutus(erikoistuvaUserId: String, valtuutettuKayttajaId: Long) {
-        save(
-            erikoistuvaUserId,
-            KouluttajavaltuutusDTO(
-                alkamispaiva = LocalDate.now(),
-                paattymispaiva = LocalDate.now().plusMonths(6),
-                valtuutettu = KayttajaDTO(id = valtuutettuKayttajaId)
+        val valtuutettuKayttaja = kayttajaRepository.findById(valtuutettuKayttajaId).orElse(null)
+        if (valtuutettuKayttaja?.user?.authorities?.map { it.name }?.contains(KOULUTTAJA) == true) {
+            save(
+                erikoistuvaUserId,
+                KouluttajavaltuutusDTO(
+                    alkamispaiva = LocalDate.now(),
+                    paattymispaiva = LocalDate.now().plusMonths(6),
+                    valtuutettu = KayttajaDTO(id = valtuutettuKayttajaId)
+                )
             )
-        )
+        }
     }
 }
