@@ -33,11 +33,11 @@ class PdfServiceImpl(
     @Value("classpath:sRGB_CS_profile.icm")
     var colorProfile: Resource? = null
 
-    @Value("classpath:times-bold.ttf")
-    var timesNewFontBold: Resource? = null
+    @Value("classpath:LiberationSerif-Bold.ttf")
+    var liberationSerifFontBold: Resource? = null
 
-    @Value("classpath:times-roman.ttf")
-    var timesNewFont: Resource? = null
+    @Value("classpath:LiberationSerif-Regular.ttf")
+    var liberationSerifFont: Resource? = null
 
     override fun luoPdf(template: String, context: Context, outputStream: OutputStream) {
         val content = templateEngine.process(template, context)
@@ -50,8 +50,8 @@ class PdfServiceImpl(
             )
         )
         val provider = FontProvider()
-        provider.addFont(timesNewFont?.file?.absolutePath)
-        provider.addFont(timesNewFontBold?.file?.absolutePath)
+        provider.addFont(liberationSerifFont?.file?.absolutePath)
+        provider.addFont(liberationSerifFontBold?.file?.absolutePath)
 
         val properties = ConverterProperties()
         properties.fontProvider = provider
