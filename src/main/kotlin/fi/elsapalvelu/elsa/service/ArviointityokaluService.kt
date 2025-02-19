@@ -19,4 +19,6 @@ interface ArviointityokaluService {
 
     fun delete(id: Long)
 
+    fun update(arviointityokaluDTO: ArviointityokaluDTO): ArviointityokaluDTO?
+
 }
