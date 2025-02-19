@@ -40,7 +40,7 @@ data class Arviointityokalu(
     var liite: AsiakirjaData? = null,
 
     @OneToMany(
-        mappedBy = "arviointityokalu_kysymys",
+        mappedBy = "arviointityokalu",
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
         fetch = FetchType.LAZY
@@ -75,7 +75,9 @@ data class Arviointityokalu(
     override fun toString() = "Arviointityokalu{" +
         "id=$id" +
         ", nimi='$nimi'" +
+        ", ohjeteksti='$ohjeteksti'" +
         ", kayttaja='$kayttaja'" +
+        ", kaytossa='$kaytossa'" +
         ", luontiaika='$luontiaika'" +
         ", muokkausaika='$muokkausaika'" +
         "}"

@@ -275,6 +275,8 @@
     <include file="config/liquibase/changelog/20240627153400_modify_entity_OpintosuoritusTyyppi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20241007134300_modify_entity_ErikoistuvaLaakari.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20250106143021_modify_entity_Arviointityokalu.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20250206143021_modify_entity_Arviointityokalu.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20250219090710_modify_entity_Arviointityokalu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20250221131800_modify_entity_Opintooikeus.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

@@ -34,7 +34,7 @@ data class ArviointityokaluKysymys(
     var arviointityokalu: Arviointityokalu? = null,
 
     @OneToMany(
-        mappedBy = "arviointityokaluKysymysVaihtoehto",
+        mappedBy = "arviointityokaluKysymys",
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
         fetch = FetchType.LAZY
@@ -62,6 +62,7 @@ data class ArviointityokaluKysymys(
         ", otsikko='$otsikko'" +
         ", pakollinen='$pakollinen'" +
         ", tyyppi='$tyyppi'" +
+        ", jarjestysnumero='$jarjestysnumero'" +
         "}"
 
     companion object {
