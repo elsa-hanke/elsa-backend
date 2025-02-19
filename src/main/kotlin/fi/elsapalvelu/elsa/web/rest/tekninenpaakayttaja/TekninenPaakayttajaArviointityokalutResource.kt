@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
 import fi.elsapalvelu.elsa.service.ArviointityokaluService
-import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
@@ -18,7 +17,6 @@ class TekninenPaakayttajaArviointityokalutResource(
     private val arviointityokaluService: ArviointityokaluService,
     private val arviointityokaluKategoriaService: ArviointityokaluKategoriaService,
     private val userService: UserService,
-    private val kayttajaService: KayttajaService,
 ) {
 
     @GetMapping("/arviointityokalut/kategoriat")
@@ -67,6 +65,36 @@ class TekninenPaakayttajaArviointityokalutResource(
         return ResponseEntity.ok(arviointityokaluService.save(
             arviointityokaluDTO, user
         ))
+    }
+
+    @GetMapping("/arviointityokalut")
+    fun getArviointityokalut(): ResponseEntity<List<ArviointityokaluDTO>> {
+        return ResponseEntity.ok(arviointityokaluService.findAll())
+    }
+
+    @GetMapping("/arviointityokalu/{id}")
+    fun getArviointityokalu(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<ArviointityokaluDTO> {
+        val arviointityokaluDTO = arviointityokaluService.findOne(id)
+        return ResponseUtil.wrapOrNotFound(arviointityokaluDTO)
+    }
+
+    @PatchMapping("/arviointityokalu")
+    fun updateArviointityokalu(
+        @Valid @RequestBody arviointityokaluDTO: ArviointityokaluDTO
+    ): ResponseEntity<ArviointityokaluDTO> {
+        return ResponseEntity.ok(arviointityokaluService.update(arviointityokaluDTO))
+    }
+
+    @DeleteMapping("/arviointityokalu/{id}")
+    fun deleteArviointityokalu(
+        @PathVariable id: Long,
+        principal: Principal?
+    ): ResponseEntity<Void> {
+        arviointityokaluService.delete(id)
+        return ResponseEntity.noContent().build()
     }
 
 }

@@ -12,4 +12,7 @@ interface ArviointityokaluRepository : JpaRepository<Arviointityokalu, Long> {
     fun findAllByKayttajaIsNullOrKayttajaUserId(id: String): List<Arviointityokalu>
 
     fun findAllByIdIn(ids: List<Long?>): MutableSet<Arviointityokalu>?
+
+    fun findAllByKaytossaTrue(): List<Arviointityokalu>
+
 }
