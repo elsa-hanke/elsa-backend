@@ -67,7 +67,15 @@ class ArviointityokaluServiceImpl(
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<ArviointityokaluDTO> {
         return arviointityokaluRepository.findById(id)
-            .map(arviointityokaluMapper::toDto)
+            .map { arviointityokalu ->
+                arviointityokalu.kysymykset = arviointityokalu.kysymykset
+                    .sortedBy { it.jarjestysnumero }
+                    .map { kysymys ->
+                        kysymys.vaihtoehdot = kysymys.vaihtoehdot.sortedBy { it.id }.toMutableSet()
+                        kysymys
+                    }.toMutableSet()
+                arviointityokaluMapper.toDto(arviointityokalu)
+            }
     }
 
     override fun delete(id: Long) {
