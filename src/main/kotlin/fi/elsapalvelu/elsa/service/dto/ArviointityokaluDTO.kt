@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.domain.ArviointityokaluKategoria
 import jakarta.validation.constraints.NotNull
 import java.io.Serializable
 
@@ -12,10 +13,10 @@ data class ArviointityokaluDTO(
 
     var ohjeteksti: String? = null,
 
-    var kategoriaId: Long? = null,
+    var kategoria: ArviointityokaluKategoria? = null,
 
     var kysymykset: List<ArviointityokaluKysymysDTO>? = listOf(),
 
-) : Serializable {
+    ) : Serializable {
     override fun toString() = "ArviointityokaluDTO"
 }
