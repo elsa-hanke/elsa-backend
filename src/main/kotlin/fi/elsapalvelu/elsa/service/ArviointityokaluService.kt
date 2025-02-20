@@ -2,14 +2,21 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
+import org.springframework.web.multipart.MultipartFile
 import java.util.*
 
 interface ArviointityokaluService {
 
     fun save(
         arviointityokaluDTO: ArviointityokaluDTO,
-        user: UserDTO
+        user: UserDTO,
+        liiteData: MultipartFile?
     ): ArviointityokaluDTO
+
+    fun update(
+        arviointityokaluDTO: ArviointityokaluDTO,
+        liiteData: MultipartFile?
+    ): ArviointityokaluDTO?
 
     fun findAll(): List<ArviointityokaluDTO>
 
@@ -19,6 +26,5 @@ interface ArviointityokaluService {
 
     fun delete(id: Long)
 
-    fun update(arviointityokaluDTO: ArviointityokaluDTO): ArviointityokaluDTO?
 
 }

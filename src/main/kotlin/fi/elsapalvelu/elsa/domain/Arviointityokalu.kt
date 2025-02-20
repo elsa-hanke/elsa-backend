@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
+import fi.elsapalvelu.elsa.domain.enumeration.ArviointityokalunTila
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
@@ -39,6 +40,12 @@ data class Arviointityokalu(
     @JoinColumn(unique = true)
     var liite: AsiakirjaData? = null,
 
+    @Column(name = "liitetiedoston_nimi")
+    var liitetiedostonNimi: String? = null,
+
+    @Column(name = "liitetiedoston_tyyppi")
+    var liitetiedostonTyyppi: String? = null,
+
     @OneToMany(
         mappedBy = "arviointityokalu",
         cascade = [CascadeType.ALL],
@@ -52,6 +59,11 @@ data class Arviointityokalu(
     @NotNull
     @Column(name = "kaytossa")
     var kaytossa: Boolean = true,
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tila")
+    var tila: ArviointityokalunTila? = null,
 
     @get: NotNull
     @Column(name = "luontiaika", nullable = false)

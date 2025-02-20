@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.ArviointityokaluKysymys
 import fi.elsapalvelu.elsa.domain.ArviointityokaluKysymysVaihtoehto
+import fi.elsapalvelu.elsa.domain.AsiakirjaData
 import fi.elsapalvelu.elsa.repository.ArviointityokaluKategoriaRepository
 import fi.elsapalvelu.elsa.repository.ArviointityokaluRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
@@ -13,6 +14,7 @@ import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluKysymysVaihtoehtoMappe
 import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 import java.time.Instant
 import java.util.*
 
@@ -27,10 +29,10 @@ class ArviointityokaluServiceImpl(
     private val kayttajaRepository: KayttajaRepository
 ) : ArviointityokaluService {
 
-
     override fun save(
         arviointityokaluDTO: ArviointityokaluDTO,
-        user: UserDTO
+        user: UserDTO,
+        liiteData: MultipartFile?
     ): ArviointityokaluDTO {
         var arviointityokalu = arviointityokaluMapper.toEntity(arviointityokaluDTO)
         val now = Instant.now()
@@ -48,41 +50,19 @@ class ArviointityokaluServiceImpl(
                 vaihtoehto.arviointityokaluKysymys = kysymys
             }
         }
+        if (liiteData != null) {
+            arviointityokalu.liite = AsiakirjaData(data = liiteData.bytes)
+            arviointityokalu.liitetiedostonNimi = liiteData.originalFilename
+            arviointityokalu.liitetiedostonTyyppi = liiteData.contentType
+        }
         arviointityokalu = arviointityokaluRepository.save(arviointityokalu)
         return arviointityokaluMapper.toDto(arviointityokalu)
     }
 
-
-    @Transactional(readOnly = true)
-    override fun findAll(): List<ArviointityokaluDTO> {
-        return arviointityokaluRepository.findAllByKaytossaTrue()
-            .map(arviointityokaluMapper::toDto)
-    }
-
-    override fun findAllByKayttajaUserId(userId: String): MutableList<ArviointityokaluDTO> {
-        return arviointityokaluRepository.findAllByKayttajaIsNullOrKayttajaUserId(userId)
-            .mapTo(mutableListOf(), arviointityokaluMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
-    override fun findOne(id: Long): Optional<ArviointityokaluDTO> {
-        return arviointityokaluRepository.findById(id)
-            .map { arviointityokalu ->
-                arviointityokalu.kysymykset = arviointityokalu.kysymykset
-                    .sortedBy { it.jarjestysnumero }
-                    .map { kysymys ->
-                        kysymys.vaihtoehdot = kysymys.vaihtoehdot.sortedBy { it.id }.toMutableSet()
-                        kysymys
-                    }.toMutableSet()
-                arviointityokaluMapper.toDto(arviointityokalu)
-            }
-    }
-
-    override fun delete(id: Long) {
-        arviointityokaluRepository.deleteById(id)
-    }
-
-    override fun update(arviointityokaluDTO: ArviointityokaluDTO): ArviointityokaluDTO? {
+    override fun update(
+        arviointityokaluDTO: ArviointityokaluDTO,
+        liiteData: MultipartFile?
+    ): ArviointityokaluDTO? {
         return arviointityokaluRepository.findById(arviointityokaluDTO.id!!)
             .orElse(null)?.let { arviointityokalu ->
                 arviointityokalu.nimi = arviointityokaluDTO.nimi
@@ -115,10 +95,44 @@ class ArviointityokaluServiceImpl(
                 }
                 arviointityokalu.kysymykset.clear()
                 arviointityokalu.kysymykset.addAll(updatedKysymykset)
-                // arviointityokalu.liite = todo
+                if (liiteData != null) {
+                    arviointityokalu.liite = AsiakirjaData(data = liiteData.bytes)
+                    arviointityokalu.liitetiedostonNimi = liiteData.originalFilename
+                    arviointityokalu.liitetiedostonTyyppi = liiteData.contentType
+                }
                 arviointityokalu.muokkausaika = Instant.now()
                 val result = arviointityokaluRepository.save(arviointityokalu)
                 arviointityokaluMapper.toDto(result)
             }
     }
+
+    @Transactional(readOnly = true)
+    override fun findAll(): List<ArviointityokaluDTO> {
+        return arviointityokaluRepository.findAllByKaytossaTrue()
+            .map(arviointityokaluMapper::toDto)
+    }
+
+    override fun findAllByKayttajaUserId(userId: String): MutableList<ArviointityokaluDTO> {
+        return arviointityokaluRepository.findAllByKayttajaIsNullOrKayttajaUserId(userId)
+            .mapTo(mutableListOf(), arviointityokaluMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findOne(id: Long): Optional<ArviointityokaluDTO> {
+        return arviointityokaluRepository.findById(id)
+            .map { arviointityokalu ->
+                arviointityokalu.kysymykset = arviointityokalu.kysymykset
+                    .sortedBy { it.jarjestysnumero }
+                    .map { kysymys ->
+                        kysymys.vaihtoehdot = kysymys.vaihtoehdot.sortedBy { it.id }.toMutableSet()
+                        kysymys
+                    }.toMutableSet()
+                arviointityokaluMapper.toDto(arviointityokalu)
+            }
+    }
+
+    override fun delete(id: Long) {
+        arviointityokaluRepository.deleteById(id)
+    }
+
 }
