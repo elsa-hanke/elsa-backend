@@ -69,4 +69,14 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="20250219090710-4" author="jhipster">
+        <addColumn tableName="arviointityokalu">
+            <column name="liitetiedoston_nimi" type="TEXT"/>
+            <column name="liitetiedoston_tyyppi" type="TEXT"/>
+            <column name="tila" type="varchar(50)" value="LUONNOS">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
