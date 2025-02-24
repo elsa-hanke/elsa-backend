@@ -17,7 +17,7 @@ class OpintooikeusHelper {
         const val DEFAULT_ASETUS = "55/2020"
         private const val DEFAULT_OPISKELIJATUNNUS = "CCCCCCCCCC"
         private val DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
-        private val DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(20L)
+        private val DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA: LocalDate = LocalDate.now().plusYears(2)
 
         @JvmStatic
         fun addOpintooikeusForErikoistuvaLaakari(
@@ -60,7 +60,7 @@ class OpintooikeusHelper {
                 asetus = asetus,
                 kaytossa = false,
                 tila = tila,
-                viimeinenKatselupaiva = viimeinenKatselupaiva
+                viimeinenKatselupaiva = viimeinenKatselupaiva ?: paattymispaiva.plusMonths(6)
             )
             em.persist(opintooikeus)
             em.flush()
@@ -120,7 +120,7 @@ class OpintooikeusHelper {
                 asetus = asetus,
                 kaytossa = false,
                 tila = tila,
-                viimeinenKatselupaiva = viimeinenKatselupaiva
+                viimeinenKatselupaiva = viimeinenKatselupaiva ?: paattymispaiva.plusMonths(6)
             )
             em.persist(opintooikeus)
             em.flush()

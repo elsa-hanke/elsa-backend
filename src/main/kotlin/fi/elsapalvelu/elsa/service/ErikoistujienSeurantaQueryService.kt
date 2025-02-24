@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
@@ -87,28 +86,16 @@ class ErikoistujienSeurantaQueryService(
         criteria: ErikoistujanEteneminenCriteria?,
         pageable: Pageable,
         langkey: String?,
-        yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisala> = mutableSetOf(),
-        validStates: List<OpintooikeudenTila>,
-        endedStates: List<OpintooikeudenTila>,
+        yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisala> = mutableSetOf()
     ): Page<Opintooikeus> {
         val specification = createSpecification(criteria) { root, _, cb ->
             val user: Join<Kayttaja, User> = root.join(Opintooikeus_.erikoistuvaLaakari)
                 .join(ErikoistuvaLaakari_.kayttaja)
                 .join(Kayttaja_.user)
 
-            val validStatesExpression = root.get(Opintooikeus_.tila)
-            val endedStatesExpression = root.get(Opintooikeus_.tila)
-
             val myontamispaivaPredicate = cb.lessThanOrEqualTo(
                 root.get(Opintooikeus_.opintooikeudenMyontamispaiva),
                 LocalDate.now()
-            )
-            val tilaPredicate = cb.or(
-                validStatesExpression.`in`(validStates),
-                cb.and(
-                    endedStatesExpression.`in`(endedStates),
-                    cb.lessThanOrEqualTo(root.get(Opintooikeus_.viimeinenKatselupaiva), LocalDate.now())
-                )
             )
             val orPredicates = yliopistotAndErikoisalat.map { ye ->
                 if (criteria?.erikoisalaId?.equals == YEK_ERIKOISALA_ID && ye.vastuuhenkilonTehtavat.any {
@@ -129,9 +116,9 @@ class ErikoistujienSeurantaQueryService(
 
             if (criteria?.nimi != null) {
                 val nimiPredicate = criteria.nimi.toNimiPredicate(user, cb, langkey)
-                cb.and(myontamispaivaPredicate, combinedOrPredicate, tilaPredicate, nimiPredicate)
+                cb.and(myontamispaivaPredicate, combinedOrPredicate, nimiPredicate)
             } else {
-                cb.and(myontamispaivaPredicate, combinedOrPredicate, tilaPredicate)
+                cb.and(myontamispaivaPredicate, combinedOrPredicate)
             }
         }
         val existingSort = pageable.sort
@@ -145,9 +132,7 @@ class ErikoistujienSeurantaQueryService(
     fun findByKouluttajaValtuutus(
         criteria: ErikoistujanEteneminenCriteria?,
         pageable: Pageable,
-        kayttajaId: Long,
-        validStates: List<OpintooikeudenTila>,
-        endedStates: List<OpintooikeudenTila>,
+        kayttajaId: Long
     ): Page<Opintooikeus> {
         val specification = createSpecification(criteria) { root, _, cb ->
             val annetutValtuutukset: Join<Opintooikeus?, Kouluttajavaltuutus> =
@@ -156,13 +141,6 @@ class ErikoistujienSeurantaQueryService(
             val myontamispaivaPredicate = cb.lessThanOrEqualTo(
                 root.get(Opintooikeus_.opintooikeudenMyontamispaiva),
                 LocalDate.now()
-            )
-            val tilaPredicate = cb.or(
-                root.get(Opintooikeus_.tila).`in`(validStates),
-                cb.and(
-                    root.get(Opintooikeus_.tila).`in`(endedStates),
-                    cb.lessThanOrEqualTo(root.get(Opintooikeus_.viimeinenKatselupaiva), LocalDate.now())
-                )
             )
             val valtuutettuIdPredicate = cb.equal(
                 annetutValtuutukset.get(Kouluttajavaltuutus_.valtuutettu)
@@ -177,7 +155,7 @@ class ErikoistujienSeurantaQueryService(
                 LocalDate.now()
             )
             val dateBetweenPredicate = cb.and(alkamispaivaPredicate, paattymispaivaPredicate)
-            cb.and(myontamispaivaPredicate, tilaPredicate, valtuutettuIdPredicate, dateBetweenPredicate)
+            cb.and(myontamispaivaPredicate, valtuutettuIdPredicate, dateBetweenPredicate)
         }
         val existingSort = pageable.sort
         val sortById = Sort.by(Sort.Order.asc(Opintooikeus_.ID))
@@ -222,12 +200,9 @@ class ErikoistujienSeurantaQueryService(
                     }
             }
             specification = specification.and { root, _, cb ->
-                cb.or(
-                    cb.isNull(root.get(Opintooikeus_.viimeinenKatselupaiva)),
-                    cb.greaterThanOrEqualTo(
-                        root.get(Opintooikeus_.viimeinenKatselupaiva),
-                        LocalDate.now()
-                    )
+                cb.greaterThanOrEqualTo(
+                    root.get(Opintooikeus_.viimeinenKatselupaiva),
+                    LocalDate.now()
                 )
             }
         }
