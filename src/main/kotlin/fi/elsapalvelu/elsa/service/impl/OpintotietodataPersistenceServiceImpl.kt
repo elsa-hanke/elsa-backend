@@ -183,9 +183,10 @@ class OpintotietodataPersistenceServiceImpl(
     private fun filterOpintooikeudetByVoimassaDate(opintooikeudet: List<OpintotietoOpintooikeusDataDTO>):
         List<OpintotietoOpintooikeusDataDTO> =
         opintooikeudet.filter {
-            it.opintooikeudenPaattymispaiva == null || !it.opintooikeudenPaattymispaiva!!.isBefore(
-                LocalDate.now(clock)
-            )
+            (it.opintooikeudenPaattymispaiva == null
+            || !it.opintooikeudenPaattymispaiva!!.isBefore(LocalDate.now(clock)))
+            && (it.opintooikeudenAlkamispaiva == null
+            || !it.opintooikeudenAlkamispaiva!!.isAfter(LocalDate.now(clock)))
         }
 
     private fun checkOpintooikeudetAmount(
@@ -550,7 +551,14 @@ class OpintotietodataPersistenceServiceImpl(
 
     private fun checkOpintooikeudenAlkamispaivaValidDateExistsOrLogError(
         alkamispaiva: LocalDate?, yliopisto: YliopistoEnum, userId: String
-    ): LocalDate? = alkamispaiva ?: run {
+    ): LocalDate? = alkamispaiva?.let {
+        if (LocalDate.now(clock) >= alkamispaiva) {
+            return alkamispaiva
+        } else {
+            log.warn("$yliopisto, user id: $userId. Opinto-oikeus ei ole vielä alkanut.")
+            return null
+        }
+    } ?: run {
         log.error("$yliopisto, user id: $userId. Opinto-oikeuden alkamispäivää ei ole asetettu.")
         return null
     }
