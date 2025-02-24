@@ -507,6 +507,7 @@ class SecurityConfiguration(
                         )
                     }
                 } catch (ex: Exception) {
+                    if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
                     log.error("Virhe opintotietodatan haussa tai tallentamisessa: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
                 }
             }

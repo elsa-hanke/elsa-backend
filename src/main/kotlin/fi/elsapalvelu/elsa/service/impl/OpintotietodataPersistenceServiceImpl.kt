@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.config.LoginException
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
@@ -67,6 +68,12 @@ class OpintotietodataPersistenceServiceImpl(
             }.flatten())
 
         if (filteredOpintotietodataOpintooikeudet.isEmpty()) {
+            // Etsitään, jos jokin opinto-oikeus on alkamassa tulevaisuudessa
+            opintotietodataDTOs.map { dto ->
+                dto.opintooikeudet?.map {
+                    if (it.opintooikeudenAlkamispaiva?.isAfter(LocalDate.now(clock)) != false) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
+                }
+            }
             log.info("Voimassaolevia opinto-oikeuksia ei löytynyt käyttäjälle $etunimi $sukunimi")
             return
         }
