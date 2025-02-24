@@ -22,7 +22,7 @@ class ErikoistuvaLaakariHelper {
         val DEFAULT_ASETUS = "55/2020"
         val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
         val DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
-        val DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(20L)
+        val DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA: LocalDate = LocalDate.now().plusYears(2)
         val DEFAULT_LAILLISTAMISPAIVA: LocalDate = LocalDate.ofEpochDay(15L)
         val DEFAULT_LAILLISTAMISTODISTUS_DATA = byteArrayOf(0x2E, 0x38)
         val DEFAULT_LAILLISTAMISTODISTUS_DATA_AS_STRING = "Ljg="
@@ -112,6 +112,7 @@ class ErikoistuvaLaakariHelper {
                 yliopistoOpintooikeusId = yliopistoOpintooikeusId,
                 opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
                 opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
+                viimeinenKatselupaiva = opintooikeudenPaattymispaiva?.plusMonths(6),
                 opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
                 osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA,
                 erikoistuvaLaakari = erikoistuvaLaakari,

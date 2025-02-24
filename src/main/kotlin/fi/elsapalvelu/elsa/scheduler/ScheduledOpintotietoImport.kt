@@ -2,10 +2,8 @@ package fi.elsapalvelu.elsa.scheduler
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.impl.OpintooikeusServiceImpl
 import kotlinx.coroutines.*
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
@@ -13,7 +11,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.time.Duration
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import javax.crypto.Cipher
@@ -47,10 +44,7 @@ class ScheduledOpintotietoImport(
         val opintosuoritusServices =
             opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
                 .associateBy { it.getYliopisto() }
-        val now = LocalDate.now()
-        opintooikeusRepository.findAllValid(
-            now, OpintooikeudenTila.allowedTilat(), OpintooikeudenTila.endedTilat()
-        )
+        opintooikeusRepository.findAllValid()
             .distinctBy { Pair(it.erikoistuvaLaakari?.id, it.yliopisto?.id) }.forEach {
                 val user = it.erikoistuvaLaakari?.kayttaja?.user!!
                 getHetu(user, cipher, originalKey)?.let { hetu ->

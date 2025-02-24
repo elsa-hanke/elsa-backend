@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.AvoinAsiaTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
-import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.extensions.pattern
 import fi.elsapalvelu.elsa.repository.*
@@ -89,9 +88,7 @@ class EtusivuServiceImpl(
                 criteria,
                 pageable,
                 k.user?.langKey,
-                k.yliopistotAndErikoisalat,
-                OpintooikeudenTila.allowedTilat(),
-                OpintooikeudenTila.endedTilat()
+                k.yliopistotAndErikoisalat
             ).map { opintooikeus -> getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus) }
         }
         return null
@@ -108,9 +105,7 @@ class EtusivuServiceImpl(
                 criteria,
                 pageable,
                 k.user?.langKey,
-                k.yliopistotAndErikoisalat,
-                OpintooikeudenTila.allowedTilat(),
-                OpintooikeudenTila.endedTilat()
+                k.yliopistotAndErikoisalat
             ).map { opintooikeus -> mapKoulutettavanEdistyminen(opintooikeus) }
         }
         return null
@@ -148,9 +143,7 @@ class EtusivuServiceImpl(
             return erikoistujienSeurantaQueryService.findByKouluttajaValtuutus(
                 criteria,
                 pageable,
-                k.id!!,
-                OpintooikeudenTila.allowedTilat(),
-                OpintooikeudenTila.endedTilat()
+                k.id!!
             ).map { opintooikeus -> getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus) }
         }
         return null
