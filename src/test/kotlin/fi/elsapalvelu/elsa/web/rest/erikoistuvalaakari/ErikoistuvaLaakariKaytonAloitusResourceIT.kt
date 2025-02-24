@@ -92,17 +92,15 @@ class ErikoistuvaLaakariKaytonAloitusResourceIT {
             em,
             erikoistuvaLaakari,
             LocalDate.ofEpochDay(0L),
-            LocalDate.ofEpochDay(3650L),
-            tila,
-            if (endedStates().contains(tila)) LocalDate.ofEpochDay(3730L) else null
+            LocalDate.ofEpochDay(158680000L),
+            tila
         )
         OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(
             em,
             erikoistuvaLaakari,
             LocalDate.ofEpochDay(700L),
-            LocalDate.ofEpochDay(4350L),
-            tila,
-            if (endedStates().contains(tila)) LocalDate.ofEpochDay(4530L) else null
+            LocalDate.ofEpochDay(159680000L),
+            tila
         )
 
         val kaytonAloitusDTO = KaytonAloitusDTO(sahkoposti = DEFAULT_EMAIL, opintooikeusId = opintooikeus.id)
@@ -158,13 +156,13 @@ class ErikoistuvaLaakariKaytonAloitusResourceIT {
             em,
             erikoistuvaLaakari,
             LocalDate.ofEpochDay(0L),
-            LocalDate.ofEpochDay(3650L)
+            LocalDate.ofEpochDay(158680000L)
         )
         OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(
             em,
             erikoistuvaLaakari,
             LocalDate.ofEpochDay(700L),
-            LocalDate.ofEpochDay(4350L)
+            LocalDate.ofEpochDay(159680000L)
         )
 
         OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)

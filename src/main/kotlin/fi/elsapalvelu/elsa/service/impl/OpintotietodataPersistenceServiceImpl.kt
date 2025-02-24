@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.config.PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
@@ -30,7 +31,6 @@ import jakarta.persistence.EntityNotFoundException
 import jakarta.transaction.Transactional
 
 private const val SUU_JA_LEUKAKIRURGIA_VIRTA_PATEVYYSKOODI = "esl"
-private const val PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET = 6L
 
 @Service
 @Transactional
@@ -158,6 +158,7 @@ class OpintotietodataPersistenceServiceImpl(
         var opintooikeus = Opintooikeus(
             opintooikeudenMyontamispaiva = LocalDate.now(ZoneId.systemDefault()),
             opintooikeudenPaattymispaiva = LocalDate.now(ZoneId.systemDefault()).plusYears(10),
+            viimeinenKatselupaiva =  LocalDate.now(ZoneId.systemDefault()).plusYears(10).plusMonths(PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET),
             opiskelijatunnus = "123456",
             asetus = asetus,
             osaamisenArvioinninOppaanPvm = LocalDate.now(ZoneId.systemDefault()),
@@ -340,7 +341,9 @@ class OpintotietodataPersistenceServiceImpl(
             yliopistoOpintooikeusId = opintooikeusId,
             opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
             opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
-            viimeinenKatselupaiva = opintooikeudenPaattymispaiva.plusMonths(PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET),
+            viimeinenKatselupaiva = opintooikeudenPaattymispaiva.plusMonths(
+                PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET
+            ),
             opiskelijatunnus = opintooikeusDTO.opiskelijatunnus,
             asetus = asetus,
             osaamisenArvioinninOppaanPvm = LocalDate.now(clock),

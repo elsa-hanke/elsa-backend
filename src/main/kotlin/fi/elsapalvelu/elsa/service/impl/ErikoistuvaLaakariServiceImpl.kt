@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
@@ -91,6 +92,9 @@ class ErikoistuvaLaakariServiceImpl(
         var opintooikeus = Opintooikeus(
             opintooikeudenMyontamispaiva = kayttajahallintaErikoistuvaLaakariDTO.opintooikeusAlkaa,
             opintooikeudenPaattymispaiva = kayttajahallintaErikoistuvaLaakariDTO.opintooikeusPaattyy,
+            viimeinenKatselupaiva = kayttajahallintaErikoistuvaLaakariDTO.opintooikeusPaattyy?.plusMonths(
+                PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET
+            ),
             opiskelijatunnus = kayttajahallintaErikoistuvaLaakariDTO.opiskelijatunnus,
             osaamisenArvioinninOppaanPvm = kayttajahallintaErikoistuvaLaakariDTO.osaamisenArvioinninOppaanPvm,
             erikoistuvaLaakari = erikoistuvaLaakari,
@@ -206,10 +210,7 @@ class ErikoistuvaLaakariServiceImpl(
         userId: String
     ): ErikoistuvaLaakariDTO? {
         erikoistuvaLaakariRepository.findOneByKayttajaUserIdWithValidOpintooikeudet(
-            userId,
-            LocalDate.now(),
-            OpintooikeudenTila.allowedTilat(),
-            OpintooikeudenTila.endedTilat()
+            userId
         )?.let {
             return erikoistuvaLaakariMapper.toDto(it)
         }
