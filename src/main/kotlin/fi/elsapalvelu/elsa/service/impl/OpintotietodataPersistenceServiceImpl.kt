@@ -110,17 +110,21 @@ class OpintotietodataPersistenceServiceImpl(
         val opintotietodataOpintooikeudet =
             opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
 
-        if (erikoistuvaLaakari == null) {
-            if (filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet).isEmpty()) {
-                return
-            } else {
-                erikoistuvaLaakari = erikoistuvaLaakariRepository.save(
-                    ErikoistuvaLaakari(
-                        syntymaaika = syntymaaika,
-                        kayttaja = kayttajaRepository.findOneByUserId(userId)
-                            .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy.") })
-                )
+        if (filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet).isEmpty()) {
+            // Etsitään, jos jokin opinto-oikeus on alkamassa tulevaisuudessa
+            opintotietodataOpintooikeudet.map {
+                if (it.opintooikeudenAlkamispaiva?.isAfter(LocalDate.now(clock)) != false) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
             }
+            return
+        }
+
+        if (erikoistuvaLaakari == null) {
+            erikoistuvaLaakari = erikoistuvaLaakariRepository.save(
+                ErikoistuvaLaakari(
+                    syntymaaika = syntymaaika,
+                    kayttaja = kayttajaRepository.findOneByUserId(userId)
+                        .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy.") })
+            )
         }
 
         erikoistuvaLaakari?.let {

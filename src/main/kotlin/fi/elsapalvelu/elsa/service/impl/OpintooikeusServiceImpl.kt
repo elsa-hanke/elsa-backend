@@ -130,6 +130,12 @@ class OpintooikeusServiceImpl(
     }
 
     override fun checkOpintooikeusAndRoles(user: User) {
+        // Tarkistetaan, että käyttäjällä on aktiivinen rooli (muuten kaikkia käyttäjätietoja ei välttämättä pystytä noutamaa)
+        // ja lisätään väliaikainen ROLE_USER-rooli, mikäli roolia ei ole
+        if (user.activeAuthority == null) {
+            val authority = user.authorities.firstOrNull() ?: Authority("ROLE_USER")
+            userRepository.setActiveAuthorityIfNull(user.id!!, authority)
+        }
         val validOikeudet = opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
             user.id!!,
             LocalDate.now(clock),
