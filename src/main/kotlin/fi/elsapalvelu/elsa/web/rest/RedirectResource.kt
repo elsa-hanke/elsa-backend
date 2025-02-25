@@ -10,6 +10,9 @@ import org.springframework.web.servlet.view.RedirectView
 import tech.jhipster.config.JHipsterConstants
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
+import org.springframework.security.saml2.core.Saml2ErrorCodes
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
 
 @RestController
 class RedirectResource(private val env: Environment) {
@@ -33,7 +36,15 @@ class RedirectResource(private val env: Environment) {
         if (exception.message in (LoginException.entries.map { it.name })) {
             exceptionMessage = exception.message!!
         } else {
-            log.error("Unknown authentication exception: $exception")
+            val errorCode = exception.saml2Error.errorCode
+
+            // Lokitetaan vain suomi.fi/haka virheet
+            if (errorCode != Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND) {
+                val requestAttributes = RequestContextHolder.getRequestAttributes() as ServletRequestAttributes
+                val sourceIpAddress =
+                    requestAttributes.request.getHeader("X-Forwarded-For") ?: requestAttributes.request.remoteAddr
+                log.error("Unknown authentication exception: $exception, source IP address: $sourceIpAddress")
+            }
         }
         return RedirectView(getRedirectUrl(request) + "kirjautuminen?virhe=" + exceptionMessage)
     }
