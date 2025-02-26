@@ -118,7 +118,10 @@ class OpintotietodataPersistenceServiceImpl(
             opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
 
         if (filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet).isEmpty()) {
-            if (opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId).isEmpty()) {
+            val erikoistuvaAuthorities = arrayOf(Authority("ROLE_ERIKOISTUVA_LAAKARI"), Authority("ROLE_YEK_KOULUTETTAVA"))
+            if (opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId).isEmpty()
+                && (userRepository.findByIdWithAuthorities(userId).map { return@map it.authorities.toList().all { auth -> auth in erikoistuvaAuthorities }}).orElse(true)
+            ) {
                 // Etsitään, jos jokin opinto-oikeus on alkamassa tulevaisuudessa
                 opintotietodataOpintooikeudet.map {
                     if (it.opintooikeudenAlkamispaiva?.isAfter(LocalDate.now(clock)) != false) throw Exception(
