@@ -105,15 +105,26 @@ class OpintotietodataPersistenceServiceImpl(
             etunimi,
             sukunimi
         ) ?: return
+        try {
+            val authority =
+                userRepository.findByIdWithAuthorities(userId).map { return@map it.authorities.first() }.orElse(Authority("ROLE_USER"))
+            userRepository.setActiveAuthorityIfNull(userId, authority)
+        } catch (e: Exception) {
+            log.warn("Käyttäjällä ei välttämättä ole aktiivista authoriteettia, mikä voi vaikuttaa tietojen hakuun.")
+        }
         var erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
 
         val opintotietodataOpintooikeudet =
             opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
 
         if (filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet).isEmpty()) {
-            // Etsitään, jos jokin opinto-oikeus on alkamassa tulevaisuudessa
-            opintotietodataOpintooikeudet.map {
-                if (it.opintooikeudenAlkamispaiva?.isAfter(LocalDate.now(clock)) != false) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
+            if (opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId).isEmpty()) {
+                // Etsitään, jos jokin opinto-oikeus on alkamassa tulevaisuudessa
+                opintotietodataOpintooikeudet.map {
+                    if (it.opintooikeudenAlkamispaiva?.isAfter(LocalDate.now(clock)) != false) throw Exception(
+                        LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name
+                    )
+                }
             }
             return
         }
