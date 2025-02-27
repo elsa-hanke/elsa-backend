@@ -1000,8 +1000,8 @@ class ValmistumispyyntoServiceImpl(
         val opintooikeus = valmistumispyynto.opintooikeus
         mailService.sendEmailFromTemplate(
             getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!,
-            templateName = "valmistumispyyntoTarkastettavissa.html",
-            titleKey = "email.valmistumispyyntoTarkastettavissa.title",
+            templateName = "valmistumispyyntoTarkastettavissaVastuuhenkilo.html",
+            titleKey = "email.valmistumispyyntoTarkastettavissaVastuuhenkilo.title",
             properties = mapOf(Pair(MailProperty.ID, valmistumispyynto.id.toString()))
         )
     }
