@@ -390,7 +390,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 )
             )
             mailService.sendEmailFromTemplate(
-                to = hyvaksynta.virkailija?.user?.email,
+                to = hyvaksynta.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
                 templateName = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusHyvaksytty.html" else "tkkjaksonHyvaksymishakemusHyvaksytty.html",
                 titleKey = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "email.yektkkjaksonhyvaksymishakemushyvaksytty.title" else "email.tkkjaksonhyvaksymishakemushyvaksytty.title",
                 properties = mapOf(
