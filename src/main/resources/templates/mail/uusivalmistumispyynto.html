@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fi" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<html lang="fi" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
 <head>
     <title>[ELSA-palvelu] Olet saanut uuden valmistumispyynnön </title>
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
@@ -11,12 +11,13 @@
 </p>
 <p>
     Erikoistuva lääkäri/hammaslääkäri <span th:text="${name}"></span> on lähettänyt valmistumispyynnön.
-    Pääset tarkastelemaan valmistumispyyntöä ja arvioimaan erikoistujan osaamisen alla olevan linkin kautta:
+    Pääset tarkastelemaan valmistumispyyntöä alla olevan linkin kautta:
 </p>
 <p>
     <a th:with="url=(@{|${baseUrl}/valmistumispyynnon-arviointi/${id}|})" th:href="${url}"
        th:text="${url}"></a>
 </p>
+</p><u>Tässä vaiheessa arvioidaan vain, onko erikoistujan osaaminen erikoislääkäriltä vaadittavalla tasolla. </u></p>
 <p>
     HUOM! Tähän sähköpostiviestiin ei voi vastata.
 </p>

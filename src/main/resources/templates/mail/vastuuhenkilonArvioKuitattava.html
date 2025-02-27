@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
 <head>
-    <title>[ELSA-palvelu] Olet saanut koejakson arviointilomake E:n allekirjoitettavaksi</title>
+    <title>[ELSA-palvelu] Olet saanut koejakson arviointilomake E:n hyväksyttäväksi</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
 </head>
@@ -10,13 +10,18 @@
     Hei,
 </p>
 <p>
-    Olet saanut ELSA-palveluun koejakson arviointilomakkeen E täydennettäväksi.
+    Olet saanut ELSA-palveluun koejakson arviointilomakkeen E hyväksyttäväksi.
 
-    Pääset täydentämään koejakson arviointilomakkeen E alla olevan linkin kautta:
+    Pääset hyväksymään koejakson arviointilomakkeen E alla olevan linkin kautta:
 </p>
 <p>
     <a th:with="url=(@{|${baseUrl}/koejakso/vastuuhenkilon-arvio/${id}|})" th:href="${url}"
        th:text="${url}"></a>
+</p>
+<p>
+    ELSA-hyväksynnän lisäksi koejakson yhteenveto tulee allekirjoittaa sähköisessä allekirjoituspalvelussa.
+
+    <strong>Saat allekirjoituspyynnön erillisessä sähköpostissa.</strong>
 </p>
 <p>
     HUOM! Tähän sähköpostiviestiin ei voi vastata.

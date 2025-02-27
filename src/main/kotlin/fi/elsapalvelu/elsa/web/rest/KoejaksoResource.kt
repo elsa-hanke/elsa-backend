@@ -53,7 +53,7 @@ open class KoejaksoResource(
 
             if (aloituskeskustelu.get().lahikouluttaja?.sopimusHyvaksytty != true) {
                 throw BadRequestAlertException(
-                    "Esimies ei saa muokata aloituskeskustelua, " +
+                    "Esihenkilö ei saa muokata aloituskeskustelua, " +
                         "jos kouluttaja ei ole allekirjoittanut sitä",
                     ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
                     "dataillegal.erimies-ei-saa-muokata-aloituskeskustelua-jos-kouluttaja-ei-ole-allekirjoittanut-sita"
