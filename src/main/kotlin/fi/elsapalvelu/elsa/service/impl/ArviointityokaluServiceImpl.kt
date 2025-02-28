@@ -99,6 +99,10 @@ class ArviointityokaluServiceImpl(
                     arviointityokalu.liite = AsiakirjaData(data = liiteData.bytes)
                     arviointityokalu.liitetiedostonNimi = liiteData.originalFilename
                     arviointityokalu.liitetiedostonTyyppi = liiteData.contentType
+                } else {
+                    arviointityokalu.liite = null
+                    arviointityokalu.liitetiedostonNimi = null
+                    arviointityokalu.liitetiedostonTyyppi = null
                 }
                 arviointityokalu.muokkausaika = Instant.now()
                 val result = arviointityokaluRepository.save(arviointityokalu)
