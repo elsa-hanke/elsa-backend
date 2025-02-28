@@ -67,6 +67,7 @@ class ArviointityokaluServiceImpl(
             .orElse(null)?.let { arviointityokalu ->
                 arviointityokalu.nimi = arviointityokaluDTO.nimi
                 arviointityokalu.ohjeteksti = arviointityokaluDTO.ohjeteksti
+                arviointityokalu.tila = arviointityokaluDTO.tila
                 arviointityokaluDTO.kategoria?.let {
                     arviointityokalu.kategoria = arviointityokaluKategoriaRepository.findById(it.id!!).orElse(null)
                 }
