@@ -26,7 +26,7 @@ class ArviointityokaluServiceImpl(
     private val arviointityokaluKysymysMapper: ArviointityokaluKysymysMapper,
     private val arviointityokaluKysymysVaihtoehtoMapper: ArviointityokaluKysymysVaihtoehtoMapper,
     private val arviointityokaluKategoriaRepository: ArviointityokaluKategoriaRepository,
-    private val kayttajaRepository: KayttajaRepository
+    private val kayttajaRepository: KayttajaRepository,
 ) : ArviointityokaluService {
 
     override fun save(

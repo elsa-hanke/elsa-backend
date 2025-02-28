@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import fi.elsapalvelu.elsa.domain.ArviointityokaluKategoria
+import fi.elsapalvelu.elsa.domain.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.enumeration.ArviointityokalunTila
 import jakarta.validation.constraints.NotNull
 import java.io.Serializable
@@ -20,7 +21,7 @@ data class ArviointityokaluDTO(
 
     var tila: ArviointityokalunTila? = null,
 
-    // var liite: ByteArray? = null,
+    var liite: AsiakirjaData? = null,
 
     var liitetiedostonNimi: String? = null,
 

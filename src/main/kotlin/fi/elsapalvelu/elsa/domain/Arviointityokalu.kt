@@ -35,7 +35,7 @@ data class Arviointityokalu(
     @OneToOne(
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
-        fetch = FetchType.LAZY
+        fetch = FetchType.EAGER
     )
     @JoinColumn(unique = true)
     var liite: AsiakirjaData? = null,
