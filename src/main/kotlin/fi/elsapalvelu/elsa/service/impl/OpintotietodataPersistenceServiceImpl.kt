@@ -133,7 +133,6 @@ class OpintotietodataPersistenceServiceImpl(
                     }
                 }
             }
-            return
         }
 
         if (erikoistuvaLaakari == null) {
