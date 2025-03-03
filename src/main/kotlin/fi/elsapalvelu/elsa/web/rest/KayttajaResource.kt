@@ -44,6 +44,9 @@ class KayttajaResource(
         } else if (opintooikeusId != null) {
             user.activeAuthority = ERIKOISTUVA_LAAKARI
         }
+        if (user.activeAuthority == null) {
+            user.activeAuthority = user.authorities?.firstOrNull()
+        }
 
         user.impersonated =
             authorities.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED) || authorities.contains(
