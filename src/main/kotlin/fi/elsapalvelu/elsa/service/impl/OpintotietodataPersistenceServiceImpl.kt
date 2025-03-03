@@ -120,10 +120,7 @@ class OpintotietodataPersistenceServiceImpl(
         if (filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet).isEmpty()) {
             val erikoistuvaAuthorities = arrayOf(Authority("ROLE_ERIKOISTUVA_LAAKARI"), Authority("ROLE_YEK_KOULUTETTAVA"))
             if (opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
-                    userId,
-                    LocalDate.now(clock),
-                    OpintooikeudenTila.allowedTilat(),
-                    OpintooikeudenTila.endedTilat()).isEmpty()
+                    userId).isEmpty()
                 && (userRepository.findByIdWithAuthorities(userId).map { return@map it.authorities.toList().all { auth -> auth in erikoistuvaAuthorities }}).orElse(true)
             ) {
                 // Etsitään, jos jokin opinto-oikeus on alkamassa tulevaisuudessa
