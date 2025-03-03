@@ -9,7 +9,7 @@
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="nimi" type="varchar(60)">
+            <column name="nimi" type="TEXT">
                 <constraints nullable="false"/>
             </column>
             <column name="luontiaika" type="datetime">

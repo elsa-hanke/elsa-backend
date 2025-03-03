@@ -21,8 +21,8 @@ data class ArviointityokaluKysymys(
     @Column(name = "otsikko", nullable = false)
     var otsikko: String? = null,
 
-    @Column(name = "pakollinen", nullable = true)
-    var pakollinen: Boolean? = null,
+    @Column(name = "pakollinen", nullable = false)
+    var pakollinen: Boolean? = false,
 
     @NotNull
     @Enumerated(EnumType.STRING)

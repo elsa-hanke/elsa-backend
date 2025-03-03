@@ -9,11 +9,11 @@
             <column name="id" type="BIGINT">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="otsikko" type="VARCHAR(255)">
+            <column name="otsikko" type="TEXT">
                 <constraints nullable="false"/>
             </column>
-            <column name="pakollinen" type="BOOLEAN"/>
-            <column name="tyyppi" type="VARCHAR(50)">
+            <column name="pakollinen" type="BOOLEAN" defaultValue="false"/>
+            <column name="tyyppi" type="TEXT">
                 <constraints nullable="false"/>
             </column>
             <column name="arviointityokalu_id" type="BIGINT">
@@ -39,7 +39,7 @@
             <column name="id" type="BIGINT">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="teksti" type="VARCHAR(255)">
+            <column name="teksti" type="TEXT">
                 <constraints nullable="false"/>
             </column>
             <column name="valittu" type="BOOLEAN"/>
