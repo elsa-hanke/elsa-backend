@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.NotAudited
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
 import java.io.Serializable
 import java.time.Instant
 
@@ -65,11 +67,11 @@ data class Arviointityokalu(
     @Column(name = "tila")
     var tila: ArviointityokalunTila? = null,
 
-    @get: NotNull
+    @CreatedDate
     @Column(name = "luontiaika", nullable = false)
     var luontiaika: Instant? = null,
 
-    @get: NotNull
+    @LastModifiedDate
     @Column(name = "muokkausaika", nullable = false)
     var muokkausaika: Instant? = null,
 
