@@ -29,7 +29,7 @@ data class Arviointityokalu(
     @ManyToOne(optional = true)
     var kayttaja: Kayttaja? = null,
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = true)
     var kategoria: ArviointityokaluKategoria? = null,
 
     @OneToOne(
