@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.config.LoginException
 import fi.elsapalvelu.elsa.config.PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
@@ -67,6 +68,12 @@ class OpintotietodataPersistenceServiceImpl(
             }.flatten())
 
         if (filteredOpintotietodataOpintooikeudet.isEmpty()) {
+            // Etsitään, jos jokin opinto-oikeus on alkamassa tulevaisuudessa
+            opintotietodataDTOs.map { dto ->
+                dto.opintooikeudet?.map {
+                    if (it.opintooikeudenAlkamispaiva?.isAfter(LocalDate.now(clock)) != false) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
+                }
+            }
             log.info("Voimassaolevia opinto-oikeuksia ei löytynyt käyttäjälle $etunimi $sukunimi")
             return
         }
@@ -98,22 +105,43 @@ class OpintotietodataPersistenceServiceImpl(
             etunimi,
             sukunimi
         ) ?: return
+        try {
+            val authority =
+                userRepository.findByIdWithAuthorities(userId).map { return@map it.authorities.first() }.orElse(Authority("ROLE_USER"))
+            userRepository.setActiveAuthorityIfNull(userId, authority)
+        } catch (e: Exception) {
+            log.warn("Käyttäjällä ei välttämättä ole aktiivista authoriteettia, mikä voi vaikuttaa tietojen hakuun.")
+        }
         var erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
 
         val opintotietodataOpintooikeudet =
             opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
 
-        if (erikoistuvaLaakari == null) {
-            if (filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet).isEmpty()) {
+        if (filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet).isEmpty()) {
+            if (erikoistuvaLaakari == null)
                 return
-            } else {
-                erikoistuvaLaakari = erikoistuvaLaakariRepository.save(
-                    ErikoistuvaLaakari(
-                        syntymaaika = syntymaaika,
-                        kayttaja = kayttajaRepository.findOneByUserId(userId)
-                            .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy.") })
-                )
+            else {
+                val erikoistuvaAuthorities = arrayOf(Authority("ROLE_ERIKOISTUVA_LAAKARI"), Authority("ROLE_YEK_KOULUTETTAVA"))
+                if (opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(userId).isEmpty()
+                    && (userRepository.findByIdWithAuthorities(userId).map { return@map it.authorities.toList().all { auth -> auth in erikoistuvaAuthorities }}).orElse(false)
+                ) {
+                    // Etsitään, jos jokin opinto-oikeus on alkamassa tulevaisuudessa
+                    opintotietodataOpintooikeudet.map {
+                        if (it.opintooikeudenAlkamispaiva?.isAfter(LocalDate.now(clock)) != false) throw Exception(
+                            LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name
+                        )
+                    }
+                }
             }
+        }
+
+        if (erikoistuvaLaakari == null) {
+            erikoistuvaLaakari = erikoistuvaLaakariRepository.save(
+                ErikoistuvaLaakari(
+                    syntymaaika = syntymaaika,
+                    kayttaja = kayttajaRepository.findOneByUserId(userId)
+                        .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy.") })
+            )
         }
 
         erikoistuvaLaakari?.let {
@@ -184,9 +212,10 @@ class OpintotietodataPersistenceServiceImpl(
     private fun filterOpintooikeudetByVoimassaDate(opintooikeudet: List<OpintotietoOpintooikeusDataDTO>):
         List<OpintotietoOpintooikeusDataDTO> =
         opintooikeudet.filter {
-            it.opintooikeudenPaattymispaiva == null || !it.opintooikeudenPaattymispaiva!!.isBefore(
-                LocalDate.now(clock)
-            )
+            (it.opintooikeudenPaattymispaiva == null
+            || !it.opintooikeudenPaattymispaiva!!.isBefore(LocalDate.now(clock)))
+            && (it.opintooikeudenAlkamispaiva == null
+            || !it.opintooikeudenAlkamispaiva!!.isAfter(LocalDate.now(clock)))
         }
 
     private fun checkOpintooikeudetAmount(
@@ -546,7 +575,14 @@ class OpintotietodataPersistenceServiceImpl(
 
     private fun checkOpintooikeudenAlkamispaivaValidDateExistsOrLogError(
         alkamispaiva: LocalDate?, yliopisto: YliopistoEnum, userId: String
-    ): LocalDate? = alkamispaiva ?: run {
+    ): LocalDate? = alkamispaiva?.let {
+        if (LocalDate.now(clock) >= alkamispaiva) {
+            return alkamispaiva
+        } else {
+            log.warn("$yliopisto, user id: $userId. Opinto-oikeus ei ole vielä alkanut.")
+            return null
+        }
+    } ?: run {
         log.error("$yliopisto, user id: $userId. Opinto-oikeuden alkamispäivää ei ole asetettu.")
         return null
     }

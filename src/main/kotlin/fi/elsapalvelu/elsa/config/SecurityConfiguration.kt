@@ -456,12 +456,12 @@ class SecurityConfiguration(
         tokenUser: User?,
         hetu: String?
     ): Boolean =
-        (existingUser == null ||
+        (existingUser == null || !hasAnyRole(existingUser) ||
             hasErikoistuvaLaakariRole(existingUser) || hasYekKoulutettavaRole(existingUser) ||
             hasKouluttajaRole(existingUser)
             )
-            && (tokenUser == null || hasErikoistuvaLaakariRole(tokenUser)
-            || hasYekKoulutettavaRole(tokenUser)
+            && (tokenUser == null || !hasAnyRole(tokenUser) ||
+            hasErikoistuvaLaakariRole(tokenUser) || hasYekKoulutettavaRole(tokenUser)
                 ) && hetu != null
 
     private fun hasErikoistuvaLaakariRole(user: User): Boolean =
@@ -475,6 +475,9 @@ class SecurityConfiguration(
 
     private fun hasVastuuhenkiloRole(user: User): Boolean =
         user.authorities.contains(Authority(name = VASTUUHENKILO))
+
+    private fun hasAnyRole(user: User): Boolean =
+        user.authorities.isNotEmpty()
 
     private fun createPrincipal(
         name: String?, principal: Saml2AuthenticatedPrincipal
@@ -509,6 +512,7 @@ class SecurityConfiguration(
                         )
                     }
                 } catch (ex: Exception) {
+                    if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
                     log.error("Virhe opintotietodatan haussa tai tallentamisessa: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
                 }
             }
@@ -545,6 +549,7 @@ class SecurityConfiguration(
                         }
                     }
                 } catch (ex: Exception) {
+                    if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
                     log.error("Virhe opintotietodatan haussa tai päivittämisessä: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
                 }
             }
