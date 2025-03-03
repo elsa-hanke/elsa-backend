@@ -285,8 +285,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             || aloituskeskusteluDTO.lahikouluttaja?.kuittausaika != null
         ) {
             throw BadRequestAlertException(
-                "Erikoistuvan koejakson arviointi ei saa sisältää lähikouluttaja kuittausta. " +
-                    "Lähikouluttaja määrittelee sen.",
+                "Erikoistuvan koejakson arviointi ei saa sisältää kouluttajan kuittausta. " +
+                    "Kouluttaja määrittelee sen.",
                 ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
                 "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahikouluttaja-kuittausta"
             )
@@ -295,8 +295,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             || aloituskeskusteluDTO.lahiesimies?.kuittausaika != null
         ) {
             throw BadRequestAlertException(
-                "Erikoistuvan koejakson arviointi ei saa sisältää lähiesimiehen kuittausta. " +
-                    "Lähiesimies määrittelee sen.",
+                "Erikoistuvan koejakson arviointi ei saa sisältää lähiesihenkilön kuittausta. " +
+                    "Lähiesihenkilö määrittelee sen.",
                 ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
                 "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahiesimiehen-kuisttausta"
             )
@@ -684,14 +684,14 @@ class ErikoistuvaLaakariKoejaksoResource(
         }
         if (kouluttaja?.sopimusHyvaksytty == true || kouluttaja?.kuittausaika != null) {
             throw BadRequestAlertException(
-                "Erikoistuvan koejakson arviointi ei saa sisältää lähikouluttaja kuittausta. Lähikouluttaja määrittelee sen.",
+                "Erikoistuvan koejakson arviointi ei saa sisältää kouluttaja kuittausta. Kouluttaja määrittelee sen.",
                 entity,
                 "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahikouluttaja-kuittausta"
             )
         }
         if (esimies?.sopimusHyvaksytty == true || esimies?.kuittausaika != null) {
             throw BadRequestAlertException(
-                "Erikoistuvan koejakson arviointi ei saa sisältää lähiesimiehen kuittausta. Lähiesimies määrittelee sen.",
+                "Erikoistuvan koejakson arviointi ei saa sisältää lähiesihenkilön kuittausta. Lähiesihenkilö määrittelee sen.",
                 entity,
                 "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahiesimiehen-kuittausta"
             )

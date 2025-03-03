@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.LoginException
+import fi.elsapalvelu.elsa.config.PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
@@ -31,7 +32,6 @@ import jakarta.persistence.EntityNotFoundException
 import jakarta.transaction.Transactional
 
 private const val SUU_JA_LEUKAKIRURGIA_VIRTA_PATEVYYSKOODI = "esl"
-private const val PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET = 6L
 
 @Service
 @Transactional
@@ -187,6 +187,7 @@ class OpintotietodataPersistenceServiceImpl(
         var opintooikeus = Opintooikeus(
             opintooikeudenMyontamispaiva = LocalDate.now(ZoneId.systemDefault()),
             opintooikeudenPaattymispaiva = LocalDate.now(ZoneId.systemDefault()).plusYears(10),
+            viimeinenKatselupaiva =  LocalDate.now(ZoneId.systemDefault()).plusYears(10).plusMonths(PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET),
             opiskelijatunnus = "123456",
             asetus = asetus,
             osaamisenArvioinninOppaanPvm = LocalDate.now(ZoneId.systemDefault()),
@@ -339,11 +340,6 @@ class OpintotietodataPersistenceServiceImpl(
                 userId
             )
                 ?: return
-        var viimeinenKatselupaiva: LocalDate? = null
-        if (OpintooikeudenTila.endedTilat().contains(opintooikeudenTila)) {
-            viimeinenKatselupaiva = LocalDate.now(clock).plusMonths(
-                PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET)
-        }
         val opintooikeudenAlkamispaiva = checkOpintooikeudenAlkamispaivaValidDateExistsOrLogError(
             opintooikeusDTO.opintooikeudenAlkamispaiva, opintooikeusDTO.yliopisto, userId
         ) ?: return
@@ -375,7 +371,9 @@ class OpintotietodataPersistenceServiceImpl(
             yliopistoOpintooikeusId = opintooikeusId,
             opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
             opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
-            viimeinenKatselupaiva = viimeinenKatselupaiva,
+            viimeinenKatselupaiva = opintooikeudenPaattymispaiva.plusMonths(
+                PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET
+            ),
             opiskelijatunnus = opintooikeusDTO.opiskelijatunnus,
             asetus = asetus,
             osaamisenArvioinninOppaanPvm = LocalDate.now(clock),
@@ -456,13 +454,11 @@ class OpintotietodataPersistenceServiceImpl(
             opintooikeusDTO.opintooikeudenPaattymispaiva?.takeIf { it != opintooikeus.opintooikeudenPaattymispaiva }
                 ?.let {
                     opintooikeus.opintooikeudenPaattymispaiva = it
+                    opintooikeus.viimeinenKatselupaiva = it.plusMonths(
+                        PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET)
                 }
 
             opintooikeudenTila.takeIf { it != opintooikeus.tila }?.let {
-                if (OpintooikeudenTila.endedTilat().contains(opintooikeudenTila)) {
-                    opintooikeus.viimeinenKatselupaiva = LocalDate.now(clock).plusMonths(
-                        PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET)
-                }
                 opintooikeus.tila = it
             }
 
