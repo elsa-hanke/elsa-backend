@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>[ELSA-palvelu] Opinto-oikeutesi on päättymässä</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
+</head>
+<body>
+<p>
+    Hei,
+</p>
+<p>
+    Määräaikainen opinto-oikeutesi on päättymässä <span th:text="${paattymispaiva}"></span>, mutta koejaksoasi ei ole vielä hyväksytty.
+</p>
+<p>
+    Koejakso tulee suorittaa ja hyväksyttää ELSAssa ennen kuin opinto-oikeus päättyy.
+</p>
+<p>
+    Ohje: <a th:href="${koejakso_url}"
+            th:text="${koejakso_url}"></a>
+</p>
+<p>
+    Jos et ehdi suorittaa koejaksoa ennen opinto-oikeuden päättymistä, hae lisäaikaa: <a th:href="${lisaaika_url}"
+       th:text="${lisaaika_url}"></a>
+</p>
+<p>
+    HUOM! Tähän sähköpostiviestiin ei voi vastata.
+</p>
+<p>
+    <span>Terveisin, </span>
+    <br/>
+    <em>ELSA-palvelu</em>
+</p>
+</body>
+</html>

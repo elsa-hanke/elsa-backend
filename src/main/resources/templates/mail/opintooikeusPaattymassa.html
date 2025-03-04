@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
+<head>
+    <title>[ELSA-palvelu] Opinto-oikeutesi on päättymässä</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
+</head>
+<body>
+<p>
+    Hei,
+</p>
+<p>
+    Opinto-oikeutesi on päättymässä <span th:text="${date}"></span>.
+</p>
+<p>
+    Mikäli jäljellä oleva aika ei riitä valmistumiseen, haethan tarvittaessa opintoihisi lisäaikaa yliopistosi opintohallinnolta:
+    <a th:href="${urlPath}"
+       th:text="${urlPath}"></a>
+</p>
+<p>
+    HUOM! Tähän sähköpostiviestiin ei voi vastata.
+</p>
+<p>
+    <span>Terveisin, </span>
+    <br/>
+    <em>ELSA-palvelu</em>
+</p>
+</body>
+</html>
