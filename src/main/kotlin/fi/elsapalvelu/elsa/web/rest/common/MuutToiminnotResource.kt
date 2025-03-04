@@ -38,7 +38,8 @@ class MuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<List<ArviointityokaluDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val arviointityokaluDTO = arviointityokaluService.findAllByKayttajaUserId(user.id!!)
+        // val arviointityokaluDTO = arviointityokaluService.findAllByKayttajaUserId(user.id!!)
+        val arviointityokaluDTO = arviointityokaluService.findAll()
         return ResponseEntity.ok(arviointityokaluDTO)
     }
 
