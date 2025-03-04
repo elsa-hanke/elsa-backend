@@ -1,6 +1,11 @@
 package fi.elsapalvelu.elsa.scheduler
 
+import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.Opintooikeus
+import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.service.MailProperty
+import fi.elsapalvelu.elsa.service.MailService
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -8,9 +13,17 @@ import org.springframework.stereotype.Component
 import java.time.DayOfWeek
 import java.time.LocalDate
 
+data class PaattyvaOikeus (
+    var maaraaikainen: Boolean,
+    var paattymispaiva: LocalDate?,
+    var erikoistuvaLaakari: ErikoistuvaLaakari?
+)
+
 @Component
 class ScheduledPaattyvaOpintooikeusHerate (
     private val opintooikeusRepository: OpintooikeusRepository,
+    private val mailService: MailService,
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -20,15 +33,57 @@ class ScheduledPaattyvaOpintooikeusHerate (
         val today = LocalDate.now()
         val monday = today.with(DayOfWeek.MONDAY)
         val sunday = today.with(DayOfWeek.SUNDAY)
-        println("månad: $monday, söndag: $sunday")
-        val twoMonths = opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(2), sunday.plusMonths(2))
-        val threeMonths = opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(3), sunday.plusMonths(3))
-        val fourMonths = opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(4), sunday.plusMonths(4))
-        val sixMonths = opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(6), sunday.plusMonths(6))
-        val year = opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusYears(1), sunday.plusYears(1))
+        println("maanantai: $monday, sunnuntai: $sunday")
+        val paattyvatOikeudet = listOf(
+            opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(2), sunday.plusMonths(2))
+                .map { mapPaattyvaOikeus(it) },
+            opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(3), sunday.plusMonths(3))
+                .map { mapPaattyvaOikeus(it) },
+            opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(4), sunday.plusMonths(4))
+                .map { mapPaattyvaOikeus(it) },
+            opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(6), sunday.plusMonths(6))
+                .map { mapPaattyvaOikeus(it) },
+            opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusYears(1), sunday.plusYears(1))
+                .map { mapPaattyvaOikeus(it) }
+        )
+        println(paattyvatOikeudet)
+        paattyvatOikeudet.forEach {
+            if (it.isNotEmpty()) it.forEach { oikeus ->
+                println(oikeus)
+                lahetaHerate(oikeus)
+            }
+        }
     }
 
-    fun lahetaHerate() {
+    fun mapPaattyvaOikeus(opintoOikeus: Opintooikeus): PaattyvaOikeus {
+        return PaattyvaOikeus(
+            maaraaikainen = ((opintoOikeus.opintooikeudenPaattymispaiva?.year ?: 0) - (opintoOikeus.opintooikeudenMyontamispaiva?.year ?: 0)) <= 3,
+            paattymispaiva = opintoOikeus.opintooikeudenPaattymispaiva,
+            erikoistuvaLaakari = opintoOikeus.erikoistuvaLaakari
+        )
+    }
 
+    fun lahetaHerate(paattyvaOikeus: PaattyvaOikeus) {
+        val user = paattyvaOikeus.erikoistuvaLaakari?.kayttaja?.user ?: return
+        println(user.email)
+        val properties =
+            if (paattyvaOikeus.maaraaikainen) {
+                mapOf(
+                    Pair(MailProperty.DATE, paattyvaOikeus.paattymispaiva.toString()),
+                    Pair(MailProperty.URL_PATH, "example.org"),
+                    Pair(MailProperty.URL_PATH, "example.org"),
+                )
+            } else {
+                mapOf(
+                    Pair(MailProperty.DATE, paattyvaOikeus.paattymispaiva.toString()),
+                    Pair(MailProperty.URL_PATH, "example.org"),
+                )
+            }
+        mailService.sendEmailFromTemplate(
+            user = user,
+            templateName = if (paattyvaOikeus.maaraaikainen) "opintooikeusPaattymassa.html" else "opintooikeusPaattymassa.html",
+            titleKey = "email.opintooikeuspaattymassa.title",
+            properties = properties,
+        )
     }
 }
