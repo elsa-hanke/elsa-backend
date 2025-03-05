@@ -66,22 +66,23 @@ class ScheduledPaattyvaOpintooikeusHerate (
     fun lahetaHerate(paattyvaOikeus: PaattyvaOikeus) {
         val user = paattyvaOikeus.erikoistuvaLaakari?.kayttaja?.user ?: return
         println(user.email)
+        println(paattyvaOikeus.maaraaikainen)
         val properties =
             if (paattyvaOikeus.maaraaikainen) {
                 mapOf(
                     Pair(MailProperty.DATE, paattyvaOikeus.paattymispaiva.toString()),
-                    Pair(MailProperty.URL_PATH, "example.org"),
-                    Pair(MailProperty.URL_PATH, "example.org"),
+                    Pair(MailProperty.URL_PATH, "example1.org"),
+                    Pair(MailProperty.SECOND_URL_PATH, "example2.org"),
                 )
             } else {
                 mapOf(
                     Pair(MailProperty.DATE, paattyvaOikeus.paattymispaiva.toString()),
-                    Pair(MailProperty.URL_PATH, "example.org"),
+                    Pair(MailProperty.URL_PATH, "example3.org"),
                 )
             }
         mailService.sendEmailFromTemplate(
             user = user,
-            templateName = if (paattyvaOikeus.maaraaikainen) "opintooikeusPaattymassa.html" else "opintooikeusPaattymassa.html",
+            templateName = if (paattyvaOikeus.maaraaikainen) "opintooikeusMaarakainenPaattymassa.html" else "opintooikeusPaattymassa.html",
             titleKey = "email.opintooikeuspaattymassa.title",
             properties = properties,
         )

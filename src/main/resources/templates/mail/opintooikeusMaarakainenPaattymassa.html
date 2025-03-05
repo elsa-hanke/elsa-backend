@@ -10,18 +10,18 @@
     Hei,
 </p>
 <p>
-    Määräaikainen opinto-oikeutesi on päättymässä <span th:text="${paattymispaiva}"></span>, mutta koejaksoasi ei ole vielä hyväksytty.
+    Määräaikainen opinto-oikeutesi on päättymässä <span th:text="${date}"></span>, mutta koejaksoasi ei ole vielä hyväksytty.
 </p>
 <p>
     Koejakso tulee suorittaa ja hyväksyttää ELSAssa ennen kuin opinto-oikeus päättyy.
 </p>
 <p>
-    Ohje: <a th:href="${koejakso_url}"
-            th:text="${koejakso_url}"></a>
+    Ohje: <a th:href="${urlPath}"
+            th:text="${urlPath}"></a>
 </p>
 <p>
-    Jos et ehdi suorittaa koejaksoa ennen opinto-oikeuden päättymistä, hae lisäaikaa: <a th:href="${lisaaika_url}"
-       th:text="${lisaaika_url}"></a>
+    Jos et ehdi suorittaa koejaksoa ennen opinto-oikeuden päättymistä, hae lisäaikaa: <a th:href="${urlPath2}"
+       th:text="${urlPath2}"></a>
 </p>
 <p>
     HUOM! Tähän sähköpostiviestiin ei voi vastata.
