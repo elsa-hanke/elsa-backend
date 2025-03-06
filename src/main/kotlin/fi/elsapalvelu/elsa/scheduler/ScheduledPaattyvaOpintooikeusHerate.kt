@@ -29,13 +29,12 @@ class ScheduledPaattyvaOpintooikeusHerate (
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Scheduled(cron = "0 */1 * ? * *", zone = "Europe/Helsinki")
+    @Scheduled(cron = "0 0 6 * * 1", zone = "Europe/Helsinki")
     @SchedulerLock(name = "paattyvaOpintooikeusHerate", lockAtLeastFor = "5S", lockAtMostFor = "10M")
     fun fetchPaattyvatOpintooikeudet() {
         val today = LocalDate.now()
         val monday = today.with(DayOfWeek.MONDAY)
         val sunday = today.with(DayOfWeek.SUNDAY)
-        println("maanantai: $monday, sunnuntai: $sunday")
         val paattyvatOikeudet = listOf(
             opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(2), sunday.plusMonths(2))
                 .map { mapPaattyvaOikeus(it) },
@@ -48,10 +47,8 @@ class ScheduledPaattyvaOpintooikeusHerate (
             opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusYears(1), sunday.plusYears(1))
                 .map { mapPaattyvaOikeus(it) }
         )
-        println(paattyvatOikeudet)
         paattyvatOikeudet.forEach {
             if (it.isNotEmpty()) it.forEach { oikeus ->
-                println(oikeus)
                 lahetaHerate(oikeus)
             }
         }
@@ -66,36 +63,47 @@ class ScheduledPaattyvaOpintooikeusHerate (
     }
 
     fun lahetaHerate(paattyvaOikeus: PaattyvaOikeus) {
-        val user = paattyvaOikeus.erikoistuvaLaakari?.kayttaja?.user ?: return
-        println(user.email)
-        println(paattyvaOikeus.maaraaikainen)
-        val properties =
+        try {
+            val user = paattyvaOikeus.erikoistuvaLaakari?.kayttaja?.user ?: return
+            val properties =
+                if (paattyvaOikeus.maaraaikainen) {
+                    mapOf(
+                        Pair(MailProperty.DATE, paattyvaOikeus.paattymispaiva.toString()),
+                        Pair(
+                            MailProperty.URL_PATH,
+                            "https://www.laaketieteelliset.fi/ammatillinen-jatkokoulutus/koejakso"
+                        ),
+                        Pair(
+                            MailProperty.SECOND_URL_PATH,
+                            "https://www.laaketieteelliset.fi/ammatillinen-jatkokoulutus/lomakkeet/"
+                        ),
+                    )
+                } else {
+                    mapOf(
+                        Pair(MailProperty.DATE, paattyvaOikeus.paattymispaiva.toString()),
+                        Pair(
+                            MailProperty.URL_PATH,
+                            "https://www.laaketieteelliset.fi/ammatillinen-jatkokoulutus/lomakkeet/"
+                        ),
+                    )
+                }
+            mailService.sendEmailFromTemplate(
+                user = user,
+                templateName = if (paattyvaOikeus.maaraaikainen) "opintooikeusMaarakainenPaattymassa.html" else "opintooikeusPaattymassa.html",
+                titleKey = "email.opintooikeuspaattymassa.title",
+                properties = properties,
+            )
+            val opintooikeusHerate =
+                opintooikeusHerateRepository.findOneByErikoistuvaLaakariKayttajaUserId(user.id!!)
+                    ?: OpintooikeusHerate(
+                        erikoistuvaLaakari = paattyvaOikeus.erikoistuvaLaakari
+                    )
             if (paattyvaOikeus.maaraaikainen) {
-                mapOf(
-                    Pair(MailProperty.DATE, paattyvaOikeus.paattymispaiva.toString()),
-                    Pair(MailProperty.URL_PATH, "https://www.laaketieteelliset.fi/ammatillinen-jatkokoulutus/koejakso"),
-                    Pair(MailProperty.SECOND_URL_PATH, "https://www.laaketieteelliset.fi/ammatillinen-jatkokoulutus/lomakkeet/"),
-                )
-            } else {
-                mapOf(
-                    Pair(MailProperty.DATE, paattyvaOikeus.paattymispaiva.toString()),
-                    Pair(MailProperty.URL_PATH, "https://www.laaketieteelliset.fi/ammatillinen-jatkokoulutus/lomakkeet/"),
-                )
-            }
-        mailService.sendEmailFromTemplate(
-            user = user,
-            templateName = if (paattyvaOikeus.maaraaikainen) "opintooikeusMaarakainenPaattymassa.html" else "opintooikeusPaattymassa.html",
-            titleKey = "email.opintooikeuspaattymassa.title",
-            properties = properties,
-        )
-        val opintooikeusHerate =
-            opintooikeusHerateRepository.findOneByErikoistuvaLaakariKayttajaUserId(user.id!!)
-                ?: OpintooikeusHerate(
-                    erikoistuvaLaakari = paattyvaOikeus.erikoistuvaLaakari
-                )
-        if (paattyvaOikeus.maaraaikainen) {
-            opintooikeusHerate.maaraaikainenPaattymassaHerateLahetetty = Instant.now()
-        } else opintooikeusHerate.paattymassaHerateLahetetty = Instant.now()
-        opintooikeusHerateRepository.save(opintooikeusHerate)
+                opintooikeusHerate.maaraaikainenPaattymassaHerateLahetetty = Instant.now()
+            } else opintooikeusHerate.paattymassaHerateLahetetty = Instant.now()
+            opintooikeusHerateRepository.save(opintooikeusHerate)
+        } catch (e: Exception) {
+            log.error("Herätteen lähetys päättyvästä opinto-oikeudesta ei onnistunut.", e)
+        }
     }
 }
