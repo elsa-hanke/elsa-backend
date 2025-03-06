@@ -2,7 +2,8 @@ package fi.elsapalvelu.elsa.scheduler
 
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Opintooikeus
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.domain.OpintooikeusHerate
+import fi.elsapalvelu.elsa.repository.OpintooikeusHerateRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.DayOfWeek
+import java.time.Instant
 import java.time.LocalDate
 
 data class PaattyvaOikeus (
@@ -23,7 +25,7 @@ data class PaattyvaOikeus (
 class ScheduledPaattyvaOpintooikeusHerate (
     private val opintooikeusRepository: OpintooikeusRepository,
     private val mailService: MailService,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val opintooikeusHerateRepository: OpintooikeusHerateRepository
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -86,5 +88,14 @@ class ScheduledPaattyvaOpintooikeusHerate (
             titleKey = "email.opintooikeuspaattymassa.title",
             properties = properties,
         )
+        val opintooikeusHerate =
+            opintooikeusHerateRepository.findOneByErikoistuvaLaakariKayttajaUserId(user.id!!)
+                ?: OpintooikeusHerate(
+                    erikoistuvaLaakari = paattyvaOikeus.erikoistuvaLaakari
+                )
+        if (paattyvaOikeus.maaraaikainen) {
+            opintooikeusHerate.maaraaikainenPaattymassaHerateLahetetty = Instant.now()
+        } else opintooikeusHerate.paattymassaHerateLahetetty = Instant.now()
+        opintooikeusHerateRepository.save(opintooikeusHerate)
     }
 }
