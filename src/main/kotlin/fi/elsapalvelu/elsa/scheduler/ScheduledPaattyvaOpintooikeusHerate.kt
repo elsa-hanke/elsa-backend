@@ -37,15 +37,15 @@ class ScheduledPaattyvaOpintooikeusHerate (
         val sunday = today.with(DayOfWeek.SUNDAY)
         val paattyvatOikeudet = listOf(
             opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(2), sunday.plusMonths(2))
-                .map { mapPaattyvaOikeus(it) },
+                .mapNotNull { mapPaattyvaOikeus(it).takeIf { o -> o.maaraaikainen } },
             opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(3), sunday.plusMonths(3))
-                .map { mapPaattyvaOikeus(it) },
+                .mapNotNull { mapPaattyvaOikeus(it).takeIf { o -> !o.maaraaikainen } },
             opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(4), sunday.plusMonths(4))
-                .map { mapPaattyvaOikeus(it) },
+                .mapNotNull { mapPaattyvaOikeus(it).takeIf { o -> o.maaraaikainen } },
             opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusMonths(6), sunday.plusMonths(6))
                 .map { mapPaattyvaOikeus(it) },
             opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusYears(1), sunday.plusYears(1))
-                .map { mapPaattyvaOikeus(it) }
+                .mapNotNull { mapPaattyvaOikeus(it).takeIf { o -> !o.maaraaikainen } }
         )
         paattyvatOikeudet.forEach {
             if (it.isNotEmpty()) it.forEach { oikeus ->
