@@ -73,13 +73,13 @@ class ScheduledPaattyvaOpintooikeusHerate (
             if (paattyvaOikeus.maaraaikainen) {
                 mapOf(
                     Pair(MailProperty.DATE, paattyvaOikeus.paattymispaiva.toString()),
-                    Pair(MailProperty.URL_PATH, "example1.org"),
-                    Pair(MailProperty.SECOND_URL_PATH, "example2.org"),
+                    Pair(MailProperty.URL_PATH, "https://www.laaketieteelliset.fi/ammatillinen-jatkokoulutus/koejakso"),
+                    Pair(MailProperty.SECOND_URL_PATH, "https://www.laaketieteelliset.fi/ammatillinen-jatkokoulutus/lomakkeet/"),
                 )
             } else {
                 mapOf(
                     Pair(MailProperty.DATE, paattyvaOikeus.paattymispaiva.toString()),
-                    Pair(MailProperty.URL_PATH, "example3.org"),
+                    Pair(MailProperty.URL_PATH, "https://www.laaketieteelliset.fi/ammatillinen-jatkokoulutus/lomakkeet/"),
                 )
             }
         mailService.sendEmailFromTemplate(
