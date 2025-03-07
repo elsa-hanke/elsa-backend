@@ -79,4 +79,17 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>,
     )
     fun findAllByTerveyskoulutusjaksoSuorittamatta(
     ): List<Opintooikeus>
+
+    @Query(
+        """
+            select o from Opintooikeus o
+            where o.opintooikeudenPaattymispaiva between :from and :to
+            and current_date between o.opintooikeudenMyontamispaiva and o.viimeinenKatselupaiva
+            and o.erikoisala.liittynytElsaan = true
+        """
+    )
+    fun findAllPaattyvatByTimeFrame(
+        from: LocalDate,
+        to: LocalDate
+    ): List<Opintooikeus>
 }
