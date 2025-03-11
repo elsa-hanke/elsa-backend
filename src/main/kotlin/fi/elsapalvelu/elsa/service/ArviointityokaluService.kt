@@ -20,6 +20,8 @@ interface ArviointityokaluService {
 
     fun findAll(): List<ArviointityokaluDTO>
 
+    fun findAllJulkaistu(): List<ArviointityokaluDTO>
+
     fun findAllByKayttajaUserId(userId: String): MutableList<ArviointityokaluDTO>
 
     fun findOne(id: Long): Optional<ArviointityokaluDTO>
