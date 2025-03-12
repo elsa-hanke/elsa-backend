@@ -5,12 +5,9 @@ import fi.elsapalvelu.elsa.domain.ArviointityokaluKysymysVaihtoehto
 import fi.elsapalvelu.elsa.domain.AsiakirjaData
 import fi.elsapalvelu.elsa.repository.ArviointityokaluKategoriaRepository
 import fi.elsapalvelu.elsa.repository.ArviointityokaluRepository
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.service.ArviointityokaluService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
-import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluKysymysMapper
-import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluKysymysVaihtoehtoMapper
 import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,10 +20,7 @@ import java.util.*
 class ArviointityokaluServiceImpl(
     private val arviointityokaluRepository: ArviointityokaluRepository,
     private val arviointityokaluMapper: ArviointityokaluMapper,
-    private val arviointityokaluKysymysMapper: ArviointityokaluKysymysMapper,
-    private val arviointityokaluKysymysVaihtoehtoMapper: ArviointityokaluKysymysVaihtoehtoMapper,
     private val arviointityokaluKategoriaRepository: ArviointityokaluKategoriaRepository,
-    private val kayttajaRepository: KayttajaRepository,
 ) : ArviointityokaluService {
 
     override fun save(
@@ -40,7 +34,7 @@ class ArviointityokaluServiceImpl(
             arviointityokalu.luontiaika = now
         }
         arviointityokalu.muokkausaika = now
-        arviointityokalu.kayttaja = user.id?.let { kayttajaRepository.findOneByUserId(it).orElse(null) }
+        arviointityokalu.kayttaja = null
         arviointityokalu.kategoria = arviointityokalu.kategoria?.let {
             arviointityokaluKategoriaRepository.findById(it.id!!).orElse(null)
         }
