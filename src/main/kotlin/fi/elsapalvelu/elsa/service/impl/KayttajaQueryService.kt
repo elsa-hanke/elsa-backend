@@ -62,12 +62,21 @@ class KayttajaQueryService(
         pageable: Pageable,
         langkey: String?,
         authorities: List<String>,
-        yliopistot: List<Long?>
+        yliopistot: List<Long?>,
+        nullAuthority: Boolean?
     ): Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO> {
-        val specification = Specification
-            .where(hasAuthorities(authorities))
-            .and(hasName(criteria?.nimi, langkey))
-            .and(hasErikoisala(criteria?.erikoisalaId))
+
+        val specification = if (nullAuthority == true) {
+            Specification
+                .where(hasCertainOrNoAuthorities(authorities))
+                .and(hasName(criteria?.nimi, langkey))
+                .and(hasErikoisala(criteria?.erikoisalaId))
+            } else {
+                Specification
+                    .where(hasAuthorities(authorities))
+                    .and(hasName(criteria?.nimi, langkey))
+                    .and(hasErikoisala(criteria?.erikoisalaId))
+            }
 
         if (activeAuthority != null && activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name && yliopistot.isNotEmpty()) {
             specification.and(hasOpintooikeusYliopisto(yliopistot[0]))
@@ -122,6 +131,15 @@ class KayttajaQueryService(
         return (Specification<Kayttaja> { root, _, _ ->
             val authorityJoin: Join<User, Authority> = root.join(Kayttaja_.user).join(User_.authorities)
             authorityJoin.get(Authority_.name).`in`(authorities)
+        })
+    }
+
+    private fun hasCertainOrNoAuthorities(authorities: List<String>): Specification<Kayttaja> {
+        return (Specification<Kayttaja> { root, _, cb ->
+            val authorityJoin: Join<User, Authority> = root.join(Kayttaja_.user).join(User_.authorities, JoinType.LEFT)
+            val predicate1 = authorityJoin.get(Authority_.name).`in`(authorities)
+            val predicate2 = cb.isNull(authorityJoin.get(Authority_.name))
+            cb.or(predicate1, predicate2)
         })
     }
 
