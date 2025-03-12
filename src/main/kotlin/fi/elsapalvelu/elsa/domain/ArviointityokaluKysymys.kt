@@ -41,7 +41,7 @@ data class ArviointityokaluKysymys(
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @NotAudited
-    var vaihtoehdot: MutableSet<ArviointityokaluKysymysVaihtoehto> = mutableSetOf(),
+    var vaihtoehdot: MutableList<ArviointityokaluKysymysVaihtoehto> = mutableListOf(),
 
     @Column(name = "jarjestysnumero")
     var jarjestysnumero: Int? = null,

@@ -74,28 +74,38 @@ class ArviointityokaluServiceImpl(
                 val existingKysymykset = arviointityokalu.kysymykset.associateBy { it.id }
                 val updatedKysymykset = mutableSetOf<ArviointityokaluKysymys>()
                 arviointityokaluDTO.kysymykset?.forEach { kysymysDTO ->
-                    val kysymys =
-                        existingKysymykset[kysymysDTO.id] ?: arviointityokaluKysymysMapper.toEntity(kysymysDTO)
-                    kysymys.arviointityokalu = arviointityokalu
+                    val kysymys = existingKysymykset[kysymysDTO.id] ?: ArviointityokaluKysymys(
+                        id = null,
+                        arviointityokalu = arviointityokalu,
+                        otsikko = kysymysDTO.otsikko,
+                        pakollinen = kysymysDTO.pakollinen,
+                        jarjestysnumero = kysymysDTO.jarjestysnumero
+                    )
                     kysymys.otsikko = kysymysDTO.otsikko
                     kysymys.pakollinen = kysymysDTO.pakollinen
                     kysymys.jarjestysnumero = kysymysDTO.jarjestysnumero
+                    kysymys.arviointityokalu = arviointityokalu
+                    kysymys.tyyppi = kysymysDTO.tyyppi
                     val existingVaihtoehdot = kysymys.vaihtoehdot.associateBy { it.id }
-                    val updatedVaihtoehdot = mutableSetOf<ArviointityokaluKysymysVaihtoehto>()
+                    val updatedVaihtoehdot = mutableListOf<ArviointityokaluKysymysVaihtoehto>()
                     kysymysDTO.vaihtoehdot?.forEach { vaihtoehtoDTO ->
-                        val vaihtoehto = existingVaihtoehdot[vaihtoehtoDTO.id]
-                            ?: arviointityokaluKysymysVaihtoehtoMapper.toEntity(vaihtoehtoDTO)
-                        vaihtoehto.arviointityokaluKysymys = kysymys
-                        vaihtoehto.valittu = vaihtoehtoDTO.valittu
+                        val vaihtoehto = existingVaihtoehdot[vaihtoehtoDTO.id] ?: ArviointityokaluKysymysVaihtoehto(
+                            id = null,
+                            teksti = vaihtoehtoDTO.teksti,
+                            valittu = vaihtoehtoDTO.valittu,
+                            arviointityokaluKysymys = kysymys
+                        )
                         vaihtoehto.teksti = vaihtoehtoDTO.teksti
+                        vaihtoehto.valittu = vaihtoehtoDTO.valittu
+                        vaihtoehto.arviointityokaluKysymys = kysymys
                         updatedVaihtoehdot.add(vaihtoehto)
                     }
-                    kysymys.vaihtoehdot.clear()
-                    kysymys.vaihtoehdot.addAll(updatedVaihtoehdot)
+                    kysymys.vaihtoehdot.retainAll(updatedVaihtoehdot.toSet())
+                    kysymys.vaihtoehdot.addAll(updatedVaihtoehdot.filterNot { kysymys.vaihtoehdot.contains(it) })
                     updatedKysymykset.add(kysymys)
                 }
-                arviointityokalu.kysymykset.clear()
-                arviointityokalu.kysymykset.addAll(updatedKysymykset)
+                arviointityokalu.kysymykset.retainAll(updatedKysymykset.toSet())
+                arviointityokalu.kysymykset.addAll(updatedKysymykset.filterNot { arviointityokalu.kysymykset.contains(it) })
                 if (liiteData != null) {
                     arviointityokalu.liite = AsiakirjaData(data = liiteData.bytes)
                     arviointityokalu.liitetiedostonNimi = liiteData.originalFilename
@@ -129,9 +139,9 @@ class ArviointityokaluServiceImpl(
                 arviointityokalu.kysymykset = arviointityokalu.kysymykset
                     .sortedBy { it.jarjestysnumero }
                     .map { kysymys ->
-                        kysymys.vaihtoehdot = kysymys.vaihtoehdot.sortedBy { it.id }.toMutableSet()
+                        kysymys.vaihtoehdot = kysymys.vaihtoehdot.sortedBy { it.id }.toMutableList()
                         kysymys
-                    }.toMutableSet()
+                    }.toMutableList()
                 arviointityokaluMapper.toDto(arviointityokalu)
             }
     }

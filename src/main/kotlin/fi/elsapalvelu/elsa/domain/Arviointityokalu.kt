@@ -56,7 +56,7 @@ data class Arviointityokalu(
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @NotAudited
-    var kysymykset: MutableSet<ArviointityokaluKysymys> = mutableSetOf(),
+    var kysymykset: MutableList<ArviointityokaluKysymys> = mutableListOf(),
 
     @NotNull
     @Column(name = "kaytossa")
