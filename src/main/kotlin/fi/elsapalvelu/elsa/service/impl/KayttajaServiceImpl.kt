@@ -451,7 +451,8 @@ class KayttajaServiceImpl(
                 pageable,
                 kayttaja.user?.langKey,
                 listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA),
-                kayttaja.yliopistot.map { it.id }.toList()
+                kayttaja.yliopistot.map { it.id }.toList(),
+                true
             )
             val kouluttajat = kayttajaQueryService.findByCriteriaAndAuthorities(
                 null,
@@ -459,7 +460,8 @@ class KayttajaServiceImpl(
                 pageable,
                 kayttaja.user?.langKey,
                 listOf(KOULUTTAJA),
-                kayttaja.yliopistot.map { it.id }.toList()
+                kayttaja.yliopistot.map { it.id }.toList(),
+                false
             )
             val combinedContent = (erikoistuvat.content + kouluttajat.content).distinctBy { it.kayttajaId }
             return PageImpl(combinedContent, pageable, erikoistuvat.totalElements + kouluttajat.totalElements)
@@ -471,7 +473,8 @@ class KayttajaServiceImpl(
                 pageable,
                 kayttaja.user?.langKey,
                 listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA, KOULUTTAJA),
-                kayttaja.yliopistot.map { it.id }.toList()
+                kayttaja.yliopistot.map { it.id }.toList(),
+                true
             )
         }
     }
