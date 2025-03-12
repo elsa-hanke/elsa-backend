@@ -1,6 +1,10 @@
 package fi.elsapalvelu.elsa.domain
 
 import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
+import jakarta.persistence.*
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
@@ -8,10 +12,6 @@ import org.hibernate.envers.NotAudited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
-import jakarta.persistence.*
-import jakarta.validation.constraints.Max
-import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.NotNull
 
 @Entity
 @Audited
@@ -94,6 +94,16 @@ data class Suoritusarviointi(
     )
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var arviointityokalut: MutableSet<Arviointityokalu>? = mutableSetOf(),
+
+    @OneToMany(
+        mappedBy = "suoritusarviointi_arviointityokalu",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @NotAudited
+    var valitutArviointityokalut: MutableSet<SuoritusarviointiArviointityokalu> = mutableSetOf(),
 
     @Enumerated(EnumType.STRING)
     @Column(name = "arviointi_perustuu")
