@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.service.ArviointityokaluService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
-import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluKategoriaService
+import fi.elsapalvelu.elsa.service.ArviointityokaluKategoriaService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*

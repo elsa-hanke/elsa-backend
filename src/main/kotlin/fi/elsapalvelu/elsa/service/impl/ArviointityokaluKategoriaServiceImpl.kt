@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.ArviointityokaluKategoriaRepository
+import fi.elsapalvelu.elsa.service.ArviointityokaluKategoriaService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluKategoriaMapper
-import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluKategoriaService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant

@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.mapper
+package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
 import java.util.*
