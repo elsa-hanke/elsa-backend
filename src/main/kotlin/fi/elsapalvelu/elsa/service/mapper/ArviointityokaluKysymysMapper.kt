@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKysymysDTO
 import org.mapstruct.Mapper
 import org.mapstruct.ReportingPolicy
 
-@Mapper(componentModel = "spring", uses = [], unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", uses = [ArviointityokaluKysymysVaihtoehtoMapper::class], unmappedTargetPolicy = ReportingPolicy.IGNORE)
 interface ArviointityokaluKysymysMapper :
     EntityMapper<ArviointityokaluKysymysDTO, ArviointityokaluKysymys> {
 
