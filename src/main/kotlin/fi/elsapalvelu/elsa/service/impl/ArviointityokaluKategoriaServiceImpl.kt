@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.repository.ArviointityokaluKategoriaRepository
+import fi.elsapalvelu.elsa.repository.ArviointityokaluRepository
 import fi.elsapalvelu.elsa.service.ArviointityokaluKategoriaService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluKategoriaMapper
@@ -13,7 +14,8 @@ import java.util.*
 @Transactional
 class ArviointityokaluKategoriaServiceImpl(
     private val arviointityokaluKategoriaRepository: ArviointityokaluKategoriaRepository,
-    private val arviointityokaluKategoriaMapper: ArviointityokaluKategoriaMapper
+    private val arviointityokaluKategoriaMapper: ArviointityokaluKategoriaMapper,
+    private val arviointityokaluRepository: ArviointityokaluRepository
 ) : ArviointityokaluKategoriaService {
 
     override fun create(arviointityokaluKategoriaDTO: ArviointityokaluKategoriaDTO): ArviointityokaluKategoriaDTO {
@@ -35,7 +37,7 @@ class ArviointityokaluKategoriaServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findAll(): List<ArviointityokaluKategoriaDTO> {
-        return arviointityokaluKategoriaRepository.findAll()
+        return arviointityokaluKategoriaRepository.findAllByKaytossaTrue()
             .map(arviointityokaluKategoriaMapper::toDto)
     }
 
@@ -46,6 +48,13 @@ class ArviointityokaluKategoriaServiceImpl(
     }
 
     override fun delete(id: Long) {
-        arviointityokaluKategoriaRepository.deleteById(id)
+        arviointityokaluKategoriaRepository.findById(id).ifPresent { arviointityokaluKategoria ->
+            arviointityokaluRepository.findAllByKategoria(arviointityokaluKategoria).forEach { arviointityokalu ->
+                arviointityokalu.kategoria = null
+                arviointityokaluRepository.save(arviointityokalu)
+            }
+            arviointityokaluKategoria.kaytossa = false
+            arviointityokaluKategoriaRepository.save(arviointityokaluKategoria)
+        }
     }
 }

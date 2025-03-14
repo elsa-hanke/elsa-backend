@@ -30,6 +30,10 @@ data class ArviointityokaluKategoria(
     @Column(name = "muokkausaika", nullable = false)
     var muokkausaika: Instant? = null,
 
+    @NotNull
+    @Column(name = "kaytossa")
+    var kaytossa: Boolean = true,
+
     ) : Serializable {
 
     override fun equals(other: Any?): Boolean {

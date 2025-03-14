@@ -9,4 +9,6 @@ interface ArviointityokaluKategoriaRepository : JpaRepository<ArviointityokaluKa
 
     fun findAllByIdIn(ids: List<Long?>): MutableSet<ArviointityokaluKategoria>?
 
+    fun findAllByKaytossaTrue(): List<ArviointityokaluKategoria>
+
 }
