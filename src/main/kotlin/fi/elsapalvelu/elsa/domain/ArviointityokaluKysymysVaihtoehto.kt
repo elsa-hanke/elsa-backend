@@ -19,9 +19,6 @@ data class ArviointityokaluKysymysVaihtoehto(
     @Column(name = "teksti", nullable = false)
     var teksti: String? = null,
 
-    @Column(name = "valittu", nullable = false)
-    var valittu: Boolean? = false,
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "arviointityokalu_kysymys_id", nullable = false)
     var arviointityokaluKysymys: ArviointityokaluKysymys? = null
@@ -40,7 +37,6 @@ data class ArviointityokaluKysymysVaihtoehto(
     override fun toString() = "ArviointityokaluKysymysVaihtoehto{" +
         "id=$id" +
         ", teksti='$teksti'" +
-        ", valittu='$valittu'" +
         "}"
 
     companion object {

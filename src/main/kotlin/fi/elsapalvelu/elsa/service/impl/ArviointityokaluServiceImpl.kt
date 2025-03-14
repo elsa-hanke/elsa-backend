@@ -94,7 +94,6 @@ class ArviointityokaluServiceImpl(
                         ArviointityokaluKysymysVaihtoehto(
                             id = null,
                             teksti = vaihtoehtoDTO.teksti,
-                            valittu = vaihtoehtoDTO.valittu,
                             arviointityokaluKysymys = kysymys
                         )
                     }?.toMutableList() ?: mutableListOf()

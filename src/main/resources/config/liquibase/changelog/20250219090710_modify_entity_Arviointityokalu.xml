@@ -42,7 +42,6 @@
             <column name="teksti" type="TEXT">
                 <constraints nullable="false"/>
             </column>
-            <column name="valittu" type="BOOLEAN"/>
             <column name="arviointityokalu_kysymys_id" type="BIGINT">
                 <constraints nullable="false" foreignKeyName="fk_vaihtoehto_kysymys"
                              references="arviointityokalu_kysymys(id)"/>
