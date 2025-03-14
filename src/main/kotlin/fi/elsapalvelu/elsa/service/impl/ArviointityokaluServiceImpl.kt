@@ -66,7 +66,7 @@ class ArviointityokaluServiceImpl(
                 vanhaArviointityokalu.kaytossa = false
                 arviointityokaluRepository.save(vanhaArviointityokalu)
                 val now = Instant.now()
-                val newArviointityokalu = Arviointityokalu(
+                val uusiArviointityokalu = Arviointityokalu(
                     id = null,
                     alkuperainenId = vanhaArviointityokalu.alkuperainenId ?: vanhaArviointityokalu.id!!,
                     versio = vanhaArviointityokalu.versio + 1,
@@ -84,7 +84,7 @@ class ArviointityokaluServiceImpl(
                 val updatedKysymykset = arviointityokaluDTO.kysymykset?.map { kysymysDTO ->
                     val kysymys = ArviointityokaluKysymys(
                         id = null,
-                        arviointityokalu = newArviointityokalu,
+                        arviointityokalu = uusiArviointityokalu,
                         otsikko = kysymysDTO.otsikko,
                         pakollinen = kysymysDTO.pakollinen,
                         jarjestysnumero = kysymysDTO.jarjestysnumero,
@@ -101,19 +101,19 @@ class ArviointityokaluServiceImpl(
                     kysymys
                 }?.toMutableList() ?: mutableListOf()
 
-                newArviointityokalu.kysymykset = updatedKysymykset
+                uusiArviointityokalu.kysymykset = updatedKysymykset
 
                 if (liiteData != null) {
-                    newArviointityokalu.liite = AsiakirjaData(data = liiteData.bytes)
-                    newArviointityokalu.liitetiedostonNimi = liiteData.originalFilename
-                    newArviointityokalu.liitetiedostonTyyppi = liiteData.contentType
+                    uusiArviointityokalu.liite = AsiakirjaData(data = liiteData.bytes)
+                    uusiArviointityokalu.liitetiedostonNimi = liiteData.originalFilename
+                    uusiArviointityokalu.liitetiedostonTyyppi = liiteData.contentType
                 } else {
-                    newArviointityokalu.liite = null
-                    newArviointityokalu.liitetiedostonNimi = null
-                    newArviointityokalu.liitetiedostonTyyppi = null
+                    uusiArviointityokalu.liite = null
+                    uusiArviointityokalu.liitetiedostonNimi = null
+                    uusiArviointityokalu.liitetiedostonTyyppi = null
                 }
 
-                val savedArviointityokalu = arviointityokaluRepository.save(newArviointityokalu)
+                val savedArviointityokalu = arviointityokaluRepository.save(uusiArviointityokalu)
                 return arviointityokaluMapper.toDto(savedArviointityokalu)
             }
     }
@@ -144,7 +144,10 @@ class ArviointityokaluServiceImpl(
     }
 
     override fun delete(id: Long) {
-        arviointityokaluRepository.deleteById(id)
+        arviointityokaluRepository.findById(id).ifPresent { arviointityokalu ->
+            arviointityokalu.kaytossa = false
+            arviointityokaluRepository.save(arviointityokalu)
+        }
     }
 
 }
