@@ -10,6 +10,10 @@ data class ArviointityokaluDTO(
 
     var id: Long? = null,
 
+    var versio: Long = 1,
+
+    var alkuperainenId: Long? = null,
+
     @get: NotNull
     var nimi: String? = null,
 

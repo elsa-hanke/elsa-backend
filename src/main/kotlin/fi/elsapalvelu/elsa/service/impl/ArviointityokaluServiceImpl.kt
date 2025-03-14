@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.Arviointityokalu
 import fi.elsapalvelu.elsa.domain.ArviointityokaluKysymys
 import fi.elsapalvelu.elsa.domain.ArviointityokaluKysymysVaihtoehto
 import fi.elsapalvelu.elsa.domain.AsiakirjaData
@@ -32,6 +33,7 @@ class ArviointityokaluServiceImpl(
         val now = Instant.now()
         if (arviointityokalu.id == null) {
             arviointityokalu.luontiaika = now
+            arviointityokalu.versio = 1
         }
         arviointityokalu.muokkausaika = now
         arviointityokalu.kayttaja = null
@@ -50,6 +52,8 @@ class ArviointityokaluServiceImpl(
             arviointityokalu.liitetiedostonTyyppi = liiteData.contentType
         }
         arviointityokalu = arviointityokaluRepository.save(arviointityokalu)
+        arviointityokalu.alkuperainenId = arviointityokalu.id!!
+        arviointityokalu = arviointityokaluRepository.save(arviointityokalu)
         return arviointityokaluMapper.toDto(arviointityokalu)
     }
 
@@ -58,60 +62,59 @@ class ArviointityokaluServiceImpl(
         liiteData: MultipartFile?
     ): ArviointityokaluDTO? {
         return arviointityokaluRepository.findById(arviointityokaluDTO.id!!)
-            .orElse(null)?.let { arviointityokalu ->
-                arviointityokalu.nimi = arviointityokaluDTO.nimi
-                arviointityokalu.ohjeteksti = arviointityokaluDTO.ohjeteksti
-                arviointityokalu.tila = arviointityokaluDTO.tila
-                arviointityokaluDTO.kategoria?.let {
-                    arviointityokalu.kategoria = arviointityokaluKategoriaRepository.findById(it.id!!).orElse(null)
-                }
-                val existingKysymykset = arviointityokalu.kysymykset.associateBy { it.id }
-                val updatedKysymykset = mutableSetOf<ArviointityokaluKysymys>()
-                arviointityokaluDTO.kysymykset?.forEach { kysymysDTO ->
-                    val kysymys = existingKysymykset[kysymysDTO.id] ?: ArviointityokaluKysymys(
+            .orElse(null)?.let { vanhaArviointityokalu ->
+                vanhaArviointityokalu.kaytossa = false
+                arviointityokaluRepository.save(vanhaArviointityokalu)
+                val now = Instant.now()
+                val newArviointityokalu = Arviointityokalu(
+                    id = null,
+                    alkuperainenId = vanhaArviointityokalu.alkuperainenId ?: vanhaArviointityokalu.id!!,
+                    versio = vanhaArviointityokalu.versio + 1,
+                    nimi = arviointityokaluDTO.nimi,
+                    ohjeteksti = arviointityokaluDTO.ohjeteksti,
+                    tila = arviointityokaluDTO.tila,
+                    kaytossa = true,
+                    luontiaika = vanhaArviointityokalu.luontiaika,
+                    muokkausaika = now,
+                    kayttaja = null,
+                    kategoria = arviointityokaluDTO.kategoria?.let {
+                        arviointityokaluKategoriaRepository.findById(it.id!!).orElse(null)
+                    }
+                )
+                val updatedKysymykset = arviointityokaluDTO.kysymykset?.map { kysymysDTO ->
+                    val kysymys = ArviointityokaluKysymys(
                         id = null,
-                        arviointityokalu = arviointityokalu,
+                        arviointityokalu = newArviointityokalu,
                         otsikko = kysymysDTO.otsikko,
                         pakollinen = kysymysDTO.pakollinen,
-                        jarjestysnumero = kysymysDTO.jarjestysnumero
+                        jarjestysnumero = kysymysDTO.jarjestysnumero,
+                        tyyppi = kysymysDTO.tyyppi
                     )
-                    kysymys.otsikko = kysymysDTO.otsikko
-                    kysymys.pakollinen = kysymysDTO.pakollinen
-                    kysymys.jarjestysnumero = kysymysDTO.jarjestysnumero
-                    kysymys.arviointityokalu = arviointityokalu
-                    kysymys.tyyppi = kysymysDTO.tyyppi
-                    val existingVaihtoehdot = kysymys.vaihtoehdot.associateBy { it.id }
-                    val updatedVaihtoehdot = mutableListOf<ArviointityokaluKysymysVaihtoehto>()
-                    kysymysDTO.vaihtoehdot?.forEach { vaihtoehtoDTO ->
-                        val vaihtoehto = existingVaihtoehdot[vaihtoehtoDTO.id] ?: ArviointityokaluKysymysVaihtoehto(
+                    kysymys.vaihtoehdot = kysymysDTO.vaihtoehdot?.map { vaihtoehtoDTO ->
+                        ArviointityokaluKysymysVaihtoehto(
                             id = null,
                             teksti = vaihtoehtoDTO.teksti,
                             valittu = vaihtoehtoDTO.valittu,
                             arviointityokaluKysymys = kysymys
                         )
-                        vaihtoehto.teksti = vaihtoehtoDTO.teksti
-                        vaihtoehto.valittu = vaihtoehtoDTO.valittu
-                        vaihtoehto.arviointityokaluKysymys = kysymys
-                        updatedVaihtoehdot.add(vaihtoehto)
-                    }
-                    kysymys.vaihtoehdot.retainAll(updatedVaihtoehdot.toSet())
-                    kysymys.vaihtoehdot.addAll(updatedVaihtoehdot.filterNot { kysymys.vaihtoehdot.contains(it) })
-                    updatedKysymykset.add(kysymys)
-                }
-                arviointityokalu.kysymykset.retainAll(updatedKysymykset.toSet())
-                arviointityokalu.kysymykset.addAll(updatedKysymykset.filterNot { arviointityokalu.kysymykset.contains(it) })
+                    }?.toMutableList() ?: mutableListOf()
+                    kysymys
+                }?.toMutableList() ?: mutableListOf()
+
+                newArviointityokalu.kysymykset = updatedKysymykset
+
                 if (liiteData != null) {
-                    arviointityokalu.liite = AsiakirjaData(data = liiteData.bytes)
-                    arviointityokalu.liitetiedostonNimi = liiteData.originalFilename
-                    arviointityokalu.liitetiedostonTyyppi = liiteData.contentType
+                    newArviointityokalu.liite = AsiakirjaData(data = liiteData.bytes)
+                    newArviointityokalu.liitetiedostonNimi = liiteData.originalFilename
+                    newArviointityokalu.liitetiedostonTyyppi = liiteData.contentType
                 } else {
-                    arviointityokalu.liite = null
-                    arviointityokalu.liitetiedostonNimi = null
-                    arviointityokalu.liitetiedostonTyyppi = null
+                    newArviointityokalu.liite = null
+                    newArviointityokalu.liitetiedostonNimi = null
+                    newArviointityokalu.liitetiedostonTyyppi = null
                 }
-                arviointityokalu.muokkausaika = Instant.now()
-                val result = arviointityokaluRepository.save(arviointityokalu)
-                arviointityokaluMapper.toDto(result)
+
+                val savedArviointityokalu = arviointityokaluRepository.save(newArviointityokalu)
+                return arviointityokaluMapper.toDto(savedArviointityokalu)
             }
     }
 

@@ -20,6 +20,12 @@ data class Arviointityokalu(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
+    @Column(name = "versio", nullable = false)
+    var versio: Long = 1,
+
+    @Column(name = "alkuperainen_id", nullable = true)
+    var alkuperainenId: Long? = null,
+
     @get: NotNull
     @Column(name = "nimi", nullable = false)
     var nimi: String? = null,
