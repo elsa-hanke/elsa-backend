@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20250219090710-1" author="jhipster">
+        <createTable tableName="arviointityokalu_kysymys">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="otsikko" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pakollinen" type="BOOLEAN" defaultValue="false"/>
+            <column name="tyyppi" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arviointityokalu_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_kysymys_arviointityokalu"
+                             references="arviointityokalu(id)"/>
+            </column>
+            <column name="jarjestysnumero" type="INTEGER"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20250219090710-1-sequence" author="jhipster">
+        <addAutoIncrement
+            columnName="id"
+            columnDataType="BIGINT"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="arviointityokalu_kysymys"/>
+    </changeSet>
+
+    <changeSet id="20250219090710-2" author="jhipster">
+        <createTable tableName="arviointityokalu_kysymys_vaihtoehto">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="teksti" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arviointityokalu_kysymys_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_vaihtoehto_kysymys"
+                             references="arviointityokalu_kysymys(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20250219090710-2-sequence" author="jhipster">
+        <addAutoIncrement
+            columnName="id"
+            columnDataType="BIGINT"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="arviointityokalu_kysymys_vaihtoehto"/>
+    </changeSet>
+
+    <changeSet id="20250219090710-3" author="jhipster">
+        <addColumn tableName="arviointityokalu">
+            <column name="ohjeteksti" type="TEXT"/>
+            <column name="liite_id" type="BIGINT">
+                <constraints foreignKeyName="fk_arviointityokalu_liite" references="asiakirja_data(id)"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20250219090710-4" author="jhipster">
+        <addColumn tableName="arviointityokalu">
+            <column name="liitetiedoston_nimi" type="TEXT"/>
+            <column name="liitetiedoston_tyyppi" type="TEXT"/>
+            <column name="tila" type="varchar(50)" value="LUONNOS">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
