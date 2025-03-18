@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.domain.Arviointityokalu
 import fi.elsapalvelu.elsa.domain.ArviointityokaluKysymys
 import fi.elsapalvelu.elsa.domain.ArviointityokaluKysymysVaihtoehto
 import fi.elsapalvelu.elsa.domain.AsiakirjaData
-import fi.elsapalvelu.elsa.domain.enumeration.ArviointityokalunTila
 import fi.elsapalvelu.elsa.repository.ArviointityokaluKategoriaRepository
 import fi.elsapalvelu.elsa.repository.ArviointityokaluRepository
 import fi.elsapalvelu.elsa.service.ArviointityokaluService
@@ -121,13 +120,6 @@ class ArviointityokaluServiceImpl(
     @Transactional(readOnly = true)
     override fun findAll(): List<ArviointityokaluDTO> {
         return arviointityokaluRepository.findAllByKaytossaTrue()
-            .map(arviointityokaluMapper::toDto)
-    }
-
-    @Transactional(readOnly = true)
-    override fun findAllJulkaistu(): List<ArviointityokaluDTO> {
-        return arviointityokaluRepository.findAllByKaytossaTrue()
-            .filter { it.tila == ArviointityokalunTila.JULKAISTU }
             .map(arviointityokaluMapper::toDto)
     }
 
