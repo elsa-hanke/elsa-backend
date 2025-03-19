@@ -123,6 +123,12 @@ class ArviointityokaluServiceImpl(
             .map(arviointityokaluMapper::toDto)
     }
 
+    @Transactional(readOnly = true)
+    override fun findAllJulkaistut(): List<ArviointityokaluDTO> {
+        return arviointityokaluRepository.findAllJulkaistut()
+            .map(arviointityokaluMapper::toDto)
+    }
+
     override fun findAllByKayttajaUserId(userId: String): MutableList<ArviointityokaluDTO> {
         return arviointityokaluRepository.findAllByKayttajaIsNullOrKayttajaUserId(userId)
             .mapTo(mutableListOf(), arviointityokaluMapper::toDto)

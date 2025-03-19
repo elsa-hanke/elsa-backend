@@ -16,6 +16,9 @@ interface ArviointityokaluRepository : JpaRepository<Arviointityokalu, Long> {
 
     fun findAllByKaytossaTrue(): List<Arviointityokalu>
 
+    @Query("select a from Arviointityokalu a where a.kaytossa = true and a.tila = 'JULKAISTU'")
+    fun findAllJulkaistut(): List<Arviointityokalu>
+
     fun findAllByKategoria(arviointityokaluKategoria: ArviointityokaluKategoria): List<Arviointityokalu>
 
 }
