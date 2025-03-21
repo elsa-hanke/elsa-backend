@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20250314160900-1" author="jhipster">
+        <createTable tableName="suoritusarvioinnin_arviointityokalun_vastaus">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="suoritusarviointi_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_suoritusarviointi" references="suoritusarviointi(id)"/>
+            </column>
+            <column name="arviointityokalu_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_arviointityokalu" references="arviointityokalu(id)"/>
+            </column>
+            <column name="arviointityokalu_kysymys_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_arviointityokalu_kysymys"
+                             references="arviointityokalu_kysymys(id)"/>
+            </column>
+            <column name="teksti_vastaus" type="TEXT"/>
+            <column name="valittu_vaihtoehto_id" type="bigint">
+                <constraints foreignKeyName="fk_valittu_vaihtoehto"
+                             references="arviointityokalu_kysymys_vaihtoehto(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20250314160900-1-sequence" author="jhipster">
+        <addAutoIncrement
+            columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"
+            tableName="suoritusarvioinnin_arviointityokalun_vastaus"
+        />
+    </changeSet>
+
+</databaseChangeLog>
