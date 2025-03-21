@@ -127,9 +127,10 @@ class ArviointityokaluServiceImpl(
     @Transactional(readOnly = true)
     override fun findAllJulkaistut(): List<ArviointityokaluDTO> {
         return arviointityokaluRepository.findAllJulkaistut()
+            .map(arviointityokaluMapper::toDto)
     }
-        
-    @Transactional(readOnly = true)    
+
+    @Transactional(readOnly = true)
     override fun findAllJulkaistu(): List<ArviointityokaluDTO> {
         return arviointityokaluRepository.findAllByKaytossaTrue()
             .filter { it.tila == ArviointityokalunTila.JULKAISTU }
