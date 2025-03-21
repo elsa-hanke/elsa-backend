@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
-import java.io.Serializable
-import java.time.LocalDate
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
+import java.io.Serializable
+import java.time.LocalDate
 
 data class SuoritusarviointiDTO(
 
@@ -65,7 +65,9 @@ data class SuoritusarviointiDTO(
 
     var arviointiAsiakirjat: MutableSet<AsiakirjaDTO>? = mutableSetOf(),
 
-    var itsearviointiAsiakirjat: MutableSet<AsiakirjaDTO>? = mutableSetOf()
+    var itsearviointiAsiakirjat: MutableSet<AsiakirjaDTO>? = mutableSetOf(),
+
+    var arviointityokaluVastaukset: MutableSet<SuoritusarvioinninArviointityokalunVastausDTO> = mutableSetOf()
 
 ) : Serializable {
 
