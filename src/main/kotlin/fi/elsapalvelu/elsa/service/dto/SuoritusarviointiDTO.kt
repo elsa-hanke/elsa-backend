@@ -67,7 +67,10 @@ data class SuoritusarviointiDTO(
 
     var itsearviointiAsiakirjat: MutableSet<AsiakirjaDTO>? = mutableSetOf(),
 
-    var arviointityokaluVastaukset: MutableSet<SuoritusarvioinninArviointityokalunVastausDTO> = mutableSetOf()
+    var arviointityokaluVastaukset: MutableSet<SuoritusarvioinninArviointityokalunVastausDTO> = mutableSetOf(),
+
+    @get: NotNull
+    var keskenerainen: Boolean = false
 
 ) : Serializable {
 

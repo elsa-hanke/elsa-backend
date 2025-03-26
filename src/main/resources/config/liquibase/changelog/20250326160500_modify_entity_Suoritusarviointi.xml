@@ -4,8 +4,16 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
-    <changeSet id="20250326160500" author="jhipster" context="!test">
+    <changeSet id="20250326160500" author="jhipster">
         <addColumn tableName="suoritusarviointi">
+            <column name="keskenerainen" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20250326160500-audit" author="jhipster">
+        <addColumn tableName="suoritusarviointi_audit">
             <column name="keskenerainen" type="boolean" defaultValue="false">
                 <constraints nullable="false"/>
             </column>
