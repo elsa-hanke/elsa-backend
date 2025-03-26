@@ -125,7 +125,11 @@ data class Suoritusarviointi(
         fetch = FetchType.LAZY
     )
     @NotAudited
-    var arviointityokaluVastaukset: MutableSet<SuoritusarvioinninArviointityokalunVastaus> = mutableSetOf()
+    var arviointityokaluVastaukset: MutableSet<SuoritusarvioinninArviointityokalunVastaus> = mutableSetOf(),
+
+    @get: NotNull
+    @Column(name = "keskenerainen", nullable = false)
+    var keskenerainen: Boolean = false,
 
 ) : Serializable {
 
@@ -154,6 +158,7 @@ data class Suoritusarviointi(
         ", arviointiTyokalu='$arviointityokalut'" +
         ", arviointiPerustuu='$arviointiPerustuu'" +
         ", muuPeruste='$muuPeruste'" +
+        ", keskenerainen='$keskenerainen'" +
         "}"
 
     companion object {
