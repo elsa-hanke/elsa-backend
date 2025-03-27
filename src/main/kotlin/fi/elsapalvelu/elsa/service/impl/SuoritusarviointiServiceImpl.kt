@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.domain.SuoritusarvioinninArviointityokalunVastaus
 import fi.elsapalvelu.elsa.domain.Suoritusarviointi
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.MailProperty
@@ -34,7 +35,9 @@ class SuoritusarviointiServiceImpl(
     private val arviointityokaluRepository: ArviointityokaluRepository,
     private val mailService: MailService,
     private val asiakirjaRepository: AsiakirjaRepository,
-    private val asiakirjaMapper: AsiakirjaMapper
+    private val asiakirjaMapper: AsiakirjaMapper,
+    private val arviointityokaluKysymysRepository: ArviointityokaluKysymysRepository,
+    private val arviointityokaluKysymysVaihtoehtoRepository: ArviointityokaluKysymysVaihtoehtoRepository,
 ) : SuoritusarviointiService {
 
     override fun save(suoritusarviointiDTO: SuoritusarviointiDTO): SuoritusarviointiDTO {
@@ -145,7 +148,6 @@ class SuoritusarviointiServiceImpl(
     ): Suoritusarviointi {
         suoritusarviointi.vaativuustaso = suoritusarviointiDTO.vaativuustaso
         suoritusarviointi.sanallinenArviointi = suoritusarviointiDTO.sanallinenArviointi
-        suoritusarviointi.arviointiAika = LocalDate.now(ZoneId.systemDefault())
         suoritusarviointi.arviointityokalut = arviointityokaluRepository.findAllByIdIn(
             suoritusarviointiDTO.arviointityokalut?.map(
                 ArviointityokaluDTO::id
@@ -153,36 +155,60 @@ class SuoritusarviointiServiceImpl(
         )
         suoritusarviointi.arviointiPerustuu = suoritusarviointiDTO.arviointiPerustuu
         suoritusarviointi.muuPeruste = suoritusarviointiDTO.muuPeruste
-
         suoritusarviointi.arvioitavatKokonaisuudet.forEach {
             it.arviointiasteikonTaso =
                 suoritusarviointiDTO.arvioitavatKokonaisuudet?.first { k -> k.id == it.id }?.arviointiasteikonTaso
         }
 
+        val existingVastauksetById = suoritusarviointi.arviointityokaluVastaukset.associateBy { it.id }.toMutableMap()
+        val dtoVastausIds = suoritusarviointiDTO.arviointityokaluVastaukset.mapNotNull { it.id }.toSet()
+        val newOrUpdatedVastaukset = suoritusarviointiDTO.arviointityokaluVastaukset.map { dto ->
+            existingVastauksetById[dto.id]?.apply {
+                tekstiVastaus = dto.tekstiVastaus
+                valittuVaihtoehto = dto.valittuVaihtoehtoId?.let { arviointityokaluKysymysVaihtoehtoRepository.findByIdOrNull(it) }
+            } ?: SuoritusarvioinninArviointityokalunVastaus(
+                suoritusarviointi = suoritusarviointi,
+                arviointityokalu = arviointityokaluRepository.findByIdOrNull(dto.arviointityokaluId),
+                arviointityokaluKysymys = arviointityokaluKysymysRepository.findByIdOrNull(dto.arviointityokaluKysymysId),
+                tekstiVastaus = dto.tekstiVastaus,
+                valittuVaihtoehto = dto.valittuVaihtoehtoId?.let { arviointityokaluKysymysVaihtoehtoRepository.findByIdOrNull(it) }
+            )
+        }
+        suoritusarviointi.arviointityokaluVastaukset.removeIf { it.id !in dtoVastausIds }
+        newOrUpdatedVastaukset.forEach { newVastaus ->
+            if (!suoritusarviointi.arviointityokaluVastaukset.contains(newVastaus)) {
+                suoritusarviointi.arviointityokaluVastaukset.add(newVastaus)
+            }
+        }
+
         mapAsiakirjat(suoritusarviointi, newAsiakirjat, deletedAsiakirjaIds, false)
+
+        suoritusarviointi.keskenerainen = suoritusarviointiDTO.keskenerainen
+        suoritusarviointi.arviointiAika = if (!suoritusarviointiDTO.keskenerainen) LocalDate.now(ZoneId.systemDefault()) else null
 
         val result = suoritusarviointiRepository.save(suoritusarviointi)
 
-        val isNewArviointi = suoritusarviointi.arviointiAika == null
-        val templateName = if (isNewArviointi) {
-            "arviointiAnnettuEmail"
-        } else {
-            "arviointiaMuokattuEmail"
-        }
-        val titleKey = if (isNewArviointi) {
-            "email.arviointiannettu.title"
-        } else {
-            "email.arviointiamuokattu.title"
-        }
+        if (!suoritusarviointi.keskenerainen) {
+            val isNewArviointi = suoritusarviointi.arviointiAika == null
+            val templateName = if (isNewArviointi) {
+                "arviointiAnnettuEmail"
+            } else {
+                "arviointiaMuokattuEmail"
+            }
+            val titleKey = if (isNewArviointi) {
+                "email.arviointiannettu.title"
+            } else {
+                "email.arviointiamuokattu.title"
+            }
 
-        mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                .get().user!!,
-            templateName = templateName,
-            titleKey = titleKey,
-            properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
-        )
-
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
+                    .get().user!!,
+                templateName = templateName,
+                titleKey = titleKey,
+                properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
+            )
+        }
         return result
     }
 
