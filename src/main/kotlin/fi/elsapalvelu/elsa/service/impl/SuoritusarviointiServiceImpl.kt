@@ -148,7 +148,6 @@ class SuoritusarviointiServiceImpl(
     ): Suoritusarviointi {
         suoritusarviointi.vaativuustaso = suoritusarviointiDTO.vaativuustaso
         suoritusarviointi.sanallinenArviointi = suoritusarviointiDTO.sanallinenArviointi
-        suoritusarviointi.arviointiAika = LocalDate.now(ZoneId.systemDefault())
         suoritusarviointi.arviointityokalut = arviointityokaluRepository.findAllByIdIn(
             suoritusarviointiDTO.arviointityokalut?.map(
                 ArviointityokaluDTO::id
@@ -184,28 +183,32 @@ class SuoritusarviointiServiceImpl(
 
         mapAsiakirjat(suoritusarviointi, newAsiakirjat, deletedAsiakirjaIds, false)
 
+        suoritusarviointi.keskenerainen = suoritusarviointiDTO.keskenerainen
+        suoritusarviointi.arviointiAika = if (!suoritusarviointiDTO.keskenerainen) LocalDate.now(ZoneId.systemDefault()) else null
+
         val result = suoritusarviointiRepository.save(suoritusarviointi)
 
-        val isNewArviointi = suoritusarviointi.arviointiAika == null
-        val templateName = if (isNewArviointi) {
-            "arviointiAnnettuEmail"
-        } else {
-            "arviointiaMuokattuEmail"
-        }
-        val titleKey = if (isNewArviointi) {
-            "email.arviointiannettu.title"
-        } else {
-            "email.arviointiamuokattu.title"
-        }
+        if (!suoritusarviointi.keskenerainen) {
+            val isNewArviointi = suoritusarviointi.arviointiAika == null
+            val templateName = if (isNewArviointi) {
+                "arviointiAnnettuEmail"
+            } else {
+                "arviointiaMuokattuEmail"
+            }
+            val titleKey = if (isNewArviointi) {
+                "email.arviointiannettu.title"
+            } else {
+                "email.arviointiamuokattu.title"
+            }
 
-        mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                .get().user!!,
-            templateName = templateName,
-            titleKey = titleKey,
-            properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
-        )
-
+            mailService.sendEmailFromTemplate(
+                kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
+                    .get().user!!,
+                templateName = templateName,
+                titleKey = titleKey,
+                properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
+            )
+        }
         return result
     }
 
