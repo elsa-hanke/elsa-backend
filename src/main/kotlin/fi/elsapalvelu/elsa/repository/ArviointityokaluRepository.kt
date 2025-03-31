@@ -9,12 +9,15 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ArviointityokaluRepository : JpaRepository<Arviointityokalu, Long> {
 
-    @Query("select a from Arviointityokalu a left join a.kayttaja k left join k.user u where a.kayttaja is null or (u.id = ?1)")
+    @Query("select a from Arviointityokalu a left join a.kayttaja k left join k.user u where a.kaytossa = true and a.kayttaja is null or (u.id = ?1)")
     fun findAllByKayttajaIsNullOrKayttajaUserId(id: String): List<Arviointityokalu>
 
     fun findAllByIdIn(ids: List<Long?>): MutableSet<Arviointityokalu>?
 
     fun findAllByKaytossaTrue(): List<Arviointityokalu>
+
+    @Query("select a from Arviointityokalu a where a.kaytossa = true and a.tila = 'JULKAISTU'")
+    fun findAllJulkaistut(): List<Arviointityokalu>
 
     fun findAllByKategoria(arviointityokaluKategoria: ArviointityokaluKategoria): List<Arviointityokalu>
 
