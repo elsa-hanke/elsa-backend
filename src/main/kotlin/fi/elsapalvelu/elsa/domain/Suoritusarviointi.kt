@@ -1,6 +1,10 @@
 package fi.elsapalvelu.elsa.domain
 
 import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
+import jakarta.persistence.*
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
@@ -8,10 +12,6 @@ import org.hibernate.envers.NotAudited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.LocalDate
-import jakarta.persistence.*
-import jakarta.validation.constraints.Max
-import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.NotNull
 
 @Entity
 @Audited
@@ -116,7 +116,20 @@ data class Suoritusarviointi(
         orphanRemoval = true,
         fetch = FetchType.LAZY
     )
-    var itsearviointiAsiakirjat: MutableSet<Asiakirja> = mutableSetOf()
+    var itsearviointiAsiakirjat: MutableSet<Asiakirja> = mutableSetOf(),
+
+    @OneToMany(
+        mappedBy = "suoritusarviointi",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    @NotAudited
+    var arviointityokaluVastaukset: MutableSet<SuoritusarvioinninArviointityokalunVastaus> = mutableSetOf(),
+
+    @get: NotNull
+    @Column(name = "keskenerainen", nullable = false)
+    var keskenerainen: Boolean = false,
 
 ) : Serializable {
 
@@ -145,6 +158,7 @@ data class Suoritusarviointi(
         ", arviointiTyokalu='$arviointityokalut'" +
         ", arviointiPerustuu='$arviointiPerustuu'" +
         ", muuPeruste='$muuPeruste'" +
+        ", keskenerainen='$keskenerainen'" +
         "}"
 
     companion object {
