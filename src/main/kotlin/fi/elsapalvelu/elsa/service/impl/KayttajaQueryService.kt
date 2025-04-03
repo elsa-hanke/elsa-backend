@@ -212,6 +212,6 @@ class KayttajaQueryService(
             },
             authorities = kayttaja.user?.authorities?.takeIf { it.isNotEmpty() }?.map { a -> a.name!! }?.toList(),
             kayttajatilinTila = kayttaja.tila,
-            sahkoposti = kayttaja.user?.email!!
+            sahkoposti = kayttaja.user?.email.toString(),
         )
 }
