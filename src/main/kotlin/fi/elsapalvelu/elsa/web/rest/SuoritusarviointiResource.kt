@@ -182,6 +182,9 @@ open class SuoritusarviointiResource(
         if (suoritusarviointiDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
+        if (suoritusarviointiDTO.keskenerainen) {
+            return
+        }
         suoritusarviointiDTO.arvioitavatKokonaisuudet?.forEach { k ->
             if (k.arviointiasteikonTaso == null
                 || suoritusarviointiDTO.sanallinenArviointi == null
