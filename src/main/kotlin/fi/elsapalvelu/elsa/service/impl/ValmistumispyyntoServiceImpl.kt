@@ -75,6 +75,7 @@ class ValmistumispyyntoServiceImpl(
     private val pdfService: PdfService,
     private val asiakirjaRepository: AsiakirjaRepository,
     private val sarakesignService: SarakesignService,
+    private val arkistointiService: ArkistointiService,
     private val teoriakoulutusService: TeoriakoulutusService,
     private val suoritusarviointiMapper: SuoritusarviointiMapper,
     private val arviointiasteikkoService: ArviointiasteikkoService,
@@ -323,6 +324,21 @@ class ValmistumispyyntoServiceImpl(
                         mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)),
                         valmistumispyynto
                     )
+
+                    if (arkistointiService.onKaytossa(yliopisto.nimi!!)) {
+                        val filePath = arkistointiService.muodostaSahke(
+                            valmistumispyynto.opintooikeus,
+                            listOf(
+                                Pair(valmistumispyynto.yhteenvetoAsiakirja!!, "20"),
+                                Pair(valmistumispyynto.liitteetAsiakirja!!, "10")
+                            ),
+                            asiaTunnus = valmistumispyynto.id!!.toString(),
+                            asiaTyyppi = "Valmistuminen",
+                            hyvaksyja = valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.getName(),
+                            hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika
+                        )
+                        arkistointiService.laheta(yliopisto.nimi!!, filePath)
+                    }
                 }
             }
         }
@@ -695,7 +711,11 @@ class ValmistumispyyntoServiceImpl(
                 id,
                 yliopisto.id!!
             )
-        val valmistumispyynto = tarkistus?.valmistumispyynto ?: valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)
+        val valmistumispyynto =
+            tarkistus?.valmistumispyynto ?: valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(
+                id,
+                yliopisto.id!!
+            )
         return valmistumispyynto?.erikoistujanKuittausaika != null
             && (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID || valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika != null)
             && valmistumispyynto.virkailijanKuittausaika == null
@@ -736,7 +756,7 @@ class ValmistumispyyntoServiceImpl(
             }
             try {
                 valmistumispyyntoRepository.save(valmistumispyynto)
-            } catch(e: Exception) {
+            } catch (e: Exception) {
                 log.error("Virhe tallennettaessa valmistumispyyntöä tarkistettaessa allekirjoitusta", e)
             }
         }
