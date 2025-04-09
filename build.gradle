@@ -151,6 +151,9 @@ dependencies {
     implementation "com.itextpdf:html2pdf:5.0.5"
     implementation "com.itextpdf:pdfa:8.0.5"
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.4")
+    implementation "org.springframework.integration:spring-integration-sftp"
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.3")
+    compileOnly 'net.i2p.crypto:eddsa:0.3.0'
 }
 
 apollo {

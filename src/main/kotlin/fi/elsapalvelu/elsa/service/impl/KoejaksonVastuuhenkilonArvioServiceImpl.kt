@@ -53,6 +53,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val asiakirjaRepository: AsiakirjaRepository,
     private val sarakesignService: SarakesignService,
+    private val arkistointiService: ArkistointiService,
     private val keskeytysaikaService: KeskeytysaikaService,
     private val pdfService: PdfService,
     private val applicationProperties: ApplicationProperties,
@@ -332,10 +333,21 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             )
         )
 
-        if (!sarakesignService.getApiUrl(vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!)
+        val yliopisto = vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!
+        if (!sarakesignService.getApiUrl(yliopisto)
                 .isNullOrBlank()
         ) {
             lahetaAllekirjoitettavaksi(vastuuhenkilonArvio, asiakirja)
+        } else if (arkistointiService.onKaytossa(yliopisto)) {
+            val filePath = arkistointiService.muodostaSahke(
+                vastuuhenkilonArvio.opintooikeus,
+                listOf(Pair(asiakirja, "-1")),
+                asiaTunnus = vastuuhenkilonArvio.id!!.toString(),
+                asiaTyyppi = "Koejakson arviointi",
+                hyvaksyja = vastuuhenkilonArvio.vastuuhenkilo?.user?.getName(),
+                hyvaksymisPaiva = vastuuhenkilonArvio.vastuuhenkilonKuittausaika
+            )
+            arkistointiService.laheta(yliopisto, filePath)
         }
 
     }
