@@ -14,6 +14,7 @@ class ApplicationProperties {
     private val security = Security()
     private val feedback = Feedback()
     private val sarakesign = Sarakesign()
+    private val arkistointi = Arkistointi()
     private val opintohallintoemail = Opintohallintoemail()
 
     fun getCsrf(): Csrf {
@@ -30,6 +31,10 @@ class ApplicationProperties {
 
     fun getSarakesign(): Sarakesign {
         return sarakesign
+    }
+
+    fun getArkistointi(): Arkistointi {
+        return arkistointi
     }
 
     fun getOpintohallintoemail(): Opintohallintoemail {
@@ -196,6 +201,59 @@ class ApplicationProperties {
             var apiKey: String? = null
             var apiUrl: String? = null
             var requestTemplateId: String? = null
+        }
+    }
+
+    class Arkistointi {
+
+        private val oulu = Oulu()
+        private val hki = Hki()
+        private val tre = Tre()
+        private val turku = Turku()
+        private val uef = Uef()
+
+        fun getOulu(): Oulu {
+            return oulu
+        }
+
+        fun getHki(): Hki {
+            return hki
+        }
+
+        fun getTre(): Tre {
+            return tre
+        }
+
+        fun getTurku(): Turku {
+            return turku
+        }
+
+        fun getUef(): Uef {
+            return uef
+        }
+
+        class Oulu {
+            var kaytossa: Boolean = false
+        }
+
+        class Hki {
+            var kaytossa: Boolean = false
+        }
+
+        class Tre {
+            var kaytossa: Boolean = false
+            var host: String? = null
+            var port: String? = null
+            var user: String? = null
+            var privateKeyLocation: String? = null
+        }
+
+        class Turku {
+            var kaytossa: Boolean = false
+        }
+
+        class Uef {
+            var kaytossa: Boolean = false
         }
     }
 
