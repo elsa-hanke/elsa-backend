@@ -30,10 +30,10 @@ class Record {
     var status: String? = "Valmis"
 
     @JacksonXmlProperty(localName = "Function")
-    var function: String? = "01.02.03"
+    var function: String? = "04.01.04"
 
     @JacksonXmlProperty(localName = "Type")
-    var type: String? = null
+    var type: String? = "Todistus"
 
     @JacksonXmlProperty(localName = "Authenticity")
     var authenticity: Authenticity = Authenticity()

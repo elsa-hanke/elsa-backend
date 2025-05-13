@@ -246,6 +246,10 @@ class ApplicationProperties {
             var port: String? = null
             var user: String? = null
             var privateKeyLocation: String? = null
+            var contactPerson: String? = null
+            var contactAddress: String? = null
+            var contactPhone: String? = null
+            var contactEmail: String? = null
         }
 
         class Turku {

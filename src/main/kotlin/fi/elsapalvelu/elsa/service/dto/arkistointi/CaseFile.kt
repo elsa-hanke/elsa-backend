@@ -32,7 +32,7 @@ class CaseFile {
     var classificationScheme: ClassificationScheme = ClassificationScheme()
 
     @JacksonXmlProperty(localName = "Function")
-    var function: String? = "01.02.03"
+    var function: String? = "04.01.04"
 
     @JacksonXmlProperty(localName = "Action")
     var action: Action = Action()

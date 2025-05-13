@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.Asiakirja
@@ -12,7 +13,6 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.Record
 import org.apache.commons.codec.digest.DigestUtils
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -41,6 +41,22 @@ class ArkistointiServiceImpl(
 
         val resourceBundle = ResourceBundle.getBundle("i18n/messages")
 
+        var transferInfomation = metadata.transferInformation
+        var year = LocalDate.now().year
+        transferInfomation.nativeId = "urn:oid:1.2.246.582.200.${opintooikeus?.id}$year.$year.0001"
+        transferInfomation.transferContractId = opintooikeus?.id?.toString()
+
+        var contactInformation = metadata.contactInformation
+        contactInformation.organisation = "TAU"
+
+        var arkistointiProperties = applicationProperties.getArkistointi().getTre()
+
+        var contactPerson = contactInformation.contactPerson
+        contactPerson.name = arkistointiProperties.contactPerson
+        contactPerson.address = arkistointiProperties.contactAddress
+        contactPerson.phoneNumber = arkistointiProperties.contactPhone
+        contactPerson.email = arkistointiProperties.contactEmail
+
         var caseFile = metadata.caseFile
         caseFile.created = LocalDate.now()
         caseFile.nativeId = asiaTunnus
@@ -60,7 +76,6 @@ class ArkistointiServiceImpl(
             record.created = LocalDate.now()
             record.nativeId = asiakirja.id?.toString()
             record.title = asiakirja.nimi
-            record.type = asiakirja.tyyppi
             record.retentionPeriod = it.second
 
             record.restriction.person.name = name
@@ -86,11 +101,14 @@ class ArkistointiServiceImpl(
         var mapper = XmlMapper()
         mapper.registerModule(JavaTimeModule())
         mapper.dateFormat = SimpleDateFormat("dd.MM.yyyy")
-        mapper.writeValue(File("./sahke.xml"), metadata)
+        mapper.configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true)
 
         val filePath = "./$title.zip"
         var fos = FileOutputStream(filePath)
         var zipOut = ZipOutputStream(fos)
+
+        zipOut.putNextEntry(ZipEntry("sahke.xml"))
+        zipOut.write(mapper.writeValueAsBytes(metadata))
 
         asiakirjat.forEach {
             val asiakirja = it.first
@@ -105,14 +123,14 @@ class ArkistointiServiceImpl(
         return filePath
     }
 
-    override fun laheta(yliopisto: YliopistoEnum, filePath: String) {
+    override fun laheta(yliopisto: YliopistoEnum, filePath: String, yek: Boolean) {
         when (yliopisto) {
             YliopistoEnum.TAMPEREEN_YLIOPISTO -> {
-                tampereLouhiService.laheta(filePath)
+                tampereLouhiService.laheta(filePath, yek)
             }
 
             YliopistoEnum.HELSINGIN_YLIOPISTO -> {
-                tampereLouhiService.laheta(filePath)
+                tampereLouhiService.laheta(filePath, yek)
             }
 
             else -> log.info("Integraatiota arkistointiin ei ole tuettu yliopistossa ${yliopisto.name}")
