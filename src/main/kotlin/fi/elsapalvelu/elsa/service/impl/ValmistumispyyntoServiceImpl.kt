@@ -337,7 +337,8 @@ class ValmistumispyyntoServiceImpl(
                             hyvaksyja = valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.getName(),
                             hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika
                         )
-                        arkistointiService.laheta(yliopisto.nimi!!, filePath)
+                        val yek = valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
+                        arkistointiService.laheta(yliopisto.nimi!!, filePath, yek)
                     }
                 }
             }

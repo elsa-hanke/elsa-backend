@@ -21,6 +21,8 @@ class TampereLouhiService(
     private val sessionFactory: DefaultSftpSessionFactory
     private val inProgress = "InProgress"
     private val finished = "Finished"
+    private val yekFolder = "YEK"
+    private val elsaFolder = "ELSA"
 
     init {
         val arkistointiProperties = applicationProperties.getArkistointi().getTre()
@@ -38,10 +40,21 @@ class TampereLouhiService(
         sessionFactory.setUser(arkistointiProperties.user)
     }
 
-    fun laheta(filePath: String) {
+    fun laheta(filePath: String, yek: Boolean) {
         try {
-            sessionFactory.session.write(FileInputStream(filePath), inProgress)
-            sessionFactory.session.rename("$inProgress/$filePath", "$finished/$filePath")
+            val session = sessionFactory.session
+            val file = File(filePath)
+            val targetPath = "$inProgress/${file.name}"
+
+            if (session.list(inProgress).isEmpty()) {
+                log.error("Hakemistoa ei löydy: $inProgress")
+                return
+            }
+
+            val subFolder = if (yek) yekFolder else elsaFolder
+
+            session.write(FileInputStream(filePath), targetPath)
+            session.rename(targetPath, "$finished/${subFolder}/${File(filePath).name}")
         } catch (e: Exception) {
             log.error("Virhe Tampereen arkistoinnissa tiedostolle $filePath", e)
         }

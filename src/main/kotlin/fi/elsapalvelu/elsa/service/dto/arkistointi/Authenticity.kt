@@ -9,7 +9,7 @@ class Authenticity {
     var checker: String? = null
 
     @JacksonXmlProperty(localName = "Date")
-    var date: LocalDate? = null
+    var date: LocalDate? = LocalDate.of(1, 1, 1)
 
     @JacksonXmlProperty(localName = "Description")
     var description: String? = null

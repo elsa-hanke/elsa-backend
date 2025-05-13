@@ -16,7 +16,7 @@ interface ArkistointiService {
         hyvaksymisPaiva: LocalDate?
     ): String
 
-    fun laheta(yliopisto: YliopistoEnum, filePath: String)
+    fun laheta(yliopisto: YliopistoEnum, filePath: String, yek: Boolean)
 
     fun onKaytossa(yliopisto: YliopistoEnum): Boolean
 }
