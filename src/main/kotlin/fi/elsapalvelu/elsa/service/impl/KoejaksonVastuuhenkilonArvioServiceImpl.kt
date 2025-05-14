@@ -11,6 +11,7 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTableDTO
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
@@ -341,9 +342,11 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         } else if (arkistointiService.onKaytossa(yliopisto)) {
             val filePath = arkistointiService.muodostaSahke(
                 vastuuhenkilonArvio.opintooikeus,
-                listOf(Pair(asiakirja, "-1")),
+                listOf(RecordProperties(asiakirja, "-1", "Arviointi")),
                 asiaTunnus = vastuuhenkilonArvio.id!!.toString(),
                 asiaTyyppi = "Koejakson arviointi",
+                tarkastaja = vastuuhenkilonArvio.virkailija?.user?.getName(),
+                tarkastusPaiva = vastuuhenkilonArvio.virkailijanKuittausaika,
                 hyvaksyja = vastuuhenkilonArvio.vastuuhenkilo?.user?.getName(),
                 hyvaksymisPaiva = vastuuhenkilonArvio.vastuuhenkilonKuittausaika
             )
