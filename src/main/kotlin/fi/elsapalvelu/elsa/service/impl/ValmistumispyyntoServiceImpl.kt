@@ -20,6 +20,7 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.*
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
@@ -329,11 +330,13 @@ class ValmistumispyyntoServiceImpl(
                         val filePath = arkistointiService.muodostaSahke(
                             valmistumispyynto.opintooikeus,
                             listOf(
-                                Pair(valmistumispyynto.yhteenvetoAsiakirja!!, "20"),
-                                Pair(valmistumispyynto.liitteetAsiakirja!!, "10")
+                                RecordProperties(valmistumispyynto.yhteenvetoAsiakirja!!, "20", "Yhteenveto"),
+                                RecordProperties(valmistumispyynto.liitteetAsiakirja!!, "10", "Liite")
                             ),
                             asiaTunnus = valmistumispyynto.id!!.toString(),
                             asiaTyyppi = "Valmistuminen",
+                            tarkastaja = valmistumispyynto.virkailija?.user?.getName(),
+                            tarkastusPaiva = valmistumispyynto.virkailijanKuittausaika,
                             hyvaksyja = valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.getName(),
                             hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika
                         )

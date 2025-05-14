@@ -4,12 +4,12 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.domain.Asiakirja
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.service.ArkistointiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiMetadata
 import fi.elsapalvelu.elsa.service.dto.arkistointi.Record
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import org.apache.commons.codec.digest.DigestUtils
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -29,14 +29,16 @@ class ArkistointiServiceImpl(
 
     override fun muodostaSahke(
         opintooikeus: Opintooikeus?,
-        asiakirjat: List<Pair<Asiakirja, String>>,
+        asiakirjat: List<RecordProperties>,
         asiaTunnus: String,
         asiaTyyppi: String,
+        tarkastaja: String?,
+        tarkastusPaiva: LocalDate?,
         hyvaksyja: String?,
         hyvaksymisPaiva: LocalDate?
     ): String {
         val name = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
-        val title = "Valmistuminen $name"
+        val title = "$asiaTyyppi $name"
         var metadata = ArkistointiMetadata()
 
         val resourceBundle = ResourceBundle.getBundle("i18n/messages")
@@ -71,27 +73,32 @@ class ArkistointiServiceImpl(
         action.type = asiaTyyppi
 
         asiakirjat.forEach {
-            val asiakirja = it.first
+            val asiakirja = it.asiakirja
             val record = Record()
             record.created = LocalDate.now()
             record.nativeId = asiakirja.id?.toString()
             record.title = asiakirja.nimi
-            record.retentionPeriod = it.second
+            record.type = it.type
+            record.retentionPeriod = it.retentionPeriod
 
             record.restriction.person.name = name
             record.restriction.person.ssn = opintooikeus?.erikoistuvaLaakari?.syntymaaika
 
             val custom = record.custom
-            custom.sahkposti = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.email
-            custom.matkapuhelin = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.phoneNumber
+            custom.erikoistujanNimi = name
+            custom.erikoisala = opintooikeus?.erikoisala?.nimi
+            custom.opiskelijanumero = opintooikeus?.opiskelijatunnus
+            custom.syntymaaika = opintooikeus?.erikoistuvaLaakari?.syntymaaika
             custom.yliopisto = resourceBundle.getString(opintooikeus?.yliopisto?.nimi?.toString()!!)
+            custom.tarkastaja = tarkastaja
+            custom.tarkastuspaiva = tarkastusPaiva
             custom.hyvaksyja = hyvaksyja
             custom.hyvaksymispaiva = hyvaksymisPaiva
 
             val document = record.document
             document.nativeId = asiakirja.nimi
             document.file.name = asiakirja.nimi
-            document.file.path = "pdf/${it.first.nimi}"
+            document.file.path = "pdf/${asiakirja.nimi}"
 
             document.format.name = asiakirja.tyyppi
             document.hashValue = DigestUtils.sha256Hex(asiakirja.asiakirjaData?.data)
@@ -111,7 +118,7 @@ class ArkistointiServiceImpl(
         zipOut.write(mapper.writeValueAsBytes(metadata))
 
         asiakirjat.forEach {
-            val asiakirja = it.first
+            val asiakirja = it.asiakirja
             var zipEntry = ZipEntry("pdf/${asiakirja.nimi}")
             zipOut.putNextEntry(zipEntry)
             zipOut.write(asiakirja.asiakirjaData?.data)

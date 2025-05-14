@@ -1,17 +1,19 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.domain.Asiakirja
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import java.time.LocalDate
 
 interface ArkistointiService {
 
     fun muodostaSahke(
         opintooikeus: Opintooikeus?,
-        asiakirjat: List<Pair<Asiakirja, String>>,
+        asiakirjat: List<RecordProperties>,
         asiaTunnus: String,
         asiaTyyppi: String,
+        tarkastaja: String?,
+        tarkastusPaiva: LocalDate?,
         hyvaksyja: String?,
         hyvaksymisPaiva: LocalDate?
     ): String
