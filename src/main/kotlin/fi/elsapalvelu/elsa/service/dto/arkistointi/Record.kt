@@ -24,7 +24,7 @@ class Record {
     var retentionPeriod: String? = null
 
     @JacksonXmlProperty(localName = "RetentionReason")
-    var retentionReason: String? = "Sisältää henkilötietoja"
+    var retentionReason: String? = "-"
 
     @JacksonXmlProperty(localName = "Status")
     var status: String? = "Valmis"
