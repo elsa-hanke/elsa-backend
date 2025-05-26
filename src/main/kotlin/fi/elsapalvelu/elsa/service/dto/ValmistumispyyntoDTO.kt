@@ -81,7 +81,9 @@ data class ValmistumispyyntoDTO(
 
     var liitteetAsiakirjaId: Long? = null,
 
-    var erikoistujanTiedotAsiakirjaId: Long? = null
+    var erikoistujanTiedotAsiakirjaId: Long? = null,
+
+    var arkistoitava: Boolean? = null
 
 ) : Serializable {
     override fun toString() = "ValmistumispyyntoDTO"

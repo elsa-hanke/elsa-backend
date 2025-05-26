@@ -96,7 +96,10 @@ enum class KoejaksoTila {
             else if (vastuuhenkilonArvioDTO == null) UUSI
             else if (vastuuhenkilonArvioDTO.allekirjoitettu == true) ALLEKIRJOITETTU
             else if (vastuuhenkilonArvioDTO.vastuuhenkilo?.sopimusHyvaksytty == true) {
-                if (vastuuhenkilonArvioDTO.vastuuhenkilo?.kayttajaUserId == userId) {
+                if (vastuuhenkilonArvioDTO.arkistoitava == true) {
+                    HYVAKSYTTY
+                }
+                else if (vastuuhenkilonArvioDTO.vastuuhenkilo?.kayttajaUserId == userId) {
                     ODOTTAA_ALLEKIRJOITUSTA
                 } else {
                     ODOTTAA_VASTUUHENKILON_ALLEKIRJOITUSTA
@@ -112,11 +115,15 @@ enum class KoejaksoTila {
             vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio?,
             userId: String? = null,
             virkailija: Boolean = false,
-            vastuuhenkilo: Boolean = false
+            vastuuhenkilo: Boolean = false,
+            arkistoitava: Boolean
         ): KoejaksoTila {
             return if (vastuuhenkilonArvio?.allekirjoitettu == true) ALLEKIRJOITETTU
             else if (vastuuhenkilonArvio?.vastuuhenkiloHyvaksynyt == true) {
-                if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
+                if (arkistoitava) {
+                    HYVAKSYTTY
+                }
+                else if (vastuuhenkilonArvio.vastuuhenkilo?.user?.id == userId) {
                     ODOTTAA_ALLEKIRJOITUSTA
                 } else {
                     ODOTTAA_VASTUUHENKILON_ALLEKIRJOITUSTA

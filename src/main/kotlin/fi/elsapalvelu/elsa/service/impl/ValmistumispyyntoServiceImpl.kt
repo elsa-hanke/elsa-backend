@@ -100,7 +100,7 @@ class ValmistumispyyntoServiceImpl(
     @Transactional(readOnly = true)
     override fun findOneByOpintooikeusId(opintooikeusId: Long): ValmistumispyyntoDTO? {
         val valmistumispyynto = valmistumispyyntoRepository.findByOpintooikeusId(opintooikeusId)
-        val tila = fromValmistumispyyntoErikoistuja(valmistumispyynto)
+        val tila = fromValmistumispyyntoErikoistuja(valmistumispyynto, arkistoitava(valmistumispyynto))
         val opintooikeus = getOpintooikeus(opintooikeusId)
         val yliopistoId = opintooikeus.yliopisto?.id!!
         val erikoisalaId = opintooikeus.erikoisala?.id!!
@@ -127,6 +127,7 @@ class ValmistumispyyntoServiceImpl(
             vastuuhenkiloOsaamisenArvioijaNimike = vastuuhenkiloOsaamisenarvioija?.nimike
             vastuuhenkiloHyvaksyjaNimi = vastuuhenkiloHyvaksyja.getNimi()
             vastuuhenkiloHyvaksyjaNimike = vastuuhenkiloHyvaksyja.nimike
+            arkistoitava = arkistointiService.onKaytossa(opintooikeus.yliopisto?.nimi!!)
         }
     }
 
@@ -453,6 +454,7 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = getYliopisto(kayttaja)
         val yek = valmistumispyyntoCriteria.erikoisalaId?.equals == YEK_ERIKOISALA_ID
         val hyvaksyjaRole = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja, yek)
+        val arkistoitava = arkistointiService.onKaytossa(yliopisto.nimi!!)
         return valmistumispyyntoQueryService.findValmistumispyynnotByCriteria(
             valmistumispyyntoCriteria,
             hyvaksyjaRole,
@@ -460,7 +462,8 @@ class ValmistumispyyntoServiceImpl(
             yliopisto.id!!,
             if (yek) listOf(YEK_ERIKOISALA_ID) else getErikoisalaIds(kayttaja),
             listOf(),
-            kayttaja.user?.langKey
+            kayttaja.user?.langKey,
+            arkistoitava
         ).map {
             val isAvoin = valmistumispyyntoCriteria.avoin == true
             tarkistaAllekirjoitus(it)
@@ -568,6 +571,7 @@ class ValmistumispyyntoServiceImpl(
         result.kommentitVirkailijoille = null
         tarkistus.valmistumispyynto?.let { pyynto ->
             result.valmistumispyynto?.tila = getValmistumispyynnonTilaForHyvaksyja(pyynto)
+            result.valmistumispyynto?.arkistoitava = arkistointiService.onKaytossa(yliopisto.nimi!!)
         }
         return result
     }
@@ -819,7 +823,7 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyynto.erikoistujanKuittausaika != null &&
                 valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika == null &&
                 valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika == null
-        return fromValmistumispyyntoArvioija(valmistumispyynto, isAvoin)
+        return fromValmistumispyyntoArvioija(valmistumispyynto, isAvoin, arkistoitava(valmistumispyynto))
     }
 
     private fun getValmistumispyynnonTilaForVirkailija(valmistumispyynto: Valmistumispyynto): ValmistumispyynnonTila {
@@ -828,7 +832,7 @@ class ValmistumispyyntoServiceImpl(
                 (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID || valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika != null) &&
                 valmistumispyynto.virkailijanKuittausaika == null &&
                 valmistumispyynto.virkailijanPalautusaika == null
-        return fromValmistumispyyntoVirkailija(valmistumispyynto, isAvoin)
+        return fromValmistumispyyntoVirkailija(valmistumispyynto, isAvoin, arkistoitava(valmistumispyynto))
     }
 
     private fun getValmistumispyynnonTilaForHyvaksyja(valmistumispyynto: Valmistumispyynto): ValmistumispyynnonTila {
@@ -836,7 +840,7 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyynto.virkailijanKuittausaika != null &&
                 valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika == null &&
                 valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika == null
-        return fromValmistumispyyntoHyvaksyja(valmistumispyynto, isAvoin)
+        return fromValmistumispyyntoHyvaksyja(valmistumispyynto, isAvoin, arkistoitava(valmistumispyynto))
     }
 
     private fun mapValmistumispyyntoListItem(
@@ -898,14 +902,14 @@ class ValmistumispyyntoServiceImpl(
         isAvoin: Boolean
     ) = when (hyvaksyjaRole) {
         ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA ->
-            fromValmistumispyyntoArvioija(valmistumispyynto, isAvoin)
+            fromValmistumispyyntoArvioija(valmistumispyynto, isAvoin, arkistoitava(valmistumispyynto))
 
         ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA ->
-            fromValmistumispyyntoHyvaksyja(valmistumispyynto, isAvoin)
+            fromValmistumispyyntoHyvaksyja(valmistumispyynto, isAvoin, arkistoitava(valmistumispyynto))
 
-        ValmistumispyynnonHyvaksyjaRole.VIRKAILIJA -> fromValmistumispyyntoVirkailija(valmistumispyynto, isAvoin)
+        ValmistumispyynnonHyvaksyjaRole.VIRKAILIJA -> fromValmistumispyyntoVirkailija(valmistumispyynto, isAvoin, arkistoitava(valmistumispyynto))
         ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA ->
-            fromValmistumispyyntoArvioijaHyvaksyja(valmistumispyynto, isAvoin)
+            fromValmistumispyyntoArvioijaHyvaksyja(valmistumispyynto, isAvoin, arkistoitava(valmistumispyynto))
     }
 
     private fun getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(
@@ -1834,4 +1838,7 @@ class ValmistumispyyntoServiceImpl(
     private fun daysToPeriod(days: Double): Period {
         return Period.of(days.toYears(), days.toMonths(), days.toDays())
     }
+
+    private fun arkistoitava(valmistumispyynto: Valmistumispyynto?) =
+        valmistumispyynto?.opintooikeus?.yliopisto?.nimi?.let { arkistointiService.onKaytossa(it) } == true
 }

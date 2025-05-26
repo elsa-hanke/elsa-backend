@@ -282,3 +282,14 @@ application:
       api-key:
       api-url:
       request-template-id:
+  arkistointi:
+    tre:
+      kaytossa: false
+      host:
+      port:
+      user:
+      privateKeyLocation:
+      contact-person:
+      contact-address:
+      contact-phone:
+      contact-email:

@@ -149,11 +149,9 @@ data class Valmistumispyynto(
         "}"
 
     companion object {
-        private const val serialVersionUID = 1L
-
-        fun fromValmistumispyyntoErikoistuja(valmistumispyynto: Valmistumispyynto?): ValmistumispyynnonTila {
+        fun fromValmistumispyyntoErikoistuja(valmistumispyynto: Valmistumispyynto?, arkistoitava: Boolean): ValmistumispyynnonTila {
             return if (valmistumispyynto?.erikoistujanKuittausaika != null) fromValmistumispyyntoNotReturned(
-                valmistumispyynto
+                valmistumispyynto, arkistoitava
             )
             else if (valmistumispyynto?.vastuuhenkiloOsaamisenArvioijaPalautusaika != null)
                 ValmistumispyynnonTila.VASTUUHENKILON_TARKASTUS_PALAUTETTU
@@ -166,67 +164,71 @@ data class Valmistumispyynto(
 
         fun fromValmistumispyyntoArvioija(
             valmistumispyynto: Valmistumispyynto,
-            isAvoin: Boolean
+            isAvoin: Boolean,
+            arkistoitava: Boolean
         ): ValmistumispyynnonTila {
             return if (isAvoin || valmistumispyynto.erikoistujanKuittausaika != null)
-                fromValmistumispyyntoNotReturned(valmistumispyynto)
+                fromValmistumispyyntoNotReturned(valmistumispyynto, arkistoitava)
             else if (valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika != null)
                 ValmistumispyynnonTila.VASTUUHENKILON_TARKASTUS_PALAUTETTU
             else if (valmistumispyynto.virkailijanPalautusaika != null)
                 ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU
             else if (valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika != null)
                 ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU
-            else fromValmistumispyyntoNotReturned(valmistumispyynto)
+            else fromValmistumispyyntoNotReturned(valmistumispyynto, arkistoitava)
         }
 
         fun fromValmistumispyyntoVirkailija(
             valmistumispyynto: Valmistumispyynto,
-            isAvoin: Boolean
+            isAvoin: Boolean,
+            arkistoitava: Boolean
         ): ValmistumispyynnonTila {
             return if (isAvoin && valmistumispyynto.valmistumispyynnonTarkistus != null)
                 ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_KESKEN
             else if (isAvoin || valmistumispyynto.virkailijanKuittausaika != null)
-                fromValmistumispyyntoNotReturned(valmistumispyynto)
+                fromValmistumispyyntoNotReturned(valmistumispyynto, arkistoitava)
             else if (valmistumispyynto.virkailijanPalautusaika != null)
                 ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU
             else if (valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika != null)
                 ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU
-            else fromValmistumispyyntoNotReturned(valmistumispyynto)
+            else fromValmistumispyyntoNotReturned(valmistumispyynto, arkistoitava)
         }
 
         fun fromValmistumispyyntoHyvaksyja(
             valmistumispyynto: Valmistumispyynto,
-            isAvoin: Boolean
+            isAvoin: Boolean,
+            arkistoitava: Boolean
         ): ValmistumispyynnonTila {
             return if (isAvoin || valmistumispyynto.erikoistujanKuittausaika != null)
-                fromValmistumispyyntoNotReturned(valmistumispyynto)
+                fromValmistumispyyntoNotReturned(valmistumispyynto, arkistoitava)
             else if (valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika != null)
                 ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU
-            else fromValmistumispyyntoNotReturned(valmistumispyynto)
+            else fromValmistumispyyntoNotReturned(valmistumispyynto, arkistoitava)
         }
 
         fun fromValmistumispyyntoArvioijaHyvaksyja(
             valmistumispyynto: Valmistumispyynto,
-            isAvoin: Boolean
+            isAvoin: Boolean,
+            arkistoitava: Boolean
         ): ValmistumispyynnonTila {
-            return if (isAvoin || valmistumispyynto.erikoistujanKuittausaika != null) fromValmistumispyyntoNotReturned(valmistumispyynto)
+            return if (isAvoin || valmistumispyynto.erikoistujanKuittausaika != null) fromValmistumispyyntoNotReturned(valmistumispyynto, arkistoitava)
             else if (valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika != null)
                 ValmistumispyynnonTila.VASTUUHENKILON_TARKASTUS_PALAUTETTU
             else if (valmistumispyynto.virkailijanPalautusaika != null)
                 ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU
             else if (valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika != null)
                 ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU
-            else fromValmistumispyyntoNotReturned(valmistumispyynto)
+            else fromValmistumispyyntoNotReturned(valmistumispyynto, arkistoitava)
         }
 
-        private fun fromValmistumispyyntoNotReturned(valmistumispyynto: Valmistumispyynto): ValmistumispyynnonTila {
+        private fun fromValmistumispyyntoNotReturned(valmistumispyynto: Valmistumispyynto, arkistoitava: Boolean): ValmistumispyynnonTila {
             return if (valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika == null && valmistumispyynto.opintooikeus?.erikoisala?.id != YEK_ERIKOISALA_ID)
                 ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKASTUSTA
             else if (valmistumispyynto.virkailijanKuittausaika == null)
                 ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKASTUSTA
             else if (valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika == null)
                 ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
-            else if (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) ValmistumispyynnonTila.HYVAKSYTTY
+            else if (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID || arkistoitava) ValmistumispyynnonTila.HYVAKSYTTY
             else if (valmistumispyynto.allekirjoitusaika == null) ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA
             else ValmistumispyynnonTila.ALLEKIRJOITETTU
         }

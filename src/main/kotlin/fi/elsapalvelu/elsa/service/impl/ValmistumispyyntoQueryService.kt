@@ -93,7 +93,8 @@ class ValmistumispyyntoQueryService(
         yliopistoId: Long,
         erikoisalaIds: List<Long>,
         excludedErikoisalaIds: List<Long>,
-        langkey: String?
+        langkey: String?,
+        arkistoitava: Boolean
     ): Page<Valmistumispyynto> {
         val specification: Specification<Valmistumispyynto> = Specification.where { root, cq, cb ->
             val predicates: MutableList<Predicate> = mutableListOf()
@@ -105,7 +106,8 @@ class ValmistumispyyntoQueryService(
                     criteria,
                     opintooikeusJoin,
                     root,
-                    cb
+                    cb,
+                    arkistoitava
                 ).let { predicates.add(it) }
                 getErikoisalatPredicate(erikoisalaIds, opintooikeusJoin)?.let {
                     predicates.add(it)
@@ -134,7 +136,8 @@ class ValmistumispyyntoQueryService(
         criteria: NimiErikoisalaAndAvoinCriteria?,
         opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus>,
         root: Root<Valmistumispyynto>,
-        cb: CriteriaBuilder
+        cb: CriteriaBuilder,
+        arkistoitava: Boolean
     ): Predicate {
         val erikoisala: Path<Erikoisala> = opintooikeusJoin.get(Opintooikeus_.erikoisala)
         val predicates: MutableList<Predicate> = mutableListOf()
@@ -143,7 +146,7 @@ class ValmistumispyyntoQueryService(
             predicates.add(
                 cb.and(
                     cb.equal(erikoisala.get(Erikoisala_.id), it.first),
-                    getRolePredicate(it.second, criteria, root, cb)
+                    getRolePredicate(it.second, criteria, root, cb, arkistoitava)
                 )
             )
         }
@@ -153,18 +156,20 @@ class ValmistumispyyntoQueryService(
 
     }
 
-    private fun getRolePredicate(role: ValmistumispyynnonHyvaksyjaRole, criteria: NimiErikoisalaAndAvoinCriteria?, root: Root<Valmistumispyynto>, cb: CriteriaBuilder): Predicate {
+    private fun getRolePredicate(role: ValmistumispyynnonHyvaksyjaRole, criteria: NimiErikoisalaAndAvoinCriteria?, root: Root<Valmistumispyynto>, cb: CriteriaBuilder, arkistoitava: Boolean): Predicate {
         val arvioijaPredicate = getVastuuhenkiloPredicateByTehtavatyyppi(
             root,
             cb,
             criteria?.avoin,
-            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI
+            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI,
+            arkistoitava
         )
         val hyvaksyjaPredicate = getVastuuhenkiloPredicateByTehtavatyyppi(
             root,
             cb,
             criteria?.avoin,
-            if (criteria?.erikoisalaId?.equals == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN else VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
+            if (criteria?.erikoisalaId?.equals == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN else VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA,
+            arkistoitava
         )
 
         return when (role) {
@@ -188,7 +193,8 @@ class ValmistumispyyntoQueryService(
         root: Root<Valmistumispyynto>,
         cb: CriteriaBuilder,
         avoin: Boolean? = true,
-        tehtavatyyppiEnum: VastuuhenkilonTehtavatyyppiEnum
+        tehtavatyyppiEnum: VastuuhenkilonTehtavatyyppiEnum,
+        arkistoitava: Boolean
     ): Predicate {
         if (avoin == true) {
             return when (tehtavatyyppiEnum) {
@@ -210,7 +216,8 @@ class ValmistumispyyntoQueryService(
 
                 else -> {
                     cb.and(
-                        cb.or(
+                        if (arkistoitava) cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika))
+                        else cb.or(
                             cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
                             cb.isNull(root.get(Valmistumispyynto_.allekirjoitusaika))
                         ),
@@ -246,7 +253,8 @@ class ValmistumispyyntoQueryService(
                 else -> {
                     cb.or(
                         cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
-                        cb.and(
+                        if (arkistoitava) cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika))
+                        else cb.and(
                             cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
                             cb.isNotNull(root.get(Valmistumispyynto_.allekirjoitusaika))
                         )
