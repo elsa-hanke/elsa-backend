@@ -35,7 +35,8 @@ class ArkistointiServiceImpl(
         tarkastaja: String?,
         tarkastusPaiva: LocalDate?,
         hyvaksyja: String?,
-        hyvaksymisPaiva: LocalDate?
+        hyvaksymisPaiva: LocalDate?,
+        function: String?
     ): String {
         val name = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
         val title = "$asiaTyyppi $name"
@@ -63,6 +64,7 @@ class ArkistointiServiceImpl(
         caseFile.created = LocalDate.now()
         caseFile.nativeId = asiaTunnus
         caseFile.title = title
+        caseFile.function = function
 
         caseFile.restriction.person.name = name
         caseFile.restriction.person.ssn = opintooikeus?.erikoistuvaLaakari?.syntymaaika
@@ -80,6 +82,7 @@ class ArkistointiServiceImpl(
             record.title = asiakirja.nimi
             record.type = it.type
             record.retentionPeriod = it.retentionPeriod
+            record.function = function
 
             record.restriction.person.name = name
             record.restriction.person.ssn = opintooikeus?.erikoistuvaLaakari?.syntymaaika
