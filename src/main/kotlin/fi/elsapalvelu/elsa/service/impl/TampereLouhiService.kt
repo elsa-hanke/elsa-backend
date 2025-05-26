@@ -31,8 +31,10 @@ class TampereLouhiService(
             BuiltinSignatures.ed25519,
             BuiltinSignatures.ed25519_cert,
             BuiltinSignatures.sk_ssh_ed25519)
-        val keys = FileKeyPairProvider(Path(resourceLoader.getResource(arkistointiProperties.privateKeyLocation!!).file.path))
-        client.addPublicKeyIdentity(keys.loadKeys(null).iterator().next())
+        arkistointiProperties.privateKeyLocation?.let {
+            val keys = FileKeyPairProvider(Path(resourceLoader.getResource(it).file.path))
+            client.addPublicKeyIdentity(keys.loadKeys(null).iterator().next())
+        }
 
         sessionFactory = DefaultSftpSessionFactory(client, false)
         sessionFactory.setHost(arkistointiProperties.host)
@@ -59,6 +61,9 @@ class TampereLouhiService(
             log.error("Virhe Tampereen arkistoinnissa tiedostolle $filePath", e)
         }
         val file = File(filePath)
-        file.delete()
+        val deleted = file.delete()
+        if (!deleted) {
+            log.error("Virhe tiedoston ${file.name} poistamisessa")
+        }
     }
 }

@@ -20,6 +20,7 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.*
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
@@ -334,13 +335,15 @@ class ValmistumispyyntoServiceImpl(
                                 RecordProperties(valmistumispyynto.yhteenvetoAsiakirja!!, "20", "Yhteenveto"),
                                 RecordProperties(valmistumispyynto.liitteetAsiakirja!!, "10", "Liite")
                             ),
-                            asiaTunnus = valmistumispyynto.id!!.toString(),
-                            asiaTyyppi = "Valmistuminen",
+                            case = CaseProperties(
+                                nativeId = valmistumispyynto.id!!.toString(),
+                                type = "Valmistuminen",
+                                function = "04.02.05"
+                            ),
                             tarkastaja = valmistumispyynto.virkailija?.user?.getName(),
                             tarkastusPaiva = valmistumispyynto.virkailijanKuittausaika,
                             hyvaksyja = valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.getName(),
-                            hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika,
-                            function = "04.02.05"
+                            hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika
                         )
                         val yek = valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
                         arkistointiService.laheta(yliopisto.nimi!!, filePath, yek)
@@ -462,7 +465,6 @@ class ValmistumispyyntoServiceImpl(
             pageable,
             yliopisto.id!!,
             if (yek) listOf(YEK_ERIKOISALA_ID) else getErikoisalaIds(kayttaja),
-            listOf(),
             kayttaja.user?.langKey,
             arkistoitava
         ).map {

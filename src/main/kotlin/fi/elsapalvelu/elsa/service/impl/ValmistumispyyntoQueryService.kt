@@ -92,7 +92,6 @@ class ValmistumispyyntoQueryService(
         pageable: Pageable,
         yliopistoId: Long,
         erikoisalaIds: List<Long>,
-        excludedErikoisalaIds: List<Long>,
         langkey: String?,
         arkistoitava: Boolean
     ): Page<Valmistumispyynto> {
@@ -111,15 +110,6 @@ class ValmistumispyyntoQueryService(
                 ).let { predicates.add(it) }
                 getErikoisalatPredicate(erikoisalaIds, opintooikeusJoin)?.let {
                     predicates.add(it)
-                }
-                if (excludedErikoisalaIds.isNotEmpty()) {
-                    getExcludedErikoisalatPredicate(
-                        excludedErikoisalaIds,
-                        opintooikeusJoin,
-                        cb
-                    )?.let {
-                        predicates.add(it)
-                    }
                 }
 
             getYliopistoPredicate(yliopistoId, opintooikeusJoin, cb).let { predicates.add(it) }
