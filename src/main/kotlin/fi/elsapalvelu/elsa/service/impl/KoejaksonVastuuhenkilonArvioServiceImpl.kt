@@ -11,6 +11,7 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTableDTO
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
@@ -343,13 +344,15 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             val filePath = arkistointiService.muodostaSahke(
                 vastuuhenkilonArvio.opintooikeus,
                 listOf(RecordProperties(asiakirja, "-1", "Arviointi")),
-                asiaTunnus = vastuuhenkilonArvio.id!!.toString(),
-                asiaTyyppi = "Koejakson arviointi",
+                case = CaseProperties(
+                    nativeId = vastuuhenkilonArvio.id!!.toString(),
+                    type = "Koejakson arviointi",
+                    function = "04.01.04"
+                ),
                 tarkastaja = vastuuhenkilonArvio.virkailija?.user?.getName(),
                 tarkastusPaiva = vastuuhenkilonArvio.virkailijanKuittausaika,
                 hyvaksyja = vastuuhenkilonArvio.vastuuhenkilo?.user?.getName(),
-                hyvaksymisPaiva = vastuuhenkilonArvio.vastuuhenkilonKuittausaika,
-                function = "04.01.04"
+                hyvaksymisPaiva = vastuuhenkilonArvio.vastuuhenkilonKuittausaika
             )
             val yek = vastuuhenkilonArvio.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
             arkistointiService.laheta(yliopisto, filePath, yek)

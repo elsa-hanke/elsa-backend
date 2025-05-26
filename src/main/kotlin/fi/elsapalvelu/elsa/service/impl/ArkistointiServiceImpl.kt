@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.service.ArkistointiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiMetadata
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.Record
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import org.apache.commons.codec.digest.DigestUtils
@@ -30,16 +31,14 @@ class ArkistointiServiceImpl(
     override fun muodostaSahke(
         opintooikeus: Opintooikeus?,
         asiakirjat: List<RecordProperties>,
-        asiaTunnus: String,
-        asiaTyyppi: String,
+        case: CaseProperties,
         tarkastaja: String?,
         tarkastusPaiva: LocalDate?,
         hyvaksyja: String?,
-        hyvaksymisPaiva: LocalDate?,
-        function: String?
+        hyvaksymisPaiva: LocalDate?
     ): String {
         val name = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
-        val title = "$asiaTyyppi $name"
+        val title = "${case.type} $name"
         var metadata = ArkistointiMetadata()
 
         val resourceBundle = ResourceBundle.getBundle("i18n/messages")
@@ -62,9 +61,9 @@ class ArkistointiServiceImpl(
 
         var caseFile = metadata.caseFile
         caseFile.created = LocalDate.now()
-        caseFile.nativeId = asiaTunnus
+        caseFile.nativeId = case.nativeId
         caseFile.title = title
-        caseFile.function = function
+        caseFile.function = case.function
 
         caseFile.restriction.person.name = name
         caseFile.restriction.person.ssn = opintooikeus?.erikoistuvaLaakari?.syntymaaika
@@ -72,7 +71,7 @@ class ArkistointiServiceImpl(
         var action = caseFile.action
         action.created = LocalDate.now()
         action.title = title
-        action.type = asiaTyyppi
+        action.type = case.type
 
         asiakirjat.forEach {
             val asiakirja = it.asiakirja
@@ -82,7 +81,7 @@ class ArkistointiServiceImpl(
             record.title = asiakirja.nimi
             record.type = it.type
             record.retentionPeriod = it.retentionPeriod
-            record.function = function
+            record.function = case.function
 
             record.restriction.person.name = name
             record.restriction.person.ssn = opintooikeus?.erikoistuvaLaakari?.syntymaaika
@@ -148,25 +147,25 @@ class ArkistointiServiceImpl(
     }
 
     override fun onKaytossa(yliopisto: YliopistoEnum): Boolean {
-        when (yliopisto) {
+        return when (yliopisto) {
             YliopistoEnum.OULUN_YLIOPISTO -> {
-                return applicationProperties.getArkistointi().getOulu().kaytossa
+                applicationProperties.getArkistointi().getOulu().kaytossa
             }
 
             YliopistoEnum.HELSINGIN_YLIOPISTO -> {
-                return applicationProperties.getArkistointi().getHki().kaytossa
+                applicationProperties.getArkistointi().getHki().kaytossa
             }
 
             YliopistoEnum.TAMPEREEN_YLIOPISTO -> {
-                return applicationProperties.getArkistointi().getTre().kaytossa
+                applicationProperties.getArkistointi().getTre().kaytossa
             }
 
             YliopistoEnum.TURUN_YLIOPISTO -> {
-                return applicationProperties.getArkistointi().getTurku().kaytossa
+                applicationProperties.getArkistointi().getTurku().kaytossa
             }
 
             YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> {
-                return applicationProperties.getArkistointi().getUef().kaytossa
+                applicationProperties.getArkistointi().getUef().kaytossa
             }
         }
     }
