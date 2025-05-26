@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.service.KoejaksonKoulutussopimusService
+import fi.elsapalvelu.elsa.service.ArkistointiService
 import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioQueryService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
@@ -38,7 +38,8 @@ class KoejaksonVaiheetServiceImpl(
     private val vastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper,
     private val kayttajaRepository: KayttajaRepository,
     private val koejaksonVastuuhenkilonArvioQueryService: KoejaksonVastuuhenkilonArvioQueryService,
-    private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
+    private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
+    private val arkistointiService: ArkistointiService
 ) : KoejaksonVaiheetService {
 
     override fun findAllByKouluttajaKayttajaUserId(
@@ -129,7 +130,7 @@ class KoejaksonVaiheetServiceImpl(
                     KoejaksonVaiheDTO(
                         arvio.id,
                         KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
-                        KoejaksoTila.fromVastuuhenkilonArvio(arvio, virkailija = true),
+                        KoejaksoTila.fromVastuuhenkilonArvio(arvio, virkailija = true, arkistoitava = arkistointiService.onKaytossa(it.nimi!!)),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getAvatar(),
                         arvio.allekirjoitusaika ?: arvio.muokkauspaiva
@@ -182,7 +183,9 @@ class KoejaksonVaiheetServiceImpl(
             }.flatten()
         vastuuhenkilonArviot.associate {
             koejaksonVastuuhenkilonArvioService.tarkistaAllekirjoitus(it)
-            getOpintooikeusIdOrElseThrow(it.opintooikeus) to vastuuhenkilonArvioMapper.toDto(it)
+            val result = getOpintooikeusIdOrElseThrow(it.opintooikeus) to vastuuhenkilonArvioMapper.toDto(it)
+            result.second.arkistoitava = arkistointiService.onKaytossa(it.opintooikeus?.yliopisto?.nimi!!)
+            result
         }.forEach {
             val opintooikeusId = it.key
             if (resultMap[opintooikeusId] != null) {

@@ -533,11 +533,14 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val koulutussopimus = koulutussopimusRepository.findByOpintooikeusId(opintoOikeusId)
         result.koulutussopimusHyvaksytty =
             koulutussopimus.isPresent && koulutussopimus.get().vastuuhenkiloHyvaksynyt == true
+        result.arkistoitava = arkistointiService.onKaytossa(vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!)
         result.tila = KoejaksoTila.fromVastuuhenkilonArvio(
             vastuuhenkilonArvio,
             (authentication.principal as Saml2AuthenticatedPrincipal).name,
             authentication.authorities.any { it.authority == OPINTOHALLINNON_VIRKAILIJA },
-            authentication.authorities.any { it.authority == VASTUUHENKILO })
+            authentication.authorities.any { it.authority == VASTUUHENKILO },
+            result.arkistoitava == true
+        )
         return result
     }
 }
