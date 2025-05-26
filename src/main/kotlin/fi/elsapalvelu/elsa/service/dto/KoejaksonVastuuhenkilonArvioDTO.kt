@@ -68,6 +68,8 @@ data class KoejaksonVastuuhenkilonArvioDTO(
 
     var allekirjoitusaika: LocalDate? = null,
 
+    var arkistoitava: Boolean? = null
+
 ) : Serializable {
     override fun toString() = "KoejaksonVastuuhenkilonArvioDTO"
 }
