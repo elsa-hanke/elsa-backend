@@ -339,7 +339,8 @@ class ValmistumispyyntoServiceImpl(
                             tarkastaja = valmistumispyynto.virkailija?.user?.getName(),
                             tarkastusPaiva = valmistumispyynto.virkailijanKuittausaika,
                             hyvaksyja = valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.getName(),
-                            hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika
+                            hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika,
+                            function = "04.02.05"
                         )
                         val yek = valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
                         arkistointiService.laheta(yliopisto.nimi!!, filePath, yek)

@@ -15,7 +15,8 @@ interface ArkistointiService {
         tarkastaja: String?,
         tarkastusPaiva: LocalDate?,
         hyvaksyja: String?,
-        hyvaksymisPaiva: LocalDate?
+        hyvaksymisPaiva: LocalDate?,
+        function: String?
     ): String
 
     fun laheta(yliopisto: YliopistoEnum, filePath: String, yek: Boolean)

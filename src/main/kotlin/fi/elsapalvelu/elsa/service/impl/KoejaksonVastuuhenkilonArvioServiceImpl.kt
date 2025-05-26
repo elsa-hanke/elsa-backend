@@ -348,7 +348,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 tarkastaja = vastuuhenkilonArvio.virkailija?.user?.getName(),
                 tarkastusPaiva = vastuuhenkilonArvio.virkailijanKuittausaika,
                 hyvaksyja = vastuuhenkilonArvio.vastuuhenkilo?.user?.getName(),
-                hyvaksymisPaiva = vastuuhenkilonArvio.vastuuhenkilonKuittausaika
+                hyvaksymisPaiva = vastuuhenkilonArvio.vastuuhenkilonKuittausaika,
+                function = "04.01.04"
             )
             val yek = vastuuhenkilonArvio.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
             arkistointiService.laheta(yliopisto, filePath, yek)
