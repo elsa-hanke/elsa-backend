@@ -31,14 +31,14 @@ class TampereLouhiService(
             BuiltinSignatures.ed25519,
             BuiltinSignatures.ed25519_cert,
             BuiltinSignatures.sk_ssh_ed25519)
-        arkistointiProperties.privateKeyLocation?.let {
+        arkistointiProperties.privateKeyLocation?.takeIf { it.isNotBlank() }?.let {
             val keys = FileKeyPairProvider(Path(resourceLoader.getResource(it).file.path))
             client.addPublicKeyIdentity(keys.loadKeys(null).iterator().next())
         }
 
         sessionFactory = DefaultSftpSessionFactory(client, false)
         sessionFactory.setHost(arkistointiProperties.host)
-        sessionFactory.setPort(arkistointiProperties.port?.toInt() ?: 22)
+        sessionFactory.setPort(arkistointiProperties.port?.takeIf { it.isNotBlank() }?.toIntOrNull() ?: 22)
         sessionFactory.setUser(arkistointiProperties.user)
     }
 
