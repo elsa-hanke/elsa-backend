@@ -407,6 +407,14 @@ class SecurityConfiguration(
                     "Käyttäjällä ei ole käyttöoikeutta."
             )
             throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
+        } else {
+            // Tarkistetaan, että käyttäjän nimi on ajan tasalla
+            if ((firstName != "" && lastName != "") &&
+                (existingUser.firstName != firstName && existingUser.lastName != lastName)) {
+                existingUser.firstName = firstName
+                existingUser.lastName = lastName
+                userRepository.save(existingUser)
+            }
         }
 
         val kayttaja = kayttajaRepository.findOneByUserIdWithAuthorities(existingUser.id!!).orElseThrow {
