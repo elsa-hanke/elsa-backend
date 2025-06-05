@@ -23,12 +23,12 @@ class PalauteServiceImpl(
                 else -> "${it.id}, ${it.getNimi()}"
             }
 
-            mailService.sendEmailFromTemplate(
-                applicationProperties.getFeedback().to,
-                templateName = "palaute.html",
-                titleKey = "email.palaute.title",
+            mailService.sendFeedbackEmail(
+                applicationProperties.getFeedback().to.toString(),
+                templateName = "mail/palaute.html",
                 properties = mapOf(
                     Pair(MailProperty.FEEDBACK_TOPIC, palauteDTO.palautteenAihe!!),
+                    Pair(MailProperty.FEEDBACK_YLIOPISTO, palauteDTO.palauteYliopisto!!),
                     Pair(MailProperty.FEEDBACK, palauteDTO.palaute!!),
                     Pair(MailProperty.FEEDBACK_SENDER, feedbackSender)
                 ),
