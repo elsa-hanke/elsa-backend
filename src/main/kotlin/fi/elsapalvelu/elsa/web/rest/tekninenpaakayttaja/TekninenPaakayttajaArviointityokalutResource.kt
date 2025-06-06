@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.service.ArviointityokaluKategoriaService
 import fi.elsapalvelu.elsa.service.ArviointityokaluService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
-import fi.elsapalvelu.elsa.service.ArviointityokaluKategoriaService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -85,6 +85,11 @@ class TekninenPaakayttajaArviointityokalutResource(
         return ResponseEntity.ok(arviointityokaluService.findAll())
     }
 
+    @GetMapping("/poistetut-arviointityokalut")
+    fun getPoistetutArviointityokalut(): ResponseEntity<List<ArviointityokaluDTO>> {
+        return ResponseEntity.ok(arviointityokaluService.findAllPoistetut())
+    }
+
     @GetMapping("/arviointityokalu/{id}")
     fun getArviointityokalu(
         @PathVariable id: Long,
@@ -101,6 +106,14 @@ class TekninenPaakayttajaArviointityokalutResource(
     ): ResponseEntity<Void> {
         arviointityokaluService.delete(id)
         return ResponseEntity.noContent().build()
+    }
+
+    @PatchMapping("/arviointityokalu/{id}/palauta")
+    fun palautaArviointityokalu(
+        @PathVariable id: Long, principal: Principal?
+    ): ResponseEntity<Void> {
+        arviointityokaluService.palauta(id)
+        return ResponseEntity.ok().build()
     }
 
 }
