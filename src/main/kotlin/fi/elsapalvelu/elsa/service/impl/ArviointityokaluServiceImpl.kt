@@ -163,4 +163,26 @@ class ArviointityokaluServiceImpl(
         }
     }
 
+    override fun findAllPoistetut(): List<ArviointityokaluDTO> {
+        val aktiivisetIds: Set<Long?> =
+            arviointityokaluRepository.findAllByKaytossaTrue()
+                .asSequence()
+                .map { it.alkuperainenId }
+                .toSet()
+        return arviointityokaluRepository.findAllByKaytossaFalse()
+            .asSequence()
+            .filter { it.alkuperainenId !in aktiivisetIds }
+            .groupBy { it.alkuperainenId }
+            .map { (_, versiot) -> versiot.maxByOrNull { it.versio }!! }
+            .map(arviointityokaluMapper::toDto)
+            .toList()
+    }
+
+    override fun palauta(id: Long) {
+        arviointityokaluRepository.findById(id).ifPresent { arviointityokalu ->
+            arviointityokalu.kaytossa = true
+            arviointityokaluRepository.save(arviointityokalu)
+        }
+    }
+
 }

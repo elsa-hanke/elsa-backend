@@ -21,4 +21,6 @@ interface ArviointityokaluRepository : JpaRepository<Arviointityokalu, Long> {
 
     fun findAllByKategoria(arviointityokaluKategoria: ArviointityokaluKategoria): List<Arviointityokalu>
 
+    fun findAllByKaytossaFalse(): List<Arviointityokalu>
+
 }

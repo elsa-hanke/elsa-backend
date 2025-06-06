@@ -30,5 +30,8 @@ interface ArviointityokaluService {
 
     fun delete(id: Long)
 
+    fun findAllPoistetut(): List<ArviointityokaluDTO>
+
+    fun palauta(id: Long)
 
 }
