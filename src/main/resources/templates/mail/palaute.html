@@ -10,11 +10,13 @@
     Hei,
 </p>
 <p>
-    Olet saanut uuden käyttäjäpalautteen ELSA-palvelusta.
+    Olet saanut uuden käyttäjäpalautteen ELSA-palvelusta.<br><br>
 
-    Palautteen aihe: <span th:text="${feedbackTopic}"></span>
+    Palautteen aihe: <span th:text="${feedbackTopic}"></span><br><br>
 
-    Palautteen lähettäjä: <span th:if="${!feedbackSender.isEmpty()}" th:text="${feedbackSender}"></span><span th:if="${feedbackSender.isEmpty()}" th:text="#{palaute.anonyymi}"></span>
+    Palautteen lähettäjä: <span th:if="${!feedbackSender.isEmpty()}" th:text="${feedbackSender}"></span><span th:if="${feedbackSender.isEmpty()}" th:text="#{palaute.anonyymi}"></span><br><br>
+
+    Yliopisto: <span th:text="${feedbackYliopisto}"></span><br><br>
 
     Palaute: <p th:text="${feedback}"></p>
 
