@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
+import fi.elsapalvelu.elsa.service.dto.enumeration.ArviointityokaluKysymysVaihtoehtoTyyppi
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
@@ -21,9 +22,14 @@ data class ArviointityokaluKysymysVaihtoehto(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "arviointityokalu_kysymys_id", nullable = false)
-    var arviointityokaluKysymys: ArviointityokaluKysymys? = null
+    var arviointityokaluKysymys: ArviointityokaluKysymys? = null,
 
-) : Serializable {
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tyyppi")
+    var tyyppi: ArviointityokaluKysymysVaihtoehtoTyyppi? = null,
+
+    ) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
