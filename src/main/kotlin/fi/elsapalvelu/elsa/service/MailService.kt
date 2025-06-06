@@ -27,6 +27,7 @@ enum class MailProperty(val property: String) {
     FEEDBACK("feedback"),
     FEEDBACK_TOPIC("feedbackTopic"),
     FEEDBACK_SENDER("feedbackSender"),
+    FEEDBACK_YLIOPISTO("feedbackYliopisto"),
     URL_PATH("urlPath"),
     SECOND_URL_PATH("urlPath2")
 }
@@ -145,5 +146,28 @@ class MailService(
         val content = templateEngine.process("mail/${templateName}", context)
         val subject = messageSource.getMessage(titleKey, titleProperties, locale)
         sendEmail(to, cc, subject, content, isMultipart = false, isHtml = true)
+    }
+
+    @Async
+    fun sendFeedbackEmail(
+        to: String,
+        cc: List<String>? = listOf(),
+        templateName: String,
+        properties: Map<MailProperty, String>
+    ) {
+        val locale = Locale.forLanguageTag("fi")
+
+        val context = Context(locale).apply {
+            setVariable(MailProperty.BASE_URL.property, jHipsterProperties.mail.baseUrl)
+            properties.forEach {
+                setVariable(it.key.property, it.value)
+            }
+        }
+        val feedbackSender = properties[MailProperty.FEEDBACK_SENDER]?.takeIf { it.isNotEmpty() } ?: "Anonyymi käyttäjä"
+        val feedbackTopic = properties[MailProperty.FEEDBACK_TOPIC] ?: "Ei aihetta"
+        val feedbackUniversity = properties[MailProperty.FEEDBACK_YLIOPISTO] ?: "Ei yliopistoa"
+        val subject = "[ELSA-palvelu] Olet saanut uuden käyttäjäpalautteen. $feedbackSender | Aihe: $feedbackTopic | Yliopisto: $feedbackUniversity"
+        val content = templateEngine.process(templateName, context)
+        sendEmail(to, cc, subject, content, false, true)
     }
 }
