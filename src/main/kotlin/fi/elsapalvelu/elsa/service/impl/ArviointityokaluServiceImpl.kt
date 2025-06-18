@@ -95,7 +95,8 @@ class ArviointityokaluServiceImpl(
                         ArviointityokaluKysymysVaihtoehto(
                             id = null,
                             teksti = vaihtoehtoDTO.teksti,
-                            arviointityokaluKysymys = kysymys
+                            arviointityokaluKysymys = kysymys,
+                            tyyppi = vaihtoehtoDTO.tyyppi
                         )
                     }?.toMutableList() ?: mutableListOf()
                     kysymys
@@ -159,6 +160,28 @@ class ArviointityokaluServiceImpl(
     override fun delete(id: Long) {
         arviointityokaluRepository.findById(id).ifPresent { arviointityokalu ->
             arviointityokalu.kaytossa = false
+            arviointityokaluRepository.save(arviointityokalu)
+        }
+    }
+
+    override fun findAllPoistetut(): List<ArviointityokaluDTO> {
+        val aktiivisetIds: Set<Long?> =
+            arviointityokaluRepository.findAllByKaytossaTrue()
+                .asSequence()
+                .map { it.alkuperainenId }
+                .toSet()
+        return arviointityokaluRepository.findAllByKaytossaFalse()
+            .asSequence()
+            .filter { it.alkuperainenId !in aktiivisetIds }
+            .groupBy { it.alkuperainenId }
+            .map { (_, versiot) -> versiot.maxByOrNull { it.versio }!! }
+            .map(arviointityokaluMapper::toDto)
+            .toList()
+    }
+
+    override fun palauta(id: Long) {
+        arviointityokaluRepository.findById(id).ifPresent { arviointityokalu ->
+            arviointityokalu.kaytossa = true
             arviointityokaluRepository.save(arviointityokalu)
         }
     }
