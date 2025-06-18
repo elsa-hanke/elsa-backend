@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
+import fi.elsapalvelu.elsa.service.dto.enumeration.ArviointityokaluKysymysVaihtoehtoTyyppi
 import java.io.Serializable
 import java.util.*
 
@@ -11,7 +12,9 @@ data class ArviointityokaluKysymysVaihtoehtoDTO(
 
     var valittu: Boolean? = null,
 
-) : Serializable {
+    var tyyppi: ArviointityokaluKysymysVaihtoehtoTyyppi,
+
+    ) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

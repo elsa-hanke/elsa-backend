@@ -31,6 +31,8 @@ data class ArviointityokaluDTO(
 
     var liitetiedostonTyyppi: String? = null,
 
+    var kaytossa: Boolean = true,
+
     ) : Serializable {
     override fun toString() = "ArviointityokaluDTO"
 }
