@@ -181,6 +181,7 @@ class ArviointityokaluServiceImpl(
 
     override fun palauta(id: Long) {
         arviointityokaluRepository.findById(id).ifPresent { arviointityokalu ->
+            arviointityokalu.tila = ArviointityokalunTila.LUONNOS
             arviointityokalu.kaytossa = true
             arviointityokaluRepository.save(arviointityokalu)
         }
