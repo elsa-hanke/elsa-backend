@@ -1,7 +1,7 @@
 version: "2"
 services:
   elsabackend-postgresql:
-    image: postgres:13.16
+    image: postgres:16.9
     environment:
       - POSTGRES_USER=elsaBackend
       - POSTGRES_PASSWORD=
