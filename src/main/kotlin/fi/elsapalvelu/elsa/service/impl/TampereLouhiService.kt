@@ -31,9 +31,12 @@ class TampereLouhiService(
             BuiltinSignatures.ed25519,
             BuiltinSignatures.ed25519_cert,
             BuiltinSignatures.sk_ssh_ed25519)
-        arkistointiProperties.privateKeyLocation?.takeIf { it.isNotBlank() }?.let {
-            val keys = FileKeyPairProvider(Path(resourceLoader.getResource(it).file.path))
-            client.addPublicKeyIdentity(keys.loadKeys(null).iterator().next())
+
+        if (arkistointiProperties.kaytossa) {
+            arkistointiProperties.privateKeyLocation?.takeIf { it.isNotBlank() }?.let {
+                val keys = FileKeyPairProvider(Path(resourceLoader.getResource(it).file.path))
+                client.addPublicKeyIdentity(keys.loadKeys(null).iterator().next())
+            }
         }
 
         sessionFactory = DefaultSftpSessionFactory(client, false)
