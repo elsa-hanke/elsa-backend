@@ -2,15 +2,18 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import org.apache.sshd.client.SshClient
+import org.apache.sshd.common.NamedResource
+import org.apache.sshd.common.config.keys.FilePasswordProvider
+import org.apache.sshd.common.config.keys.loader.pem.PEMResourceParserUtils
 import org.apache.sshd.common.keyprovider.FileKeyPairProvider
 import org.apache.sshd.common.signature.BuiltinSignatures
+import org.apache.sshd.common.util.security.SecurityUtils
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ResourceLoader
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.FileInputStream
-import kotlin.io.path.Path
 
 @Service
 class TampereLouhiService(
@@ -32,10 +35,17 @@ class TampereLouhiService(
             BuiltinSignatures.ed25519_cert,
             BuiltinSignatures.sk_ssh_ed25519)
 
-        if (arkistointiProperties.kaytossa) {
-            arkistointiProperties.privateKeyLocation?.takeIf { it.isNotBlank() }?.let {
-                val keys = FileKeyPairProvider(Path(resourceLoader.getResource(it).file.path))
-                client.addPublicKeyIdentity(keys.loadKeys(null).iterator().next())
+        arkistointiProperties.privateKeyLocation?.takeIf { it.isNotBlank() }?.let {
+            val resource = resourceLoader.getResource(it)
+
+            resource.inputStream.use { input ->
+                val keyPairs = SecurityUtils.loadKeyPairIdentities(
+                    null,
+                    NamedResource { it },
+                    input,
+                    FilePasswordProvider.EMPTY
+                )
+                client.addPublicKeyIdentity(keyPairs.iterator().next())
             }
         }
 
