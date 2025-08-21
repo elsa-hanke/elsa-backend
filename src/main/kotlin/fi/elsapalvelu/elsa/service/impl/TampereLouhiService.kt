@@ -4,8 +4,6 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import org.apache.sshd.client.SshClient
 import org.apache.sshd.common.NamedResource
 import org.apache.sshd.common.config.keys.FilePasswordProvider
-import org.apache.sshd.common.config.keys.loader.pem.PEMResourceParserUtils
-import org.apache.sshd.common.keyprovider.FileKeyPairProvider
 import org.apache.sshd.common.signature.BuiltinSignatures
 import org.apache.sshd.common.util.security.SecurityUtils
 import org.slf4j.LoggerFactory
