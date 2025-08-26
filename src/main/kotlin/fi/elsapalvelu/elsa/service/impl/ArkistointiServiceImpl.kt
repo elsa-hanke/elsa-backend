@@ -112,7 +112,7 @@ class ArkistointiServiceImpl(
         mapper.dateFormat = SimpleDateFormat("dd.MM.yyyy")
         mapper.configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true)
 
-        val filePath = "./$title.zip"
+        val filePath = "/tmp/$title.zip"
         var fos = FileOutputStream(filePath)
         var zipOut = ZipOutputStream(fos)
 
@@ -135,10 +135,6 @@ class ArkistointiServiceImpl(
     override fun laheta(yliopisto: YliopistoEnum, filePath: String, yek: Boolean) {
         when (yliopisto) {
             YliopistoEnum.TAMPEREEN_YLIOPISTO -> {
-                tampereLouhiService.laheta(filePath, yek)
-            }
-
-            YliopistoEnum.HELSINGIN_YLIOPISTO -> {
                 tampereLouhiService.laheta(filePath, yek)
             }
 
