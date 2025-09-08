@@ -343,7 +343,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         } else if (arkistointiService.onKaytossa(yliopisto)) {
             val filePath = arkistointiService.muodostaSahke(
                 vastuuhenkilonArvio.opintooikeus,
-                listOf(RecordProperties(asiakirja, "-1", "Arviointi")),
+                listOf(RecordProperties(asiakirja, "-1", "Arviointi", "Julkinen")),
                 case = CaseProperties(
                     nativeId = vastuuhenkilonArvio.id!!.toString(),
                     type = "Koejakson arviointi",

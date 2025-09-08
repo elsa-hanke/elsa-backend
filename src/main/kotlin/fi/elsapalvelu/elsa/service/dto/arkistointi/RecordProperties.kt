@@ -9,6 +9,8 @@ data class RecordProperties(
 
     var retentionPeriod: String,
 
-    var type: String
+    var type: String,
+
+    var publicityClass: String
 
 ) : Serializable
