@@ -83,6 +83,7 @@ class ArkistointiServiceImpl(
             record.retentionPeriod = it.retentionPeriod
             record.function = case.function
 
+            record.restriction.publicityClass = it.publicityClass
             record.restriction.person.name = name
             record.restriction.person.ssn = opintooikeus?.erikoistuvaLaakari?.syntymaaika
 

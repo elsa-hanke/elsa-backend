@@ -332,8 +332,8 @@ class ValmistumispyyntoServiceImpl(
                         val filePath = arkistointiService.muodostaSahke(
                             valmistumispyynto.opintooikeus,
                             listOf(
-                                RecordProperties(valmistumispyynto.yhteenvetoAsiakirja!!, "20", "Yhteenveto"),
-                                RecordProperties(valmistumispyynto.liitteetAsiakirja!!, "10", "Liite")
+                                RecordProperties(valmistumispyynto.yhteenvetoAsiakirja!!, "20", "Yhteenveto", "Julkinen"),
+                                RecordProperties(valmistumispyynto.liitteetAsiakirja!!, "10", "Liite", "Osittain salassapidettävä")
                             ),
                             case = CaseProperties(
                                 nativeId = valmistumispyynto.id!!.toString(),
