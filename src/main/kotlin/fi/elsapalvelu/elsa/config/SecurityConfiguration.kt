@@ -410,7 +410,7 @@ class SecurityConfiguration(
         } else {
             // Tarkistetaan, että käyttäjän nimi on ajan tasalla
             if ((firstName != "" && lastName != "") &&
-                (existingUser.firstName != firstName && existingUser.lastName != lastName)) {
+                (existingUser.firstName != firstName || existingUser.lastName != lastName)) {
                 existingUser.firstName = firstName
                 existingUser.lastName = lastName
                 userRepository.save(existingUser)
