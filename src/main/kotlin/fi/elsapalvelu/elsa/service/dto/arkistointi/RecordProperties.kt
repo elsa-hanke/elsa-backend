@@ -11,6 +11,6 @@ data class RecordProperties(
 
     var type: String,
 
-    var publicityClass: String
+    var publicityClass: PublicityClass
 
 ) : Serializable
