@@ -21,6 +21,7 @@ import fi.elsapalvelu.elsa.service.constants.*
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseProperties
+import fi.elsapalvelu.elsa.service.dto.arkistointi.PublicityClass
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
@@ -333,8 +334,8 @@ class ValmistumispyyntoServiceImpl(
                     val filePath = arkistointiService.muodostaSahke(
                         valmistumispyynto.opintooikeus,
                         listOf(
-                            RecordProperties(valmistumispyynto.yhteenvetoAsiakirja!!, "20", "Yhteenveto", "Julkinen"),
-                            RecordProperties(valmistumispyynto.liitteetAsiakirja!!, "10", "Liite", "Osittain salassapidettävä")
+                            RecordProperties(valmistumispyynto.yhteenvetoAsiakirja!!, "20", "Yhteenveto", PublicityClass.PUBLIC),
+                            RecordProperties(valmistumispyynto.liitteetAsiakirja!!, "10", "Liite", PublicityClass.PARTIALLY_RESTRICTED)
                         ),
                         case = CaseProperties(
                             nativeId = valmistumispyynto.id!!.toString(),
