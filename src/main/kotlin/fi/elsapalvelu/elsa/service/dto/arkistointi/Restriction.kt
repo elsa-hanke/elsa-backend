@@ -16,5 +16,5 @@ class Restriction {
     var securityPeriod: String? = "100"
 
     @JacksonXmlProperty(localName = "SecurityReason")
-    var securityReason: String? = "Sisältää henkilötietoja"
+    var securityReason: String? = ""
 }
