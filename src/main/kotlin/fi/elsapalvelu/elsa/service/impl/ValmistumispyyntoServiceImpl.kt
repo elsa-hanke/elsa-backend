@@ -327,27 +327,27 @@ class ValmistumispyyntoServiceImpl(
                         mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)),
                         valmistumispyynto
                     )
+                }
 
-                    if (arkistointiService.onKaytossa(yliopisto.nimi!!)) {
-                        val filePath = arkistointiService.muodostaSahke(
-                            valmistumispyynto.opintooikeus,
-                            listOf(
-                                RecordProperties(valmistumispyynto.yhteenvetoAsiakirja!!, "20", "Yhteenveto", "Julkinen"),
-                                RecordProperties(valmistumispyynto.liitteetAsiakirja!!, "10", "Liite", "Osittain salassapidettävä")
-                            ),
-                            case = CaseProperties(
-                                nativeId = valmistumispyynto.id!!.toString(),
-                                type = "Valmistuminen",
-                                function = "04.02.05"
-                            ),
-                            tarkastaja = valmistumispyynto.virkailija?.user?.getName(),
-                            tarkastusPaiva = valmistumispyynto.virkailijanKuittausaika,
-                            hyvaksyja = valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.getName(),
-                            hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika
-                        )
-                        val yek = valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
-                        arkistointiService.laheta(yliopisto.nimi!!, filePath, yek)
-                    }
+                if (arkistointiService.onKaytossa(yliopisto.nimi!!)) {
+                    val filePath = arkistointiService.muodostaSahke(
+                        valmistumispyynto.opintooikeus,
+                        listOf(
+                            RecordProperties(valmistumispyynto.yhteenvetoAsiakirja!!, "20", "Yhteenveto", "Julkinen"),
+                            RecordProperties(valmistumispyynto.liitteetAsiakirja!!, "10", "Liite", "Osittain salassapidettävä")
+                        ),
+                        case = CaseProperties(
+                            nativeId = valmistumispyynto.id!!.toString(),
+                            type = "Valmistuminen",
+                            function = "04.02.05"
+                        ),
+                        tarkastaja = valmistumispyynto.virkailija?.user?.getName(),
+                        tarkastusPaiva = valmistumispyynto.virkailijanKuittausaika,
+                        hyvaksyja = valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.getName(),
+                        hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika
+                    )
+                    val yek = valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
+                    arkistointiService.laheta(yliopisto.nimi!!, filePath, yek)
                 }
             }
         }
