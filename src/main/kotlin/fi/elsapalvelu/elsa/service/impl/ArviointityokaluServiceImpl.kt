@@ -9,11 +9,14 @@ import fi.elsapalvelu.elsa.repository.ArviointityokaluKategoriaRepository
 import fi.elsapalvelu.elsa.repository.ArviointityokaluRepository
 import fi.elsapalvelu.elsa.service.ArviointityokaluService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
+import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluMapper
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.io.ByteArrayInputStream
 import java.time.Instant
 import java.util.*
 
@@ -185,6 +188,17 @@ class ArviointityokaluServiceImpl(
             arviointityokalu.kaytossa = true
             arviointityokaluRepository.save(arviointityokalu)
         }
+    }
+
+    @Transactional(readOnly = true)
+    override fun findOneByLiiteId(id: Long): ArviointityokaluDTO {
+        val arviointityokalu = arviointityokaluRepository.findFirstByLiiteId(id)
+            ?: throw EntityNotFoundException("Arviointityokalua ei löydy liite id:llä $id")
+        return arviointityokaluMapper.toDto(arviointityokalu)
+    }
+
+    override fun getAsiakirjaDataDTO(asiakirjaData: AsiakirjaData?): AsiakirjaDataDTO {
+        return AsiakirjaDataDTO(fileInputStream = ByteArrayInputStream(asiakirjaData?.data))
     }
 
 }
