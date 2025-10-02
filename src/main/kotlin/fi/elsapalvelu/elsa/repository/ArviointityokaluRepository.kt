@@ -23,4 +23,6 @@ interface ArviointityokaluRepository : JpaRepository<Arviointityokalu, Long> {
 
     fun findAllByKaytossaFalse(): List<Arviointityokalu>
 
+    fun findFirstByLiiteId(id: Long): Arviointityokalu?
+
 }

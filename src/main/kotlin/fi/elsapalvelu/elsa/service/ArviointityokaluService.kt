@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.domain.AsiakirjaData
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
+import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import org.springframework.web.multipart.MultipartFile
 import java.util.*
@@ -33,5 +35,9 @@ interface ArviointityokaluService {
     fun findAllPoistetut(): List<ArviointityokaluDTO>
 
     fun palauta(id: Long)
+
+    fun findOneByLiiteId(id: Long): ArviointityokaluDTO
+
+    fun getAsiakirjaDataDTO(asiakirjaData: AsiakirjaData?): AsiakirjaDataDTO
 
 }
