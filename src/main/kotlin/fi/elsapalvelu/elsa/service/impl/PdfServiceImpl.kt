@@ -73,11 +73,14 @@ class PdfServiceImpl(
     ) {
         val result = PdfDocument(PdfWriter(outputStream))
         val resultDocument = Document(result)
-        val merger = PdfMerger(result)
         asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
             try {
-                val document = PdfDocument(PdfReader(ByteArrayInputStream(it.asiakirjaData?.data)))
-                merger.merge(document, 1, document.numberOfPages)
+                PdfDocument(PdfReader(ByteArrayInputStream(it.asiakirjaData?.data))).use { srcDoc ->
+                    for (i in 1..srcDoc.numberOfPages) {
+                        val page = srcDoc.getPage(i).copyTo(result)
+                        result.addPage(page)
+                    }
+                }
             } catch (e: IOException) {
                 log.warn("Asiakirjan ${it.id} lisäys epäonnistui", e)
             }
