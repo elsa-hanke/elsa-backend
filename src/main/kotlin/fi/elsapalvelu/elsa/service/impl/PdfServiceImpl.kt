@@ -14,6 +14,7 @@ import com.itextpdf.layout.properties.UnitValue
 import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.domain.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfService
+import org.apache.pdfbox.Loader
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
@@ -75,7 +76,8 @@ class PdfServiceImpl(
         val resultDocument = Document(result)
         asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
             try {
-                PdfDocument(PdfReader(ByteArrayInputStream(it.asiakirjaData?.data))).use { srcDoc ->
+                val sanitizedData = sanitizePdf(it.asiakirjaData?.data)
+                PdfDocument(PdfReader(ByteArrayInputStream(sanitizedData))).use { srcDoc ->
                     for (i in 1..srcDoc.numberOfPages) {
                         val page = srcDoc.getPage(i).copyTo(result)
                         result.addPage(page)
@@ -99,6 +101,16 @@ class PdfServiceImpl(
                 }
             }
         resultDocument.close()
+    }
+
+    fun sanitizePdf(data: ByteArray?): ByteArray {
+        ByteArrayOutputStream().use { out ->
+            Loader.loadPDF(data).use { doc ->
+                doc.isAllSecurityToBeRemoved = true
+                doc.save(out)
+            }
+            return out.toByteArray()
+        }
     }
 
     override fun yhdistaPdf(
