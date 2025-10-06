@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import jakarta.persistence.EntityNotFoundException
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.*
 import org.apache.commons.lang3.exception.ExceptionUtils
@@ -395,6 +396,7 @@ class SecurityConfiguration(
                 fetchAndUpdateOpintotietodataIfChanged(existingUser.id!!, hetu, firstName, lastName)
                 fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id!!, hetu)
 
+                existingUser = userRepository.findByIdWithAuthorities(existingUser.id!!).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
                 if (hasErikoistuvaLaakariRole(existingUser) || hasYekKoulutettavaRole(existingUser)) {
                     opintooikeusService.checkOpintooikeusAndRoles(existingUser)
                 }
