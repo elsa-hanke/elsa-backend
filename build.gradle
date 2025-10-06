@@ -147,9 +147,10 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp-tls:4.9.3"
     implementation "net.javacrumbs.shedlock:shedlock-spring:4.33.0"
     implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.33.0"
-    implementation 'com.itextpdf:kernel:8.0.5'
+    implementation "com.itextpdf:kernel:${itextVersion}"
     implementation "com.itextpdf:html2pdf:5.0.5"
-    implementation "com.itextpdf:pdfa:8.0.5"
+    implementation "com.itextpdf:pdfa:${itextVersion}"
+    implementation("org.apache.pdfbox:pdfbox:3.0.5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.4")
     implementation "org.springframework.integration:spring-integration-sftp"
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.3")
