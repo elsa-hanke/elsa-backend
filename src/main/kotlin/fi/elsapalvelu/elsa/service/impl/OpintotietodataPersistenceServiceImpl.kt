@@ -19,6 +19,8 @@ import fi.elsapalvelu.elsa.service.OpintotietodataPersistenceService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import jakarta.persistence.EntityNotFoundException
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -28,8 +30,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
-import jakarta.persistence.EntityNotFoundException
-import jakarta.transaction.Transactional
 
 private const val SUU_JA_LEUKAKIRURGIA_VIRTA_PATEVYYSKOODI = "esl"
 
@@ -71,7 +71,9 @@ class OpintotietodataPersistenceServiceImpl(
             // Etsitään, jos jokin opinto-oikeus on alkamassa tulevaisuudessa
             opintotietodataDTOs.map { dto ->
                 dto.opintooikeudet?.map {
-                    if (it.opintooikeudenAlkamispaiva?.isAfter(LocalDate.now(clock)) != false) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
+                    if (it.opintooikeudenAlkamispaiva?.isAfter(LocalDate.now(clock)) != false) throw Exception(
+                        LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name
+                    )
                 }
             }
             log.info("Voimassaolevia opinto-oikeuksia ei löytynyt käyttäjälle $etunimi $sukunimi")
@@ -107,7 +109,8 @@ class OpintotietodataPersistenceServiceImpl(
         ) ?: return
         try {
             val authority =
-                userRepository.findByIdWithAuthorities(userId).map { return@map it.authorities.first() }.orElse(Authority("ROLE_USER"))
+                userRepository.findByIdWithAuthorities(userId).map { return@map it.authorities.first() }
+                    .orElse(Authority("ROLE_USER"))
             userRepository.setActiveAuthorityIfNull(userId, authority)
         } catch (e: Exception) {
             log.warn("Käyttäjällä ei välttämättä ole aktiivista authoriteettia, mikä voi vaikuttaa tietojen hakuun.")
@@ -121,9 +124,12 @@ class OpintotietodataPersistenceServiceImpl(
             if (erikoistuvaLaakari == null)
                 return
             else {
-                val erikoistuvaAuthorities = arrayOf(Authority("ROLE_ERIKOISTUVA_LAAKARI"), Authority("ROLE_YEK_KOULUTETTAVA"))
+                val erikoistuvaAuthorities =
+                    arrayOf(Authority("ROLE_ERIKOISTUVA_LAAKARI"), Authority("ROLE_YEK_KOULUTETTAVA"))
                 if (opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(userId).isEmpty()
-                    && (userRepository.findByIdWithAuthorities(userId).map { return@map it.authorities.toList().all { auth -> auth in erikoistuvaAuthorities }}).orElse(false)
+                    && (userRepository.findByIdWithAuthorities(userId).map {
+                        return@map it.authorities.toList().all { auth -> auth in erikoistuvaAuthorities }
+                    }).orElse(false)
                 ) {
                     // Etsitään, jos jokin opinto-oikeus on alkamassa tulevaisuudessa
                     opintotietodataOpintooikeudet.map {
@@ -186,7 +192,8 @@ class OpintotietodataPersistenceServiceImpl(
         var opintooikeus = Opintooikeus(
             opintooikeudenMyontamispaiva = LocalDate.now(ZoneId.systemDefault()),
             opintooikeudenPaattymispaiva = LocalDate.now(ZoneId.systemDefault()).plusYears(10),
-            viimeinenKatselupaiva =  LocalDate.now(ZoneId.systemDefault()).plusYears(10).plusMonths(PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET),
+            viimeinenKatselupaiva = LocalDate.now(ZoneId.systemDefault()).plusYears(10)
+                .plusMonths(PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET),
             opiskelijatunnus = "123456",
             asetus = asetus,
             osaamisenArvioinninOppaanPvm = LocalDate.now(ZoneId.systemDefault()),
@@ -213,9 +220,9 @@ class OpintotietodataPersistenceServiceImpl(
         List<OpintotietoOpintooikeusDataDTO> =
         opintooikeudet.filter {
             (it.opintooikeudenPaattymispaiva == null
-            || !it.opintooikeudenPaattymispaiva!!.isBefore(LocalDate.now(clock)))
-            && (it.opintooikeudenAlkamispaiva == null
-            || !it.opintooikeudenAlkamispaiva!!.isAfter(LocalDate.now(clock)))
+                || !it.opintooikeudenPaattymispaiva!!.isBefore(LocalDate.now(clock)))
+                && (it.opintooikeudenAlkamispaiva == null
+                || !it.opintooikeudenAlkamispaiva!!.isAfter(LocalDate.now(clock)))
         }
 
     private fun checkOpintooikeudetAmount(
@@ -229,11 +236,11 @@ class OpintotietodataPersistenceServiceImpl(
             // YEK opinto-oikeutta ei oteta huomioon opinto-oikeuksien määrän tarkistuksessa
             if (it.size == 3 && it.any { oikeus ->
                     findErikoisalaOrLogError(
-                            oikeus.erikoisalaTunnisteList,
-                            oikeus.yliopisto,
-                            user.id!!
-                        )?.id == YEK_ERIKOISALA_ID
-            }) {
+                        oikeus.erikoisalaTunnisteList,
+                        oikeus.yliopisto,
+                        user.id!!
+                    )?.id == YEK_ERIKOISALA_ID
+                }) {
                 false
             } else {
                 opintooikeusHerate =
@@ -393,7 +400,7 @@ class OpintotietodataPersistenceServiceImpl(
                 user.authorities.add(Authority(name = YEK_KOULUTETTAVA))
             }
 
-            if (user.activeAuthority == Authority(ERIKOISTUVA_LAAKARI)) {
+            if (user.activeAuthority == null || user.activeAuthority == Authority(ERIKOISTUVA_LAAKARI)) {
                 user.activeAuthority = Authority(name = YEK_KOULUTETTAVA)
             }
             userRepository.save(user)
@@ -402,7 +409,7 @@ class OpintotietodataPersistenceServiceImpl(
                 user.authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
             }
 
-            if (user.activeAuthority == Authority(YEK_KOULUTETTAVA)) {
+            if (user.activeAuthority == null || user.activeAuthority == Authority(YEK_KOULUTETTAVA)) {
                 user.activeAuthority = Authority(name = ERIKOISTUVA_LAAKARI)
             }
             userRepository.save(user)
@@ -458,7 +465,8 @@ class OpintotietodataPersistenceServiceImpl(
                 ?.let {
                     opintooikeus.opintooikeudenPaattymispaiva = it
                     opintooikeus.viimeinenKatselupaiva = it.plusMonths(
-                        PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET)
+                        PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET
+                    )
                 }
 
             opintooikeudenTila.takeIf { it != opintooikeus.tila }?.let {
