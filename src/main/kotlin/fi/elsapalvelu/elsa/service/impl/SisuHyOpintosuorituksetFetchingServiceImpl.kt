@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
-private const val attainedState: String = "ATTAINED"
+private val validStates = listOf("ATTAINED", "SUBSTITUTED")
 
 @Service
 class SisuHyOpintosuorituksetFetchingServiceImpl(
@@ -32,7 +32,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
                     .execute()
 
             return response.data?.private_person_by_personal_identity_code?.attainments?.filter {
-                it.state == attainedState
+                it.state in validStates
             }?.let {
                 OpintosuorituksetPersistenceDTO(
                     yliopisto = YliopistoEnum.HELSINGIN_YLIOPISTO,
@@ -48,7 +48,7 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
                             arvio_sv = a.grade?.name?.sv,
                             vanhenemispaiva = a.expiryDate?.tryParseToLocalDate(),
                             yliopistoOpintooikeusId = a.studyRightId,
-                            osakokonaisuudet = a.childAttainments?.filter { c -> c.state == attainedState }
+                            osakokonaisuudet = a.childAttainments?.filter { c -> c.state in validStates }
                                 ?.map { c -> mapOsakokonaisuus(c) }
                         )
                     }
