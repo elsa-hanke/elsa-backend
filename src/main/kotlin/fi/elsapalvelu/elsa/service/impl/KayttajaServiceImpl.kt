@@ -55,7 +55,8 @@ class KayttajaServiceImpl(
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
     private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
-    private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
+    private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
+    private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository
 ) : KayttajaService {
 
     override fun save(kayttajaDTO: KayttajaDTO): KayttajaDTO {
@@ -179,7 +180,13 @@ class KayttajaServiceImpl(
             .map(kayttajaMapper::toDto)
     }
 
+    @Transactional
     override fun delete(id: Long) {
+        val kayttaja = kayttajaRepository.findById(id)
+            .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+        kayttaja.saadutValtuutukset.forEach {
+            kouluttajavaltuutusRepository.deleteById(it.id!!)
+        }
         kayttajaRepository.deleteById(id)
     }
 
