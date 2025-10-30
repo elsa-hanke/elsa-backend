@@ -282,5 +282,7 @@
     <include file="config/liquibase/changelog/20250314160900_create_entity_SuoritusarvioinninArviointityokalunVastaus.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20250326160500_modify_entity_Suoritusarviointi.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20250606135400_modify_entity_Arviointityokalu.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251030160500_modify_entity_Suoritusarviointi_audit_allow_null_keskenerainen.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>
 <!-- @formatter:on -->
