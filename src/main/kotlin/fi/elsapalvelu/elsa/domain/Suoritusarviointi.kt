@@ -129,6 +129,7 @@ data class Suoritusarviointi(
 
     @get: NotNull
     @Column(name = "keskenerainen", nullable = false)
+    @field:NotAudited
     var keskenerainen: Boolean = false,
 
 ) : Serializable {
