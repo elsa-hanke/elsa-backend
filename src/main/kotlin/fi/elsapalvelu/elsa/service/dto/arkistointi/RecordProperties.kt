@@ -7,10 +7,6 @@ data class RecordProperties(
 
     var asiakirja: Asiakirja,
 
-    var retentionPeriod: String,
-
-    var type: String,
-
-    var publicityClass: PublicityClass
+    var type: RecordType
 
 ) : Serializable

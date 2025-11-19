@@ -29,6 +29,9 @@ class Record {
     @JacksonXmlProperty(localName = "Status")
     var status: String? = "Valmis"
 
+    @JacksonXmlProperty(localName = "Version")
+    var version: String? = "1.0"
+
     @JacksonXmlProperty(localName = "Function")
     var function: String? = "04.01.04"
 

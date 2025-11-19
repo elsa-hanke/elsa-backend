@@ -19,11 +19,23 @@ management:
     web:
       base-path: /management
       exposure:
-        include: [ 'configprops', 'env', 'health', 'info', 'jhimetrics', 'logfile', 'loggers', 'threaddump', 'caches', 'liquibase' ]
+        include:
+          [
+            "configprops",
+            "env",
+            "health",
+            "info",
+            "jhimetrics",
+            "logfile",
+            "loggers",
+            "threaddump",
+            "caches",
+            "liquibase",
+          ]
   endpoint:
     health:
       show-details: when_authorized
-      roles: 'ROLE_ADMIN'
+      roles: "ROLE_ADMIN"
     jhimetrics:
       enabled: true
   info:
@@ -64,6 +76,7 @@ logging:
     jakarta.xml.bind: WARN
     javax.management.remote: WARN
     jdk.event.security: INFO
+    jdk.internal.httpclient: WARN
     liquibase: WARN
     org.apache: WARN
     org.ehcache: WARN
@@ -178,11 +191,10 @@ cloud:
     stack:
       auto: false
 
-
 # Properties to be exposed on the /info management endpoint
 info:
   # Comma separated list of profiles that will trigger the ribbon to show
-  display-ribbon-on-profiles: 'dev'
+  display-ribbon-on-profiles: "dev"
 
 # ===================================================================
 # JHipster specific properties
@@ -192,7 +204,7 @@ info:
 
 jhipster:
   clientApp:
-    name: 'elsa'
+    name: "elsa"
   # By default CORS is disabled. Uncomment to enable.
   # cors:
   #     allowed-origins: "*"
@@ -288,8 +300,72 @@ application:
       host:
       port:
       user:
-      privateKeyLocation:
-      contact-person:
-      contact-address:
-      contact-phone:
-      contact-email:
+      private-key-location:
+      metadata:
+        zip-metadata: true
+        contact:
+          person:
+          address:
+          phone:
+          email:
+        organisation: "TAU"
+        retention-reason: "Sisältää henkilötietoja"
+        cases:
+          valmistuminen:
+            title: "Valmistuminen"
+            type: "Valmistuminen"
+            function: "04.02.05"
+            documents:
+              yhteenveto:
+                retention-period: "20"
+              liite:
+                retention-period: "10"
+          koejakso:
+            title: "Koejakson arviointi"
+            type: "Koejakson arviointi"
+            function: "04.01.04"
+            documents:
+              arviointi:
+                retention-period: "-1"
+    hki:
+      kaytossa: false
+      host:
+      api-key:
+      metadata:
+        zip-metadata: true
+        contact:
+          person:
+          address:
+          phone:
+          email:
+        organisation: "Helsingin yliopisto"
+        retention-reason: "Helsingin yliopiston päätös (tiedonhallintamalli)"
+        use-type: "Säilytys"
+        cases:
+          valmistuminen:
+            title: "Valmistumisen yhteenveto"
+            type: "Raportti"
+            function: "04.12"
+            documents:
+              yhteenveto:
+                retention-period: "20"
+          koejakso:
+            title: "Koejakson arviointi"
+            type: "Raportti"
+            function: "04.12"
+            documents:
+              arviointi:
+                retention-period: "20"
+          sopimus:
+            title: "Koulutuspaikkasopimus"
+            type: "Sopimus"
+            function: "04.12"
+            documents:
+              sopimus:
+                retention-period: "20"
+    oulu:
+      kaytossa: false
+    turku:
+      kaytossa: false
+    uef:
+      kaytossa: false

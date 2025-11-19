@@ -10,6 +10,9 @@ class TransferInformation {
     @JacksonXmlProperty(localName = "Title")
     var title: String? = "ELSA"
 
+    @JacksonXmlProperty(localName = "UseType")
+    var useType: String? = "Arkisto"
+
     @JacksonXmlProperty(localName = "TransferContractId")
     var transferContractId: String? = null
 

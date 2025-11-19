@@ -55,7 +55,7 @@ class BadRequestExceptionAdvice {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message.orEmpty())
     }
 
-    @ExceptionHandler(org.springframework.security.access.AccessDeniedException::class)
+    @ExceptionHandler(AccessDeniedException::class)
     fun handleAccessDeniedException(e: AccessDeniedException): ProblemDetail {
         return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.message.orEmpty())
     }
