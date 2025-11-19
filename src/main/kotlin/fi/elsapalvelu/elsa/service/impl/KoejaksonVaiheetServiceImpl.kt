@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioQueryService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.*
@@ -130,7 +131,8 @@ class KoejaksonVaiheetServiceImpl(
                     KoejaksonVaiheDTO(
                         arvio.id,
                         KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
-                        KoejaksoTila.fromVastuuhenkilonArvio(arvio, virkailija = true, arkistoitava = arkistointiService.onKaytossa(it.nimi!!)),
+                        KoejaksoTila.fromVastuuhenkilonArvio(arvio, virkailija = true, arkistoitava = arkistointiService.onKaytossa(it.nimi!!,
+                            CaseType.KOEJAKSO)),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getAvatar(),
                         arvio.allekirjoitusaika ?: arvio.muokkauspaiva
@@ -184,7 +186,7 @@ class KoejaksonVaiheetServiceImpl(
         vastuuhenkilonArviot.associate {
             koejaksonVastuuhenkilonArvioService.tarkistaAllekirjoitus(it)
             val result = getOpintooikeusIdOrElseThrow(it.opintooikeus) to vastuuhenkilonArvioMapper.toDto(it)
-            result.second.arkistoitava = arkistointiService.onKaytossa(it.opintooikeus?.yliopisto?.nimi!!)
+            result.second.arkistoitava = arkistointiService.onKaytossa(it.opintooikeus?.yliopisto?.nimi!!, CaseType.KOEJAKSO)
             result
         }.forEach {
             val opintooikeusId = it.key

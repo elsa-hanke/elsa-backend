@@ -11,17 +11,20 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTableDTO
-import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseProperties
-import fi.elsapalvelu.elsa.service.dto.arkistointi.PublicityClass
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
+import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
@@ -32,9 +35,6 @@ import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
-import jakarta.persistence.EntityNotFoundException
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
-import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 
 
 @Service
@@ -339,26 +339,25 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         )
 
         val yliopisto = vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!
+        val erikoisala = vastuuhenkilonArvio.opintooikeus?.erikoisala!!
         if (!sarakesignService.getApiUrl(yliopisto)
                 .isNullOrBlank()
         ) {
             lahetaAllekirjoitettavaksi(vastuuhenkilonArvio, asiakirja)
-        } else if (arkistointiService.onKaytossa(yliopisto)) {
-            val filePath = arkistointiService.muodostaSahke(
+        } else if (arkistointiService.onKaytossa(yliopisto, CaseType.KOEJAKSO)) {
+            val result = arkistointiService.muodostaSahke(
                 vastuuhenkilonArvio.opintooikeus,
-                listOf(RecordProperties(asiakirja, "-1", "Arviointi", PublicityClass.PUBLIC)),
-                case = CaseProperties(
-                    nativeId = vastuuhenkilonArvio.id!!.toString(),
-                    type = "Koejakson arviointi",
-                    function = "04.01.04"
-                ),
+                listOf(RecordProperties(asiakirja, RecordType.ARVIOINTI)),
+                caseId = vastuuhenkilonArvio.id!!.toString(),
                 tarkastaja = vastuuhenkilonArvio.virkailija?.user?.getName(),
                 tarkastusPaiva = vastuuhenkilonArvio.virkailijanKuittausaika,
                 hyvaksyja = vastuuhenkilonArvio.vastuuhenkilo?.user?.getName(),
-                hyvaksymisPaiva = vastuuhenkilonArvio.vastuuhenkilonKuittausaika
+                hyvaksymisPaiva = vastuuhenkilonArvio.vastuuhenkilonKuittausaika,
+                yliopisto = yliopisto,
+                caseType = CaseType.KOEJAKSO
             )
-            val yek = vastuuhenkilonArvio.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
-            arkistointiService.laheta(yliopisto, filePath, yek)
+            val yek = erikoisala.id == YEK_ERIKOISALA_ID
+            arkistointiService.laheta(yliopisto, result.zipFilePath, erikoisala, yek)
         }
 
     }
@@ -540,7 +539,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val koulutussopimus = koulutussopimusRepository.findByOpintooikeusId(opintoOikeusId)
         result.koulutussopimusHyvaksytty =
             koulutussopimus.isPresent && koulutussopimus.get().vastuuhenkiloHyvaksynyt == true
-        result.arkistoitava = arkistointiService.onKaytossa(vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!)
+        result.arkistoitava = arkistointiService.onKaytossa(vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!, CaseType.KOEJAKSO)
         result.tila = KoejaksoTila.fromVastuuhenkilonArvio(
             vastuuhenkilonArvio,
             (authentication.principal as Saml2AuthenticatedPrincipal).name,

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 class ContactInformation {
 
     @JacksonXmlProperty(localName = "Organisation")
-    var organisation: String? = null
+    var organisation: Organisation = Organisation()
 
     @JacksonXmlProperty(localName = "ContactPerson")
     var contactPerson: ContactPerson = ContactPerson()
