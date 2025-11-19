@@ -34,4 +34,7 @@ class Custom {
 
     @JacksonXmlProperty(localName = "Elsa_Hyvaksyja")
     var hyvaksyja: String? = null
+
+    @JacksonXmlProperty(localName = "Elsa_Asiakirjatyyppi")
+    var asiakirjatyyppi: String? = null
 }
