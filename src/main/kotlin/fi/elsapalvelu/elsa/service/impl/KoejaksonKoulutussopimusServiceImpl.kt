@@ -1,11 +1,15 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonKoulutussopimusDTO
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
@@ -36,7 +40,8 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val asiakirjaRepository: AsiakirjaRepository,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
     private val pdfService: PdfService,
-    private val opintooikeusService: OpintooikeusService
+    private val opintooikeusService: OpintooikeusService,
+    private val arkistointiService: ArkistointiService
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -157,7 +162,27 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         val dto = koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
         if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
-            luoPdf(dto, koulutussopimus)
+            val asiakirja = luoPdf(dto, koulutussopimus)
+            val yliopisto = koulutussopimus.opintooikeus?.yliopisto?.nimi!!
+
+            if (arkistointiService.onKaytossa(yliopisto, CaseType.SOPIMUS)) {
+                val result = arkistointiService.muodostaSahke(
+                    koulutussopimus.opintooikeus,
+                    listOf(
+                        RecordProperties(asiakirja, RecordType.SOPIMUS)
+                    ),
+                    caseId = koulutussopimus.id!!.toString(),
+                    tarkastaja = "",
+                    tarkastusPaiva = null,
+                    hyvaksyja = koulutussopimus.vastuuhenkilo?.user?.getName(),
+                    hyvaksymisPaiva = koulutussopimus.vastuuhenkilonKuittausaika,
+                    yliopisto = yliopisto,
+                    caseType = CaseType.SOPIMUS
+                )
+                val erikoisala = koulutussopimus.opintooikeus?.erikoisala!!
+                val yek = erikoisala.id == YEK_ERIKOISALA_ID
+                arkistointiService.laheta(yliopisto, result.zipFilePath, erikoisala, yek)
+            }
         }
 
         return dto
@@ -435,7 +460,7 @@ class KoejaksonKoulutussopimusServiceImpl(
     private fun luoPdf(
         koulutussopimusDTO: KoejaksonKoulutussopimusDTO,
         koulutussopimus: KoejaksonKoulutussopimus
-    ) {
+    ): Asiakirja {
         val locale = Locale.forLanguageTag("fi")
         val context = Context(locale).apply {
             setVariable("sopimus", koulutussopimusDTO)
@@ -444,7 +469,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         pdfService.luoPdf("pdf/koulutussopimus.html", context, outputStream)
         val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
-        asiakirjaRepository.save(
+        return asiakirjaRepository.save(
             Asiakirja(
                 opintooikeus = koulutussopimus.opintooikeus,
                 nimi = "koejakson_koulutussopimus_${timestamp}.pdf",

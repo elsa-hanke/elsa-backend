@@ -7,7 +7,7 @@ class Restriction {
     var publicityClass: String? = "Julkinen"
 
     @JacksonXmlProperty(localName = "PersonalData")
-    var personalData: String? = "Sisältää henkilötietoja"
+    var personalData: String? = "sisältää henkilötietoja"
 
     @JacksonXmlProperty(localName = "Person")
     var person: Person = Person()
@@ -17,4 +17,10 @@ class Restriction {
 
     @JacksonXmlProperty(localName = "SecurityReason")
     var securityReason: String? = ""
+
+    @JacksonXmlProperty(localName = "SecurityClass")
+    var securityClass: String? = "Ei turvallisuusluokiteltu"
+
+    @JacksonXmlProperty(localName = "Owner")
+    var owner: String? = ""
 }

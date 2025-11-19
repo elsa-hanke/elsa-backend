@@ -8,8 +8,10 @@ import org.apache.sshd.common.signature.BuiltinSignatures
 import org.apache.sshd.common.util.security.SecurityUtils
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ResourceLoader
+import org.springframework.http.HttpStatus
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 import java.io.File
 import java.io.FileInputStream
 
@@ -54,27 +56,31 @@ class TampereLouhiService(
     }
 
     fun laheta(filePath: String, yek: Boolean) {
+        val file = File(filePath)
+        if (!file.exists()) {
+            throw IllegalArgumentException("Arkistointitiedostoa ei löydy: $filePath")
+        }
         try {
             val session = sessionFactory.session
-            val file = File(filePath)
             val targetPath = "$inProgress/${file.name}"
 
             if (session.list(inProgress).isEmpty()) {
-                log.error("Hakemistoa ei löydy: $inProgress")
-                return
+                throw ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "Arkistointipalvelun hakemisto ei ole käytettävissä"
+                )
             }
 
             val subFolder = if (yek) yekFolder else elsaFolder
 
             session.write(FileInputStream(filePath), targetPath)
-            session.rename(targetPath, "$finished/${subFolder}/${File(filePath).name}")
-        } catch (e: Exception) {
-            log.error("Virhe Tampereen arkistoinnissa tiedostolle $filePath", e)
-        }
-        val file = File(filePath)
-        val deleted = file.delete()
-        if (!deleted) {
-            log.error("Virhe tiedoston ${file.name} poistamisessa")
+            session.rename(targetPath, "$finished/${subFolder}/${file.name}")
+            log.info("Tiedosto $filePath arkistoitu louheen")
+        } finally {
+            val deleted = file.delete()
+            if (!deleted) {
+                log.warn("Virhe tiedoston ${file.name} poistamisessa")
+            }
         }
     }
 }

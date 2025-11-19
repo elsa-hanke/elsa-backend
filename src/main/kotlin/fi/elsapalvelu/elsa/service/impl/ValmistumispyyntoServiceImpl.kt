@@ -20,9 +20,9 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.constants.*
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
-import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseProperties
-import fi.elsapalvelu.elsa.service.dto.arkistointi.PublicityClass
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
@@ -129,7 +129,7 @@ class ValmistumispyyntoServiceImpl(
             vastuuhenkiloOsaamisenArvioijaNimike = vastuuhenkiloOsaamisenarvioija?.nimike
             vastuuhenkiloHyvaksyjaNimi = vastuuhenkiloHyvaksyja.getNimi()
             vastuuhenkiloHyvaksyjaNimike = vastuuhenkiloHyvaksyja.nimike
-            arkistoitava = arkistointiService.onKaytossa(opintooikeus.yliopisto?.nimi!!)
+            arkistoitava = arkistointiService.onKaytossa(opintooikeus.yliopisto?.nimi!!, CaseType.VALMISTUMINEN)
         }
     }
 
@@ -330,25 +330,24 @@ class ValmistumispyyntoServiceImpl(
                     )
                 }
 
-                if (arkistointiService.onKaytossa(yliopisto.nimi!!)) {
-                    val filePath = arkistointiService.muodostaSahke(
+                if (arkistointiService.onKaytossa(yliopisto.nimi!!, CaseType.VALMISTUMINEN)) {
+                    val result = arkistointiService.muodostaSahke(
                         valmistumispyynto.opintooikeus,
                         listOf(
-                            RecordProperties(valmistumispyynto.yhteenvetoAsiakirja!!, "20", "Yhteenveto", PublicityClass.PUBLIC),
-                            RecordProperties(valmistumispyynto.liitteetAsiakirja!!, "10", "Liite", PublicityClass.PARTIALLY_RESTRICTED)
+                            RecordProperties(valmistumispyynto.yhteenvetoAsiakirja!!, RecordType.YHTEENVETO),
+                            RecordProperties(valmistumispyynto.liitteetAsiakirja!!, RecordType.LIITE)
                         ),
-                        case = CaseProperties(
-                            nativeId = valmistumispyynto.id!!.toString(),
-                            type = "Valmistuminen",
-                            function = "04.02.05"
-                        ),
+                        caseId = valmistumispyynto.id!!.toString(),
                         tarkastaja = valmistumispyynto.virkailija?.user?.getName(),
                         tarkastusPaiva = valmistumispyynto.virkailijanKuittausaika,
                         hyvaksyja = valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.getName(),
-                        hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika
+                        hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika,
+                        yliopisto = yliopisto.nimi,
+                        caseType = CaseType.VALMISTUMINEN
                     )
-                    val yek = valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
-                    arkistointiService.laheta(yliopisto.nimi!!, filePath, yek)
+                    val erikoisala = valmistumispyynto.opintooikeus?.erikoisala!!
+                    val yek = erikoisala.id == YEK_ERIKOISALA_ID
+                    arkistointiService.laheta(yliopisto.nimi!!, result.zipFilePath, erikoisala, yek)
                 }
             }
         }
@@ -460,7 +459,7 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = getYliopisto(kayttaja)
         val yek = valmistumispyyntoCriteria.erikoisalaId?.equals == YEK_ERIKOISALA_ID
         val hyvaksyjaRole = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja, yek)
-        val arkistoitava = arkistointiService.onKaytossa(yliopisto.nimi!!)
+        val arkistoitava = arkistointiService.onKaytossa(yliopisto.nimi!!, CaseType.VALMISTUMINEN)
         return valmistumispyyntoQueryService.findValmistumispyynnotByCriteria(
             valmistumispyyntoCriteria,
             hyvaksyjaRole,
@@ -576,7 +575,7 @@ class ValmistumispyyntoServiceImpl(
         result.kommentitVirkailijoille = null
         tarkistus.valmistumispyynto?.let { pyynto ->
             result.valmistumispyynto?.tila = getValmistumispyynnonTilaForHyvaksyja(pyynto)
-            result.valmistumispyynto?.arkistoitava = arkistointiService.onKaytossa(yliopisto.nimi!!)
+            result.valmistumispyynto?.arkistoitava = arkistointiService.onKaytossa(yliopisto.nimi!!, CaseType.VALMISTUMINEN)
         }
         return result
     }
@@ -1846,5 +1845,5 @@ class ValmistumispyyntoServiceImpl(
     }
 
     private fun arkistoitava(valmistumispyynto: Valmistumispyynto?) =
-        valmistumispyynto?.opintooikeus?.yliopisto?.nimi?.let { arkistointiService.onKaytossa(it) } == true
+        valmistumispyynto?.opintooikeus?.yliopisto?.nimi?.let { arkistointiService.onKaytossa(it, CaseType.VALMISTUMINEN) } == true
 }
