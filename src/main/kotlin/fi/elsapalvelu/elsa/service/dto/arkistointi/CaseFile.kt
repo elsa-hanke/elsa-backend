@@ -19,11 +19,14 @@ class CaseFile {
     @JacksonXmlProperty(localName = "Title")
     var title: String? = null
 
+    @JacksonXmlProperty(localName = "Type")
+    var type: String? = null
+
     @JacksonXmlProperty(localName = "RetentionPeriod")
     var retentionPeriod: String? = "-1"
 
     @JacksonXmlProperty(localName = "RetentionReason")
-    var retentionReason: String? = "Sisältää henkilötietoja"
+    var retentionReason: String? = ""
 
     @JacksonXmlProperty(localName = "Status")
     var status: String? = "Valmis"
