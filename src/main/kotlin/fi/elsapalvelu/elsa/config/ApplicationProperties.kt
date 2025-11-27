@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.config
 
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 /**
@@ -234,10 +236,14 @@ class ApplicationProperties {
 
         class Oulu {
             var kaytossa: Boolean = false
+            var metadata: Metadata? = null
         }
 
         class Hki {
             var kaytossa: Boolean = false
+            var host: String? = null
+            var apiKey: String? = null
+            var metadata: Metadata? = null
         }
 
         class Tre {
@@ -246,18 +252,52 @@ class ApplicationProperties {
             var port: String? = null
             var user: String? = null
             var privateKeyLocation: String? = null
-            var contactPerson: String? = null
-            var contactAddress: String? = null
-            var contactPhone: String? = null
-            var contactEmail: String? = null
+            var metadata: Metadata? = null
         }
 
         class Turku {
             var kaytossa: Boolean = false
+            var metadata: Metadata? = null
         }
 
         class Uef {
             var kaytossa: Boolean = false
+            var metadata: Metadata? = null
+        }
+
+        class Metadata {
+            var zipMetadata: Boolean = false
+            var contact: Contact? = null
+            var organisation: String? = null
+            var retentionReason: String? = null
+            var useType: String? = null
+            var cases: Map<String, Case>? = null
+
+            fun getDocumentMetadata(recordType: RecordType, case: Case?): DocumentMetadata? {
+                return case?.documents?.get(recordType.name.lowercase())
+            }
+
+            fun getCaseMetadata(caseType: CaseType): Case? {
+                return cases?.get(caseType.value)
+            }
+        }
+
+        class Contact {
+            var person: String? = null
+            var address: String? = null
+            var phone: String? = null
+            var email: String? = null
+        }
+
+        class Case {
+            var title: String? = null
+            var type: String? = null
+            var function: String? = null
+            var documents: Map<String, DocumentMetadata>? = null
+        }
+
+        class DocumentMetadata {
+            var retentionPeriod: String? = null
         }
     }
 
