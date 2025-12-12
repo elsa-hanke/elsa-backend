@@ -46,6 +46,8 @@ data class KoejaksonVastuuhenkilonArvioDTO(
 
     var lisatiedotVirkailijalta: String? = null,
 
+    var virkailijanYhteenveto: String? = null,
+
     var allekirjoitettu: Boolean? = null,
 
     var koejaksonSuorituspaikat: TyoskentelyjaksotTableDTO? = null,
