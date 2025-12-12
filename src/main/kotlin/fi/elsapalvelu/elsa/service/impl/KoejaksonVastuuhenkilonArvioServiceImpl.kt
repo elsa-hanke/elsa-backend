@@ -212,6 +212,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             vastuuhenkilonArvio.virkailijaHyvaksynyt = true
             vastuuhenkilonArvio.virkailijanKuittausaika = LocalDate.now(ZoneId.systemDefault())
             vastuuhenkilonArvio.lisatiedotVirkailijalta = updated.lisatiedotVirkailijalta
+            vastuuhenkilonArvio.virkailijanYhteenveto = updated.virkailijanYhteenveto
             vastuuhenkilonArvio.virkailijanKorjausehdotus = null
             vastuuhenkilonArvio.vastuuhenkilonKorjausehdotus = null
         }
@@ -221,6 +222,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             vastuuhenkilonArvio.virkailijaHyvaksynyt = false
             vastuuhenkilonArvio.virkailijanKuittausaika = null
             vastuuhenkilonArvio.erikoistuvanKuittausaika = null
+            vastuuhenkilonArvio.virkailijanYhteenveto = updated.virkailijanYhteenveto
         }
 
         koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
