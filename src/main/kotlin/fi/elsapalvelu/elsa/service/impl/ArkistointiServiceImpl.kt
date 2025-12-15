@@ -4,7 +4,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.service.ArkistointiService
@@ -148,6 +147,7 @@ class ArkistointiServiceImpl(
         caseFile.restriction.person.ssn = syntymaaika
         caseFile.restriction.owner = metadata.organisation
         caseFile.retentionReason = metadata.retentionReason
+        caseFile.retentionPeriod = metadata.retentionPeriod
 
         val action = caseFile.action
         action.created = LocalDate.now()
@@ -179,7 +179,7 @@ class ArkistointiServiceImpl(
 
             val user = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user
             record.title = "${user?.lastName}, ${user?.firstName}, ${opintooikeus?.erikoisala?.nimi}"
-            record.type = recordProperties.type.displayName
+            record.type = case?.type
             record.retentionPeriod = documentMetadata.retentionPeriod
             record.function = metadata.caseFile.function
 
@@ -222,7 +222,7 @@ class ArkistointiServiceImpl(
     override fun laheta(
         yliopisto: YliopistoEnum,
         filePath: String,
-        erikoisala: Erikoisala,
+        caseType: CaseType,
         yek: Boolean
     ) {
         when (yliopisto) {
@@ -231,7 +231,7 @@ class ArkistointiServiceImpl(
             }
 
             YliopistoEnum.HELSINGIN_YLIOPISTO -> {
-                helsinkiSiiloService.laheta(filePath, erikoisala)
+                helsinkiSiiloService.laheta(filePath, caseType)
             }
 
             else -> log.info("Integraatiota arkistointiin ei ole tuettu yliopistossa ${yliopisto.name}")

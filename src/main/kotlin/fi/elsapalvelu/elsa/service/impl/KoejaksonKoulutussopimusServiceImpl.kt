@@ -181,7 +181,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                 )
                 val erikoisala = koulutussopimus.opintooikeus?.erikoisala!!
                 val yek = erikoisala.id == YEK_ERIKOISALA_ID
-                arkistointiService.laheta(yliopisto, result.zipFilePath, erikoisala, yek)
+                arkistointiService.laheta(yliopisto, result.zipFilePath, CaseType.SOPIMUS, yek)
             }
         }
 

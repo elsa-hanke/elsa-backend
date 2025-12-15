@@ -309,6 +309,7 @@ application:
           phone:
           email:
         organisation: "TAU"
+        retention-period: "-1"
         retention-reason: "Sisältää henkilötietoja"
         cases:
           valmistuminen:
@@ -340,24 +341,28 @@ application:
           email:
         organisation: "Helsingin yliopisto"
         retention-reason: "Helsingin yliopiston päätös (tiedonhallintamalli)"
+        retention-period: "20"
         use-type: "Säilytys"
         cases:
           valmistuminen:
             title: "Valmistumisen yhteenveto"
             type: "Raportti"
+            siilo-koodi: "0b00000000000086"
             function: "04.12"
             documents:
               yhteenveto:
                 retention-period: "20"
           koejakso:
             title: "Koejakson arviointi"
-            type: "Raportti"
+            siilo-koodi: "0b00000000000088"
+            type: "Muu"
             function: "04.12"
             documents:
               arviointi:
                 retention-period: "20"
           sopimus:
             title: "Koulutuspaikkasopimus"
+            siilo-koodi: "0b00000000000087"
             type: "Sopimus"
             function: "04.12"
             documents:

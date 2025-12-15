@@ -347,7 +347,7 @@ class ValmistumispyyntoServiceImpl(
                     )
                     val erikoisala = valmistumispyynto.opintooikeus?.erikoisala!!
                     val yek = erikoisala.id == YEK_ERIKOISALA_ID
-                    arkistointiService.laheta(yliopisto.nimi!!, result.zipFilePath, erikoisala, yek)
+                    arkistointiService.laheta(yliopisto.nimi!!, result.zipFilePath, CaseType.VALMISTUMINEN, yek)
                 }
             }
         }

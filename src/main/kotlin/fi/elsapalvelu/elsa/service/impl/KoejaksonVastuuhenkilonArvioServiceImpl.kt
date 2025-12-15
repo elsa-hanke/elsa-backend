@@ -355,7 +355,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 caseType = CaseType.KOEJAKSO
             )
             val yek = erikoisala.id == YEK_ERIKOISALA_ID
-            arkistointiService.laheta(yliopisto, result.zipFilePath, erikoisala, yek)
+            arkistointiService.laheta(yliopisto, result.zipFilePath, CaseType.KOEJAKSO, yek)
         }
 
     }
