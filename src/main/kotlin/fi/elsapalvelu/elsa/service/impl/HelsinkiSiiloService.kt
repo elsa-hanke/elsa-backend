@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.domain.Erikoisala
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -23,9 +23,12 @@ class HelsinkiSiiloService(
         .writeTimeout(15, TimeUnit.SECONDS)
         .build()
 
-    fun laheta(zipFilePath: String, erikoisala: Erikoisala) {
+    fun laheta(zipFilePath: String, caseType: CaseType) {
         val arkistointiProperties = applicationProperties.getArkistointi().getHki()
-        val siiloKoodi = erikoisala.siiloKoodi ?: throw IllegalArgumentException("Erikoisalalta puuttuu siilo koodi")
+        val case = arkistointiProperties.metadata?.getCaseMetadata(caseType) ?: throw IllegalArgumentException(
+            "Arkistointia ${caseType.value} ei ole määritelty tyypille $caseType"
+        )
+        val siiloKoodi = case.siiloKoodi ?: throw IllegalArgumentException("Siilo koodi puuttuu")
         val url = "${arkistointiProperties.host}/unisign/elsa/archive/$siiloKoodi"
 
         val zipFile = File(zipFilePath)
@@ -48,7 +51,7 @@ class HelsinkiSiiloService(
             .post(requestBody)
             .build()
 
-        log.info("Lähetetään arkistointipaketti HY:lle osoitteeseen $url erikoisalalle ${erikoisala.nimi}")
+        log.info("Lähetetään arkistointipaketti HY:lle osoitteeseen $url")
         try {
             okHttpClient.newCall(request).execute().use { response ->
                 val responseBody = response.body?.string()
