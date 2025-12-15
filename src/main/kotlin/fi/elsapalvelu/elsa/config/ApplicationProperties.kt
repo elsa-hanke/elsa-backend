@@ -270,6 +270,7 @@ class ApplicationProperties {
             var contact: Contact? = null
             var organisation: String? = null
             var retentionReason: String? = null
+            var retentionPeriod: String? = null
             var useType: String? = null
             var cases: Map<String, Case>? = null
 
@@ -292,6 +293,7 @@ class ApplicationProperties {
         class Case {
             var title: String? = null
             var type: String? = null
+            var siiloKoodi: String? = null
             var function: String? = null
             var documents: Map<String, DocumentMetadata>? = null
         }
