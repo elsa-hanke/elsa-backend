@@ -247,6 +247,11 @@
         </div>
     </div>
     <hr/>
+    <h3 th:text="#{vastuuhenkilonarvio.virkailijanYhteenveto}"></h3>
+    <div th:if="${not #strings.isEmpty(arvio.virkailijanYhteenveto)}" style="white-space: pre-wrap;"
+         th:utext="${arvio.virkailijanYhteenveto}">
+    </div>
+    <hr/>
     <h3 th:text="#{vastuuhenkilonarvio.tarkistanut}"></h3>
     <div class="row">
         <div class="col-4">
