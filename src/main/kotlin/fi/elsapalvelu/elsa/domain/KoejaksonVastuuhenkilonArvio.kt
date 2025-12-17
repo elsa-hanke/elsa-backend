@@ -60,6 +60,9 @@ data class KoejaksonVastuuhenkilonArvio(
     @Column(name = "lisatiedot_virkailijalta")
     var lisatiedotVirkailijalta: String? = null,
 
+    @Column(name = "virkailijan_yhteenveto")
+    var virkailijanYhteenveto: String? = null,
+
     @Column(name = "virkailija_hyvaksynyt")
     var virkailijaHyvaksynyt: Boolean = false,
 
