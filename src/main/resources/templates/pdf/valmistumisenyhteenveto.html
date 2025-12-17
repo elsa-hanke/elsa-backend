@@ -279,6 +279,12 @@
     <h3 th:text="#{valmistumisenyhteenveto.osaamisenArviointi}"></h3>
     <h4 th:text="#{valmistumisenyhteenveto.osaaminenRiittavallaTasolla}"></h4>
     <p th:text="#{valmistumisenyhteenveto.kylla}"></p>
+    <h3 th:text="#{valmistumisenyhteenveto.virkailijanYhteenveto}"></h3>
+    <div th:if="${not #strings.isEmpty(tarkistus.virkailijanYhteenveto)}"
+         style="white-space: pre-wrap;"
+         th:utext="${tarkistus.virkailijanYhteenveto}">
+    </div>
+    <hr/>
     <h3 th:text="#{valmistumisenyhteenveto.hyvaksynyt}"></h3>
     <div class="row">
         <div class="col-4">

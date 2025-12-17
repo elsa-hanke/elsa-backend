@@ -33,6 +33,8 @@ data class ValmistumispyynnonTarkistusUpdateDTO(
 
     var teoriakoulutusTarkistettu: Boolean? = false,
 
+    var virkailijanYhteenveto: String? = null,
+
     var kommentitVirkailijoille: String? = null,
 
     var lisatiedotVastuuhenkilolle: String? = null,

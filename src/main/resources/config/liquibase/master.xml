@@ -284,5 +284,7 @@
     <include file="config/liquibase/changelog/20250606135400_modify_entity_Arviointityokalu.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251030160500_modify_entity_Suoritusarviointi_audit_allow_null_keskenerainen.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251209160500_modify_entity_VastuuhenkilonArviointi_new_column_virkailijanYhteenveto.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251215160500_modify_entity_Valmistumispyynnon_tarkistus_new_column_virkailijanYhteenveto.xml" relativeToChangelogFile="false"/>
+    
 </databaseChangeLog>
 <!-- @formatter:on -->

@@ -61,6 +61,8 @@ data class ValmistumispyyntoDTO(
 
     var virkailijanKorjausehdotus: String? = null,
 
+    var virkailijanYhteenveto: String? = null,
+
     var virkailijanSaate: String? = null,
 
     var vastuuhenkiloHyvaksyjaNimi: String? = null,
