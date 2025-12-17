@@ -396,6 +396,7 @@ class ValmistumispyyntoServiceImpl(
                 valmistumispyynnonTarkistusDTO.kokonaistyoaikaTarkistettu
             tarkistus.teoriakoulutusTarkistettu = valmistumispyynnonTarkistusDTO.teoriakoulutusTarkistettu
             tarkistus.kommentitVirkailijoille = valmistumispyynnonTarkistusDTO.kommentitVirkailijoille
+            tarkistus.virkailijanYhteenveto = valmistumispyynnonTarkistusDTO.virkailijanYhteenveto
             tarkistus.koejaksoEiVaadittu = valmistumispyynnonTarkistusDTO.koejaksoEiVaadittu
         } else {
             valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)
@@ -1244,6 +1245,7 @@ class ValmistumispyyntoServiceImpl(
             setVariable("sateilusuojakoulutusVaadittu", valmistumispyynnonTarkistusDTO.sateilusuojakoulutusVaadittu)
             setVariable("johtamiskoulutusSuoritettu", valmistumispyynnonTarkistusDTO.johtamiskoulutusSuoritettu)
             setVariable("johtamiskoulutusVaadittu", valmistumispyynnonTarkistusDTO.johtamiskoulutusVaadittu)
+            setVariable("virkailijanYhteenveto", valmistumispyynnonTarkistusDTO.virkailijanYhteenveto)
 
             valmistumispyynto.opintooikeus?.let {
                 val tyoskentelyjaksotTilastot = tyoskentelyjaksoService.getTilastot(it)

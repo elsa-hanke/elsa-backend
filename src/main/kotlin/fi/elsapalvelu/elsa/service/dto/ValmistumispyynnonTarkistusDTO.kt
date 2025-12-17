@@ -63,6 +63,8 @@ data class ValmistumispyynnonTarkistusDTO(
 
     var suoritustenTila: ValmistumispyyntoSuoritustenTilaDTO? = null,
 
+    var virkailijanYhteenveto: String? = null,
+
     var kommentitVirkailijoille: String? = null,
 
     var tutkimustyotaTehty: Boolean? = null,
