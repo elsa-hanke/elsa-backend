@@ -65,10 +65,7 @@ data class Erikoisala(
         ]
     )
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var vastuuhenkilonTehtavatyypit: MutableSet<VastuuhenkilonTehtavatyyppi>? = mutableSetOf(),
-
-    @Column(name = "siilo_koodi")
-    var siiloKoodi: String? = null
+    var vastuuhenkilonTehtavatyypit: MutableSet<VastuuhenkilonTehtavatyyppi>? = mutableSetOf()
 
 ) : Serializable {
 
