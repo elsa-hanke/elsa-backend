@@ -347,14 +347,14 @@ application:
           valmistuminen:
             title: "Valmistumisen yhteenveto"
             type: "Raportti"
-            siilo-koodi: "0b00000000000086"
+            siilo-koodi: "0b00000000001e0e"
             function: "04.12"
             documents:
               yhteenveto:
                 retention-period: "20"
           koejakso:
             title: "Koejakson arviointi"
-            siilo-koodi: "0b00000000000088"
+            siilo-koodi: "0b00000000001e10"
             type: "Muu"
             function: "04.12"
             documents:
@@ -362,7 +362,7 @@ application:
                 retention-period: "20"
           sopimus:
             title: "Koulutuspaikkasopimus"
-            siilo-koodi: "0b00000000000087"
+            siilo-koodi: "0b00000000001e0f"
             type: "Sopimus"
             function: "04.12"
             documents:
