@@ -41,8 +41,6 @@ data class KoejaksonKoulutussopimusDTO(
 
     var koulutuspaikat: MutableSet<KoulutussopimuksenKoulutuspaikkaDTO>? = mutableSetOf(),
 
-    var allekirjoitettu: Boolean? = null,
-
     var erikoistuvanAllekirjoitusaika: LocalDate? = null
 
 ) : Serializable {

@@ -53,7 +53,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
             if (aloituskeskustelu.lahetetty) {
                 lisaaValtuutukset(aloituskeskustelu)
 
-                // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
+                // Sähköposti kouluttajalle lähetetystä aloituskeskustelusta
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!)
                         .get().user!!,
@@ -125,7 +125,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
 
         val result = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
 
-        // Sähköposti kouluttajalle allekirjoitetusta aloituskeskustelusta
+        // Sähköposti kouluttajalle lähetetystä aloituskeskustelusta
         if (result.lahetetty) {
             lisaaValtuutukset(aloituskeskustelu)
             mailService.sendEmailFromTemplate(

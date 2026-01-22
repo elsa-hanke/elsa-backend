@@ -54,9 +54,9 @@ open class KoejaksoResource(
             if (aloituskeskustelu.get().lahikouluttaja?.sopimusHyvaksytty != true) {
                 throw BadRequestAlertException(
                     "Esihenkilö ei saa muokata aloituskeskustelua, " +
-                        "jos kouluttaja ei ole allekirjoittanut sitä",
+                        "jos kouluttaja ei ole hyväksynyt sitä",
                     ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                    "dataillegal.erimies-ei-saa-muokata-aloituskeskustelua-jos-kouluttaja-ei-ole-allekirjoittanut-sita"
+                    "dataillegal.esimies-ei-saa-muokata-aloituskeskustelua-jos-kouluttaja-ei-ole-hyvaksynyt-sita"
                 )
             }
         }
@@ -110,9 +110,9 @@ open class KoejaksoResource(
             if (valiarviointi.get().lahikouluttaja?.sopimusHyvaksytty != true) {
                 throw BadRequestAlertException(
                     "Esimies ei saa muokata väliarviointia, " +
-                        "jos kouluttaja ei ole allekirjoittanut sitä",
+                        "jos kouluttaja ei ole hyväksynyt sitä",
                     ENTITY_KOEJAKSON_VALIARVIOINTI,
-                    "dataillegal.esimies-ei-saa-muoktata-valiarviointia-jos-kouluttaja-ei-ole-allekirjoittanut-sita"
+                    "dataillegal.esimies-ei-saa-muoktata-valiarviointia-jos-kouluttaja-ei-ole-hyvaksynyt-sita"
                 )
             }
         }
@@ -158,9 +158,9 @@ open class KoejaksoResource(
             if (kehittamistoimenpiteet.get().lahikouluttaja?.sopimusHyvaksytty != true) {
                 throw BadRequestAlertException(
                     "Esimies ei saa muokata kehittämistoimenpiteitä, " +
-                        "jos kouluttaja ei ole allekirjoittanut niitä",
+                        "jos kouluttaja ei ole hyväksynyt niitä",
                     ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                    "dataillegal.esimies-ei-saa-muokata-kehittamistoimenpiteita-jos-kouluttaja-ei-ole-allekirjottanut-niita"
+                    "dataillegal.esimies-ei-saa-muokata-kehittamistoimenpiteita-jos-kouluttaja-ei-ole-hyvaksynyt-niita"
                 )
             }
         }
@@ -207,9 +207,9 @@ open class KoejaksoResource(
             if (loppukeskustelu.get().lahikouluttaja?.sopimusHyvaksytty != true) {
                 throw BadRequestAlertException(
                     "Esimies ei saa muokata loppukeskustelua, " +
-                        "jos kouluttaja ei ole allekirjoittanut niitä",
+                        "jos kouluttaja ei ole hyväksynyt niitä",
                     ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                    "dataillegal.esimies-ei-saa-muokata-loppukeskustelua-jos-kouluttaja-ei-ole-allekirjoittanut-niita"
+                    "dataillegal.esimies-ei-saa-muokata-loppukeskustelua-jos-kouluttaja-ei-ole-hyvaksynyt-niita"
                 )
             }
         }

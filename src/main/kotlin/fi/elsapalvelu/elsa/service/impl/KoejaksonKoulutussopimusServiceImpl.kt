@@ -215,7 +215,7 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         val result = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
-        // Sähköposti kouluttajille allekirjoitetusta sopimuksesta
+        // Sähköposti kouluttajille lähetetystä sopimuksesta
         if (updated.lahetetty) {
             result.kouluttajat?.forEach {
                 kouluttajavaltuutusService.lisaaValtuutus(

@@ -127,15 +127,13 @@ class KoejaksonVaiheetServiceImpl(
                     it.id!!,
                     k.user?.langKey
                 ).map { arvio ->
-                    koejaksonVastuuhenkilonArvioService.tarkistaAllekirjoitus(arvio)
                     KoejaksonVaiheDTO(
                         arvio.id,
                         KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
-                        KoejaksoTila.fromVastuuhenkilonArvio(arvio, virkailija = true, arkistoitava = arkistointiService.onKaytossa(it.nimi!!,
-                            CaseType.KOEJAKSO)),
+                        KoejaksoTila.fromVastuuhenkilonArvio(arvio, virkailija = true),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getAvatar(),
-                        arvio.allekirjoitusaika ?: arvio.muokkauspaiva
+                        arvio.muokkauspaiva
                     )
                 }
             }
@@ -184,7 +182,6 @@ class KoejaksonVaiheetServiceImpl(
                 }
             }.flatten()
         vastuuhenkilonArviot.associate {
-            koejaksonVastuuhenkilonArvioService.tarkistaAllekirjoitus(it)
             val result = getOpintooikeusIdOrElseThrow(it.opintooikeus) to vastuuhenkilonArvioMapper.toDto(it)
             result.second.arkistoitava = arkistointiService.onKaytossa(it.opintooikeus?.yliopisto?.nimi!!, CaseType.KOEJAKSO)
             result

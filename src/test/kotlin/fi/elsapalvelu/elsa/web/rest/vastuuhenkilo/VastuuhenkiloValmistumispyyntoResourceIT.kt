@@ -151,67 +151,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
     @Test
     @Transactional
-    fun getValmistumispyynnotForHyvaksyjaTilaOdottaaAllekirjoituksiaAvoin() {
-        initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
-
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaAllekirjoituksia(
-            opintooikeus,
-            anotherVastuuhenkilo,
-            virkailija,
-            vastuuhenkilo
-        )
-        em.persist(valmistumispyynto)
-
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                "$ENDPOINT_BASE_URL${VALMISTUMISPYYNNOT_ENDPOINT}&avoin=true",
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.content[0].id").value(valmistumispyynto.id))
-            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA.toString()))
-            .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
-            .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
-            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA.toString()))
-            .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(true))
-    }
-
-    @Test
-    @Transactional
-    fun getValmistumispyynnotForOsaamisenArvioijaHyvaksyjaTilaOdottaaAllekirjoituksiaAvoin() {
-        initTest(
-            listOf(
-                VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI,
-                VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
-            )
-        )
-
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaAllekirjoituksia(
-            opintooikeus,
-            vastuuhenkilo,
-            virkailija,
-            vastuuhenkilo
-        )
-        em.persist(valmistumispyynto)
-
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                "$ENDPOINT_BASE_URL${VALMISTUMISPYYNNOT_ENDPOINT}&avoin=true",
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.content[0].id").value(valmistumispyynto.id))
-            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA.toString()))
-            .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
-            .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
-            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA.toString()))
-            .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(true))
-    }
-
-    @Test
-    @Transactional
     fun getValmistumispyynnotWithoutTehtavatDefined() {
         initTest(listOf())
 
@@ -581,66 +520,10 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
     @Test
     @Transactional
-    fun getValmistumispyynnotForOsaamisenArvioijaTilaOdottaaAllekirjoituksia() {
-        initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
-
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaAllekirjoituksia(
-            opintooikeus,
-            vastuuhenkilo,
-            virkailija,
-            anotherVastuuhenkilo
-        )
-        em.persist(valmistumispyynto)
-
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                "$ENDPOINT_BASE_URL${VALMISTUMISPYYNNOT_ENDPOINT}&avoin=false",
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.content[0].id").value(valmistumispyynto.id))
-            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA.toString()))
-            .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
-            .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
-            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
-            .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
-    }
-
-    @Test
-    @Transactional
-    fun getValmistumispyynnotForOsaamisenArvioijaTilaAllekirjoitettu() {
-        initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
-
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoAllekirjoitettu(
-            opintooikeus,
-            vastuuhenkilo,
-            virkailija,
-            anotherVastuuhenkilo
-        )
-        em.persist(valmistumispyynto)
-
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                "$ENDPOINT_BASE_URL${VALMISTUMISPYYNNOT_ENDPOINT}&avoin=false",
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.content[0].id").value(valmistumispyynto.id))
-            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ALLEKIRJOITETTU.toString()))
-            .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
-            .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
-            .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
-            .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
-    }
-
-    @Test
-    @Transactional
     fun getValmistumispyynnotForHyvaksyjaTilaAllekirjoitettu() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoAllekirjoitettu(
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoHyvaksytty(
             opintooikeus,
             anotherVastuuhenkilo,
             virkailija,
@@ -656,7 +539,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content[0].id").value(valmistumispyynto.id))
-            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ALLEKIRJOITETTU.toString()))
+            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.HYVAKSYTTY.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
             .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA.toString()))
@@ -665,10 +548,10 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
     @Test
     @Transactional
-    fun getValmistumispyynnotForArvioijaHyvaksyjaTilaAllekirjoitettu() {
+    fun getValmistumispyynnotForArvioijaHyvaksyjaTilaHyvaksytty() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoAllekirjoitettu(
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoHyvaksytty(
             opintooikeus,
             vastuuhenkilo,
             virkailija,
@@ -684,7 +567,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content[0].id").value(valmistumispyynto.id))
-            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ALLEKIRJOITETTU.toString()))
+            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.HYVAKSYTTY.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
             .andExpect(jsonPath("$.content[0].rooli").value(ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA.toString()))

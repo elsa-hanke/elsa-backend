@@ -111,7 +111,6 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
 
         val result = koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
 
-        // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
         if (result.lahikouluttajaHyvaksynyt) {
             // Sähköposti esimiehelle kouluttajan hyväksymästä kehittämistoimenpiteestä
             mailService.sendEmailFromTemplate(

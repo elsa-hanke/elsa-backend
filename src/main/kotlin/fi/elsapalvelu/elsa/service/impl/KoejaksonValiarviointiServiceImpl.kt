@@ -101,7 +101,6 @@ class KoejaksonValiarviointiServiceImpl(
 
         val result = koejaksonValiarviointiRepository.save(valiarviointi)
 
-        // Sähköposti kouluttajalle ja esimiehelle allekirjoitetusta väliarvioinnista
         if (result.lahikouluttajaHyvaksynyt) {
             // Sähköposti esimiehelle kouluttajan hyväksymästä väliarvioinnista
             mailService.sendEmailFromTemplate(

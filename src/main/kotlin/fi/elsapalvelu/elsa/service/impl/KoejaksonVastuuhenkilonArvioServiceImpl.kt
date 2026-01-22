@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
@@ -15,15 +14,12 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
-import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientDTO
-import fi.elsapalvelu.elsa.service.dto.sarakesign.SarakeSignRecipientFieldsDTO
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -55,11 +51,9 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val koulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val asiakirjaRepository: AsiakirjaRepository,
-    private val sarakesignService: SarakesignService,
     private val arkistointiService: ArkistointiService,
     private val keskeytysaikaService: KeskeytysaikaService,
     private val pdfService: PdfService,
-    private val applicationProperties: ApplicationProperties,
     private val asiakirjaMapper: AsiakirjaMapper
 ) : KoejaksonVastuuhenkilonArvioService {
 
@@ -340,11 +334,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
         val yliopisto = vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!
         val erikoisala = vastuuhenkilonArvio.opintooikeus?.erikoisala!!
-        if (!sarakesignService.getApiUrl(yliopisto)
-                .isNullOrBlank()
-        ) {
-            lahetaAllekirjoitettavaksi(vastuuhenkilonArvio, asiakirja)
-        } else if (arkistointiService.onKaytossa(yliopisto, CaseType.KOEJAKSO)) {
+
+        if (arkistointiService.onKaytossa(yliopisto, CaseType.KOEJAKSO)) {
             val result = arkistointiService.muodostaSahke(
                 vastuuhenkilonArvio.opintooikeus,
                 listOf(RecordProperties(asiakirja, RecordType.ARVIOINTI)),
@@ -362,63 +353,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
     }
 
-    private fun lahetaAllekirjoitettavaksi(
-        vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio,
-        asiakirja: Asiakirja
-    ) {
-        val recipients: MutableList<SarakeSignRecipientDTO> = mutableListOf()
-        vastuuhenkilonArvio.vastuuhenkilo?.user?.let {
-            recipients.add(
-                lisaaVastaanottaja(
-                    it,
-                    false
-                )
-            )
-        }
-        vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let {
-            recipients.add(
-                lisaaVastaanottaja(it, true)
-            )
-        }
-        recipients.add(
-            SarakeSignRecipientDTO(
-                phaseNumber = 0,
-                recipient = vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(
-                    applicationProperties
-                ),
-                readonly = true
-            )
-        )
-
-        vastuuhenkilonArvio.sarakeSignRequestId = sarakesignService.lahetaAllekirjoitettavaksi(
-            "Koejakson vastuuhenkilön arvio - " + vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
-            recipients,
-            asiakirja.id!!,
-            vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!
-        )
-        koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
-    }
-
-    private fun lisaaVastaanottaja(user: User, readonly: Boolean): SarakeSignRecipientDTO {
-        return SarakeSignRecipientDTO(
-            phaseNumber = 0,
-            recipient = user.email,
-            readonly = readonly,
-            fields = SarakeSignRecipientFieldsDTO(
-                firstName = user.firstName,
-                lastName = user.lastName,
-                phoneNumber = getPhoneNumber(user.phoneNumber),
-            )
-        )
-    }
-
-    private fun getPhoneNumber(number: String?): String? {
-        if (number?.startsWith("0") == true) {
-            return number.replaceFirst("0", "+358")
-        }
-        return number
-    }
-
     @Transactional(readOnly = true)
     override fun findOne(id: Long): Optional<KoejaksonVastuuhenkilonArvioDTO> {
         return koejaksonVastuuhenkilonArvioRepository.findById(id)
@@ -428,7 +362,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     @Transactional(readOnly = true)
     override fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonVastuuhenkilonArvioDTO> {
         val arvio = koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(opintooikeusId)
-        arvio.ifPresent { tarkistaAllekirjoitus(it) }
         return arvio.map(this::mapVastuuhenkilonArvio)
     }
 
@@ -447,7 +380,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
             )
         if (vastuuhenkilo?.user?.id == userId) {
-            tarkistaAllekirjoitus(arvio)
             return Optional.of(arvio).map(this::mapVastuuhenkilonArvio)
         }
         return Optional.empty()
@@ -471,7 +403,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                         id,
                         yliopisto.id!!
                     )
-                arvio.ifPresent { tarkistaAllekirjoitus(it) }
                 return arvio.map(this::mapVastuuhenkilonArvio)
             }
         }
@@ -480,34 +411,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
     override fun delete(id: Long) {
         koejaksonVastuuhenkilonArvioRepository.deleteById(id)
-    }
-
-    override fun tarkistaAllekirjoitus(koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio) {
-        val yliopisto = koejaksonVastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!
-        if (koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt
-            && !koejaksonVastuuhenkilonArvio.allekirjoitettu
-            && !sarakesignService.getApiUrl(yliopisto).isNullOrBlank()
-            && koejaksonVastuuhenkilonArvio.sarakeSignRequestId != null
-        ) {
-            val response =
-                sarakesignService.tarkistaAllekirjoitus(
-                    koejaksonVastuuhenkilonArvio.sarakeSignRequestId,
-                    yliopisto
-                )
-
-            if (response?.status == 3) { // Completed
-                koejaksonVastuuhenkilonArvio.allekirjoitettu = true
-                koejaksonVastuuhenkilonArvio.allekirjoitusaika = response.finished?.withZoneSameInstant(ZoneId.systemDefault())?.toLocalDate()
-            } else if (response?.status == 4) { // Aborted
-                koejaksonVastuuhenkilonArvio.virkailijanKorjausehdotus = "Allekirjoitus keskeytetty"
-                koejaksonVastuuhenkilonArvio.erikoistuvanKuittausaika = null
-                koejaksonVastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = false
-                koejaksonVastuuhenkilonArvio.vastuuhenkilonKuittausaika = null
-                koejaksonVastuuhenkilonArvio.virkailijaHyvaksynyt = false
-                koejaksonVastuuhenkilonArvio.virkailijanKuittausaika = null
-            }
-            koejaksonVastuuhenkilonArvioRepository.save(koejaksonVastuuhenkilonArvio)
-        }
     }
 
     private fun mapVastuuhenkilonArvio(vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio): KoejaksonVastuuhenkilonArvioDTO {
@@ -542,10 +445,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         result.arkistoitava = arkistointiService.onKaytossa(vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi!!, CaseType.KOEJAKSO)
         result.tila = KoejaksoTila.fromVastuuhenkilonArvio(
             vastuuhenkilonArvio,
-            (authentication.principal as Saml2AuthenticatedPrincipal).name,
             authentication.authorities.any { it.authority == OPINTOHALLINNON_VIRKAILIJA },
-            authentication.authorities.any { it.authority == VASTUUHENKILO },
-            result.arkistoitava == true
+            authentication.authorities.any { it.authority == VASTUUHENKILO }
         )
         return result
     }

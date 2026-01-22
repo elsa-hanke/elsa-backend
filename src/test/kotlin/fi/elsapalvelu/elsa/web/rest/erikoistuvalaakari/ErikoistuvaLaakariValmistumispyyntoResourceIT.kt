@@ -777,7 +777,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
 
     @Test
     @Transactional
-    fun getValmistumispyyntoOdottaaAllekirjoitusta() {
+    fun getValmistumispyyntoHyvaksytty() {
         initTestWithVoimassaolevatSuoritukset()
         initValmistumispyynnonHyvaksyjat()
 
@@ -797,36 +797,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA.toString()))
-            .andExpect(jsonPath("$.erikoistujanKuittausaika").value(LocalDate.now().toString()))
-            .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaKuittausaika").value(LocalDate.now().toString()))
-            .andExpect(jsonPath("$.virkailijanKuittausaika").value(LocalDate.now().toString()))
-            .andExpect(jsonPath("$.vastuuhenkiloHyvaksyjaKuittausaika").value(LocalDate.now().toString()))
-    }
-
-    @Test
-    @Transactional
-    fun getValmistumispyyntoAllekirjoitettu() {
-        initTestWithVoimassaolevatSuoritukset()
-        initValmistumispyynnonHyvaksyjat()
-
-        val valmistumispyynto = Valmistumispyynto(
-            opintooikeus = opintooikeus,
-            erikoistujanKuittausaika = LocalDate.now(),
-            vastuuhenkiloOsaamisenArvioijaKuittausaika = LocalDate.now(),
-            virkailijanKuittausaika = LocalDate.now(),
-            vastuuhenkiloHyvaksyjaKuittausaika = LocalDate.now()
-        )
-        em.persist(valmistumispyynto)
-
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA.toString()))
+            .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.HYVAKSYTTY.toString()))
             .andExpect(jsonPath("$.erikoistujanKuittausaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaKuittausaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.virkailijanKuittausaika").value(LocalDate.now().toString()))
