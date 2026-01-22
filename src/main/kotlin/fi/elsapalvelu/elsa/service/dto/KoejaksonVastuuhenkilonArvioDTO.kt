@@ -48,8 +48,6 @@ data class KoejaksonVastuuhenkilonArvioDTO(
 
     var virkailijanYhteenveto: String? = null,
 
-    var allekirjoitettu: Boolean? = null,
-
     var koejaksonSuorituspaikat: TyoskentelyjaksotTableDTO? = null,
 
     var aloituskeskustelu: KoejaksonAloituskeskusteluDTO? = null,
@@ -67,8 +65,6 @@ data class KoejaksonVastuuhenkilonArvioDTO(
     var tila: KoejaksoTila? = null,
 
     var asiakirjat: List<AsiakirjaDTO>? = listOf(),
-
-    var allekirjoitusaika: LocalDate? = null,
 
     var arkistoitava: Boolean? = null
 

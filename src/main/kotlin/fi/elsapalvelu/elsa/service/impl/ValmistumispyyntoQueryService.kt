@@ -206,11 +206,7 @@ class ValmistumispyyntoQueryService(
 
                 else -> {
                     cb.and(
-                        if (arkistoitava) cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika))
-                        else cb.or(
-                            cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
-                            cb.isNull(root.get(Valmistumispyynto_.allekirjoitusaika))
-                        ),
+                        cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
                         cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloOsaamisenArvioijaKuittausaika)),
                         cb.isNotNull(root.get(Valmistumispyynto_.virkailijanKuittausaika)),
                         cb.isNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika))
@@ -243,10 +239,7 @@ class ValmistumispyyntoQueryService(
                 else -> {
                     cb.or(
                         cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaPalautusaika)),
-                        if (arkistoitava) cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika))
-                        else cb.and(
-                            cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)),
-                            cb.isNotNull(root.get(Valmistumispyynto_.allekirjoitusaika))
+                        cb.isNotNull(root.get(Valmistumispyynto_.vastuuhenkiloHyvaksyjaKuittausaika)
                         )
                     )
                 }

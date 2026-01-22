@@ -119,17 +119,17 @@ class VastuuhenkiloKoejaksoResource(
 
         if (existingKoulutussopimusDTO.get().lahetetty != true) {
             throw BadRequestAlertException(
-                "Vastuuhenkilö ei saa muokata sopimusta, jos erikoistuva ei ole allekirjoittanut sitä",
+                "Vastuuhenkilö ei saa muokata sopimusta, jos erikoistuva ei ole lähettänyt sitä",
                 ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal.vastuuhenkilo-ei-saa-muokata-sopimusta-jos-erikoistuva-ei-ole-allekirjoittanut-sita"
+                "dataillegal.vastuuhenkilo-ei-saa-muokata-sopimusta-jos-erikoistuva-ei-ole-lahettanyt-sita"
             )
         }
 
         if (existingKoulutussopimusDTO.get().kouluttajat?.any { it.sopimusHyvaksytty == false } == true) {
             throw BadRequestAlertException(
-                "Vastuuhenkilö ei saa muokata sopimusta, jos kouluttajat eivät ole allekirjoittaneet sitä",
+                "Vastuuhenkilö ei saa muokata sopimusta, jos kouluttajat eivät ole hyväksyneet sitä",
                 ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal.vastuuhenkilo-ei-saa-muokata-sopimusta-jos-kouluttajat-eivat-ole-allekirjottaneet-sita"
+                "dataillegal.vastuuhenkilo-ei-saa-muokata-sopimusta-jos-kouluttajat-eivat-ole-hyvaksyneet-sita"
             )
         }
 
@@ -239,11 +239,11 @@ class VastuuhenkiloKoejaksoResource(
             )
         }
 
-        if (vastuuhenkilonArvio.get().allekirjoitettu == true) {
+        if (vastuuhenkilonArvio.get().vastuuhenkilo?.sopimusHyvaksytty == true) {
             throw BadRequestAlertException(
-                "Allekirjoitettua arviointia ei saa muokata.",
+                "Hyväksyttyä arviointia ei saa muokata.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal.allekirjoitettua-arviointia-ei-saa-muokata"
+                "dataillegal.hyvaksyttya-arviointia-ei-saa-muokata"
             )
         }
 

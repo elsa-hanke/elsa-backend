@@ -75,21 +75,12 @@ data class KoejaksonVastuuhenkilonArvio(
     @Column(name = "vastuuhenkilon_korjausehdotus")
     var vastuuhenkilonKorjausehdotus: String? = null,
 
-    @Column(name = "sarakesign_request_id")
-    var sarakeSignRequestId: String? = null,
-
-    @Column(name = "allekirjoitettu", nullable = false)
-    var allekirjoitettu: Boolean = false,
-
     @OneToMany(
         mappedBy = "koejaksonVastuuhenkilonArvio",
         cascade = [CascadeType.ALL],
         orphanRemoval = true
     )
-    var asiakirjat: MutableSet<Asiakirja> = mutableSetOf(),
-
-    @Column(name = "allekirjoitusaika", nullable = false)
-    var allekirjoitusaika: LocalDate? = null,
+    var asiakirjat: MutableSet<Asiakirja> = mutableSetOf()
 
 ) : Serializable {
 
@@ -117,10 +108,9 @@ data class KoejaksonVastuuhenkilonArvio(
             "id=$id, " +
             "opintooikeus=$opintooikeus, " +
             "vastuuhenkilo=$vastuuhenkilo, " +
-            "vastuuhenkiloAllekirjoittanut=$vastuuhenkiloHyvaksynyt, " +
+            "vastuuhenkiloHyvaksynyt=$vastuuhenkiloHyvaksynyt, " +
             "vastuuhenkilonKuittausaika=$vastuuhenkilonKuittausaika, " +
-            "muokkauspaiva=$muokkauspaiva, " +
-            "allekirjoitusaika='$allekirjoitusaika')"
+            "muokkauspaiva=$muokkauspaiva)"
     }
 
     companion object {

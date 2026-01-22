@@ -61,9 +61,9 @@ class KouluttajaKoejaksoResource(
 
         if (existingKoulutussopimusDTO.get().lahetetty != true) {
             throw BadRequestAlertException(
-                "Koulutussopimusta ei saa muokata, jos erikoistuva ei ole allekirjoittanut sitä",
+                "Koulutussopimusta ei saa muokata, jos erikoistuva ei ole hyväksynyt sitä",
                 ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal.koulutussopimusta-ei-saa-muokata-jos-erikoistua-ei-ole-allekirjoittanut-sita"
+                "dataillegal.koulutussopimusta-ei-saa-muokata-jos-erikoistua-ei-ole-hyvaksynyt-sita"
             )
         }
 

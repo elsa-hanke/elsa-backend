@@ -273,27 +273,6 @@ application:
     tre:
     turku:
     uef:
-  sarakesign:
-    oulu:
-      api-key:
-      api-url:
-      request-template-id:
-    hki:
-      api-key:
-      api-url:
-      request-template-id:
-    tre:
-      api-key:
-      api-url:
-      request-template-id:
-    turku:
-      api-key:
-      api-url:
-      request-template-id:
-    uef:
-      api-key:
-      api-url:
-      request-template-id:
   arkistointi:
     tre:
       kaytossa: false
