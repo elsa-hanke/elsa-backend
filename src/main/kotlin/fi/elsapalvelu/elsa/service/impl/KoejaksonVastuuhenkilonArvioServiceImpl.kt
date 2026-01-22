@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
@@ -54,7 +55,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val arkistointiService: ArkistointiService,
     private val keskeytysaikaService: KeskeytysaikaService,
     private val pdfService: PdfService,
-    private val asiakirjaMapper: AsiakirjaMapper
+    private val asiakirjaMapper: AsiakirjaMapper,
+    private val applicationProperties: ApplicationProperties
 ) : KoejaksonVastuuhenkilonArvioService {
 
     override fun create(
@@ -281,7 +283,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         }
 
         if (vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
-            // Sähköposti erikoistuvalle jos koejakso hylätty. Hyväksytystä koejaksosta tulee allekirjoituspyyntö.
+            luoPdf(mapVastuuhenkilonArvio(result), result)
+
             if (vastuuhenkilonArvio.koejaksoHyvaksytty == false) {
                 mailService.sendEmailFromTemplate(
                     kayttajaRepository.findById(vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
@@ -290,8 +293,22 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                     titleKey = "email.vastuuhenkilonarviohylatty.title",
                     properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
                 )
+            } else {
+                mailService.sendEmailFromTemplate(
+                    kayttajaRepository.findById(vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
+                        .get().user!!,
+                    templateName = "vastuuhenkilonArvioHyvaksytty.html",
+                    titleKey = "email.vastuuhenkilonarviohyvaksytty.title",
+                    properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
+                )
+
+                mailService.sendEmailFromTemplate(
+                    vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
+                    templateName = "vastuuhenkilonArvioHyvaksytty.html",
+                    titleKey = "email.vastuuhenkilonarviohyvaksytty.title",
+                    properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
+                )
             }
-            luoPdf(mapVastuuhenkilonArvio(result), result)
         }
     }
 
