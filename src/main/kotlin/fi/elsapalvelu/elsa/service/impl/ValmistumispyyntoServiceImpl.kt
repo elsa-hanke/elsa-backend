@@ -316,7 +316,7 @@ class ValmistumispyyntoServiceImpl(
                         valmistumispyynto
                     )
                     luoLiitteetPdf(valmistumispyynto)
-                    sendMailNotificationHyvaksytty(valmistumispyynto)
+                    sendMailNotificationHyvaksyttyYek(valmistumispyynto)
                 } else {
                     luoLiitteetPdf(valmistumispyynto)
                     luoErikoistujanTiedotPdf(valmistumispyynto)
@@ -324,6 +324,7 @@ class ValmistumispyyntoServiceImpl(
                         mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)),
                         valmistumispyynto
                     )
+                    sendMailNotificationHyvaksytty(valmistumispyynto)
                 }
 
                 if (arkistointiService.onKaytossa(yliopisto.nimi!!, CaseType.VALMISTUMINEN)) {
@@ -1075,6 +1076,26 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoHyvaksyttyVirkailija.html",
             titleKey = "email.valmistumispyyntoHyvaksytty.title",
+            properties = mapOf(
+                Pair(MailProperty.ID, valmistumispyynto.id.toString())
+            )
+        )
+    }
+
+    private fun sendMailNotificationHyvaksyttyYek(
+        valmistumispyynto: Valmistumispyynto
+    ) {
+        mailService.sendEmailFromTemplate(
+            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
+            templateName = "valmistumispyyntoHyvaksyttyYek.html",
+            titleKey = "email.yekValmistumispyyntoHyvaksytty.title",
+            properties = mapOf()
+        )
+
+        mailService.sendEmailFromTemplate(
+            valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
+            templateName = "valmistumispyyntoHyvaksyttyVirkailijaYek.html",
+            titleKey = "email.yekValmistumispyyntoHyvaksytty.title",
             properties = mapOf(
                 Pair(MailProperty.ID, valmistumispyynto.id.toString())
             )

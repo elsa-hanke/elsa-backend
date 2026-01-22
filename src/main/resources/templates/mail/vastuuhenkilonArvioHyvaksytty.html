@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="fi">
 <head>
-    <title>[ELSA-palvelu] Koejakson koulutussopimus on hyväksytty</title>
+    <title>[ELSA-palvelu] Koejakso on hyväksytty vastuuhenkilön toimesta</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
 </head>
@@ -10,12 +10,12 @@
     Hei,
 </p>
 <p>
-    Koejakson koulutussopimus on hyväksytty kaikkien osapuolten toimesta.
+    Koejakso on hyväksytty vastuuhenkilön toimesta.
 
-    Pääset katsomaan koejakson koulutusopimusta alla olevan linkin kautta:
+    Pääset katsomaan koejaksoa alla olevan linkin kautta:
 </p>
 <p>
-    <a th:with="url=(@{|${baseUrl}/koejakso/koulutussopimus/${id}|})" th:href="${url}"
+    <a th:with="url=(@{|${baseUrl}/koejakso/vastuuhenkilon-arvio/${id}|})" th:href="${url}"
        th:text="${url}"></a>
 </p>
 <p>
