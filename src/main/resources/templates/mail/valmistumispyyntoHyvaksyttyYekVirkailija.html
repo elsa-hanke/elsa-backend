@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fi" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>[ELSA-palvelu] EL/EHL-koulutuksen Valmistumispyyntö on hyväksytty vastuuhenkilön toimesta</title>
+    <title>[ELSA-palvelu] YEK-koulutuksen valmistumispyyntö on hyväksytty vastuuhenkilön toimesta</title>
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
     <link rel="icon" th:href="@{|${baseUrl}/favicon.ico|}"/>
 </head>
@@ -10,13 +10,13 @@
     Hei,
 </p>
 <p>
-    EL/EHL-koulutuksen valmistumispyyntö on hyväksytty vastuuhenkilön toimesta.
+    YEK-koulutuksen valmistumispyyntö on hyväksytty vastuuhenkilön toimesta.
 
     Pääset katsomaan hyväksyttyä valmistumispyyntöä alla olevan linkin kautta:
 </p>
 <p>
     <a th:href="${url}" th:text="${url}"
-       th:with="url=(@{|${baseUrl}/valmistumispyynto|})"></a>
+       th:with="url=(@{|${baseUrl}/valmistumispyynnon-tarkistus-yek/${id}|})"></a>
 </p>
 <p>
     HUOM! Tähän sähköpostiviestiin ei voi vastata.

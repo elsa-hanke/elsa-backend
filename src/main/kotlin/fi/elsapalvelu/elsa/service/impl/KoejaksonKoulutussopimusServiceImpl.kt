@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
@@ -41,7 +42,8 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
     private val pdfService: PdfService,
     private val opintooikeusService: OpintooikeusService,
-    private val arkistointiService: ArkistointiService
+    private val arkistointiService: ArkistointiService,
+    private val applicationProperties: ApplicationProperties
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -344,13 +346,20 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         val result = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
-        // Sähköposti erikoistujalle hyväksytystä sopimuksesta
+        // Sähköposti erikoistujalle ja virkailijoille hyväksytystä sopimuksesta
         if (result.vastuuhenkiloHyvaksynyt) {
             val erikoistuvaLaakari =
                 kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
+                templateName = "koulutussopimusHyvaksytty.html",
+                titleKey = "email.koulutussopimushyvaksytty.title",
+                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+            )
+
+            mailService.sendEmailFromTemplate(
+                result.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
                 templateName = "koulutussopimusHyvaksytty.html",
                 titleKey = "email.koulutussopimushyvaksytty.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
