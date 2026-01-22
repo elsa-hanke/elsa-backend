@@ -75,8 +75,6 @@ data class ValmistumispyyntoDTO(
 
     var vastuuhenkiloHyvaksyjaKorjausehdotus: String? = null,
 
-    var allekirjoitusaika: LocalDate? = null,
-
     var valmistumispyyntoVirkailijaDTO: ValmistumispyynnonTarkistusDTO? = null,
 
     var yhteenvetoAsiakirjaId: Long? = null,

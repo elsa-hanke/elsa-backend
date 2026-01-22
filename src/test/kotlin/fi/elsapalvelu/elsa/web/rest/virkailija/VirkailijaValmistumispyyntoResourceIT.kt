@@ -239,38 +239,10 @@ class VirkailijaValmistumispyyntoResourceIT {
 
     @Test
     @Transactional
-    fun getValmistumispyynnotForVirkailijaTilaOdottaaAllekirjoituksia() {
+    fun getValmistumispyynnotForVirkailijaTilaHyvaksytty() {
         initTest()
 
-        val valmistumispyynto =
-            ValmistumispyyntoHelper.createValmistumispyyntoOdottaaAllekirjoituksia(
-                opintooikeus,
-                vastuuhenkilo,
-                virkailija,
-                anotherVastuuhenkilo
-            )
-        em.persist(valmistumispyynto)
-
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNOT_ENDPOINT&avoin=false",
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.content[0].id").value(valmistumispyynto.id))
-            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ODOTTAA_ALLEKIRJOITUKSIA.toString()))
-            .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
-            .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
-            .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))
-    }
-
-    @Test
-    @Transactional
-    fun getValmistumispyynnotForVirkailijaTilaAllekirjoitettu() {
-        initTest()
-
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoAllekirjoitettu(
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoHyvaksytty(
             opintooikeus,
             vastuuhenkilo,
             virkailija,
@@ -286,7 +258,7 @@ class VirkailijaValmistumispyyntoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content[0].id").value(valmistumispyynto.id))
-            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.ALLEKIRJOITETTU.toString()))
+            .andExpect(jsonPath("$.content[0].tila").value(ValmistumispyynnonTila.HYVAKSYTTY.toString()))
             .andExpect(jsonPath("$.content[0].erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.content[0].tapahtumanAjankohta").value(valmistumispyynto.muokkauspaiva.toString()))
             .andExpect(jsonPath("$.content[0].isAvoinForCurrentKayttaja").value(false))

@@ -141,15 +141,15 @@ class VirkailijaKoejaksoResource(
             throw BadRequestAlertException(
                 "Hyväksyttyä arviointia ei saa muokata.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal.allekirjoitettua-arviointia-ei-saa-muokata"
+                "dataillegal.hyvaksyttya-arviointia-ei-saa-muokata"
             )
         }
 
-        if (vastuuhenkilonArvio.get().allekirjoitettu == true) {
+        if (vastuuhenkilonArvio.get().vastuuhenkilo?.sopimusHyvaksytty == true) {
             throw BadRequestAlertException(
-                "Allekirjoitettua arviointia ei saa muokata.",
+                "Hyväksyttyä arviointia ei saa muokata.",
                 ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                "dataillegal.allekirjoitettua-arviointia-ei-saa-muokata"
+                "dataillegal.hyvaksyttya-arviointia-ei-saa-muokata"
             )
         }
 

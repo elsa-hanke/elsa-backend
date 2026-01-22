@@ -150,7 +150,7 @@ class ValmistumispyyntoHelper {
         }
 
         @JvmStatic
-        fun createValmistumispyyntoOdottaaAllekirjoituksia(
+        fun createValmistumispyyntoHyvaksytty(
             opintooikeus: Opintooikeus,
             vastuuhenkiloOsaamisenArvioija: Kayttaja,
             virkailija: Kayttaja,
@@ -170,33 +170,6 @@ class ValmistumispyyntoHelper {
                 virkailijanSaate = DEFAULT_VIRKAILIJAN_SAATE,
                 vastuuhenkiloHyvaksyja = vastuuhenkiloHyvaksyja,
                 vastuuhenkiloHyvaksyjaKuittausaika = vastuuhenkiloHyvaksyjaKuittausaika
-            )
-            return valmistumispyynto
-        }
-
-        @JvmStatic
-        fun createValmistumispyyntoAllekirjoitettu(
-            opintooikeus: Opintooikeus,
-            vastuuhenkiloOsaamisenArvioija: Kayttaja,
-            virkailija: Kayttaja,
-            vastuuhenkiloHyvaksyja: Kayttaja,
-            erikoistujanKuittausaika: LocalDate? = LocalDate.now(),
-            vastuuhenkiloOsaamisenArvioijaKuittausaika: LocalDate? = LocalDate.now(),
-            virkailijanKuittausaika: LocalDate? = LocalDate.now(),
-            vastuuhenkiloHyvaksyjaKuittausaika: LocalDate? = LocalDate.now(),
-            allekirjoitusaika: LocalDate? = LocalDate.now()
-        ): Valmistumispyynto {
-            val valmistumispyynto = Valmistumispyynto(
-                opintooikeus = opintooikeus,
-                erikoistujanKuittausaika = erikoistujanKuittausaika,
-                vastuuhenkiloOsaamisenArvioija = vastuuhenkiloOsaamisenArvioija,
-                vastuuhenkiloOsaamisenArvioijaKuittausaika = vastuuhenkiloOsaamisenArvioijaKuittausaika,
-                virkailija = virkailija,
-                virkailijanKuittausaika = virkailijanKuittausaika,
-                virkailijanSaate = DEFAULT_VIRKAILIJAN_SAATE,
-                vastuuhenkiloHyvaksyja = vastuuhenkiloHyvaksyja,
-                vastuuhenkiloHyvaksyjaKuittausaika = vastuuhenkiloHyvaksyjaKuittausaika,
-                allekirjoitusaika = allekirjoitusaika
             )
             return valmistumispyynto
         }

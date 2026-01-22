@@ -275,9 +275,9 @@ class ErikoistuvaLaakariKoejaksoResource(
 
         if (aloituskeskustelu.get().lahetetty == true) {
             throw BadRequestAlertException(
-                "Allekirjoitettua arviointia ei saa muokata.",
+                "Lähetettyä arviointia ei saa muokata.",
                 ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                "dataillegal.allekirjoitettua-arviointia-ei-saa-muokata"
+                "dataillegal.lahetettya-arviointia-ei-saa-muokata"
             )
         }
 
@@ -628,7 +628,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 throw BadRequestAlertException(
                     "Hyväksyttyä sopimusta ei voi muokata",
                     ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                    "dataillegal.erikoistuva-ei-voi-allekirjoittaa-sopimusta-jos-esimies-ei-ole-kuitannut-sita"
+                    "dataillegal.erikoistuva-ei-voi-hyvaksya-sopimusta-jos-esimies-ei-ole-kuitannut-sita"
                 )
             }
 
@@ -701,9 +701,9 @@ class ErikoistuvaLaakariKoejaksoResource(
     private fun validateKuittaus(kuitattu: Boolean, entity: String) {
         if (!kuitattu) {
             throw BadRequestAlertException(
-                "Erikoistuva ei voi allekirjoittaa sopimusta, jos esimies ei ole kuitannut sitä",
+                "Erikoistuva ei voi hyväksyä sopimusta, jos esimies ei ole kuitannut sitä",
                 entity,
-                "dataillegal.erikoistuva-ei-voi-allekirjoittaa-sopimusta-jos-esimies-ei-ole-kuitannut-sita"
+                "dataillegal.erikoistuva-ei-voi-hyvaksya-sopimusta-jos-esimies-ei-ole-kuitannut-sita"
             )
         }
     }
