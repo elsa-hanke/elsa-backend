@@ -100,17 +100,17 @@ class ValmistumispyyntoQueryService(
             val opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus> =
                 root.join(Valmistumispyynto_.opintooikeus)
 
-                getVastuuhenkiloPredicate(
-                    role,
-                    criteria,
-                    opintooikeusJoin,
-                    root,
-                    cb,
-                    arkistoitava
-                ).let { predicates.add(it) }
-                getErikoisalatPredicate(erikoisalaIds, opintooikeusJoin)?.let {
-                    predicates.add(it)
-                }
+            getVastuuhenkiloPredicate(
+                role,
+                criteria,
+                opintooikeusJoin,
+                root,
+                cb,
+                arkistoitava
+            ).let { predicates.add(it) }
+            getErikoisalatPredicate(erikoisalaIds, opintooikeusJoin)?.let {
+                predicates.add(it)
+            }
 
             getYliopistoPredicate(yliopistoId, opintooikeusJoin, cb).let { predicates.add(it) }
             getNimiPredicate(criteria?.erikoistujanNimi, opintooikeusJoin, cb, langkey)?.let { predicates.add(it) }
@@ -147,19 +147,24 @@ class ValmistumispyyntoQueryService(
     }
 
     private fun getRolePredicate(role: ValmistumispyynnonHyvaksyjaRole, criteria: NimiErikoisalaAndAvoinCriteria?, root: Root<Valmistumispyynto>, cb: CriteriaBuilder, arkistoitava: Boolean): Predicate {
+        if (criteria?.erikoisalaId?.equals == YEK_ERIKOISALA_ID) {
+            return getVastuuhenkiloPredicateByTehtavatyyppi(
+                root,
+                cb,
+                criteria.avoin,
+                VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN)
+        }
         val arvioijaPredicate = getVastuuhenkiloPredicateByTehtavatyyppi(
             root,
             cb,
             criteria?.avoin,
-            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI,
-            arkistoitava
+            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI
         )
         val hyvaksyjaPredicate = getVastuuhenkiloPredicateByTehtavatyyppi(
             root,
             cb,
             criteria?.avoin,
-            if (criteria?.erikoisalaId?.equals == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN else VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA,
-            arkistoitava
+            VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         )
 
         return when (role) {
@@ -183,8 +188,7 @@ class ValmistumispyyntoQueryService(
         root: Root<Valmistumispyynto>,
         cb: CriteriaBuilder,
         avoin: Boolean? = true,
-        tehtavatyyppiEnum: VastuuhenkilonTehtavatyyppiEnum,
-        arkistoitava: Boolean
+        tehtavatyyppiEnum: VastuuhenkilonTehtavatyyppiEnum
     ): Predicate {
         if (avoin == true) {
             return when (tehtavatyyppiEnum) {
