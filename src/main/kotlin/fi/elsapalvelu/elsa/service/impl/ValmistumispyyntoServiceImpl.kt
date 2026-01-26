@@ -456,15 +456,14 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = getYliopisto(kayttaja)
         val yek = valmistumispyyntoCriteria.erikoisalaId?.equals == YEK_ERIKOISALA_ID
         val hyvaksyjaRole = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja, yek)
-        val arkistoitava = arkistointiService.onKaytossa(yliopisto.nimi!!, CaseType.VALMISTUMINEN)
+        arkistointiService.onKaytossa(yliopisto.nimi!!, CaseType.VALMISTUMINEN)
         return valmistumispyyntoQueryService.findValmistumispyynnotByCriteria(
             valmistumispyyntoCriteria,
             hyvaksyjaRole,
             pageable,
             yliopisto.id!!,
             if (yek) listOf(YEK_ERIKOISALA_ID) else getErikoisalaIds(kayttaja),
-            kayttaja.user?.langKey,
-            arkistoitava
+            kayttaja.user?.langKey
         ).map {
             val isAvoin = valmistumispyyntoCriteria.avoin == true
             mapValmistumispyyntoListItem(it, hyvaksyjaRole, isAvoin)
@@ -1767,7 +1766,4 @@ class ValmistumispyyntoServiceImpl(
     private fun daysToPeriod(days: Double): Period {
         return Period.of(days.toYears(), days.toMonths(), days.toDays())
     }
-
-    private fun arkistoitava(valmistumispyynto: Valmistumispyynto?) =
-        valmistumispyynto?.opintooikeus?.yliopisto?.nimi?.let { arkistointiService.onKaytossa(it, CaseType.VALMISTUMINEN) } == true
 }
