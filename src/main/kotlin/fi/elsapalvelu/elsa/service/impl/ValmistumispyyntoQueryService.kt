@@ -92,8 +92,7 @@ class ValmistumispyyntoQueryService(
         pageable: Pageable,
         yliopistoId: Long,
         erikoisalaIds: List<Long>,
-        langkey: String?,
-        arkistoitava: Boolean
+        langkey: String?
     ): Page<Valmistumispyynto> {
         val specification: Specification<Valmistumispyynto> = Specification.where { root, cq, cb ->
             val predicates: MutableList<Predicate> = mutableListOf()
@@ -105,8 +104,7 @@ class ValmistumispyyntoQueryService(
                 criteria,
                 opintooikeusJoin,
                 root,
-                cb,
-                arkistoitava
+                cb
             ).let { predicates.add(it) }
             getErikoisalatPredicate(erikoisalaIds, opintooikeusJoin)?.let {
                 predicates.add(it)
@@ -126,8 +124,7 @@ class ValmistumispyyntoQueryService(
         criteria: NimiErikoisalaAndAvoinCriteria?,
         opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus>,
         root: Root<Valmistumispyynto>,
-        cb: CriteriaBuilder,
-        arkistoitava: Boolean
+        cb: CriteriaBuilder
     ): Predicate {
         val erikoisala: Path<Erikoisala> = opintooikeusJoin.get(Opintooikeus_.erikoisala)
         val predicates: MutableList<Predicate> = mutableListOf()
@@ -136,7 +133,7 @@ class ValmistumispyyntoQueryService(
             predicates.add(
                 cb.and(
                     cb.equal(erikoisala.get(Erikoisala_.id), it.first),
-                    getRolePredicate(it.second, criteria, root, cb, arkistoitava)
+                    getRolePredicate(it.second, criteria, root, cb)
                 )
             )
         }
@@ -146,7 +143,7 @@ class ValmistumispyyntoQueryService(
 
     }
 
-    private fun getRolePredicate(role: ValmistumispyynnonHyvaksyjaRole, criteria: NimiErikoisalaAndAvoinCriteria?, root: Root<Valmistumispyynto>, cb: CriteriaBuilder, arkistoitava: Boolean): Predicate {
+    private fun getRolePredicate(role: ValmistumispyynnonHyvaksyjaRole, criteria: NimiErikoisalaAndAvoinCriteria?, root: Root<Valmistumispyynto>, cb: CriteriaBuilder): Predicate {
         if (criteria?.erikoisalaId?.equals == YEK_ERIKOISALA_ID) {
             return getVastuuhenkiloPredicateByTehtavatyyppi(
                 root,
