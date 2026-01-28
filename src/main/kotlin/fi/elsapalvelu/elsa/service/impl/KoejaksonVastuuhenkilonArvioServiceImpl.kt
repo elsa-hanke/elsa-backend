@@ -304,7 +304,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
                 mailService.sendEmailFromTemplate(
                     vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
-                    templateName = "vastuuhenkilonArvioHyvaksytty.html",
+                    templateName = "vastuuhenkilonArvioHyvaksyttyVirkailija.html",
                     titleKey = "email.vastuuhenkilonarviohyvaksytty.title",
                     properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id!!.toString()))
                 )
