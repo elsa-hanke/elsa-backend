@@ -1,3 +1,5 @@
+import com.adarshr.gradle.testlogger.theme.ThemeType
+
 plugins {
     id "org.jetbrains.kotlin.jvm" version "${kotlinVersion}"
     id "org.jetbrains.kotlin.kapt" version "${kotlinVersion}"
@@ -8,6 +10,7 @@ plugins {
     id "jacoco"
     id "org.springframework.boot" version "${springBootVersion}"
     id "io.spring.dependency-management" version "1.1.0"
+    id "com.adarshr.test-logger" version "4.0.0"
     id "com.google.cloud.tools.jib"
     id "com.gorylenko.gradle-git-properties"
     id "org.liquibase.gradle" version "2.1.1"
@@ -167,6 +170,26 @@ tasks.register('cleanResources', Delete) {
 
 wrapper {
     gradleVersion = "7.6.4"
+}
+
+testlogger {
+    theme = ThemeType.STANDARD
+    showExceptions = true
+    showStackTraces = true
+    showFullStackTraces = false
+    showCauses = true
+    slowThreshold = 2000
+    showSummary = true
+    showSimpleNames = false
+    showPassed = true
+    showSkipped = true
+    showFailed = true
+    showOnlySlow = false
+    showStandardStreams = false
+    showPassedStandardStreams = true
+    showSkippedStandardStreams = true
+    showFailedStandardStreams = true
+    logLevel = LogLevel.LIFECYCLE
 }
 
 compileJava.dependsOn processResources
