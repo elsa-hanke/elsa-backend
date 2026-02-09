@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  test-and-build:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -43,21 +43,73 @@ jobs:
           path: ./build/reports/dependency-check-report.html
       - name: Build
         run: ./gradlew build -x test -x integrationTest
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            build/libs/
+            build/classes/
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
       - name: Test
         run: ./gradlew test
-      - name: Integration test
-        run: ./gradlew integrationTest
-      - name: Store reports
+      - name: Store test reports
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: reports
+          name: test-reports
+          path: |
+            **/build/test-results/test/
+
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+      - name: Integration test
+        run: ./gradlew integrationTest
+      - name: Store integration test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-reports
           path: |
             **/build/test-results/integrationTest/
 
   build-image:
     runs-on: ubuntu-latest
-    needs: test-and-build
+    needs: [test, integration-test]
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
     outputs:
       image-tag: ${{ steps.image-tag.outputs.image-tag }}
