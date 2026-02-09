@@ -37,6 +37,23 @@ class SisuHyClientBuilderImpl(
         private lateinit var resourceLoader: ResourceLoader
 
         val okHttpClient: OkHttpClient by lazy {
+            val sisuCertificates: HandshakeCertificates = sisuCertificates()
+            OkHttpClient.Builder()
+                .sslSocketFactory(sisuCertificates.sslSocketFactory(), sisuCertificates.trustManager)
+                .addInterceptor(
+                    OkHttp3RequestInterceptor(
+                        mapOf(
+                            "X-Api-Key" to applicationProperties.getSecurity().getSisuHy().apiKey!!
+                        )
+                    )
+                )
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(5, TimeUnit.SECONDS)
+                .writeTimeout(5, TimeUnit.SECONDS)
+                .build()
+        }
+
+        private fun sisuCertificates(): HandshakeCertificates {
             val publicKeyResource: Resource =
                 resourceLoader.getResource(
                     applicationProperties.getSecurity().getSisuHy().certificateLocation!!
@@ -55,19 +72,7 @@ class SisuHyClientBuilderImpl(
                 .addPlatformTrustedCertificates()
                 .heldCertificate(HeldCertificate(keyPair, certificate))
                 .build()
-            OkHttpClient.Builder()
-                .sslSocketFactory(certificates.sslSocketFactory(), certificates.trustManager)
-                .addInterceptor(
-                    OkHttp3RequestInterceptor(
-                        mapOf(
-                            "X-Api-Key" to applicationProperties.getSecurity().getSisuHy().apiKey!!
-                        )
-                    )
-                )
-                .connectTimeout(5, TimeUnit.SECONDS)
-                .readTimeout(5, TimeUnit.SECONDS)
-                .writeTimeout(5, TimeUnit.SECONDS)
-                .build()
+            return certificates
         }
 
         val apolloClient: ApolloClient by lazy {
