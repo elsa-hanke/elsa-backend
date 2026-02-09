@@ -37,9 +37,9 @@ class SisuHyClientBuilderImpl(
         private lateinit var resourceLoader: ResourceLoader
 
         val okHttpClient: OkHttpClient by lazy {
-            val sisuCertificates: HandshakeCertificates = sisuCertificates()
+//            val sisuCertificates: HandshakeCertificates = sisuCertificates()
             OkHttpClient.Builder()
-                .sslSocketFactory(sisuCertificates.sslSocketFactory(), sisuCertificates.trustManager)
+//                .sslSocketFactory(sisuCertificates.sslSocketFactory(), sisuCertificates.trustManager)
                 .addInterceptor(
                     OkHttp3RequestInterceptor(
                         mapOf(

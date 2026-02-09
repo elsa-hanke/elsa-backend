@@ -61,14 +61,16 @@ spring:
     cache-duration: PT1S # 1 second, see the ISO 8601 standard
   thymeleaf:
     cache: false
+  cloud:
+    aws:
+      region:
+        static: eu-west-1
+      stack:
+        auto: false
 
 server:
   port: 8080
 
-cloud:
-  aws:
-    region:
-      auto: false
 
 # ===================================================================
 # JHipster specific properties
