@@ -42,7 +42,7 @@ jobs:
           name: dependency-check-report.html
           path: ./build/reports/dependency-check-report.html
       - name: Build
-        run: ./gradlew build -x test
+        run: ./gradlew build -x test -x integrationTest
       - name: Test
         run: ./gradlew test
       - name: Integration test
