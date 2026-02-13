@@ -175,6 +175,12 @@ spring:
   output:
     ansi:
       console-available: true
+  cloud:
+    aws:
+      region:
+        static: eu-west-1
+      stack:
+        auto: false
 
 server:
   servlet:
@@ -184,12 +190,6 @@ server:
         same-site: none
       timeout: 7200s
 
-cloud:
-  aws:
-    region:
-      static: eu-west-1
-    stack:
-      auto: false
 
 # Properties to be exposed on the /info management endpoint
 info:
