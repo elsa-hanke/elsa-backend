@@ -346,20 +346,13 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         val result = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
-        // Sähköposti erikoistujalle ja virkailijoille hyväksytystä sopimuksesta
+        // Sähköposti erikoistujalle hyväksytystä sopimuksesta
         if (result.vastuuhenkiloHyvaksynyt) {
             val erikoistuvaLaakari =
                 kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
                     .get().user!!
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
-                templateName = "koulutussopimusHyvaksytty.html",
-                titleKey = "email.koulutussopimushyvaksytty.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
-            )
-
-            mailService.sendEmailFromTemplate(
-                result.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
                 templateName = "koulutussopimusHyvaksytty.html",
                 titleKey = "email.koulutussopimushyvaksytty.title",
                 properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
