@@ -102,6 +102,18 @@ dependencyCheck {
 configurations {
     providedRuntime
     implementation.exclude module: "spring-boot-starter-tomcat"
+
+    // Force all undertow modules to 2.3.22.Final to address CVE-2025-12543
+    all {
+        resolutionStrategy {
+            eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group == 'io.undertow') {
+                    details.useVersion '2.3.22.Final'
+                    details.because 'CVE-2025-12543 fix'
+                }
+            }
+        }
+    }
 }
 
 repositories {
