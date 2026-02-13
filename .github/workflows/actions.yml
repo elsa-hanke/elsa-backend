@@ -75,7 +75,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
       - name: Run Grype security scan
         run: |
-          grype --fail-on critical -o table ./build/reports/cyclonedx-direct/bom.json
+          grype --fail-on critical -o table ./build/reports/bom.json
 
   build-image:
     runs-on: ubuntu-latest
