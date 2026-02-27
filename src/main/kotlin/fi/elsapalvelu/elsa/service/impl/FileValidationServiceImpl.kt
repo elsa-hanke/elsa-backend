@@ -24,7 +24,7 @@ class FileValidationServiceImpl(
         val allowedContentTypesOrDefault = allowedContentTypes ?: defaultAllowedContentTypes
         val existingFileNames = asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map { it.nimi }
         if (files.any {
-                it.originalFilename?.toString() in existingFileNames ||
+                it.originalFilename in existingFileNames ||
                     it.contentType?.toString() !in allowedContentTypesOrDefault ||
                     it.name.length > MAXIMUM_FILE_NAME_LENGTH
             }) {
