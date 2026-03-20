@@ -1,0 +1,52 @@
+---
+services:
+
+  db:
+    image: postgres:16.9
+    init: true
+    restart: always
+    networks:
+      - elsa
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=elsaBackend
+      - POSTGRES_PASSWORD=
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - elsa_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  elsa-backend:
+    image: eclipse-temurin:17-jdk
+    restart:  on-failure
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_USER=elsaBackend
+      - POSTGRES_PASSWORD=
+      - APPLICATION_SECURITY_ENCODED_KEY
+    volumes:
+      - ./../build/libs/elsa-backend-0.0.1-SNAPSHOT.jar:/app/elsa-backend.jar
+    command: java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -jar /app/elsa-backend.jar
+    ports:
+      - 8080:8080
+      - 5005:5005
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - elsa
+
+networks:
+  elsa:
+    name: elsa
+    external: true
+
+volumes:
+  elsa_db_data:
+    name: elsa_db_data
+    external: true
