@@ -12,6 +12,9 @@ itest:
 start-db:
   docker-compose -f src/main/docker/postgresql.yml up -d
 
+stop-db:
+  docker-compose -f src/main/docker/postgresql.yml down -v
+
 sb: start-db
  ./gradlew bootRun
 
@@ -27,3 +30,15 @@ br:
   just sb &
   just sf &
   wait
+
+r:
+  just sb &
+  just sf &
+  wait
+
+e2e:
+  cd e2e && yarn run cy:open
+
+e2e-run:
+  cd e2e && yarn run cy:run
+
