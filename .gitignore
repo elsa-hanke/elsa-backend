@@ -151,3 +151,4 @@ Desktop.ini
 ######################
 *.crt
 *.key
+.java-version
