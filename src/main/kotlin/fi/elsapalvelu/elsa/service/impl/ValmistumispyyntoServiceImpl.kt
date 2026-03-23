@@ -1093,7 +1093,7 @@ class ValmistumispyyntoServiceImpl(
 
         mailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
-            templateName = "valmistumispyyntoHyvaksyttyVirkailijaYek.html",
+            templateName = "valmistumispyyntoHyvaksyttyYekVirkailija.html",
             titleKey = "email.yekValmistumispyyntoHyvaksytty.title",
             properties = mapOf(
                 Pair(MailProperty.ID, valmistumispyynto.id.toString())
