@@ -1,5 +1,11 @@
+version:
+  java --version && ./gradlew --version
+
 build:
   ./gradlew clean build
+
+build-skiptest:
+  ./gradlew build -x test -x integrationTest
 
 test:
   ./gradlew clean test
