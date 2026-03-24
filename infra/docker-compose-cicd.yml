@@ -37,21 +37,18 @@ services:
       retries: 5
 
   elsa-backend:
-    image: eclipse-temurin:17-jdk
+    image: 654795471143.dkr.ecr.eu-west-1.amazonaws.com/ecr-shared-backend:feature-a32b951f
     restart: on-failure
     networks:
       - elsa
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_USER=elsaBackend
+      - SPRING_PROFILES_ACTIVE=dev
       - POSTGRES_PASSWORD=
       - APPLICATION_SECURITY_ENCODED_KEY
-    volumes:
-      - ./../build/libs/elsa-backend-0.0.1-SNAPSHOT.jar:/app/elsa-backend.jar
-    command: java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -jar /app/elsa-backend.jar
     ports:
       - 9080:8080
-      - 5005:5005
     depends_on:
       db:
         condition: service_healthy

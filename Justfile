@@ -54,18 +54,11 @@ e2e:
 up-e2e: kill8080
   docker compose -f ./infra/docker-compose-cicd.yml up -d
 
-docker-login:
-  aws ecr get-login-password               \
-  | docker login --username AWS            \
-                 --password-stdin          \
-                 939452229770.dkr.ecr.eu-west-1.amazonaws.com
-
-pull: docker-login
-  docker-compose -f ./infra/docker-compose-cicd.yml pull
-
 pullt:
   echo $(aws ecr get-login-password --profile elsadev)|docker login --password-stdin --username AWS 939452229770.dkr.ecr.eu-west-1.amazonaws.com
-  docker-compose -f ./infra/docker-compose-cicd.yml pull
+  docker-compose -f ./infra/docker-compose-cicd.yml pull --ignore-pull-failures
+  echo $(aws ecr get-login-password --profile elsashared)|docker login --password-stdin --username AWS 654795471143.dkr.ecr.eu-west-1.amazonaws.com
+  docker-compose -f ./infra/docker-compose-cicd.yml pull --ignore-pull-failures
 
 psql +args='':
   @docker run                                                 \
