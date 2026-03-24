@@ -151,7 +151,7 @@ dependencies {
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.springframework.security:spring-security-test"
-    testImplementation "com.h2database:h2:2.1.214"
+    testImplementation "com.h2database:h2:2.4.240"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.2.1'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.2.1'
