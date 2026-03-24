@@ -13,17 +13,34 @@ services:
       - POSTGRES_USER=elsaBackend
       - POSTGRES_PASSWORD=
       - POSTGRES_HOST_AUTH_METHOD=trust
-    volumes:
-      - elsa_db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  elsa-frontend:
+    image: 939452229770.dkr.ecr.eu-west-1.amazonaws.com/ecr-dev-frontend:latest
+    networks:
+      - elsa
+    ports:
+      - "8080:80"
+    environment:
+      - BACKEND_URL=http://elsa-backend:8080
+    depends_on:
+      elsa-backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   elsa-backend:
     image: eclipse-temurin:17-jdk
-    restart:  on-failure
+    restart: on-failure
+    networks:
+      - elsa
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_USER=elsaBackend
@@ -33,20 +50,17 @@ services:
       - ./../build/libs/elsa-backend-0.0.1-SNAPSHOT.jar:/app/elsa-backend.jar
     command: java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -jar /app/elsa-backend.jar
     ports:
-      - 8080:8080
+      - 9080:8080
       - 5005:5005
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - elsa
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/management/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
 
 networks:
   elsa:
-    name: elsa
-    external: true
-
-volumes:
-  elsa_db_data:
-    name: elsa_db_data
-    external: true
