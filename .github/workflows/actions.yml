@@ -75,7 +75,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
       - name: Run Grype security scan
         run: |
-          grype -o table ./build/reports/bom.json
+          grype -o table --fail-on medium ./build/reports/bom.json
 
   build-image:
     runs-on: ubuntu-latest
