@@ -37,16 +37,25 @@ services:
       retries: 5
 
   elsa-backend:
-    image: 654795471143.dkr.ecr.eu-west-1.amazonaws.com/ecr-shared-backend:feature-a32b951f
+    image: 654795471143.dkr.ecr.eu-west-1.amazonaws.com/ecr-shared-backend:feature-f7fdd09d
     restart: on-failure
     networks:
       - elsa
+    secrets:
+      - private_key
+      - public_crt
+      - hy_sisu_key
+      - hy_sisu_crt
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_USER=elsaBackend
       - SPRING_PROFILES_ACTIVE=dev
       - POSTGRES_PASSWORD=
       - APPLICATION_SECURITY_ENCODED_KEY
+      - SAML_PRIVATE_KEY_LOCATION=file:/run/secrets/private_key
+      - SAML_CERT_LOCATION=file:/run/secrets/public_crt
+      - SISUHY_PRIVATE_KEY_LOCATION=file:/run/secrets/hy_sisu_key
+      - SISUHY_CERT_LOCATION=file:/run/secrets/hy_sisu_crt
     ports:
       - 9080:8080
     depends_on:
@@ -61,3 +70,13 @@ services:
 
 networks:
   elsa:
+
+secrets:
+  private_key:
+    file: ../src/main/resources/private.key
+  public_crt:
+    file: ../src/main/resources/public.crt
+  hy_sisu_key:
+    file: ../src/main/resources/sisu/hy-sisu.key
+  hy_sisu_crt:
+    file: ../src/main/resources/sisu/hy-sisu.crt
