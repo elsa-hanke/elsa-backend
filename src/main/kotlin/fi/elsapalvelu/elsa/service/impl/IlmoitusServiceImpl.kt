@@ -33,7 +33,7 @@ class IlmoitusServiceImpl(
     }
 
     override fun update(ilmoitusDTO: IlmoitusDTO): IlmoitusDTO? {
-        val ilmoitus = ilmoitusRepository.findByIdOrNull(ilmoitusDTO.id)
+        val ilmoitus = ilmoitusDTO.id?.let { ilmoitusRepository.findByIdOrNull(it) }
         ilmoitus?.let {
             it.teksti = ilmoitusDTO.teksti
             ilmoitusRepository.save(it)
