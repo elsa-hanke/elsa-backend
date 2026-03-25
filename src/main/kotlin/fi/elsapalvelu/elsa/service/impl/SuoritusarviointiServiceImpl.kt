@@ -118,8 +118,8 @@ class SuoritusarviointiServiceImpl(
             suoritusarviointi.arvioitavaTapahtuma = suoritusarviointiDTO.arvioitavaTapahtuma
             suoritusarviointi.lisatiedot = suoritusarviointiDTO.lisatiedot
             suoritusarviointi.tapahtumanAjankohta = suoritusarviointiDTO.tapahtumanAjankohta
-            suoritusarviointi.tyoskentelyjakso = tyoskentelyjaksoRepository
-                .findByIdOrNull(suoritusarviointiDTO.tyoskentelyjaksoId)
+            suoritusarviointi.tyoskentelyjakso = suoritusarviointiDTO.tyoskentelyjaksoId
+                ?.let { tyoskentelyjaksoRepository.findByIdOrNull(it) }
             val ids =
                 suoritusarviointi.arvioitavatKokonaisuudet.map { it.arvioitavaKokonaisuus?.id }
             val dtoIds =
@@ -168,8 +168,8 @@ class SuoritusarviointiServiceImpl(
                 valittuVaihtoehto = dto.valittuVaihtoehtoId?.let { arviointityokaluKysymysVaihtoehtoRepository.findByIdOrNull(it) }
             } ?: SuoritusarvioinninArviointityokalunVastaus(
                 suoritusarviointi = suoritusarviointi,
-                arviointityokalu = arviointityokaluRepository.findByIdOrNull(dto.arviointityokaluId),
-                arviointityokaluKysymys = arviointityokaluKysymysRepository.findByIdOrNull(dto.arviointityokaluKysymysId),
+                arviointityokalu = dto.arviointityokaluId?.let { arviointityokaluRepository.findByIdOrNull(it) },
+                arviointityokaluKysymys = dto.arviointityokaluKysymysId?.let { arviointityokaluKysymysRepository.findByIdOrNull(it) },
                 tekstiVastaus = dto.tekstiVastaus,
                 valittuVaihtoehto = dto.valittuVaihtoehtoId?.let { arviointityokaluKysymysVaihtoehtoRepository.findByIdOrNull(it) }
             )

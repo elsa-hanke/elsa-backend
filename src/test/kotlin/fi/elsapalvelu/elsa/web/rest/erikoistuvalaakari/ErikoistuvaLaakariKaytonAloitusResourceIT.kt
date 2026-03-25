@@ -78,7 +78,7 @@ class ErikoistuvaLaakariKaytonAloitusResourceIT {
                 .with(csrf())
         ).andExpect(status().isOk)
 
-        val user = userRepository.findByIdOrNull(erikoistuvaLaakari.kayttaja?.user?.id)
+        val user = erikoistuvaLaakari.kayttaja?.user?.id?.let { userRepository.findByIdOrNull(it) }
         assertThat(user?.email).isEqualTo(DEFAULT_EMAIL)
     }
 
@@ -112,7 +112,7 @@ class ErikoistuvaLaakariKaytonAloitusResourceIT {
                 .with(csrf())
         ).andExpect(status().isOk)
 
-        val user = userRepository.findByIdOrNull(erikoistuvaLaakari.kayttaja?.user?.id)
+        val user = erikoistuvaLaakari.kayttaja?.user?.id?.let { userRepository.findByIdOrNull(it) }
         assertThat(user?.email).isEqualTo(DEFAULT_EMAIL)
         assertThat(erikoistuvaLaakari.getOpintooikeusKaytossa()).isEqualTo(opintooikeus)
     }

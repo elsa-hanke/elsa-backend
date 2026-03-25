@@ -190,7 +190,7 @@ class OpintooikeusServiceImpl(
         oikeudet.forEach {
             opintooikeudet.firstOrNull { o -> o.id == it.id }?.let { o ->
                 it.osaamisenArvioinninOppaanPvm = o.osaamisenArvioinninOppaanPvm
-                opintoopasRepository.findByIdOrNull(o.opintoopas)
+                o.opintoopas?.let { opintoopasRepository.findByIdOrNull(it) }
                     ?.let { opas -> it.opintoopas = opas }
             }
         }

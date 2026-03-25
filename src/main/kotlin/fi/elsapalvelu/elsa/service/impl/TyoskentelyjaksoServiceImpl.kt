@@ -50,12 +50,12 @@ class TyoskentelyjaksoServiceImpl(
             tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO).apply {
                 opintooikeus = it
                 tyoskentelypaikka?.kunta =
-                    kuntaRepository.findByIdOrNull(tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId)
+                    tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId?.let { kuntaRepository.findByIdOrNull(it) }
                 omaaErikoisalaaTukeva =
                     tyoskentelyjaksoDTO.omaaErikoisalaaTukeva.takeIf {
                         kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
                     }?.let {
-                        if (it.id == null) null else erikoisalaRepository.findByIdOrNull(it.id)
+                        it.id?.let { id -> erikoisalaRepository.findByIdOrNull(id) }
                     }
             }.takeIf { isValidTyoskentelyjakso(it) }?.let { tyoskentelyjakso ->
                 mapAsiakirjat(
@@ -110,7 +110,7 @@ class TyoskentelyjaksoServiceImpl(
                 omaaErikoisalaaTukeva =
                     updatedTyoskentelyjakso.omaaErikoisalaaTukeva.takeIf { kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS }
                         ?.let {
-                            erikoisalaRepository.findByIdOrNull(it.id)
+                            it.id?.let { id -> erikoisalaRepository.findByIdOrNull(id) }
                         }
             }
 
