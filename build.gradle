@@ -111,6 +111,11 @@ configurations {
                     details.useVersion '2.3.22.Final'
                     details.because 'CVE-2025-12543 fix'
                 }
+                if (details.requested.group == 'com.fasterxml.jackson.core'
+                        && details.requested.name == 'jackson-core') {
+                    details.useVersion '2.18.6'
+                    details.because 'GHSA-72hv-8253-57qq fix'
+                }
             }
         }
     }
@@ -151,7 +156,7 @@ dependencies {
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.springframework.security:spring-security-test"
-    testImplementation "com.h2database:h2:2.1.214"
+    testImplementation "com.h2database:h2:2.4.240"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.2.1'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.2.1'
@@ -167,7 +172,7 @@ dependencies {
     implementation "com.itextpdf:html2pdf:5.0.5"
     implementation "com.itextpdf:pdfa:${itextVersion}"
     implementation("org.apache.pdfbox:pdfbox:3.0.5")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation "org.springframework.integration:spring-integration-sftp"
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.3")
     implementation 'net.i2p.crypto:eddsa:0.3.0'
