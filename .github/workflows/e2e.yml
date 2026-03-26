@@ -54,6 +54,7 @@ jobs:
           HY_SISU_KEY_FILE: /tmp/hy-sisu.key
           HY_SISU_CRT_FILE: /tmp/hy-sisu.crt
         run: |
+          echo "▶ Backend image tag: $BACKEND_IMAGE_TAG"
           docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
 
       - name: Print container logs
