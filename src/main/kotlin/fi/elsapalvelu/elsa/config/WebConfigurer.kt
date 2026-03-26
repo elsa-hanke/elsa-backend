@@ -10,6 +10,7 @@ import org.springframework.core.env.Environment
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.CorsFilter
 import tech.jhipster.config.JHipsterProperties
+import tech.jhipster.config.JHipsterConstants
 import jakarta.servlet.ServletContext
 import jakarta.servlet.ServletException
 
@@ -33,8 +34,10 @@ class WebConfigurer(
             )
         }
 
-        servletContext.sessionCookieConfig.isSecure = true
+        val secureSessionCookie = env.activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_PRODUCTION)
+        servletContext.sessionCookieConfig.isSecure = secureSessionCookie
 
+        log.info("Session cookie secure flag: {}", secureSessionCookie)
         log.info("Web application fully configured")
     }
 
@@ -55,12 +58,10 @@ class WebConfigurer(
     /**
      * Sets SameSite=None on all cookies in the dev profile so that the session
      * cookie is sent on the cross-site SAML ACS POST callback from
-     * testi.apro.tunnistus.fi → localhost:8080.
+     * testi.apro.tunnistus.fi -> localhost:8080.
      *
-     * The session cookie already carries Secure=true (set in onStartup above).
-     * SameSite=None; Secure is the valid pair Chrome requires, and Chrome
-     * explicitly exempts localhost from the Secure/HTTPS requirement for
-     * SameSite=None, so HTTP + localhost still works in dev/CI.
+     * In dev/CI we intentionally keep cookies non-secure (HTTP localhost),
+     * while production keeps secure cookies via onStartup.
      */
     @Bean
     @Profile("dev")

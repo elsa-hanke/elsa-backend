@@ -57,6 +57,11 @@ jobs:
           echo "▶ Backend image tag: $BACKEND_IMAGE_TAG"
           docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
 
+      - name: Debug SAML cookie headers
+        run: |
+          echo "▶ Set-Cookie headers from /saml2/authenticate/suomifi"
+          curl -s -D - -o /dev/null http://localhost:8080/saml2/authenticate/suomifi | grep -i '^set-cookie' || true
+
       - name: Run Cypress e2e tests
         run: |
           docker run --rm \
