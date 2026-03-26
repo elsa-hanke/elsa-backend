@@ -36,6 +36,11 @@ Cypress.Commands.add('loginWithSuomifi', (email?: string) => {
   // wait explicitly before asserting on page content.
   cy.url({ timeout: 30000 }).should('not.include', 'tunnistus.fi')
 
+  // Debug: capture exactly what page the browser landed on after SAML
+  cy.url().then(url => cy.log(`[SAML] landed on: ${url}`))
+  cy.screenshot('after-saml-callback')
+  cy.document().then(doc => cy.log(`[SAML] page title: ${doc.title}`))
+
   if (email !== undefined) {
     cy.get('form .form-control').eq(0).clear().type(email)  // Sähköpostiosoite
     cy.get('form .form-control').eq(1).clear().type(email)  // Vahvista sähköpostiosoite

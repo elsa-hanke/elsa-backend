@@ -57,6 +57,14 @@ jobs:
           echo "▶ Backend image tag: $BACKEND_IMAGE_TAG"
           docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
 
+      - name: Run Cypress e2e tests
+        run: |
+          docker run --rm \
+            --network=host \
+            -v ${{ github.workspace }}/e2e:/e2e \
+            -w /e2e \
+            cypress/included:15.13.0
+
       - name: Print container logs
         if: always()
         run: |
@@ -67,13 +75,6 @@ jobs:
             docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml logs --no-color --timestamps $service || true
           done
 
-      - name: Run Cypress e2e tests
-        run: |
-          docker run --rm \
-            --network=host \
-            -v ${{ github.workspace }}/e2e:/e2e \
-            -w /e2e \
-            cypress/included:15.13.0
 
       - name: Upload screenshots on failure
         if: failure()
@@ -81,6 +82,13 @@ jobs:
         with:
           name: cypress-screenshots
           path: e2e/cypress/screenshots
+
+      - name: Upload videos on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: e2e/cypress/videos
 
       - name: Stop services
         if: always()
