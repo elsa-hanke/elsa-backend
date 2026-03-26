@@ -34,10 +34,16 @@ class WebConfigurer(
             )
         }
 
-        val secureSessionCookie = env.activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_PRODUCTION)
+        val configuredSecureSessionCookie = env.getProperty("server.servlet.session.cookie.secure", Boolean::class.java)
+        val secureSessionCookie = configuredSecureSessionCookie
+            ?: env.activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_PRODUCTION)
         servletContext.sessionCookieConfig.isSecure = secureSessionCookie
 
-        log.info("Session cookie secure flag: {}", secureSessionCookie)
+        log.info(
+            "Session cookie secure flag: {} (configuredOverride={})",
+            secureSessionCookie,
+            configuredSecureSessionCookie
+        )
         log.info("Web application fully configured")
     }
 

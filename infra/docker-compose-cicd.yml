@@ -51,6 +51,7 @@ services:
       - SAML_CERT_LOCATION=file:/run/secrets/public_crt
       - SISUHY_PRIVATE_KEY_LOCATION=file:/run/secrets/hy_sisu_key
       - SISUHY_CERT_LOCATION=file:/run/secrets/hy_sisu_crt
+      - SERVER_SERVLET_SESSION_COOKIE_SECURE
     ports:
       - 9080:8080
     depends_on:
