@@ -590,11 +590,16 @@ class SecurityConfiguration(
                 if (audience.contains("haka")) audience.substring(
                     0,
                     audience.indexOf("haka")
-                ) + "haka"; else audience
+                ) + "haka" else audience
             )
 
             val validator = OpenSaml4AuthenticationProvider.createDefaultAssertionValidatorWithParameters {
                 it.put(SAML2AssertionValidationParameters.COND_VALID_AUDIENCES, validAudiences)
+
+                if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
+                    // CI SAML callback can lose request state; skip strict InResponseTo only in dev.
+                    it[SAML2AssertionValidationParameters.SC_VALID_IN_RESPONSE_TO] = null
+                }
             }
             validator.convert(assertionToken)
         }
