@@ -105,7 +105,8 @@ jobs:
             echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
             echo "extra-tag=" >> "$GITHUB_OUTPUT"
           else
-            echo "image-tag=feature-$(echo '${{ github.sha }}' | cut -c1-8)" >> "$GITHUB_OUTPUT"
+            SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+            echo "image-tag=feature-$(echo "$SHA" | cut -c1-8)" >> "$GITHUB_OUTPUT"
             echo "extra-tag=feature-latest" >> "$GITHUB_OUTPUT"
           fi
       - name: Configure AWS Credentials
