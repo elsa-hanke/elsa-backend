@@ -15,6 +15,7 @@ export default defineConfig({
         if (browser.family === 'chromium' && browser.name !== 'electron') {
           launchOptions.args.push('--disable-features=SameSiteByDefaultCookies')
           launchOptions.args.push('--disable-features=CookiesWithoutSameSiteMustBeSecure')
+          launchOptions.args.push('--disable-features=TrackingProtection3pcd,ThirdPartyStoragePartitioning')
         }
         return launchOptions
       })

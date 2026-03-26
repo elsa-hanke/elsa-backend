@@ -15,7 +15,15 @@ declare global {
 Cypress.Commands.add('loginWithSuomifi', (email?: string) => {
   cy.visit('/kirjautuminen')
 
+  cy.getCookie('JSESSIONID').then(cookie => {
+    cy.log(`[SAML] JSESSIONID before login click: ${cookie ? 'present' : 'missing'}`)
+  })
+
   cy.contains('Kirjaudu sisään (Suomi.fi)').click()
+
+  cy.getCookie('JSESSIONID').then(cookie => {
+    cy.log(`[SAML] JSESSIONID after authn request init: ${cookie ? 'present' : 'missing'}`)
+  })
 
   cy.origin('https://testi.apro.tunnistus.fi', () => {
     cy.get('a#fakevetuma2').click()
@@ -36,6 +44,10 @@ Cypress.Commands.add('loginWithSuomifi', (email?: string) => {
   // wait explicitly before asserting on page content.
   cy.url({ timeout: 30000 }).should('not.include', 'tunnistus.fi')
 
+  cy.getCookie('JSESSIONID').then(cookie => {
+    cy.log(`[SAML] JSESSIONID after callback: ${cookie ? 'present' : 'missing'}`)
+  })
+
   // Debug: capture exactly what page the browser landed on after SAML
   cy.url().then(url => cy.log(`[SAML] landed on: ${url}`))
   cy.screenshot('after-saml-callback')
@@ -50,4 +62,3 @@ Cypress.Commands.add('loginWithSuomifi', (email?: string) => {
 })
 
 export {}
-

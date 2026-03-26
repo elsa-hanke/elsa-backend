@@ -22,6 +22,8 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     environment: shared
+    env:
+      CYPRESS_RUN_LOG: e2e/cypress/run.log
 
     steps:
       - name: Checkout code
@@ -64,11 +66,21 @@ jobs:
 
       - name: Run Cypress e2e tests
         run: |
+          set -o pipefail
+          mkdir -p "$(dirname "$CYPRESS_RUN_LOG")"
           docker run --rm \
             --network=host \
             -v ${{ github.workspace }}/e2e:/e2e \
             -w /e2e \
-            cypress/included:15.13.0 --browser chrome
+            cypress/included:15.13.0 --browser chrome 2>&1 | tee "$CYPRESS_RUN_LOG"
+
+      - name: Print Cypress log on failure
+        if: failure()
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  Cypress run log (tail): $CYPRESS_RUN_LOG"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          tail -n 300 "$CYPRESS_RUN_LOG" || true
 
       - name: Print container logs
         if: always()
@@ -87,6 +99,14 @@ jobs:
         with:
           name: cypress-screenshots
           path: e2e/cypress/screenshots
+
+      - name: Upload Cypress run log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-run-log
+          path: e2e/cypress/run.log
+          if-no-files-found: warn
 
       - name: Upload videos on failure
         if: failure()

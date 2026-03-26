@@ -254,25 +254,39 @@ class SecurityConfiguration(
                 .authenticationManager(ProviderManager(authenticationProvider))
                 .defaultSuccessUrl("/", true)
                 .failureHandler { request, response, exception ->
+                    val cookieHeader = request.getHeader("Cookie")
+                    val hasJSessionCookie = cookieHeader?.contains("JSESSIONID=") == true
+                    val secFetchSite = request.getHeader("Sec-Fetch-Site")
+                    val origin = request.getHeader("Origin")
+                    val referer = request.getHeader("Referer")
+
                     val samlException = exception as? Saml2AuthenticationException
                     if (samlException != null) {
                         log.error(
-                            "SAML login failed. code={}, description={}, registrationId={}, uri={}, hasSession={}, sessionId={}",
+                            "SAML login failed. code={}, description={}, registrationId={}, uri={}, hasSession={}, sessionId={}, hasJSessionCookie={}, secFetchSite={}, origin={}, referer={}",
                             samlException.saml2Error.errorCode,
                             samlException.saml2Error.description,
                             request.getParameter("registrationId"),
                             request.requestURI,
                             request.getSession(false) != null,
-                            request.getSession(false)?.id
+                            request.getSession(false)?.id,
+                            hasJSessionCookie,
+                            secFetchSite,
+                            origin,
+                            referer
                         )
                     } else {
                         log.error(
-                            "SAML login failed. type={}, message={}, uri={}, hasSession={}, sessionId={}",
+                            "SAML login failed. type={}, message={}, uri={}, hasSession={}, sessionId={}, hasJSessionCookie={}, secFetchSite={}, origin={}, referer={}",
                             exception::class.java.name,
                             exception.message,
                             request.requestURI,
                             request.getSession(false) != null,
-                            request.getSession(false)?.id
+                            request.getSession(false)?.id,
+                            hasJSessionCookie,
+                            secFetchSite,
+                            origin,
+                            referer
                         )
                     }
 
