@@ -56,6 +56,16 @@ jobs:
         run: |
           docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
 
+      - name: Print container logs
+        if: always()
+        run: |
+          for service in db elsa-backend elsa-frontend; do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "  Logs: $service"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml logs --no-color --timestamps $service || true
+          done
+
       - name: Run Cypress e2e tests
         run: |
           docker run --rm \
