@@ -73,10 +73,10 @@ networks:
 
 secrets:
   private_key:
-    file: ../src/main/resources/private.key
+    file: ${PRIVATE_KEY_FILE:-../src/main/resources/private.key}
   public_crt:
-    file: ../src/main/resources/public.crt
+    file: ${PUBLIC_CRT_FILE:-../src/main/resources/public.crt}
   hy_sisu_key:
-    file: ../src/main/resources/sisu/hy-sisu.key
+    file: ${HY_SISU_KEY_FILE:-../src/main/resources/sisu/hy-sisu.key}
   hy_sisu_crt:
-    file: ../src/main/resources/sisu/hy-sisu.crt
+    file: ${HY_SISU_CRT_FILE:-../src/main/resources/sisu/hy-sisu.crt}

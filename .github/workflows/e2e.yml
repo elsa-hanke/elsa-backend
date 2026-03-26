@@ -38,10 +38,21 @@ jobs:
         with:
           registries: "939452229770,654795471143"
 
+      - name: Write secret files
+        run: |
+          printf '%s' "${{ secrets.SAML_PRIVATE_KEY }}" > /tmp/private.key
+          printf '%s' "${{ secrets.SAML_PUBLIC_CRT }}"  > /tmp/public.crt
+          printf '%s' "${{ secrets.HY_SISU_KEY }}"      > /tmp/hy-sisu.key
+          printf '%s' "${{ secrets.HY_SISU_CRT }}"      > /tmp/hy-sisu.crt
+
       - name: Start services
         env:
           BACKEND_IMAGE_TAG: ${{ inputs.image-tag }}
           APPLICATION_SECURITY_ENCODED_KEY: ${{ secrets.APPLICATION_SECURITY_ENCODED_KEY }}
+          PRIVATE_KEY_FILE: /tmp/private.key
+          PUBLIC_CRT_FILE: /tmp/public.crt
+          HY_SISU_KEY_FILE: /tmp/hy-sisu.key
+          HY_SISU_CRT_FILE: /tmp/hy-sisu.crt
         run: |
           docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
 
