@@ -593,12 +593,16 @@ class SecurityConfiguration(
                 ) + "haka" else audience
             )
 
+            val assertionInResponseTo = assertionToken.assertion.subject.subjectConfirmations
+                .mapNotNull { it.subjectConfirmationData?.inResponseTo }
+                .toSet()
+
             val validator = OpenSaml4AuthenticationProvider.createDefaultAssertionValidatorWithParameters {
                 it.put(SAML2AssertionValidationParameters.COND_VALID_AUDIENCES, validAudiences)
 
-                if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
-                    // CI SAML callback can lose request state; skip strict InResponseTo only in dev.
-                    it[SAML2AssertionValidationParameters.SC_VALID_IN_RESPONSE_TO] = null
+                if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT) && assertionInResponseTo.isNotEmpty()) {
+                    // Dev/CI only: relax correlation by trusting current assertion's InResponseTo.
+                    it[SAML2AssertionValidationParameters.SC_VALID_IN_RESPONSE_TO] = assertionInResponseTo
                 }
             }
             validator.convert(assertionToken)
