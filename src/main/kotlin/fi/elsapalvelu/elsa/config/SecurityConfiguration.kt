@@ -32,6 +32,7 @@ import org.springframework.security.saml2.provider.service.authentication.Defaul
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver
@@ -45,6 +46,7 @@ import org.springframework.security.saml2.provider.service.web.authentication.lo
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutResponseResolver
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.WebAttributes
 import org.springframework.security.web.access.intercept.AuthorizationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
@@ -251,7 +253,32 @@ class SecurityConfiguration(
                 l.authenticationConverter(Saml2AuthenticationTokenConverter(relyingPartyRegistrationResolver))
                 .authenticationManager(ProviderManager(authenticationProvider))
                 .defaultSuccessUrl("/", true)
-                .failureUrl("/kirjaudu")
+                .failureHandler { request, response, exception ->
+                    val samlException = exception as? Saml2AuthenticationException
+                    if (samlException != null) {
+                        log.error(
+                            "SAML login failed. code={}, description={}, registrationId={}, uri={}, hasSession={}, sessionId={}",
+                            samlException.saml2Error.errorCode,
+                            samlException.saml2Error.description,
+                            request.getParameter("registrationId"),
+                            request.requestURI,
+                            request.getSession(false) != null,
+                            request.getSession(false)?.id
+                        )
+                    } else {
+                        log.error(
+                            "SAML login failed. type={}, message={}, uri={}, hasSession={}, sessionId={}",
+                            exception::class.java.name,
+                            exception.message,
+                            request.requestURI,
+                            request.getSession(false) != null,
+                            request.getSession(false)?.id
+                        )
+                    }
+
+                    request.getSession(true).setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception)
+                    response.sendRedirect("/kirjaudu")
+                }
             }
             httpConfiguration
                 .addFilterBefore(ElsaUriFilter(applicationProperties), CsrfFilter::class.java)
@@ -593,20 +620,36 @@ class SecurityConfiguration(
                 ) + "haka" else audience
             )
 
-            val assertionInResponseTo = assertionToken.assertion.subject.subjectConfirmations
-                .mapNotNull { it.subjectConfirmationData?.inResponseTo }
-                .firstOrNull()
-
             val validator = OpenSaml4AuthenticationProvider.createDefaultAssertionValidatorWithParameters {
                 it.put(SAML2AssertionValidationParameters.COND_VALID_AUDIENCES, validAudiences)
-
-                if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT) && assertionInResponseTo != null) {
-                    // Dev/CI only: keep InResponseTo check enabled, but provide a String value
-                    // in the expected type so Spring/OpenSAML can validate consistently.
-                    it[SAML2AssertionValidationParameters.SC_VALID_IN_RESPONSE_TO] = assertionInResponseTo
-                }
             }
-            validator.convert(assertionToken)
+            val result = validator.convert(assertionToken)
+            if (result == null) {
+                return@Converter Saml2ResponseValidatorResult.failure(
+                    org.springframework.security.saml2.core.Saml2Error("invalid_response", "SAML assertion validator returned null")
+                )
+            }
+
+            if (!env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
+                return@Converter result
+            }
+
+            // In dev/CI, tolerate only request-correlation failures caused by cross-site callback state loss.
+            val remainingErrors = result.errors.filterNot { error ->
+                val code = error.errorCode.lowercase(Locale.getDefault())
+                val description = error.description?.lowercase(Locale.getDefault()) ?: ""
+                code.contains("in_response_to") || description.contains("inresponseto")
+            }
+
+            if (remainingErrors.size != result.errors.size) {
+                log.warn("Dev SAML validation: ignoring InResponseTo-related assertion error(s)")
+            }
+
+            if (remainingErrors.isEmpty()) {
+                Saml2ResponseValidatorResult.success()
+            } else {
+                Saml2ResponseValidatorResult.failure(remainingErrors)
+            }
         }
     }
 }
