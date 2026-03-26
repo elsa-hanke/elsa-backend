@@ -1,0 +1,67 @@
+name: E2E Tests
+
+on:
+  workflow_call:
+    inputs:
+      image-tag:
+        description: Backend image tag to test against
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      image-tag:
+        description: Backend image tag to test against
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    environment: shared
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
+          aws-region: eu-west-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: "939452229770,654795471143"
+
+      - name: Start services
+        env:
+          BACKEND_IMAGE_TAG: ${{ inputs.image-tag }}
+          APPLICATION_SECURITY_ENCODED_KEY: ${{ secrets.APPLICATION_SECURITY_ENCODED_KEY }}
+        run: |
+          docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
+
+      - name: Run Cypress e2e tests
+        run: |
+          docker run --rm \
+            --network elsa-e2e_elsa \
+            -v ${{ github.workspace }}/e2e:/e2e \
+            -w /e2e \
+            -e CYPRESS_BASE_URL=http://elsa-frontend:80 \
+            cypress/included:15.13.0
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: e2e/cypress/screenshots
+
+      - name: Stop services
+        if: always()
+        run: docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml down -v
+
