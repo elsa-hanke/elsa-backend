@@ -2,8 +2,10 @@ package fi.elsapalvelu.elsa.config
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.servlet.ServletContextInitializer
+import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.core.env.Environment
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.CorsFilter
@@ -49,4 +51,19 @@ class WebConfigurer(
         }
         return CorsFilter(source)
     }
+
+    /**
+     * Sets SameSite=None on all cookies in the dev profile so that the session
+     * cookie is sent on the cross-site SAML ACS POST callback from
+     * testi.apro.tunnistus.fi → localhost:8080.
+     *
+     * The session cookie already carries Secure=true (set in onStartup above).
+     * SameSite=None; Secure is the valid pair Chrome requires, and Chrome
+     * explicitly exempts localhost from the Secure/HTTPS requirement for
+     * SameSite=None, so HTTP + localhost still works in dev/CI.
+     */
+    @Bean
+    @Profile("dev")
+    fun devCookieSameSiteSupplier(): CookieSameSiteSupplier =
+        CookieSameSiteSupplier.ofNone()
 }
