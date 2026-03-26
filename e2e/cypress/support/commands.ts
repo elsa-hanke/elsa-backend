@@ -30,6 +30,12 @@ Cypress.Commands.add('loginWithSuomifi', (email?: string) => {
     cy.get('#continue-button').click()
   })
 
+  // After the SAML POST callback the app redirects back to localhost:8080.
+  // In CI the full chain (Spring SAML processing → redirect → Vue bootstrap →
+  // API calls) can take significantly longer than on a local machine, so we
+  // wait explicitly before asserting on page content.
+  cy.url({ timeout: 30000 }).should('not.include', 'tunnistus.fi')
+
   if (email !== undefined) {
     cy.get('form .form-control').eq(0).clear().type(email)  // Sähköpostiosoite
     cy.get('form .form-control').eq(1).clear().type(email)  // Vahvista sähköpostiosoite
