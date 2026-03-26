@@ -595,13 +595,14 @@ class SecurityConfiguration(
 
             val assertionInResponseTo = assertionToken.assertion.subject.subjectConfirmations
                 .mapNotNull { it.subjectConfirmationData?.inResponseTo }
-                .toSet()
+                .firstOrNull()
 
             val validator = OpenSaml4AuthenticationProvider.createDefaultAssertionValidatorWithParameters {
                 it.put(SAML2AssertionValidationParameters.COND_VALID_AUDIENCES, validAudiences)
 
-                if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT) && assertionInResponseTo.isNotEmpty()) {
-                    // Dev/CI only: relax correlation by trusting current assertion's InResponseTo.
+                if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT) && assertionInResponseTo != null) {
+                    // Dev/CI only: keep InResponseTo check enabled, but provide a String value
+                    // in the expected type so Spring/OpenSAML can validate consistently.
                     it[SAML2AssertionValidationParameters.SC_VALID_IN_RESPONSE_TO] = assertionInResponseTo
                 }
             }
