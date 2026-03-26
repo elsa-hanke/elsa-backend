@@ -52,7 +52,7 @@ class RedirectResource(private val env: Environment) {
     private fun getRedirectUrl(request: HttpServletRequest): String {
         val activeProfiles = env.activeProfiles
         return if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT)) {
-            "http://localhost:9060/"
+            "http://localhost:8080/"
         } else {
             val url = request.requestURL.toString()
             url.replace("api.", "").replace(request.requestURI, "/")
