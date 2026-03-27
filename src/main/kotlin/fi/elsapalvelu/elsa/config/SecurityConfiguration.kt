@@ -12,6 +12,7 @@ import jakarta.persistence.EntityNotFoundException
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.*
 import org.apache.commons.lang3.exception.ExceptionUtils
+import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -31,7 +32,6 @@ import org.springframework.security.saml2.provider.service.authentication.Defaul
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver
@@ -45,7 +45,6 @@ import org.springframework.security.saml2.provider.service.web.authentication.lo
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutResponseResolver
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.security.web.WebAttributes
 import org.springframework.security.web.access.intercept.AuthorizationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
@@ -252,46 +251,7 @@ class SecurityConfiguration(
                 l.authenticationConverter(Saml2AuthenticationTokenConverter(relyingPartyRegistrationResolver))
                 .authenticationManager(ProviderManager(authenticationProvider))
                 .defaultSuccessUrl("/", true)
-                .failureHandler { request, response, exception ->
-                    val cookieHeader = request.getHeader("Cookie")
-                    val hasJSessionCookie = cookieHeader?.contains("JSESSIONID=") == true
-                    val secFetchSite = request.getHeader("Sec-Fetch-Site")
-                    val origin = request.getHeader("Origin")
-                    val referer = request.getHeader("Referer")
-
-                    val samlException = exception as? Saml2AuthenticationException
-                    if (samlException != null) {
-                        log.error(
-                            "SAML login failed. code={}, description={}, registrationId={}, uri={}, hasSession={}, sessionId={}, hasJSessionCookie={}, secFetchSite={}, origin={}, referer={}",
-                            samlException.saml2Error.errorCode,
-                            samlException.saml2Error.description,
-                            request.getParameter("registrationId"),
-                            request.requestURI,
-                            request.getSession(false) != null,
-                            request.getSession(false)?.id,
-                            hasJSessionCookie,
-                            secFetchSite,
-                            origin,
-                            referer
-                        )
-                    } else {
-                        log.error(
-                            "SAML login failed. type={}, message={}, uri={}, hasSession={}, sessionId={}, hasJSessionCookie={}, secFetchSite={}, origin={}, referer={}",
-                            exception::class.java.name,
-                            exception.message,
-                            request.requestURI,
-                            request.getSession(false) != null,
-                            request.getSession(false)?.id,
-                            hasJSessionCookie,
-                            secFetchSite,
-                            origin,
-                            referer
-                        )
-                    }
-
-                    request.getSession(true).setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception)
-                    response.sendRedirect("/kirjaudu")
-                }
+                .failureUrl("/kirjaudu")
             }
             httpConfiguration
                 .addFilterBefore(ElsaUriFilter(applicationProperties), CsrfFilter::class.java)
@@ -624,34 +584,19 @@ class SecurityConfiguration(
 
     private fun createAssertionValidator(): Converter<OpenSaml4AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> {
         return Converter { assertionToken ->
-            val validator = OpenSaml4AuthenticationProvider.createDefaultAssertionValidator()
-            val result = validator.convert(assertionToken)
-            if (result == null) {
-                return@Converter Saml2ResponseValidatorResult.failure(
-                    org.springframework.security.saml2.core.Saml2Error("invalid_response", "SAML assertion validator returned null")
-                )
-            }
+            val relyingPartyRegistration: RelyingPartyRegistration = assertionToken.token.relyingPartyRegistration
+            val audience = relyingPartyRegistration.entityId
+            val validAudiences = setOf(
+                if (audience.contains("haka")) audience.substring(
+                    0,
+                    audience.indexOf("haka")
+                ) + "haka"; else audience
+            )
 
-            if (!env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
-                return@Converter result
+            val validator = OpenSaml4AuthenticationProvider.createDefaultAssertionValidatorWithParameters {
+                it.put(SAML2AssertionValidationParameters.COND_VALID_AUDIENCES, validAudiences)
             }
-
-            // In dev/CI, tolerate only request-correlation failures caused by cross-site callback state loss.
-            val remainingErrors = result.errors.filterNot { error ->
-                val code = error.errorCode.lowercase(Locale.getDefault())
-                val description = error.description?.lowercase(Locale.getDefault()) ?: ""
-                code.contains("in_response_to") || description.contains("inresponseto")
-            }
-
-            if (remainingErrors.size != result.errors.size) {
-                log.warn("Dev SAML validation: ignoring InResponseTo-related assertion error(s)")
-            }
-
-            if (remainingErrors.isEmpty()) {
-                Saml2ResponseValidatorResult.success()
-            } else {
-                Saml2ResponseValidatorResult.failure(remainingErrors)
-            }
+            validator.convert(assertionToken)
         }
     }
 }
