@@ -65,15 +65,20 @@ jobs:
             -w /e2e \
             cypress/included:15.13.0 --browser chrome
 
-      - name: Print container logs
+      - name: Dump container logs to files
         if: always()
         run: |
+          mkdir -p e2e/container-logs
           for service in db elsa-backend elsa-frontend; do
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "  Logs: $service"
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml logs --no-color --timestamps $service || true
+            docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml logs --no-color --timestamps "$service" > "e2e/container-logs/${service}.log" || true
           done
+
+      - name: Upload container logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-container-logs
+          path: e2e/container-logs
 
 
       - name: Upload screenshots on failure

@@ -1,4 +1,13 @@
-# ELSA-palvelun backend 
+# ELSA-palvelun backend
+
+### Justfile-komennot
+
+Projektissa on valmiita kehityskomentoja `Justfile`-tiedostossa.
+
+- `just br` (build-run): ajaa ensin buildin ja käynnistää sen jälkeen backendin sekä frontendin.
+- `just r` (run): käynnistää backendin ja frontendin ilman build-vaihetta.
+- `just restartb`: käynnistää backendin uudelleen (tappaa ensin portin 8080 prosessin ja aiemman `bootRun`-prosessin).
+- `just psql`: avaa PostgreSQL:n `psql`-yhteyden Docker-kontista. Lisäparametreja voi antaa muodossa `just psql -- +args='-c "SELECT 1"'`.
 
 ## Kehittäminen
 

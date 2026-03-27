@@ -3,7 +3,7 @@
 ######################
 /build/resources/main/static/**
 /src/test/javascript/coverage/
-    infra/.env.e2e
+infra/.env.e2e
 
 ######################
 # Node
