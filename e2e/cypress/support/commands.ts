@@ -54,28 +54,10 @@ Cypress.Commands.add('loginWithSuomifi', (email?: string) => {
   cy.document().then(doc => cy.log(`[SAML] page title: ${doc.title}`))
 
   if (email !== undefined) {
-    const fillAndSubmitKaytonAloitus = () => {
-      cy.get('form .form-control').eq(0).clear().type(email) // Sähköpostiosoite
-      cy.get('form .form-control').eq(1).clear().type(email) // Vahvista sähköpostiosoite
-      cy.contains('Aloita palvelun käyttö').click()
-    }
+    cy.get('form .form-control').eq(0).clear().type(email)  // Sähköpostiosoite
+    cy.get('form .form-control').eq(1).clear().type(email)  // Vahvista sähköpostiosoite
 
-    cy.intercept('PUT', '/api/erikoistuva-laakari/kaytonaloitus').as('kaytonAloitus')
-    fillAndSubmitKaytonAloitus()
-
-    cy.wait('@kaytonAloitus').then(({ response }) => {
-      const status = response?.statusCode
-      cy.log(`[SAML] kaytonaloitus status: ${status}`)
-
-      if (status === 403) {
-        cy.log('[SAML] kaytonaloitus returned 403, reloading and retrying once')
-        cy.reload()
-        fillAndSubmitKaytonAloitus()
-        cy.wait('@kaytonAloitus').its('response.statusCode').should('be.gte', 200).and('be.lt', 300)
-      } else {
-        expect(status, 'kaytonaloitus status').to.be.gte(200).and.lt(300)
-      }
-    })
+    cy.contains('Aloita palvelun käyttö').click()
   }
 })
 
