@@ -12,7 +12,6 @@ import jakarta.persistence.EntityNotFoundException
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.*
 import org.apache.commons.lang3.exception.ExceptionUtils
-import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -625,18 +624,7 @@ class SecurityConfiguration(
 
     private fun createAssertionValidator(): Converter<OpenSaml4AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> {
         return Converter { assertionToken ->
-            val relyingPartyRegistration: RelyingPartyRegistration = assertionToken.token.relyingPartyRegistration
-            val audience = relyingPartyRegistration.entityId
-            val validAudiences = setOf(
-                if (audience.contains("haka")) audience.substring(
-                    0,
-                    audience.indexOf("haka")
-                ) + "haka" else audience
-            )
-
-            val validator = OpenSaml4AuthenticationProvider.createDefaultAssertionValidatorWithParameters {
-                it.put(SAML2AssertionValidationParameters.COND_VALID_AUDIENCES, validAudiences)
-            }
+            val validator = OpenSaml4AuthenticationProvider.createDefaultAssertionValidator()
             val result = validator.convert(assertionToken)
             if (result == null) {
                 return@Converter Saml2ResponseValidatorResult.failure(
