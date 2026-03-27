@@ -63,7 +63,7 @@ jobs:
             --network=host \
             -v ${{ github.workspace }}/e2e:/e2e \
             -w /e2e \
-            cypress/included:15.13.0 --browser chrome"
+            cypress/included:15.13.0 --browser chrome
 
       - name: Print container logs
         if: always()
