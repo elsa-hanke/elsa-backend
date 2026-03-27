@@ -5,25 +5,13 @@ export default defineConfig({
     baseUrl: 'http://localhost:8080',
     specPattern: 'cypress/e2e/**/*.cy.ts',
     supportFile: 'cypress/support/e2e.ts',
-    setupNodeEvents(on, _config) {
-      // Disable SameSite enforcement so the SAML ACS cross-site POST
-      // (testi.apro.tunnistus.fi → localhost:8080) includes the session cookie.
-      // This is required on Linux CI where --network=host gives true host
-      // networking and Chrome enforces SameSite=Lax strictly.
-      on('before:browser:launch', (browser, launchOptions) => {
-        // Electron in Cypress 15 ignores CLI args; keep flags for Chromium browsers only.
-        if (browser.family === 'chromium' && browser.name !== 'electron') {
-          launchOptions.args.push('--disable-features=SameSiteByDefaultCookies')
-          launchOptions.args.push('--disable-features=CookiesWithoutSameSiteMustBeSecure')
-          launchOptions.args.push('--disable-features=TrackingProtection3pcd,ThirdPartyStoragePartitioning')
-        }
-        return launchOptions
-      })
+    setupNodeEvents(on, config) {
+      // implement node event listeners here
     },
     viewportWidth: 1280,
     viewportHeight: 800,
     defaultCommandTimeout: 30000,
-    video: true,
+    video: false,
     screenshotOnRunFailure: true,
     experimentalModifyObstructiveThirdPartyCode: true,
   },

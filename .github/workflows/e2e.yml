@@ -22,8 +22,6 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     environment: shared
-    env:
-      CYPRESS_RUN_LOG: e2e/cypress/run.log
 
     steps:
       - name: Checkout code
@@ -55,33 +53,17 @@ jobs:
           PUBLIC_CRT_FILE: /tmp/public.crt
           HY_SISU_KEY_FILE: /tmp/hy-sisu.key
           HY_SISU_CRT_FILE: /tmp/hy-sisu.crt
-          SERVER_SERVLET_SESSION_COOKIE_SECURE: "true"
         run: |
           echo "▶ Backend image tag: $BACKEND_IMAGE_TAG"
           docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
 
-      - name: Debug SAML cookie headers
-        run: |
-          echo "▶ Set-Cookie headers from /saml2/authenticate/suomifi"
-          curl -s -D - -o /dev/null http://localhost:8080/saml2/authenticate/suomifi | grep -i '^set-cookie' || true
-
       - name: Run Cypress e2e tests
         run: |
-          set -o pipefail
-          mkdir -p "$(dirname "$CYPRESS_RUN_LOG")"
           docker run --rm \
             --network=host \
             -v ${{ github.workspace }}/e2e:/e2e \
             -w /e2e \
-            cypress/included:15.13.0 --browser chrome 2>&1 | tee "$CYPRESS_RUN_LOG"
-
-      - name: Print Cypress log on failure
-        if: failure()
-        run: |
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "  Cypress run log (tail): $CYPRESS_RUN_LOG"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          tail -n 300 "$CYPRESS_RUN_LOG" || true
+            cypress/included:15.13.0 --browser chrome"
 
       - name: Print container logs
         if: always()
@@ -100,21 +82,6 @@ jobs:
         with:
           name: cypress-screenshots
           path: e2e/cypress/screenshots
-
-      - name: Upload Cypress run log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-run-log
-          path: e2e/cypress/run.log
-          if-no-files-found: warn
-
-      - name: Upload videos on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-videos
-          path: e2e/cypress/videos
 
       - name: Stop services
         if: always()
