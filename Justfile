@@ -29,7 +29,7 @@ startb: kill8080 start-db
 restartb:
   just kill8080
   pkill -f bootRun || true
-  just sb
+  just startb
 
 startf:
   cd ../elsa-frontend && yarn serve
