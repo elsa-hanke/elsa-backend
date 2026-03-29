@@ -12,14 +12,6 @@ jacocoTestReport {
     }
 }
 
-dependencyCheck {
-    format = "ALL"
-    analyzers {
-        assemblyEnabled = false
-        nodeEnabled = false
-    }
-    suppressionFile = "owasp-suppressions.xml"
-}
 
 file("sonar-project.properties").withReader {
     Properties sonarProperties = new Properties()

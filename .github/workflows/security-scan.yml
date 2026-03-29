@@ -1,0 +1,39 @@
+name: Security Scan (BOM + Grype)
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  grype-scan:
+    name: Generate SBOM and Grype vulnerability scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Generate CycloneDX BOM
+        run: ./gradlew cyclonedxBom -x test -x integrationTest
+
+      - name: Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+      - name: Run Grype security scan
+        run: |
+          grype -o table --fail-on high ./build/reports/cyclonedx-direct/bom.json
+
