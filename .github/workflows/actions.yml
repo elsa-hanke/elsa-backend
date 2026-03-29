@@ -66,17 +66,6 @@ jobs:
       - name: Install Grype
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
-      - name: Generate Grype security scan report
-        run: |
-          grype -o sarif ./build/reports/bom.json > grype-results.sarif
-          jq '(.runs[].results[].locations[].physicalLocation.artifactLocation.uri) |=
-              (if . == "" or . == null then "unknown" else . end)' \
-              grype-results.sarif > grype-results-patched.sarif
-          cat grype-results-patched.sarif
-      - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: grype-results-patched.sarif
       - name: Run Grype security scan
         run: |
           grype -o table --fail-on high ./build/reports/bom.json

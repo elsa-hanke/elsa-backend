@@ -30,18 +30,10 @@ jobs:
       - name: Generate CycloneDX BOM
         run: ./gradlew cyclonedxBom -x test -x integrationTest
 
-      - name: Scan BOM with Grype
-        id: grype
-        uses: anchore/scan-action@v3
-        with:
-          sbom: build/reports/cyclonedx-direct/bom.json
-          fail-build: true
-          severity-cutoff: high
-          output-format: sarif
-
-      - name: Upload SARIF to GitHub Security tab
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: ${{ steps.grype.outputs.sarif }}
+      - name: Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+      - name: Run Grype security scan
+        run: |
+          grype -o table --fail-on high ./build/reports/cyclonedx-direct/bom.json
 
