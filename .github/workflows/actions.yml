@@ -69,6 +69,7 @@ jobs:
       - name: Generate Grype security scan report
         run: |
           grype -o sarif ./build/reports/bom.json > grype-results.sarif
+          cat grype-results.sarif
       - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         with:
