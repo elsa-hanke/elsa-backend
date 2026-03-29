@@ -33,7 +33,7 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://localhost:5432/elsaBackend
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:5432/elsaBackend
     username: elsaBackend
     password:
     hikari:

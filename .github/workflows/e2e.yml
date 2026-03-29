@@ -1,0 +1,93 @@
+name: E2E Tests
+
+on:
+  workflow_call:
+    inputs:
+      image-tag:
+        description: Backend image tag to test against
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      image-tag:
+        description: Backend image tag to test against
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    environment: shared
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
+          aws-region: eu-west-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: "939452229770,654795471143"
+
+      - name: Write secret files
+        run: |
+          printf '%s' "${{ secrets.SAML_PRIVATE_KEY }}" > /tmp/private.key
+          printf '%s' "${{ secrets.SAML_PUBLIC_CRT }}"  > /tmp/public.crt
+          printf '%s' "${{ secrets.HY_SISU_KEY }}"      > /tmp/hy-sisu.key
+          printf '%s' "${{ secrets.HY_SISU_CRT }}"      > /tmp/hy-sisu.crt
+
+      - name: Start services
+        env:
+          BACKEND_IMAGE_TAG: ${{ inputs.image-tag }}
+          APPLICATION_SECURITY_ENCODED_KEY: ${{ secrets.APPLICATION_SECURITY_ENCODED_KEY }}
+          PRIVATE_KEY_FILE: /tmp/private.key
+          PUBLIC_CRT_FILE: /tmp/public.crt
+          HY_SISU_KEY_FILE: /tmp/hy-sisu.key
+          HY_SISU_CRT_FILE: /tmp/hy-sisu.crt
+        run: |
+          echo "▶ Backend image tag: $BACKEND_IMAGE_TAG"
+          docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
+
+      - name: Run Cypress e2e tests
+        run: |
+          docker run --rm \
+            --network=host \
+            -v ${{ github.workspace }}/e2e:/e2e \
+            -w /e2e \
+            cypress/included:15.13.0 --browser chrome
+
+      - name: Dump container logs to files
+        if: always()
+        run: |
+          mkdir -p e2e/container-logs
+          for service in db elsa-backend elsa-frontend; do
+            docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml logs --no-color --timestamps "$service" > "e2e/container-logs/${service}.log" || true
+          done
+
+      - name: Upload container logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-container-logs
+          path: e2e/container-logs
+
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: e2e/cypress/screenshots
+
+      - name: Stop services
+        if: always()
+        run: docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml down -v

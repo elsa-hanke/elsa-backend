@@ -80,7 +80,7 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     needs: test-and-build
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
     outputs:
       image-tag: ${{ steps.image-tag.outputs.image-tag }}
     environment: shared
@@ -97,7 +97,18 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
       - name: Set image tag
         id: image-tag
-        run: echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
+            echo "extra-tag=latest" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
+            echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
+            echo "extra-tag=" >> "$GITHUB_OUTPUT"
+          else
+            SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+            echo "image-tag=feature-$(echo "$SHA" | cut -c1-8)" >> "$GITHUB_OUTPUT"
+            echo "extra-tag=feature-latest" >> "$GITHUB_OUTPUT"
+          fi
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -110,7 +121,22 @@ jobs:
         env:
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         run: |
-          ./gradlew jib -Pprod -Djib.to.image=$ECR_REPOSITORY:${{ steps.image-tag.outputs.image-tag }}
+          EXTRA="${{ steps.image-tag.outputs.extra-tag }}"
+          EXTRA_TAGS_ARG=""
+          if [ -n "$EXTRA" ]; then
+            EXTRA_TAGS_ARG="-Djib.to.tags=$EXTRA"
+          fi
+          ./gradlew jib -Pprod \
+            -Djib.to.image=$ECR_REPOSITORY:${{ steps.image-tag.outputs.image-tag }} \
+            $EXTRA_TAGS_ARG
+
+  e2e:
+    needs: build-image
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
+    uses: ./.github/workflows/e2e.yml
+    with:
+      image-tag: ${{ needs.build-image.outputs.image-tag }}
+    secrets: inherit
 
   deploy-dev:
     runs-on: ubuntu-latest
