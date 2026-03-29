@@ -1,0 +1,78 @@
+---
+services:
+
+  db:
+    image: postgres:16.9
+    init: true
+    restart: always
+    networks:
+      - elsa
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=elsaBackend
+      - POSTGRES_PASSWORD=
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  elsa-frontend:
+    image: 939452229770.dkr.ecr.eu-west-1.amazonaws.com/ecr-dev-frontend:latest
+    networks:
+      - elsa
+    ports:
+      - "8080:80"
+    environment:
+      - BACKEND_URL=http://elsa-backend:8080
+    depends_on:
+      elsa-backend:
+        condition: service_healthy
+
+  elsa-backend:
+    image: 654795471143.dkr.ecr.eu-west-1.amazonaws.com/ecr-shared-backend:${BACKEND_IMAGE_TAG:-feature-83a10278}
+    restart: on-failure
+    networks:
+      - elsa
+    secrets:
+      - private_key
+      - public_crt
+      - hy_sisu_key
+      - hy_sisu_crt
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_USER=elsaBackend
+      - SPRING_PROFILES_ACTIVE=dev
+      - POSTGRES_PASSWORD=
+      - APPLICATION_SECURITY_ENCODED_KEY
+      - SAML_PRIVATE_KEY_LOCATION=file:/run/secrets/private_key
+      - SAML_CERT_LOCATION=file:/run/secrets/public_crt
+      - SISUHY_PRIVATE_KEY_LOCATION=file:/run/secrets/hy_sisu_key
+      - SISUHY_CERT_LOCATION=file:/run/secrets/hy_sisu_crt
+      - SERVER_SERVLET_SESSION_COOKIE_SECURE
+    ports:
+      - 9080:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/management/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+networks:
+  elsa:
+
+secrets:
+  private_key:
+    file: ${PRIVATE_KEY_FILE:-../src/main/resources/private.key}
+  public_crt:
+    file: ${PUBLIC_CRT_FILE:-../src/main/resources/public.crt}
+  hy_sisu_key:
+    file: ${HY_SISU_KEY_FILE:-../src/main/resources/sisu/hy-sisu.key}
+  hy_sisu_crt:
+    file: ${HY_SISU_CRT_FILE:-../src/main/resources/sisu/hy-sisu.crt}

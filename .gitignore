@@ -3,6 +3,7 @@
 ######################
 /build/resources/main/static/**
 /src/test/javascript/coverage/
+infra/.env.e2e
 
 ######################
 # Node
@@ -153,3 +154,4 @@ Desktop.ini
 *.crt
 *.key
 .java-version
+.env

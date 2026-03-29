@@ -1,0 +1,5 @@
+# Cypress auto-generated directories
+cypress/screenshots/
+cypress/videos/
+node_modules/
+

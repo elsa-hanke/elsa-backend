@@ -1,10 +1,30 @@
-version: "2"
 services:
   elsabackend-postgresql:
     image: postgres:16.9
+    init: true
+    restart: always
+    networks:
+      - elsa
     environment:
       - POSTGRES_USER=elsaBackend
       - POSTGRES_PASSWORD=
       - POSTGRES_HOST_AUTH_METHOD=trust
     ports:
-      - 5432:5432
+      - 127.0.0.1:5432:5432
+    volumes:
+      - elsa_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  elsa:
+    name: elsa
+    external: true
+
+volumes:
+  elsa_db_data:
+    name: elsa_db_data
+    external: true
