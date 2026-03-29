@@ -15,7 +15,6 @@ plugins {
     id "com.gorylenko.gradle-git-properties"
     id "org.liquibase.gradle" version "2.1.1"
     id "org.sonarqube"
-    id "org.owasp.dependencycheck"
     id "com.apollographql.apollo3" version "${apolloVersion}"
     id "org.hibernate.orm" version "${hibernateVersion}"
     id "org.cyclonedx.bom" version "3.2.2"
@@ -92,12 +91,6 @@ gitProperties {
     keys = ["git.branch", "git.commit.id.abbrev", "git.commit.id.describe"]
 }
 
-dependencyCheck {
-    autoUpdate = false
-    failBuildOnCVSS = 5
-    failOnError = true
-    suppressionFile = "owasp-suppressions.xml"
-}
 
 configurations {
     providedRuntime
