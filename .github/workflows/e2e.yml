@@ -65,7 +65,7 @@ jobs:
             -v ${{ github.workspace }}/e2e:/e2e \
             -w /e2e \
             cypress/included:15.13.0 \
-            -c "npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080 --config video=true"
+            -c "npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080"
 
       - name: Upload Cypress videos
         if: always()
