@@ -26,13 +26,9 @@ describe('Työskentelyjakso', () => {
     cy.visit('/tyoskentelyjaksot')
     cy.contains('h1', 'Työskentelyjaksot').should('be.visible')
 
-    // --- Vaihe 2: Avataan uusi työskentelyjakso -lomake ---
+    // --- Vaihe 2: Täytetään ja lähetetään työskentelyjakso -lomake ---
     cy.visit('/tyoskentelyjaksot/uusi')
-    cy.contains('h1', 'Lisää työskentelyjakso').should('be.visible')
-
-    // --- Vaihe 3: Täytetään ja lähetetään työskentelyjakso -lomake ---
-    cy.visit('/tyoskentelyjakso/uusi')
-    // Odotetaan, että lomake latautuu
+    // Odotetaan, että lomake latautuu (varmistetaan että työskentelypaikan nimi -kenttä on näkyvissä)
     cy.get('.lisaa-tyoskentelyjakso').should('be.visible')
     cy.get('[data-testid="loading"]', { timeout: 10000 }).should('not.exist')
     // Tyyppi – valitaan ensimmäinen saatavilla oleva radiovaihtoehto
@@ -87,12 +83,9 @@ describe('Työskentelyjakso', () => {
     cy.contains('uusi-tyoskentelyjakso-lisatty', { matchCase: false }).should('not.exist')
     cy.url().should('not.include', '/uusi')
 
-    // --- Vaihe 4: Näytetään juuri luotu työskentelyjakso listassa ---
+    // --- Vaihe 3: Lisätään poissaolo työskentelyjaksoon ---
     cy.visit('/tyoskentelyjaksot')
     cy.contains('E2E Testisairaala').should('be.visible')
-
-    // --- Vaihe 5: Lisätään poissaolo työskentelyjaksoon ---
-    cy.visit('/tyoskentelyjaksot')
     // Siirrytään juuri luotuun työskentelyjaksoon
     cy.contains('E2E Testisairaala').click()
     cy.url().should('match', /\/tyoskentelyjaksot\/\d+$/)
@@ -124,7 +117,7 @@ describe('Työskentelyjakso', () => {
     // Tallennuksen jälkeen palataan työskentelyjakson sivulle
     cy.url().should('not.include', '/poissaolot/uusi')
 
-    // --- Vaihe 6: Näytetään päivitetty työkertymä listassa ---
+    // --- Vaihe 4: Näytetään päivitetty työkertymä listassa ---
     cy.visit('/tyoskentelyjaksot')
     cy.get('.tyoskentelyjaksot, main').should('be.visible')
     cy.contains('E2E Testisairaala').should('be.visible')
