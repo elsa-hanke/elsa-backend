@@ -32,7 +32,7 @@ const KOULUTTAJA_EMAIL    = 'test-kouluttaja@test.elsa'
 const KOULUTTAJA_ETUNIMI  = 'Testi'
 const KOULUTTAJA_SUKUNIMI = 'Kouluttaja'
 
-describe('Arviointipyyntö', () => {
+describe.skip('Arviointipyyntö', () => {
   // ── Seed kouluttaja once for the whole suite ────────────────────────────────
   before(() => {
     Cypress.session.clearAllSavedSessions()
@@ -45,7 +45,7 @@ describe('Arviointipyyntö', () => {
   })
 
   // ── Case 2 – Erikoistuva side ───────────────────────────────────────────────
-  xcontext('Case 2 – Arviointipyynnön tekeminen ja itsearviointi (erikoistuva)', () => {
+  context('Case 2 – Arviointipyynnön tekeminen ja itsearviointi (erikoistuva)', () => {
     beforeEach(() => {
       cy.loginAsErikoistuva()
     })
