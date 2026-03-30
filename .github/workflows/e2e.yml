@@ -65,7 +65,14 @@ jobs:
             -v ${{ github.workspace }}/e2e:/e2e \
             -w /e2e \
             cypress/included:15.13.0 \
-            -c "npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080"
+            -c "npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080 --config video=true"
+
+      - name: Upload Cypress videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: e2e/cypress/videos
 
       - name: Dump container logs to files
         if: always()
