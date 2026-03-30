@@ -163,6 +163,31 @@ export default defineConfig({
                  )`,
                 [el_id]
               )
+              // Delete dependent keskeytysaika rows first (FK to tyoskentelyjakso)
+              await client.query(
+                `DELETE FROM keskeytysaika WHERE tyoskentelyjakso_id IN (
+                   SELECT id FROM tyoskentelyjakso WHERE opintooikeus_id IN (
+                     SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+                   )
+                 )`,
+                [el_id]
+              )
+              // Delete dependent asiakirja rows first (FK to tyoskentelyjakso)
+              await client.query(
+                `DELETE FROM asiakirja WHERE tyoskentelyjakso_id IN (
+                   SELECT id FROM tyoskentelyjakso WHERE opintooikeus_id IN (
+                     SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+                   )
+                 )`,
+                [el_id]
+              )
+              // Delete dependent tyoskentelyjakso rows first (FK to opintooikeus)
+              await client.query(
+                `DELETE FROM tyoskentelyjakso WHERE opintooikeus_id IN (
+                   SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+                 )`,
+                [el_id]
+              )
               await client.query(
                 `DELETE FROM opintooikeus_herate WHERE erikoistuva_laakari_id = $1`,
                 [el_id]
