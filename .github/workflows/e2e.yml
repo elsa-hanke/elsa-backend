@@ -63,7 +63,8 @@ jobs:
             --network=host \
             -v ${{ github.workspace }}/e2e:/e2e \
             -w /e2e \
-            cypress/included:15.13.0 --browser chrome
+            cypress/included:15.13.0 \
+            /bin/sh -c "npm install && npx cypress run --browser chrome"
 
       - name: Dump container logs to files
         if: always()
