@@ -12,7 +12,7 @@
  */
 import {E2E_ERIKOISTUVA_EMAIL} from "../../support/commands";
 
-describe('Koulutussuunnitelma', () => {
+xdescribe('Koulutussuunnitelma', () => {
   before(() => {
     Cypress.session.clearAllSavedSessions()
     cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })

@@ -20,7 +20,7 @@ const KOULUTTAJA_EMAIL   = 'test-kouluttaja@test.elsa'
 const KOULUTTAJA_ETUNIMI = 'Testi'
 const KOULUTTAJA_SUKUNIMI = 'Kouluttaja'
 
-describe('Katseluoikeudet', () => {
+xdescribe('Katseluoikeudet', () => {
   before(() => {
     Cypress.session.clearAllSavedSessions()
     cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })

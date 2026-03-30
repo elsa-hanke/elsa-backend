@@ -1,56 +1,57 @@
 /**
- * Use case 4 – Työskentelyjakson lisääminen
+ * Käyttötapaus 4 – Työskentelyjakson lisääminen ja poissaolojen merkitseminen
  *
- * Covers:
- *  - Adding a new work period (työskentelyjakso) as a resident physician
- *  - Attaching a PDF work certificate (työtodistus)
- *  - Adding an absence (poissaolo) to the created period
- *  - Verifying the work accumulation (työkertymä) is updated
+ * Kattaa:
+ *  - Uuden työskentelyjakson lisääminen erikoistuvana lääkärinä
+ *  - Työtodistuksen (PDF) liittäminen työskentelyjaksolle
+ *  - Poissaolon lisääminen luotuun työskentelyjaksoon
+ *  - Työkertymän päivittymisen tarkistaminen
  *
- * Prerequisites (handled automatically in the dev profile):
- *  On first login the backend runs createWithoutOpintotietodata which creates the
- *  erikoistuva_laakari + opintooikeus records. No extra seeding is required.
+ * Esiehdot (hoidetaan automaattisesti dev-profiilissa):
+ *  Ensimmäisellä kirjautumisella backend suorittaa createWithoutOpintotietodata, joka luo
+ *  erikoistuva_laakari + opintooikeus -tietueet. Erillistä siementämistä ei tarvita.
  */
 import {E2E_ERIKOISTUVA_EMAIL} from "../../support/commands";
 
 describe('Työskentelyjakso', () => {
   before(() => {
+    // Tyhjennetään kaikki tallennetut sessiot ja siivotaan testidata
     Cypress.session.clearAllSavedSessions()
     cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
     cy.loginAsErikoistuva()
   })
 
-  it('completes the full Työskentelyjakson lisääminen use case (case 4)', () => {
-    // --- Step 1: Navigate to the work periods list ---
+  it('suorittaa koko Työskentelyjakson lisäämisen käyttötapauksen (case 4)', () => {
+    // --- Vaihe 1: Siirrytään työskentelyjaksojen listaukseen ---
     cy.visit('/tyoskentelyjaksot')
     cy.contains('h1', 'Työskentelyjaksot').should('be.visible')
 
-    // --- Step 2: Open the new work period form ---
+    // --- Vaihe 2: Avataan uusi työskentelyjakso -lomake ---
     cy.visit('/tyoskentelyjaksot/uusi')
     cy.contains('h1', 'Lisää työskentelyjakso').should('be.visible')
 
-    // --- Step 3: Fill in and submit the work period form ---
-    cy.visit('/tyoskentelyjaksot/uusi')
-    // Wait for the form to finish loading
+    // --- Vaihe 3: Täytetään ja lähetetään työskentelyjakso -lomake ---
+    cy.visit('/tyoskentelyjakso/uusi')
+    // Odotetaan, että lomake latautuu
     cy.get('.lisaa-tyoskentelyjakso').should('be.visible')
     cy.get('[data-testid="loading"]', { timeout: 10000 }).should('not.exist')
-    // Type (Tyyppi) – select the first available radio option
+    // Tyyppi – valitaan ensimmäinen saatavilla oleva radiovaihtoehto
     cy.get('input[type="radio"][name="tyoskentelyjakso-tyyppi"]')
       .first()
       .click({ force: true })
-    // Work place name (Työskentelypaikka)
+    // Työskentelypaikan nimi
     cy.contains('label', 'Työskentelypaikka')
       .parent()
       .find('input[type="text"]')
       .first()
       .clear()
       .type('E2E Testisairaala')
-    // Municipality (Kunta) – pick first multiselect option
+    // Kunta – valitaan ensimmäinen monivalintavaihtoehto
     cy.contains('label', 'Kunta')
       .parent()
       .as('kuntaGroup')
     cy.selectFirstMultiselectOption(cy.get('@kuntaGroup'))
-    // Start date (Alkamispäivä)
+    // Alkamispäivä
     cy.contains('label', 'Alkamispäivä')
       .parent()
       .find('input.date-input')
@@ -58,7 +59,7 @@ describe('Työskentelyjakso', () => {
       .clear()
       .type('01.01.2025')
       .blur()
-    // End date (Päättymispäivä)
+    // Päättymispäivä
     cy.contains('label', 'Päättymispäivä')
       .parent()
       .find('input.date-input')
@@ -67,43 +68,43 @@ describe('Työskentelyjakso', () => {
       .type('30.06.2027')
       .blur()
 
-    // Työaika (osaaikaprosentti) – required field (50–100%)
+    // Työaika (osaaikaprosentti) – pakollinen kenttä (50–100%)
     cy.get('input[type="number"]').first().clear().type('100')
 
-    // Käytännön koulutus – required radio
+    // Käytännön koulutus – pakollinen radiovaihtoehto
     cy.get('input[type="radio"][name="kaytannon-koulutus-tyyppi"]').first().click({ force: true })
 
-    // Work certificate (Työtodistus) – file upload
+    // Työtodistus – tiedoston liittäminen
     cy.get('input[type="file"]').first().selectFile(
       'cypress/fixtures/test.pdf',
       { force: true }
     )
     cy.wait(1)
-    // Submit
+    // Lähetä lomake
     cy.contains('button', 'Lisää').click()
-    // Assert success: redirected to the detail page or list
+    // Varmistetaan onnistuminen: ohjataan yksityiskohtasivulle tai listaan
     cy.url().should('match', /\/tyoskentelyjaksot(\/\d+)?$/)
     cy.contains('uusi-tyoskentelyjakso-lisatty', { matchCase: false }).should('not.exist')
     cy.url().should('not.include', '/uusi')
 
-    // --- Step 4: Show the newly created work period in the list ---
+    // --- Vaihe 4: Näytetään juuri luotu työskentelyjakso listassa ---
     cy.visit('/tyoskentelyjaksot')
     cy.contains('E2E Testisairaala').should('be.visible')
 
-    // --- Step 5: Add an absence (poissaolo) to the work period ---
+    // --- Vaihe 5: Lisätään poissaolo työskentelyjaksoon ---
     cy.visit('/tyoskentelyjaksot')
-    // Navigate into the first työskentelyjakso that was just created
+    // Siirrytään juuri luotuun työskentelyjaksoon
     cy.contains('E2E Testisairaala').click()
     cy.url().should('match', /\/tyoskentelyjaksot\/\d+$/)
-    // Click "Lisää poissaolo"
+    // Klikataan "Lisää poissaolo"
     cy.contains('Lisää poissaolo').click()
     cy.url().should('include', '/poissaolot/uusi')
-    // Absence reason (Poissaolon syy)
+    // Poissaolon syy
     cy.contains('label', 'Poissaolon syy')
       .parent()
       .as('syy')
     cy.selectFirstMultiselectOption(cy.get('@syy'))
-    // Absence start date
+    // Poissaolon alkamispäivä
     cy.contains('label', 'Alkamispäivä')
       .parent()
       .find('input.date-input')
@@ -111,7 +112,7 @@ describe('Työskentelyjakso', () => {
       .clear()
       .type('15.02.2025')
       .blur()
-    // Absence end date
+    // Poissaolon päättymispäivä
     cy.contains('label', 'Päättymispäivä')
       .parent()
       .find('input.date-input')
@@ -120,10 +121,10 @@ describe('Työskentelyjakso', () => {
       .type('28.02.2025')
       .blur()
     cy.contains('button', 'Tallenna').click()
-    // After saving the absence we should be back on the työskentelyjakso page
+    // Tallennuksen jälkeen palataan työskentelyjakson sivulle
     cy.url().should('not.include', '/poissaolot/uusi')
 
-    // --- Step 6: Show the updated work accumulation (työkertymä) on the list ---
+    // --- Vaihe 6: Näytetään päivitetty työkertymä listassa ---
     cy.visit('/tyoskentelyjaksot')
     cy.get('.tyoskentelyjaksot, main').should('be.visible')
     cy.contains('E2E Testisairaala').should('be.visible')

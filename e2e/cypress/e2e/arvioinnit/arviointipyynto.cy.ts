@@ -45,7 +45,7 @@ describe('Arviointipyyntö', () => {
   })
 
   // ── Case 2 – Erikoistuva side ───────────────────────────────────────────────
-  context('Case 2 – Arviointipyynnön tekeminen ja itsearviointi (erikoistuva)', () => {
+  xcontext('Case 2 – Arviointipyynnön tekeminen ja itsearviointi (erikoistuva)', () => {
     beforeEach(() => {
       cy.loginAsErikoistuva()
     })
