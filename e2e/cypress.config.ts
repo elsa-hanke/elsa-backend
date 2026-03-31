@@ -63,7 +63,7 @@ export default defineConfig({
             ).rows[0].id
 
             await client.query(
-              `INSERT INTO kayttaja (id, nimi, user_id, tila)
+              `INSERT INTO kayttaja (id, nimike, user_id, tila)
                VALUES ($1,$2,$3,'AKTIIVINEN')`,
               [kayttajaId, nimi, userId]
             )

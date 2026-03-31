@@ -20,7 +20,7 @@ const KOULUTTAJA_EMAIL   = 'test-kouluttaja@test.elsa'
 const KOULUTTAJA_ETUNIMI = 'Testi'
 const KOULUTTAJA_SUKUNIMI = 'Kouluttaja'
 
-describe.skip('Katseluoikeudet', () => {
+describe('Katseluoikeudet', () => {
   before(() => {
     Cypress.session.clearAllSavedSessions()
     cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
@@ -42,64 +42,35 @@ describe.skip('Katseluoikeudet', () => {
   })
 
   context('Katseluoikeuden lisääminen kouluttajalle (case 1)', () => {
-    it('navigates to the profile and opens the Katseluoikeudet tab', () => {
+    it('navigates, selects, grants, and verifies katseluoikeus for kouluttaja', () => {
+      // Navigates to the profile and opens the Katseluoikeudet tab
       cy.visit('/profiili#katseluoikeudet')
       cy.contains('h1', 'Oma profiili').should('be.visible')
-      // The tab should be active (the hash triggers beforeMount tab selection)
       cy.contains('.nav-link', 'Katseluoikeudet').should('be.visible')
-    })
 
-    it('shows the seeded kouluttaja in the dropdown', () => {
-      cy.visit('/profiili#katseluoikeudet')
-
-      // Wait for katseluoikeudet to load (lazy tab)
+      // Shows the seeded kouluttaja in the dropdown
       cy.contains('.nav-link', 'Katseluoikeudet').click()
       cy.contains('Katseluoikeudet').should('be.visible')
-
-      // The kouluttaja multiselect is present
       cy.contains('label', 'Kouluttaja')
         .parent()
         .as('kouluttajaGroup')
-
-      // Open the dropdown and verify the seeded trainer appears
       cy.get('@kouluttajaGroup')
         .find('.multiselect')
         .click()
-
       cy.get('.multiselect__content .multiselect__option')
         .contains(`${KOULUTTAJA_ETUNIMI} ${KOULUTTAJA_SUKUNIMI}`)
         .should('be.visible')
         .click()
-    })
 
-    it('grants view access to the kouluttaja', () => {
-      cy.visit('/profiili#katseluoikeudet')
-      cy.contains('.nav-link', 'Katseluoikeudet').click()
-
-      // Select the kouluttaja
-      cy.contains('label', 'Kouluttaja')
-        .parent()
-        .find('.multiselect')
-        .click()
-
-      cy.get('.multiselect__content .multiselect__option')
-        .contains(`${KOULUTTAJA_ETUNIMI} ${KOULUTTAJA_SUKUNIMI}`)
-        .click()
-
-      // Click "Myönnä oikeus"
+      // Grants view access to the kouluttaja
       cy.contains('button', 'Myönnä oikeus').click()
-
-      // The kouluttaja should now appear as a card in the list
       cy.contains(`${KOULUTTAJA_ETUNIMI} ${KOULUTTAJA_SUKUNIMI}`).should('be.visible')
       cy.contains(KOULUTTAJA_EMAIL).should('be.visible')
-    })
 
-    it('shows the kouluttaja card after page reload', () => {
+      // Shows the kouluttaja card after page reload
       cy.visit('/profiili#katseluoikeudet')
       cy.contains('.nav-link', 'Katseluoikeudet').click()
-
       cy.contains(`${KOULUTTAJA_ETUNIMI} ${KOULUTTAJA_SUKUNIMI}`).should('be.visible')
     })
   })
 })
-

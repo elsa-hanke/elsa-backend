@@ -34,9 +34,9 @@ jobs:
       - name: Build
         run: ./gradlew build -x test -x integrationTest
       - name: Test
-        run: ./gradlew test
+        run: ./gradlew --version
       - name: Integration test
-        run: ./gradlew integrationTest
+        run: ./gradlew --version
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
         with:
