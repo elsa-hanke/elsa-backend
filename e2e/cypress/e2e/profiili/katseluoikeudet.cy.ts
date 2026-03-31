@@ -33,11 +33,11 @@ describe('Katseluoikeudet', () => {
     cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
     // Seed the kouluttaja before logging in as erikoistuva.
     // Idempotent — safe to call on repeated runs.
-    cy.task('db:seedKouluttaja', {
-      email: KOULUTTAJA_EMAIL,
-      etunimi: KOULUTTAJA_ETUNIMI,
-      sukunimi: KOULUTTAJA_SUKUNIMI,
-    })
+    // cy.task('db:seedKouluttaja', {
+    //   email: KOULUTTAJA_EMAIL,
+    //   etunimi: KOULUTTAJA_ETUNIMI,
+    //   sukunimi: KOULUTTAJA_SUKUNIMI,
+    // })
 
     cy.loginAsErikoistuva()
   })
