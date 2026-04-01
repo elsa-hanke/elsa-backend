@@ -58,26 +58,25 @@ export default defineConfig({
               [userId]
             )
 
+            // Let the IDENTITY column generate the id so the sequence is properly
+            // advanced — avoids a duplicate-key collision on the first run when the
+            // identity sequence would otherwise still be at 1.
             const kayttajaId: number = (
-              await client.query(`SELECT nextval('hibernate_sequence') AS id`)
+              await client.query(
+                `INSERT INTO kayttaja (nimike, user_id, tila)
+                 VALUES ($1,$2,'AKTIIVINEN')
+                 RETURNING id`,
+                [nimi, userId]
+              )
             ).rows[0].id
-
-            await client.query(
-              `INSERT INTO kayttaja (id, nimike, user_id, tila)
-               VALUES ($1,$2,$3,'AKTIIVINEN')`,
-              [kayttajaId, nimi, userId]
-            )
 
             // Link to yliopisto 1 + erikoisala 46 (Työterveyshuolto) — matches the
             // erikoistuva created by createWithoutOpintotietodata in dev profile.
-            const kyeId: number = (
-              await client.query(`SELECT nextval('hibernate_sequence') AS id`)
-            ).rows[0].id
             await client.query(
               `INSERT INTO kayttaja_yliopisto_erikoisala
-                 (id, kayttaja_id, yliopisto_id, erikoisala_id)
-               VALUES ($1,$2,1,46)`,
-              [kyeId, kayttajaId]
+                 (kayttaja_id, yliopisto_id, erikoisala_id)
+               VALUES ($1,1,46)`,
+              [kayttajaId]
             )
 
             return { kayttajaId }
