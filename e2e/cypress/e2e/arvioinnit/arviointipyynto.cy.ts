@@ -41,7 +41,7 @@ const KOULUTTAJA_ETUNIMI  = 'Testi'
 const KOULUTTAJA_SUKUNIMI = 'Kouluttaja'
 
 describe('Arviointipyyntö', () => {
-  // Esialustetaan kouluttaja koko testisarjaa varten
+  // Esialustetaan tietokanta koko testisarjaa varten
   before(() => {
     Cypress.session.clearAllSavedSessions()
     cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
@@ -50,12 +50,15 @@ describe('Arviointipyyntö', () => {
       etunimi: KOULUTTAJA_ETUNIMI,
       sukunimi: KOULUTTAJA_SUKUNIMI,
     })
+    // Kirjautuminen luo erikoistuvan ja opinto-oikeuden tietokantaan (createWithoutOpintotietodata)
+    cy.loginAsErikoistuva()
+    // Luodaan työskentelyjakso opinto-oikeuden luomisen jälkeen, jotta arviointipyyntö-lomakkeen
+    // Työskentelyjakso-valikossa on valittavia vaihtoehtoja
+    cy.task('db:seedTyoskentelyjakso', { email: E2E_ERIKOISTUVA_EMAIL })
   })
 
   // Käyttötapaus 2 – Erikoistuja
   it('Käyttötapaus 2: Arviointipyynnön tekeminen ja itsearviointi (erikoistuja)', () => {
-    cy.loginAsErikoistuva()
-
     // 1. Erikoistuja siirtyy sivulle Osaaminen: Arvioinnit
     cy.visit('/arvioinnit')
     cy.contains('h1', 'Arvioinnit').should('be.visible')
@@ -70,28 +73,37 @@ describe('Arviointipyyntö', () => {
     cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
 
     // Työskentelyjakso – valitaan ensimmäinen vaihtoehto
-    cy.contains('label', 'Työskentelyjakso')
-      .parent()
-      .as('jaksoGroup')
-    cy.selectFirstMultiselectOption(cy.get('@jaksoGroup'))
-
-    // Arvioitava kokonaisuus – valitaan ensimmäinen vaihtoehto
-    cy.contains('label', 'Arvioitava kokonaisuus')
-      .parent()
-      .as('kokonaisuusGroup')
-    cy.selectFirstMultiselectOption(cy.get('@kokonaisuusGroup'))
-
-    // Arvioija – valitaan esialustettu kouluttaja
-    cy.contains('label', 'Arvioija')
-      .parent()
-      .find('.multiselect')
+    cy.contains('label', 'Työskentelyjakso').parent().find('.multiselect').click()
+    cy.get('.multiselect--active .multiselect__option:not(.multiselect__option--group):not(.multiselect__option--disabled)')
+      .first()
       .click()
-    cy.get('.multiselect__content .multiselect__option')
+
+    // Arvioitavat kokonaisuudet – valitaan ensimmäinen ei-ryhmäotsikko-vaihtoehto
+    cy.contains('label', 'Arvioitavat kokonaisuudet').parent().find('.multiselect').click()
+    cy.get('.multiselect--active .multiselect__option:not(.multiselect__option--group):not(.multiselect__option--disabled)')
+      .first()
+      .click()
+
+    // Kouluttaja / Vastuuhenkilö – valitaan esialustettu kouluttaja
+    cy.contains('label', 'Kouluttaja').parent().find('.multiselect').click()
+    cy.get('.multiselect--active .multiselect__option')
       .contains(`${KOULUTTAJA_ETUNIMI} ${KOULUTTAJA_SUKUNIMI}`)
       .click()
 
-    // Tapahtuman kuvaus (valinnainen)
-    cy.get('textarea').first().type('E2E testitapahtuma arviointipyyntöä varten.')
+    // Arvioitava tapahtuma – kirjataan tapahtuman nimi (näkyy korttinäkymässä)
+    cy.contains('label', 'Arvioitava tapahtuma')
+      .parent()
+      .find('input[type="text"]')
+      .clear()
+      .type('E2E Testitapahtuma')
+
+    // Tapahtuman ajankohta – päivämäärä työskentelyjakson aikavälillä (2020-01-01 – avoin)
+    cy.contains('label', 'Tapahtuman ajankohta')
+      .parent()
+      .find('input.date-input')
+      .clear()
+      .type('01.01.2025')
+      .blur()
 
     // 4. Erikoistuja lähettää arviointipyynnön
     cy.contains('button', 'Lähetä').click()
@@ -102,13 +114,15 @@ describe('Arviointipyyntö', () => {
 
     // 6. Erikoistuja siirtyy tekemään itsearviointia
     cy.visit('/arvioinnit')
-    cy.contains('E2E testitapahtuma arviointipyyntöä varten.')
-      .closest('tr, .list-item, [class*="row"]')
-      .contains('Itsearviointi')
-      .click({ force: true })
+    // Siirrytään Arviointipyynnöt-välilehdelle, jossa odottavat pyynnöt näkyvät
+    cy.contains('.nav-link', 'Arviointipyynnöt').click()
+    // Varmistetaan, että luotu arviointipyyntö näkyy tapahtuman nimen perusteella
+    cy.contains('E2E Testitapahtuma').should('be.visible')
+    // Klikataan Tee itsearviointi -painiketta
+    cy.contains('Tee itsearviointi').click({ force: true })
 
     cy.url().should('include', '/itsearviointi')
-    cy.contains('h1', 'Itsearviointi').should('be.visible')
+    cy.contains('h1', 'Tee itsearviointi').should('be.visible')
 
     // Itsearvioinnin täyttäminen ja tallentaminen
     cy.get('textarea').first().type('E2E itsearviointi vastaus.')
@@ -130,7 +144,7 @@ describe('Arviointipyyntö', () => {
       // 3. Kouluttaja näkee etusivullaan Avoimissa asioissa arviointipyynnön
       cy.visit('/etusivu')
       cy.contains('Avoimet asiat').should('be.visible')
-      cy.contains('E2E testitapahtuma arviointipyyntöä varten.').should('be.visible')
+      cy.contains('E2E Testitapahtuma').should('be.visible')
     })
 
     it.skip('kouluttaja täyttää ja lähettää arvioinnin', () => {
@@ -138,7 +152,7 @@ describe('Arviointipyyntö', () => {
 
       // 4. Kouluttaja valitsee arviointityökalun ja kirjaa arviointinsa lomakkeelle
       cy.visit('/arvioinnit')
-      cy.contains('E2E testitapahtuma arviointipyyntöä varten.')
+      cy.contains('E2E Testitapahtuma')
         .closest('tr, .list-item, [class*="row"]')
         .contains('Arvioi')
         .click({ force: true })
@@ -154,4 +168,3 @@ describe('Arviointipyyntö', () => {
     })
   })
 })
-

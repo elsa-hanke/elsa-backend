@@ -117,14 +117,16 @@ Cypress.Commands.add('loginAsKouluttaja', () => {
 })
 
 // ── selectFirstMultiselectOption ─────────────────────────────────────────────
+// Avaa multiselect-pudotusvalikko ja valitsee ensimmäisen ei-ryhmäotsikko-vaihtoehdon.
+// Käyttää `.multiselect--active`-skoopausta välttääkseen Cypressin ketjutusongelman,
+// joka aiheuttaa haun väärästä kontekstista. Toimii sekä ryhmitetyillä että
+// ryhmittämättömillä monivalintavalikoilla.
 Cypress.Commands.add(
   'selectFirstMultiselectOption',
   (container: Cypress.Chainable<JQuery>) => {
     container.find('.multiselect').click()
-    container
-      .find('.multiselect__content .multiselect__element')
+    cy.get('.multiselect--active .multiselect__option:not(.multiselect__option--group):not(.multiselect__option--disabled)')
       .first()
-      .find('.multiselect__option')
       .click({ force: true })
   }
 )

@@ -148,6 +148,16 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
         const { user_id, kayttaja_id, el_id } = result.rows[0]
 
         if (el_id) {
+          // Kerätään työskentelypaikka-id:t ennen työskentelyjaksojen poistoa
+          const paikkaResult = await client.query(
+            `SELECT tyoskentelypaikka_id FROM tyoskentelyjakso
+             WHERE opintooikeus_id IN (
+               SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+             )`,
+            [el_id]
+          )
+          const paikkaIds: number[] = paikkaResult.rows.map((r: { tyoskentelypaikka_id: number }) => r.tyoskentelypaikka_id)
+
           // Poistetaan koulutusjakso-rivit ennen koulutussuunnitelma-rivejä
           // (FK: koulutusjakso.koulutussuunnitelma_id → koulutussuunnitelma.id)
           await client.query(
@@ -185,13 +195,20 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
              )`,
             [el_id]
           )
-          // Poistetaan tyoskentelyjakso-rivit ennen opintooikeus-rivejä (FK)
+          // Poistetaan työskentelyjaksot ennen opintooikeus-rivejä (FK)
           await client.query(
             `DELETE FROM tyoskentelyjakso WHERE opintooikeus_id IN (
                SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
              )`,
             [el_id]
           )
+          // Poistetaan työskentelypaikat, jotka olivat ko. työskentelyjaksoilla
+          if (paikkaIds.length > 0) {
+            await client.query(
+              `DELETE FROM tyoskentelypaikka WHERE id = ANY($1::bigint[])`,
+              [paikkaIds]
+            )
+          }
           await client.query(
             `DELETE FROM opintooikeus_herate WHERE erikoistuva_laakari_id = $1`,
             [el_id]
@@ -217,6 +234,74 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
         await client.query(`DELETE FROM jhi_user WHERE id = $1`, [user_id])
 
         return null
+      } finally {
+        await client.end()
+      }
+    },
+
+    /**
+     * Luo työskentelyjakso e2e-testikäyttäjälle niin, että työskentelyjakso-valikossa
+     * on valittavia vaihtoehtoja arviointipyyntö-lomakkeella.
+     * Idempotentti: ohitetaan, jos työskentelyjakso on jo olemassa.
+     */
+    async 'db:seedTyoskentelyjakso'({ email }: { email: string }): Promise<{ tyoskentelyjaksoId: number } | null> {
+      const client = dbClient()
+      await client.connect()
+      try {
+        // Haetaan käyttäjän aktiivinen opinto-oikeus
+        const opintooikeusResult = await client.query(
+          `SELECT o.id AS opintooikeus_id
+           FROM opintooikeus o
+           JOIN erikoistuva_laakari el ON el.id = o.erikoistuva_laakari_id
+           JOIN kayttaja k ON k.id = el.kayttaja_id
+           JOIN jhi_user u ON u.id = k.user_id
+           WHERE u.email = $1 AND o.kaytossa = true
+           LIMIT 1`,
+          [email]
+        )
+        if (opintooikeusResult.rows.length === 0) return null
+
+        const { opintooikeus_id } = opintooikeusResult.rows[0]
+
+        // Idempotentti: ohitetaan, jos työskentelyjakso on jo olemassa
+        const existing = await client.query(
+          `SELECT id FROM tyoskentelyjakso WHERE opintooikeus_id = $1 LIMIT 1`,
+          [opintooikeus_id]
+        )
+        if (existing.rows.length > 0) {
+          return { tyoskentelyjaksoId: existing.rows[0].id }
+        }
+
+        // Haetaan jokin olemassa oleva kunta
+        const kuntaResult = await client.query(`SELECT id FROM kunta LIMIT 1`)
+        const kuntaId = kuntaResult.rows[0].id
+
+        // Luodaan työskentelypaikka
+        const tyoskentelypaikkaId: number = (
+          await client.query(
+            `INSERT INTO tyoskentelypaikka (nimi, tyyppi, kunta_id)
+             VALUES ('E2E Testisairaala', 'YLIOPISTOLLINEN_SAIRAALA', $1)
+             RETURNING id`,
+            [kuntaId]
+          )
+        ).rows[0].id
+
+        // Luodaan työskentelyjakso kattamaan laaja aikaväli testipäivämääriä varten
+        const tyoskentelyjaksoId: number = (
+          await client.query(
+            `INSERT INTO tyoskentelyjakso
+               (alkamispaiva, paattymispaiva, osaaikaprosentti, kaytannon_koulutus,
+                hyvaksytty_aiempaan_erikoisalaan, liitetty_koejaksoon,
+                liitetty_terveyskeskuskoulutusjaksoon,
+                tyoskentelypaikka_id, opintooikeus_id)
+             VALUES ('2020-01-01', NULL, 100, 'OMAN_ERIKOISALAN_KOULUTUS',
+                     false, false, false, $1, $2)
+             RETURNING id`,
+            [tyoskentelypaikkaId, opintooikeus_id]
+          )
+        ).rows[0].id
+
+        return { tyoskentelyjaksoId }
       } finally {
         await client.end()
       }
