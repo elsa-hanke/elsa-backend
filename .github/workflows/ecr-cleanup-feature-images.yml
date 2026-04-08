@@ -1,0 +1,73 @@
+name: ECR – Delete feature images (dry run)
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'   # Every Sunday at 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  cleanup:
+    name: 'DRY RUN: Delete ECR images tagged with feature-*'
+    runs-on: ubuntu-latest
+    environment: shared
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
+          aws-region: eu-west-1
+
+      - name: '[DRY RUN] List feature-* images that would be deleted from ECR'
+        env:
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        run: |
+          # ECR_REPOSITORY is the full image URI, e.g.
+          #   123456789012.dkr.ecr.eu-west-1.amazonaws.com/elsa-backend
+          # The AWS CLI needs only the repository name (path after the first slash).
+          REPO_NAME=$(echo "$ECR_REPOSITORY" | cut -d'/' -f2-)
+
+          echo "Repository: $REPO_NAME"
+
+          # Collect all tagged image IDs whose tag starts with "feature"
+          IMAGE_IDS=$(aws ecr list-images \
+            --repository-name "$REPO_NAME" \
+            --filter tagStatus=TAGGED \
+            --query 'imageIds[?starts_with(imageTag, `feature`)]' \
+            --output json)
+
+          echo "Images to delete: $IMAGE_IDS"
+
+          if [ "$IMAGE_IDS" = "[]" ] || [ -z "$IMAGE_IDS" ]; then
+            echo "No feature images found – nothing to delete."
+            exit 0
+          fi
+
+          # batch-delete-image accepts up to 100 image IDs per call.
+          # For safety we chunk the list in groups of 100.
+          TOTAL=$(echo "$IMAGE_IDS" | jq 'length')
+          echo "Total feature images found: $TOTAL"
+
+          # DRY RUN – log each image that would be deleted; no actual deletion.
+          echo "The following images would be deleted:"
+          echo "$IMAGE_IDS" | jq -r '.[].imageTag'
+
+          # ── Actual deletion (commented out for dry run) ──────────────────────
+          # OFFSET=0
+          # CHUNK_SIZE=100
+          # while [ "$OFFSET" -lt "$TOTAL" ]; do
+          #   CHUNK=$(echo "$IMAGE_IDS" | jq --argjson o "$OFFSET" --argjson c "$CHUNK_SIZE" '.[$o:$o+$c]')
+          #   echo "Deleting images $OFFSET – $((OFFSET + CHUNK_SIZE - 1))..."
+          #   aws ecr batch-delete-image \
+          #     --repository-name "$REPO_NAME" \
+          #     --image-ids "$CHUNK"
+          #   OFFSET=$((OFFSET + CHUNK_SIZE))
+          # done
+          # ─────────────────────────────────────────────────────────────────────
+
+          echo "Dry run complete. $TOTAL image(s) would have been deleted."
+
