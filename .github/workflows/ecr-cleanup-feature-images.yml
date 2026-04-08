@@ -1,4 +1,4 @@
-name: ECR – Delete feature images (dry run)
+name: ECR – Delete feature images
 
 on:
   schedule:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   cleanup:
-    name: 'DRY RUN: Delete ECR images tagged with feature-*'
+    name: Delete ECR images tagged with feature-*
     runs-on: ubuntu-latest
     environment: shared
 
@@ -22,7 +22,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
           aws-region: eu-west-1
 
-      - name: '[DRY RUN] List feature-* images that would be deleted from ECR'
+      - name: Delete feature-* images from ECR
         env:
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         run: |
@@ -52,22 +52,15 @@ jobs:
           TOTAL=$(echo "$IMAGE_IDS" | jq 'length')
           echo "Total feature images found: $TOTAL"
 
-          # DRY RUN – log each image that would be deleted; no actual deletion.
-          echo "The following images would be deleted:"
-          echo "$IMAGE_IDS" | jq -r '.[].imageTag'
+          OFFSET=0
+          CHUNK_SIZE=100
+          while [ "$OFFSET" -lt "$TOTAL" ]; do
+            CHUNK=$(echo "$IMAGE_IDS" | jq --argjson o "$OFFSET" --argjson c "$CHUNK_SIZE" '.[$o:$o+$c]')
+            echo "Deleting images $OFFSET – $((OFFSET + CHUNK_SIZE - 1))..."
+            aws ecr batch-delete-image \
+              --repository-name "$REPO_NAME" \
+              --image-ids "$CHUNK"
+            OFFSET=$((OFFSET + CHUNK_SIZE))
+          done
 
-          # ── Actual deletion (commented out for dry run) ──────────────────────
-          # OFFSET=0
-          # CHUNK_SIZE=100
-          # while [ "$OFFSET" -lt "$TOTAL" ]; do
-          #   CHUNK=$(echo "$IMAGE_IDS" | jq --argjson o "$OFFSET" --argjson c "$CHUNK_SIZE" '.[$o:$o+$c]')
-          #   echo "Deleting images $OFFSET – $((OFFSET + CHUNK_SIZE - 1))..."
-          #   aws ecr batch-delete-image \
-          #     --repository-name "$REPO_NAME" \
-          #     --image-ids "$CHUNK"
-          #   OFFSET=$((OFFSET + CHUNK_SIZE))
-          # done
-          # ─────────────────────────────────────────────────────────────────────
-
-          echo "Dry run complete. $TOTAL image(s) would have been deleted."
-
+          echo "Done. All feature-* images deleted."
