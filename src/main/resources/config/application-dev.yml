@@ -70,6 +70,11 @@ cloud:
     region:
       auto: false
 
+application:
+  security:
+    suomifi:
+      saml-sp-entity-id: http://localhost:8080/saml2/service-provider-metadata/suomifiV2
+
 # ===================================================================
 # JHipster specific properties
 #

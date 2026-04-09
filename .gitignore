@@ -155,3 +155,5 @@ Desktop.ini
 *.key
 .java-version
 .env
+.nvmrc
+frontend

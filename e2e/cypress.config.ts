@@ -1,12 +1,13 @@
 import { defineConfig } from 'cypress'
+import { registerDbTasks } from './cypress/plugins/db-tasks'
 
 export default defineConfig({
   e2e: {
     baseUrl: 'http://localhost:8080',
     specPattern: 'cypress/e2e/**/*.cy.ts',
     supportFile: 'cypress/support/e2e.ts',
-    setupNodeEvents(on, config) {
-      // implement node event listeners here
+    setupNodeEvents(on) {
+      registerDbTasks(on)
     },
     viewportWidth: 1280,
     viewportHeight: 800,
