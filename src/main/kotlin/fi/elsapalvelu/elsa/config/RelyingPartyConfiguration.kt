@@ -72,6 +72,10 @@ class RelyingPartyConfiguration(
                             applicationProperties.getSecurity().getSuomifi().samlSuomifiEntityId!!
                         )
                     }
+                    .apply {
+                        applicationProperties.getSecurity().getSuomifi().samlSpEntityId
+                            ?.let { entityId(it) }
+                    }
                     .signingX509Credentials { signing -> signing.add(signingCredential) }
                     .decryptionX509Credentials { decryption -> decryption.add(decryptionCredential) }
                     .singleLogoutServiceBinding(Saml2MessageBinding.REDIRECT)
