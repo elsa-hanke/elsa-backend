@@ -2,7 +2,7 @@ name: ECR – Delete feature images
 
 on:
   schedule:
-    - cron: '0 3 * * 0'   # Every Sunday at 03:00 UTC
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 permissions:
