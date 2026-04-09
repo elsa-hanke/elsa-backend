@@ -94,6 +94,7 @@ class ApplicationProperties {
             var samlCertificateLocation: String? = null
             var samlSuomifiMetadataLocation: String? = null
             var samlSuomifiEntityId: String? = null
+            var samlSpEntityId: String? = null
         }
 
         class Haka {

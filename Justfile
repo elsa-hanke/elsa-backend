@@ -37,13 +37,20 @@ startf:
 kill8080:
   @lsof -ti:8080 | xargs kill -9 2>/dev/null || true
 
+kill9060:
+  @lsof -ti:9060 | xargs kill -9 2>/dev/null || true
+
 br:
+  #!/usr/bin/env sh
+  trap 'kill 0' INT TERM EXIT
   just build
   just startb &
   just startf &
   wait
 
 r:
+  #!/usr/bin/env sh
+  trap 'kill 0' INT TERM EXIT
   just startb &
   just startf &
   wait
@@ -53,6 +60,9 @@ e2e:
 
 up-e2e: kill8080
   docker compose -f ./infra/docker-compose-cicd.yml up -d
+
+down-e2e:
+  docker compose -f ./infra/docker-compose-cicd.yml down
 
 pullt:
   echo $(aws ecr get-login-password --profile elsadev)|docker login --password-stdin --username AWS 939452229770.dkr.ecr.eu-west-1.amazonaws.com

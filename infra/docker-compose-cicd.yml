@@ -32,7 +32,7 @@ services:
         condition: service_healthy
 
   elsa-backend:
-    image: 654795471143.dkr.ecr.eu-west-1.amazonaws.com/ecr-shared-backend:${BACKEND_IMAGE_TAG:-feature-83a10278}
+    image: 654795471143.dkr.ecr.eu-west-1.amazonaws.com/ecr-shared-backend:${BACKEND_IMAGE_TAG:-feature-f7bc8882}
     restart: on-failure
     networks:
       - elsa
