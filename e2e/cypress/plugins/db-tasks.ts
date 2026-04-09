@@ -25,15 +25,52 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
       const client = dbClient()
       await client.connect()
       try {
-        // Idempotentti: ohitetaan, jos käyttäjä on jo olemassa
+        // Varmistetaan, että ROLE_KOULUTTAJA löytyy jhi_authority-taulusta.
+        // JPA:n @ManyToMany liittyy jhi_authority-tauluun authority_name-sarakkeen kautta,
+        // joten ilman tätä riviä JPQL-query ei löydä kouluttajaa (left join tuottaa NULL:n).
+        await client.query(
+          `INSERT INTO jhi_authority (name) VALUES ('ROLE_KOULUTTAJA') ON CONFLICT DO NOTHING`
+        )
+
+        // Tarkistetaan, onko käyttäjä jo olemassa
         const existing = await client.query(
           `SELECT k.id FROM kayttaja k
            JOIN jhi_user u ON u.id = k.user_id
            WHERE u.email = $1`,
           [email]
         )
+
         if (existing.rows.length > 0) {
-          return { kayttajaId: existing.rows[0].id }
+          const kayttajaId: number = existing.rows[0].id
+
+          // Varmistetaan, että kayttaja_yliopisto_erikoisala-rivi on olemassa.
+          // Jos se puuttuu (esim. aiempi ajonkertainen luonti epäonnistui osittain),
+          // lisätään se tässä.
+          const ye = await client.query(
+            `SELECT id FROM kayttaja_yliopisto_erikoisala
+             WHERE kayttaja_id = $1 AND yliopisto_id = 1 AND erikoisala_id = 46`,
+            [kayttajaId]
+          )
+          if (ye.rows.length === 0) {
+            await client.query(
+              `INSERT INTO kayttaja_yliopisto_erikoisala (kayttaja_id, yliopisto_id, erikoisala_id)
+               VALUES ($1, 1, 46)`,
+              [kayttajaId]
+            )
+          }
+
+          // Varmistetaan myös, että jhi_user_authority-rivi on olemassa
+          const userId = (await client.query(
+            `SELECT u.id FROM jhi_user u WHERE u.email = $1`,
+            [email]
+          )).rows[0].id
+          await client.query(
+            `INSERT INTO jhi_user_authority (user_id, authority_name)
+             VALUES ($1,'ROLE_KOULUTTAJA') ON CONFLICT DO NOTHING`,
+            [userId]
+          )
+
+          return { kayttajaId }
         }
 
         const userId = require('crypto').randomUUID()
@@ -48,7 +85,7 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
         )
         await client.query(
           `INSERT INTO jhi_user_authority (user_id, authority_name)
-           VALUES ($1,'ROLE_KOULUTTAJA')`,
+           VALUES ($1,'ROLE_KOULUTTAJA') ON CONFLICT DO NOTHING`,
           [userId]
         )
 
@@ -177,6 +214,37 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
              )`,
             [el_id]
           )
+          // Poistetaan suoritusarvioinnin arvioitavat kokonaisuudet ennen suoritusarviointeja (FK)
+          await client.query(
+            `DELETE FROM suoritusarvioinnin_arvioitava_kokonaisuus WHERE suoritusarviointi_id IN (
+               SELECT id FROM suoritusarviointi WHERE tyoskentelyjakso_id IN (
+                 SELECT id FROM tyoskentelyjakso WHERE opintooikeus_id IN (
+                   SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+                 )
+               )
+             )`,
+            [el_id]
+          )
+          // Poistetaan suoritusarvioinnin kommentit ennen suoritusarviointeja (FK)
+          await client.query(
+            `DELETE FROM suoritusarvioinnin_kommentti WHERE suoritusarviointi_id IN (
+               SELECT id FROM suoritusarviointi WHERE tyoskentelyjakso_id IN (
+                 SELECT id FROM tyoskentelyjakso WHERE opintooikeus_id IN (
+                   SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+                 )
+               )
+             )`,
+            [el_id]
+          )
+          // Poistetaan suoritusarvioinnit ennen tyoskentelyjakso-rivejä (FK)
+          await client.query(
+            `DELETE FROM suoritusarviointi WHERE tyoskentelyjakso_id IN (
+               SELECT id FROM tyoskentelyjakso WHERE opintooikeus_id IN (
+                 SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+               )
+             )`,
+            [el_id]
+          )
           // Poistetaan keskeytysaika-rivit ennen tyoskentelyjakso-rivejä (FK)
           await client.query(
             `DELETE FROM keskeytysaika WHERE tyoskentelyjakso_id IN (
@@ -211,6 +279,13 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
           }
           await client.query(
             `DELETE FROM opintooikeus_herate WHERE erikoistuva_laakari_id = $1`,
+            [el_id]
+          )
+          // Poistetaan kouluttajavaltuutukset ennen opintooikeus-rivejä (FK: valtuuttaja_opintooikeus_id)
+          await client.query(
+            `DELETE FROM kouluttajavaltuutus WHERE valtuuttaja_opintooikeus_id IN (
+               SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+             )`,
             [el_id]
           )
           await client.query(

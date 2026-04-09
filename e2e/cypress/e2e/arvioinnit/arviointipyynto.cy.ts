@@ -83,12 +83,25 @@ describe('Arviointipyyntö', () => {
     cy.get('.multiselect--active .multiselect__option:not(.multiselect__option--group):not(.multiselect__option--disabled)')
       .first()
       .click()
+    // Suljetaan monivalintavalikko painamalla Escape ennen seuraavan avaamista.
+    // Monivalintavalikko (multiple=true) jää muuten auki ja seuraava klikkaus
+    // sulkee avoinna olevan valikon eikä avaa kouluttajavalikkoa.
+    // Käytetään ehdollista sulkemista, koska valikko saattaa jo sulkeutua automaattisesti.
+    cy.get('body').then(($body) => {
+      if ($body.find('.multiselect--active').length > 0) {
+        cy.get('.multiselect--active').type('{esc}')
+      }
+    })
+    cy.get('.multiselect--active').should('not.exist')
 
     // Kouluttaja / Vastuuhenkilö – valitaan esialustettu kouluttaja
-    cy.contains('label', 'Kouluttaja').parent().find('.multiselect').click()
-    cy.get('.multiselect--active .multiselect__option')
-      .contains(`${KOULUTTAJA_ETUNIMI} ${KOULUTTAJA_SUKUNIMI}`)
-      .click()
+    cy.contains('label', 'Kouluttaja').parent().find('.multiselect').as('kouluttajaSelect').click()
+    cy.get('@kouluttajaSelect').should('have.class', 'multiselect--active')
+    // cy.contains(selector, text) palauttaa .multiselect__option-elementin itsensä (ei sisällä
+    // olevan divin), jolloin klikkaus kohdistuu oikeaan event-kohteeseen.
+    // force:true tarvitaan, koska Vue Multiselectin scroll-konttainer voi peittää optionin.
+    cy.contains('.multiselect--active .multiselect__option', `${KOULUTTAJA_ETUNIMI} ${KOULUTTAJA_SUKUNIMI}`)
+      .click({ force: true })
 
     // Arvioitava tapahtuma – kirjataan tapahtuman nimi (näkyy korttinäkymässä)
     cy.contains('label', 'Arvioitava tapahtuma')
@@ -116,10 +129,13 @@ describe('Arviointipyyntö', () => {
     cy.visit('/arvioinnit')
     // Siirrytään Arviointipyynnöt-välilehdelle, jossa odottavat pyynnöt näkyvät
     cy.contains('.nav-link', 'Arviointipyynnöt').click()
-    // Varmistetaan, että luotu arviointipyyntö näkyy tapahtuman nimen perusteella
-    cy.contains('E2E Testitapahtuma').should('be.visible')
+    // Odotetaan, että välilehti on aktiivinen ennen kuin haetaan sen sisältöä.
+    // Bootstrap Vue lisää .active-luokan (ei välttämättä .show-luokkaa ilman fade-animaatiota).
+    cy.get('.tab-pane.active').should('be.visible')
+    // Varmistetaan, että luotu arviointipyyntö näkyy tapahtuman nimen perusteella aktiivisessa välilehdessä
+    cy.get('.tab-pane.active').contains('E2E Testitapahtuma').should('be.visible')
     // Klikataan Tee itsearviointi -painiketta
-    cy.contains('Tee itsearviointi').click({ force: true })
+    cy.get('.tab-pane.active').contains('Tee itsearviointi').click()
 
     cy.url().should('include', '/itsearviointi')
     cy.contains('h1', 'Tee itsearviointi').should('be.visible')
