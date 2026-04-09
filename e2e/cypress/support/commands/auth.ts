@@ -1,17 +1,5 @@
-// ***********************************************
-// This file is where custom Cypress commands live.
-// https://on.cypress.io/custom-commands
-// ***********************************************
+import { E2E_ERIKOISTUVA_EMAIL, SSN_ERIKOISTUVA, SSN_KOULUTTAJA } from './credentials'
 
-// ── Test credentials ────────────────────────────────────────────────────────
-export const E2E_ERIKOISTUVA_EMAIL = 'e2e-erikoistuva@test.elsa'
-
-/** Finnish SSN used in the Suomi.fi fake test IdP for the resident physician. */
-const SSN_ERIKOISTUVA = '210281-9988'
-/** Finnish SSN used for the trainer (kouluttaja) test user. */
-const SSN_KOULUTTAJA  = '150685-100N'
-
-// ── Type declarations ────────────────────────────────────────────────────────
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
@@ -40,12 +28,6 @@ declare global {
        * and their account activated via the verification-token invite flow.
        */
       loginAsKouluttaja(): void
-
-      /**
-       * Opens a Vue Multiselect dropdown and picks the first option.
-       * @param container - Cypress chainable pointing to the multiselect wrapper element.
-       */
-      selectFirstMultiselectOption(container: Cypress.Chainable<JQuery>): void
     }
   }
 }
@@ -116,19 +98,5 @@ Cypress.Commands.add('loginAsKouluttaja', () => {
   )
 })
 
-// ── selectFirstMultiselectOption ─────────────────────────────────────────────
-// Avaa multiselect-pudotusvalikko ja valitsee ensimmäisen ei-ryhmäotsikko-vaihtoehdon.
-// Käyttää `.multiselect--active`-skoopausta välttääkseen Cypressin ketjutusongelman,
-// joka aiheuttaa haun väärästä kontekstista. Toimii sekä ryhmitetyillä että
-// ryhmittämättömillä monivalintavalikoilla.
-Cypress.Commands.add(
-  'selectFirstMultiselectOption',
-  (container: Cypress.Chainable<JQuery>) => {
-    container.find('.multiselect').click()
-    cy.get('.multiselect--active .multiselect__option:not(.multiselect__option--group):not(.multiselect__option--disabled)')
-      .first()
-      .click({ force: true })
-  }
-)
-
 export {}
+
