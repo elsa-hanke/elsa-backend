@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" viewBox="0 0 135.467 135.467">
+  <defs>
+    <linearGradient id="a">
+      <stop offset="0" stop-color="#41afeb" stop-opacity=".897"/>
+      <stop offset="1" stop-color="#41afeb" stop-opacity=".302"/>
+    </linearGradient>
+    <linearGradient xlink:href="#a" id="b" x1="57.637" y1="144.598" x2="107.11" y2="125.072" gradientUnits="userSpaceOnUse"/>
+  </defs>
+  <g transform="matrix(1.4921 0 0 1.4921 -86 -148.02)" fill="#000" fill-rule="evenodd">
+    <ellipse ry="13.656" rx="26.144" cy="144.598" cx="83.781"/>
+    <ellipse ry="13.656" rx="26.144" cy="16.929" cx="-195.992" transform="rotate(-120)"/>
+    <ellipse ry="13.656" rx="26.144" cy="-16.929" cx="157.49" transform="rotate(60)"/>
+    <ellipse ry="13.656" rx="26.144" cy="161.527" cx="-92.96" transform="rotate(-60)"/>
+    <ellipse ry="13.656" rx="26.144" cy="-144.598" cx="-122.283" transform="scale(-1)"/>
+    <ellipse ry="13.656" rx="26.144" cy="-161.527" cx="54.458" transform="rotate(120)"/>
+  </g>
+  <g transform="matrix(1.4921 0 0 1.4921 -86 -148.02)">
+    <ellipse id="c" ry="13.656" rx="26.144" cy="144.598" cx="83.781" fill="url(#b)" fill-opacity="1" fill-rule="evenodd" stroke-width=".265" stroke-miterlimit="4" stroke-dasharray="none"/>
+    <use xlink:href="#c" transform="rotate(-120 103.032 144.598)" width="100%" height="100%"/>
+    <use xlink:href="#c" transform="rotate(60 103.032 144.598)" width="100%" height="100%"/>
+    <use xlink:href="#c" transform="rotate(-60 103.032 144.598)" width="100%" height="100%"/>
+    <use xlink:href="#c" transform="rotate(180 103.032 144.598)" width="100%" height="100%"/>
+    <use xlink:href="#c" transform="rotate(120 103.032 144.598)" width="100%" height="100%"/>
+  </g>
+</svg>

@@ -1,0 +1,177 @@
+name: Frontend CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn
+      - name: Lint
+        run: yarn lint
+      - name: Test
+        run: yarn test:unit
+      - name: Generate thirdparty
+        run: yarn generate-thirdparty
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn
+      - name: Build
+        run: yarn build --mode production-test
+      - name: Security scan
+        run: /bin/bash -c 'yarn audit --groups dependencies; [[ $? -ge 16 ]] && exit 1 || exit 0'
+      - name: Store dist
+        uses: actions/upload-artifact@v4
+
+        with:
+          name: ElsaFrontendApp
+          path: dist
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref != 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::939452229770:role/GithubActionsRole
+          aws-region: eu-west-1
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build and push frontend image
+        env:
+          IMAGE: 939452229770.dkr.ecr.eu-west-1.amazonaws.com/ecr-dev-frontend
+          SHA: ${{ github.sha }}
+        run: |
+          docker build --file docker/Dockerfile -t $IMAGE:$SHA -t $IMAGE:latest .
+          docker push $IMAGE:$SHA
+          docker push $IMAGE:latest
+
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment: development
+
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: ElsaFrontendApp
+          path: dist
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
+          aws-region: eu-west-1
+      - name: Deploy static site to S3 bucket
+        run: aws s3 sync dist s3://kehitys.elsapalvelu.fi/ --delete
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/heads/release/')
+    environment: staging
+
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: ElsaFrontendApp
+          path: dist
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
+          aws-region: eu-west-1
+      - name: Deploy static site to S3 bucket
+        run: aws s3 sync dist s3://testi.elsapalvelu.fi/ --delete
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+
+  build-prod:
+    runs-on: ubuntu-latest
+    needs: test
+    if: startsWith(github.ref, 'refs/heads/release/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn
+      - name: Build
+        run: yarn build
+      - name: Store dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: ElsaFrontendAppProd
+          path: dist
+
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: build-prod
+    if: startsWith(github.ref, 'refs/heads/release/')
+    environment: production
+
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: ElsaFrontendAppProd
+          path: dist
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
+          aws-region: eu-west-1
+      - name: Deploy static site to S3 bucket
+        run: aws s3 sync dist s3://elsapalvelu.fi/ --delete
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"

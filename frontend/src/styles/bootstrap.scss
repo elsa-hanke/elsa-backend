@@ -1,0 +1,15 @@
+@import "~@/styles/variables";
+
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+
+$spacers: map-merge(
+    (
+        45: ($spacer * 1.85)
+    ),
+    $spacers
+);
+
+@import "~bootstrap/scss/bootstrap-reboot.scss";
+@import "~bootstrap/scss/bootstrap.scss";
+@import "~bootstrap-vue/src/index.scss";

@@ -1,17 +1,16 @@
-name: Backend CI
+name: CI
 
 on:
   push:
     branches:
       - main
+    tags:
       - 'release/**'
-    tags-ignore:
-      - "*"
   pull_request:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 jobs:
   test-and-build:
@@ -50,6 +49,68 @@ jobs:
           path: |
             **/build/test-results/integrationTest/
 
+  frontend-test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+      - name: Install dependencies
+        working-directory: frontend
+        run: yarn
+      - name: Lint
+        working-directory: frontend
+        run: yarn lint
+      - name: Test
+        working-directory: frontend
+        run: yarn test:unit
+      - name: Generate thirdparty
+        working-directory: frontend
+        run: yarn generate-thirdparty
+      - name: Build
+        working-directory: frontend
+        run: yarn build --mode production-test
+      - name: Security scan
+        working-directory: frontend
+        run: /bin/bash -c 'yarn audit --groups dependencies; [[ $? -ge 16 ]] && exit 1 || exit 0'
+      - name: Store dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: ElsaFrontendApp
+          path: frontend/dist
+
+  frontend-build-prod:
+    runs-on: ubuntu-latest
+    needs: frontend-test-and-build
+    if: startsWith(github.ref, 'refs/tags/release/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+      - name: Install dependencies
+        working-directory: frontend
+        run: yarn
+      - name: Build
+        working-directory: frontend
+        run: yarn build
+      - name: Store dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: ElsaFrontendAppProd
+          path: frontend/dist
+
   security-scan:
     runs-on: ubuntu-latest
     needs: test-and-build
@@ -73,7 +134,7 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     needs: test-and-build
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/release/') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
     outputs:
       image-tag: ${{ steps.image-tag.outputs.image-tag }}
     environment: shared
@@ -94,7 +155,7 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
             echo "extra-tag=latest" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
+          elif [[ "${{ github.ref }}" == refs/tags/release/* ]]; then
             echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
             echo "extra-tag=" >> "$GITHUB_OUTPUT"
           else
@@ -123,15 +184,65 @@ jobs:
             -Djib.to.image=$ECR_REPOSITORY:${{ steps.image-tag.outputs.image-tag }} \
             $EXTRA_TAGS_ARG
 
+  build-frontend-image:
+    runs-on: ubuntu-latest
+    needs: frontend-test-and-build
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/release/') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
+    outputs:
+      image-tag: ${{ steps.image-tag.outputs.image-tag }}
+      extra-tag: ${{ steps.image-tag.outputs.extra-tag }}
+    environment: shared
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set image tag
+        id: image-tag
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
+            echo "extra-tag=latest" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref }}" == refs/tags/release/* ]]; then
+            echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
+            echo "extra-tag=" >> "$GITHUB_OUTPUT"
+          else
+            SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+            echo "image-tag=feature-$(echo "$SHA" | cut -c1-8)" >> "$GITHUB_OUTPUT"
+            echo "extra-tag=feature-latest" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.FRONTEND_ACCOUNT_ID }}:role/GithubActionsRole
+          aws-region: eu-west-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build and push frontend image
+        env:
+          FRONTEND_ECR_REPOSITORY: ${{ secrets.FRONTEND_ECR_REPOSITORY }}
+        run: |
+          EXTRA="${{ steps.image-tag.outputs.extra-tag }}"
+          docker build \
+            --file frontend/docker/Dockerfile \
+            -t $FRONTEND_ECR_REPOSITORY:${{ steps.image-tag.outputs.image-tag }} \
+            frontend
+          if [ -n "$EXTRA" ]; then
+            docker tag $FRONTEND_ECR_REPOSITORY:${{ steps.image-tag.outputs.image-tag }} $FRONTEND_ECR_REPOSITORY:$EXTRA
+            docker push $FRONTEND_ECR_REPOSITORY:$EXTRA
+          fi
+          docker push $FRONTEND_ECR_REPOSITORY:${{ steps.image-tag.outputs.image-tag }}
+
   e2e:
-    needs: build-image
+    needs: [build-image, build-frontend-image]
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
     uses: ./.github/workflows/e2e.yml
     with:
       image-tag: ${{ needs.build-image.outputs.image-tag }}
+      frontend-image-tag: ${{ needs.build-frontend-image.outputs.extra-tag != '' && needs.build-frontend-image.outputs.extra-tag || needs.build-frontend-image.outputs.image-tag }}
     secrets: inherit
 
-  deploy-dev:
+  deploy-dev-backend:
     runs-on: ubuntu-latest
     needs: [build-image, security-scan, e2e]
     if: github.ref == 'refs/heads/main'
@@ -169,10 +280,33 @@ jobs:
           cluster: elsa-dev-cluster
           wait-for-service-stability: true
 
+  deploy-dev-frontend:
+    runs-on: ubuntu-latest
+    needs: [frontend-test-and-build, security-scan, e2e]
+    if: github.ref == 'refs/heads/main'
+    environment: development
+
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: ElsaFrontendApp
+          path: dist
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
+          aws-region: eu-west-1
+      - name: Deploy static site to S3 bucket
+        run: aws s3 sync dist s3://kehitys.elsapalvelu.fi/ --delete
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+
   deploy-maintenance-page-staging:
     runs-on: ubuntu-latest
-    needs: build-image
-    if: startsWith(github.ref, 'refs/heads/release/')
+    needs: [build-image, build-frontend-image]
+    if: startsWith(github.ref, 'refs/tags/release/')
     environment: staging
 
     steps:
@@ -189,10 +323,10 @@ jobs:
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
 
-  deploy-staging:
+  deploy-staging-backend:
     runs-on: ubuntu-latest
-    needs: build-image
-    if: startsWith(github.ref, 'refs/heads/release/')
+    needs: [build-image, build-frontend-image]
+    if: startsWith(github.ref, 'refs/tags/release/')
     environment: staging
 
     steps:
@@ -230,15 +364,50 @@ jobs:
           cluster: elsa-staging-cluster
           wait-for-service-stability: true
 
+  deploy-staging-frontend:
+    runs-on: ubuntu-latest
+    needs: [build-frontend-image, frontend-test-and-build]
+    if: startsWith(github.ref, 'refs/tags/release/')
+    environment: staging
+
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: ElsaFrontendApp
+          path: dist
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
+          aws-region: eu-west-1
+      - name: Deploy static site to S3 bucket
+        run: aws s3 sync dist s3://testi.elsapalvelu.fi/ --delete
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+
+  production-gate:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging-backend, deploy-staging-frontend]
+    if: startsWith(github.ref, 'refs/tags/release/')
+    environment: production
+
+    steps:
+      - name: Tuotantoon siirtyminen hyväksytty
+        run: echo "Yksi hyväksyntä riittää kaikille tuotantovaiheille"
+
   deploy-maintenance-page-prod:
     runs-on: ubuntu-latest
-    needs: [build-image, deploy-staging]
-    if: startsWith(github.ref, 'refs/heads/release/')
+    needs: [production-gate, build-image]
+    if: startsWith(github.ref, 'refs/tags/release/')
     environment: production
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -250,10 +419,10 @@ jobs:
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
 
-  deploy-prod:
+  deploy-prod-backend:
     runs-on: ubuntu-latest
-    needs: [build-image, deploy-staging]
-    if: startsWith(github.ref, 'refs/heads/release/')
+    needs: [deploy-maintenance-page-prod, build-image]
+    if: startsWith(github.ref, 'refs/tags/release/')
     environment: production
 
     steps:
@@ -290,3 +459,53 @@ jobs:
           service: elsa-prod-backend-service
           cluster: elsa-prod-cluster
           wait-for-service-stability: true
+
+  deploy-prod-frontend:
+    runs-on: ubuntu-latest
+    needs: [deploy-prod-backend, build-frontend-image, frontend-build-prod]
+    if: startsWith(github.ref, 'refs/tags/release/')
+    environment: production
+
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: ElsaFrontendAppProd
+          path: dist
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
+          aws-region: eu-west-1
+      - name: Deploy static site to S3 bucket
+        run: aws s3 sync dist s3://elsapalvelu.fi/ --delete
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+
+  merge-release:
+    runs-on: ubuntu-latest
+    needs: [deploy-prod-backend, deploy-prod-frontend]
+    if: startsWith(github.ref, 'refs/tags/release/')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.MERGE_TOKEN }}
+      - name: Yhdistä release master- ja main-haaroihin
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH="${GITHUB_REF_NAME}"
+          git fetch --all
+          git checkout master
+          git merge origin/$BRANCH --no-ff -m "Yhdistä ${BRANCH} master-haaraan"
+          git push origin master
+          git checkout main
+          git merge origin/$BRANCH --no-ff -m "Yhdistä ${BRANCH} main-haaraan"
+          git push origin main
+

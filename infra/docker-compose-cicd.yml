@@ -20,7 +20,7 @@ services:
       retries: 5
 
   elsa-frontend:
-    image: 939452229770.dkr.ecr.eu-west-1.amazonaws.com/ecr-dev-frontend:latest
+    image: 939452229770.dkr.ecr.eu-west-1.amazonaws.com/ecr-dev-frontend:${FRONTEND_IMAGE_TAG:-latest}
     networks:
       - elsa
     ports:

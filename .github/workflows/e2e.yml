@@ -7,12 +7,22 @@ on:
         description: Backend image tag to test against
         required: true
         type: string
+      frontend-image-tag:
+        description: Frontend image tag to test against
+        required: false
+        type: string
+        default: 'latest'
   workflow_dispatch:
     inputs:
       image-tag:
         description: Backend image tag to test against
         required: true
         type: string
+      frontend-image-tag:
+        description: Frontend image tag to test against
+        required: false
+        type: string
+        default: 'latest'
 
 permissions:
   id-token: write
@@ -48,6 +58,7 @@ jobs:
       - name: Start services
         env:
           BACKEND_IMAGE_TAG: ${{ inputs.image-tag }}
+          FRONTEND_IMAGE_TAG: ${{ inputs.frontend-image-tag }}
           APPLICATION_SECURITY_ENCODED_KEY: ${{ secrets.APPLICATION_SECURITY_ENCODED_KEY }}
           PRIVATE_KEY_FILE: /tmp/private.key
           PUBLIC_CRT_FILE: /tmp/public.crt
