@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'release/**'
+      - 'v*'
   pull_request:
 
 permissions:
@@ -88,7 +88,7 @@ jobs:
   frontend-build-prod:
     runs-on: ubuntu-latest
     needs: frontend-test-and-build
-    if: startsWith(github.ref, 'refs/tags/release/')
+    if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
       - name: Checkout code
@@ -134,7 +134,7 @@ jobs:
   backend-build-image:
     runs-on: ubuntu-latest
     needs: backend-test-and-build
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/release/') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
     outputs:
       image-tag: ${{ steps.image-tag.outputs.image-tag }}
     environment: shared
@@ -155,7 +155,7 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
             echo "extra-tag=latest" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ github.ref }}" == refs/tags/release/* ]]; then
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
             echo "extra-tag=" >> "$GITHUB_OUTPUT"
           else
@@ -187,7 +187,7 @@ jobs:
   frontend-build-test-image:
     runs-on: ubuntu-latest
     needs: frontend-test-and-build
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/release/') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
     outputs:
       image-tag: ${{ steps.image-tag.outputs.image-tag }}
       extra-tag: ${{ steps.image-tag.outputs.extra-tag }}
@@ -202,7 +202,7 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
             echo "extra-tag=latest" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ github.ref }}" == refs/tags/release/* ]]; then
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
             echo "extra-tag=" >> "$GITHUB_OUTPUT"
           else
@@ -308,7 +308,7 @@ jobs:
   deploy-maintenance-page-staging:
     runs-on: ubuntu-latest
     needs: [backend-build-image, frontend-build-test-image]
-    if: startsWith(github.ref, 'refs/tags/release/')
+    if: startsWith(github.ref, 'refs/tags/v')
     environment: staging
 
     steps:
@@ -328,7 +328,7 @@ jobs:
   deploy-staging-backend:
     runs-on: ubuntu-latest
     needs: [backend-build-image, frontend-build-test-image]
-    if: startsWith(github.ref, 'refs/tags/release/')
+    if: startsWith(github.ref, 'refs/tags/v')
     environment: staging
 
     steps:
@@ -369,7 +369,7 @@ jobs:
   deploy-staging-frontend:
     runs-on: ubuntu-latest
     needs: [frontend-build-test-image, frontend-test-and-build]
-    if: startsWith(github.ref, 'refs/tags/release/')
+    if: startsWith(github.ref, 'refs/tags/v')
     environment: staging
 
     steps:
@@ -389,10 +389,33 @@ jobs:
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
 
+  notify-staging:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging-backend, deploy-staging-frontend]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Lähetä Slack-ilmoitus testiympäristön julkaisusta
+        env:
+          SLACK_HOOK: ${{ secrets.NETUM_SLACK_HOOK_URL }}
+        run: |
+          VERSION="$GITHUB_REF_NAME"
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\"}" \
+            "$SLACK_HOOK"
+      - name: Lähetä Teams-ilmoitus testiympäristön julkaisusta
+        env:
+          TEAMS_HOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          VERSION="$GITHUB_REF_NAME"
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"type\":\"message\",\"attachments\":[{\"contentType\":\"application/vnd.microsoft.card.adaptive\",\"content\":{\"type\":\"AdaptiveCard\",\"version\":\"1.2\",\"body\":[{\"type\":\"TextBlock\",\"text\":\"🚀 Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\",\"wrap\":true}]}}]}" \
+            "$TEAMS_HOOK"
+
   production-gate:
     runs-on: ubuntu-latest
     needs: [deploy-staging-backend, deploy-staging-frontend]
-    if: startsWith(github.ref, 'refs/tags/release/')
+    if: startsWith(github.ref, 'refs/tags/v')
     environment: production
 
     steps:
@@ -402,7 +425,7 @@ jobs:
   deploy-maintenance-page-prod:
     runs-on: ubuntu-latest
     needs: [production-gate, backend-build-image]
-    if: startsWith(github.ref, 'refs/tags/release/')
+    if: startsWith(github.ref, 'refs/tags/v')
     environment: production
 
     steps:
@@ -424,7 +447,7 @@ jobs:
   deploy-prod-backend:
     runs-on: ubuntu-latest
     needs: [deploy-maintenance-page-prod, backend-build-image]
-    if: startsWith(github.ref, 'refs/tags/release/')
+    if: startsWith(github.ref, 'refs/tags/v')
     environment: production
 
     steps:
@@ -465,7 +488,7 @@ jobs:
   deploy-prod-frontend:
     runs-on: ubuntu-latest
     needs: [deploy-prod-backend, frontend-build-test-image, frontend-build-prod]
-    if: startsWith(github.ref, 'refs/tags/release/')
+    if: startsWith(github.ref, 'refs/tags/v')
     environment: production
 
     steps:
@@ -485,10 +508,33 @@ jobs:
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
 
+  notify-prod:
+    runs-on: ubuntu-latest
+    needs: [deploy-prod-backend, deploy-prod-frontend]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Lähetä Slack-ilmoitus tuotantoon julkaisusta
+        env:
+          SLACK_HOOK: ${{ secrets.NETUM_SLACK_HOOK_URL }}
+        run: |
+          VERSION="$GITHUB_REF_NAME"
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu tuotantoon.\"}" \
+            "$SLACK_HOOK"
+      - name: Lähetä Teams-ilmoitus tuotantoon julkaisusta
+        env:
+          TEAMS_HOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          VERSION="$GITHUB_REF_NAME"
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"type\":\"message\",\"attachments\":[{\"contentType\":\"application/vnd.microsoft.card.adaptive\",\"content\":{\"type\":\"AdaptiveCard\",\"version\":\"1.2\",\"body\":[{\"type\":\"TextBlock\",\"text\":\"🚀 Versio ${VERSION} on julkaistu tuotantoon.\",\"wrap\":true}]}}]}" \
+            "$TEAMS_HOOK"
+
   merge-release:
     runs-on: ubuntu-latest
     needs: [deploy-prod-backend, deploy-prod-frontend]
-    if: startsWith(github.ref, 'refs/tags/release/')
+    if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
 
@@ -502,12 +548,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          BRANCH="${GITHUB_REF_NAME}"
-          git fetch --all
+          git fetch --all --tags
+          RELEASE_BRANCH=$(git branch -r --contains "refs/tags/$GITHUB_REF_NAME" | grep 'origin/release/' | head -1 | sed 's|.*origin/||' | xargs)
           git checkout master
-          git merge origin/$BRANCH --no-ff -m "Yhdistä ${BRANCH} master-haaraan"
+          git merge origin/$RELEASE_BRANCH --no-ff -m "Yhdistä $RELEASE_BRANCH ($GITHUB_REF_NAME) master-haaraan"
           git push origin master
           git checkout main
-          git merge origin/$BRANCH --no-ff -m "Yhdistä ${BRANCH} main-haaraan"
+          git merge origin/$RELEASE_BRANCH --no-ff -m "Yhdistä $RELEASE_BRANCH ($GITHUB_REF_NAME) main-haaraan"
           git push origin main
 
