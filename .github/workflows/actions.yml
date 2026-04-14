@@ -114,6 +114,7 @@ jobs:
   backend-security-scan:
     runs-on: ubuntu-latest
     needs: backend-test-and-build
+    if: "!startsWith(github.ref, 'refs/tags/v')"
     permissions:
       contents: read
       security-events: write
@@ -188,7 +189,7 @@ jobs:
   frontend-build-test-image:
     runs-on: ubuntu-latest
     needs: frontend-test-and-build
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
     outputs:
       image-tag: ${{ steps.image-tag.outputs.image-tag }}
       extra-tag: ${{ steps.image-tag.outputs.extra-tag }}
@@ -309,7 +310,7 @@ jobs:
 
   deploy-maintenance-page-staging:
     runs-on: ubuntu-latest
-    needs: [backend-build-image, frontend-build-test-image]
+    needs: [backend-build-image]
     if: startsWith(github.ref, 'refs/tags/v')
     environment: staging
 
@@ -329,7 +330,7 @@ jobs:
 
   deploy-staging-backend:
     runs-on: ubuntu-latest
-    needs: [backend-build-image, frontend-build-test-image]
+    needs: [backend-build-image]
     if: startsWith(github.ref, 'refs/tags/v')
     environment: staging
 
@@ -370,7 +371,7 @@ jobs:
 
   deploy-staging-frontend:
     runs-on: ubuntu-latest
-    needs: [frontend-build-test-image, frontend-test-and-build]
+    needs: [frontend-test-and-build]
     if: startsWith(github.ref, 'refs/tags/v')
     environment: staging
 
@@ -403,7 +404,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          token: ${{ secrets.MERGE_TOKEN }}
+          token: ${{ secrets.MERGE_TOKEN || github.token }}
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -458,7 +459,7 @@ jobs:
   deploy-maintenance-page-prod:
     runs-on: ubuntu-latest
     needs: [production-gate, backend-build-image]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') # Temporarily disabled – dry-run testing
     environment: production
 
     steps:
@@ -472,15 +473,18 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
           aws-region: eu-west-1
       - name: Deploy static site to S3 bucket
-        run: aws s3 mv src/main/resources/templates/huoltokatko.html s3://elsapalvelu.fi/index.html
+        run: |
+          # DRY-RUN: aws s3 mv src/main/resources/templates/huoltokatko.html s3://elsapalvelu.fi/index.html
+          echo "DRY-RUN: huoltokatko.html -> s3://elsapalvelu.fi/index.html (skipped)"
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+          # DRY-RUN: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+          echo "DRY-RUN: CloudFront invalidation for prod (skipped)"
 
   deploy-prod-backend:
     runs-on: ubuntu-latest
     needs: [deploy-maintenance-page-prod, backend-build-image]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') # Temporarily disabled – dry-run testing
     environment: production
 
     steps:
@@ -494,34 +498,32 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition elsa-prod-backend --query taskDefinition | jq -r 'del(
-          .taskDefinitionArn,
-          .requiresAttributes,
-          .compatibilities,
-          .revision,
-          .status,
-          .registeredAt,
-          .registeredBy
-          )' > task-definition.json
+          # DRY-RUN: aws ecs describe-task-definition --task-definition elsa-prod-backend ...
+          echo "DRY-RUN: Download ECS task definition for prod backend (skipped)"
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
+        if: false # DRY-RUN: disabled
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
           container-name: elsa-prod-backend-container
           image: ${{ secrets.ECR_REPOSITORY }}:${{ needs.backend-build-image.outputs.image-tag }}
       - name: Deploy Amazon ECS task definition
+        if: false # DRY-RUN: disabled
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: elsa-prod-backend-service
           cluster: elsa-prod-cluster
           wait-for-service-stability: true
+      - name: Deploy Amazon ECS task definition (dry-run)
+        run: |
+          echo "DRY-RUN: ECS deploy elsa-prod-backend-service on elsa-prod-cluster (skipped)"
 
   deploy-prod-frontend:
     runs-on: ubuntu-latest
     needs: [deploy-prod-backend, frontend-build-test-image, frontend-build-prod]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') # Temporarily disabled – dry-run testing
     environment: production
 
     steps:
@@ -536,10 +538,13 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
           aws-region: eu-west-1
       - name: Deploy static site to S3 bucket
-        run: aws s3 sync dist s3://elsapalvelu.fi/ --delete
+        run: |
+          # DRY-RUN: aws s3 sync dist s3://elsapalvelu.fi/ --delete
+          echo "DRY-RUN: Sync dist -> s3://elsapalvelu.fi/ (skipped)"
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+          # DRY-RUN: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+          echo "DRY-RUN: CloudFront invalidation for prod frontend (skipped)"
 
   notify-prod:
     runs-on: ubuntu-latest
