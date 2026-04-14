@@ -593,7 +593,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.MERGE_TOKEN }}
+          token: ${{ secrets.MERGE_TOKEN || github.token }}
       - name: Yhdistä release master- ja main-haaroihin
         run: |
           git config user.name "github-actions[bot]"
