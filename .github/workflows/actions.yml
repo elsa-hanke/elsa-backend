@@ -467,7 +467,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [production-gate, backend-build-image]
     if: startsWith(github.ref, 'refs/tags/v') # Temporarily disabled – dry-run testing
-    environment: production
+    # No environment: production here – approval was already given at production-gate
 
     steps:
       - name: Checkout code
@@ -492,7 +492,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy-maintenance-page-prod, backend-build-image]
     if: startsWith(github.ref, 'refs/tags/v') # Temporarily disabled – dry-run testing
-    environment: production
+    # No environment: production here – approval was already given at production-gate
 
     steps:
       - name: Configure AWS Credentials
@@ -529,9 +529,9 @@ jobs:
 
   deploy-prod-frontend:
     runs-on: ubuntu-latest
-    needs: [deploy-prod-backend, frontend-build-test-image, frontend-build-prod]
+    needs: [deploy-prod-backend, frontend-build-prod]
     if: startsWith(github.ref, 'refs/tags/v') # Temporarily disabled – dry-run testing
-    environment: production
+    # No environment: production here – approval was already given at production-gate
 
     steps:
       - name: Download dist
@@ -557,6 +557,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy-prod-backend, deploy-prod-frontend]
     if: startsWith(github.ref, 'refs/tags/v')
+    # No environment: production here – approval was already given at production-gate
 
     steps:
       - name: Lähetä Slack-ilmoitus tuotantoon julkaisusta
@@ -583,6 +584,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
+    # No environment: production here – approval was already given at production-gate
 
     steps:
       - name: Checkout
