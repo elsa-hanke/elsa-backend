@@ -567,9 +567,11 @@ jobs:
           SLACK_HOOK: ${{ secrets.NETUM_SLACK_HOOK_URL }}
         run: |
           VERSION="$GITHUB_REF_NAME"
-          curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu tuotantoon.\"}" \
-            "$SLACK_HOOK"
+          # DRY-RUN: Slack-ilmoitus poistettu käytöstä testauksen ajaksi
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu tuotantoon.\"}" \
+          #   "$SLACK_HOOK"
+          echo "DRY-RUN: Slack-ilmoitus tuotantoon (versio ${VERSION}) (skipped)"
       # Teams-ilmoitus on toistaiseksi poistettu käytöstä (webhook-URL puuttuu)
       # - name: Lähetä Teams-ilmoitus tuotantoon julkaisusta
       #   env:
