@@ -114,6 +114,7 @@ jobs:
   backend-security-scan:
     runs-on: ubuntu-latest
     needs: backend-test-and-build
+    if: "!startsWith(github.ref, 'refs/tags/v')"
     permissions:
       contents: read
       security-events: write
@@ -137,7 +138,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
     outputs:
       image-tag: ${{ steps.image-tag.outputs.image-tag }}
-    environment: shared
+    environment: Shared
 
     steps:
       - name: Checkout code
@@ -157,7 +158,7 @@ jobs:
             echo "image-tag=main-$(echo "$SHA" | cut -c1-8)" >> "$GITHUB_OUTPUT"
             echo "extra-tag=main-latest" >> "$GITHUB_OUTPUT"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
+            echo "image-tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
             echo "extra-tag=" >> "$GITHUB_OUTPUT"
           else
             SHA="${{ github.event.pull_request.head.sha || github.sha }}"
@@ -188,11 +189,11 @@ jobs:
   frontend-build-test-image:
     runs-on: ubuntu-latest
     needs: frontend-test-and-build
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.head_ref, 'feature/')
     outputs:
       image-tag: ${{ steps.image-tag.outputs.image-tag }}
       extra-tag: ${{ steps.image-tag.outputs.extra-tag }}
-    environment: shared
+    environment: Shared
 
     steps:
       - name: Checkout code
@@ -205,7 +206,7 @@ jobs:
             echo "image-tag=main-$(echo "$SHA" | cut -c1-8)" >> "$GITHUB_OUTPUT"
             echo "extra-tag=main-latest" >> "$GITHUB_OUTPUT"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "image-tag=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
+            echo "image-tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
             echo "extra-tag=" >> "$GITHUB_OUTPUT"
           else
             SHA="${{ github.event.pull_request.head.sha || github.sha }}"
@@ -250,7 +251,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [backend-build-image, backend-security-scan, e2e]
     if: github.ref == 'refs/heads/main'
-    environment: development
+    environment: Development
 
     steps:
       - name: Configure AWS Credentials
@@ -288,7 +289,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [frontend-test-and-build, backend-security-scan, e2e]
     if: github.ref == 'refs/heads/main'
-    environment: development
+    environment: Development
 
     steps:
       - name: Download dist
@@ -309,9 +310,9 @@ jobs:
 
   deploy-maintenance-page-staging:
     runs-on: ubuntu-latest
-    needs: [backend-build-image, frontend-build-test-image]
+    needs: [backend-build-image]
     if: startsWith(github.ref, 'refs/tags/v')
-    environment: staging
+    environment: Staging
 
     steps:
       - name: Checkout code
@@ -329,9 +330,9 @@ jobs:
 
   deploy-staging-backend:
     runs-on: ubuntu-latest
-    needs: [backend-build-image, frontend-build-test-image]
+    needs: [deploy-maintenance-page-staging, backend-build-image]
     if: startsWith(github.ref, 'refs/tags/v')
-    environment: staging
+    environment: Staging
 
     steps:
       - name: Configure AWS Credentials
@@ -370,9 +371,9 @@ jobs:
 
   deploy-staging-frontend:
     runs-on: ubuntu-latest
-    needs: [frontend-build-test-image, frontend-test-and-build]
+    needs: [deploy-staging-backend, frontend-test-and-build]
     if: startsWith(github.ref, 'refs/tags/v')
-    environment: staging
+    environment: Staging
 
     steps:
       - name: Download dist
@@ -396,29 +397,35 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
+    outputs:
+      release-branch: ${{ steps.resolve-branch.outputs.release-branch }}
 
     steps:
-      - name: Checkout main
+      - name: Checkout release branch
         uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 0
-          token: ${{ secrets.MERGE_TOKEN }}
+          token: ${{ secrets.MERGE_TOKEN || github.token }}
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
       - name: Asenna auto-changelog
         run: npm install -g auto-changelog
-      - name: Luo CHANGELOG.md ja committaa main-haaraan
+      - name: Luo CHANGELOG.md ja committaa release-haaraan
+        id: resolve-branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch --all --tags
+          RELEASE_BRANCH=$(git branch -r --contains "refs/tags/$GITHUB_REF_NAME" | grep -E 'origin/(release|hotfix)/' | head -1 | sed 's|.*origin/||' | xargs)
+          echo "Generating changelog on branch: ${RELEASE_BRANCH}"
+          echo "release-branch=${RELEASE_BRANCH}" >> "$GITHUB_OUTPUT"
+          git checkout $RELEASE_BRANCH
           auto-changelog -u --hide-empty-releases --template https://raw.githubusercontent.com/Eura2021/eura2021-kong-charts/master/chlog.hbs
           git add CHANGELOG.md
           git commit -m 'CHANGELOG updated [CI SKIP]' --allow-empty CHANGELOG.md
-          git push origin main
+          git push origin $RELEASE_BRANCH
 
   notify-staging:
     runs-on: ubuntu-latest
@@ -431,10 +438,13 @@ jobs:
           SLACK_HOOK: ${{ secrets.NETUM_SLACK_HOOK_URL }}
         run: |
           VERSION="$GITHUB_REF_NAME"
-          CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md"
-          curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: ${CHANGELOG_URL}\"}" \
-            "$SLACK_HOOK"
+          RELEASE_BRANCH="${{ needs.generate-changelog.outputs.release-branch }}"
+          CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
+          # DRY-RUN: Slack-ilmoitus poistettu käytöstä testauksen ajaksi
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: ${CHANGELOG_URL}\"}" \
+          #   "$SLACK_HOOK"
+          echo "DRY-RUN: Slack-ilmoitus testiympäristöön (versio ${VERSION}) (skipped)"
       # Teams-ilmoitus on toistaiseksi poistettu käytöstä (webhook-URL puuttuu)
       # - name: Lähetä Teams-ilmoitus testiympäristön julkaisusta
       #   env:
@@ -449,7 +459,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy-staging-backend, deploy-staging-frontend]
     if: startsWith(github.ref, 'refs/tags/v')
-    environment: production
+    environment: Production
 
     steps:
       - name: Tuotantoon siirtyminen hyväksytty
@@ -458,8 +468,8 @@ jobs:
   deploy-maintenance-page-prod:
     runs-on: ubuntu-latest
     needs: [production-gate, backend-build-image]
-    if: startsWith(github.ref, 'refs/tags/v')
-    environment: production
+    if: startsWith(github.ref, 'refs/tags/v') # Temporarily disabled – dry-run testing
+    environment: Production-deploy
 
     steps:
       - name: Checkout code
@@ -472,16 +482,19 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
           aws-region: eu-west-1
       - name: Deploy static site to S3 bucket
-        run: aws s3 mv src/main/resources/templates/huoltokatko.html s3://elsapalvelu.fi/index.html
+        run: |
+          # DRY-RUN: aws s3 mv src/main/resources/templates/huoltokatko.html s3://elsapalvelu.fi/index.html
+          echo "DRY-RUN: huoltokatko.html -> s3://elsapalvelu.fi/index.html (skipped)"
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+          # DRY-RUN: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+          echo "DRY-RUN: CloudFront invalidation for prod (skipped)"
 
   deploy-prod-backend:
     runs-on: ubuntu-latest
     needs: [deploy-maintenance-page-prod, backend-build-image]
-    if: startsWith(github.ref, 'refs/tags/v')
-    environment: production
+    if: startsWith(github.ref, 'refs/tags/v') # Temporarily disabled – dry-run testing
+    environment: Production-deploy
 
     steps:
       - name: Configure AWS Credentials
@@ -494,35 +507,33 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition elsa-prod-backend --query taskDefinition | jq -r 'del(
-          .taskDefinitionArn,
-          .requiresAttributes,
-          .compatibilities,
-          .revision,
-          .status,
-          .registeredAt,
-          .registeredBy
-          )' > task-definition.json
+          # DRY-RUN: aws ecs describe-task-definition --task-definition elsa-prod-backend ...
+          echo "DRY-RUN: Download ECS task definition for prod backend (skipped)"
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
+        if: false # DRY-RUN: disabled
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
           container-name: elsa-prod-backend-container
           image: ${{ secrets.ECR_REPOSITORY }}:${{ needs.backend-build-image.outputs.image-tag }}
       - name: Deploy Amazon ECS task definition
+        if: false # DRY-RUN: disabled
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: elsa-prod-backend-service
           cluster: elsa-prod-cluster
           wait-for-service-stability: true
+      - name: Deploy Amazon ECS task definition (dry-run)
+        run: |
+          echo "DRY-RUN: ECS deploy elsa-prod-backend-service on elsa-prod-cluster (skipped)"
 
   deploy-prod-frontend:
     runs-on: ubuntu-latest
-    needs: [deploy-prod-backend, frontend-build-test-image, frontend-build-prod]
-    if: startsWith(github.ref, 'refs/tags/v')
-    environment: production
+    needs: [deploy-prod-backend, frontend-build-prod]
+    if: startsWith(github.ref, 'refs/tags/v') # Temporarily disabled – dry-run testing
+    environment: Production-deploy
 
     steps:
       - name: Download dist
@@ -536,15 +547,19 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
           aws-region: eu-west-1
       - name: Deploy static site to S3 bucket
-        run: aws s3 sync dist s3://elsapalvelu.fi/ --delete
+        run: |
+          # DRY-RUN: aws s3 sync dist s3://elsapalvelu.fi/ --delete
+          echo "DRY-RUN: Sync dist -> s3://elsapalvelu.fi/ (skipped)"
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+          # DRY-RUN: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+          echo "DRY-RUN: CloudFront invalidation for prod frontend (skipped)"
 
   notify-prod:
     runs-on: ubuntu-latest
     needs: [deploy-prod-backend, deploy-prod-frontend]
     if: startsWith(github.ref, 'refs/tags/v')
+    # No environment: production here – approval was already given at production-gate
 
     steps:
       - name: Lähetä Slack-ilmoitus tuotantoon julkaisusta
@@ -571,13 +586,14 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
+    # No environment: production here – approval was already given at production-gate
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.MERGE_TOKEN }}
+          token: ${{ secrets.MERGE_TOKEN || github.token }}
       - name: Yhdistä release master- ja main-haaroihin
         run: |
           git config user.name "github-actions[bot]"
