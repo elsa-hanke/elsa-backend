@@ -440,11 +440,9 @@ jobs:
           VERSION="$GITHUB_REF_NAME"
           RELEASE_BRANCH="${{ needs.generate-changelog.outputs.release-branch }}"
           CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
-          # DRY-RUN: Slack-ilmoitus poistettu käytöstä testauksen ajaksi
-          # curl -X POST -H 'Content-type: application/json' \
-          #   --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: ${CHANGELOG_URL}\"}" \
-          #   "$SLACK_HOOK"
-          echo "DRY-RUN: Slack-ilmoitus testiympäristöön (versio ${VERSION}) (skipped)"
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: ${CHANGELOG_URL}\"}" \
+            "$SLACK_HOOK"
       # Teams-ilmoitus on toistaiseksi poistettu käytöstä (webhook-URL puuttuu)
       # - name: Lähetä Teams-ilmoitus testiympäristön julkaisusta
       #   env:
@@ -559,7 +557,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy-prod-backend, deploy-prod-frontend]
     if: startsWith(github.ref, 'refs/tags/v')
-    # No environment: production here – approval was already given at production-gate
 
     steps:
       - name: Lähetä Slack-ilmoitus tuotantoon julkaisusta
@@ -567,11 +564,9 @@ jobs:
           SLACK_HOOK: ${{ secrets.NETUM_SLACK_HOOK_URL }}
         run: |
           VERSION="$GITHUB_REF_NAME"
-          # DRY-RUN: Slack-ilmoitus poistettu käytöstä testauksen ajaksi
-          # curl -X POST -H 'Content-type: application/json' \
-          #   --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu tuotantoon.\"}" \
-          #   "$SLACK_HOOK"
-          echo "DRY-RUN: Slack-ilmoitus tuotantoon (versio ${VERSION}) (skipped)"
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu tuotantoon.\"}" \
+            "$SLACK_HOOK"
       # Teams-ilmoitus on toistaiseksi poistettu käytöstä (webhook-URL puuttuu)
       # - name: Lähetä Teams-ilmoitus tuotantoon julkaisusta
       #   env:
@@ -588,7 +583,6 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
-    # No environment: production here – approval was already given at production-gate
 
     steps:
       - name: Checkout
@@ -596,16 +590,16 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.MERGE_TOKEN || github.token }}
-      - name: Yhdistä release master- ja main-haaroihin
+      - name: Merge release master- ja main-haaroihin
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch --all --tags
           RELEASE_BRANCH=$(git branch -r --contains "refs/tags/$GITHUB_REF_NAME" | grep -E 'origin/(release|hotfix)/' | head -1 | sed 's|.*origin/||' | xargs)
           git checkout master
-          git merge origin/$RELEASE_BRANCH --no-ff -m "Yhdistä $RELEASE_BRANCH ($GITHUB_REF_NAME) master-haaraan"
+          git merge origin/$RELEASE_BRANCH --no-ff -m "Merge $RELEASE_BRANCH ($GITHUB_REF_NAME) master-haaraan"
           git push origin master
           git checkout main
-          git merge origin/$RELEASE_BRANCH --no-ff -m "Yhdistä $RELEASE_BRANCH ($GITHUB_REF_NAME) main-haaraan"
+          git merge origin/$RELEASE_BRANCH --no-ff -m "Merge $RELEASE_BRANCH ($GITHUB_REF_NAME) main-haaraan"
           git push origin main
 
