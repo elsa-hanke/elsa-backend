@@ -1,0 +1,59 @@
+{
+  "id": 1451,
+  "suorituspaiva": "2020-11-24",
+  "arviointiasteikonTaso": 5,
+  "vaativuustaso": 1,
+  "lisatiedot": "Lorem ipsum...",
+  "lukittu": false,
+  "oppimistavoiteId": 2,
+  "tyoskentelyjaksoId": 1151,
+  "oppimistavoite": {
+     "id": 2,
+     "nimi": "Oppimistavoite 2",
+     "voimassaolonAlkamispaiva": "2020-11-16",
+     "voimassaolonPaattymispaiva": null,
+     "kategoriaId": 1
+  },
+  "tyoskentelyjakso": {
+     "id": 1151,
+     "alkamispaiva": "2020-11-23",
+     "paattymispaiva": "2020-11-29",
+     "osaaikaprosentti": 100,
+     "kaytannonKoulutus": "OMAN_ERIKOISALAN_KOULUTUS",
+     "omaaErikoisalaaTukevaId": null,
+     "hyvaksyttyAiempaanErikoisalaan": false,
+     "tyoskentelypaikka": {
+        "id": 1201,
+        "nimi": "b",
+        "kunta": "a",
+        "tyyppi": "TERVEYSKESKUS",
+        "muuTyyppi": null
+     },
+     "erikoistuvaLaakariId": 1101
+  },
+  "arviointiasteikko": {
+   "nimi": "EPA",
+   "tasot": [
+      {
+         "nimi": "OHJAAJAN_TOIMINNAN_SEURAAMINEN",
+         "taso": 1
+      },
+      {
+         "nimi": "TOIMINTA_SUORAN_OHJAUKSEN_ALAISENA",
+         "taso": 2
+      },
+      {
+         "nimi": "TOIMINTA_EPASUORAN_OHJAUKSEN_ALAISENA",
+         "taso": 3
+      },
+      {
+         "nimi": "TOIMINTA_ILMAN_OHJAUSTA",
+         "taso": 4
+      },
+      {
+         "nimi": "TOIMINTA_OHJAAJANA",
+         "taso": 5
+      }
+   ]
+  }
+}
