@@ -31,8 +31,23 @@ restartb:
   pkill -f bootRun || true
   just startb
 
-startf:
-  cd ../elsa-frontend && yarn serve
+frontend-install:
+  cd frontend && yarn install --ignore-scripts
+
+frontend-test:
+  cd frontend && yarn test:unit
+
+frontend-lint:
+  cd frontend && yarn lint
+
+frontend-build:
+  cd frontend && yarn build --mode production-test
+
+frontend-build-prod:
+  cd frontend && yarn build
+
+startf: frontend-install
+  cd frontend && yarn serve
 
 kill8080:
   @lsof -ti:8080 | xargs kill -9 2>/dev/null || true

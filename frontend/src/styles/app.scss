@@ -1,0 +1,405 @@
+@import '~@/styles/variables';
+@import '~bootstrap/scss/mixins/breakpoints';
+@import '~vue-multiselect/dist/vue-multiselect.min.css';
+
+/* montserrat-regular - latin */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/montserrat-v25-latin-regular.eot'); /* IE9 Compat Modes */
+  src: local(''),
+       url('../assets/fonts/montserrat-v25-latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../assets/fonts/montserrat-v25-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../assets/fonts/montserrat-v25-latin-regular.woff') format('woff'), /* Modern Browsers */
+       url('../assets/fonts/montserrat-v25-latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../assets/fonts/montserrat-v25-latin-regular.svg#Montserrat') format('svg'); /* Legacy iOS */
+}
+/* montserrat-500 - latin */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../assets/fonts/montserrat-v25-latin-500.eot'); /* IE9 Compat Modes */
+  src: local(''),
+       url('../assets/fonts/montserrat-v25-latin-500.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../assets/fonts/montserrat-v25-latin-500.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../assets/fonts/montserrat-v25-latin-500.woff') format('woff'), /* Modern Browsers */
+       url('../assets/fonts/montserrat-v25-latin-500.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../assets/fonts/montserrat-v25-latin-500.svg#Montserrat') format('svg'); /* Legacy iOS */
+}
+/* montserrat-700 - latin */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/montserrat-v25-latin-700.eot'); /* IE9 Compat Modes */
+  src: local(''),
+       url('../assets/fonts/montserrat-v25-latin-700.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../assets/fonts/montserrat-v25-latin-700.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../assets/fonts/montserrat-v25-latin-700.woff') format('woff'), /* Modern Browsers */
+       url('../assets/fonts/montserrat-v25-latin-700.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../assets/fonts/montserrat-v25-latin-700.svg#Montserrat') format('svg'); /* Legacy iOS */
+}
+
+html:not(.e2e) {
+  scroll-behavior: smooth;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+.font-weight-400 {
+  font-weight: $font-weight-400;
+}
+
+.font-weight-500 {
+  font-weight: $font-weight-500;
+}
+
+.font-weight-700 {
+  font-weight: $font-weight-700;
+}
+
+.text-size-normal {
+  font-size: $font-size-base;
+}
+
+.text-size-sm {
+  font-size: $font-size-sm;
+}
+
+.text-size-md {
+  font-size: $font-size-md;
+}
+
+.text-size-lg {
+  font-size: $font-size-lg;
+}
+
+.text-lighter {
+  color: lighten($black, 50%);
+}
+
+.text-black {
+  color: $black;
+}
+
+.text-primary {
+  color: $primary
+}
+
+label {
+  font-weight: $font-weight-500;
+}
+
+label.custom-control-label {
+  font-weight: $font-weight-400;
+}
+
+.modal-content {
+  box-shadow: 0 0 0.5rem rgba(black, 0.5);
+  .modal-header {
+    color: $white;
+    background-color: $primary;
+    display: flex;
+    align-items: center;
+    .modal-title {
+      font-size: 1rem;
+    }
+    .close {
+      color: $white;
+      text-shadow: none;
+      opacity: 1;
+      margin: -0.75rem -1.25rem -0.75rem auto;
+      font-size: 500;
+      font-size: 1.5rem;
+    }
+  }
+}
+
+.custom-control.custom-radio {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.text-star,
+.text-star:focus {
+  color: #ffc107;
+}
+
+ul.nav.nav-tabs {
+  border-bottom: $nav-tabs-border-bottom-width solid $gray-300;
+  li {
+    a.nav-link {
+      font-weight: $font-weight-700;
+
+      &.active {
+        border-bottom: $nav-tabs-border-bottom-width solid $primary;
+        margin-bottom: -$nav-tabs-border-bottom-width;
+      }
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+}
+
+hr {
+  border-top-color: $hr-color;
+}
+
+.alert.alert-dark {
+  background-color: #f5f5f6;
+  border-color: #e8e9ec;
+  color: $black;
+}
+
+.alert {
+  ul {
+    padding-left: 1.25rem;
+    margin-bottom: 0;
+  }
+}
+
+textarea::placeholder {
+  color: $gray-600 !important;
+}
+
+.b-toast-success,
+.b-toast-danger {
+  .toast-header {
+    position: absolute;
+    right: 0;
+    padding: 0.25rem 0.5rem 0;
+    background-color: transparent !important;
+    border-bottom: none !important;
+  }
+  .toast {
+    border: none;
+    color: $white;
+    font-weight: 500;
+  }
+}
+
+.b-toast-success {
+  &.b-toast-solid {
+    .toast {
+      background-color: $success;
+    }
+  }
+}
+.b-toast-danger {
+  &.b-toast-solid {
+    .toast {
+      background-color: $danger;
+    }
+  }
+}
+
+.alert-danger {
+  color: $white;
+  background-color: $danger;
+}
+
+.alert-success {
+  color: $white;
+  background-color: $green;
+}
+
+// Piilotetaan validoinnin ikonit
+.was-validated .form-control:invalid,
+.was-validated .form-control:valid,
+.form-control.is-invalid,
+.form-control.is-valid {
+  padding-right: $input-btn-padding-x;
+  background-image: none;
+  &.b-form-datepicker {
+    padding-right: 0;
+  }
+}
+
+.form-control.is-valid {
+  border-color: $gray-400;
+}
+
+h1 {
+  line-height: 1.272727273;
+}
+h2 {
+  line-height: 1.4;
+}
+h3 {
+  line-height: 1.444444444;
+}
+h4 {
+  line-height: 1.375;
+}
+h5 {
+  line-height: 1.466666667;
+}
+h6 {
+  line-height: 1.466666667;
+}
+
+.btn-primary {
+  color: $white;
+  &:hover {
+    background-color: $btn-primary-hover-background-color;
+    border-color: $btn-primary-hover-border-color;
+  }
+  &.disabled {
+    color: $btn-primary-disabled-color;
+    background-color: $btn-primary-disabled-background-color;
+    border-color: $btn-primary-disabled-border-color;
+  }
+}
+
+.btn-outline-primary {
+  color: $primary;
+  &:hover {
+    color: $btn-primary-hover-background-color;
+    background-color: transparent;
+    border-color: $btn-primary-hover-border-color;
+  }
+  &.disabled {
+    color: $btn-disabled-color;
+    border-color: $btn-disabled-color;
+  }
+}
+
+.btn-back {
+  color: $black;
+  &:hover {
+    color: #000000;
+  }
+  &:focus {
+    box-shadow: $btn-focus-box-shadow;
+  }
+  &.disabled {
+    color: $btn-disabled-color;
+  }
+}
+
+.btn-outline-danger {
+  color: $btn-danger-color;
+  border-color: $btn-danger-border-color;
+  &:active {
+    color: $btn-danger-hover-color !important;
+    background-color: transparent !important;
+    border-color: $btn-danger-hover-border-color !important;
+  }
+  &:hover {
+    color: $btn-danger-hover-color;
+    background-color: transparent;
+    border-color: $btn-danger-hover-border-color;
+  }
+  &.disabled {
+    color: $btn-disabled-color;
+    border-color: $btn-disabled-color;
+  }
+}
+
+// Remove blue outline when button is clicked
+.btn:focus,
+.btn:active {
+  outline: none !important;
+  box-shadow: none;
+}
+
+.popover {
+  @include media-breakpoint-down(sm) {
+    max-width: 276px;
+  }
+}
+
+.breadcrumb-item.active {
+  color: $black;
+}
+
+.text-preline {
+  white-space: pre-line;
+}
+
+.text-error {
+  color: $red;
+  font-size: $font-size-sm;
+}
+
+.capitalize-first {
+  text-transform: lowercase;
+}
+.capitalize-first::first-letter {
+  text-transform: uppercase;
+}
+
+table {
+  border-bottom: $table-border-width solid $table-border-color;
+
+  th {
+    font-weight: $font-weight-500;
+    padding-bottom: 0.25rem !important;
+    &[scope='col'] {
+      border-top: none !important;
+    }
+  }
+
+  td {
+    word-wrap: break-word;
+    button {
+      text-align: justify !important;
+    }
+  }
+}
+
+.dropdown-menu {
+  & > li:not(:last-child) {
+    border-bottom: $dropdown-border-width solid $dropdown-border-color;
+  }
+
+  .dropdown-item:last-child {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+  .dropdown-item:first-child {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: auto;
+}
+
+.icon-xl {
+  font-size: 4rem;
+}
+
+.search-icon {
+  top: 0.6875rem;
+  right: 0.875rem;
+}
+
+button.close {
+  color: $white;
+  opacity: 1;
+  text-shadow: 0 0 0;
+}
+
+@page {
+  size: auto;
+  margin: 5mm;
+}

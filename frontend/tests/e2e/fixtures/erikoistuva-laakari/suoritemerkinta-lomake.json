@@ -1,0 +1,112 @@
+{
+  "tyoskentelyjaksot": [
+     {
+        "id": 1151,
+        "alkamispaiva": "2020-11-23",
+        "paattymispaiva": null,
+        "osaaikaprosentti": 100,
+        "kaytannonKoulutus": "OMAN_ERIKOISALAN_KOULUTUS",
+        "omaaErikoisalaaTukevaId": null,
+        "hyvaksyttyAiempaanErikoisalaan": false,
+        "tyoskentelypaikka": {
+           "id": 1201,
+           "nimi": "b",
+           "kunta": "a",
+           "tyyppi": "TERVEYSKESKUS",
+           "muuTyyppi": null
+        },
+        "erikoistuvaLaakariId": 1101
+     }
+  ],
+  "oppimistavoitteenKategoriat": [
+     {
+        "id": 1,
+        "nimi": "Oppimistavoitteen kategoria 1",
+        "erikoisalaId": 1,
+        "oppimistavoitteet": [
+           {
+              "id": 1,
+              "nimi": "Oppimistavoite 1",
+              "kategoriaId": 1
+           },
+           {
+              "id": 2,
+              "nimi": "Oppimistavoite 2",
+              "kategoriaId": 1
+           },
+           {
+              "id": 3,
+              "nimi": "Oppimistavoite 3",
+              "kategoriaId": 1
+           }
+        ],
+        "arviointiasteikko": {
+         "nimi": "EPA",
+         "tasot": [
+            {
+               "nimi": "OHJAAJAN_TOIMINNAN_SEURAAMINEN",
+               "taso": 1
+            },
+            {
+               "nimi": "TOIMINTA_SUORAN_OHJAUKSEN_ALAISENA",
+               "taso": 2
+            },
+            {
+               "nimi": "TOIMINTA_EPASUORAN_OHJAUKSEN_ALAISENA",
+               "taso": 3
+            },
+            {
+               "nimi": "TOIMINTA_ILMAN_OHJAUSTA",
+               "taso": 4
+            },
+            {
+               "nimi": "TOIMINTA_OHJAAJANA",
+               "taso": 5
+            }
+         ]
+        }
+     },
+     {
+        "id": 2,
+        "nimi": "Oppimistavoitteen kategoria 2",
+        "erikoisalaId": 1,
+        "oppimistavoitteet": [
+           {
+              "id": 4,
+              "nimi": "Oppimistavoite 4",
+              "kategoriaId": 2
+           },
+           {
+              "id": 5,
+              "nimi": "Oppimistavoite 5",
+              "kategoriaId": 2
+           }
+        ],
+        "arviointiasteikko": {
+         "nimi": "EPA",
+         "tasot": [
+            {
+               "nimi": "OHJAAJAN_TOIMINNAN_SEURAAMINEN",
+               "taso": 1
+            },
+            {
+               "nimi": "TOIMINTA_SUORAN_OHJAUKSEN_ALAISENA",
+               "taso": 2
+            },
+            {
+               "nimi": "TOIMINTA_EPASUORAN_OHJAUKSEN_ALAISENA",
+               "taso": 3
+            },
+            {
+               "nimi": "TOIMINTA_ILMAN_OHJAUSTA",
+               "taso": 4
+            },
+            {
+               "nimi": "TOIMINTA_OHJAAJANA",
+               "taso": 5
+            }
+         ]
+        }
+     }
+  ]
+}

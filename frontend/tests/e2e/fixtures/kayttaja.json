@@ -1,0 +1,8 @@
+{
+  "id": "9cd0dc9f-ff5b-4393-8b1e-be37c8eb3a7b",
+  "login": "johndoe@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "johndoe@example.com",
+  "authorities": ["ROLE_ERIKOISTUVA_LAAKARI"]
+}

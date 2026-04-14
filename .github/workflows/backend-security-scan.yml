@@ -1,4 +1,4 @@
-name: Security Scan (BOM + Grype)
+name: Backend security Scan (BOM + Grype)
 
 on:
   schedule:
