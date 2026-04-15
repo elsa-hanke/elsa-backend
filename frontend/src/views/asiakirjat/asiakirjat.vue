@@ -114,7 +114,7 @@
       this.uploading = false
     }
 
-    private getSubmitFailedMessage(axiosError: AxiosError<ElsaError>, filesCount: number) {
+    private getSubmitFailedMessage(axiosError: AxiosError, filesCount: number) {
       const errorMessage =
         filesCount > 1
           ? this.$t('asiakirjojen-tallentaminen-epaonnistui')
