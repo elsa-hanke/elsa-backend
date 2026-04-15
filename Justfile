@@ -40,9 +40,6 @@ frontend-test:
 frontend-lint:
   cd frontend && yarn lint
 
-frontend-lintfix:
-  cd frontend && yarn lint:fix
-
 frontend-build:
   cd frontend && yarn build --mode production-test
 
