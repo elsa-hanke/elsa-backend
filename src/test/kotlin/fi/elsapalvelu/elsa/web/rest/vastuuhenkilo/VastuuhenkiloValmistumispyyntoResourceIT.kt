@@ -35,6 +35,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.LocalDateTime
 import jakarta.persistence.EntityManager
 
 private const val ENDPOINT_BASE_URL = "/api/vastuuhenkilo"
@@ -53,6 +54,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
     @Autowired
     private lateinit var valmistumispyyntoRepository: ValmistumispyyntoRepository
+
 
     @Autowired
     private lateinit var restValmistumispyyntoMockMvc: MockMvc
@@ -1260,6 +1262,105 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
         assertThat(updatedValmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika).isEqualTo(LocalDate.now())
         assertThat(updatedValmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika).isNull()
         assertThat(updatedValmistumispyynto.vastuuhenkiloHyvaksyjaKorjausehdotus).isNull()
+    }
+
+    /**
+     * Regression test for the production bug: a suoritusarviointi with a zero-byte PDF attachment
+     * (asiakirjaData.data = ByteArray(0)) causes PdfReader to throw
+     * "com.itextpdf.io.exceptions.IOException: PDF header not found" inside lisaaArvioinnit,
+     * which propagates through the @Transactional boundary and rolls back the entire approval.
+     *
+     * This test CURRENTLY FAILS with 5xx until the fix (skip/warn on empty blobs) is applied.
+     * Once the fix is in place, update the assertion to expect status().isOk.
+     */
+    @Test
+    @Transactional
+    fun ackValmistumispyyntoHyvaksyjaWithEmptyPdfAttachmentFails() {
+        initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
+
+        // Create a tyoskentelyjakso directly linked to the test's opintooikeus.
+        // TyoskentelyjaksoHelper sets the opintooikeus via getOpintooikeusKaytossa() which
+        // can resolve to a different object; we override it explicitly to guarantee the link.
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
+        tyoskentelyjakso.opintooikeus = opintooikeus
+        em.persist(tyoskentelyjakso)
+        em.flush()
+
+        // SuoritusarviointiHelper.createEntity picks up the persisted tyoskentelyjakso via
+        // em.findAll(Tyoskentelyjakso).get(0) and sets the correct opintooikeus chain.
+        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em)
+        em.persist(suoritusarviointi)
+        em.flush()
+
+        // Attach a zero-byte PDF – this is the exact data shape found in production
+        // (asiakirja_data records with LENGTH(data) = 0 linked to suoritusarviointi).
+        // PdfReader receives an empty ByteArrayInputStream and throws "PDF header not found".
+        val emptyPdfAsiakirja = Asiakirja(
+            opintooikeus = opintooikeus,
+            arviointi = suoritusarviointi,
+            nimi = "empty.pdf",
+            tyyppi = MediaType.APPLICATION_PDF_VALUE,
+            lisattypvm = LocalDateTime.now(),
+            asiakirjaData = AsiakirjaData(data = ByteArray(0))
+        )
+        em.persist(emptyPdfAsiakirja)
+        em.flush()
+
+        // Create a Koulutussuunnitelma for the opintooikeus so that lisaaKoulutussuunnitelma
+        // can render the PDF template without crashing.
+        // Without this, koulutussuunnitelmaRepository.findOneByOpintooikeusId returns null and
+        // the Thymeleaf template crashes at `koulutussuunnitelma.koulutusjaksot` (null dereference)
+        // before we even reach lisaaArvioinnit where the actual production error occurs.
+        val koulutussuunnitelma = Koulutussuunnitelma(
+            opintooikeus = opintooikeus,
+            motivaatiokirjeYksityinen = false,
+            opiskeluJaTyohistoriaYksityinen = false,
+            vahvuudetYksityinen = false,
+            tulevaisuudenVisiointiYksityinen = false,
+            osaamisenKartuttaminenYksityinen = false,
+            elamankenttaYksityinen = false
+        )
+        em.persist(koulutussuunnitelma)
+        em.flush()
+
+        // Clear the first-level cache so the service loads the suoritusarviointi fresh from DB.
+        // Without this, the repository JPQL query returns the entity from the first-level cache
+        // whose arviointiAsiakirjat is still the original empty mutableSetOf() (a plain Kotlin set,
+        // not a Hibernate lazy proxy), so the forEach is a no-op and no crash occurs.
+        // After em.clear(), a.arviointiAsiakirjat triggers a lazy load from DB, finds the
+        // zero-byte asiakirja, and PdfReader throws "PDF header not found".
+        em.clear()
+
+        // Re-fetch detached entities by ID for the valmistumispyynto setup.
+        val freshOpintooikeus = em.find(Opintooikeus::class.java, opintooikeus.id!!)
+        val freshAnotherVastuuhenkilo = em.find(Kayttaja::class.java, anotherVastuuhenkilo.id!!)
+        val freshVirkailija = em.find(Kayttaja::class.java, virkailija.id!!)
+
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
+            freshOpintooikeus, freshAnotherVastuuhenkilo, freshVirkailija
+        )
+        em.persist(valmistumispyynto)
+
+        val tarkistus = ValmistumispyynnonTarkistusHelper
+            .createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
+        em.persist(tarkistus)
+        // Set the non-owning back-reference so the cached valmistumispyynto entity knows about
+        // its tarkistus. Without this, result.valmistumispyynnonTarkistus is null in the
+        // first-level-cache copy and the let{} block (containing luoErikoistujanTiedotPdf)
+        // is never entered, returning 200 without ever touching the zero-byte PDF attachment.
+        valmistumispyynto.valmistumispyynnonTarkistus = tarkistus
+        em.flush()
+
+        val valmistumispyyntoFormDTO = ValmistumispyyntoHyvaksyntaFormDTO(null)
+
+        // TODO: after fixing lisaaArvioinnit to skip/warn on empty blobs,
+        //       change this assertion to .andExpect(status().isOk)
+        restValmistumispyyntoMockMvc.perform(
+            put("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyynto.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(valmistumispyyntoFormDTO))
+                .with(csrf())
+        ).andExpect(status().is5xxServerError)
     }
 
     @Test
