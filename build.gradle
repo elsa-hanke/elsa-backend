@@ -133,7 +133,7 @@ dependencies {
     }
     implementation "org.springframework.boot:spring-boot-starter-undertow"
     implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
-    implementation "org.thymeleaf:thymeleaf-spring6:3.1.2.RELEASE"
+    implementation "org.thymeleaf:thymeleaf-spring6:3.1.4.RELEASE"
     implementation "org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE"
     implementation "org.springframework.security:spring-security-saml2-service-provider:${springSecurityVersion}"
     runtimeOnly "org.postgresql:postgresql"
