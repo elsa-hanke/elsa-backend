@@ -67,5 +67,3 @@ jobs:
                --image-ids "$CHUNK"
              OFFSET=$((OFFSET + CHUNK_SIZE))
            done
-
-          echo "Dry run complete – no images were deleted."
