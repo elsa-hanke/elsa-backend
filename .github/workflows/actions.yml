@@ -441,7 +441,7 @@ jobs:
           RELEASE_BRANCH="${{ needs.generate-changelog.outputs.release-branch }}"
           CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
           curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: ${CHANGELOG_URL}\"}" \
+            --data "{\"text\":\" Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: ${CHANGELOG_URL}\"}" \
             "$SLACK_HOOK"
       - name: Lähetä Teams-ilmoitus testiympäristön julkaisusta
         env:
