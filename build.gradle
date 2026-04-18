@@ -17,7 +17,7 @@ plugins {
     id "org.sonarqube"
     id "com.apollographql.apollo3" version "${apolloVersion}"
     id "org.hibernate.orm" version "${hibernateVersion}"
-    id "org.cyclonedx.bom" version "3.2.2"
+    id "org.cyclonedx.bom" version "3.2.4"
 }
 
 apollo {
@@ -95,18 +95,6 @@ gitProperties {
 configurations {
     providedRuntime
     implementation.exclude module: "spring-boot-starter-tomcat"
-
-    // Force all undertow modules to 2.3.22.Final to address CVE-2025-12543
-    all {
-        resolutionStrategy {
-            eachDependency { DependencyResolveDetails details ->
-                if (details.requested.group == 'io.undertow') {
-                    details.useVersion '2.3.22.Final'
-                    details.because 'CVE-2025-12543 fix'
-                }
-            }
-        }
-    }
 }
 
 repositories {
@@ -133,7 +121,8 @@ dependencies {
     }
     implementation "org.springframework.boot:spring-boot-starter-undertow"
     implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
-    implementation "org.thymeleaf:thymeleaf-spring6:3.1.2.RELEASE"
+    implementation "org.thymeleaf:thymeleaf:${thymeleafVersion}"
+    implementation "org.thymeleaf:thymeleaf-spring6:${thymeleafVersion}"
     implementation "org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE"
     implementation "org.springframework.security:spring-security-saml2-service-provider:${springSecurityVersion}"
     runtimeOnly "org.postgresql:postgresql"
