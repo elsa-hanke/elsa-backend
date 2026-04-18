@@ -112,6 +112,7 @@ class SecurityConfiguration(
                     .ignoringRequestMatchers("/api/logout")
             }
             .addFilterBefore(corsFilter, CsrfFilter::class.java)
+            .addFilterAfter(MdcUserIdFilter(), CorsFilter::class.java)
             .addFilterAfter(
                 ElsaSwitchUserFilter(
                     opintooikeusRepository,
