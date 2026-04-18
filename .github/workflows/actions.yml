@@ -36,6 +36,8 @@ jobs:
         run: ./gradlew test
       - name: Integration test
         run: ./gradlew integrationTest
+      - name: Generate SBOM
+        run: ./gradlew cyclonedxBom -x test -x integrationTest
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
         with:
