@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.web.rest.findAll
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils
 import java.time.LocalDate
 import jakarta.persistence.EntityManager
 
@@ -39,7 +38,7 @@ class ErikoistuvaLaakariHelper {
             opintoopas: Opintoopas? = null,
             yliopisto: Yliopisto? = null,
             asetus: Asetus? = null,
-            yliopistoOpintooikeusId: String? = RandomStringUtils.randomAlphabetic(8),
+            yliopistoOpintooikeusId: String? = (1..8).map { ('a'..'z').random() }.joinToString(""),
             laillistamispaiva: LocalDate? = DEFAULT_LAILLISTAMISPAIVA,
             laillistamistodistusData: ByteArray? = DEFAULT_LAILLISTAMISTODISTUS_DATA,
             laillistamistodistusNimi: String? = DEFAULT_LAILLISTAMISTODISTUS_NIMI,

@@ -126,7 +126,6 @@ dependencies {
     implementation "org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE"
     implementation "org.springframework.security:spring-security-saml2-service-provider:${springSecurityVersion}"
     runtimeOnly "org.postgresql:postgresql"
-    testImplementation "org.testcontainers:postgresql:1.17.6"
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     annotationProcessor "org.hibernate.orm:hibernate-jpamodelgen:${hibernateVersion}"
