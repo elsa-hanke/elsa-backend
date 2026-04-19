@@ -65,6 +65,8 @@ management:
       application: ${spring.application.name}
 
 logging:
+  pattern:
+    correlation: "[userId=%X{userId:-}] "
   level:
     _org.springframework.web.servlet.HandlerMapping.Mappings": INFO
     angus.activation: WARN

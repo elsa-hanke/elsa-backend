@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import org.opensaml.security.x509.X509Support
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -33,6 +34,8 @@ class RelyingPartyConfiguration(
     private val yliopistoRepository: YliopistoRepository
 ) {
 
+    private val log = LoggerFactory.getLogger(RelyingPartyConfiguration::class.java)
+
     @Bean
     @Throws(Exception::class)
     fun relyingPartyRegistrations(): RelyingPartyRegistrationRepository? {
@@ -60,28 +63,35 @@ class RelyingPartyConfiguration(
             val decryptionCredential: Saml2X509Credential =
                 Saml2X509Credential.decryption(rsa, certificate)
 
-            registrations.add(
-                RelyingPartyRegistrations
-                    .fromMetadataLocation(
-                        applicationProperties.getSecurity()
-                            .getSuomifi().samlSuomifiMetadataLocation!!
+            val registration = RelyingPartyRegistrations
+                .fromMetadataLocation(
+                    applicationProperties.getSecurity()
+                        .getSuomifi().samlSuomifiMetadataLocation!!
+                )
+                .registrationId("suomifi")
+                .assertingPartyMetadata { party ->
+                    party.entityId(
+                        applicationProperties.getSecurity().getSuomifi().samlSuomifiEntityId!!
                     )
-                    .registrationId("suomifi")
-                    .assertingPartyMetadata { party ->
-                        party.entityId(
-                            applicationProperties.getSecurity().getSuomifi().samlSuomifiEntityId!!
-                        )
-                    }
-                    .apply {
-                        applicationProperties.getSecurity().getSuomifi().samlSpEntityId
-                            ?.let { entityId(it) }
-                    }
-                    .signingX509Credentials { signing -> signing.add(signingCredential) }
-                    .decryptionX509Credentials { decryption -> decryption.add(decryptionCredential) }
-                    .singleLogoutServiceBinding(Saml2MessageBinding.REDIRECT)
-                    .singleLogoutServiceResponseLocation("{baseUrl}/logout/saml2/slo")
-                    .build()
-            )
+                }
+                .apply {
+                    applicationProperties.getSecurity().getSuomifi().samlSpEntityId
+                        ?.let { entityId(it) }
+                }
+                .signingX509Credentials { signing -> signing.add(signingCredential) }
+                .decryptionX509Credentials { decryption -> decryption.add(decryptionCredential) }
+                .singleLogoutServiceBinding(Saml2MessageBinding.REDIRECT)
+                .singleLogoutServiceResponseLocation("{baseUrl}/logout/saml2/slo")
+                .build()
+
+            val spEntityId = applicationProperties.getSecurity().getSuomifi().samlSpEntityId
+            if (spEntityId != null) {
+                log.info("Suomi.fi SP entity ID set to custom value: {}", spEntityId)
+            } else {
+                log.info("Suomi.fi SP entity ID using default: {}", registration.entityId)
+            }
+
+            registrations.add(registration)
         }
 
         // Haka
