@@ -36,6 +36,8 @@ jobs:
         run: ./gradlew test
       - name: Integration test
         run: ./gradlew integrationTest
+      - name: Generate SBOM
+        run: ./gradlew cyclonedxBom -x test -x integrationTest
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
         with:
@@ -78,7 +80,7 @@ jobs:
         run: yarn build --mode production-test
       - name: Security scan
         working-directory: frontend
-        run: echo "/bin/bash -c 'yarn audit --groups dependencies; [[ $? -ge 16 ]] && exit 1 || exit 0'"
+        run: /bin/bash -c 'yarn audit --groups dependencies; [[ $? -ge 16 ]] && exit 1 || exit 0'
       - name: Store dist
         uses: actions/upload-artifact@v4
         with:
@@ -441,17 +443,18 @@ jobs:
           RELEASE_BRANCH="${{ needs.generate-changelog.outputs.release-branch }}"
           CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
           curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: ${CHANGELOG_URL}\"}" \
+            --data "{\"text\":\" Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: ${CHANGELOG_URL}\"}" \
             "$SLACK_HOOK"
-      # Teams-ilmoitus on toistaiseksi poistettu käytöstä (webhook-URL puuttuu)
-      # - name: Lähetä Teams-ilmoitus testiympäristön julkaisusta
-      #   env:
-      #     TEAMS_HOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
-      #   run: |
-      #     VERSION="$GITHUB_REF_NAME"
-      #     curl -X POST -H 'Content-type: application/json' \
-      #       --data "{\"type\":\"message\",\"attachments\":[{\"contentType\":\"application/vnd.microsoft.card.adaptive\",\"content\":{\"type\":\"AdaptiveCard\",\"version\":\"1.2\",\"body\":[{\"type\":\"TextBlock\",\"text\":\"🚀 Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\",\"wrap\":true}]}}]}" \
-      #       "$TEAMS_HOOK"
+      - name: Lähetä Teams-ilmoitus testiympäristön julkaisusta
+        env:
+          TEAMS_HOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          VERSION="$GITHUB_REF_NAME"
+          RELEASE_BRANCH="${{ needs.generate-changelog.outputs.release-branch }}"
+          CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"type\":\"message\",\"attachments\":[{\"contentType\":\"application/vnd.microsoft.card.adaptive\",\"content\":{\"type\":\"AdaptiveCard\",\"version\":\"1.2\",\"body\":[{\"type\":\"TextBlock\",\"text\":\"🚀 Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: ${CHANGELOG_URL}\",\"wrap\":true}]}}]}" \
+            "$TEAMS_HOOK"
 
   production-gate:
     runs-on: ubuntu-latest
@@ -563,15 +566,14 @@ jobs:
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\":rocket: Versio ${VERSION} on julkaistu tuotantoon.\"}" \
             "$SLACK_HOOK"
-      # Teams-ilmoitus on toistaiseksi poistettu käytöstä (webhook-URL puuttuu)
-      # - name: Lähetä Teams-ilmoitus tuotantoon julkaisusta
-      #   env:
-      #     TEAMS_HOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
-      #   run: |
-      #     VERSION="$GITHUB_REF_NAME"
-      #     curl -X POST -H 'Content-type: application/json' \
-      #       --data "{\"type\":\"message\",\"attachments\":[{\"contentType\":\"application/vnd.microsoft.card.adaptive\",\"content\":{\"type\":\"AdaptiveCard\",\"version\":\"1.2\",\"body\":[{\"type\":\"TextBlock\",\"text\":\"🚀 Versio ${VERSION} on julkaistu tuotantoon.\",\"wrap\":true}]}}]}" \
-      #       "$TEAMS_HOOK"
+      - name: Lähetä Teams-ilmoitus tuotantoon julkaisusta
+        env:
+          TEAMS_HOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          VERSION="$GITHUB_REF_NAME"
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"type\":\"message\",\"attachments\":[{\"contentType\":\"application/vnd.microsoft.card.adaptive\",\"content\":{\"type\":\"AdaptiveCard\",\"version\":\"1.2\",\"body\":[{\"type\":\"TextBlock\",\"text\":\"🚀 Versio ${VERSION} on julkaistu tuotantoon.\",\"wrap\":true}]}}]}" \
+            "$TEAMS_HOOK"
 
   merge-release:
     runs-on: ubuntu-latest
@@ -598,4 +600,3 @@ jobs:
           git checkout main
           git merge origin/$RELEASE_BRANCH --no-ff -m "Merge $RELEASE_BRANCH ($GITHUB_REF_NAME) main-haaraan"
           git push origin main
-

@@ -40,6 +40,9 @@ frontend-test:
 frontend-lint:
   cd frontend && yarn lint
 
+frontend-lintfix:
+  cd frontend && yarn lint:fix
+
 frontend-build:
   cd frontend && yarn build --mode production-test
 
@@ -54,6 +57,12 @@ kill8080:
 
 kill9060:
   @lsof -ti:9060 | xargs kill -9 2>/dev/null || true
+
+sbom:
+  ./gradlew clean cyclonedxBom -x test -x integrationTest
+
+sscan: sbom
+  grype -o table --fail-on high ./build/reports/cyclonedx-direct/bom.json
 
 br:
   #!/usr/bin/env sh
