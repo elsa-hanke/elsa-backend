@@ -1496,18 +1496,17 @@ class ValmistumispyyntoServiceImpl(
         pdfService.luoPdf("pdf/erikoistujantiedot/koulutussuunnitelma.html", context, outputStream)
 
         if (koulutussuunitelma?.motivaatiokirjeAsiakirja != null) {
-            val inputStream = ByteArrayInputStream(outputStream.toByteArray())
-            outputStream.reset()
-            // TODO: PRODUCTION BUG FIX NEEDED – skip (with a WARN log) when
-            //   motivaatiokirjeAsiakirja.asiakirjaData?.data is null or empty (ByteArray(0)).
-            //   Passing an empty stream to PdfReader throws "PDF header not found" and rolls back
-            //   the entire vastuuhenkilo approval transaction.
-            //   Fix: if (data == null || data.isEmpty()) { log.warn(...); return@if }
-            pdfService.yhdistaPdf(
-                inputStream,
-                ByteArrayInputStream(koulutussuunitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data),
-                outputStream
-            )
+            val data = koulutussuunitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data
+            if (data == null || data.isEmpty()) {
+                log.warn(
+                    "Motivaatiokirjeasiakirja ${koulutussuunitelma.motivaatiokirjeAsiakirja?.id} " +
+                        "data on tyhjä tai null – ohitetaan"
+                )
+            } else {
+                val inputStream = ByteArrayInputStream(outputStream.toByteArray())
+                outputStream.reset()
+                pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(data), outputStream)
+            }
         }
     }
 
@@ -1555,29 +1554,48 @@ class ValmistumispyyntoServiceImpl(
                 outputStream.reset()
                 pdfService.yhdistaPdf(result, newPdf, outputStream)
 
-                // TODO: PRODUCTION BUG FIX NEEDED – skip (with a WARN log) each attachment
-                //   whose asiakirjaData?.data is null or empty (ByteArray(0)).
-                //   A zero-byte blob causes PdfReader to throw
-                //   "com.itextpdf.io.exceptions.IOException: PDF header not found",
-                //   which propagates through the @Transactional boundary and rolls back the
-                //   entire vastuuhenkilo approval.  Six such records were found in production
-                //   (opintooikeus ids 117, 1264, 3360, 5508, 6097 – time-bombs for future approvals).
-                //   Fix: val data = it.asiakirjaData?.data
-                //        if (data == null || data.isEmpty()) { log.warn("Skipping empty PDF …"); return@forEach }
-                //   Regression test: VastuuhenkiloValmistumispyyntoResourceIT
-                //     .ackValmistumispyyntoHyvaksyjaWithEmptyPdfAttachmentFails
-                //   After the fix, update that test assertion from is5xxServerError to isOk.
+                // FIX (ELSA-1127): only non-empty PDF attachments are merged.
+                // Non-PDF types (e.g. JPEG) are skipped – they were never supported here.
+                // Empty/null data blobs are skipped with a warning – they cause PdfReader to
+                // throw "PDF header not found" and roll back the entire approval transaction.
                 a.arviointiAsiakirjat.forEach {
+                    if (it.tyyppi != MediaType.APPLICATION_PDF_VALUE) {
+                        log.warn(
+                            "Arviointiasiakirja ${it.id} (${it.nimi}) tyyppiä '${it.tyyppi}' " +
+                                "ei tueta PDF-yhdistelyyn – ohitetaan"
+                        )
+                        return@forEach
+                    }
+                    val data = it.asiakirjaData?.data
+                    if (data == null || data.isEmpty()) {
+                        log.warn(
+                            "Arviointiasiakirja ${it.id} (${it.nimi}) data on tyhjä tai null – ohitetaan"
+                        )
+                        return@forEach
+                    }
                     val inputStream = ByteArrayInputStream(outputStream.toByteArray())
                     outputStream.reset()
-                    pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(it.asiakirjaData?.data), outputStream)
+                    pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(data), outputStream)
                 }
 
-                // TODO: same fix needed for itsearviointiAsiakirjat (same root cause)
                 a.itsearviointiAsiakirjat.forEach {
+                    if (it.tyyppi != MediaType.APPLICATION_PDF_VALUE) {
+                        log.warn(
+                            "Itsearviointiasiakirja ${it.id} (${it.nimi}) tyyppiä '${it.tyyppi}' " +
+                                "ei tueta PDF-yhdistelyyn – ohitetaan"
+                        )
+                        return@forEach
+                    }
+                    val data = it.asiakirjaData?.data
+                    if (data == null || data.isEmpty()) {
+                        log.warn(
+                            "Itsearviointiasiakirja ${it.id} (${it.nimi}) data on tyhjä tai null – ohitetaan"
+                        )
+                        return@forEach
+                    }
                     val inputStream = ByteArrayInputStream(outputStream.toByteArray())
                     outputStream.reset()
-                    pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(it.asiakirjaData?.data), outputStream)
+                    pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(data), outputStream)
                 }
             }
     }
