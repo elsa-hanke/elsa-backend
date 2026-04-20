@@ -7,6 +7,15 @@ try {
   console.warn('Cannot get Git commit hash')
 }
 
+if (!process.env.VUE_APP_VERSION) {
+  try {
+    const hash = gitDescribeSync().hash
+    process.env.VUE_APP_VERSION = hash ? hash.replace(/^g/, '').substring(0, 6) : 'dev'
+  } catch {
+    process.env.VUE_APP_VERSION = 'dev'
+  }
+}
+
 module.exports = {
   lintOnSave: 'default',
 

@@ -66,6 +66,17 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: yarn
+      - name: Set version
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            SHA="${{ github.sha }}"
+            echo "VUE_APP_VERSION=$(echo "$SHA" | cut -c1-6)" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "VUE_APP_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+          else
+            SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+            echo "VUE_APP_VERSION=$(echo "$SHA" | cut -c1-6)" >> $GITHUB_ENV
+          fi
       - name: Lint
         working-directory: frontend
         run: yarn lint
@@ -104,6 +115,8 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: yarn
+      - name: Set version
+        run: echo "VUE_APP_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
       - name: Build
         working-directory: frontend
         run: yarn build
