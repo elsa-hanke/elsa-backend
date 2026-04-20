@@ -1,5 +1,7 @@
 # Changelog
 
+## [v0.0.12](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.11...v0.0.12) - 20 April 2026
+
 ## [v0.0.11](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.10...v0.0.11) - 20 April 2026
 
 ## [v0.0.10](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.9...v0.0.10) - 20 April 2026
