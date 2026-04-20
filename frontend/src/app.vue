@@ -8,7 +8,7 @@
       </div>
     </b-link>
     <footer class="pb-4 bg-white d-print-none">
-      <div class="d-flex justify-content-center">
+      <div class="d-flex justify-content-center align-items-center">
         <b-link class="my-4 mx-3 mx-lg-4" @click="openTietosuojaselosteModal">
           {{ $t('tietosuojaseloste') }}
         </b-link>
@@ -17,6 +17,7 @@
           {{ $t('palaute') }}
         </b-link>
         <palaute-form-modal :show="showPalauteFormModal" @hide="hidePalauteFormModal" />
+        <span v-if="appVersion" class="app-version my-4 mx-3 mx-lg-4">{{ appVersion }}</span>
       </div>
       <div class="d-flex flex-wrap justify-content-center">
         <a
@@ -112,6 +113,10 @@
     get isLoggedIn() {
       return store.getters['auth/isLoggedIn']
     }
+
+    get appVersion() {
+      return process.env.VUE_APP_VERSION || ''
+    }
   }
 </script>
 
@@ -151,5 +156,10 @@
 
   .router-view {
     padding-bottom: 5rem;
+  }
+
+  .app-version {
+    font-size: 0.75rem;
+    color: $gray-500;
   }
 </style>
