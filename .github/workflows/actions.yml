@@ -465,8 +465,8 @@ jobs:
           VERSION="$GITHUB_REF_NAME"
           RELEASE_BRANCH="${{ needs.generate-changelog.outputs.release-branch }}"
           CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
-          PAYLOAD=$(printf '{"type":"message","attachments":[{"contentType":"application/vnd.microsoft.card.adaptive","content":{"type":"AdaptiveCard","version":"1.2","body":[{"type":"TextBlock","text":"🚀 Versio %s on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: %s","wrap":true}]}}]}' "$VERSION" "$CHANGELOG_URL")
-          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$TEAMS_HOOK"
+          PAYLOAD=$(printf '{"type":"message","attachments":[{"contentType":"application/vnd.microsoft.card.adaptive","content":{"type":"AdaptiveCard","version":"1.2","body":[{"type":"TextBlock","text":"Versio %s on julkaistu testiympäristöön. Sovellus: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: %s","wrap":true}]}}]}' "$VERSION" "$CHANGELOG_URL")
+          curl -X POST -H 'Content-type: application/json' --data-raw "$PAYLOAD" "$TEAMS_HOOK"
 
   production-gate:
     runs-on: ubuntu-latest
