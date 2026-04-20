@@ -1,5 +1,7 @@
 # Changelog
 
+## [v0.0.11](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.10...v0.0.11) - 20 April 2026
+
 ## [v0.0.10](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.9...v0.0.10) - 20 April 2026
 
 - Add versioning to landing page and display app version in footer [`#529`](https://github.com/elsa-hanke/elsa-backend/pull/529)(20 April 2026)
