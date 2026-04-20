@@ -466,7 +466,7 @@ jobs:
           RELEASE_BRANCH="${{ needs.generate-changelog.outputs.release-branch }}"
           CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
           curl -X POST -H 'Content-type: application/json' \
-            --data "{\"type\":\"message\",\"attachments\":[{\"contentType\":\"application/vnd.microsoft.card.adaptive\",\"content\":{\"type\":\"AdaptiveCard\",\"version\":\"1.2\",\"body\":[{\"type\":\"TextBlock\",\"text\":\"🚀 Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: ${CHANGELOG_URL}\",\"wrap\":true}]}}]}" \
+            --data "{\"type\":\"message\",\"attachments\":[{\"contentType\":\"application/vnd.microsoft.card.adaptive\",\"content\":{\"type\":\"AdaptiveCard\",\"version\":\"1.2\",\"body\":[{\"type\":\"TextBlock\",\"text\":\"🚀 Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\\nMuutosloki: ${CHANGELOG_URL}\",\"wrap\":true}]}}]}" \
             "$TEAMS_HOOK"
 
   production-gate:
