@@ -1,5 +1,10 @@
 # Changelog
 
+## [v2.0.0](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.16...v2.0.0) - 21 April 2026
+
+- Release/v0.0.x merge [`#530`](https://github.com/elsa-hanke/elsa-backend/pull/530)(21 April 2026)
+- ELSA-1127 Valmistumispyynnön hyväksyminen ei onnistu [`#524`](https://github.com/elsa-hanke/elsa-backend/pull/524)(20 April 2026)
+
 ## [v0.0.16](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.15...v0.0.16) - 21 April 2026
 
 ## [v0.0.15](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.14...v0.0.15) - 21 April 2026

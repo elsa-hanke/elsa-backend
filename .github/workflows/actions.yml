@@ -448,7 +448,7 @@ jobs:
           git checkout $RELEASE_BRANCH
           auto-changelog -u --hide-empty-releases --template https://raw.githubusercontent.com/Eura2021/eura2021-kong-charts/master/chlog.hbs
           git add CHANGELOG.md
-          git commit -m 'CHANGELOG updated [CI SKIP]' --allow-empty CHANGELOG.md
+          git commit -m 'CHANGELOG updated [skip ci]' --allow-empty CHANGELOG.md
           git push origin $RELEASE_BRANCH
 
   notify-staging:
