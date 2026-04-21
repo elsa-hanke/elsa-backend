@@ -160,6 +160,6 @@
 
   .app-version {
     font-size: 0.75rem;
-    color: $gray-500;
+    color: $gray-600;
   }
 </style>
