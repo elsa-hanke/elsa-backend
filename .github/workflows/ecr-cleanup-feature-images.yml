@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   cleanup:
-    name: Delete ECR images tagged with feature-* or main-* (except main-latest)
+    name: Delete ECR images tagged with feature-*, main-*, or release-* (except main-latest and release-latest)
     runs-on: ubuntu-latest
     environment: shared
 
@@ -22,7 +22,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
           aws-region: eu-west-1
 
-      - name: Delete feature-* and main-* images from ECR
+      - name: Delete feature-*, main-*, and release-* images from ECR
         env:
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         run: |
@@ -40,7 +40,7 @@ jobs:
           IMAGE_IDS=$(echo "$ALL_IMAGES" | jq '[
             .[] |
             select(
-              (.tags | any(startswith("feature") or startswith("main-")))
+              (.tags | any(startswith("feature") or startswith("main-") or startswith("release-")))
               and
               (.tags | any(. == "main-latest") | not)
             ) |
