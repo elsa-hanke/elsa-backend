@@ -114,10 +114,12 @@ jobs:
     name: Ilmoita Slackiin suojauksen puuttumisesta
     runs-on: ubuntu-latest
     needs: [check-dev, check-stage]
-    if: failure()
+    # TODO: vaihda takaisin failure() kun testaus valmis
+    if: always()
     steps:
-      - name: Muodosta Slack-viesti
-        id: build-message
+      - name: Lähetä Slack-ilmoitus
+        env:
+          SLACK_HOOK: ${{ secrets.NETUM_SLACK_HOOK_URL }}
         shell: bash
         run: |
           MSG=""
@@ -132,48 +134,17 @@ jobs:
             MSG="${MSG}:rotating_light: *STAGE (testi) — ALB Access-Key -suojaus PUUTTUU*\n${ENDPOINTS}\n\n"
           fi
 
-          # Escape for JSON
-          MSG_ESCAPED=$(printf '%s' "$MSG" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
-          echo "message=${MSG_ESCAPED}" >> "$GITHUB_OUTPUT"
+          if [[ -z "$MSG" ]]; then
+            # TODO: poista tämä testi-hack kun Slack-viesti on testattu
+            MSG=":test_tube: *TESTI — tämä on testimiesti, ympäristöt ovat oikeasti suojattu*\n"
+          fi
 
-      - name: Lähetä Slack-ilmoitus
-        uses: slackapi/slack-github-action@v1.27.0
-        with:
-          payload: |
-            {
-              "text": ":lock: *Elsa julkisen API:n suojaustarkistus epäonnistui*",
-              "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": ":lock: Elsa julkisen API:n suojaustarkistus epäonnistui",
-                    "emoji": true
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ${{ steps.build-message.outputs.message }}
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Työnkulku:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Avaa ajo>"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Käynnistäjä:*\n${{ github.event_name }}"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          PAYLOAD=$(python3 -c "
+          import json, sys
+          msg = sys.argv[1]
+          run_url = sys.argv[2]
+          print(json.dumps({'text': msg + '\nAjo: ' + run_url}))
+          " "$MSG" "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}")
+
+          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_HOOK"
 
