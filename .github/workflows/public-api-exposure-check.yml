@@ -15,7 +15,7 @@ env:
 
 jobs:
   check-dev:
-    name: Check kehitys (dev) — AWS Cognito protection
+    name: Check kehitys (dev)
     runs-on: ubuntu-latest
     outputs:
       failed_endpoints: ${{ steps.probe.outputs.failed_endpoints }}
@@ -37,12 +37,13 @@ jobs:
               -X "$method" \
               "$url" || echo "000")
 
-            # Any 2xx response means the infra protection is NOT in place
-            if [[ "$HTTP_CODE" =~ ^2 ]]; then
-              echo "::warning::[$label] $url palautti $HTTP_CODE — SUOJAUS PUUTTUU"
-              FAILED="${FAILED}\\n• $label ($url) → HTTP $HTTP_CODE"
+            # Only 000 (no TCP connection) means VPN is in place.
+            # Any real HTTP response means the server is reachable — VPN is DOWN.
+            if [[ "$HTTP_CODE" == "000" ]]; then
+              echo "[$label] $url → HTTP 000 (verkkoyhteyttä ei muodostettu — VPN suojaa ✓)"
             else
-              echo "[$label] $url → HTTP $HTTP_CODE (suojattu ✓)"
+              echo "::warning::[$label] $url palautti $HTTP_CODE — VPN-SUOJAUS PUUTTUU, palvelin on julkisesti saavutettavissa"
+              FAILED="${FAILED}\\n• $label ($url) → HTTP $HTTP_CODE"
             fi
           }
 
@@ -64,7 +65,7 @@ jobs:
           fi
 
   check-stage:
-    name: Check testi (stage) — ALB Access-Key protection
+    name: Check testi (stage)
     runs-on: ubuntu-latest
     outputs:
       failed_endpoints: ${{ steps.probe.outputs.failed_endpoints }}
@@ -123,7 +124,7 @@ jobs:
 
           if [[ "${{ needs.check-dev.result }}" == "failure" ]]; then
             ENDPOINTS="${{ needs.check-dev.outputs.failed_endpoints }}"
-            MSG="${MSG}:rotating_light: *DEV (kehitys) — AWS Cognito -suojaus PUUTTUU*\n${ENDPOINTS}\n\n"
+            MSG="${MSG}:rotating_light: *DEV (kehitys) — VPN-suojaus PUUTTUU, palvelin on julkisesti saavutettavissa*\n${ENDPOINTS}\n\n"
           fi
 
           if [[ "${{ needs.check-stage.result }}" == "failure" ]]; then
