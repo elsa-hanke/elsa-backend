@@ -19,7 +19,7 @@ axios.interceptors.request.use((req) => {
     req.headers['X-XSRF-TOKEN'] = xsrfToken
   }
   const hostname = window.location.hostname
-  if (hostname !== 'testi.elsapalvelu.fi' && hostname !== 'kehitys.elsapalvelu.fi') {
+  if (hostname !== 'testi.elsapalvelu.fi') {
     return req
   }
   let accessKey

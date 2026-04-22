@@ -1,0 +1,187 @@
+name: Public API Exposure Check
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+env:
+  # Expected: Cognito redirects (302) or blocks (401/403) unauthenticated requests on dev.
+  # Expected: ALB blocks without X-Access-Key on stage (403).
+  DEV_BASE_URL: ${{ secrets.DEV_BASE_URL }}
+  STAGE_BASE_URL: ${{ secrets.STAGE_BASE_URL }}
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+jobs:
+  check-dev:
+    name: Check kehitys (dev) — AWS Cognito protection
+    runs-on: ubuntu-latest
+    outputs:
+      failed_endpoints: ${{ steps.probe.outputs.failed_endpoints }}
+    steps:
+      - name: Probe public endpoints without Cognito credentials
+        id: probe
+        shell: bash
+        run: |
+          BASE="${DEV_BASE_URL}"
+          FAILED=""
+
+          check() {
+            local label="$1"
+            local url="$2"
+            local method="${3:-GET}"
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              --max-time 15 \
+              -L \
+              -X "$method" \
+              "$url")
+
+            # Any 2xx response means the infra protection is NOT in place
+            if [[ "$HTTP_CODE" =~ ^2 ]]; then
+              echo "::warning::[$label] $url palautti $HTTP_CODE — SUOJAUS PUUTTUU"
+              FAILED="${FAILED}\\n• $label ($url) → HTTP $HTTP_CODE"
+            else
+              echo "[$label] $url → HTTP $HTTP_CODE (suojattu ✓)"
+            fi
+          }
+
+          # Intentionally public at app level — must still be blocked by Cognito on this env
+          check "GET /"                              "${BASE}/"
+          check "GET /kirjaudu"                      "${BASE}/kirjaudu"
+          check "GET /api/"                          "${BASE}/api/"
+          check "GET /api/haka-yliopistot"           "${BASE}/api/haka-yliopistot"
+          check "GET /api/julkinen/seuraava-paivitys" "${BASE}/api/julkinen/seuraava-paivitys"
+          check "GET /api/julkinen/ilmoitukset"      "${BASE}/api/julkinen/ilmoitukset"
+          check "GET /api/julkinen/poissaolon-syyt"  "${BASE}/api/julkinen/poissaolon-syyt"
+          check "GET /management/health"             "${BASE}/management/health"
+
+          # Authenticated endpoints — must also be blocked
+          check "GET /api/kayttaja"                  "${BASE}/api/kayttaja"
+          check "GET /management/info"               "${BASE}/management/info"
+
+          # Encode for GHA output (newline-safe)
+          echo "failed_endpoints=${FAILED}" >> "$GITHUB_OUTPUT"
+
+          if [[ -n "$FAILED" ]]; then
+            echo "Yksi tai useampi endpoint ei ole suojattu DEV-ympäristössä!"
+            exit 1
+          fi
+
+  check-stage:
+    name: Check testi (stage) — ALB Access-Key protection
+    runs-on: ubuntu-latest
+    outputs:
+      failed_endpoints: ${{ steps.probe.outputs.failed_endpoints }}
+    steps:
+      - name: Probe public endpoints without X-Access-Key header
+        id: probe
+        shell: bash
+        run: |
+          BASE="${STAGE_BASE_URL}"
+          FAILED=""
+
+          check() {
+            local label="$1"
+            local url="$2"
+            local method="${3:-GET}"
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              --max-time 15 \
+              -L \
+              -X "$method" \
+              "$url")
+
+            if [[ "$HTTP_CODE" =~ ^2 ]]; then
+              echo "::warning::[$label] $url palautti $HTTP_CODE — SUOJAUS PUUTTUU"
+              FAILED="${FAILED}\\n• $label ($url) → HTTP $HTTP_CODE"
+            else
+              echo "[$label] $url → HTTP $HTTP_CODE (suojattu ✓)"
+            fi
+          }
+
+          check "GET /"                              "${BASE}/"
+          check "GET /kirjaudu"                      "${BASE}/kirjaudu"
+          check "GET /api/"                          "${BASE}/api/"
+          check "GET /api/haka-yliopistot"           "${BASE}/api/haka-yliopistot"
+          check "GET /api/julkinen/seuraava-paivitys" "${BASE}/api/julkinen/seuraava-paivitys"
+          check "GET /api/julkinen/ilmoitukset"      "${BASE}/api/julkinen/ilmoitukset"
+          check "GET /api/julkinen/poissaolon-syyt"  "${BASE}/api/julkinen/poissaolon-syyt"
+          check "GET /management/health"             "${BASE}/management/health"
+
+          check "GET /api/kayttaja"                  "${BASE}/api/kayttaja"
+          check "GET /management/info"               "${BASE}/management/info"
+
+          echo "failed_endpoints=${FAILED}" >> "$GITHUB_OUTPUT"
+
+          if [[ -n "$FAILED" ]]; then
+            echo "Yksi tai useampi endpoint ei ole suojattu STAGE-ympäristössä!"
+            exit 1
+          fi
+
+  notify-slack:
+    name: Ilmoita Slackiin suojauksen puuttumisesta
+    runs-on: ubuntu-latest
+    needs: [check-dev, check-stage]
+    if: failure()
+    steps:
+      - name: Muodosta Slack-viesti
+        id: build-message
+        shell: bash
+        run: |
+          MSG=""
+
+          if [[ "${{ needs.check-dev.result }}" == "failure" ]]; then
+            ENDPOINTS="${{ needs.check-dev.outputs.failed_endpoints }}"
+            MSG="${MSG}:rotating_light: *DEV (kehitys) — AWS Cognito -suojaus PUUTTUU*\n${ENDPOINTS}\n\n"
+          fi
+
+          if [[ "${{ needs.check-stage.result }}" == "failure" ]]; then
+            ENDPOINTS="${{ needs.check-stage.outputs.failed_endpoints }}"
+            MSG="${MSG}:rotating_light: *STAGE (testi) — ALB Access-Key -suojaus PUUTTUU*\n${ENDPOINTS}\n\n"
+          fi
+
+          # Escape for JSON
+          MSG_ESCAPED=$(printf '%s' "$MSG" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
+          echo "message=${MSG_ESCAPED}" >> "$GITHUB_OUTPUT"
+
+      - name: Lähetä Slack-ilmoitus
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": ":lock: *Elsa julkisen API:n suojaustarkistus epäonnistui*",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": ":lock: Elsa julkisen API:n suojaustarkistus epäonnistui",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ${{ steps.build-message.outputs.message }}
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Työnkulku:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Avaa ajo>"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Käynnistäjä:*\n${{ github.event_name }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
