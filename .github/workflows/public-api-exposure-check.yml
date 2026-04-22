@@ -7,11 +7,10 @@ on:
   workflow_dispatch:
 
 env:
-  # Expected: Cognito redirects (302) or blocks (401/403) unauthenticated requests on dev.
-  # Expected: ALB blocks without X-Access-Key on stage (403).
+  # Expected: Cognito/VPN blocks all requests on dev (HTTP 000).
+  # Expected: ALB blocks without X-Access-Key on stage (401/403).
   DEV_BASE_URL: ${{ secrets.DEV_BASE_URL }}
   STAGE_BASE_URL: ${{ secrets.STAGE_BASE_URL }}
-  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
 jobs:
   check-dev:
@@ -114,8 +113,7 @@ jobs:
     name: Ilmoita Slackiin suojauksen puuttumisesta
     runs-on: ubuntu-latest
     needs: [check-dev, check-stage]
-    # TODO: vaihda takaisin failure() kun testaus valmis
-    if: always()
+    if: failure()
     steps:
       - name: Lähetä Slack-ilmoitus
         env:
@@ -134,10 +132,6 @@ jobs:
             MSG="${MSG}:rotating_light: *STAGE (testi) — ALB Access-Key -suojaus PUUTTUU*\n${ENDPOINTS}\n\n"
           fi
 
-          if [[ -z "$MSG" ]]; then
-            # TODO: poista tämä testi-hack kun Slack-viesti on testattu
-            MSG=":test_tube: *TESTI — tämä on testimiesti, ympäristöt ovat oikeasti suojattu*\n"
-          fi
 
           PAYLOAD=$(python3 -c "
           import json, sys
