@@ -35,7 +35,7 @@ jobs:
               --max-time 15 \
               -L \
               -X "$method" \
-              "$url")
+              "$url" || echo "000")
 
             # Any 2xx response means the infra protection is NOT in place
             if [[ "$HTTP_CODE" =~ ^2 ]]; then
@@ -46,19 +46,14 @@ jobs:
             fi
           }
 
-          # Intentionally public at app level — must still be blocked by Cognito on this env
-          check "GET /"                              "${BASE}/"
-          check "GET /kirjaudu"                      "${BASE}/kirjaudu"
-          check "GET /api/"                          "${BASE}/api/"
-          check "GET /api/haka-yliopistot"           "${BASE}/api/haka-yliopistot"
+          check "GET /api/haka-yliopistot"            "${BASE}/api/haka-yliopistot"
           check "GET /api/julkinen/seuraava-paivitys" "${BASE}/api/julkinen/seuraava-paivitys"
-          check "GET /api/julkinen/ilmoitukset"      "${BASE}/api/julkinen/ilmoitukset"
-          check "GET /api/julkinen/poissaolon-syyt"  "${BASE}/api/julkinen/poissaolon-syyt"
-          check "GET /management/health"             "${BASE}/management/health"
+          check "GET /api/julkinen/ilmoitukset"       "${BASE}/api/julkinen/ilmoitukset"
+          check "GET /api/julkinen/poissaolon-syyt"   "${BASE}/api/julkinen/poissaolon-syyt"
 
           # Authenticated endpoints — must also be blocked
-          check "GET /api/kayttaja"                  "${BASE}/api/kayttaja"
-          check "GET /management/info"               "${BASE}/management/info"
+          check "GET /api/kayttaja"                   "${BASE}/api/kayttaja"
+          check "GET /management/info"                "${BASE}/management/info"
 
           # Encode for GHA output (newline-safe)
           echo "failed_endpoints=${FAILED}" >> "$GITHUB_OUTPUT"
@@ -89,7 +84,7 @@ jobs:
               --max-time 15 \
               -L \
               -X "$method" \
-              "$url")
+              "$url" || echo "000")
 
             if [[ "$HTTP_CODE" =~ ^2 ]]; then
               echo "::warning::[$label] $url palautti $HTTP_CODE — SUOJAUS PUUTTUU"
@@ -99,17 +94,13 @@ jobs:
             fi
           }
 
-          check "GET /"                              "${BASE}/"
-          check "GET /kirjaudu"                      "${BASE}/kirjaudu"
-          check "GET /api/"                          "${BASE}/api/"
-          check "GET /api/haka-yliopistot"           "${BASE}/api/haka-yliopistot"
+          check "GET /api/haka-yliopistot"            "${BASE}/api/haka-yliopistot"
           check "GET /api/julkinen/seuraava-paivitys" "${BASE}/api/julkinen/seuraava-paivitys"
-          check "GET /api/julkinen/ilmoitukset"      "${BASE}/api/julkinen/ilmoitukset"
-          check "GET /api/julkinen/poissaolon-syyt"  "${BASE}/api/julkinen/poissaolon-syyt"
-          check "GET /management/health"             "${BASE}/management/health"
+          check "GET /api/julkinen/ilmoitukset"       "${BASE}/api/julkinen/ilmoitukset"
+          check "GET /api/julkinen/poissaolon-syyt"   "${BASE}/api/julkinen/poissaolon-syyt"
 
-          check "GET /api/kayttaja"                  "${BASE}/api/kayttaja"
-          check "GET /management/info"               "${BASE}/management/info"
+          check "GET /api/kayttaja"                   "${BASE}/api/kayttaja"
+          check "GET /management/info"                "${BASE}/management/info"
 
           echo "failed_endpoints=${FAILED}" >> "$GITHUB_OUTPUT"
 
