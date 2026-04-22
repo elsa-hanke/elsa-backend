@@ -38,42 +38,9 @@ jobs:
     if: failure()
     steps:
       - name: Lähetä Slack-ilmoitus
-        uses: slackapi/slack-github-action@v1.27.0
-        with:
-          payload: |
-            {
-              "text": ":warning: *Käyttöliittymän tietoturvaskannaus epäonnistui*",
-              "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": ":warning: Käyttöliittymän tietoturvaskannaus — haavoittuvuuksia löydetty",
-                    "emoji": true
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Käyttöliittymän tuotantoriippuvuuksissa löydettiin *kriittisen vakavuuden haavoittuvuuksia*.\nKorjaukset suositellaan tehtäväksi välittömästi."
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Työnkulku:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Avaa ajo>"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Käynnistäjä:*\n${{ github.event_name }}"
-                    }
-                  ]
-                }
-              ]
-            }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          SLACK_HOOK: ${{ secrets.NETUM_SLACK_HOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\":warning: *Käyttöliittymän tietoturvaskannaus — haavoittuvuuksia löydetty*\nKäyttöliittymän tuotantoriippuvuuksissa löydettiin *kriittisen vakavuuden haavoittuvuuksia*.\nKorjaukset suositellaan tehtäväksi välittömästi.\nAjo: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+            "$SLACK_HOOK"
