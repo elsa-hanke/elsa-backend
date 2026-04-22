@@ -20,7 +20,7 @@ jobs:
     outputs:
       failed_endpoints: ${{ steps.probe.outputs.failed_endpoints }}
     steps:
-      - name: Probe public endpoints without Cognito credentials
+      - name: Probe public endpoints
         id: probe
         shell: bash
         run: |
@@ -35,7 +35,7 @@ jobs:
               --max-time 15 \
               -L \
               -X "$method" \
-              "$url" || echo "000")
+              "$url" || true)
 
             # Only 000 (no TCP connection) means VPN is in place.
             # Any real HTTP response means the server is reachable — VPN is DOWN.
@@ -85,7 +85,7 @@ jobs:
               --max-time 15 \
               -L \
               -X "$method" \
-              "$url" || echo "000")
+              "$url" || true)
 
             if [[ "$HTTP_CODE" =~ ^2 ]]; then
               echo "::warning::[$label] $url palautti $HTTP_CODE — SUOJAUS PUUTTUU"
