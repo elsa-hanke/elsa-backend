@@ -19,11 +19,6 @@ export {}
 // Käyttäjä: Erikoistuja (11a) ja Kouluttaja (11b – vaatii DevLoginResource)
 // Laukaisija: Väliarviointi on hyväksytty
 //
-// Käyttötapaus 12.
-// Vastuuhenkilön arvio ja virkailijan tarkistus
-// Käyttäjä: Vastuuhenkilö (12a) ja Virkailija (12b) – molemmat vaativat DevLoginResourcen
-// Laukaisija: Loppukeskustelu on hyväksytty
-
 const KOULUTTAJA_ETUNIMI     = 'E2E'
 const KOULUTTAJA_SUKUNIMI    = 'Kouluttaja'
 const VASTUUHENKILO_ETUNIMI  = 'E2E'

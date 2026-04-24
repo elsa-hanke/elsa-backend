@@ -143,43 +143,4 @@ describe('Valmistumispyyntö', () => {
       timeout: 15000,
     }).should('be.visible')
   })
-
-  // ── Käyttötapaukset 13b–13d: Vastuuhenkilö ja virkailija ────────────────────
-  // Vaativat dev-kirjautumispisteen. TODO: Ota käyttöön DevLoginResourcen jälkeen.
-
-  // it.skip('Käyttötapaus 13b: Vastuuhenkilö arvioi erikoistujan osaamisen', () => {
-  //   cy.loginAsVastuuhenkilo()
-  //   cy.visit('/valmistumispyynnot')
-  //   cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
-  //   cy.get('table tbody tr, .list-group-item').first().within(() => {
-  //     cy.contains('a', 'Osaamisen arviointi').click()
-  //   })
-  //   cy.url().should('include', '/valmistumispyynnon-arviointi/')
-  //   cy.contains('button', 'Lähetä').click()
-  //   cy.url().should('not.include', '/valmistumispyynnon-arviointi/')
-  // })
-  //
-  // it.skip('Käyttötapaus 13c: Virkailija tarkistaa valmistumispyynnön tiedot', () => {
-  //   cy.loginAsVirkailija()
-  //   cy.visit('/valmistumispyynnot')
-  //   cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
-  //   cy.get('table tbody tr, .list-group-item').first().within(() => {
-  //     cy.contains('a', 'Tarkista').click()
-  //   })
-  //   cy.url().should('include', '/valmistumispyynnon-tarkistus/')
-  //   cy.contains('button', 'Merkitse tarkistetuksi').click()
-  //   cy.url().should('not.include', '/valmistumispyynnon-tarkistus/')
-  // })
-  //
-  // it.skip('Käyttötapaus 13d: Vastuuhenkilö hyväksyy valmistumisen', () => {
-  //   cy.loginAsVastuuhenkilo()
-  //   cy.visit('/valmistumispyynnot')
-  //   cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
-  //   cy.get('table tbody tr, .list-group-item').first().within(() => {
-  //     cy.contains('a', 'Valmistumisen hyväksyminen').click()
-  //   })
-  //   cy.url().should('include', '/valmistumispyynnon-hyvaksynta/')
-  //   cy.contains('button', 'Hyväksy').click()
-  //   cy.url().should('not.include', '/valmistumispyynnon-hyvaksynta/')
-  // })
 })

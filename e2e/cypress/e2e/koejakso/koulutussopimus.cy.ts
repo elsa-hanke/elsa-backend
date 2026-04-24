@@ -14,18 +14,6 @@ export {}
 // 2. Erikoistuja avaa koulutussopimus-lomakkeen
 // 3. Erikoistuja täyttää lomakkeen tiedot
 // 4. Erikoistuja lähettää lomakkeen kouluttajan hyväksyttäväksi
-//
-// Käyttötapaus 7.
-// Koejakson koulutussopimuksen hyväksyminen, kouluttaja
-// Käyttäjä: Kouluttaja
-// Tavoite: Hyväksyä erikoistuvan lähettämä koulutussopimus
-// TODO: Ota käyttöön, kun DevLoginResource on otettu käyttöön kehitysympäristössä.
-//
-// Käyttötapaus 8.
-// Koejakson koulutussopimuksen hyväksyminen, vastuuhenkilö
-// Käyttäjä: Vastuuhenkilö
-// Tavoite: Vahvistaa koulutussopimus vastuuhenkilön puolesta
-// TODO: Ota käyttöön, kun DevLoginResource on otettu käyttöön kehitysympäristössä.
 
 const KOULUTTAJA_ETUNIMI     = 'E2E'
 const KOULUTTAJA_SUKUNIMI    = 'Kouluttaja'
@@ -147,36 +135,4 @@ describe('Koulutussopimus', () => {
     cy.contains('E2E Testisairaala').should('be.visible')
     cy.contains(`${KOULUTTAJA_ETUNIMI} ${KOULUTTAJA_SUKUNIMI}`).should('be.visible')
   })
-
-  // // ── Käyttötapaus 7: Kouluttaja hyväksyy koulutussopimuksen ──────────────────
-  // // Vaatii dev-kirjautumispisteen. TODO: Ota käyttöön DevLoginResourcen jälkeen.
-  //
-  // it.skip('Käyttötapaus 7: Kouluttaja hyväksyy koulutussopimuksen', () => {
-  //   cy.task('db:ensureKoulutussopimusLahetetty', {
-  //     erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL,
-  //     kouluttajaEmail: KOULUTTAJA_EMAIL,
-  //   })
-  //   cy.loginAsKouluttaja()
-  //   cy.visit('/etusivu')
-  //   cy.contains('a', 'Koulutussopimus').first().click({ force: true })
-  //   cy.url().should('include', '/koejakso/koulutussopimus/')
-  //   cy.contains('button', 'Hyväksy').click()
-  //   cy.url().should('not.include', '/koulutussopimus/')
-  // })
-
-  // // ── Käyttötapaus 8: Vastuuhenkilö hyväksyy koulutussopimuksen ───────────────
-  // // Vaatii dev-kirjautumispisteen. TODO: Ota käyttöön DevLoginResourcen jälkeen.
-  //
-  // it.skip('Käyttötapaus 8: Vastuuhenkilö hyväksyy koulutussopimuksen', () => {
-  //   cy.task('db:ensureKoulutussopimusHyvaksytty', {
-  //     erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL,
-  //     kouluttajaEmail: KOULUTTAJA_EMAIL,
-  //   })
-  //   cy.loginAsVastuuhenkilo()
-  //   cy.visit('/etusivu')
-  //   cy.contains('a', 'Koulutussopimus').first().click({ force: true })
-  //   cy.url().should('include', '/koejakso/koulutussopimus/')
-  //   cy.contains('button', 'Hyväksy').click()
-  //   cy.url().should('not.include', '/koulutussopimus/')
-  // })
 })
