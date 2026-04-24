@@ -143,9 +143,9 @@ async function seedTehtavatyyppit(client: import('pg').Client, yeId: number): Pr
     `SELECT id, nimi FROM vastuuhenkilon_tehtavatyyppi
      WHERE nimi IN (
        'KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN',
-       'VALMISTUMISPYYNNON_HYVAKSYNTA_LAAKETIEDE',
-       'VALMISTUMISPYYNNON_HYVAKSYNTA_HAMMASLAAKETIEDE',
-       'VALMISTUMISPYYNNON_HYVAKSYNTA_YEK'
+       'VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI',
+       'VALMISTUMISPYYNNON_HYVAKSYNTA',
+       'YEK_VALMISTUMINEN'
      )`
   )
 
@@ -159,4 +159,3 @@ async function seedTehtavatyyppit(client: import('pg').Client, yeId: number): Pr
     )
   }
 }
-

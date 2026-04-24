@@ -124,6 +124,33 @@ export const erikoistuvaLaakariTasks = {
           [el_id]
         )
 
+        // Poistetaan valmistumispyynnöt ennen opintooikeuksia (FK: valmistumispyynto -> opintooikeus)
+        await client.query(
+          `DELETE FROM valmistumispyynnon_tarkistus
+           WHERE valmistumispyynto_id IN (
+             SELECT id FROM valmistumispyynto
+             WHERE opintooikeus_id IN (
+               SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+             )
+           )`,
+          [el_id]
+        )
+        await client.query(
+          `DELETE FROM valmistumispyynto
+           WHERE opintooikeus_id IN (
+             SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+           )`,
+          [el_id]
+        )
+        // Poistetaan kaikki opintooikeuteen liittyvät asiakirjat ennen opintooikeus-rivejä.
+        await client.query(
+          `DELETE FROM asiakirja
+           WHERE opintooikeus_id IN (
+             SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+           )`,
+          [el_id]
+        )
+
         // Poistetaan koulutusjakso-rivit ennen koulutussuunnitelma-rivejä
         // (FK: koulutusjakso.koulutussuunnitelma_id → koulutussuunnitelma.id)
         await client.query(
