@@ -39,6 +39,91 @@ export const erikoistuvaLaakariTasks = {
           (r: { tyoskentelypaikka_id: number }) => r.tyoskentelypaikka_id
         )
 
+        // Poistetaan koejakson rivit ennen opintooikeuksia (FK: koejakso_* -> opintooikeus)
+        // sekä niiden apu-/liitostaulut ennen päätauluja.
+        await client.query(
+          `DELETE FROM asiakirja
+           WHERE koejakson_vastuuhenkilon_arvio_id IN (
+             SELECT id FROM koejakson_vastuuhenkilon_arvio
+             WHERE opintooikeus_id IN (
+               SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+             )
+           )`,
+          [el_id]
+        )
+        await client.query(
+          `DELETE FROM koejakson_vastuuhenkilon_arvio
+           WHERE opintooikeus_id IN (
+             SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+           )`,
+          [el_id]
+        )
+        await client.query(
+          `DELETE FROM koejakson_loppukeskustelu
+           WHERE opintooikeus_id IN (
+             SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+           )`,
+          [el_id]
+        )
+        await client.query(
+          `DELETE FROM koejakson_valiarviointi_kehittamistoimenpidekategoriat
+           WHERE valiarviointi_id IN (
+             SELECT id FROM koejakson_valiarviointi
+             WHERE opintooikeus_id IN (
+               SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+             )
+           )`,
+          [el_id]
+        )
+        await client.query(
+          `DELETE FROM koejakson_valiarviointi
+           WHERE opintooikeus_id IN (
+             SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+           )`,
+          [el_id]
+        )
+        await client.query(
+          `DELETE FROM koejakson_kehittamistoimenpiteet
+           WHERE opintooikeus_id IN (
+             SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+           )`,
+          [el_id]
+        )
+        await client.query(
+          `DELETE FROM koejakson_aloituskeskustelu
+           WHERE opintooikeus_id IN (
+             SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+           )`,
+          [el_id]
+        )
+        await client.query(
+          `DELETE FROM koulutussopimuksen_kouluttaja
+           WHERE koulutussopimus_id IN (
+             SELECT id FROM koejakson_koulutussopimus
+             WHERE opintooikeus_id IN (
+               SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+             )
+           )`,
+          [el_id]
+        )
+        await client.query(
+          `DELETE FROM koulutussopimuksen_koulutuspaikka
+           WHERE koulutussopimus_id IN (
+             SELECT id FROM koejakson_koulutussopimus
+             WHERE opintooikeus_id IN (
+               SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+             )
+           )`,
+          [el_id]
+        )
+        await client.query(
+          `DELETE FROM koejakson_koulutussopimus
+           WHERE opintooikeus_id IN (
+             SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1
+           )`,
+          [el_id]
+        )
+
         // Poistetaan koulutusjakso-rivit ennen koulutussuunnitelma-rivejä
         // (FK: koulutusjakso.koulutussuunnitelma_id → koulutussuunnitelma.id)
         await client.query(
@@ -158,4 +243,3 @@ export const erikoistuvaLaakariTasks = {
     }
   },
 }
-
