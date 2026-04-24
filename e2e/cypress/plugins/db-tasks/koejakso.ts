@@ -89,14 +89,35 @@ export const koejaksoTasks = {
       if (opintooikeusResult.rows.length === 0) return null
       const oid: number = opintooikeusResult.rows[0].id
 
+      await client.query(
+        `DELETE FROM asiakirja
+         WHERE koejakson_vastuuhenkilon_arvio_id IN (
+           SELECT id FROM koejakson_vastuuhenkilon_arvio WHERE opintooikeus_id = $1
+         )`,
+        [oid]
+      )
       await client.query(`DELETE FROM koejakson_vastuuhenkilon_arvio   WHERE opintooikeus_id = $1`, [oid])
       await client.query(`DELETE FROM koejakson_loppukeskustelu        WHERE opintooikeus_id = $1`, [oid])
+      await client.query(
+        `DELETE FROM koejakson_valiarviointi_kehittamistoimenpidekategoriat
+         WHERE valiarviointi_id IN (
+           SELECT id FROM koejakson_valiarviointi WHERE opintooikeus_id = $1
+         )`,
+        [oid]
+      )
       await client.query(`DELETE FROM koejakson_valiarviointi          WHERE opintooikeus_id = $1`, [oid])
       await client.query(`DELETE FROM koejakson_kehittamistoimenpiteet WHERE opintooikeus_id = $1`, [oid])
       await client.query(`DELETE FROM koejakson_aloituskeskustelu      WHERE opintooikeus_id = $1`, [oid])
-      // koulutussopimuksen_kouluttaja-liitosrivit on poistettava ennen koulutussopimusta
+      // koulutussopimuksen liitostaulut on poistettava ennen koulutussopimusta
       await client.query(
         `DELETE FROM koulutussopimuksen_kouluttaja
+         WHERE koulutussopimus_id IN (
+           SELECT id FROM koejakson_koulutussopimus WHERE opintooikeus_id = $1
+         )`,
+        [oid]
+      )
+      await client.query(
+        `DELETE FROM koulutussopimuksen_koulutuspaikka
          WHERE koulutussopimus_id IN (
            SELECT id FROM koejakson_koulutussopimus WHERE opintooikeus_id = $1
          )`,
