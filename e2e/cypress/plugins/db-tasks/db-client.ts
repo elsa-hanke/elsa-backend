@@ -10,3 +10,16 @@ export function dbClient(): Client {
   })
 }
 
+export async function withDb<T>(
+  createClient: () => ReturnType<typeof import('./db-client').dbClient>,
+  fn: (client: Client) => Promise<T>
+): Promise<T> {
+  const client = createClient()
+  await client.connect()
+  try {
+    return await fn(client as unknown as Client)
+  } finally {
+    await client.end()
+  }
+}
+
