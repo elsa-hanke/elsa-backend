@@ -166,6 +166,10 @@
     get contactMail() {
       return 'julia.sillanpaa@tuni.fi'
     }
+
+    get appVersion() {
+      return process.env.VUE_APP_VERSION || ''
+    }
   }
 </script>
 

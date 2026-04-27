@@ -201,5 +201,64 @@ class FileValidationServiceTest {
 
         assertThat(result).isFalse
     }
-}
 
+    @Test
+    fun `validate should return false for empty PDF file with opintooikeusId`() {
+        val file = MockMultipartFile(
+            "file",
+            "empty.pdf",
+            MediaType.APPLICATION_PDF_VALUE,
+            ByteArray(0)
+        )
+
+        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
+
+        val result = fileValidationService.validate(listOf(file), 1L)
+
+        assertThat(result).isFalse
+    }
+
+    @Test
+    fun `validate should return true for non-empty PDF file with opintooikeusId`() {
+        val file = MockMultipartFile(
+            "file",
+            "real.pdf",
+            MediaType.APPLICATION_PDF_VALUE,
+            "content".toByteArray()
+        )
+
+        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
+
+        val result = fileValidationService.validate(listOf(file), 1L)
+
+        assertThat(result).isTrue
+    }
+
+    @Test
+    fun `validate without opintooikeusId should return false for empty PDF file`() {
+        val file = MockMultipartFile(
+            "file",
+            "empty.pdf",
+            MediaType.APPLICATION_PDF_VALUE,
+            ByteArray(0)
+        )
+
+        val result = fileValidationService.validate(listOf(file))
+
+        assertThat(result).isFalse
+    }
+
+    @Test
+    fun `validate without opintooikeusId should return false for empty image file`() {
+        val file = MockMultipartFile(
+            "file",
+            "empty.png",
+            MediaType.IMAGE_PNG_VALUE,
+            ByteArray(0)
+        )
+
+        val result = fileValidationService.validate(listOf(file))
+
+        assertThat(result).isFalse
+    }
+}

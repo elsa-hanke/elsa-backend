@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
+import fi.elsapalvelu.elsa.security.StaleXsrfCookieClearingFilter
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import jakarta.persistence.EntityNotFoundException
@@ -112,6 +113,13 @@ class SecurityConfiguration(
                     .ignoringRequestMatchers("/api/logout")
             }
             .addFilterBefore(corsFilter, CsrfFilter::class.java)
+            .addFilterAfter(
+                applicationProperties.getCsrf().cookie.domain?.let {
+                    StaleXsrfCookieClearingFilter(it)
+                } ?: StaleXsrfCookieClearingFilter(""),
+                CsrfFilter::class.java
+            )
+            .addFilterAfter(MdcUserIdFilter(), CorsFilter::class.java)
             .addFilterAfter(
                 ElsaSwitchUserFilter(
                     opintooikeusRepository,

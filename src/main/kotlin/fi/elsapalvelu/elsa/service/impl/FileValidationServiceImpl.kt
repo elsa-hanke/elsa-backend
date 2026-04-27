@@ -24,7 +24,8 @@ class FileValidationServiceImpl(
         val allowedContentTypesOrDefault = allowedContentTypes ?: defaultAllowedContentTypes
         val existingFileNames = asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map { it.nimi }
         if (files.any {
-                it.originalFilename in existingFileNames ||
+                it.isEmpty ||
+                    it.originalFilename in existingFileNames ||
                     it.contentType?.toString() !in allowedContentTypesOrDefault ||
                     it.name.length > MAXIMUM_FILE_NAME_LENGTH
             }) {
@@ -37,7 +38,8 @@ class FileValidationServiceImpl(
     override fun validate(files: List<MultipartFile>, allowedContentTypes: List<String>?): Boolean {
         val allowedContentTypesOrDefault = allowedContentTypes ?: defaultAllowedContentTypes
         if (files.any {
-                it.contentType?.toString() !in allowedContentTypesOrDefault ||
+                it.isEmpty ||
+                    it.contentType?.toString() !in allowedContentTypesOrDefault ||
                     it.name.length > MAXIMUM_FILE_NAME_LENGTH
             }) {
             return false

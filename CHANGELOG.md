@@ -1,5 +1,36 @@
 # Changelog
 
+## [v2.0.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.0.0...v2.0.1) - 21 April 2026
+
+- CSRF 403 virheen korjaus (axios v0 -&gt; v1) (#531) [`#532`](https://github.com/elsa-hanke/elsa-backend/pull/532)(21 April 2026)
+
+## [v2.0.0](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.16...v2.0.0) - 21 April 2026
+
+- Release/v0.0.x merge [`#530`](https://github.com/elsa-hanke/elsa-backend/pull/530)(21 April 2026)
+- ELSA-1127 Valmistumispyynnön hyväksyminen ei onnistu [`#524`](https://github.com/elsa-hanke/elsa-backend/pull/524)(20 April 2026)
+
+## [v0.0.16](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.15...v0.0.16) - 21 April 2026
+
+## [v0.0.15](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.14...v0.0.15) - 21 April 2026
+
+## [v0.0.14](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.13...v0.0.14) - 21 April 2026
+
+## [v0.0.13](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.12...v0.0.13) - 20 April 2026
+
+## [v0.0.12](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.11...v0.0.12) - 20 April 2026
+
+## [v0.0.11](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.10...v0.0.11) - 20 April 2026
+
+## [v0.0.10](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.9...v0.0.10) - 20 April 2026
+
+- Add versioning to landing page and display app version in footer [`#529`](https://github.com/elsa-hanke/elsa-backend/pull/529)(20 April 2026)
+- Remove unnecessary Testcontainers dependency and update random ID generation method [`#528`](https://github.com/elsa-hanke/elsa-backend/pull/528)(19 April 2026)
+- Add MDC filter to log authenticated user ID for request correlation [`#527`](https://github.com/elsa-hanke/elsa-backend/pull/527)(19 April 2026)
+- Bump Thymeleaf 3.1.4 [`#526`](https://github.com/elsa-hanke/elsa-backend/pull/526)(18 April 2026)
+- Revert "Revert "Bump axios to version 1.15.0 (#522)" (#523)" [`#525`](https://github.com/elsa-hanke/elsa-backend/pull/525)(17 April 2026)
+- Revert "Bump axios to version 1.15.0 (#522)" [`#523`](https://github.com/elsa-hanke/elsa-backend/pull/523)(15 April 2026)
+- Bump axios to version 1.15.0 [`#522`](https://github.com/elsa-hanke/elsa-backend/pull/522)(15 April 2026)
+
 ## [v0.0.9](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.8...v0.0.9) - 14 April 2026
 
 ## [v0.0.8](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.7...v0.0.8) - 14 April 2026

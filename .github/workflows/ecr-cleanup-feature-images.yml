@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   cleanup:
-    name: Delete ECR images tagged with feature-* or main-* (except main-latest)
+    name: Delete ECR images tagged with feature-*, main-*, or release-* (except main-latest and release-latest)
     runs-on: ubuntu-latest
     environment: shared
 
@@ -22,7 +22,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
           aws-region: eu-west-1
 
-      - name: Delete feature-* and main-* images from ECR
+      - name: Delete feature-*, main-*, and release-* images from ECR
         env:
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         run: |
@@ -40,7 +40,7 @@ jobs:
           IMAGE_IDS=$(echo "$ALL_IMAGES" | jq '[
             .[] |
             select(
-              (.tags | any(startswith("feature") or startswith("main-")))
+              (.tags | any(startswith("feature") or startswith("main-") or startswith("release-")))
               and
               (.tags | any(. == "main-latest") | not)
             ) |
@@ -57,21 +57,13 @@ jobs:
           TOTAL=$(echo "$IMAGE_IDS" | jq 'length')
           echo "Total images to delete: $TOTAL"
 
-          # ---------------------------------------------------------------
-          # DRY RUN – the actual deletion loop is commented out.
-          # Verify the "Images to delete" list above looks correct, then
-          # uncomment the block below and remove this notice.
-          # ---------------------------------------------------------------
-
-          # OFFSET=0
-          # CHUNK_SIZE=100
-          # while [ "$OFFSET" -lt "$TOTAL" ]; do
-          #   CHUNK=$(echo "$IMAGE_IDS" | jq --argjson o "$OFFSET" --argjson c "$CHUNK_SIZE" '.[$o:$o+$c]')
-          #   echo "Deleting images $OFFSET – $((OFFSET + CHUNK_SIZE - 1))..."
-          #   aws ecr batch-delete-image \
-          #     --repository-name "$REPO_NAME" \
-          #     --image-ids "$CHUNK"
-          #   OFFSET=$((OFFSET + CHUNK_SIZE))
-          # done
-
-          echo "Dry run complete – no images were deleted."
+           OFFSET=0
+           CHUNK_SIZE=100
+           while [ "$OFFSET" -lt "$TOTAL" ]; do
+             CHUNK=$(echo "$IMAGE_IDS" | jq --argjson o "$OFFSET" --argjson c "$CHUNK_SIZE" '.[$o:$o+$c]')
+             echo "Deleting images $OFFSET – $((OFFSET + CHUNK_SIZE - 1))..."
+             aws ecr batch-delete-image \
+               --repository-name "$REPO_NAME" \
+               --image-ids "$CHUNK"
+             OFFSET=$((OFFSET + CHUNK_SIZE))
+           done
