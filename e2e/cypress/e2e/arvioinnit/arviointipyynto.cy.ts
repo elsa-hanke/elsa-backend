@@ -147,40 +147,4 @@ describe('Arviointipyyntö', () => {
     // Tallennettu – palataan arvioinnit-listalle
     cy.url().should('include', '/arvioinnit')
   })
-
-  // Käyttötapaus 3 – Kouluttaja
-  // Kouluttajan kirjautuminen vaatii kutsulinkki-prosessin (verification-token).
-  // TODO: toteuta, kun toinen Suomi.fi-testitunnus on vahvistettu testiympäristössä
-  //       ja token haetaan tietokantatehtävällä.
-  context('Käyttötapaus 3: Arvioinnin antaminen (kouluttaja)', () => {
-    it.skip('kouluttaja näkee avoimen arviointipyynnön etusivullaan', () => {
-      // Odottaa toteutusta: kutsulinkki-kirjautumisprosessia ei ole vielä automatisoitu
-      cy.loginAsKouluttaja()
-
-      // 3. Kouluttaja näkee etusivullaan Avoimissa asioissa arviointipyynnön
-      cy.visit('/etusivu')
-      cy.contains('Avoimet asiat').should('be.visible')
-      cy.contains('E2E Testitapahtuma').should('be.visible')
-    })
-
-    it.skip('kouluttaja täyttää ja lähettää arvioinnin', () => {
-      cy.loginAsKouluttaja()
-
-      // 4. Kouluttaja valitsee arviointityökalun ja kirjaa arviointinsa lomakkeelle
-      cy.visit('/arvioinnit')
-      cy.contains('E2E Testitapahtuma')
-        .closest('tr, .list-item, [class*="row"]')
-        .contains('Arvioi')
-        .click({ force: true })
-
-      cy.selectFirstMultiselectOption(
-        cy.contains('label', 'Arviointityökalu').parent()
-      )
-
-      // 5. Kouluttaja lähettää arvioinnin
-      cy.contains('button', 'Lähetä').click()
-
-      cy.url().should('include', '/arvioinnit')
-    })
-  })
 })
