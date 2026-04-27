@@ -15,7 +15,10 @@ export async function fetchBlobData(
       responseType: 'blob',
       timeout: 120000
     })
-    return { data: response.data, contentType: response.headers['content-type'] as string | undefined }
+    return {
+      data: response.data,
+      contentType: response.headers['content-type'] as string | undefined
+    }
   } catch {
     return { error: true }
   }
