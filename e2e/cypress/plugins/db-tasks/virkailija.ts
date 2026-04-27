@@ -2,9 +2,11 @@ import { randomUUID } from 'crypto'
 import type { Client } from 'pg'
 import { dbClient, withDb } from './db-client'
 
+const ROLE = 'ROLE_OPINTOHALLINNON_VIRKAILIJA'
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-async function fetchKouluttajaIds(
+async function fetchVirkalijaIds(
   client: Client,
   email: string
 ): Promise<{ userId: string; kayttajaId: number } | null> {
@@ -19,14 +21,10 @@ async function fetchKouluttajaIds(
   return { userId: result.rows[0].user_id, kayttajaId: result.rows[0].kayttaja_id }
 }
 
-async function ensureYliopistoErikoisalaLink(client: Client, kayttajaId: number): Promise<void> {
+async function ensureYliopistoLink(client: Client, kayttajaId: number): Promise<void> {
   await client.query(
-    `INSERT INTO kayttaja_yliopisto_erikoisala (kayttaja_id, yliopisto_id, erikoisala_id)
-     SELECT $1, 1, 46
-     WHERE NOT EXISTS (
-       SELECT 1 FROM kayttaja_yliopisto_erikoisala
-       WHERE kayttaja_id = $1 AND yliopisto_id = 1 AND erikoisala_id = 46
-     )`,
+    `INSERT INTO rel_kayttaja__yliopisto (kayttaja_id, yliopisto_id)
+     VALUES ($1, 1) ON CONFLICT DO NOTHING`,
     [kayttajaId]
   )
 }
@@ -34,12 +32,12 @@ async function ensureYliopistoErikoisalaLink(client: Client, kayttajaId: number)
 async function ensureUserAuthority(client: Client, userId: string): Promise<void> {
   await client.query(
     `INSERT INTO jhi_user_authority (user_id, authority_name)
-     VALUES ($1, 'ROLE_KOULUTTAJA') ON CONFLICT DO NOTHING`,
-    [userId]
+     VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+    [userId, ROLE]
   )
 }
 
-async function createKouluttajaUser(
+async function createVirkalijaUser(
   client: Client,
   email: string,
   etunimi: string,
@@ -52,8 +50,8 @@ async function createKouluttajaUser(
     `INSERT INTO jhi_user
        (id, login, first_name, last_name, email, activated, lang_key,
         created_by, last_modified_by, active_authority)
-     VALUES ($1,$2,$3,$4,$5,true,'fi','system','system','ROLE_KOULUTTAJA')`,
-    [userId, email, etunimi, sukunimi, email]
+     VALUES ($1,$2,$3,$4,$5,true,'fi','system','system',$6)`,
+    [userId, email, etunimi, sukunimi, email, ROLE]
   )
   await ensureUserAuthority(client, userId)
 
@@ -66,7 +64,7 @@ async function createKouluttajaUser(
     )
   ).rows[0].id
 
-  await ensureYliopistoErikoisalaLink(client, kayttajaId)
+  await ensureYliopistoLink(client, kayttajaId)
 
   return kayttajaId
 }
@@ -74,15 +72,14 @@ async function createKouluttajaUser(
 // ─── Exported tasks ───────────────────────────────────────────────────────────
 
 /**
- * Tasks for seeding and cleaning up the kouluttaja (trainer) test user.
+ * Tehtävät opintohallinnon virkailijan testikäyttäjän siementämiseen ja siivoamiseen.
  *
- * db:seedKouluttaja    – Creates a ROLE_KOULUTTAJA user linked to yliopisto 1 /
- *                        erikoisala 46 (Työterveyshuolto). Idempotent.
- * db:cleanupKouluttaja – Removes all rows created by seedKouluttaja. Safe to
- *                        call even if the user does not exist.
+ * db:seedVirkailija    – Luo ROLE_OPINTOHALLINNON_VIRKAILIJA-käyttäjän, joka on linkitetty
+ *                        yliopistoon 1. Idempotentti.
+ * db:cleanupVirkailija – Poistaa kaikki seedVirkailija:n luomat rivit.
  */
-export const kouluttajaTasks = {
-  async 'db:seedKouluttaja'({
+export const virkailijaTasks = {
+  async 'db:seedVirkailija'({
                               email,
                               etunimi,
                               sukunimi,
@@ -92,51 +89,36 @@ export const kouluttajaTasks = {
     sukunimi: string
   }): Promise<{ kayttajaId: number } | null> {
     return withDb(dbClient, async (client: any) => {
-      // JPA's @ManyToMany joins on jhi_authority.name, so this row must exist
-      // or JPQL queries won't find the kouluttaja (the left join produces NULL).
+      // Virkailijan auktorisointi edellyttää, että rooli löytyy jhi_authority-taulusta
       await client.query(
-        `INSERT INTO jhi_authority (name) VALUES ('ROLE_KOULUTTAJA') ON CONFLICT DO NOTHING`
+        `INSERT INTO jhi_authority (name) VALUES ($1) ON CONFLICT DO NOTHING`,
+        [ROLE]
       )
 
-      const existing = await fetchKouluttajaIds(client, email)
+      const existing = await fetchVirkalijaIds(client, email)
 
       if (existing) {
         // User already exists — ensure both the yliopisto link and authority row
         // are present in case a previous partial run left them missing.
-        await ensureYliopistoErikoisalaLink(client, existing.kayttajaId)
+        await ensureYliopistoLink(client, existing.kayttajaId)
         await ensureUserAuthority(client, existing.userId)
         return { kayttajaId: existing.kayttajaId }
       }
 
-      const kayttajaId = await createKouluttajaUser(client, email, etunimi, sukunimi)
+      const kayttajaId = await createVirkalijaUser(client, email, etunimi, sukunimi)
       return { kayttajaId }
     })
   },
 
-  /**
-   * Poistaa esialustetun kouluttajan tiedot. Turvallinen kutsua, vaikka käyttäjää
-   * ei olisikaan.
-   */
-  async 'db:cleanupKouluttaja'({ email }: { email: string }): Promise<null> {
+  async 'db:cleanupVirkailija'({ email }: { email: string }): Promise<null> {
     return withDb(dbClient, async (client: any) => {
-      const ids = await fetchKouluttajaIds(client, email)
+      const ids = await fetchVirkalijaIds(client, email)
       if (!ids) return null
       const { userId, kayttajaId } = ids
 
       if (kayttajaId) {
         await client.query(
-          `DELETE FROM rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi
-           WHERE kayttaja_yliopisto_erikoisala_id IN (
-             SELECT id FROM kayttaja_yliopisto_erikoisala WHERE kayttaja_id = $1
-           )`,
-          [kayttajaId]
-        )
-        await client.query(
-          `DELETE FROM kayttaja_yliopisto_erikoisala WHERE kayttaja_id = $1`,
-          [kayttajaId]
-        )
-        await client.query(
-          `DELETE FROM kouluttajavaltuutus WHERE valtuutettu_id = $1`,
+          `DELETE FROM rel_kayttaja__yliopisto WHERE kayttaja_id = $1`,
           [kayttajaId]
         )
         await client.query(`DELETE FROM kayttaja WHERE id = $1`, [kayttajaId])
