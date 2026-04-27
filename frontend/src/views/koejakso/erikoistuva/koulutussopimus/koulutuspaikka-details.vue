@@ -11,8 +11,7 @@
     <elsa-form-group :label="$t('toimipaikalla-koulutussopimus.header')" :required="true">
       <template #label-help>
         <elsa-popover>
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <span v-html="$t('toimipaikan-koulutussopimukset-tooltip', { linkki })" />
+          <span v-safe-html="$t('toimipaikan-koulutussopimukset-tooltip', { linkki })" />
         </elsa-popover>
       </template>
       <template #default="{ uid }">

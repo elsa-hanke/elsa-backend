@@ -504,8 +504,7 @@
         <hr />
         <div v-show="vastuuhenkilonArvio.virkailijanYhteenveto">
           <h5 class="mt-3 mb-2">{{ $t('virkailijan-koejakso-yhteenveto') }}</h5>
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <div v-html="virkailijanYhteenvetoSanitized"></div>
+          <div v-safe-html="virkailijanYhteenvetoSanitized"></div>
         </div>
         <div v-if="vastuuhenkilonArvio.virkailija && vastuuhenkilonArvio.virkailija.kuittausaika">
           <b-row>
