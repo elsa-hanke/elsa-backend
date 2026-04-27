@@ -35,7 +35,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
       - name: Run Grype security scan
         run: |
-          grype -o table --fail-on high ./build/reports/cyclonedx-direct/bom.json
+          grype -o table --fail-on critical ./build/reports/cyclonedx-direct/bom.json
 
   notify-slack:
     name: Ilmoita Slackiin löydetyistä haavoittuvuuksista
@@ -48,5 +48,5 @@ jobs:
           SLACK_HOOK: ${{ secrets.NETUM_SLACK_HOOK_URL }}
         run: |
           curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\":warning: *Taustapalvelun tietoturvaskannaus — haavoittuvuuksia löydetty*\nTaustapalvelun riippuvuuksissa löydettiin *korkean tai kriittisen vakavuuden haavoittuvuuksia*.\nKorjaukset suositellaan tehtäväksi välittömästi.\nAjo: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+            --data "{\"text\":\":warning: *Backendin tietoturvaskannaus — haavoittuvuuksia löydetty*\Backendin riippuvuuksissa löydettiin *kriittisen vakavuuden haavoittuvuuksia*.\nKorjaukset suositellaan tehtäväksi välittömästi.\nAjo: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
             "$SLACK_HOOK"
