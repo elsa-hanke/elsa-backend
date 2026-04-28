@@ -75,7 +75,7 @@ jobs:
             --entrypoint /bin/sh \
             -v ${{ github.workspace }}/e2e:/e2e \
             -w /e2e \
-            cypress/included:15.13.0 \
+            cypress/included:15.14.0 \
             -c "npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080"
 
       - name: Upload Cypress videos
