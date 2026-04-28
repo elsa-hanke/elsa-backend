@@ -1496,16 +1496,21 @@ class ValmistumispyyntoServiceImpl(
         pdfService.luoPdf("pdf/erikoistujantiedot/koulutussuunnitelma.html", context, outputStream)
 
         if (koulutussuunitelma?.motivaatiokirjeAsiakirja != null) {
-            val data = koulutussuunitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data
+            val asiakirja = koulutussuunitelma.motivaatiokirjeAsiakirja
+            val data = asiakirja?.asiakirjaData?.data
             if (data == null || data.isEmpty()) {
                 log.warn(
-                    "Motivaatiokirjeasiakirja ${koulutussuunitelma.motivaatiokirjeAsiakirja?.id} " +
+                    "Motivaatiokirjeasiakirja ${asiakirja?.id} " +
                         "data on tyhjä tai null – ohitetaan"
                 )
             } else {
-                val inputStream = ByteArrayInputStream(outputStream.toByteArray())
-                outputStream.reset()
-                pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(data), outputStream)
+                yhdistaPdfAsiakirja(
+                    outputStream,
+                    data,
+                    "Motivaatiokirjeasiakirja",
+                    asiakirja?.id,
+                    asiakirja?.nimi
+                )
             }
         }
     }
@@ -1554,10 +1559,9 @@ class ValmistumispyyntoServiceImpl(
                 outputStream.reset()
                 pdfService.yhdistaPdf(result, newPdf, outputStream)
 
-                // FIX (ELSA-1127): only non-empty PDF attachments are merged.
-                // Non-PDF types (e.g. JPEG) are skipped – they were never supported here.
-                // Empty/null data blobs are skipped with a warning – they cause PdfReader to
-                // throw "PDF header not found" and roll back the entire approval transaction.
+                // FIX (ELSA-1127): only valid PDF payloads are merged.
+                // Non-PDF types, empty blobs and corrupt/mislabeled PDF data are skipped
+                // with a warning instead of aborting the whole approval transaction.
                 yhdistaPdfAsiakirjat(a.arviointiAsiakirjat, outputStream, "Arviointiasiakirja")
                 yhdistaPdfAsiakirjat(a.itsearviointiAsiakirjat, outputStream, "Itsearviointiasiakirja")
             }
@@ -1565,8 +1569,9 @@ class ValmistumispyyntoServiceImpl(
 
     /**
      * Merges each PDF attachment from [asiakirjat] into [outputStream].
-     * Non-PDF MIME types and empty/null data blobs are skipped with a warning –
-     * passing either to PdfReader throws "PDF header not found" (ELSA-1127).
+     * Non-PDF MIME types, empty/null data blobs and invalid PDF payloads are skipped
+     * with a warning – passing any of them to PdfReader can fail with
+     * "PDF header not found" (ELSA-1127).
      */
     private fun yhdistaPdfAsiakirjat(
         asiakirjat: Collection<Asiakirja>,
@@ -1583,9 +1588,32 @@ class ValmistumispyyntoServiceImpl(
                 log.warn("$label ${it.id} (${it.nimi}) data on tyhjä tai null – ohitetaan")
                 return@forEach
             }
-            val inputStream = ByteArrayInputStream(outputStream.toByteArray())
+            yhdistaPdfAsiakirja(outputStream, data, label, it.id, it.nimi)
+        }
+    }
+
+    private fun yhdistaPdfAsiakirja(
+        outputStream: ByteArrayOutputStream,
+        data: ByteArray,
+        label: String,
+        asiakirjaId: Long?,
+        asiakirjaNimi: String?
+    ) {
+        log.info("Yhdistetään $label $asiakirjaId (${asiakirjaNimi ?: "tuntematon"}) valmistumispyynnön PDF-liitteisiin")
+        val mergedOutputStream = ByteArrayOutputStream()
+        try {
+            pdfService.yhdistaPdf(
+                ByteArrayInputStream(outputStream.toByteArray()),
+                ByteArrayInputStream(data),
+                mergedOutputStream
+            )
             outputStream.reset()
-            pdfService.yhdistaPdf(inputStream, ByteArrayInputStream(data), outputStream)
+            outputStream.write(mergedOutputStream.toByteArray())
+        } catch (e: Exception) {
+            log.warn(
+                "$label $asiakirjaId (${asiakirjaNimi ?: "tuntematon"}) sisältää virheellistä PDF-dataa – ohitetaan",
+                e
+            )
         }
     }
 
