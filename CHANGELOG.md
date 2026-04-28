@@ -1,5 +1,9 @@
 # Changelog
 
+## [v2.0.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.0.0...v2.0.1) - 21 April 2026
+
+- CSRF 403 virheen korjaus (axios v0 -&gt; v1) (#531) [`#532`](https://github.com/elsa-hanke/elsa-backend/pull/532)(21 April 2026)
+
 ## [v2.0.0](https://github.com/elsa-hanke/elsa-backend/compare/v0.0.16...v2.0.0) - 21 April 2026
 
 - Release/v0.0.x merge [`#530`](https://github.com/elsa-hanke/elsa-backend/pull/530)(21 April 2026)
