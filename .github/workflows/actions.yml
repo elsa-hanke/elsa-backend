@@ -421,35 +421,29 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
-    outputs:
-      release-branch: ${{ steps.resolve-branch.outputs.release-branch }}
 
     steps:
-      - name: Checkout release branch
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
           token: ${{ secrets.MERGE_TOKEN || github.token }}
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - name: Asenna auto-changelog
+      - name: Install auto-changelog
         run: npm install -g auto-changelog
-      - name: Luo CHANGELOG.md ja committaa release-haaraan
-        id: resolve-branch
+      - name: Generate CHANGELOG.md and commit to main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch --all --tags
-          RELEASE_BRANCH=$(git branch -r --contains "refs/tags/$GITHUB_REF_NAME" | grep -E 'origin/(release|hotfix)/' | head -1 | sed 's|.*origin/||' | xargs)
-          echo "Generating changelog on branch: ${RELEASE_BRANCH}"
-          echo "release-branch=${RELEASE_BRANCH}" >> "$GITHUB_OUTPUT"
-          git checkout $RELEASE_BRANCH
           auto-changelog -u --hide-empty-releases --template https://raw.githubusercontent.com/Eura2021/eura2021-kong-charts/master/chlog.hbs
           git add CHANGELOG.md
           git commit -m 'CHANGELOG updated [skip ci]' --allow-empty CHANGELOG.md
-          git push origin $RELEASE_BRANCH
+          git push origin main
 
   notify-staging:
     runs-on: ubuntu-latest
@@ -462,8 +456,7 @@ jobs:
           SLACK_HOOK: ${{ secrets.NETUM_SLACK_HOOK_URL }}
         run: |
           VERSION="$GITHUB_REF_NAME"
-          RELEASE_BRANCH="${{ needs.generate-changelog.outputs.release-branch }}"
-          CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
+          CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md"
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\" Versio ${VERSION} on julkaistu testiympäristöön. Sovellus löytyy täältä: https://testi.elsapalvelu.fi/kirjautuminen\nMuutosloki: ${CHANGELOG_URL}\"}" \
             "$SLACK_HOOK"
@@ -472,8 +465,7 @@ jobs:
           TEAMS_HOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
           VERSION="$GITHUB_REF_NAME"
-          RELEASE_BRANCH="${{ needs.generate-changelog.outputs.release-branch }}"
-          CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
+          CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md"
           PAYLOAD=$(printf '{"type":"message","attachments":[{"contentType":"application/vnd.microsoft.card.adaptive","content":{"type":"AdaptiveCard","version":"1.2","body":[{"type":"TextBlock","text":"Versio %s on julkaistu testiympäristöön.","wrap":true},{"type":"TextBlock","text":"Muutosloki:","wrap":true}],"actions":[{"type":"Action.OpenUrl","title":"Sovellus","url":"https://testi.elsapalvelu.fi/kirjautuminen"},{"type":"Action.OpenUrl","title":"Muutosloki","url":"%s"}]}}]}' "$VERSION" "$CHANGELOG_URL")
           curl --globoff -X POST -H 'Content-type: application/json' --data-raw "$PAYLOAD" "$TEAMS_HOOK"
 
@@ -608,15 +600,26 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.MERGE_TOKEN || github.token }}
-      - name: Merge release master- ja main-haaroihin
+      - name: Merge release into master, then master into main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch --all --tags
-          RELEASE_BRANCH=$(git branch -r --contains "refs/tags/$GITHUB_REF_NAME" | grep -E 'origin/(release|hotfix)/' | head -1 | sed 's|.*origin/||' | xargs)
+
+          RELEASE_BRANCH=$(git branch -r --contains "refs/tags/$GITHUB_REF_NAME" \
+            | grep -E 'origin/(release|hotfix)/' \
+            | head -1 | sed 's|.*origin/||' | xargs)
+
+          # Step 1: release → master (both are production code, no dev contamination risk)
           git checkout master
-          git merge origin/$RELEASE_BRANCH --no-ff -m "Merge $RELEASE_BRANCH ($GITHUB_REF_NAME) master-haaraan"
+          git merge origin/$RELEASE_BRANCH --no-ff \
+            -m "Merge $RELEASE_BRANCH ($GITHUB_REF_NAME) master-haaraan"
           git push origin master
+
+          # Step 2: master → main (not release → main, keeps dev history clean)
+          # generate-changelog already committed CHANGELOG.md to main, so master
+          # now gets that commit too via this merge — no conflict possible.
           git checkout main
-          git merge origin/$RELEASE_BRANCH --no-ff -m "Merge $RELEASE_BRANCH ($GITHUB_REF_NAME) main-haaraan"
+          git merge origin/master --no-ff \
+            -m "Merge master ($GITHUB_REF_NAME) main-haaraan"
           git push origin main

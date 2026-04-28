@@ -1,0 +1,35 @@
+name: Nightly Changelog Update
+
+on:
+  schedule:
+    - cron: '0 1 * * *' # Every night at 01:00 UTC
+  workflow_dispatch:
+
+jobs:
+  generate-changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.MERGE_TOKEN || github.token }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install auto-changelog
+        run: npm install -g auto-changelog
+      - name: Generate CHANGELOG.md and commit to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch --all --tags
+          auto-changelog -u --hide-empty-releases --template https://raw.githubusercontent.com/Eura2021/eura2021-kong-charts/master/chlog.hbs
+          git add CHANGELOG.md
+          git commit -m 'chore: nightly changelog update [skip ci]' --allow-empty CHANGELOG.md
+          git push origin main
+
