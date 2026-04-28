@@ -1,0 +1,144 @@
+name: Public API Exposure Check
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+env:
+  # Expected: Cognito/VPN blocks all requests on dev (HTTP 000).
+  # Expected: ALB blocks without X-Access-Key on stage (401/403).
+  DEV_BASE_URL: ${{ secrets.DEV_BASE_URL }}
+  STAGE_BASE_URL: ${{ secrets.STAGE_BASE_URL }}
+
+jobs:
+  check-dev:
+    name: Check kehitys (dev)
+    runs-on: ubuntu-latest
+    outputs:
+      failed_endpoints: ${{ steps.probe.outputs.failed_endpoints }}
+    steps:
+      - name: Probe public endpoints
+        id: probe
+        shell: bash
+        run: |
+          BASE="${DEV_BASE_URL}"
+          FAILED=""
+
+          check() {
+            local label="$1"
+            local url="$2"
+            local method="${3:-GET}"
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              --max-time 15 \
+              -L \
+              -X "$method" \
+              "$url" || true)
+
+            # Only 000 (no TCP connection) means VPN is in place.
+            # Any real HTTP response means the server is reachable — VPN is DOWN.
+            if [[ "$HTTP_CODE" == "000" ]]; then
+              echo "[$label] $url → HTTP 000 (verkkoyhteyttä ei muodostettu — VPN suojaa ✓)"
+            else
+              echo "::warning::[$label] $url palautti $HTTP_CODE — VPN-SUOJAUS PUUTTUU, palvelin on julkisesti saavutettavissa"
+              FAILED="${FAILED}\\n• $label ($url) → HTTP $HTTP_CODE"
+            fi
+          }
+
+          check "GET /api/haka-yliopistot"            "${BASE}/api/haka-yliopistot"
+          check "GET /api/julkinen/seuraava-paivitys" "${BASE}/api/julkinen/seuraava-paivitys"
+          check "GET /api/julkinen/ilmoitukset"       "${BASE}/api/julkinen/ilmoitukset"
+          check "GET /api/julkinen/poissaolon-syyt"   "${BASE}/api/julkinen/poissaolon-syyt"
+
+          # Authenticated endpoints — must also be blocked
+          check "GET /api/kayttaja"                   "${BASE}/api/kayttaja"
+          check "GET /management/info"                "${BASE}/management/info"
+
+          # Encode for GHA output (newline-safe)
+          echo "failed_endpoints=${FAILED}" >> "$GITHUB_OUTPUT"
+
+          if [[ -n "$FAILED" ]]; then
+            echo "Yksi tai useampi endpoint ei ole suojattu DEV-ympäristössä!"
+            exit 1
+          fi
+
+  check-stage:
+    name: Check testi (stage)
+    runs-on: ubuntu-latest
+    outputs:
+      failed_endpoints: ${{ steps.probe.outputs.failed_endpoints }}
+    steps:
+      - name: Probe public endpoints without X-Access-Key header
+        id: probe
+        shell: bash
+        run: |
+          BASE="${STAGE_BASE_URL}"
+          FAILED=""
+
+          check() {
+            local label="$1"
+            local url="$2"
+            local method="${3:-GET}"
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              --max-time 15 \
+              -L \
+              -X "$method" \
+              "$url" || true)
+
+            if [[ "$HTTP_CODE" =~ ^2 ]]; then
+              echo "::warning::[$label] $url palautti $HTTP_CODE — SUOJAUS PUUTTUU"
+              FAILED="${FAILED}\\n• $label ($url) → HTTP $HTTP_CODE"
+            else
+              echo "[$label] $url → HTTP $HTTP_CODE (suojattu ✓)"
+            fi
+          }
+
+          check "GET /api/haka-yliopistot"            "${BASE}/api/haka-yliopistot"
+          check "GET /api/julkinen/seuraava-paivitys" "${BASE}/api/julkinen/seuraava-paivitys"
+          check "GET /api/julkinen/ilmoitukset"       "${BASE}/api/julkinen/ilmoitukset"
+          check "GET /api/julkinen/poissaolon-syyt"   "${BASE}/api/julkinen/poissaolon-syyt"
+
+          check "GET /api/kayttaja"                   "${BASE}/api/kayttaja"
+          check "GET /management/info"                "${BASE}/management/info"
+
+          echo "failed_endpoints=${FAILED}" >> "$GITHUB_OUTPUT"
+
+          if [[ -n "$FAILED" ]]; then
+            echo "Yksi tai useampi endpoint ei ole suojattu STAGE-ympäristössä!"
+            exit 1
+          fi
+
+  notify-slack:
+    name: Ilmoita Slackiin suojauksen puuttumisesta
+    runs-on: ubuntu-latest
+    needs: [check-dev, check-stage]
+    if: failure()
+    steps:
+      - name: Lähetä Slack-ilmoitus
+        env:
+          SLACK_HOOK: ${{ secrets.NETUM_SLACK_HOOK_URL }}
+        shell: bash
+        run: |
+          MSG=""
+
+          if [[ "${{ needs.check-dev.result }}" == "failure" ]]; then
+            ENDPOINTS="${{ needs.check-dev.outputs.failed_endpoints }}"
+            MSG="${MSG}:rotating_light: *DEV (kehitys) — VPN-suojaus PUUTTUU, palvelin on julkisesti saavutettavissa*\n${ENDPOINTS}\n\n"
+          fi
+
+          if [[ "${{ needs.check-stage.result }}" == "failure" ]]; then
+            ENDPOINTS="${{ needs.check-stage.outputs.failed_endpoints }}"
+            MSG="${MSG}:rotating_light: *STAGE (testi) — ALB Access-Key -suojaus PUUTTUU*\n${ENDPOINTS}\n\n"
+          fi
+
+
+          PAYLOAD=$(python3 -c "
+          import json, sys
+          msg = sys.argv[1]
+          run_url = sys.argv[2]
+          print(json.dumps({'text': msg + '\nAjo: ' + run_url}))
+          " "$MSG" "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}")
+
+          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_HOOK"
+
