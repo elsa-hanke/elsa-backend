@@ -325,6 +325,25 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     }
 
     /**
+     * Non-empty but invalid bytes labeled as PDF used to slip past the MIME check
+     * and fail in PdfReader with "PDF header not found".
+     */
+    @Test
+    @Transactional
+    fun approvalSucceedsWhenArviointiAttachmentPayloadIsNotActuallyPdf() {
+
+        persistKoulutussuunnitelma()
+        persistSuoritusarviointiWithAsiakirja(MediaType.APPLICATION_PDF_VALUE, validJpeg)
+
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id)
+            .andExpect(status().isOk)
+    }
+
+    /**
      * ELSA-1127 – Zero-byte PDF in itsearviointi collection fixed.
      */
     @Test
@@ -404,6 +423,20 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
             .andExpect(status().isOk)
     }
 
+    @Test
+    @Transactional
+    fun approvalSucceedsWhenMotivaatiokirjeAsiakirjaPayloadIsNotActuallyPdf() {
+
+        persistKoulutussuunnitelmaWithMotivaatiokirje(validJpeg)
+
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id)
+            .andExpect(status().isOk)
+    }
+
     /**
      * Happy path: a valid PDF motivaatiokirje is merged into the final document.
      */
@@ -472,4 +505,3 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
             .andExpect(status().isOk)
     }
 }
-
