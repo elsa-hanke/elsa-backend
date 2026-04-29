@@ -1,4 +1,4 @@
-import { mount, createLocalVue } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import DOMPurify from 'dompurify'
 import Vue from 'vue'
 
@@ -136,8 +136,7 @@ describe('safe-html directive', () => {
   })
 
   it('should preserve table structure', () => {
-    const htmlWithTable =
-      '<table><tr><td>Cell 1</td><td>Cell 2</td></tr></table>'
+    const htmlWithTable = '<table><tr><td>Cell 1</td><td>Cell 2</td></tr></table>'
     const wrapper = createWrapper(htmlWithTable)
     const content = wrapper.element.innerHTML
 
@@ -196,8 +195,7 @@ describe('safe-html directive', () => {
   })
 
   it('should remove iframe tags', () => {
-    const htmlWithIframe =
-      '<p>Content</p><iframe src="https://evil.com"></iframe>'
+    const htmlWithIframe = '<p>Content</p><iframe src="https://evil.com"></iframe>'
     const wrapper = createWrapper(htmlWithIframe)
     const content = wrapper.element.innerHTML
 
@@ -206,8 +204,7 @@ describe('safe-html directive', () => {
   })
 
   it('should sanitize data attributes', () => {
-    const htmlWithDataAttr =
-      '<div data-safe="test">Safe content</div>'
+    const htmlWithDataAttr = '<div data-safe="test">Safe content</div>'
     const wrapper = createWrapper(htmlWithDataAttr)
     const content = wrapper.element.innerHTML
 
@@ -216,4 +213,3 @@ describe('safe-html directive', () => {
     expect(content).toContain('data-safe')
   })
 })
-
