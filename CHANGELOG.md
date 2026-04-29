@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.0.1...HEAD)
+
+- Bump node-forge from 1.3.0 to 1.4.0 in /frontend [`#538`](https://github.com/elsa-hanke/elsa-backend/pull/538)(28 April 2026)
+- Enable CI workflows for dependabot branches and update Cypress to 15.14.0 [`#539`](https://github.com/elsa-hanke/elsa-backend/pull/539)(28 April 2026)
+- Refactor changelog generation to commit directly to main and add nightly changelog update workflow [`#537`](https://github.com/elsa-hanke/elsa-backend/pull/537)(28 April 2026)
+- Release v2.0.1 merge [`#535`](https://github.com/elsa-hanke/elsa-backend/pull/535)(28 April 2026)
+- Add E2E test cases and database tasks for koejakso evaluations [`#534`](https://github.com/elsa-hanke/elsa-backend/pull/534)(27 April 2026)
+- Update dependencies to address vulnerabilities  [`#536`](https://github.com/elsa-hanke/elsa-backend/pull/536)(27 April 2026)
+- Cognito korvaa nyt accessKey:a kehitysympäristössä [`#533`](https://github.com/elsa-hanke/elsa-backend/pull/533)(22 April 2026)
+- CSRF 403 virheen korjaus (axios v0 -&gt; v1) [`#531`](https://github.com/elsa-hanke/elsa-backend/pull/531)(21 April 2026)
+
 ## [v2.0.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.0.0...v2.0.1) - 21 April 2026
 
 - CSRF 403 virheen korjaus (axios v0 -&gt; v1) (#531) [`#532`](https://github.com/elsa-hanke/elsa-backend/pull/532)(21 April 2026)
