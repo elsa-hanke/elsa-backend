@@ -13,7 +13,7 @@ phases:
       - chmod +x gradlew
   build:
     commands:
-      - ./gradlew externalIntegrationTests
+      - ./gradlew externalIntegrationTests -x jar
   post_build:
     commands:
       - echo "Build status $CODEBUILD_BUILD_SUCCEEDING"
@@ -22,3 +22,7 @@ reports:
     files:
       - "build/test-results/externalIntegrationTests/*.xml"
     file-format: JUNITXML
+cache:
+  paths:
+    - "/root/.gradle/caches/**/*"
+    - "/root/.gradle/wrapper/**/*"
