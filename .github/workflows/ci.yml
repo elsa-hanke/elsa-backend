@@ -272,9 +272,8 @@ jobs:
     secrets: inherit
 
   external-integration-tests:
-    name: External Integration Tests (CodeBuild)
+    name: external IT (CodeBuild)
     runs-on: ubuntu-latest
-    needs: [backend-build-image, frontend-build-test-image]
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/dependabot/') || (startsWith(github.head_ref, 'feature/') && !startsWith(github.head_ref, 'release/')) || startsWith(github.head_ref, 'dependabot/')
     environment: Development
 
