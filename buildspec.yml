@@ -1,0 +1,24 @@
+version: 0.2
+env:
+  parameter-store:
+    APPLICATION_SECURITY_PEPPI_TURKU_API_KEY: /dev/application/peppiturku/apikey
+    APPLICATION_SECURITY_PEPPI_TURKU_BASIC_AUTH_ENCODED_KEY: /dev/application/peppiturku/basicauthencodedkey
+phases:
+  install:
+    runtime-versions:
+      java: corretto21
+  pre_build:
+    commands:
+      - echo "Starting external integration tests"
+      - chmod +x gradlew
+  build:
+    commands:
+      - ./gradlew externalIntegrationTests
+  post_build:
+    commands:
+      - echo "Build status $CODEBUILD_BUILD_SUCCEEDING"
+reports:
+  external-integration-test-results:
+    files:
+      - "build/test-results/externalIntegrationTests/*.xml"
+    file-format: JUNITXML
