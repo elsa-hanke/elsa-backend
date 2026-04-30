@@ -1,0 +1,6 @@
+application:
+  security:
+    peppiturku:
+      api-key: ${APPLICATION_SECURITY_PEPPI_TURKU_API_KEY}
+      basic-auth-encoded-key: ${APPLICATION_SECURITY_PEPPI_TURKU_BASIC_AUTH_ENCODED_KEY}
+      endpoint-url: https://api-ext.utu.fi/peppi/test/opendata/r1/elsa/search
