@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.0.1...HEAD)
 
+- Bump tinymce from 6.3.1 to 7.2.0 in /frontend [`#540`](https://github.com/elsa-hanke/elsa-backend/pull/540)(29 April 2026)
 - Bump node-forge from 1.3.0 to 1.4.0 in /frontend [`#538`](https://github.com/elsa-hanke/elsa-backend/pull/538)(28 April 2026)
 - Enable CI workflows for dependabot branches and update Cypress to 15.14.0 [`#539`](https://github.com/elsa-hanke/elsa-backend/pull/539)(28 April 2026)
 - Refactor changelog generation to commit directly to main and add nightly changelog update workflow [`#537`](https://github.com/elsa-hanke/elsa-backend/pull/537)(28 April 2026)
