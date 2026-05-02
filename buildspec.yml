@@ -1,8 +1,19 @@
 version: 0.2
 env:
+  variables:
+    APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION: s3://elsa-dev-cert-bucket/hy-sisu.crt
+    APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION: s3://elsa-dev-cert-bucket/hy-sisu.key
   parameter-store:
+    APPLICATION_SECURITY_PEPPI_OULU_TOKEN: /dev/application/peppioulu/token
     APPLICATION_SECURITY_PEPPI_TURKU_API_KEY: /dev/application/peppiturku/apikey
     APPLICATION_SECURITY_PEPPI_TURKU_BASIC_AUTH_ENCODED_KEY: /dev/application/peppiturku/basicauthencodedkey
+    APPLICATION_SECURITY_PEPPI_UEF_API_KEY: /dev/application/peppiuef/apikey
+    APPLICATION_SECURITY_SISU_HY_API_KEY: /dev/application/sisuhy/apikey
+    APPLICATION_SECURITY_SISU_TRE_CLIENT_ID: /dev/application/sisutre/cliendid
+    APPLICATION_SECURITY_SISU_TRE_CLIENT_SECRET: /dev/application/sisutre/clientsecret
+    APPLICATION_SECURITY_SISU_TRE_SCOPE_ID: /dev/application/sisutre/scopeid
+    APPLICATION_SECURITY_SISU_TRE_SUBSCRIPTION_KEY: /dev/application/sisutre/subscriptionkey
+    APPLICATION_SECURITY_SISU_TRE_TENANT_ID: /dev/application/sisutre/tenantid
 phases:
   install:
     runtime-versions:
@@ -13,7 +24,13 @@ phases:
       - chmod +x gradlew
   build:
     commands:
-      - ./gradlew externalIntegrationTests
+      - |
+        aws s3 cp "$APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION" /tmp/hy-sisu.crt
+        aws s3 cp "$APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION" /tmp/hy-sisu.key
+        chmod 600 /tmp/hy-sisu.crt /tmp/hy-sisu.key
+        APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION=file:/tmp/hy-sisu.crt \
+        APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION=file:/tmp/hy-sisu.key \
+        ./gradlew externalIntegrationTests -x jar
   post_build:
     commands:
       - echo "Build status $CODEBUILD_BUILD_SUCCEEDING"
