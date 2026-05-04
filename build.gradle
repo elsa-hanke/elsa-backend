@@ -49,7 +49,9 @@ springBoot {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'external-integration'
+    }
     exclude "**/*IT*", "**/*IntTest*"
     testLogging {
         events 'FAILED', 'SKIPPED'
@@ -58,7 +60,9 @@ test {
 }
 
 tasks.register('integrationTest', Test) {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'external-integration'
+    }
     description = "Execute integration tests."
     group = "verification"
     include "**/*IT*", "**/*IntTest*"
@@ -68,6 +72,16 @@ tasks.register('integrationTest', Test) {
     if (project.hasProperty('testcontainers')) {
         environment 'spring.profiles.active', 'testcontainers'
     }
+    reports.html.required = false
+}
+
+tasks.register('externalIntegrationTests', Test) {
+    useJUnitPlatform {
+        includeTags 'external-integration'
+    }
+    description = "Execute external integration tests."
+    group = "verification"
+    shouldRunAfter(test)
     reports.html.required = false
 }
 
@@ -179,7 +193,7 @@ testlogger {
     showSkipped = true
     showFailed = true
     showOnlySlow = false
-    showStandardStreams = false
+    showStandardStreams = true
     showPassedStandardStreams = true
     showSkippedStandardStreams = true
     showFailedStandardStreams = true

@@ -1,0 +1,26 @@
+application:
+  security:
+    peppioulu:
+      token: ${APPLICATION_SECURITY_PEPPI_OULU_TOKEN}
+      graphql-endpoint-url: https://api-proxy-dev.oulu.fi/graphqldendev
+    peppiturku:
+      api-key: ${APPLICATION_SECURITY_PEPPI_TURKU_API_KEY}
+      basic-auth-encoded-key: ${APPLICATION_SECURITY_PEPPI_TURKU_BASIC_AUTH_ENCODED_KEY}
+      endpoint-url: https://api-ext.utu.fi/peppi/test/opendata/r1/elsa/search
+    peppiuef:
+      api-key: ${APPLICATION_SECURITY_PEPPI_UEF_API_KEY}
+      endpoint-url: https://mixqa.uef.fi/api/v1/elsa
+    sisuhy:
+      api-key: ${APPLICATION_SECURITY_SISU_HY_API_KEY}
+      graphql-endpoint-url: https://gw-api-test.it.helsinki.fi/secure/sisu/graphql
+      tutkintoohjelma-export-url: https://gw-api-test.it.helsinki.fi/secure/sisu/kori/api/qualifications/v1/export?since=0&limit=10000
+      private-key-location: ${APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION}
+      certificate-location: ${APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION}
+    sisutre:
+      endpoint-url: https://test.apis.tuni.fi/elsa
+      token-endpoint-url: https://login.microsoftonline.com
+      tenant-id: ${APPLICATION_SECURITY_SISU_TRE_TENANT_ID}
+      client-id: ${APPLICATION_SECURITY_SISU_TRE_CLIENT_ID}
+      scope-id: ${APPLICATION_SECURITY_SISU_TRE_SCOPE_ID}
+      client-secret: ${APPLICATION_SECURITY_SISU_TRE_CLIENT_SECRET}
+      subscription-key: ${APPLICATION_SECURITY_SISU_TRE_SUBSCRIPTION_KEY}
