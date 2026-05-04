@@ -7,8 +7,7 @@
             {{ locale == 'sv' ? ak.nimiSv : ak.nimi }}
           </template>
           <div class="mt-3 mb-3">
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <p v-html="locale == 'sv' ? ak.kuvausSv : ak.kuvaus"></p>
+            <p v-safe-html="locale == 'sv' ? ak.kuvausSv : ak.kuvaus"></p>
           </div>
         </elsa-accordian>
       </b-col>
