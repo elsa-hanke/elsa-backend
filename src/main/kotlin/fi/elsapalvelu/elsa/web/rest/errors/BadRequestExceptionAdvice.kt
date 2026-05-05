@@ -47,16 +47,19 @@ class BadRequestExceptionAdvice {
 
     @ExceptionHandler(NoSuchMethodError::class)
     fun handleNoSuchMethodError(e: NoSuchMethodError): ProblemDetail {
+        log.error(e.message, e)
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message.orEmpty())
     }
 
     @ExceptionHandler(ServletException::class)
     fun handleServletException(e: ServletException): ProblemDetail {
+        log.error(e.message, e)
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message.orEmpty())
     }
 
     @ExceptionHandler(AccessDeniedException::class)
     fun handleAccessDeniedException(e: AccessDeniedException): ProblemDetail {
+        log.error(e.message, e)
         return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.message.orEmpty())
     }
 
