@@ -1,10 +1,12 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpHeaders
@@ -22,6 +24,7 @@ class VastuuhenkiloValmistumispyyntoResource(
     private val userService: UserService,
     private val valmistumispyyntoService: ValmistumispyyntoService
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
     @GetMapping("/valmistumispyynnot")
     fun getAllValmistumispyynnot(
         criteria: NimiErikoisalaAndAvoinCriteria, pageable: Pageable, principal: Principal?
@@ -104,6 +107,7 @@ class VastuuhenkiloValmistumispyyntoResource(
     ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
 
         val user = userService.getAuthenticatedUser(principal)
+        AuditLoggingWrapper.info("PUT request for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id")
 
         if (!valmistumispyyntoService.onkoAvoinHyvaksyja(user.id!!, id)) {
             throw BadRequestAlertException(
@@ -112,14 +116,19 @@ class VastuuhenkiloValmistumispyyntoResource(
                 "dataillegal.valmistumispyynto-ei-ole-muokattavissa")
         }
 
-        val valmistumispyynto =
-            valmistumispyyntoService.updateValmistumispyyntoByHyvaksyjaUserId(
-                id,
-                user.id!!,
-                hyvaksyntaFormDTO
-            )
-
-        return ResponseEntity.ok(valmistumispyynto)
+        try {
+            val valmistumispyynto =
+                valmistumispyyntoService.updateValmistumispyyntoByHyvaksyjaUserId(
+                    id,
+                    user.id!!,
+                    hyvaksyntaFormDTO
+                )
+            AuditLoggingWrapper.info("PUT request completed for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id")
+            return ResponseEntity.ok(valmistumispyynto)
+        } catch (ex: Exception) {
+            log.error("PUT request failed for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id", ex)
+            throw ex
+        }
     }
 
     @GetMapping("/valmistumispyynto/{valmistumispyyntoId}/asiakirja/{asiakirjaId}")

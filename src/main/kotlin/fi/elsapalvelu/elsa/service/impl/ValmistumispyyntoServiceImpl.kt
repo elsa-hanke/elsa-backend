@@ -282,8 +282,11 @@ class ValmistumispyyntoServiceImpl(
         userId: String,
         hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO
     ): ValmistumispyynnonTarkistusDTO {
+        log.info("Hyvaksynta-operaatio aloitettu [valmistumispyyntoId=$id]")
+
         val kayttaja = getKayttaja(userId)
         val yliopisto = getYliopisto(kayttaja)
+        log.info("Kayttaja ja yliopisto haettu [valmistumispyyntoId=$id, yliopistoId=${yliopisto.id}]")
 
         val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
             id,
@@ -291,43 +294,58 @@ class ValmistumispyyntoServiceImpl(
             yliopisto.id!!,
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         )
+        log.info("Valmistumispyynto haettu [valmistumispyyntoId=$id]")
 
         kayttaja?.user?.let { user ->
             user.email = hyvaksyntaFormDTO.sahkoposti
             user.phoneNumber = hyvaksyntaFormDTO.puhelinnumero
             userRepository.save(user)
+                log.info("Kayttajan yhteystiedot paivitetty [valmistumispyyntoId=$id]")
         }
 
         valmistumispyynto.vastuuhenkiloHyvaksyja = kayttaja
 
         if (hyvaksyntaFormDTO.korjausehdotus != null) {
+            log.info("Valmistumispyynto palautetaan erikoistujalle [valmistumispyyntoId=$id]")
             valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika = LocalDate.now()
             valmistumispyynto.vastuuhenkiloHyvaksyjaKorjausehdotus = hyvaksyntaFormDTO.korjausehdotus
             valmistumispyynto.erikoistujanKuittausaika = null
             valmistumispyynto.virkailijanKuittausaika = null
             sendMailNotificationHyvaksyjaPalauttanut(valmistumispyynto)
+            log.info("Palautussahkoposti lahetetty [valmistumispyyntoId=$id]")
         } else {
+            log.info("Valmistumispyynto hyvaksytaan: tallennetaan kuittausaika [valmistumispyyntoId=$id]")
             valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = LocalDate.now()
             val result = valmistumispyyntoRepository.save(valmistumispyynto)
+            log.info("Kuittausaika tallennettu [valmistumispyyntoId=$id]")
+
             result.valmistumispyynnonTarkistus?.let {
                 if (it.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                    log.info("Luodaan YEK PDF:t [valmistumispyyntoId=$id]")
                     luoYEKYhteenvetoPdf(
                         mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)),
                         valmistumispyynto
                     )
                     luoLiitteetPdf(valmistumispyynto)
+                    log.info("YEK PDF:t luotu [valmistumispyyntoId=$id]")
                     sendMailNotificationHyvaksyttyYek(valmistumispyynto)
+                    log.info("YEK hyvaksynta-sahkoposti lahetetty [valmistumispyyntoId=$id]")
                 } else {
+                    log.info("Luodaan PDF:t [valmistumispyyntoId=$id]")
                     luoLiitteetPdf(valmistumispyynto)
                     luoErikoistujanTiedotPdf(valmistumispyynto)
                     luoYhteenvetoPdf(
                         mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)),
                         valmistumispyynto
                     )
+                    log.info("PDF:t luotu [valmistumispyyntoId=$id]")
                     sendMailNotificationHyvaksytty(valmistumispyynto)
+                    log.info("Hyvaksynta-sahkoposti lahetetty [valmistumispyyntoId=$id]")
                 }
 
+                log.info("Tarkistetaan arkistointi [valmistumispyyntoId=$id, yliopisto=${yliopisto.nimi}]")
                 if (arkistointiService.onKaytossa(yliopisto.nimi!!, CaseType.VALMISTUMINEN)) {
+                    log.info("Arkistointi kaytossa, muodostetaan sahke [valmistumispyyntoId=$id]")
                     val result = arkistointiService.muodostaSahke(
                         valmistumispyynto.opintooikeus,
                         listOf(
@@ -345,6 +363,9 @@ class ValmistumispyyntoServiceImpl(
                     val erikoisala = valmistumispyynto.opintooikeus?.erikoisala!!
                     val yek = erikoisala.id == YEK_ERIKOISALA_ID
                     arkistointiService.laheta(yliopisto.nimi!!, result.zipFilePath, CaseType.VALMISTUMINEN, yek)
+                    log.info("Sahke muodostettu ja lahetetty [valmistumispyyntoId=$id, yek=$yek]")
+                } else {
+                    log.info("Arkistointi ei kaytossa [valmistumispyyntoId=$id, yliopisto=${yliopisto.nimi}]")
                 }
             }
         }
@@ -352,6 +373,7 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyynnonTarkistus =
             valmistumispyynnonTarkistusRepository.findByValmistumispyyntoId(valmistumispyynto.id!!)
 
+        log.info("Hyvaksynta-operaatio valmis [valmistumispyyntoId=$id]")
         return valmistumispyynnonTarkistusMapper.toDto(valmistumispyynnonTarkistus!!).apply {
             this.kommentitVirkailijoille = null
             this.valmistumispyynto?.tila = getValmistumispyynnonTilaForHyvaksyja(valmistumispyynto)
