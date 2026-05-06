@@ -1,7 +1,9 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.0.1...HEAD)
+## [v2.1.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.0.1...v2.1.0) - 6 May 2026
 
+- enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
+- ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
 - Bump tinymce from 6.3.1 to 7.2.0 in /frontend [`#540`](https://github.com/elsa-hanke/elsa-backend/pull/540)(29 April 2026)
 - Bump node-forge from 1.3.0 to 1.4.0 in /frontend [`#538`](https://github.com/elsa-hanke/elsa-backend/pull/538)(28 April 2026)
 - Enable CI workflows for dependabot branches and update Cypress to 15.14.0 [`#539`](https://github.com/elsa-hanke/elsa-backend/pull/539)(28 April 2026)
