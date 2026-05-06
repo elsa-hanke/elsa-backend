@@ -107,105 +107,111 @@ class KoejaksonKoulutussopimusServiceImpl(
         koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO,
         userId: String
     ): KoejaksonKoulutussopimusDTO {
-        var koulutussopimus =
-            koejaksonKoulutussopimusRepository.findById(koejaksonKoulutussopimusDTO.id!!)
-                .orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
+        try {
+            var koulutussopimus =
+                koejaksonKoulutussopimusRepository.findById(koejaksonKoulutussopimusDTO.id!!)
+                    .orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
 
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            val kirjautunutErikoistuvaLaakari =
+                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
 
-        val updatedKoulutussopimus =
-            koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
+            val updatedKoulutussopimus =
+                koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
 
-        if (kirjautunutErikoistuvaLaakari != null
-            && kirjautunutErikoistuvaLaakari == koulutussopimus.opintooikeus?.erikoistuvaLaakari
-        ) {
-            koulutussopimus = handleErikoistuva(koulutussopimus, updatedKoulutussopimus)
+            if (kirjautunutErikoistuvaLaakari != null
+                && kirjautunutErikoistuvaLaakari == koulutussopimus.opintooikeus?.erikoistuvaLaakari
+            ) {
+                koulutussopimus = handleErikoistuva(koulutussopimus, updatedKoulutussopimus)
 
-            koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
-                user.email = koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti
-                user.phoneNumber = koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
-                userRepository.save(user)
+                koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
+                    user.email = koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti
+                    user.phoneNumber = koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
+                    userRepository.save(user)
+                }
             }
-        }
 
-        koulutussopimus.kouluttajat?.toTypedArray()?.forEach {
-            if (it.kouluttaja?.user?.id == userId) {
-                koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
+            koulutussopimus.kouluttajat?.toTypedArray()?.forEach {
+                if (it.kouluttaja?.user?.id == userId) {
+                    koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
 
-                val kayttaja = it.kouluttaja!!
-                val user = it.kouluttaja?.user!!
-                val kouluttaja =
-                    koejaksonKoulutussopimusDTO.kouluttajat?.first { it.kayttajaUserId == userId }
-                user.phoneNumber = kouluttaja?.puhelin
-                user.email = kouluttaja?.sahkoposti?.lowercase()
-                kayttaja.nimike = kouluttaja?.nimike
-                userRepository.save(user)
-                kayttajaRepository.save(kayttaja)
+                    val kayttaja = it.kouluttaja!!
+                    val user = it.kouluttaja?.user!!
+                    val kouluttaja =
+                        koejaksonKoulutussopimusDTO.kouluttajat?.first { it.kayttajaUserId == userId }
+                    user.phoneNumber = kouluttaja?.puhelin
+                    user.email = kouluttaja?.sahkoposti?.lowercase()
+                    kayttaja.nimike = kouluttaja?.nimike
+                    userRepository.save(user)
+                    kayttajaRepository.save(kayttaja)
+                }
             }
-        }
 
-        val vastuuhenkilo =
-            kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
-                listOf(VASTUUHENKILO),
-                koulutussopimus.opintooikeus?.yliopisto?.id,
-                koulutussopimus.opintooikeus?.erikoisala?.id,
-                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
-            )
-        if (vastuuhenkilo?.user?.id == userId) {
-            logger.info("Kasitellaan vastuuhenkilo paivitys  KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-            koulutussopimus =
-                handleVastuuhenkilo(koulutussopimus, updatedKoulutussopimus, vastuuhenkilo)
-            logger.info("Kasitelty vastuuhenkilo paivitys KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-
-            koulutussopimus.vastuuhenkilo?.user?.let {
-                it.phoneNumber = koejaksonKoulutussopimusDTO.vastuuhenkilo?.puhelin
-                it.email = koejaksonKoulutussopimusDTO.vastuuhenkilo?.sahkoposti
-                logger.info("Kasitellaan vastuuhenkilo paivitys  KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-                userRepository.save(it)
-                logger.info("Kasitelty vastuuhenkilo paivitys KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-            }
-        }
-
-        logger.info("Kasitellaan kouluttaja paivitys kantaan KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-        koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
-        logger.info("Kasitelty kouluttaja paivitys kantaan KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-
-        val dto = koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
-        if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
-            logger.info("Kasitellaan sopimus hyvaksytty KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-            val asiakirja = luoPdf(dto, koulutussopimus)
-
-            logger.info("Luotu koulutussopimuksesta pdf: $asiakirja.id")
-            val yliopisto = koulutussopimus.opintooikeus?.yliopisto?.nimi!!
-
-            if (arkistointiService.onKaytossa(yliopisto, CaseType.SOPIMUS)) {
-                logger.info("Kasitellaan koulutussopimuksesta pdf arkistointi")
-                val result = arkistointiService.muodostaSahke(
-                    koulutussopimus.opintooikeus,
-                    listOf(
-                        RecordProperties(asiakirja, RecordType.SOPIMUS)
-                    ),
-                    caseId = koulutussopimus.id!!.toString(),
-                    tarkastaja = "",
-                    tarkastusPaiva = null,
-                    hyvaksyja = koulutussopimus.vastuuhenkilo?.user?.getName(),
-                    hyvaksymisPaiva = koulutussopimus.vastuuhenkilonKuittausaika,
-                    yliopisto = yliopisto,
-                    caseType = CaseType.SOPIMUS
+            val vastuuhenkilo =
+                kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                    listOf(VASTUUHENKILO),
+                    koulutussopimus.opintooikeus?.yliopisto?.id,
+                    koulutussopimus.opintooikeus?.erikoisala?.id,
+                    VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
                 )
-                logger.info("Koulutussopimuksesta pdf arkistointi onnistui")
-                logger.info("Koulutussopimuksesta pdf arkistointi tuloste: ${result.zipFilePath}")
+            if (vastuuhenkilo?.user?.id == userId) {
+                logger.info("Kasitellaan vastuuhenkilo paivitys  KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
+                koulutussopimus =
+                    handleVastuuhenkilo(koulutussopimus, updatedKoulutussopimus, vastuuhenkilo)
+                logger.info("Kasitelty vastuuhenkilo paivitys KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
 
-                val erikoisala = koulutussopimus.opintooikeus?.erikoisala!!
-                val yek = erikoisala.id == YEK_ERIKOISALA_ID
-                logger.info("Lahetetaan arkistopyynto: ${result.zipFilePath}")
-                arkistointiService.laheta(yliopisto, result.zipFilePath, CaseType.SOPIMUS, yek)
-                logger.info("Lahetettiin arkistopyynto")
+                koulutussopimus.vastuuhenkilo?.user?.let {
+                    it.phoneNumber = koejaksonKoulutussopimusDTO.vastuuhenkilo?.puhelin
+                    it.email = koejaksonKoulutussopimusDTO.vastuuhenkilo?.sahkoposti
+                    logger.info("Kasitellaan vastuuhenkilo paivitys  KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
+                    userRepository.save(it)
+                    logger.info("Kasitelty vastuuhenkilo paivitys KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
+                }
             }
-        }
 
-        return dto
+            logger.info("Kasitellaan kouluttaja paivitys kantaan KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
+            koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
+            logger.info("Kasitelty kouluttaja paivitys kantaan KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
+
+            val dto = koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
+            if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
+                logger.info("Kasitellaan sopimus hyvaksytty KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
+                val asiakirja = luoPdf(dto, koulutussopimus)
+
+                logger.info("Luotu koulutussopimuksesta pdf: $asiakirja.id")
+                val yliopisto = koulutussopimus.opintooikeus?.yliopisto?.nimi!!
+
+                if (arkistointiService.onKaytossa(yliopisto, CaseType.SOPIMUS)) {
+                    logger.info("Kasitellaan koulutussopimuksesta pdf arkistointi")
+                    val result = arkistointiService.muodostaSahke(
+                        koulutussopimus.opintooikeus,
+                        listOf(
+                            RecordProperties(asiakirja, RecordType.SOPIMUS)
+                        ),
+                        caseId = koulutussopimus.id!!.toString(),
+                        tarkastaja = "",
+                        tarkastusPaiva = null,
+                        hyvaksyja = koulutussopimus.vastuuhenkilo?.user?.getName(),
+                        hyvaksymisPaiva = koulutussopimus.vastuuhenkilonKuittausaika,
+                        yliopisto = yliopisto,
+                        caseType = CaseType.SOPIMUS
+                    )
+                    logger.info("Koulutussopimuksesta pdf arkistointi onnistui")
+                    logger.info("Koulutussopimuksesta pdf arkistointi tuloste: ${result.zipFilePath}")
+
+                    val erikoisala = koulutussopimus.opintooikeus?.erikoisala!!
+                    val yek = erikoisala.id == YEK_ERIKOISALA_ID
+                    logger.info("Lahetetaan arkistopyynto: ${result.zipFilePath}")
+                    arkistointiService.laheta(yliopisto, result.zipFilePath, CaseType.SOPIMUS, yek)
+                    logger.info("Lahetettiin arkistopyynto")
+                }
+            }
+
+            return dto
+        }
+        catch( e: Exception) {
+            logger.error("Virhe koulutussopimuksen päivityksessä: ${e.message}", e)
+            throw e
+        }
     }
 
     private fun handleErikoistuva(
