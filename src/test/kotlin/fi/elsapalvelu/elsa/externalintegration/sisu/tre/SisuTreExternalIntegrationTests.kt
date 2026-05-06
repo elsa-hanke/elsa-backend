@@ -1,29 +1,85 @@
 package fi.elsapalvelu.elsa.externalintegration.sisu.tre
 
-import org.junit.jupiter.api.Tag
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
+import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.AuthenticationTokenService
+import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.impl.AuthenticationTokenClientBuilderImpl
+import fi.elsapalvelu.elsa.service.impl.SisuTreAuthenticationTokenServiceImpl
+import fi.elsapalvelu.elsa.service.impl.SisuTreClientBuilderImpl
+import fi.elsapalvelu.elsa.service.impl.SisuTreOpintosuorituksetFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.impl.SisuTreOpintotietodataFetchingServiceImpl
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.SpringBootConfiguration
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.test.context.ActiveProfiles
 
-@Tag("external-integration")
-class SisuTreExternalIntegrationTests : SisuTreExternalIntegrationTestBase() {
+/**
+ * External integration tests for Sisu TRE (REST/JSON with Azure AD OAuth2).
+ *
+ * Tests [SisuTreOpintotietodataFetchingServiceImpl] and [SisuTreOpintosuorituksetFetchingServiceImpl]
+ * as well as the OAuth2 client-credentials flow in [SisuTreAuthenticationTokenServiceImpl]
+ * against the real TRE test endpoint.
+ *
+ * [shouldFetchAccessToken] verifies the authentication layer in isolation; the inherited
+ * [@Test] methods cover opintotietodata and opintosuoritukset end-to-end (including auth).
+ */
+@SpringBootTest(classes = [SisuTreExternalIntegrationTestApplication::class])
+@ActiveProfiles("external-integration")
+class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
+
+    @Autowired
+    private lateinit var sisuTreOpintotietodataFetchingServiceImpl: SisuTreOpintotietodataFetchingServiceImpl
+
+    @Autowired
+    private lateinit var sisuTreOpintosuorituksetFetchingServiceImpl: SisuTreOpintosuorituksetFetchingServiceImpl
+
+    override val opintotietodataService: OpintotietodataFetchingService
+        get() = sisuTreOpintotietodataFetchingServiceImpl
+
+    override val opintosuorituksetService: OpintosuorituksetFetchingService
+        get() = sisuTreOpintosuorituksetFetchingServiceImpl
+
+    /** Direct handle on the token service so we can test auth in isolation. */
+    @Autowired
+    private lateinit var authenticationTokenService: AuthenticationTokenService
 
     @Test
     fun shouldFetchAccessToken() {
-        val accessToken = requestAccessToken()
+        val token = authenticationTokenService.requestToken()
 
-        assertSuccessfulToken(accessToken)
+        assertThat(token)
+            .describedAs("Azure AD OAuth2 access token must not be blank")
+            .isNotBlank
     }
+}
 
-    @Test
-    fun shouldFetchAttainmentsForHetu() {
-        val response = postId("attainments")
+@SpringBootConfiguration
+@EnableConfigurationProperties(ApplicationProperties::class)
+@Import(
+    AuthenticationTokenClientBuilderImpl::class,
+    SisuTreAuthenticationTokenServiceImpl::class,
+    SisuTreClientBuilderImpl::class,
+    SisuTreOpintotietodataFetchingServiceImpl::class,
+    SisuTreOpintosuorituksetFetchingServiceImpl::class
+)
+class SisuTreExternalIntegrationTestApplication {
+    @Bean
+    fun objectMapper(): ObjectMapper = ObjectMapper()
+        .registerModule(KotlinModule.Builder().build())
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-        assertSuccessfulResponse(response)
-    }
-
-    @Test
-    fun shouldFetchStudyRightsForHetu() {
-        val response = postId("study-rights")
-
-        assertSuccessfulResponse(response)
-    }
+    @Bean
+    fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
 }

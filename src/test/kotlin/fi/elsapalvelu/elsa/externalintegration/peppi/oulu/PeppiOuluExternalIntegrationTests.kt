@@ -1,22 +1,56 @@
 package fi.elsapalvelu.elsa.externalintegration.peppi.oulu
 
-import org.junit.jupiter.api.Tag
-import org.junit.jupiter.api.Test
+import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
+import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.impl.PeppiOuluClientBuilderImpl
+import fi.elsapalvelu.elsa.service.impl.PeppiOuluOpintosuorituksetFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.impl.PeppiOuluOpintotietodataFetchingServiceImpl
+import org.mockito.Mockito
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.SpringBootConfiguration
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.test.context.ActiveProfiles
 
-@Tag("external-integration")
-class PeppiOuluExternalIntegrationTests : PeppiOuluExternalIntegrationTestBase() {
+/**
+ * External integration tests for Peppi Oulu (GraphQL/Apollo).
+ *
+ * Tests [PeppiOuluOpintotietodataFetchingServiceImpl] and
+ * [PeppiOuluOpintosuorituksetFetchingServiceImpl] against the real Oulu test endpoint.
+ * The inherited [@Test] methods from [FetchingServiceExternalIntegrationBase] cover both
+ * opintotietodata and opintosuoritukset in a single, consistent pass.
+ */
+@SpringBootTest(classes = [PeppiOuluExternalIntegrationTestApplication::class])
+@ActiveProfiles("external-integration")
+class PeppiOuluExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
-    @Test
-    fun shouldFetchStudentForHetu() {
-        val response = executeGraphQl(PeppiOuluEndpoint.STUDENT)
+    @Autowired
+    private lateinit var peppiOuluOpintotietodataFetchingServiceImpl: PeppiOuluOpintotietodataFetchingServiceImpl
 
-        assertSuccessfulResponse(response)
-    }
+    @Autowired
+    private lateinit var peppiOuluOpintosuorituksetFetchingServiceImpl: PeppiOuluOpintosuorituksetFetchingServiceImpl
 
-    @Test
-    fun shouldFetchStudyAccomplishmentsForHetu() {
-        val response = executeGraphQl(PeppiOuluEndpoint.STUDY_ACCOMPLISHMENTS)
+    override val opintotietodataService: OpintotietodataFetchingService
+        get() = peppiOuluOpintotietodataFetchingServiceImpl
 
-        assertSuccessfulResponse(response)
-    }
+    override val opintosuorituksetService: OpintosuorituksetFetchingService
+        get() = peppiOuluOpintosuorituksetFetchingServiceImpl
+}
+
+@SpringBootConfiguration
+@EnableConfigurationProperties(ApplicationProperties::class)
+@Import(
+    PeppiOuluClientBuilderImpl::class,
+    PeppiOuluOpintotietodataFetchingServiceImpl::class,
+    PeppiOuluOpintosuorituksetFetchingServiceImpl::class
+)
+class PeppiOuluExternalIntegrationTestApplication {
+    /** Stub – [YliopistoRepository] is only used by shouldFetch* guards, not by the fetch methods under test. */
+    @Bean
+    fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
 }

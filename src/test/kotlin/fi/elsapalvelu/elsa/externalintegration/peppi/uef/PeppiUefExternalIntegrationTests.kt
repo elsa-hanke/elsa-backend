@@ -1,22 +1,67 @@
 package fi.elsapalvelu.elsa.externalintegration.peppi.uef
 
-import org.junit.jupiter.api.Tag
-import org.junit.jupiter.api.Test
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
+import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.impl.PeppiCommonOpintosuorituksetFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.impl.PeppiCommonOpintotietodataFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.impl.PeppiUefClientBuilderImpl
+import fi.elsapalvelu.elsa.service.impl.PeppiUefOpintosuorituksetFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.impl.PeppiUefOpintotietodataFetchingServiceImpl
+import org.mockito.Mockito
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.SpringBootConfiguration
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.test.context.ActiveProfiles
 
-@Tag("external-integration")
-class PeppiUefExternalIntegrationTests : PeppiUefExternalIntegrationTestBase() {
+/**
+ * External integration tests for Peppi UEF (REST/JSON).
+ *
+ * Tests [PeppiUefOpintotietodataFetchingServiceImpl] and
+ * [PeppiUefOpintosuorituksetFetchingServiceImpl] – including the shared
+ * [PeppiCommonOpintotietodataFetchingServiceImpl] / [PeppiCommonOpintosuorituksetFetchingServiceImpl]
+ * business logic – against the real UEF test endpoint.
+ */
+@SpringBootTest(classes = [PeppiUefExternalIntegrationTestApplication::class])
+@ActiveProfiles("external-integration")
+class PeppiUefExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
-    @Test
-    fun shouldFetchStudentForHetu() {
-        val response = postHetu(PeppiUefEndpoint.STUDENT)
+    @Autowired
+    private lateinit var peppiUefOpintotietodataFetchingServiceImpl: PeppiUefOpintotietodataFetchingServiceImpl
 
-        assertSuccessfulResponse(response)
-    }
+    @Autowired
+    private lateinit var peppiUefOpintosuorituksetFetchingServiceImpl: PeppiUefOpintosuorituksetFetchingServiceImpl
 
-    @Test
-    fun shouldFetchStudyAccomplishmentsForHetu() {
-        val response = postHetu(PeppiUefEndpoint.STUDY_ACCOMPLISHMENTS)
+    override val opintotietodataService: OpintotietodataFetchingService
+        get() = peppiUefOpintotietodataFetchingServiceImpl
 
-        assertSuccessfulResponse(response)
-    }
+    override val opintosuorituksetService: OpintosuorituksetFetchingService
+        get() = peppiUefOpintosuorituksetFetchingServiceImpl
+}
+
+@SpringBootConfiguration
+@EnableConfigurationProperties(ApplicationProperties::class)
+@Import(
+    PeppiUefClientBuilderImpl::class,
+    PeppiCommonOpintotietodataFetchingServiceImpl::class,
+    PeppiCommonOpintosuorituksetFetchingServiceImpl::class,
+    PeppiUefOpintotietodataFetchingServiceImpl::class,
+    PeppiUefOpintosuorituksetFetchingServiceImpl::class
+)
+class PeppiUefExternalIntegrationTestApplication {
+    @Bean
+    fun objectMapper(): ObjectMapper = ObjectMapper()
+        .registerModule(KotlinModule.Builder().build())
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+
+    @Bean
+    fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
 }
