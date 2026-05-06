@@ -25,6 +25,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 
@@ -43,7 +45,8 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val pdfService: PdfService,
     private val opintooikeusService: OpintooikeusService,
     private val arkistointiService: ArkistointiService,
-    private val applicationProperties: ApplicationProperties
+    private val applicationProperties: ApplicationProperties,
+    private val logger: Logger = LoggerFactory.getLogger(KoejaksonKoulutussopimusServiceImpl::class.java)
 ) : KoejaksonKoulutussopimusService {
 
     override fun create(
@@ -150,24 +153,34 @@ class KoejaksonKoulutussopimusServiceImpl(
                 VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
             )
         if (vastuuhenkilo?.user?.id == userId) {
+            logger.info("Kasitellaan vastuuhenkilo paivitys  KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
             koulutussopimus =
                 handleVastuuhenkilo(koulutussopimus, updatedKoulutussopimus, vastuuhenkilo)
+            logger.info("Kasitelty vastuuhenkilo paivitys KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
 
             koulutussopimus.vastuuhenkilo?.user?.let {
                 it.phoneNumber = koejaksonKoulutussopimusDTO.vastuuhenkilo?.puhelin
                 it.email = koejaksonKoulutussopimusDTO.vastuuhenkilo?.sahkoposti
+                logger.info("Kasitellaan vastuuhenkilo paivitys  KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
                 userRepository.save(it)
+                logger.info("Kasitelty vastuuhenkilo paivitys KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
             }
         }
 
+        logger.info("Kasitellaan kouluttaja paivitys kantaan KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
         koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
+        logger.info("Kasitelty kouluttaja paivitys kantaan KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
 
         val dto = koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
         if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
+            logger.info("Kasitellaan sopimus hyvaksytty KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
             val asiakirja = luoPdf(dto, koulutussopimus)
+
+            logger.info("Luotu koulutussopimuksesta pdf: $asiakirja.id")
             val yliopisto = koulutussopimus.opintooikeus?.yliopisto?.nimi!!
 
             if (arkistointiService.onKaytossa(yliopisto, CaseType.SOPIMUS)) {
+                logger.info("Kasitellaan koulutussopimuksesta pdf arkistointi")
                 val result = arkistointiService.muodostaSahke(
                     koulutussopimus.opintooikeus,
                     listOf(
@@ -181,9 +194,14 @@ class KoejaksonKoulutussopimusServiceImpl(
                     yliopisto = yliopisto,
                     caseType = CaseType.SOPIMUS
                 )
+                logger.info("Koulutussopimuksesta pdf arkistointi onnistui")
+                logger.info("Koulutussopimuksesta pdf arkistointi tuloste: ${result.zipFilePath}")
+
                 val erikoisala = koulutussopimus.opintooikeus?.erikoisala!!
                 val yek = erikoisala.id == YEK_ERIKOISALA_ID
+                logger.info("Lahetetaan arkistopyynto: ${result.zipFilePath}")
                 arkistointiService.laheta(yliopisto, result.zipFilePath, CaseType.SOPIMUS, yek)
+                logger.info("Lahetettiin arkistopyynto")
             }
         }
 
