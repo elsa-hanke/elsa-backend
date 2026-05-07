@@ -8,6 +8,7 @@ import com.nhaarman.mockitokotlin2.whenever
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
@@ -20,6 +21,7 @@ import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -92,6 +94,67 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private lateinit var vastuuhenkilo: Kayttaja
     private lateinit var anotherVastuuhenkilo: Kayttaja
     private lateinit var virkailija: Kayttaja
+
+    /**
+     * IDs of entities committed by non-@Transactional tests 2 and 3.
+     * null for @Transactional test 1 (data is rolled back automatically).
+     * Used by @AfterEach to clean up committed rows so they don't leak into
+     * subsequent test classes that share the same H2 in-memory database
+     * (jdbc:h2:mem:elsaBackend — named, shared across all Spring contexts).
+     */
+    private var committedValmistumispyyntoId: Long? = null
+    private var committedOpintooikeusId: Long? = null
+    private var committedErikoistuvaLaakariId: Long? = null
+    private var committedYliopistoId: Long? = null
+
+    /**
+     * Deletes rows committed by the non-@Transactional tests in FK-safe order
+     * so that subsequent test classes that share the same H2 DB see a clean slate.
+     *
+     * Deletion order (child → parent, respecting FK constraints):
+     *  1. valmistumispyynnon_tarkistus                      (FK → valmistumispyynto)
+     *  2. valmistumispyynto                                 (FK → opintooikeus)
+     *  3. rel_kayttaja__yliopisto                           (join table FK → yliopisto)
+     *  4. rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi  (FK → kayttaja_yliopisto_erikoisala)
+     *  5. kayttaja_yliopisto_erikoisala                     (FK → yliopisto)
+     *  6. erikoisala (extras with nimi='AAAAAAAAAA')        (no remaining FK refs)
+     *  7. opintooikeus                                      (FK → erikoistuva_laakari, yliopisto)
+     *  8. erikoistuva_laakari                               (no remaining FK references from our data)
+     *  9. yliopisto                                         (no remaining FK references from our data)
+     */
+    @AfterEach
+    fun cleanupCommittedData() {
+        val vpId = committedValmistumispyyntoId ?: return
+        val ooId = committedOpintooikeusId ?: return
+        val elId = committedErikoistuvaLaakariId
+        val yId = committedYliopistoId ?: return
+
+        transactionTemplate.execute {
+            em.createNativeQuery("DELETE FROM valmistumispyynnon_tarkistus WHERE valmistumispyynto_id = $vpId").executeUpdate()
+            em.createNativeQuery("DELETE FROM valmistumispyynto WHERE id = $vpId").executeUpdate()
+            em.createNativeQuery("DELETE FROM rel_kayttaja__yliopisto WHERE yliopisto_id = $yId").executeUpdate()
+            em.createNativeQuery(
+                "DELETE FROM rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi " +
+                    "WHERE kayttaja_yliopisto_erikoisala_id IN " +
+                    "(SELECT id FROM kayttaja_yliopisto_erikoisala WHERE yliopisto_id = $yId)"
+            ).executeUpdate()
+            em.createNativeQuery("DELETE FROM kayttaja_yliopisto_erikoisala WHERE yliopisto_id = $yId").executeUpdate()
+            // Extra erikoisala rows created by initVastuuhenkiloErikoisalat use DEFAULT_NIMI ("AAAAAAAAAA"),
+            // which never appears in the 61 seeded erikoisalat.
+            em.createNativeQuery("DELETE FROM erikoisala WHERE nimi = 'AAAAAAAAAA'").executeUpdate()
+            em.createNativeQuery("DELETE FROM opintooikeus WHERE id = $ooId").executeUpdate()
+            if (elId != null) {
+                em.createNativeQuery("DELETE FROM erikoistuva_laakari WHERE id = $elId").executeUpdate()
+            }
+            em.createNativeQuery("DELETE FROM yliopisto WHERE id = $yId").executeUpdate()
+            em.clear()
+        }
+
+        committedValmistumispyyntoId = null
+        committedOpintooikeusId = null
+        committedErikoistuvaLaakariId = null
+        committedYliopistoId = null
+    }
 
     // -------------------------------------------------------------------------
     // Test 1 — Happy path: approval persisted, no archiving
@@ -178,6 +241,10 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
             val tarkistus = ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
             em.persist(tarkistus)
             em.flush()
+            committedValmistumispyyntoId = valmistumispyynto.id!!
+            committedOpintooikeusId = opintooikeus.id
+            committedErikoistuvaLaakariId = opintooikeus.erikoistuvaLaakari?.id
+            committedYliopistoId = opintooikeus.yliopisto?.id
             valmistumispyynto.id!!
         }!!
 
@@ -276,6 +343,10 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
             val tarkistus = ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
             em.persist(tarkistus)
             em.flush()
+            committedValmistumispyyntoId = valmistumispyynto.id!!
+            committedOpintooikeusId = opintooikeus.id
+            committedErikoistuvaLaakariId = opintooikeus.erikoistuvaLaakari?.id
+            committedYliopistoId = opintooikeus.yliopisto?.id
             valmistumispyynto.id!!
         }!!
 
@@ -346,7 +417,12 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         )
         em.persist(erikoistuvaLaakariUser)
 
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, erikoistuvaLaakariUser)
+        // Always create a fresh, dedicated Yliopisto so that @AfterEach can safely delete it
+        // without touching any Yliopisto row that belongs to another test class's committed data.
+        val freshYliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
+        em.persist(freshYliopisto)
+
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, erikoistuvaLaakariUser, yliopisto = freshYliopisto)
         em.persist(erikoistuvaLaakari)
 
         opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
