@@ -14,7 +14,6 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.apache.commons.codec.digest.DigestUtils
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -96,7 +95,7 @@ class ArkistointiServiceImplTest {
         assertTrue(xml.contains("<Title>Valmistumisen asiakirjat</Title>"))
         assertTrue(xml.contains("<NativeId>CASE-123</NativeId>"))
         assertTrue(xml.contains("<Elsa_Syntymaaika>1990-12-31</Elsa_Syntymaaika>"))
-        assertTrue(xml.contains("<Elsa_Tarkastuspaiva>2024-02-02</Elsa_Tarkastuspaiva>"))
+        assertTrue(xml.contains("<Elsa_Tarkastuspaiva>2024-01-02</Elsa_Tarkastuspaiva>"))
         assertTrue(xml.contains("<Elsa_Hyvaksymispaiva>2024-01-03</Elsa_Hyvaksymispaiva>"))
         assertTrue(xml.contains("<Path>pdf/testi.pdf</Path>"))
         assertTrue(xml.contains("<HashValue>${DigestUtils.sha256Hex("pdf-data".toByteArray())}</HashValue>"))
