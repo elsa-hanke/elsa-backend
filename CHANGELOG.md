@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.0...HEAD)
+
+- enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
+- ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
+
 ## [v2.1.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.0.1...v2.1.0) - 6 May 2026
 
 - enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
