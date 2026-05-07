@@ -1,9 +1,15 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.0...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.1...HEAD)
 
 - enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
 - ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
+
+## [v2.1.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.0...v2.1.1) - 7 May 2026
+
+- ELSA-1134: korjattu testi toimimaan oikein (päivämäärä muotojen korjaus) [`#550`](https://github.com/elsa-hanke/elsa-backend/pull/550)(7 May 2026)
+- ELSA-1134: xml konversiotesti arkistointiin vaiheeseen  [`#549`](https://github.com/elsa-hanke/elsa-backend/pull/549)(7 May 2026)
+- ELSA-1135: jacksonVersion conflict fix + enhance error logging for exception handlers [`#548`](https://github.com/elsa-hanke/elsa-backend/pull/548)(7 May 2026)
 
 ## [v2.1.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.0.1...v2.1.0) - 6 May 2026
 
