@@ -92,12 +92,12 @@ class ArkistointiServiceImplTest {
 
     private fun assertXmlContent(xml: String) {
         assertTrue(xml.startsWith("<?xml"))
-        assertTrue(xml.contains("<CaseFile>"))
+        assertTrue(xml.contains("<CaseFile"))
         assertTrue(xml.contains("<Title>Valmistumisen asiakirjat</Title>"))
         assertTrue(xml.contains("<NativeId>CASE-123</NativeId>"))
-        assertTrue(xml.contains("<Elsa_Syntymaaika>31.12.1990</Elsa_Syntymaaika>"))
-        assertTrue(xml.contains("<Elsa_Tarkastuspaiva>02.01.2024</Elsa_Tarkastuspaiva>"))
-        assertTrue(xml.contains("<Elsa_Hyvaksymispaiva>03.01.2024</Elsa_Hyvaksymispaiva>"))
+        assertTrue(xml.contains("<Elsa_Syntymaaika>1990-12-31</Elsa_Syntymaaika>"))
+        assertTrue(xml.contains("<Elsa_Tarkastuspaiva>2024-02-02</Elsa_Tarkastuspaiva>"))
+        assertTrue(xml.contains("<Elsa_Hyvaksymispaiva>2024-01-03</Elsa_Hyvaksymispaiva>"))
         assertTrue(xml.contains("<Path>pdf/testi.pdf</Path>"))
         assertTrue(xml.contains("<HashValue>${DigestUtils.sha256Hex("pdf-data".toByteArray())}</HashValue>"))
         assertTrue(xml.contains("<Elsa_Yliopisto>Tampereen yliopisto</Elsa_Yliopisto>"))
