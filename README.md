@@ -1,6 +1,6 @@
 # ELSA-palvelun backend
 
-### Justfile-komennot
+### Justfile-komennot 
 
 Projektissa on valmiita kehityskomentoja `Justfile`-tiedostossa.
 
