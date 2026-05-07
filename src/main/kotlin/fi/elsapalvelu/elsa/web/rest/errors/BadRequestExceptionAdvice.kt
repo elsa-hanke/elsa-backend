@@ -78,4 +78,10 @@ class BadRequestExceptionAdvice {
         log.error(e.message, e)
         return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, e.message.orEmpty())
     }
+
+    @ExceptionHandler(Error::class)
+    fun handleError(e: Error): ProblemDetail {
+        log.error(e.message, e)
+        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, e.message.orEmpty())
+    }
 }
