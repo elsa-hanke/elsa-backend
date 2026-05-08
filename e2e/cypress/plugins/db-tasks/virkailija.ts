@@ -37,6 +37,16 @@ async function ensureUserAuthority(client: Client, userId: string): Promise<void
   )
 }
 
+async function createVerificationToken(client: Client, userId: string): Promise<string> {
+  const token = randomUUID()
+  await client.query(`DELETE FROM verification_token WHERE user_id = $1`, [userId])
+  await client.query(
+    `INSERT INTO verification_token (id, user_id) VALUES ($1, $2)`,
+    [token, userId]
+  )
+  return token
+}
+
 async function createVirkalijaUser(
   client: Client,
   email: string,
@@ -87,7 +97,7 @@ export const virkailijaTasks = {
     email: string
     etunimi: string
     sukunimi: string
-  }): Promise<{ kayttajaId: number } | null> {
+  }): Promise<{ kayttajaId: number; token?: string } | null> {
     return withDb(dbClient, async (client: any) => {
       // Virkailijan auktorisointi edellyttää, että rooli löytyy jhi_authority-taulusta
       await client.query(
@@ -106,7 +116,9 @@ export const virkailijaTasks = {
       }
 
       const kayttajaId = await createVirkalijaUser(client, email, etunimi, sukunimi)
-      return { kayttajaId }
+      const created = await fetchVirkalijaIds(client, email)
+      const token = await createVerificationToken(client, created!.userId)
+      return { kayttajaId, token }
     })
   },
 
@@ -124,6 +136,7 @@ export const virkailijaTasks = {
         await client.query(`DELETE FROM kayttaja WHERE id = $1`, [kayttajaId])
       }
 
+      await client.query(`DELETE FROM verification_token WHERE user_id = $1`, [userId])
       await client.query(`DELETE FROM jhi_user_authority WHERE user_id = $1`, [userId])
       await client.query(`DELETE FROM jhi_user WHERE id = $1`, [userId])
       return null
