@@ -76,6 +76,16 @@ async function ensureUserAuthority(client: Client, userId: string): Promise<void
   )
 }
 
+async function createVerificationToken(client: Client, userId: string): Promise<string> {
+  const token = randomUUID()
+  await client.query(`DELETE FROM verification_token WHERE user_id = $1`, [userId])
+  await client.query(
+    `INSERT INTO verification_token (id, user_id) VALUES ($1, $2)`,
+    [token, userId]
+  )
+  return token
+}
+
 async function createVastuuhenkiloUser(
   client: Client,
   email: string,
@@ -126,7 +136,7 @@ export const vastuuhenkiloTasks = {
     email: string
     etunimi: string
     sukunimi: string
-  }): Promise<{ kayttajaId: number } | null> {
+  }): Promise<{ kayttajaId: number; token?: string } | null> {
     return withDb(dbClient, async (client: any) => {
       await client.query(
         `INSERT INTO jhi_authority (name) VALUES ($1) ON CONFLICT DO NOTHING`,
@@ -145,7 +155,9 @@ export const vastuuhenkiloTasks = {
       }
 
       const kayttajaId = await createVastuuhenkiloUser(client, email, etunimi, sukunimi)
-      return { kayttajaId }
+      const created = await fetchVastuuhenkiloIds(client, email)
+      const token = await createVerificationToken(client, created!.userId)
+      return { kayttajaId, token }
     })
   },
 
@@ -170,6 +182,7 @@ export const vastuuhenkiloTasks = {
         await client.query(`DELETE FROM kayttaja WHERE id = $1`, [kayttajaId])
       }
 
+      await client.query(`DELETE FROM verification_token WHERE user_id = $1`, [userId])
       await client.query(`DELETE FROM jhi_user_authority WHERE user_id = $1`, [userId])
       await client.query(`DELETE FROM jhi_user WHERE id = $1`, [userId])
       return null
