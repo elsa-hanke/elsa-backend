@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.1...HEAD)
 
+- enhance e2e tests for valmistumispyyntö approval process with verification tokens [`#551`](https://github.com/elsa-hanke/elsa-backend/pull/551)(8 May 2026)
 - enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
 - ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
 
