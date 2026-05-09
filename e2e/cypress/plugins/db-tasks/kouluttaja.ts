@@ -2,17 +2,30 @@ import { randomUUID } from 'crypto'
 import type { Client } from 'pg'
 import { dbClient, withDb } from './db-client'
 
+async function createVerificationToken(client: Client, userId: string): Promise<string> {
+  const token = randomUUID()
+  await client.query(`DELETE FROM verification_token WHERE user_id = $1`, [userId])
+  await client.query(
+    `INSERT INTO verification_token (id, user_id) VALUES ($1, $2)`,
+    [token, userId]
+  )
+  return token
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function fetchKouluttajaIds(
   client: Client,
   email: string
 ): Promise<{ userId: string; kayttajaId: number } | null> {
+  // Search by email OR login: the app may nullify the email column when the
+  // kouluttaja approves a form with an empty sahkoposti field in the DTO,
+  // so login (immutable, set to email at creation) is a reliable fallback key.
   const result = await client.query(
     `SELECT u.id AS user_id, k.id AS kayttaja_id
      FROM jhi_user u
      LEFT JOIN kayttaja k ON k.user_id = u.id
-     WHERE u.email = $1`,
+     WHERE u.email = $1 OR u.login = $1`,
     [email]
   )
   if (result.rows.length === 0) return null
@@ -90,7 +103,7 @@ export const kouluttajaTasks = {
     email: string
     etunimi: string
     sukunimi: string
-  }): Promise<{ kayttajaId: number } | null> {
+  }): Promise<{ kayttajaId: number; token?: string } | null> {
     return withDb(dbClient, async (client: any) => {
       // JPA's @ManyToMany joins on jhi_authority.name, so this row must exist
       // or JPQL queries won't find the kouluttaja (the left join produces NULL).
@@ -109,7 +122,9 @@ export const kouluttajaTasks = {
       }
 
       const kayttajaId = await createKouluttajaUser(client, email, etunimi, sukunimi)
-      return { kayttajaId }
+      const created = await fetchKouluttajaIds(client, email)
+      const token = await createVerificationToken(client, created!.userId)
+      return { kayttajaId, token }
     })
   },
 
@@ -143,6 +158,7 @@ export const kouluttajaTasks = {
       }
 
       await client.query(`DELETE FROM jhi_user_authority WHERE user_id = $1`, [userId])
+      await client.query(`DELETE FROM verification_token WHERE user_id = $1`, [userId])
       await client.query(`DELETE FROM jhi_user WHERE id = $1`, [userId])
       return null
     })

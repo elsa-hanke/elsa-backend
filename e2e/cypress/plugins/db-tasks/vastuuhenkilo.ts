@@ -17,11 +17,15 @@ async function fetchVastuuhenkiloIds(
   client: Client,
   email: string
 ): Promise<{ userId: string; kayttajaId: number } | null> {
+  // Search by email OR login: the app may nullify the email column when the
+  // vastuuhenkilo approves a form with an empty sahkoposti field in the DTO,
+  // so login (which is immutable and set to the email at creation) is the
+  // reliable fallback key.
   const result = await client.query(
     `SELECT u.id AS user_id, k.id AS kayttaja_id
      FROM jhi_user u
      LEFT JOIN kayttaja k ON k.user_id = u.id
-     WHERE u.email = $1`,
+     WHERE u.email = $1 OR u.login = $1`,
     [email]
   )
   if (result.rows.length === 0) return null
