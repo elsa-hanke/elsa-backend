@@ -33,7 +33,7 @@ declare global {
        * Intended for use after the kouluttaja has been seeded via db:seedKouluttaja
        * and their account activated via the verification-token invite flow.
        */
-      loginAsKouluttaja(): void
+      loginAsKouluttaja(token?: string): void
 
       loginAsVastuuhenkilo(token?: string): void
 
@@ -93,13 +93,13 @@ Cypress.Commands.add('loginAsErikoistuva', () => {
 })
 
 // ── loginAsKouluttaja ────────────────────────────────────────────────────────
-Cypress.Commands.add('loginAsKouluttaja', () => {
+Cypress.Commands.add('loginAsKouluttaja', (token?: string) => {
   cy.session(
-    'kouluttaja',
+    ['kouluttaja', token ?? 'linked'],
     () => {
       // The kouluttaja account must have been pre-seeded via db:seedKouluttaja and
       // linked to this SSN through the verification-token invite flow beforehand.
-      cy.loginWithSuomifi(SSN_KOULUTTAJA)
+      cy.loginWithSuomifi(SSN_KOULUTTAJA, undefined, token)
       cy.location('origin', { timeout: 60000 }).should(
         'eq',
         new URL(Cypress.config('baseUrl') as string).origin
