@@ -25,18 +25,6 @@ const KOULUTTAJA_SUKUNIMI    = 'Hummaamistes'
 const VASTUUHENKILO_ETUNIMI  = 'Mia'
 const VASTUUHENKILO_SUKUNIMI = 'Ålands'
 
-function apiRequest(options: Partial<Cypress.RequestOptions>) {
-  return cy.getCookie('XSRF-TOKEN').then((cookie) =>
-    cy.request({
-      ...options,
-      headers: {
-        'X-XSRF-TOKEN': decodeURIComponent(cookie?.value ?? ''),
-        ...(options.headers ?? {}),
-      },
-    })
-  )
-}
-
 describe('Koulutussopimus', () => {
   // ── Esialustetaan tietokanta testisarjaa varten ──────────────────────────────
   before(() => {
@@ -167,12 +155,12 @@ describe('Koulutussopimus', () => {
     cy.then(() => {
       const sopimusId = Cypress.env('koulutussopimusId')
 
-      // ── Käyttötapaus 7: Kouluttaja hyväksyy koulutussopimuksen ──────────────
+      // -- Käyttötapaus 7: Kouluttaja hyväksyy koulutussopimuksen --
       // 1. Kouluttaja kirjautuu ELSA-palveluun verification-tokenin kautta
       cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
 
       // 2. Kouluttaja hakee koulutussopimuksen tiedot
-      apiRequest({
+      cy.apiRequest({
         method: 'GET',
         url: `/api/kouluttaja/koejakso/koulutussopimus/${sopimusId}`,
       }).then(({ status, body }) => {
@@ -189,7 +177,7 @@ describe('Koulutussopimus', () => {
           sahkoposti: KOULUTTAJA_EMAIL,
         }))
 
-        apiRequest({
+        cy.apiRequest({
           method: 'PUT',
           url: '/api/kouluttaja/koejakso/koulutussopimus',
           body: {
@@ -203,12 +191,12 @@ describe('Koulutussopimus', () => {
         })
       })
 
-      // ── Käyttötapaus 8: Vastuuhenkilö hyväksyy koulutussopimuksen ───────────
+      // -- Käyttötapaus 8: Vastuuhenkilö hyväksyy koulutussopimuksen --
       // 1. Vastuuhenkilö kirjautuu ELSA-palveluun verification-tokenin kautta
       cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
 
       // 2. Vastuuhenkilö hakee koulutussopimuksen tiedot
-      apiRequest({
+      cy.apiRequest({
         method: 'GET',
         url: `/api/vastuuhenkilo/koejakso/koulutussopimus/${sopimusId}`,
       }).then(({ status, body }) => {
@@ -217,7 +205,7 @@ describe('Koulutussopimus', () => {
         // 3–4. Vastuuhenkilö tarkistaa tiedot ja hyväksyy
         // (korjausehdotus=null → hyväksyntä, ei palautus)
         // Huom: vastuuhenkilo.sahkoposti täytyy sisällyttää DTO:hon, muuten palvelu nollaa käyttäjän sähköpostin
-        apiRequest({
+        cy.apiRequest({
           method: 'PUT',
           url: '/api/vastuuhenkilo/koejakso/koulutussopimus',
           body: {

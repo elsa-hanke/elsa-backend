@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 import type { Client } from 'pg'
 
 export async function fetchUserIdsByEmailOrLogin(
