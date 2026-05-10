@@ -3,7 +3,7 @@ export const E2E_ERIKOISTUVA_EMAIL = 'e2e-erikoistuva@test.elsa'
 export const SSN_ERIKOISTUVA = '210281-9988'
 
 // Kouluttajan SSN (Suomi.fi-tunnistautumista varten – varalla)
-export const SSN_KOULUTTAJA = '150685-100N'
+export const SSN_KOULUTTAJA = '190956-9974'
 export const SSN_VASTUUHENKILO = '010190-900P'
 export const SSN_VIRKAILIJA = '031084-999W'
 

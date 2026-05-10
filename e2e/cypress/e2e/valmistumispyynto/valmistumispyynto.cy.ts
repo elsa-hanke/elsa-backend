@@ -23,18 +23,6 @@ const VASTUUHENKILO_SUKUNIMI = 'Ålands'
 const VIRKAILIJA_ETUNIMI     = 'Daniel'
 const VIRKAILIJA_SUKUNIMI    = 'Siekkinen'
 
-function apiRequest(options: Partial<Cypress.RequestOptions>) {
-  return cy.getCookie('XSRF-TOKEN').then((cookie) =>
-    cy.request({
-      ...options,
-      headers: {
-        'X-XSRF-TOKEN': decodeURIComponent(cookie?.value ?? ''),
-        ...(options.headers ?? {}),
-      },
-    })
-  )
-}
-
 describe('Valmistumispyyntö', () => {
   // ── Esialustetaan tietokanta testisarjaa varten ──────────────────────────────
   before(() => {
@@ -169,11 +157,11 @@ describe('Valmistumispyyntö', () => {
 
       // 3. Vastuuhenkilö arvioi erikoistujan osaamisen.
       cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
-      apiRequest({
+      cy.apiRequest({
         method: 'GET',
         url: `/api/vastuuhenkilo/valmistumispyynnon-arviointi/${valmistumispyyntoId}`,
       }).its('status').should('eq', 200)
-      apiRequest({
+      cy.apiRequest({
         method: 'PUT',
         url: `/api/vastuuhenkilo/valmistumispyynnon-arviointi/${valmistumispyyntoId}`,
         body: {
@@ -187,11 +175,11 @@ describe('Valmistumispyyntö', () => {
 
       // 4. Virkailija tarkistaa valmistumispyynnön tiedot.
       cy.loginAsVirkailija(Cypress.env('virkailijaToken'))
-      apiRequest({
+      cy.apiRequest({
         method: 'GET',
         url: `/api/virkailija/valmistumispyynnon-tarkistus/${valmistumispyyntoId}`,
       }).its('status').should('eq', 200)
-      apiRequest({
+      cy.apiRequest({
         method: 'PUT',
         url: `/api/virkailija/valmistumispyynnon-tarkistus/${valmistumispyyntoId}`,
         form: true,
@@ -219,14 +207,14 @@ describe('Valmistumispyyntö', () => {
 
       // 5. Vastuuhenkilö hyväksyy valmistumisen.
       cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
-      apiRequest({
+      cy.apiRequest({
         method: 'GET',
         url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
       }).then(({ status, body }) => {
         expect(status).to.eq(200)
         expect(body.valmistumispyynto.tila).to.eq('ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA')
       })
-      apiRequest({
+      cy.apiRequest({
         method: 'PUT',
         url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
         body: {},
