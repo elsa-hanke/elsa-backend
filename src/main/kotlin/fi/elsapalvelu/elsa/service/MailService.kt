@@ -67,11 +67,9 @@ class MailService(
                 setText(content, isHtml)
             }
             javaMailSender.send(mimeMessage)
-            log.debug("Sent email to User '$to'")
-        } catch (ex: MailException) {
-            log.warn("Email could not be sent to user '$to': ${ex.message}")
-        } catch (ex: MessagingException) {
-            log.warn("Email could not be sent to user '$to': ${ex.message}")
+            log.info("Sent email to User $to subject: $subject")
+        } catch (ex: Exception) {
+            log.error("Email could not be sent to user $to subject: $subject", ex)
         }
     }
 
@@ -85,7 +83,7 @@ class MailService(
         properties: Map<MailProperty, String>
     ) {
         if (user.email == null) {
-            log.debug("Sähköpostiosoitetta ei löydy käyttäjälle '${user.login}'")
+            log.info("Sähköpostiosoitetta ei löydy käyttäjälle '${user.login}'")
             return
         }
         var locale = Locale.forLanguageTag("fi")

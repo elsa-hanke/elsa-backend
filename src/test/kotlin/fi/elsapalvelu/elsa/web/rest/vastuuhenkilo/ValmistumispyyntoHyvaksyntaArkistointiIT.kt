@@ -4,6 +4,10 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.anyOrNull
+import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.never
+import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
@@ -14,6 +18,7 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.ArkistointiService
+import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.PdfService
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoHyvaksyntaFormDTO
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
@@ -90,6 +95,10 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     @MockitoBean
     private lateinit var pdfService: PdfService
 
+    @MockitoBean
+    private lateinit var mailService: MailService
+
+
     private lateinit var opintooikeus: Opintooikeus
     private lateinit var vastuuhenkilo: Kayttaja
     private lateinit var anotherVastuuhenkilo: Kayttaja
@@ -131,6 +140,17 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
         transactionTemplate.execute {
             em.createNativeQuery("DELETE FROM valmistumispyynnon_tarkistus WHERE valmistumispyynto_id = $vpId").executeUpdate()
+            // Null out the asiakirja FK columns before deleting the asiakirja rows themselves,
+            // because valmistumispyynto has FK references (yhteenveto_asiakirja_id etc.) to asiakirja.
+            em.createNativeQuery(
+                "UPDATE valmistumispyynto SET yhteenveto_asiakirja_id = NULL, " +
+                    "liitteet_asiakirja_id = NULL, erikoistujan_tiedot_asiakirja_id = NULL " +
+                    "WHERE id = $vpId"
+            ).executeUpdate()
+            // Delete asiakirja rows created by PDF generation (which commit to DB when the test
+            // is not @Transactional). asiakirja has a FK to opintooikeus, so must be deleted
+            // before opintooikeus.
+            em.createNativeQuery("DELETE FROM asiakirja WHERE opintooikeus_id = $ooId").executeUpdate()
             em.createNativeQuery("DELETE FROM valmistumispyynto WHERE id = $vpId").executeUpdate()
             em.createNativeQuery("DELETE FROM rel_kayttaja__yliopisto WHERE yliopisto_id = $yId").executeUpdate()
             em.createNativeQuery(
@@ -170,24 +190,15 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      * but with an explicit @MockBean so it is self-contained and documents the intended flow.
      */
     @Test
-    @Transactional
     fun updateValmistumispyyntoByHyvaksyjaUserId_happyPath_kuittausaikaSavedAndReturns200() {
-        initTest()
-
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
-            opintooikeus, anotherVastuuhenkilo, virkailija
-        )
-        em.persist(valmistumispyynto)
-
-        val tarkistus = ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
-        em.persist(tarkistus)
+        val valmistumispyyntoId: Long = initTestInTransaction()
 
         val sizeBefore = valmistumispyyntoRepository.findAll().size
 
         whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(false)
 
         restMockMvc.perform(
-            put("$ARKISTOINTI_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyynto.id)
+            put("$ARKISTOINTI_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyyntoId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null)))
                 .with(csrf())
@@ -201,6 +212,8 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         assertThat(updated.vastuuhenkiloHyvaksyjaKuittausaika).isEqualTo(LocalDate.now())
         assertThat(updated.vastuuhenkiloHyvaksyjaPalautusaika).isNull()
         assertThat(updated.vastuuhenkiloHyvaksyjaKorjausehdotus).isNull()
+
+        verifyEmailSent()
     }
 
     // -------------------------------------------------------------------------
@@ -228,25 +241,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     @Test
     fun updateValmistumispyyntoByHyvaksyjaUserId_whenMuodostaSahkeThrows_returns5xxLogsErrorAndRollsBack() {
 
-        // --- Setup: run inside a dedicated transaction that is committed before the service call ---
-        // This is necessary because this test method is NOT @Transactional (by design — we need
-        // to verify the DB rollback via a fresh read after the service's own transaction fails).
-        // em.persist() requires an active transaction; TransactionTemplate provides one and commits it.
-        val valmistumispyyntoId: Long = transactionTemplate.execute {
-            initTest()
-            val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
-                opintooikeus, anotherVastuuhenkilo, virkailija
-            )
-            em.persist(valmistumispyynto)
-            val tarkistus = ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
-            em.persist(tarkistus)
-            em.flush()
-            committedValmistumispyyntoId = valmistumispyynto.id!!
-            committedOpintooikeusId = opintooikeus.id
-            committedErikoistuvaLaakariId = opintooikeus.erikoistuvaLaakari?.id
-            committedYliopistoId = opintooikeus.yliopisto?.id
-            valmistumispyynto.id!!
-        }!!
+        val valmistumispyyntoId: Long = initTestInTransaction()
 
         // Capture ERROR logs from the controller (where log.error is emitted on rethrow)
         val resourceLogger = LoggerFactory.getLogger(
@@ -307,6 +302,8 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                     "must be null after archiving failure — data integrity is at risk if not null"
                 )
                 .isNull()
+
+            verifyEmailNotSent()
         } finally {
             resourceLogger.detachAppender(logAppender)
         }
@@ -334,21 +331,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     @Test
     fun updateValmistumispyyntoByHyvaksyjaUserId_whenMuodostaSahkeThrowsError_returns5xxLogsErrorAndRollsBack() {
 
-        val valmistumispyyntoId: Long = transactionTemplate.execute {
-            initTest()
-            val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
-                opintooikeus, anotherVastuuhenkilo, virkailija
-            )
-            em.persist(valmistumispyynto)
-            val tarkistus = ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
-            em.persist(tarkistus)
-            em.flush()
-            committedValmistumispyyntoId = valmistumispyynto.id!!
-            committedOpintooikeusId = opintooikeus.id
-            committedErikoistuvaLaakariId = opintooikeus.erikoistuvaLaakari?.id
-            committedYliopistoId = opintooikeus.yliopisto?.id
-            valmistumispyynto.id!!
-        }!!
+        val valmistumispyyntoId: Long = initTestInTransaction()
 
         // BadRequestExceptionAdvice.handleError is where log.error fires for Error subclasses
         val adviceLogger = LoggerFactory.getLogger(
@@ -391,10 +374,33 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
             assertThat(dbState.get().vastuuhenkiloHyvaksyjaKuittausaika)
                 .withFailMessage("Transaction must roll back even when a JVM Error is thrown")
                 .isNull()
+
+            verifyEmailNotSent()
         } finally {
             adviceLogger.detachAppender(logAppender)
         }
     }
+
+    private fun initTestInTransaction(): Long = transactionTemplate.execute {
+        // --- Setup: run inside a dedicated transaction that is committed before the service call ---
+        // This is necessary because this test method is NOT @Transactional (by design — we need
+        // to verify the DB rollback via a fresh read after the service's own transaction fails).
+        // em.persist() requires an active transaction; TransactionTemplate provides one and commits it.
+        initTest()
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
+            opintooikeus, anotherVastuuhenkilo, virkailija
+        )
+        em.persist(valmistumispyynto)
+        val tarkistus =
+            ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
+        em.persist(tarkistus)
+        em.flush()
+        committedValmistumispyyntoId = valmistumispyynto.id!!
+        committedOpintooikeusId = opintooikeus.id
+        committedErikoistuvaLaakariId = opintooikeus.erikoistuvaLaakari?.id
+        committedYliopistoId = opintooikeus.yliopisto?.id
+        valmistumispyynto.id!!
+    }!!
 
     // -------------------------------------------------------------------------
     // Setup helpers (mirrors VastuuhenkiloValmistumispyyntoResourceIT.initTest)
@@ -484,5 +490,43 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
             )
         }
     }
-}
 
+
+    private fun verifyEmailSent() {
+        verify(mailService).sendEmailFromTemplate(
+            any<User>(),
+            any<List<String>>(),
+            eq("valmistumispyyntoHyvaksytty.html"),
+            eq("email.valmistumispyyntoHyvaksytty.title"),
+            any<Array<String>>(),
+            any()
+        )
+        verify(mailService).sendEmailFromTemplate(
+            anyOrNull<String>(),
+            any<List<String>>(),
+            eq("valmistumispyyntoHyvaksyttyVirkailija.html"),
+            eq("email.valmistumispyyntoHyvaksytty.title"),
+            any<Array<String>>(),
+            any()
+        )
+    }
+
+    private fun verifyEmailNotSent() {
+        verify(mailService, never()).sendEmailFromTemplate(
+            any<User>(),
+            any<List<String>>(),
+            any<String>(),
+            any<String>(),
+            any<Array<String>>(),
+            any()
+        )
+        verify(mailService, never()).sendEmailFromTemplate(
+            anyOrNull<String>(),
+            any<List<String>>(),
+            any<String>(),
+            any<String>(),
+            any<Array<String>>(),
+            any()
+        )
+    }
+}
