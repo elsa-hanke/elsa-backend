@@ -139,6 +139,17 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
         transactionTemplate.execute {
             em.createNativeQuery("DELETE FROM valmistumispyynnon_tarkistus WHERE valmistumispyynto_id = $vpId").executeUpdate()
+            // Null out the asiakirja FK columns before deleting the asiakirja rows themselves,
+            // because valmistumispyynto has FK references (yhteenveto_asiakirja_id etc.) to asiakirja.
+            em.createNativeQuery(
+                "UPDATE valmistumispyynto SET yhteenveto_asiakirja_id = NULL, " +
+                    "liitteet_asiakirja_id = NULL, erikoistujan_tiedot_asiakirja_id = NULL " +
+                    "WHERE id = $vpId"
+            ).executeUpdate()
+            // Delete asiakirja rows created by PDF generation (which commit to DB when the test
+            // is not @Transactional). asiakirja has a FK to opintooikeus, so must be deleted
+            // before opintooikeus.
+            em.createNativeQuery("DELETE FROM asiakirja WHERE opintooikeus_id = $ooId").executeUpdate()
             em.createNativeQuery("DELETE FROM valmistumispyynto WHERE id = $vpId").executeUpdate()
             em.createNativeQuery("DELETE FROM rel_kayttaja__yliopisto WHERE yliopisto_id = $yId").executeUpdate()
             em.createNativeQuery(
@@ -178,29 +189,15 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      * but with an explicit @MockBean so it is self-contained and documents the intended flow.
      */
     @Test
-    @Transactional
     fun updateValmistumispyyntoByHyvaksyjaUserId_happyPath_kuittausaikaSavedAndReturns200() {
-        initTest()
-
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
-            opintooikeus, anotherVastuuhenkilo, virkailija
-        )
-        em.persist(valmistumispyynto)
-
-        val tarkistus = ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
-        em.persist(tarkistus)
-
-        // Link tarkistus to valmistumispyynto to ensure the entity graph is correct
-        valmistumispyynto.valmistumispyynnonTarkistus = tarkistus
-        em.persist(valmistumispyynto)
-        em.flush()
+        val valmistumispyyntoId: Long = initTestInTransaction()
 
         val sizeBefore = valmistumispyyntoRepository.findAll().size
 
         whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(false)
 
         restMockMvc.perform(
-            put("$ARKISTOINTI_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyynto.id)
+            put("$ARKISTOINTI_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyyntoId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null)))
                 .with(csrf())
@@ -258,25 +255,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     @Test
     fun updateValmistumispyyntoByHyvaksyjaUserId_whenMuodostaSahkeThrows_returns5xxLogsErrorAndRollsBack() {
 
-        // --- Setup: run inside a dedicated transaction that is committed before the service call ---
-        // This is necessary because this test method is NOT @Transactional (by design — we need
-        // to verify the DB rollback via a fresh read after the service's own transaction fails).
-        // em.persist() requires an active transaction; TransactionTemplate provides one and commits it.
-        val valmistumispyyntoId: Long = transactionTemplate.execute {
-            initTest()
-            val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
-                opintooikeus, anotherVastuuhenkilo, virkailija
-            )
-            em.persist(valmistumispyynto)
-            val tarkistus = ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
-            em.persist(tarkistus)
-            em.flush()
-            committedValmistumispyyntoId = valmistumispyynto.id!!
-            committedOpintooikeusId = opintooikeus.id
-            committedErikoistuvaLaakariId = opintooikeus.erikoistuvaLaakari?.id
-            committedYliopistoId = opintooikeus.yliopisto?.id
-            valmistumispyynto.id!!
-        }!!
+        val valmistumispyyntoId: Long = initTestInTransaction()
 
         // Capture ERROR logs from the controller (where log.error is emitted on rethrow)
         val resourceLogger = LoggerFactory.getLogger(
@@ -381,21 +360,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     @Test
     fun updateValmistumispyyntoByHyvaksyjaUserId_whenMuodostaSahkeThrowsError_returns5xxLogsErrorAndRollsBack() {
 
-        val valmistumispyyntoId: Long = transactionTemplate.execute {
-            initTest()
-            val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
-                opintooikeus, anotherVastuuhenkilo, virkailija
-            )
-            em.persist(valmistumispyynto)
-            val tarkistus = ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
-            em.persist(tarkistus)
-            em.flush()
-            committedValmistumispyyntoId = valmistumispyynto.id!!
-            committedOpintooikeusId = opintooikeus.id
-            committedErikoistuvaLaakariId = opintooikeus.erikoistuvaLaakari?.id
-            committedYliopistoId = opintooikeus.yliopisto?.id
-            valmistumispyynto.id!!
-        }!!
+        val valmistumispyyntoId: Long = initTestInTransaction()
 
         // BadRequestExceptionAdvice.handleError is where log.error fires for Error subclasses
         val adviceLogger = LoggerFactory.getLogger(
@@ -459,6 +424,27 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
             adviceLogger.detachAppender(logAppender)
         }
     }
+
+    private fun initTestInTransaction(): Long = transactionTemplate.execute {
+        // --- Setup: run inside a dedicated transaction that is committed before the service call ---
+        // This is necessary because this test method is NOT @Transactional (by design — we need
+        // to verify the DB rollback via a fresh read after the service's own transaction fails).
+        // em.persist() requires an active transaction; TransactionTemplate provides one and commits it.
+        initTest()
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
+            opintooikeus, anotherVastuuhenkilo, virkailija
+        )
+        em.persist(valmistumispyynto)
+        val tarkistus =
+            ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
+        em.persist(tarkistus)
+        em.flush()
+        committedValmistumispyyntoId = valmistumispyynto.id!!
+        committedOpintooikeusId = opintooikeus.id
+        committedErikoistuvaLaakariId = opintooikeus.erikoistuvaLaakari?.id
+        committedYliopistoId = opintooikeus.yliopisto?.id
+        valmistumispyynto.id!!
+    }!!
 
     // -------------------------------------------------------------------------
     // Setup helpers (mirrors VastuuhenkiloValmistumispyyntoResourceIT.initTest)
