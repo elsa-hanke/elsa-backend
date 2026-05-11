@@ -6,6 +6,7 @@ import ch.qos.logback.core.read.ListAppender
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.anyOrNull
 import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.never
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import fi.elsapalvelu.elsa.ElsaBackendApp
@@ -212,22 +213,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         assertThat(updated.vastuuhenkiloHyvaksyjaPalautusaika).isNull()
         assertThat(updated.vastuuhenkiloHyvaksyjaKorjausehdotus).isNull()
 
-        verify(mailService).sendEmailFromTemplate(
-            any<User>(),
-            any<List<String>>(),
-            eq("valmistumispyyntoHyvaksytty.html"),
-            eq("email.valmistumispyyntoHyvaksytty.title"),
-            any<Array<String>>(),
-            any()
-        )
-        verify(mailService).sendEmailFromTemplate(
-            anyOrNull<String>(),
-            any<List<String>>(),
-            eq("valmistumispyyntoHyvaksyttyVirkailija.html"),
-            eq("email.valmistumispyyntoHyvaksytty.title"),
-            any<Array<String>>(),
-            any()
-        )
+        verifyEmailSent()
     }
 
     // -------------------------------------------------------------------------
@@ -317,22 +303,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                 )
                 .isNull()
 
-            verify(mailService).sendEmailFromTemplate(
-                any<User>(),
-                any<List<String>>(),
-                eq("valmistumispyyntoHyvaksytty.html"),
-                eq("email.valmistumispyyntoHyvaksytty.title"),
-                any<Array<String>>(),
-                any()
-            )
-            verify(mailService).sendEmailFromTemplate(
-                anyOrNull<String>(),
-                any<List<String>>(),
-                eq("valmistumispyyntoHyvaksyttyVirkailija.html"),
-                eq("email.valmistumispyyntoHyvaksytty.title"),
-                any<Array<String>>(),
-                any()
-            )
+            verifyEmailNotSent()
         } finally {
             resourceLogger.detachAppender(logAppender)
         }
@@ -404,22 +375,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                 .withFailMessage("Transaction must roll back even when a JVM Error is thrown")
                 .isNull()
 
-            verify(mailService).sendEmailFromTemplate(
-                any<User>(),
-                any<List<String>>(),
-                eq("valmistumispyyntoHyvaksytty.html"),
-                eq("email.valmistumispyyntoHyvaksytty.title"),
-                any<Array<String>>(),
-                any()
-            )
-            verify(mailService).sendEmailFromTemplate(
-                anyOrNull<String>(),
-                any<List<String>>(),
-                eq("valmistumispyyntoHyvaksyttyVirkailija.html"),
-                eq("email.valmistumispyyntoHyvaksytty.title"),
-                any<Array<String>>(),
-                any()
-            )
+            verifyEmailNotSent()
         } finally {
             adviceLogger.detachAppender(logAppender)
         }
@@ -533,5 +489,44 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                 )
             )
         }
+    }
+
+
+    private fun verifyEmailSent() {
+        verify(mailService).sendEmailFromTemplate(
+            any<User>(),
+            any<List<String>>(),
+            eq("valmistumispyyntoHyvaksytty.html"),
+            eq("email.valmistumispyyntoHyvaksytty.title"),
+            any<Array<String>>(),
+            any()
+        )
+        verify(mailService).sendEmailFromTemplate(
+            anyOrNull<String>(),
+            any<List<String>>(),
+            eq("valmistumispyyntoHyvaksyttyVirkailija.html"),
+            eq("email.valmistumispyyntoHyvaksytty.title"),
+            any<Array<String>>(),
+            any()
+        )
+    }
+
+    private fun verifyEmailNotSent() {
+        verify(mailService, never()).sendEmailFromTemplate(
+            any<User>(),
+            any<List<String>>(),
+            any<String>(),
+            any<String>(),
+            any<Array<String>>(),
+            any()
+        )
+        verify(mailService, never()).sendEmailFromTemplate(
+            anyOrNull<String>(),
+            any<List<String>>(),
+            any<String>(),
+            any<String>(),
+            any<Array<String>>(),
+            any()
+        )
     }
 }
