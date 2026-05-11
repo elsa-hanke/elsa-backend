@@ -105,7 +105,7 @@ repositories {
 
 dependencies {
     implementation "tech.jhipster:jhipster-framework:${jhipsterDependenciesVersion}"
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5-jakarta"
     implementation "org.ehcache:ehcache:3.10.8"
     implementation "org.hibernate.orm:hibernate-jcache:${hibernateVersion}"
@@ -150,7 +150,7 @@ dependencies {
     implementation("org.apache.pdfbox:pdfbox:3.0.5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation "org.springframework.integration:spring-integration-sftp"
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.3")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
     implementation 'net.i2p.crypto:eddsa:0.3.0'
 }
 
