@@ -63,7 +63,6 @@ class ValmistumispyyntoServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper,
     private val opintosuoritusRepository: OpintosuoritusRepository,
-    private val mailService: MailService,
     private val transactionalMailService: TransactionalMailService,
     private val applicationProperties: ApplicationProperties,
     private val clock: Clock,
@@ -971,7 +970,7 @@ class ValmistumispyyntoServiceImpl(
         vastuuhenkiloOsaamisenArvioijaUser: User,
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             vastuuhenkiloOsaamisenArvioijaUser,
             templateName = "uusivalmistumispyynto.html",
             titleKey = "email.uusivalmistumispyynto.title",
@@ -988,7 +987,7 @@ class ValmistumispyyntoServiceImpl(
         erikoistujanYliopisto: YliopistoEnum,
         valmistumispyyntoId: Long
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             to = erikoistujanYliopisto.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoTarkastettavissa.html",
             titleKey = "email.valmistumispyyntoTarkastettavissa.title",
@@ -1000,7 +999,7 @@ class ValmistumispyyntoServiceImpl(
         erikoistujanYliopisto: YliopistoEnum,
         valmistumispyyntoId: Long
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             to = erikoistujanYliopisto.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoTarkastettavissaYek.html",
             titleKey = "email.yekValmistumispyyntoTarkastettavissa.title",
@@ -1012,7 +1011,7 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto: Valmistumispyynto
     ) {
         val opintooikeus = valmistumispyynto.opintooikeus
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!,
             templateName = "valmistumispyyntoTarkastettavissaVastuuhenkilo.html",
             titleKey = "email.valmistumispyyntoTarkastettavissaVastuuhenkilo.title",
@@ -1024,7 +1023,7 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto: Valmistumispyynto
     ) {
         val opintooikeus = valmistumispyynto.opintooikeus
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!,
             templateName = "valmistumispyyntoTarkastettavissaYek.html",
             titleKey = "email.yekValmistumispyyntoTarkastettavissa.title",
@@ -1035,7 +1034,7 @@ class ValmistumispyyntoServiceImpl(
     private fun sendMailNotificationOsaamisenArvioijaPalauttanut(
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
             templateName = "valmistumispyyntoPalautettuErikoistuja.html",
             titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
@@ -1046,7 +1045,7 @@ class ValmistumispyyntoServiceImpl(
     private fun sendMailNotificationVirkailijaPalauttanut(
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
             templateName = "valmistumispyyntoPalautettuErikoistuja.html",
             titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
@@ -1057,7 +1056,7 @@ class ValmistumispyyntoServiceImpl(
     private fun sendMailNotificationHyvaksyjaPalauttanut(
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
             templateName = "valmistumispyyntoPalautettuErikoistuja.html",
             titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
@@ -1067,7 +1066,7 @@ class ValmistumispyyntoServiceImpl(
         val nimi = valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()
 
         if (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
-            mailService.sendEmailFromTemplate(
+            transactionalMailService.sendEmailFromTemplate(
                 valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
                 templateName = "valmistumispyyntoPalautettuMuutYek.html",
                 titleKey = "email.valmistumispyyntoPalautettuMuut.title",
@@ -1075,7 +1074,7 @@ class ValmistumispyyntoServiceImpl(
                 properties = mapOf(Pair(MailProperty.NAME, nimi.toString()))
             )
         } else {
-            mailService.sendEmailFromTemplate(
+            transactionalMailService.sendEmailFromTemplate(
                 valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
                 templateName = "valmistumispyyntoPalautettuMuut.html",
                 titleKey = "email.valmistumispyyntoPalautettuMuut.title",
