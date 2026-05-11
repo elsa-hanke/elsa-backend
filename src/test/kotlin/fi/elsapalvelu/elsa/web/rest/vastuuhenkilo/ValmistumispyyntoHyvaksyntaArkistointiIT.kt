@@ -4,6 +4,9 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.anyOrNull
+import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
@@ -14,6 +17,7 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.ArkistointiService
+import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.PdfService
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoHyvaksyntaFormDTO
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
@@ -89,6 +93,10 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      */
     @MockitoBean
     private lateinit var pdfService: PdfService
+
+    @MockitoBean
+    private lateinit var mailService: MailService
+
 
     private lateinit var opintooikeus: Opintooikeus
     private lateinit var vastuuhenkilo: Kayttaja
@@ -182,6 +190,11 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         val tarkistus = ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
         em.persist(tarkistus)
 
+        // Link tarkistus to valmistumispyynto to ensure the entity graph is correct
+        valmistumispyynto.valmistumispyynnonTarkistus = tarkistus
+        em.persist(valmistumispyynto)
+        em.flush()
+
         val sizeBefore = valmistumispyyntoRepository.findAll().size
 
         whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(false)
@@ -201,6 +214,23 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         assertThat(updated.vastuuhenkiloHyvaksyjaKuittausaika).isEqualTo(LocalDate.now())
         assertThat(updated.vastuuhenkiloHyvaksyjaPalautusaika).isNull()
         assertThat(updated.vastuuhenkiloHyvaksyjaKorjausehdotus).isNull()
+
+        verify(mailService).sendEmailFromTemplate(
+            any<User>(),
+            any<List<String>>(),
+            eq("valmistumispyyntoHyvaksytty.html"),
+            eq("email.valmistumispyyntoHyvaksytty.title"),
+            any<Array<String>>(),
+            any()
+        )
+        verify(mailService).sendEmailFromTemplate(
+            anyOrNull<String>(),
+            any<List<String>>(),
+            eq("valmistumispyyntoHyvaksyttyVirkailija.html"),
+            eq("email.valmistumispyyntoHyvaksytty.title"),
+            any<Array<String>>(),
+            any()
+        )
     }
 
     // -------------------------------------------------------------------------
@@ -307,6 +337,23 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                     "must be null after archiving failure — data integrity is at risk if not null"
                 )
                 .isNull()
+
+            verify(mailService).sendEmailFromTemplate(
+                any<User>(),
+                any<List<String>>(),
+                eq("valmistumispyyntoHyvaksytty.html"),
+                eq("email.valmistumispyyntoHyvaksytty.title"),
+                any<Array<String>>(),
+                any()
+            )
+            verify(mailService).sendEmailFromTemplate(
+                anyOrNull<String>(),
+                any<List<String>>(),
+                eq("valmistumispyyntoHyvaksyttyVirkailija.html"),
+                eq("email.valmistumispyyntoHyvaksytty.title"),
+                any<Array<String>>(),
+                any()
+            )
         } finally {
             resourceLogger.detachAppender(logAppender)
         }
@@ -391,6 +438,23 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
             assertThat(dbState.get().vastuuhenkiloHyvaksyjaKuittausaika)
                 .withFailMessage("Transaction must roll back even when a JVM Error is thrown")
                 .isNull()
+
+            verify(mailService).sendEmailFromTemplate(
+                any<User>(),
+                any<List<String>>(),
+                eq("valmistumispyyntoHyvaksytty.html"),
+                eq("email.valmistumispyyntoHyvaksytty.title"),
+                any<Array<String>>(),
+                any()
+            )
+            verify(mailService).sendEmailFromTemplate(
+                anyOrNull<String>(),
+                any<List<String>>(),
+                eq("valmistumispyyntoHyvaksyttyVirkailija.html"),
+                eq("email.valmistumispyyntoHyvaksytty.title"),
+                any<Array<String>>(),
+                any()
+            )
         } finally {
             adviceLogger.detachAppender(logAppender)
         }
@@ -485,4 +549,3 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         }
     }
 }
-

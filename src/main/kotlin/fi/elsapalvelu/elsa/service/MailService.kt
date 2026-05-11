@@ -67,11 +67,9 @@ class MailService(
                 setText(content, isHtml)
             }
             javaMailSender.send(mimeMessage)
-            log.debug("Sent email to User '$to'")
-        } catch (ex: MailException) {
-            log.warn("Email could not be sent to user '$to': ${ex.message}")
-        } catch (ex: MessagingException) {
-            log.warn("Email could not be sent to user '$to': ${ex.message}")
+            log.info("Sent email to User '$to'")
+        } catch (ex: Exception) {
+            log.error("Email could not be sent to user '$to'", ex)
         }
     }
 

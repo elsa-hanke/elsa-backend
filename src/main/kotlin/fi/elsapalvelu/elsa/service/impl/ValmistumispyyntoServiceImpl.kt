@@ -25,6 +25,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
+import fi.elsapalvelu.elsa.service.mail.TransactionalMailService
 import fi.elsapalvelu.elsa.service.mapper.*
 import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
@@ -63,6 +64,7 @@ class ValmistumispyyntoServiceImpl(
     private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper,
     private val opintosuoritusRepository: OpintosuoritusRepository,
     private val mailService: MailService,
+    private val transactionalMailService: TransactionalMailService,
     private val applicationProperties: ApplicationProperties,
     private val clock: Clock,
     private val valmistumispyynnonTarkistusRepository: ValmistumispyynnonTarkistusRepository,
@@ -1086,14 +1088,14 @@ class ValmistumispyyntoServiceImpl(
     private fun sendMailNotificationHyvaksytty(
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
             templateName = "valmistumispyyntoHyvaksytty.html",
             titleKey = "email.valmistumispyyntoHyvaksytty.title",
             properties = mapOf()
         )
 
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoHyvaksyttyVirkailija.html",
             titleKey = "email.valmistumispyyntoHyvaksytty.title",
@@ -1106,14 +1108,14 @@ class ValmistumispyyntoServiceImpl(
     private fun sendMailNotificationHyvaksyttyYek(
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
             templateName = "valmistumispyyntoHyvaksyttyYek.html",
             titleKey = "email.yekValmistumispyyntoHyvaksytty.title",
             properties = mapOf()
         )
 
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoHyvaksyttyYekVirkailija.html",
             titleKey = "email.yekValmistumispyyntoHyvaksytty.title",
