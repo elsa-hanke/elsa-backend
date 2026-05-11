@@ -606,20 +606,26 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch --all --tags
 
+          git config merge.ours-always.driver true
+
           RELEASE_BRANCH=$(git branch -r --contains "refs/tags/$GITHUB_REF_NAME" \
             | grep -E 'origin/(release|hotfix)/' \
             | head -1 | sed 's|.*origin/||' | xargs)
 
-          # Step 1: release → master (both are production code, no dev contamination risk)
+          # Step 1: release → master
           git checkout master
+
+          # Tell git: for CHANGELOG.md, always keep ours (master's version)
+          echo "CHANGELOG.md merge=ours-always" >> .git/info/attributes
+
           git merge origin/$RELEASE_BRANCH --no-ff \
             -m "Merge $RELEASE_BRANCH ($GITHUB_REF_NAME) master-haaraan"
           git push origin master
 
-          # Step 2: master → main (not release → main, keeps dev history clean)
-          # generate-changelog already committed CHANGELOG.md to main, so master
-          # now gets that commit too via this merge — no conflict possible.
+          # Step 2: master → main
           git checkout main
+          echo "CHANGELOG.md merge=ours-always" >> .git/info/attributes
+
           git merge origin/master --no-ff \
             -m "Merge master ($GITHUB_REF_NAME) main-haaraan"
           git push origin main
