@@ -25,6 +25,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
+import fi.elsapalvelu.elsa.service.mail.TransactionalMailService
 import fi.elsapalvelu.elsa.service.mapper.*
 import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
@@ -62,7 +63,7 @@ class ValmistumispyyntoServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val tyoskentelyjaksoMapper: TyoskentelyjaksoMapper,
     private val opintosuoritusRepository: OpintosuoritusRepository,
-    private val mailService: MailService,
+    private val transactionalMailService: TransactionalMailService,
     private val applicationProperties: ApplicationProperties,
     private val clock: Clock,
     private val valmistumispyynnonTarkistusRepository: ValmistumispyynnonTarkistusRepository,
@@ -282,8 +283,11 @@ class ValmistumispyyntoServiceImpl(
         userId: String,
         hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO
     ): ValmistumispyynnonTarkistusDTO {
+        log.info("Hyvaksynta-operaatio aloitettu [valmistumispyyntoId=$id]")
+
         val kayttaja = getKayttaja(userId)
         val yliopisto = getYliopisto(kayttaja)
+        log.info("Kayttaja ja yliopisto haettu [valmistumispyyntoId=$id, yliopistoId=${yliopisto.id}]")
 
         val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
             id,
@@ -291,43 +295,58 @@ class ValmistumispyyntoServiceImpl(
             yliopisto.id!!,
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         )
+        log.info("Valmistumispyynto haettu [valmistumispyyntoId=$id]")
 
         kayttaja?.user?.let { user ->
             user.email = hyvaksyntaFormDTO.sahkoposti
             user.phoneNumber = hyvaksyntaFormDTO.puhelinnumero
             userRepository.save(user)
+                log.info("Kayttajan yhteystiedot paivitetty [valmistumispyyntoId=$id]")
         }
 
         valmistumispyynto.vastuuhenkiloHyvaksyja = kayttaja
 
         if (hyvaksyntaFormDTO.korjausehdotus != null) {
+            log.info("Valmistumispyynto palautetaan erikoistujalle [valmistumispyyntoId=$id]")
             valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika = LocalDate.now()
             valmistumispyynto.vastuuhenkiloHyvaksyjaKorjausehdotus = hyvaksyntaFormDTO.korjausehdotus
             valmistumispyynto.erikoistujanKuittausaika = null
             valmistumispyynto.virkailijanKuittausaika = null
             sendMailNotificationHyvaksyjaPalauttanut(valmistumispyynto)
+            log.info("Palautussahkoposti lahetetty [valmistumispyyntoId=$id]")
         } else {
+            log.info("Valmistumispyynto hyvaksytaan: tallennetaan kuittausaika [valmistumispyyntoId=$id]")
             valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = LocalDate.now()
             val result = valmistumispyyntoRepository.save(valmistumispyynto)
+            log.info("Kuittausaika tallennettu [valmistumispyyntoId=$id]")
+
             result.valmistumispyynnonTarkistus?.let {
                 if (it.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                    log.info("Luodaan YEK PDF:t [valmistumispyyntoId=$id]")
                     luoYEKYhteenvetoPdf(
                         mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)),
                         valmistumispyynto
                     )
                     luoLiitteetPdf(valmistumispyynto)
+                    log.info("YEK PDF:t luotu [valmistumispyyntoId=$id]")
                     sendMailNotificationHyvaksyttyYek(valmistumispyynto)
+                    log.info("YEK hyvaksynta-sahkoposti lahetetty [valmistumispyyntoId=$id]")
                 } else {
+                    log.info("Luodaan PDF:t [valmistumispyyntoId=$id]")
                     luoLiitteetPdf(valmistumispyynto)
                     luoErikoistujanTiedotPdf(valmistumispyynto)
                     luoYhteenvetoPdf(
                         mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)),
                         valmistumispyynto
                     )
+                    log.info("PDF:t luotu [valmistumispyyntoId=$id]")
                     sendMailNotificationHyvaksytty(valmistumispyynto)
+                    log.info("Hyvaksynta-sahkoposti lahetetty [valmistumispyyntoId=$id]")
                 }
 
+                log.info("Tarkistetaan arkistointi [valmistumispyyntoId=$id, yliopisto=${yliopisto.nimi}]")
                 if (arkistointiService.onKaytossa(yliopisto.nimi!!, CaseType.VALMISTUMINEN)) {
+                    log.info("Arkistointi kaytossa, muodostetaan sahke [valmistumispyyntoId=$id]")
                     val result = arkistointiService.muodostaSahke(
                         valmistumispyynto.opintooikeus,
                         listOf(
@@ -345,6 +364,9 @@ class ValmistumispyyntoServiceImpl(
                     val erikoisala = valmistumispyynto.opintooikeus?.erikoisala!!
                     val yek = erikoisala.id == YEK_ERIKOISALA_ID
                     arkistointiService.laheta(yliopisto.nimi!!, result.zipFilePath, CaseType.VALMISTUMINEN, yek)
+                    log.info("Sahke muodostettu ja lahetetty [valmistumispyyntoId=$id, yek=$yek]")
+                } else {
+                    log.info("Arkistointi ei kaytossa [valmistumispyyntoId=$id, yliopisto=${yliopisto.nimi}]")
                 }
             }
         }
@@ -352,6 +374,7 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyynnonTarkistus =
             valmistumispyynnonTarkistusRepository.findByValmistumispyyntoId(valmistumispyynto.id!!)
 
+        log.info("Hyvaksynta-operaatio valmis [valmistumispyyntoId=$id]")
         return valmistumispyynnonTarkistusMapper.toDto(valmistumispyynnonTarkistus!!).apply {
             this.kommentitVirkailijoille = null
             this.valmistumispyynto?.tila = getValmistumispyynnonTilaForHyvaksyja(valmistumispyynto)
@@ -947,7 +970,7 @@ class ValmistumispyyntoServiceImpl(
         vastuuhenkiloOsaamisenArvioijaUser: User,
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             vastuuhenkiloOsaamisenArvioijaUser,
             templateName = "uusivalmistumispyynto.html",
             titleKey = "email.uusivalmistumispyynto.title",
@@ -964,7 +987,7 @@ class ValmistumispyyntoServiceImpl(
         erikoistujanYliopisto: YliopistoEnum,
         valmistumispyyntoId: Long
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             to = erikoistujanYliopisto.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoTarkastettavissa.html",
             titleKey = "email.valmistumispyyntoTarkastettavissa.title",
@@ -976,7 +999,7 @@ class ValmistumispyyntoServiceImpl(
         erikoistujanYliopisto: YliopistoEnum,
         valmistumispyyntoId: Long
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             to = erikoistujanYliopisto.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoTarkastettavissaYek.html",
             titleKey = "email.yekValmistumispyyntoTarkastettavissa.title",
@@ -988,7 +1011,7 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto: Valmistumispyynto
     ) {
         val opintooikeus = valmistumispyynto.opintooikeus
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!,
             templateName = "valmistumispyyntoTarkastettavissaVastuuhenkilo.html",
             titleKey = "email.valmistumispyyntoTarkastettavissaVastuuhenkilo.title",
@@ -1000,7 +1023,7 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto: Valmistumispyynto
     ) {
         val opintooikeus = valmistumispyynto.opintooikeus
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!,
             templateName = "valmistumispyyntoTarkastettavissaYek.html",
             titleKey = "email.yekValmistumispyyntoTarkastettavissa.title",
@@ -1011,7 +1034,7 @@ class ValmistumispyyntoServiceImpl(
     private fun sendMailNotificationOsaamisenArvioijaPalauttanut(
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
             templateName = "valmistumispyyntoPalautettuErikoistuja.html",
             titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
@@ -1022,7 +1045,7 @@ class ValmistumispyyntoServiceImpl(
     private fun sendMailNotificationVirkailijaPalauttanut(
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
             templateName = "valmistumispyyntoPalautettuErikoistuja.html",
             titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
@@ -1033,7 +1056,7 @@ class ValmistumispyyntoServiceImpl(
     private fun sendMailNotificationHyvaksyjaPalauttanut(
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
             templateName = "valmistumispyyntoPalautettuErikoistuja.html",
             titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
@@ -1043,7 +1066,7 @@ class ValmistumispyyntoServiceImpl(
         val nimi = valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()
 
         if (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
-            mailService.sendEmailFromTemplate(
+            transactionalMailService.sendEmailFromTemplate(
                 valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
                 templateName = "valmistumispyyntoPalautettuMuutYek.html",
                 titleKey = "email.valmistumispyyntoPalautettuMuut.title",
@@ -1051,7 +1074,7 @@ class ValmistumispyyntoServiceImpl(
                 properties = mapOf(Pair(MailProperty.NAME, nimi.toString()))
             )
         } else {
-            mailService.sendEmailFromTemplate(
+            transactionalMailService.sendEmailFromTemplate(
                 valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
                 templateName = "valmistumispyyntoPalautettuMuut.html",
                 titleKey = "email.valmistumispyyntoPalautettuMuut.title",
@@ -1064,14 +1087,14 @@ class ValmistumispyyntoServiceImpl(
     private fun sendMailNotificationHyvaksytty(
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
             templateName = "valmistumispyyntoHyvaksytty.html",
             titleKey = "email.valmistumispyyntoHyvaksytty.title",
             properties = mapOf()
         )
 
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoHyvaksyttyVirkailija.html",
             titleKey = "email.valmistumispyyntoHyvaksytty.title",
@@ -1084,14 +1107,14 @@ class ValmistumispyyntoServiceImpl(
     private fun sendMailNotificationHyvaksyttyYek(
         valmistumispyynto: Valmistumispyynto
     ) {
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
             templateName = "valmistumispyyntoHyvaksyttyYek.html",
             titleKey = "email.yekValmistumispyyntoHyvaksytty.title",
             properties = mapOf()
         )
 
-        mailService.sendEmailFromTemplate(
+        transactionalMailService.sendEmailFromTemplate(
             valmistumispyynto.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
             templateName = "valmistumispyyntoHyvaksyttyYekVirkailija.html",
             titleKey = "email.yekValmistumispyyntoHyvaksytty.title",
