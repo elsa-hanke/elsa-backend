@@ -24,7 +24,7 @@ phases:
       - chmod +x gradlew
   build:
     commands:
-      - ./gradlew externalIntegrationTests -x jar
+      - ./gradlew externalIntegrationTests
 #      - |
 #        aws s3 cp "$APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION" /tmp/hy-sisu.crt
 #        aws s3 cp "$APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION" /tmp/hy-sisu.key
