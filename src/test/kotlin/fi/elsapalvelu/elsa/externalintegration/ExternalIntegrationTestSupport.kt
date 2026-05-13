@@ -33,6 +33,6 @@ abstract class ExternalIntegrationTestSupport {
 
     protected companion object {
         /** Finnish personal identity code used in all external integration tests. */
-        const val HETU = "030884-227C"
+        const val HETU = "210281-9988"
     }
 }
