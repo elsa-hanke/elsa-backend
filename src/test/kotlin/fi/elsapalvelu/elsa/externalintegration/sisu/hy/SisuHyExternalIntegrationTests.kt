@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.externalintegration.sisu.hy
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
@@ -78,10 +79,10 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
 )
 class SisuHyExternalIntegrationTestApplication {
     @Bean
-    fun objectMapperCustomizer(): Jackson2ObjectMapperBuilderCustomizer =
-        Jackson2ObjectMapperBuilderCustomizer {
-            it.featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        }
+    fun objectMapper(): ObjectMapper = ObjectMapper()
+        .registerModule(KotlinModule.Builder().build())
+        .registerModule(JavaTimeModule())
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     @Bean
     fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
