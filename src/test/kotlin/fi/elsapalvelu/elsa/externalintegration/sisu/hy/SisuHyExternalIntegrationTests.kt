@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
@@ -72,6 +73,7 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
 }
 
 @SpringBootConfiguration
+@EnableAutoConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     SisuHyClientBuilderImpl::class,
@@ -81,10 +83,10 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
 )
 class SisuHyExternalIntegrationTestApplication {
     @Bean
-    fun objectMapper(): ObjectMapper = ObjectMapper()
-        .registerModule(KotlinModule.Builder().build())
-        .registerModule(JavaTimeModule())
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    fun jacksonCustomizer(): Jackson2ObjectMapperBuilderCustomizer =
+        Jackson2ObjectMapperBuilderCustomizer {
+            it.featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        }
 
     @Bean
     fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
