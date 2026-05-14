@@ -5,7 +5,7 @@ application:
       host: ${APPLICATION_ARKISTOINTI_TRE_HOST}
       port: ${APPLICATION_ARKISTOINTI_TRE_PORT}
       user: ${APPLICATION_ARKISTOINTI_TRE_USER}
-      private-key-location: classpath:dslihfsdli
+      private-key-location: ${APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION}
       metadata:
         zip-metadata: true
         contact:
