@@ -1,4 +1,38 @@
 application:
+  arkistointi:
+    tre:
+      kaytossa: ${APPLICATION_ARKISTOINTI_TRE_KAYTOSSA:true}
+      host: ${APPLICATION_ARKISTOINTI_TRE_HOST}
+      port: ${APPLICATION_ARKISTOINTI_TRE_PORT}
+      user: ${APPLICATION_ARKISTOINTI_TRE_USER}
+      private-key-location: ${APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION}
+      metadata:
+        zip-metadata: true
+        contact:
+          person: ${APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_PERSON}
+          address: ${APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_ADDRESS}
+          phone: ${APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_PHONE}
+          email: ${APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_EMAIL}
+        organisation: "TAU"
+        retention-period: "-1"
+        retention-reason: "Sisältää henkilötietoja"
+        cases:
+          valmistuminen:
+            title: "Valmistuminen"
+            type: "Valmistuminen"
+            function: "04.02.05"
+            documents:
+              yhteenveto:
+                retention-period: "20"
+              liite:
+                retention-period: "10"
+          koejakso:
+            title: "Koejakson arviointi"
+            type: "Koejakson arviointi"
+            function: "04.01.04"
+            documents:
+              arviointi:
+                retention-period: "-1"
   security:
     peppioulu:
       token: ${APPLICATION_SECURITY_PEPPI_OULU_TOKEN}
