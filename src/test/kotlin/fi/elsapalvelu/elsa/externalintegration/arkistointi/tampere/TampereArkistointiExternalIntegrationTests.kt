@@ -233,7 +233,6 @@ class TampereArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppor
  * require its own network credentials + HKI SFTP access.
  */
 @SpringBootConfiguration
-@EnableAutoConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     TampereLouhiService::class,
