@@ -3,7 +3,7 @@ env:
   variables:
     APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION: s3://elsa-dev-cert-bucket/hy-sisu.crt
     APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION: s3://elsa-dev-cert-bucket/hy-sisu.key
-    APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION: s3://elsa-staging-cert-bucket/id_ed25519_louhi_elsatest
+    APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION: s3://elsa-dev-cert-bucket/id_ed25519_louhi_elsatest
   parameter-store:
     APPLICATION_SECURITY_PEPPI_OULU_TOKEN: /dev/application/peppioulu/token
     APPLICATION_SECURITY_PEPPI_TURKU_API_KEY: /dev/application/peppiturku/apikey
