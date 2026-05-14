@@ -1,11 +1,11 @@
 application:
   arkistointi:
     tre:
-      kaytossa: ${APPLICATION_ARKISTOINTI_TRE_KAYTOSSA:true}
+      kaytossa: true
       host: ${APPLICATION_ARKISTOINTI_TRE_HOST}
       port: ${APPLICATION_ARKISTOINTI_TRE_PORT}
       user: ${APPLICATION_ARKISTOINTI_TRE_USER}
-      private-key-location: ${APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION}
+      private-key-location: classpath:dslihfsdli
       metadata:
         zip-metadata: true
         contact:
