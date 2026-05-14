@@ -51,6 +51,7 @@ class PeppiUefExternalIntegrationTests : FetchingServiceExternalIntegrationBase(
 }
 
 @SpringBootConfiguration
+@EnableAutoConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     PeppiUefClientBuilderImpl::class,
