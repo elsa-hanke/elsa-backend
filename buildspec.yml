@@ -15,6 +15,13 @@ env:
     APPLICATION_SECURITY_SISU_TRE_SCOPE_ID: /dev/application/sisutre/scopeid
     APPLICATION_SECURITY_SISU_TRE_SUBSCRIPTION_KEY: /dev/application/sisutre/subscriptionkey
     APPLICATION_SECURITY_SISU_TRE_TENANT_ID: /dev/application/sisutre/tenantid
+    APPLICATION_ARKISTOINTI_TRE_HOST: /dev/codebuild/arkistointi/tre/host
+    APPLICATION_ARKISTOINTI_TRE_PORT: /dev/codebuild/arkistointi/tre/port
+    APPLICATION_ARKISTOINTI_TRE_USER: /dev/codebuild/arkistointi/tre/user
+    APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_PERSON: /dev/codebuild/arkistointi/tre/contact/person
+    APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_ADDRESS: /dev/codebuild/arkistointi/tre/contact/address
+    APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_PHONE: /dev/codebuild/arkistointi/tre/contact/phone
+    APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_EMAIL: /dev/codebuild/arkistointi/tre/contact/email
 phases:
   install:
     runtime-versions:
