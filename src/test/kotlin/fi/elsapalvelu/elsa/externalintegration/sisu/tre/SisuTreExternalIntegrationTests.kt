@@ -71,7 +71,6 @@ class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase()
 }
 
 @SpringBootConfiguration
-@EnableAutoConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     AuthenticationTokenClientBuilderImpl::class,

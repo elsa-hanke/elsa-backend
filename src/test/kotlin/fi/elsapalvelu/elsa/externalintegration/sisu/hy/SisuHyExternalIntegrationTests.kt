@@ -73,7 +73,6 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
 }
 
 @SpringBootConfiguration
-@EnableAutoConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     SisuHyClientBuilderImpl::class,

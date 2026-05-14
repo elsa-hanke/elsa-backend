@@ -51,7 +51,6 @@ class PeppiTurkuExternalIntegrationTests : FetchingServiceExternalIntegrationBas
 }
 
 @SpringBootConfiguration
-@EnableAutoConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     PeppiTurkuClientBuilderImpl::class,
