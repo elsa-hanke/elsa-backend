@@ -25,14 +25,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 
-/**
- * External integration tests for Peppi Turku (REST/JSON).
- *
- * Tests [PeppiTurkuOpintotietodataFetchingServiceImpl] and
- * [PeppiTurkuOpintosuorituksetFetchingServiceImpl] – including the shared
- * [PeppiCommonOpintotietodataFetchingServiceImpl] / [PeppiCommonOpintosuorituksetFetchingServiceImpl]
- * business logic – against the real Turku test endpoint.
- */
 @SpringBootTest(classes = [PeppiTurkuExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
 class PeppiTurkuExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
@@ -48,6 +40,8 @@ class PeppiTurkuExternalIntegrationTests : FetchingServiceExternalIntegrationBas
 
     override val opintosuorituksetService: OpintosuorituksetFetchingService
         get() = peppiTurkuOpintosuorituksetFetchingServiceImpl
+
+    override fun getTestHetu() = "030884-227C"
 }
 
 @SpringBootConfiguration

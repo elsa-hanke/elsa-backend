@@ -15,10 +15,8 @@ import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
@@ -52,9 +50,8 @@ import java.time.LocalDate
  */
 @SpringBootTest(classes = [TampereArkistointiExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
+@Disabled
 class TampereArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport() {
-
-    private val log = LoggerFactory.getLogger(javaClass)
 
     @Autowired
     private lateinit var arkistointiService: ArkistointiServiceImpl

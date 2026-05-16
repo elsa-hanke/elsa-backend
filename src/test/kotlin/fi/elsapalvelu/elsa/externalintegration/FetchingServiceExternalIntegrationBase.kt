@@ -1,79 +1,223 @@
 package fi.elsapalvelu.elsa.externalintegration
 
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
+import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
+import fi.elsapalvelu.elsa.service.dto.OpintosuoritusOsakokonaisuusDTO
+import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
+import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 
-/**
- * Abstract base for external integration tests that verify [OpintotietodataFetchingService] and
- * [OpintosuorituksetFetchingService] implementations against real (test-environment) endpoints.
- *
- * Each concrete subclass provides its own minimal Spring context via
- * `@SpringBootTest(classes = [...])` and overrides the two service properties with `@Autowired`.
- * JUnit 5 discovers the `@Test` methods through the class hierarchy, so no boilerplate test
- * duplication is needed in the subclasses.
- *
- * Goal: ensure that network connectivity, authentication, and JSON/GraphQL deserialization all
- * continue to work correctly when dependencies are upgraded.
- */
 abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestSupport() {
 
-    /** Provided by the concrete test class via `@Autowired override lateinit var`. */
     protected abstract val opintotietodataService: OpintotietodataFetchingService
 
-    /** Provided by the concrete test class via `@Autowired override lateinit var`. */
     protected abstract val opintosuorituksetService: OpintosuorituksetFetchingService
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    protected open fun getTestHetu() = "210281-9988"
 
-    /**
-     * Verifies that [OpintotietodataFetchingService.fetchOpintotietodata] can reach the external
-     * endpoint, authenticate, and deserialize the response into an [OpintotietodataDTO] without
-     * errors. Also validates that every returned opintooikeus belongs to the correct yliopisto.
-     */
     @Test
     fun shouldFetchOpintotietodataWithoutErrors() {
         val yliopisto = opintotietodataService.getYliopisto()
-        log.info("Testing fetchOpintotietodata for {}", yliopisto)
+        log.info("Testing fetchOpintotietodata for {}, for hetu {}", yliopisto, getTestHetu())
 
-        val result = runBlocking { opintotietodataService.fetchOpintotietodata(HETU) }
+        val result = runBlocking { opintotietodataService.fetchOpintotietodata(getTestHetu()) }
 
         log.info(
             "fetchOpintotietodata result for {}: syntymaaika={}, opintooikeusCount={}",
             yliopisto, result?.syntymaaika, result?.opintooikeudet?.size
         )
-        assertValidOpintotietodata(result)
-        result!!.opintooikeudet?.forEach { oikeus ->
-            assertThat(oikeus.yliopisto)
-                .describedAs("Every opintooikeus must belong to the correct yliopisto")
-                .isEqualTo(yliopisto)
+        assertValidOpintotietodata(result, yliopisto)
+    }
+
+    protected open fun assertValidOpintotietodata(result: OpintotietodataDTO?, yliopisto: YliopistoEnum?) {
+        assertThat(result)
+            .describedAs("fetchOpintotietodata must not return null (indicates network/parsing failure)")
+            .isNotNull
+        assertThat(result?.opintooikeudet)
+            .describedAs("fetchOpintotietodata should return at least one opintooikeus for test hetu")
+            .isNotNull
+            .isNotEmpty
+
+        result?.opintooikeudet?.forEach {
+            log(it)
+
+            assertThat(result.opintooikeudet)
+                .describedAs("opintooikeudet must not be empty")
+                .isNotNull
+                .isNotEmpty
+
+            assertThat(result.opintooikeudet)
+                .allSatisfy {
+
+                    assertThat(it.id)
+                        .describedAs("id should be populated")
+                        .isNotBlank
+
+                    assertThat(it.opintooikeudenAlkamispaiva)
+                        .describedAs("start date should be populated")
+                        .isNotNull
+
+                    assertThat(it.opintooikeudenPaattymispaiva)
+                        .describedAs("end date should be populated")
+                        .isNotNull
+
+                    assertThat(it.asetus)
+                        .describedAs("asetus should be populated")
+                        .isNotBlank
+
+                    assertThat(it.tila)
+                        .describedAs("tila should be populated")
+                        .isNotNull
+
+                    assertThat(it.yliopisto)
+                        .describedAs("yliopisto should be populated")
+                        .isEqualTo(yliopisto)
+
+                    assertThat(it.opintooikeudenPaattymispaiva)
+                        .describedAs("end date should not be before start date")
+                        .isAfterOrEqualTo(it.opintooikeudenAlkamispaiva)
+                }
         }
     }
 
-    /**
-     * Verifies that [OpintosuorituksetFetchingService.fetchOpintosuoritukset] can reach the
-     * external endpoint, authenticate, and deserialize the response without errors.
-     * The items list may legitimately be empty if the test person has no suoritukset in that
-     * system, but the DTO itself must never be null (null ⇒ exception was swallowed).
-     */
+    private fun log(data: OpintotietoOpintooikeusDataDTO) {
+        log.info(
+            """
+        id=${data.id},
+        opintooikeudenAlkamispaiva=${data.opintooikeudenAlkamispaiva},
+        opintooikeudenPaattymispaiva=${data.opintooikeudenPaattymispaiva},
+        asetus=${data.asetus},
+        erikoisalaTunnisteList=${data.erikoisalaTunnisteList},
+        tila=${data.tila},
+        yliopisto=${data.yliopisto},
+        opiskelijatunnus=${data.opiskelijatunnus}
+        """.trimIndent()
+        )
+    }
+
+
     @Test
     fun shouldFetchOpintosuorituksetWithoutErrors() {
         val yliopisto = opintosuorituksetService.getYliopisto()
-        log.info("Testing fetchOpintosuoritukset for {}", yliopisto)
+        log.info("Testing fetchOpintosuoritukset for {}, for hetu {}", yliopisto, getTestHetu())
 
-        val result = runBlocking { opintosuorituksetService.fetchOpintosuoritukset(HETU) }
+        val result = runBlocking { opintosuorituksetService.fetchOpintosuoritukset(getTestHetu()) }
 
         log.info(
             "fetchOpintosuoritukset result for {}: yliopisto={}, itemCount={}",
             yliopisto, result?.yliopisto, result?.items?.size
         )
-        assertValidOpintosuoritukset(result)
-        assertThat(result!!.yliopisto)
-            .describedAs("Returned yliopisto must match the service's declared yliopisto")
+
+        assertValidOpintosuoritukset(result, yliopisto)
+    }
+
+    protected open fun assertValidOpintosuoritukset(
+        result: OpintosuorituksetPersistenceDTO?,
+        yliopisto: YliopistoEnum?
+    ) {
+        assertThat(result)
+            .describedAs("fetchOpintosuoritukset must not return null (indicates network/parsing failure)")
+            .isNotNull
+
+        assertThat(result?.items)
+            .describedAs("items must not be null or empty")
+            .isNotNull
+            .isNotEmpty
+
+        assertThat(result?.yliopisto)
+            .describedAs("yliopisto should match service yliopisto")
             .isEqualTo(yliopisto)
+
+        result?.items?.forEach { suoritus ->
+
+            log(suoritus)
+
+            assertThat(suoritus.nimi_fi)
+                .describedAs("nimi_fi should be populated")
+                .isNotBlank
+
+            assertThat(suoritus.kurssikoodi)
+                .describedAs("kurssikoodi should be populated")
+                .isNotBlank
+
+            assertThat(suoritus.opintopisteet)
+                .describedAs("opintopisteet should be populated")
+                .isNotNull
+                .isGreaterThanOrEqualTo(0.0)
+
+            assertThat(suoritus.hyvaksytty)
+                .describedAs("hyvaksytty should be populated")
+                .isNotNull
+
+            assertThat(suoritus.yliopistoOpintooikeusId)
+                .describedAs("yliopistoOpintooikeusId should be populated")
+                .isNotBlank
+
+            suoritus.osakokonaisuudet?.forEach { osakokonaisuus ->
+
+                log(osakokonaisuus)
+
+                assertThat(osakokonaisuus.nimi_fi)
+                    .describedAs("osakokonaisuus.nimi_fi should be populated")
+                    .isNotBlank
+
+                assertThat(osakokonaisuus.kurssikoodi)
+                    .describedAs("osakokonaisuus.kurssikoodi should be populated")
+                    .isNotBlank
+
+                assertThat(osakokonaisuus.opintopisteet)
+                    .describedAs("osakokonaisuus.opintopisteet should be populated")
+                    .isNotNull
+                    .isGreaterThanOrEqualTo(0.0)
+
+                assertThat(osakokonaisuus.hyvaksytty)
+                    .describedAs("osakokonaisuus.hyvaksytty should be populated")
+                    .isNotNull
+            }
+        }
+    }
+
+    private fun log(data: OpintosuoritusDTO) {
+        log.info(
+            """
+        id=${data.id},
+        nimi_fi=${data.nimi_fi},
+        nimi_sv=${data.nimi_sv},
+        kurssikoodi=${data.kurssikoodi},
+        tyyppi=${data.tyyppi?.nimi},
+        suorituspaiva=${data.suorituspaiva},
+        opintopisteet=${data.opintopisteet},
+        hyvaksytty=${data.hyvaksytty},
+        arvio_fi=${data.arvio_fi},
+        arvio_sv=${data.arvio_sv},
+        vanhenemispaiva=${data.vanhenemispaiva},
+        yliopistoOpintooikeusId=${data.yliopistoOpintooikeusId},
+        osakokonaisuudetCount=${data.osakokonaisuudet?.size}
+        """.trimIndent()
+        )
+    }
+
+    private fun log(data: OpintosuoritusOsakokonaisuusDTO) {
+        log.info(
+            """
+        osakokonaisuus.id=${data.id},
+        nimi_fi=${data.nimi_fi},
+        nimi_sv=${data.nimi_sv},
+        kurssikoodi=${data.kurssikoodi},
+        suorituspaiva=${data.suorituspaiva},
+        opintopisteet=${data.opintopisteet},
+        hyvaksytty=${data.hyvaksytty},
+        arvio_fi=${data.arvio_fi},
+        arvio_sv=${data.arvio_sv},
+        vanhenemispaiva=${data.vanhenemispaiva}
+        """.trimIndent()
+        )
     }
 }
 

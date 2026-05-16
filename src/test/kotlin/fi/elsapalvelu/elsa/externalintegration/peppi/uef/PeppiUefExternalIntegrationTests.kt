@@ -1,9 +1,6 @@
 package fi.elsapalvelu.elsa.externalintegration.peppi.uef
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
@@ -25,14 +22,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 
-/**
- * External integration tests for Peppi UEF (REST/JSON).
- *
- * Tests [PeppiUefOpintotietodataFetchingServiceImpl] and
- * [PeppiUefOpintosuorituksetFetchingServiceImpl] – including the shared
- * [PeppiCommonOpintotietodataFetchingServiceImpl] / [PeppiCommonOpintosuorituksetFetchingServiceImpl]
- * business logic – against the real UEF test endpoint.
- */
 @SpringBootTest(classes = [PeppiUefExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
 class PeppiUefExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
@@ -48,6 +37,8 @@ class PeppiUefExternalIntegrationTests : FetchingServiceExternalIntegrationBase(
 
     override val opintosuorituksetService: OpintosuorituksetFetchingService
         get() = peppiUefOpintosuorituksetFetchingServiceImpl
+
+    override fun getTestHetu() = "130560-9972"
 }
 
 @SpringBootConfiguration

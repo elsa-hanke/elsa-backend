@@ -18,14 +18,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 
-/**
- * External integration tests for Peppi Oulu (GraphQL/Apollo).
- *
- * Tests [PeppiOuluOpintotietodataFetchingServiceImpl] and
- * [PeppiOuluOpintosuorituksetFetchingServiceImpl] against the real Oulu test endpoint.
- * The inherited [@Test] methods from [FetchingServiceExternalIntegrationBase] cover both
- * opintotietodata and opintosuoritukset in a single, consistent pass.
- */
 @SpringBootTest(classes = [PeppiOuluExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
 @Disabled
