@@ -163,7 +163,7 @@ tasks.register('cleanResources', Delete) {
 }
 
 wrapper {
-    gradleVersion = "8.14.4"
+    gradleVersion = "8.14.5"
 }
 
 testlogger {
