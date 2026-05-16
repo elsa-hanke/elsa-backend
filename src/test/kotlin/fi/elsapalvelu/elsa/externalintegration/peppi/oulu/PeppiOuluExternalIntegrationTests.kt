@@ -20,7 +20,6 @@ import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(classes = [PeppiOuluExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class PeppiOuluExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
