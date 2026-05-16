@@ -20,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(classes = [PeppiOuluExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
+@Disabled
 class PeppiOuluExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
@@ -33,6 +34,8 @@ class PeppiOuluExternalIntegrationTests : FetchingServiceExternalIntegrationBase
 
     override val opintosuorituksetService: OpintosuorituksetFetchingService
         get() = peppiOuluOpintosuorituksetFetchingServiceImpl
+
+    override fun getTestHetu() = "130560-9972"
 }
 
 @SpringBootConfiguration
