@@ -193,7 +193,7 @@ testlogger {
     showSkipped = true
     showFailed = true
     showOnlySlow = false
-    showStandardStreams = true
+    showStandardStreams = false
     showPassedStandardStreams = true
     showSkippedStandardStreams = true
     showFailedStandardStreams = true

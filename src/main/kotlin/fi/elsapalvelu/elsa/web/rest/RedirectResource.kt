@@ -39,19 +39,14 @@ class RedirectResource(private val env: Environment) {
             val errorCode = exception.saml2Error.errorCode
 
             when {
-                // IdP-side error (e.g. user cancelled, IdP session expired, IdP internal error).
-                // Nothing we can do — log quietly to avoid noise.
                 errorCode == Saml2ErrorCodes.INVALID_RESPONSE &&
                     exception.message?.contains("Responder") == true -> {
                     val sourceIpAddress = getSourceIpAddress()
                     log.info("IdP returned Responder status, source IP: $sourceIpAddress, error: $exception")
                 }
 
-                // Relying party not found — expected for unregistered SPs, no need to log.
                 errorCode == Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND -> Unit
 
-                // Genuinely unexpected — keep visible but warn rather than error
-                // since the root cause is still outside our system.
                 else -> {
                     val sourceIpAddress = getSourceIpAddress()
                     log.error("Unhandled authentication exception: $exception, source IP: $sourceIpAddress")

@@ -35,13 +35,6 @@ phases:
       - aws s3 cp "$APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION" /tmp/louhi_elsatest
       - chmod 600 /tmp/louhi_elsatest
       - APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION=file:/tmp/louhi_elsatest ./gradlew externalIntegrationTests
-#      - |
-#        aws s3 cp "$APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION" /tmp/hy-sisu.crt
-#        aws s3 cp "$APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION" /tmp/hy-sisu.key
-#        chmod 600 /tmp/hy-sisu.crt /tmp/hy-sisu.key
-#        APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION=file:/tmp/hy-sisu.crt \
-#        APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION=file:/tmp/hy-sisu.key \
-#        ./gradlew externalIntegrationTests -x jar
   post_build:
     commands:
       - echo "Build status $CODEBUILD_BUILD_SUCCEEDING"
