@@ -32,8 +32,8 @@ class HelsinkiSiiloService(
         val url = "${arkistointiProperties.host}/unisign/elsa/archive/$siiloKoodi"
 
         val zipFile = File(zipFilePath)
-        if (!zipFile.exists()) {
-            throw IllegalArgumentException("Arkistointitiedostoa ei löydy: $zipFilePath")
+        require(zipFile.exists()) {
+            "Arkistointitiedostoa ei löydy: $zipFilePath"
         }
 
         val requestBody = MultipartBody.Builder()
@@ -44,7 +44,7 @@ class HelsinkiSiiloService(
                 zipFile.asRequestBody("application/zip".toMediaType())
             )
             .build()
-        val apiKey = arkistointiProperties.apiKey ?: throw IllegalStateException("Siilo api-avain puuttuu")
+        val apiKey = arkistointiProperties.apiKey ?: error("Siilo api-avain puuttuu")
         val request = Request.Builder()
             .url(url)
             .addHeader("X-Api-Key", apiKey)

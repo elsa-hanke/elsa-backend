@@ -90,7 +90,6 @@ enum class KoejaksoTila {
         fun fromVastuuhenkilonArvio(
             loppukeskusteluHyvaksytty: Boolean,
             vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO?,
-            userId: String? = null,
             virkailija: Boolean = false,
             vastuuhenkilo: Boolean = false
         ): KoejaksoTila {

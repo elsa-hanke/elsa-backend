@@ -191,7 +191,7 @@ class KoejaksonVaiheetServiceImpl(
                 return@forEach
             }
             resultMap[opintooikeusId] = mutableListOf()
-            val result = mapVastuuhenkilonArvio(it.value, kayttaja.user?.id!!)
+            val result = mapVastuuhenkilonArvio(it.value)
 
             if (!vainAvoimet) {
                 result.apply {
@@ -613,12 +613,11 @@ class KoejaksonVaiheetServiceImpl(
 
     private fun mapVastuuhenkilonArvio(
         vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
-        userId: String
     ): KoejaksonVaiheDTO {
         return KoejaksonVaiheDTO(
             vastuuhenkilonArvioDTO.id,
             KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
-            KoejaksoTila.fromVastuuhenkilonArvio(true, vastuuhenkilonArvioDTO, userId, vastuuhenkilo = true),
+            KoejaksoTila.fromVastuuhenkilonArvio(true, vastuuhenkilonArvioDTO, vastuuhenkilo = true),
             vastuuhenkilonArvioDTO.erikoistuvanNimi,
             vastuuhenkilonArvioDTO.erikoistuvanAvatar,
             vastuuhenkilonArvioDTO.muokkauspaiva

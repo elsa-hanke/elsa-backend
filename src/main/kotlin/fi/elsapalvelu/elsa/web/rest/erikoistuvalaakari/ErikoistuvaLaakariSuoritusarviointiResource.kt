@@ -45,9 +45,6 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private val fileValidationService: FileValidationService
 ) {
 
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
-
     @GetMapping("/suoritusarvioinnit-rajaimet")
     fun getSuoritusarvioinnitRajaimet(
         principal: Principal?
