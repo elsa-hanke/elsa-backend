@@ -34,7 +34,6 @@ class KoejaksonVaiheetServiceImpl(
     private val kehittamistoimenpiteetMapper: KoejaksonKehittamistoimenpiteetMapper,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
     private val koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper,
-    private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService,
     private val vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
     private val vastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper,
     private val kayttajaRepository: KayttajaRepository,

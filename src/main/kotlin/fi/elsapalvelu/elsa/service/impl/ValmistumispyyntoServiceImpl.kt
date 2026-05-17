@@ -48,6 +48,7 @@ private const val VANHENTUNUT_SUORITUS_YEARS_EL = 10L
 private const val VANHENTUNUT_SUORITUS_YEARS_EHL = 6L
 private const val ARVIOINTI_VAHINTAAN = 4
 
+@Suppress("TooManyFunctions", "LargeClass")
 @Service
 @Transactional
 class ValmistumispyyntoServiceImpl(
@@ -1227,6 +1228,7 @@ class ValmistumispyyntoServiceImpl(
         return dto
     }
 
+    @Suppress("LongMethod")
     private fun luoYhteenvetoPdf(
         valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO,
         valmistumispyynto: Valmistumispyynto

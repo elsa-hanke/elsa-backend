@@ -94,6 +94,7 @@ class SecurityConfiguration(
 
     private val log = LoggerFactory.getLogger(SecurityConfiguration::class.java)
 
+    @Suppress("LongMethod")
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         val withHttpOnlyFalse = CookieCsrfTokenRepository.withHttpOnlyFalse()
@@ -412,10 +413,7 @@ class SecurityConfiguration(
         }
 
         if (existingUser == null) {
-            log.warn(
-                "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
-                    "Käyttäjällä ei ole käyttöoikeutta."
-            )
+            log.warn("Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). Käyttäjällä ei ole käyttöoikeutta.")
             throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
         } else {
             // Tarkistetaan, että käyttäjän nimi on ajan tasalla

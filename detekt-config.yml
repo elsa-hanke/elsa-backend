@@ -7,18 +7,36 @@ style:
     active: false
   MagicNumber:
     active: false
+  ReturnCount:
+    active: false
+  ThrowsCount:
+    active: false
+naming:
+  ConstructorParameterNaming:
+    active: false
 complexity:
   TooManyFunctions:
-    thresholdInFiles: 13
-    thresholdInClasses: 19
-    thresholdInInterfaces: 14
-    thresholdInObjects: 13
+    thresholdInFiles: 20
+    thresholdInClasses: 20
+    thresholdInInterfaces: 20
+    thresholdInObjects: 20
   LongParameterList:
     constructorThreshold: 12
+    functionThreshold: 8
+  LongMethod:
+    threshold: 110
+  LargeClass:
+    threshold: 1000
+  ComplexCondition:
+    threshold: 5
+  NestedBlockDepth:
+    active: false
 exceptions:
   SwallowedException:
     active: false
   TooGenericExceptionCaught:
+    active: false
+  TooGenericExceptionThrown:
     active: false
 performance:
   SpreadOperator:

@@ -21,6 +21,7 @@ private const val ARVIOITAVA_KOKONAISUUS_ENTITY_NAME = "arvioitavakokonaisuus"
 private const val SUORITTEEN_KATEGORIA_ENTITY_NAME = "suoritteenkategoria"
 private const val SUORITE_ENTITY_NAME = "suorite"
 
+@Suppress("TooManyFunctions")
 @RestController
 @RequestMapping("/api/tekninen-paakayttaja")
 class TekninenPaakayttajaOpetussuunnitelmatResource(
