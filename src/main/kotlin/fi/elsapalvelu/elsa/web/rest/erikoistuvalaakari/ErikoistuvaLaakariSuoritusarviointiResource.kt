@@ -226,8 +226,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
             }
 
-            if (suoritusarviointiDTO.arviointiasteikko != null) {
-                throw IllegalArgumentException("Käytettyä arviointiasteikkoa ei voi muokata")
+            require(suoritusarviointiDTO.arviointiasteikko == null) {
+                "Käytettyä arviointiasteikkoa ei voi muokata"
             }
 
             val newAsiakirjat = getMappedFiles(arviointiFiles) ?: mutableSetOf()

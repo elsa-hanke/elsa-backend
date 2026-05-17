@@ -178,8 +178,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
 
     @DeleteMapping("/arvioitavatkokonaisuudet/{id}")
     fun deleteArvioitavaKokonaisuus(
-        @PathVariable id: Long,
-        principal: Principal?
+        @PathVariable id: Long
     ): ResponseEntity<Void> {
         arvioitavaKokonaisuusService.delete(id)
         return ResponseEntity
@@ -267,8 +266,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
 
     @DeleteMapping("/suoritteet/{id}")
     fun deleteSuorite(
-        @PathVariable id: Long,
-        principal: Principal?
+        @PathVariable id: Long
     ): ResponseEntity<Void> {
         suoriteService.delete(id)
         return ResponseEntity

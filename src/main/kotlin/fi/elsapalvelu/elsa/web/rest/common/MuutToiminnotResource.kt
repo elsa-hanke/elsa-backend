@@ -20,23 +20,17 @@ class MuutToiminnotResource(
     private val arviointityokaluService: ArviointityokaluService
 ) {
     @GetMapping("/yliopistot")
-    fun getYliopistot(
-        principal: Principal?
-    ): ResponseEntity<List<YliopistoDTO>> {
+    fun getYliopistot(): ResponseEntity<List<YliopistoDTO>> {
         return ResponseEntity.ok(yliopistoService.findAll())
     }
 
     @GetMapping("/haka-yliopistot")
-    fun getHakaYliopistot(
-        principal: Principal?
-    ): ResponseEntity<List<HakaYliopistoDTO>> {
+    fun getHakaYliopistot(): ResponseEntity<List<HakaYliopistoDTO>> {
         return ResponseEntity.ok(yliopistoService.findAllHaka())
     }
 
     @GetMapping("/arviointityokalut")
-    fun getArviointityokalut(
-        principal: Principal?
-    ): ResponseEntity<List<ArviointityokaluDTO>> {
+    fun getArviointityokalut(): ResponseEntity<List<ArviointityokaluDTO>> {
         val arviointityokaluDTO = arviointityokaluService.findAllJulkaistu()
         return ResponseEntity.ok(arviointityokaluDTO)
     }

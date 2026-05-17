@@ -84,12 +84,12 @@ data class KoejaksonAloituskeskustelu(
 ) : Serializable {
 
     @PrePersist
-    protected fun onCreate() {
+    fun onCreate() {
         muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
     }
 
     @PreUpdate
-    protected fun onUpdate() {
+    fun onUpdate() {
         muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
     }
 

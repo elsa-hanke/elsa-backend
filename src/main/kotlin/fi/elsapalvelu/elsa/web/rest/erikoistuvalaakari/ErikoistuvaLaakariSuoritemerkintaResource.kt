@@ -30,9 +30,6 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     private val suoriteService: SuoriteService
 ) {
 
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
-
     @PostMapping("/suoritemerkinnat")
     fun createSuoritemerkinta(
         @Valid @RequestBody uusiSuoritemerkintaDTO: UusiSuoritemerkintaDTO,
@@ -64,8 +61,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
 
-        if (suoritemerkintaDTO.arviointiasteikko != null) {
-            throw IllegalArgumentException("Käytettyä arviointiasteikkoa ei voi muokata")
+        require(suoritemerkintaDTO.arviointiasteikko == null) {
+            "Käytettyä arviointiasteikkoa ei voi muokata"
         }
 
         suoritemerkintaDTO.lukittu = false
