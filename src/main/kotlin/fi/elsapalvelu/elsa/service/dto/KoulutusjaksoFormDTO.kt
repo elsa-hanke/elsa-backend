@@ -12,4 +12,8 @@ class KoulutusjaksoFormDTO(
 
 ) : Serializable {
     override fun toString() = "KoulutusjaksoFormDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

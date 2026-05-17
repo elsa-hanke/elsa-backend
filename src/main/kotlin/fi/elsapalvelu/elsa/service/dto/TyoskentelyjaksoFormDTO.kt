@@ -12,4 +12,8 @@ class TyoskentelyjaksoFormDTO(
 
 ) : Serializable {
     override fun toString() = "TyoskentelyjaksoFormDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

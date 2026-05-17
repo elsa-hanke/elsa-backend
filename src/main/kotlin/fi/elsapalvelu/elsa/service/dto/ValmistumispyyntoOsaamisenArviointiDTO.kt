@@ -54,6 +54,9 @@ data class ValmistumispyyntoOsaamisenArviointiDTO (
     var vastuuhenkiloHyvaksyjaKorjausehdotus: String? = null
 
 ) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
     override fun toString() = "ValmistumispyyntoOsaamisenArviointiDTO"
 
     override fun hashCode(): Int {
@@ -78,4 +81,3 @@ data class ValmistumispyyntoOsaamisenArviointiDTO (
         return true
     }
 }
-

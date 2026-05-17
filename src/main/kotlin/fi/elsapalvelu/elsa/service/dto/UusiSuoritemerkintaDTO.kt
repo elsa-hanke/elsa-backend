@@ -17,4 +17,8 @@ data class UusiSuoritemerkintaDTO(
 
     var arviointiasteikko: ArviointiasteikkoDTO? = null
 
-) : Serializable
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

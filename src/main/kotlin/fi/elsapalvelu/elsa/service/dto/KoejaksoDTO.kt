@@ -36,5 +36,7 @@ data class KoejaksoDTO(
     var tyoskentelyjaksot: List<TyoskentelyjaksoDTO> = listOf()
 
 ) : Serializable {
-    override fun toString() = "KoejaksoDTO"
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

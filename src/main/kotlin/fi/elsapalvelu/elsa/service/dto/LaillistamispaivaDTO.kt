@@ -18,6 +18,9 @@ data class LaillistamispaivaDTO(
     var laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia: Boolean? = false
 
 ) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 
 
     override fun hashCode() = 31

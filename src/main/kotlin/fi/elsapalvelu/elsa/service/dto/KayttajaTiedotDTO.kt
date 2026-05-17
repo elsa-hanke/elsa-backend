@@ -14,4 +14,8 @@ data class KayttajaTiedotDTO(
 
     var erikoisalat: List<ErikoisalaDTO> = listOf()
 
-) : Serializable
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

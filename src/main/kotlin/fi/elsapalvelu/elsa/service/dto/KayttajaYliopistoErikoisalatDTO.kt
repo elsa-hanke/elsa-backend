@@ -11,4 +11,8 @@ data class KayttajaYliopistoErikoisalatDTO(
     @get: NotNull
     var erikoisalat: List<ErikoisalaDTO>? = null,
 
-    ) : Serializable
+    ) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

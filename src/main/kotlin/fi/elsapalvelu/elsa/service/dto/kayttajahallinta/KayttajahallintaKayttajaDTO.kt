@@ -27,5 +27,9 @@ data class KayttajahallintaKayttajaDTO(
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaKayttajaDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 

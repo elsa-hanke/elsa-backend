@@ -13,5 +13,9 @@ data class KayttajienYhdistaminenResult(
 
     ) : Serializable {
     override fun toString() = "KayttajienYhdistaminenResult"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 
