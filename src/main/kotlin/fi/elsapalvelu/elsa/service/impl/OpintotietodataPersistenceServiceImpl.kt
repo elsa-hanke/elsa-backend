@@ -31,8 +31,6 @@ import java.time.ZoneId
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 
-private const val SUU_JA_LEUKAKIRURGIA_VIRTA_PATEVYYSKOODI = "esl"
-
 @Service
 @Transactional
 class OpintotietodataPersistenceServiceImpl(
@@ -476,13 +474,6 @@ class OpintotietodataPersistenceServiceImpl(
             asetusStr.takeIf { it != opintooikeus.asetus?.nimi }?.let {
                 findAsetusOrLogError(it, opintooikeusDTO.yliopisto, userId)?.let { asetus ->
                     opintooikeus.asetus = asetus
-                    // Oppaan ja osaamisen arvioinnin pvm päivitys ei toimi oikein, poistetaan toistaiseksi
-                    /*handleAsetusUpdated(
-                        opintooikeus,
-                        opintooikeusDTO.opintooikeudenPaattymispaiva,
-                        opintooikeusDTO.yliopisto,
-                        userId
-                    )*/
                 } ?: return
             }
             opintooikeus.muokkausaika = Instant.now()
@@ -521,54 +512,6 @@ class OpintotietodataPersistenceServiceImpl(
         if (user?.lastName != sukunimi) {
             user?.lastName = sukunimi
         }
-    }
-
-    private fun handleAsetusUpdated(
-        existingOpintooikeus: Opintooikeus,
-        newOpintooikeudenPaattymispaiva: LocalDate?,
-        yliopisto: YliopistoEnum,
-        userId: String
-    ) {
-        val opintooikeudenAlkamispaiva = existingOpintooikeus.opintooikeudenMyontamispaiva
-        val erikoisala = existingOpintooikeus.erikoisala
-
-        // Opinto-oikeuden pituus 10 vuotta lääketieteellä sekä hammaslääketieteen suu- ja leukakirurgian erikoisalalla.
-        // Muutoin hammaslääketieteellä 6 vuotta.
-        val defaultOpintooikeudenPituus =
-            when (erikoisala?.tyyppi) {
-                ErikoisalaTyyppi.LAAKETIEDE -> 10
-                ErikoisalaTyyppi.HAMMASLAAKETIEDE -> {
-                    if (erikoisala.virtaPatevyyskoodi == SUU_JA_LEUKAKIRURGIA_VIRTA_PATEVYYSKOODI) 10
-                    else 6
-                }
-
-                else -> 10
-            }
-        // Jos opinto-oikeuden päättymispäivää ei ole asetettu tai opinto-oikeuden pituus on alle 10/6 vuotta
-        // (määräaikainen opinto-oikeus), otetaan asetusmuutoksen yhteydessä käyttöön uusin opinto-opas.
-        val useLatestOpintoopas =
-            newOpintooikeudenPaattymispaiva == null || opintooikeudenAlkamispaiva!!.periodLessThan(
-                newOpintooikeudenPaattymispaiva, defaultOpintooikeudenPituus
-            )
-        val opintoopas =
-            if (useLatestOpintoopas) {
-                findLatestOpintoopasByErikoisalaOrLogError(existingOpintooikeus.erikoisala?.id!!)
-                    ?: return
-            } else {
-                val opintoopasValidDate =
-                    newOpintooikeudenPaattymispaiva!!.minusYears(defaultOpintooikeudenPituus.toLong())
-                findOpintoopasByErikoisalaAndVoimassaDateOrLogWarn(
-                    existingOpintooikeus.erikoisala?.id!!,
-                    opintoopasValidDate,
-                    yliopisto,
-                    userId
-                )
-                    ?: findLatestOpintoopasByErikoisalaOrLogError(existingOpintooikeus.erikoisala?.id!!)
-                    ?: return
-            }
-
-        existingOpintooikeus.opintoopas = opintoopas
-        existingOpintooikeus.osaamisenArvioinninOppaanPvm = opintoopas.voimassaoloAlkaa
     }
 
     private fun findYliopistoOrLogError(yliopisto: YliopistoEnum): Yliopisto? {
