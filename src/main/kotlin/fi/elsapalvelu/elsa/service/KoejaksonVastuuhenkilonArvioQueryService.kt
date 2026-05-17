@@ -58,7 +58,7 @@ class KoejaksonVastuuhenkilonArvioQueryService(
         return koejaksonVastuuhenkilonArvioRepository.findAll(specification, pageable)
     }
 
-    protected fun createSpecification(
+    private fun createSpecification(
         criteria: NimiErikoisalaAndAvoinCriteria?,
         spec: Specification<KoejaksonVastuuhenkilonArvio?>? = null
     ): Specification<KoejaksonVastuuhenkilonArvio?> {

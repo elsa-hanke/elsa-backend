@@ -92,7 +92,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
         return terveyskeskuskoulutusjaksonHyvaksyntaRepository.findAll(specification, pageable)
     }
 
-    protected fun createSpecification(
+    private fun createSpecification(
         criteria: NimiErikoisalaAndAvoinCriteria?,
         spec: Specification<TerveyskeskuskoulutusjaksonHyvaksynta?>? = null
     ): Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> {

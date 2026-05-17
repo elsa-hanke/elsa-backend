@@ -41,9 +41,6 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
         const val ENTITY_NAME = "paivakirjamerkinta"
     }
 
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
-
     @PostMapping("/paivakirjamerkinnat")
     fun createPaivakirjamerkinta(
         @Valid @RequestBody paivakirjamerkintaDTO: PaivakirjamerkintaDTO,

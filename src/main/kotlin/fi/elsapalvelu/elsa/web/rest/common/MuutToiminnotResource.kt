@@ -16,7 +16,6 @@ import java.security.Principal
 @RequestMapping("/api/")
 class MuutToiminnotResource(
     private val yliopistoService: YliopistoService,
-    private val userService: UserService,
     private val arviointityokaluService: ArviointityokaluService
 ) {
     @GetMapping("/yliopistot")

@@ -960,12 +960,6 @@ class ValmistumispyyntoServiceImpl(
         ) ?: throw EntityNotFoundException("Vastuuhenkilöä, joka hyväksyisi valmistumispyynnon, ei löydy.")
     }
 
-    private fun getVirkailijat(yliopistoId: Long) =
-        kayttajaRepository.findAllByAuthoritiesAndRelYliopisto(
-            listOf(OPINTOHALLINNON_VIRKAILIJA),
-            yliopistoId
-        )
-
     private fun sendMailNotificationUusiValmistumispyynto(
         vastuuhenkiloOsaamisenArvioijaUser: User,
         valmistumispyynto: Valmistumispyynto

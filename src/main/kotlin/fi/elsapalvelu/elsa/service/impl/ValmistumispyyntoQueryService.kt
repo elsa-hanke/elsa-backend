@@ -257,17 +257,6 @@ class ValmistumispyyntoQueryService(
         return cb.equal(yliopisto.get(Yliopisto_.id), yliopistoId)
     }
 
-    private fun getErikoisalaPredicate(
-        erikoisalaId: LongFilter?,
-        opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus>,
-        cb: CriteriaBuilder
-    ): Predicate? {
-        return erikoisalaId?.let {
-            val erikoisala: Path<Erikoisala> = opintooikeusJoin.get(Opintooikeus_.erikoisala)
-            cb.equal(erikoisala.get(Erikoisala_.id), erikoisalaId.equals)
-        }
-    }
-
     private fun getErikoisalatPredicate(
         erikoisalaIds: List<Long>,
         opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus>,
