@@ -100,7 +100,23 @@ data class ValmistumispyynnonTarkistus(
     override fun hashCode() = 31
 
     override fun toString(): String {
-        return "ValmistumispyyntoVirkailija(id=$id, valmistumispyynto=$valmistumispyynto, yekSuoritettu=$yekSuoritettu, yekSuorituspaiva=$yekSuorituspaiva, ptlSuoritettu=$ptlSuoritettu, ptlSuorituspaiva=$ptlSuorituspaiva, aiempiElKoulutusSuoritettu=$aiempiElKoulutusSuoritettu, aiempiElKoulutusSuorituspaiva=$aiempiElKoulutusSuorituspaiva, ltTutkintoSuoritettu=$ltTutkintoSuoritettu, ltTutkintoSuorituspaiva=$ltTutkintoSuorituspaiva, yliopistosairaalanUlkopuolinenTyoTarkistettu=$yliopistosairaalanUlkopuolinenTyoTarkistettu, yliopistosairaalatyoTarkistettu=$yliopistosairaalatyoTarkistettu, kokonaistyoaikaTarkistettu=$kokonaistyoaikaTarkistettu, teoriakoulutusTarkistettu=$teoriakoulutusTarkistettu, virkailijanYhteenveto=$virkailijanYhteenveto, kommentitVirkailijoille=$kommentitVirkailijoille, muokkauspaiva=$muokkauspaiva)"
+        return "ValmistumispyyntoVirkailija(id=$id, " +
+            "valmistumispyynto=$valmistumispyynto, " +
+            "yekSuoritettu=$yekSuoritettu, " +
+            "yekSuorituspaiva=$yekSuorituspaiva, " +
+            "ptlSuoritettu=$ptlSuoritettu, " +
+            "ptlSuorituspaiva=$ptlSuorituspaiva, " +
+            "aiempiElKoulutusSuoritettu=$aiempiElKoulutusSuoritettu, " +
+            "aiempiElKoulutusSuorituspaiva=$aiempiElKoulutusSuorituspaiva, " +
+            "ltTutkintoSuoritettu=$ltTutkintoSuoritettu, " +
+            "ltTutkintoSuorituspaiva=$ltTutkintoSuorituspaiva, " +
+            "yliopistosairaalanUlkopuolinenTyoTarkistettu=$yliopistosairaalanUlkopuolinenTyoTarkistettu, " +
+            "yliopistosairaalatyoTarkistettu=$yliopistosairaalatyoTarkistettu, " +
+            "kokonaistyoaikaTarkistettu=$kokonaistyoaikaTarkistettu, " +
+            "teoriakoulutusTarkistettu=$teoriakoulutusTarkistettu, " +
+            "virkailijanYhteenveto=$virkailijanYhteenveto, " +
+            "kommentitVirkailijoille=$kommentitVirkailijoille, " +
+            "muokkauspaiva=$muokkauspaiva)"
     }
 }
 

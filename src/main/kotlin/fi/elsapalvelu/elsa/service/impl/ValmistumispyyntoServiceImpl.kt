@@ -1165,7 +1165,8 @@ class ValmistumispyyntoServiceImpl(
             // YEK teoriakoulutukset lasketaan opintosuoritteista, riittää että yksi suoritus löytyy
             dto.teoriakoulutusSuoritettu =
                 if (opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID) {
-                    if (opintosuoritukset.count { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS } > 0) opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
+                    if (opintosuoritukset.count { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS } > 0)
+                        opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
                     else 0.0
                 } else teoriakoulutukset.filter { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara != null }
                     .sumOf { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara!! }

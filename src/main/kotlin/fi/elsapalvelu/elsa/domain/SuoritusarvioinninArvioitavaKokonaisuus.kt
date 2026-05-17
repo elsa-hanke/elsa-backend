@@ -51,7 +51,11 @@ data class SuoritusarvioinninArvioitavaKokonaisuus(
     override fun hashCode() = 31
 
     override fun toString(): String {
-        return "SuoritusarvioinninArvioitavaKokonaisuus(id=$id, arvioitavaKokonaisuus=$arvioitavaKokonaisuus, itsearviointiArviointiasteikonTaso=$itsearviointiArviointiasteikonTaso, arviointiasteikonTaso=$arviointiasteikonTaso, suoritusarviointi=$suoritusarviointi)"
+        return "SuoritusarvioinninArvioitavaKokonaisuus(id=$id, " +
+            "arvioitavaKokonaisuus=$arvioitavaKokonaisuus, " +
+            "itsearviointiArviointiasteikonTaso=$itsearviointiArviointiasteikonTaso, " +
+            "arviointiasteikonTaso=$arviointiasteikonTaso, " +
+            "suoritusarviointi=$suoritusarviointi)"
     }
 
 
