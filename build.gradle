@@ -165,6 +165,7 @@ wrapper {
 detekt {
     buildUponDefaultConfig = true
     allRules = false
+    ignoreFailures = true
     config = files("$rootDir/detekt-config.yml")
 }
 

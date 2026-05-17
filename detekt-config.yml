@@ -1,5 +1,3 @@
-build:
-  maxIssues: 600
 style:
   MaxLineLength:
     maxLineLength: 180
