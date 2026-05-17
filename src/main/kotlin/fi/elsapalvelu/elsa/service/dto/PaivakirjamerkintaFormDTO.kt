@@ -10,4 +10,8 @@ class PaivakirjamerkintaFormDTO(
 
 ) : Serializable {
     override fun toString() = "PaivakirjamerkintaFormDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

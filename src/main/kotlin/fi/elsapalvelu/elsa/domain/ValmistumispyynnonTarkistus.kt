@@ -99,6 +99,10 @@ data class ValmistumispyynnonTarkistus(
 
     override fun hashCode() = 31
 
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
     override fun toString(): String {
         return "ValmistumispyyntoVirkailija(id=$id, " +
             "valmistumispyynto=$valmistumispyynto, " +

@@ -210,6 +210,8 @@ data class Valmistumispyynto(
                 else -> ValmistumispyynnonTila.HYVAKSYTTY
             }
         }
+
+        private const val serialVersionUID = 1L
     }
 }
 

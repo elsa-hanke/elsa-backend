@@ -20,4 +20,8 @@ data class VastuuhenkilonArvioFormDTO(
 
 ) : Serializable {
     override fun toString() = "VastuuhenkilonArvioFormDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

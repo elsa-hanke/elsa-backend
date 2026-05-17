@@ -12,4 +12,8 @@ data class SuoritemerkinnatOptionsDTO(
     override fun toString(): String {
         return "SuoritemerkinnatOptionsDTO()"
     }
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
