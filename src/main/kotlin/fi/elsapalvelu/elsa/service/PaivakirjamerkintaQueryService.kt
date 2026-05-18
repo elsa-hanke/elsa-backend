@@ -42,93 +42,60 @@ class PaivakirjamerkintaQueryService(
         var specification: Specification<Paivakirjamerkinta?> = Specification.where(spec)
         if (criteria != null) {
             if (criteria.id != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.get(Paivakirjamerkinta_.id),
-                            criteria.id!!.equals
-                        )
+                specification = specification.and { root, _, cb ->
+                        cb.equal(root.get(Paivakirjamerkinta_.id), criteria.id!!.equals)
                     }
             }
             if (criteria.paivamaara != null) {
                 if (criteria.paivamaara!!.specified != null) {
-                    specification =
-                        specification.and { root, _, cb ->
+                    specification = specification.and { root, _, cb ->
                             if (criteria.paivamaara!!.specified) cb.isNotNull(
-                                root.get(
-                                    Paivakirjamerkinta_.paivamaara
-                                )
+                                root.get(Paivakirjamerkinta_.paivamaara)
                             ) else cb.isNull(root.get(Paivakirjamerkinta_.paivamaara))
                         }
                 }
                 if (criteria.paivamaara!!.greaterThanOrEqual != null) {
                     specification =
                         specification.and { root, _, cb ->
-                            cb.greaterThanOrEqualTo(
-                                root.get(Paivakirjamerkinta_.paivamaara),
-                                criteria.paivamaara!!.greaterThanOrEqual
-                            )
+                            cb.greaterThanOrEqualTo(root.get(Paivakirjamerkinta_.paivamaara), criteria.paivamaara!!.greaterThanOrEqual)
                         }
                 }
                 if (criteria.paivamaara!!.lessThanOrEqual != null) {
-                    specification =
-                        specification.and { root, _, cb ->
-                            cb.lessThanOrEqualTo(
-                                root.get(Paivakirjamerkinta_.paivamaara),
-                                criteria.paivamaara!!.lessThanOrEqual
-                            )
+                    specification = specification.and { root, _, cb ->
+                            cb.lessThanOrEqualTo(root.get(Paivakirjamerkinta_.paivamaara), criteria.paivamaara!!.lessThanOrEqual)
                         }
                 }
                 if (criteria.paivamaara!!.equals != null) {
-                    specification =
-                        specification.and { root, _, cb ->
-                            cb.equal(
-                                root.get(Paivakirjamerkinta_.paivamaara),
-                                criteria.paivamaara!!.equals
-                            )
+                    specification = specification.and { root, _, cb ->
+                            cb.equal(root.get(Paivakirjamerkinta_.paivamaara), criteria.paivamaara!!.equals)
                         }
                 }
             }
             if (criteria.oppimistapahtumanNimi != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.get(Paivakirjamerkinta_.oppimistapahtumanNimi),
-                            criteria.oppimistapahtumanNimi!!.equals
-                        )
+                specification = specification.and { root, _, cb ->
+                        cb.equal(root.get(Paivakirjamerkinta_.oppimistapahtumanNimi), criteria.oppimistapahtumanNimi!!.equals)
                     }
             }
             if (criteria.muunAiheenNimi != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.get(Paivakirjamerkinta_.muunAiheenNimi),
-                            criteria.muunAiheenNimi!!.equals
-                        )
+                specification = specification.and { root, _, cb ->
+                        cb.equal(root.get(Paivakirjamerkinta_.muunAiheenNimi), criteria.muunAiheenNimi!!.equals)
                     }
             }
             if (criteria.yksityinen != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.get(Paivakirjamerkinta_.yksityinen),
-                            criteria.yksityinen!!.equals
-                        )
+                specification = specification.and { root, _, cb ->
+                        cb.equal(root.get(Paivakirjamerkinta_.yksityinen), criteria.yksityinen!!.equals)
                     }
             }
             if (criteria.aihekategoriaId != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.join(Paivakirjamerkinta_.aihekategoriat, JoinType.LEFT)
+                specification = specification.and { root, _, cb ->
+                        cb.equal(root.join(Paivakirjamerkinta_.aihekategoriat, JoinType.LEFT)
                                 .get(PaivakirjaAihekategoria_.id),
                             criteria.aihekategoriaId!!.equals
                         )
                     }
             }
             if (criteria.teoriakoulutusId != null) {
-                specification =
-                    specification.and { root, _, cb ->
+                specification = specification.and { root, _, cb ->
                         cb.equal(
                             root.join(Paivakirjamerkinta_.teoriakoulutus, JoinType.LEFT)
                                 .get(Teoriakoulutus_.id),

@@ -330,7 +330,7 @@ class SecurityConfiguration(
         }
     }
 
-    @Suppress("CyclomaticComplexMethod")
+    @Suppress("CyclomaticComplexMethod", "LongMethod")
     fun convertAuthentication(responseToken: OpenSaml4AuthenticationProvider.ResponseToken): Saml2Authentication? {
         val token: Saml2Authentication =
             OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter()
@@ -341,11 +341,8 @@ class SecurityConfiguration(
 
         // Suomi.fi
         val hetu = principal.attributes["urn:oid:1.2.246.21"]?.get(0) as String?
-
         // Haka
         val eppn = principal.attributes["urn:oid:1.3.6.1.4.1.5923.1.1.1.6"]?.get(0) as String?
-        //val eduPersonAffiliation = principal.attributes["urn:oid:1.3.6.1.4.1.5923.1.1.1.1"]?.get(0)
-        //val organization = principal.attributes["schacHomeOrganization"]?.get(0)
 
         val response = responseToken.response
         val assertion = CollectionUtils.firstElement(response.assertions)
@@ -353,13 +350,10 @@ class SecurityConfiguration(
         principal.attributes["nameID"] = mutableListOf(nameID?.value) as List<*>?
         principal.attributes["nameIDFormat"] = mutableListOf(nameID?.format) as List<*>?
         principal.attributes["nameIDQualifier"] = mutableListOf(nameID?.nameQualifier) as List<*>?
-        principal.attributes["nameIDSPQualifier"] =
-            mutableListOf(nameID?.spNameQualifier) as List<*>?
+        principal.attributes["nameIDSPQualifier"] = mutableListOf(nameID?.spNameQualifier) as List<*>?
 
         val decodedKey = Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
-        val originalKey: SecretKey = SecretKeySpec(
-            decodedKey, 0, decodedKey.size, applicationProperties.getSecurity().secretKeyAlgorithm
-        )
+        val originalKey: SecretKey = SecretKeySpec(decodedKey, 0, decodedKey.size, applicationProperties.getSecurity().secretKeyAlgorithm)
 
         val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
         val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
@@ -370,9 +364,7 @@ class SecurityConfiguration(
         if (verificationToken != null && verificationToken != DEFAULT_RELAY_STATE) {
             verificationTokenRepository.findById(verificationToken).ifPresent {
                 tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
-                userService.createOrUpdateUserWithToken(
-                    tokenUser, it, cipher, originalKey, hetu, eppn, firstName, lastName
-                )
+                userService.createOrUpdateUserWithToken(tokenUser, it, cipher, originalKey, hetu, eppn, firstName, lastName)
             }
         }
 
@@ -382,26 +374,16 @@ class SecurityConfiguration(
             requireNotNull(hetu)
 
             if (existingUser == null) {
-                fetchAndHandleOpintotietodataForFirstLogin(
-                    cipher,
-                    originalKey,
-                    hetu,
-                    firstName,
-                    lastName
-                )
+                fetchAndHandleOpintotietodataForFirstLogin(cipher, originalKey, hetu, firstName, lastName)
                 existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
 
                 // Lokaalissa ympäristössä luodaan uusi käyttäjä, jos sitä ei löydy.
                 if (existingUser == null && env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
-                    opintotietodataPersistenceService.createWithoutOpintotietodata(
-                        cipher, originalKey, hetu, firstName, lastName
-                    )
+                    opintotietodataPersistenceService.createWithoutOpintotietodata(cipher, originalKey, hetu, firstName, lastName)
                     existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
                 }
 
-                existingUser?.let { user ->
-                    fetchAndHandleOpintosuorituksetNonBlocking(user.id!!, hetu)
-                }
+                existingUser?.let { user -> fetchAndHandleOpintosuorituksetNonBlocking(user.id!!, hetu) }
             } else {
                 fetchAndUpdateOpintotietodataIfChanged(existingUser.id!!, hetu, firstName, lastName)
                 fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id!!, hetu)
@@ -418,8 +400,7 @@ class SecurityConfiguration(
             throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
         } else {
             // Tarkistetaan, että käyttäjän nimi on ajan tasalla
-            if ((firstName != "" && lastName != "") &&
-                (existingUser.firstName != firstName || existingUser.lastName != lastName)) {
+            if ((firstName != "" && lastName != "") && (existingUser.firstName != firstName || existingUser.lastName != lastName)) {
                 existingUser.firstName = firstName
                 existingUser.lastName = lastName
                 userRepository.save(existingUser)
@@ -444,10 +425,8 @@ class SecurityConfiguration(
                 existingUser.activeAuthority = Authority(name = KOULUTTAJA)
                 userRepository.save(existingUser)
             } else {
-                log.error(
-                    "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole voimassaolevaa " +
-                        "opinto-oikeutta, opinto-oikeuden tila ei salli kirjautumista tai opinto-oikeuden erikoisala " +
-                        "ei ole liittynyt Elsaan."
+                log.error("Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole voimassaolevaa " +
+                        "opinto-oikeutta, opinto-oikeuden tila ei salli kirjautumista tai opinto-oikeuden erikoisala ei ole liittynyt Elsaan."
                 )
                 throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
             }
@@ -463,9 +442,7 @@ class SecurityConfiguration(
             userRepository.save(existingUser)
         }
 
-        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal),
-            token.saml2Response,
-            kayttaja.user?.authorities?.map { SimpleGrantedAuthority(it.name) })
+        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal), token.saml2Response, kayttaja.user?.authorities?.map { SimpleGrantedAuthority(it.name) })
     }
 
     private fun shouldFetchOpintotietodata(
