@@ -5,9 +5,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi
 import java.time.LocalDate
 import java.time.ZoneId
 
-class PoissaolonSyyHelper {
-
-    companion object {
+object PoissaolonSyyHelper {
 
         private const val DEFAULT_NIMI = "AAAAAAAAAA"
         private const val UPDATED_NIMI = "BBBBBBBBBB"
@@ -45,5 +43,5 @@ class PoissaolonSyyHelper {
 
             return poissaolonSyy
         }
-    }
+
 }

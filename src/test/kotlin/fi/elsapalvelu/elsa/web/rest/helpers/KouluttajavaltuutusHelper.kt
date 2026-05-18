@@ -11,9 +11,7 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import jakarta.persistence.EntityManager
 
-class KouluttajavaltuutusHelper {
-
-    companion object {
+object KouluttajavaltuutusHelper {
 
         private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
@@ -118,5 +116,5 @@ class KouluttajavaltuutusHelper {
 
             return kouluttajavaltuutus
         }
-    }
+
 }
