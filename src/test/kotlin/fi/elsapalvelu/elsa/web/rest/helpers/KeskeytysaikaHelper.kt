@@ -7,65 +7,70 @@ import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import jakarta.persistence.EntityManager
 
-class KeskeytysaikaHelper {
+object KeskeytysaikaHelper {
 
-    companion object {
+    val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 1, 5)
+    val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 1, 20)
 
-        val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 1, 5)
-        val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 1, 20)
+    val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 1, 10)
+    val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 1, 25)
 
-        val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 1, 10)
-        val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 1, 25)
+    const val DEFAULT_POISSAOLOPROSENTTI: Int = 50
+    const val UPDATED_POISSAOLOPROSENTTI: Int = 60
 
-        const val DEFAULT_POISSAOLOPROSENTTI: Int = 50
-        const val UPDATED_POISSAOLOPROSENTTI: Int = 60
+    fun createEntity(
+        em: EntityManager,
+        tyoskentelyjakso: Tyoskentelyjakso
+    ): Keskeytysaika {
+        val keskeytysaika = Keskeytysaika(
+            alkamispaiva = DEFAULT_ALKAMISPAIVA,
+            paattymispaiva = DEFAULT_PAATTYMISPAIVA,
+            poissaoloprosentti = DEFAULT_POISSAOLOPROSENTTI
+        )
 
-        @JvmStatic
-        fun createEntity(em: EntityManager, tyoskentelyjakso: Tyoskentelyjakso): Keskeytysaika {
-            val keskeytysaika = Keskeytysaika(
-                alkamispaiva = DEFAULT_ALKAMISPAIVA,
-                paattymispaiva = DEFAULT_PAATTYMISPAIVA,
-                poissaoloprosentti = DEFAULT_POISSAOLOPROSENTTI
-            )
-
-            // Lisätään pakollinen tieto
-            val poissaolonSyy: PoissaolonSyy
-            if (em.findAll(PoissaolonSyy::class).isEmpty()) {
-                poissaolonSyy = PoissaolonSyyHelper.createEntity()
-                em.persist(poissaolonSyy)
-                em.flush()
-            } else {
-                poissaolonSyy = em.findAll(PoissaolonSyy::class).get(0)
-            }
-            keskeytysaika.poissaolonSyy = poissaolonSyy
-
-            keskeytysaika.tyoskentelyjakso = tyoskentelyjakso
-
-            return keskeytysaika
+        val poissaolonSyy = getOrCreatePoissaolonSyy(em) {
+            PoissaolonSyyHelper.createEntity()
         }
 
-        @JvmStatic
-        fun createUpdatedEntity(em: EntityManager, tyoskentelyjakso: Tyoskentelyjakso): Keskeytysaika {
-            val keskeytysaika = Keskeytysaika(
-                alkamispaiva = UPDATED_ALKAMISPAIVA,
-                paattymispaiva = UPDATED_PAATTYMISPAIVA,
-                poissaoloprosentti = UPDATED_POISSAOLOPROSENTTI
-            )
+        keskeytysaika.poissaolonSyy = poissaolonSyy
+        keskeytysaika.tyoskentelyjakso = tyoskentelyjakso
 
-            // Lisätään pakollinen tieto
-            val poissaolonSyy: PoissaolonSyy
-            if (em.findAll(PoissaolonSyy::class).isEmpty()) {
-                poissaolonSyy = PoissaolonSyyHelper.createUpdatedEntity()
-                em.persist(poissaolonSyy)
+        return keskeytysaika
+    }
+
+    fun createUpdatedEntity(
+        em: EntityManager,
+        tyoskentelyjakso: Tyoskentelyjakso
+    ): Keskeytysaika {
+        val keskeytysaika = Keskeytysaika(
+            alkamispaiva = UPDATED_ALKAMISPAIVA,
+            paattymispaiva = UPDATED_PAATTYMISPAIVA,
+            poissaoloprosentti = UPDATED_POISSAOLOPROSENTTI
+        )
+
+        val poissaolonSyy = getOrCreatePoissaolonSyy(em) {
+            PoissaolonSyyHelper.createUpdatedEntity()
+        }
+
+        keskeytysaika.poissaolonSyy = poissaolonSyy
+        keskeytysaika.tyoskentelyjakso = tyoskentelyjakso
+
+        return keskeytysaika
+    }
+
+    private fun getOrCreatePoissaolonSyy(
+        em: EntityManager,
+        create: () -> PoissaolonSyy
+    ): PoissaolonSyy {
+        val existing = em.findAll(PoissaolonSyy::class)
+
+        return if (existing.isEmpty()) {
+            create().also {
+                em.persist(it)
                 em.flush()
-            } else {
-                poissaolonSyy = em.findAll(PoissaolonSyy::class).get(0)
             }
-            keskeytysaika.poissaolonSyy = poissaolonSyy
-
-            keskeytysaika.tyoskentelyjakso = tyoskentelyjakso
-
-            return keskeytysaika
+        } else {
+            existing.first()
         }
     }
 }

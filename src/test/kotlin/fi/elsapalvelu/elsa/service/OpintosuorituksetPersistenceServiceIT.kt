@@ -691,7 +691,7 @@ class OpintosuorituksetPersistenceServiceIT {
         private const val opintosuoritus1UpdatedOpintopisteet = 12.0
         private const val opintosuoritus1UpdatedHyvaksytty = false
         private const val opintosuoritus1UpdatedArvioFi = "opintosuoritus 1 updated arvio fi"
-        private val opintosuoritus1UpdatedArvioSv = "opintosuoritus 1 updated arvio sv"
+        private const val opintosuoritus1UpdatedArvioSv = "opintosuoritus 1 updated arvio sv"
         private val opintosuoritus1UpdatedVanhenemispaiva = LocalDate.ofEpochDay(1000L)
 
         private const val opintosuoritusOsakokonaisuusUpdatedNimiFi = "opintosuoritus osakokonaisuus updated fi"
@@ -704,7 +704,7 @@ class OpintosuorituksetPersistenceServiceIT {
         private val opintosuoritusOsakokonaisuusUpdatedVanhenemispaiva = LocalDate.ofEpochDay(900L)
 
         private val yliopistoEnum = YliopistoEnum.HELSINGIN_YLIOPISTO
-        private val yliopistoOpintooikeusId = "abcdefgh"
+        private const val yliopistoOpintooikeusId = "abcdefgh"
 
         @JvmStatic
         fun createOpintosuoritus1DTO(): OpintosuoritusDTO {
