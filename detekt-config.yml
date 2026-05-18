@@ -23,8 +23,6 @@ complexity:
     functionThreshold: 10
   LongMethod:
     threshold: 72
-  LargeClass:
-    threshold: 900
   ComplexCondition:
     threshold: 5
   NestedBlockDepth:
