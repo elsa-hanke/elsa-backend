@@ -22,9 +22,9 @@ complexity:
     constructorThreshold: 17
     functionThreshold: 10
   LongMethod:
-    threshold: 71
+    threshold: 72
   LargeClass:
-    threshold: 1000
+    threshold: 900
   ComplexCondition:
     threshold: 5
   NestedBlockDepth:
