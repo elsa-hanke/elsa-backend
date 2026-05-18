@@ -19,48 +19,40 @@ object ErikoisalaHelper {
         nimi: String = DEFAULT_NIMI,
         virtaPatevyyskoodi: String? = DEFAULT_VIRTAPATEVYYSKOODI,
         tyyppi: ErikoisalaTyyppi = DEFAULT_TYYPPI
-    ): Erikoisala =
-        baseEntity(
+    ): Erikoisala {
+        return Erikoisala(
             nimi = nimi,
+            tyyppi = tyyppi,
             virtaPatevyyskoodi = virtaPatevyyskoodi,
-            tyyppi = tyyppi
+            liittynytElsaan = true
         )
+    }
 
     fun createUpdatedEntity(
         nimi: String = UPDATED_NIMI,
         virtaPatevyyskoodi: String? = UPDATED_VIRTAPATEVYYSKOODI,
         tyyppi: ErikoisalaTyyppi = UPDATED_TYYPPI
-    ): Erikoisala =
-        baseEntity(
+    ): Erikoisala {
+        return Erikoisala(
             nimi = nimi,
+            tyyppi = tyyppi,
             virtaPatevyyskoodi = virtaPatevyyskoodi,
-            tyyppi = tyyppi
+            liittynytElsaan = true
         )
+    }
 
     fun createEntityWithId(
         id: Long = DEFAULT_ID,
         nimi: String = DEFAULT_NIMI,
         virtaPatevyyskoodi: String? = DEFAULT_VIRTAPATEVYYSKOODI,
         tyyppi: ErikoisalaTyyppi = DEFAULT_TYYPPI
-    ): Erikoisala =
-        baseEntity(
-            id = id,
-            nimi = nimi,
-            virtaPatevyyskoodi = virtaPatevyyskoodi,
-            tyyppi = tyyppi
-        )
-
-    private fun baseEntity(
-        id: Long? = null,
-        nimi: String,
-        virtaPatevyyskoodi: String?,
-        tyyppi: ErikoisalaTyyppi
-    ): Erikoisala =
-        Erikoisala(
+    ): Erikoisala {
+        return Erikoisala(
             id = id,
             nimi = nimi,
             tyyppi = tyyppi,
             virtaPatevyyskoodi = virtaPatevyyskoodi,
             liittynytElsaan = true
         )
+    }
 }
