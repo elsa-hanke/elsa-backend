@@ -26,7 +26,7 @@ import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper.Companion.DEFAULT_YLIOPISTO
+import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper.DEFAULT_YLIOPISTO
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers

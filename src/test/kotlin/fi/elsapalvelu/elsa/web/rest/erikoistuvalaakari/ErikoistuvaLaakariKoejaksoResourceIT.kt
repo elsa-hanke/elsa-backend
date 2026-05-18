@@ -13,7 +13,7 @@ import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
-import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper.Companion.DEFAULT_NIMIKE
+import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper.DEFAULT_NIMIKE
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.core.IsNull

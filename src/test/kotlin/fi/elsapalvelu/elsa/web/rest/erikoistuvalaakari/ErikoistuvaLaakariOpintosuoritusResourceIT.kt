@@ -9,7 +9,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.*
-import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper.Companion.DEFAULT_ID
+import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper.DEFAULT_ID
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
