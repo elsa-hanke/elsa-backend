@@ -8,6 +8,8 @@ data class KoulutussopimusFormDTO(
 
     var yliopistot: List<YliopistoDTO>? = null,
 
-    ) : Serializable {
-    override fun toString() = "KoulutussopimusFormDTO"
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

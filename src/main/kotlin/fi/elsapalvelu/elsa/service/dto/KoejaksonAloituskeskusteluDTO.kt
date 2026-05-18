@@ -50,5 +50,7 @@ data class KoejaksonAloituskeskusteluDTO(
     var erikoistuvanKuittausaika: LocalDate? = null
 
 ) : Serializable {
-    override fun toString() = "KoejaksonAloituskeskusteluDTO"
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

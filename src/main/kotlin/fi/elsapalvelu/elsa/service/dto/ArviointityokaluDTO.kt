@@ -35,4 +35,8 @@ data class ArviointityokaluDTO(
 
     ) : Serializable {
     override fun toString() = "ArviointityokaluDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

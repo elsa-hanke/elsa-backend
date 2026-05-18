@@ -29,4 +29,8 @@ data class ArvioitavanKokonaisuudenKategoriaWithArvioinnitDTO(
     override fun hashCode() = 31
 
     override fun toString() = "ArvioitavanKokonaisuudenKategoriaDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

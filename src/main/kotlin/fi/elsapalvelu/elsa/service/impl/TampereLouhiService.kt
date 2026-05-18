@@ -57,8 +57,8 @@ class TampereLouhiService(
 
     fun laheta(filePath: String, yek: Boolean) {
         val file = File(filePath)
-        if (!file.exists()) {
-            throw IllegalArgumentException("Arkistointitiedostoa ei löydy: $filePath")
+        require(file.exists()) {
+            "Arkistointitiedostoa ei löydy: $filePath"
         }
         try {
             val session = sessionFactory.session

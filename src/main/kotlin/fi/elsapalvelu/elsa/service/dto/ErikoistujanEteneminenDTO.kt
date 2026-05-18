@@ -46,4 +46,8 @@ data class ErikoistujanEteneminenDTO(
 
     var laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia: Boolean? = false
 
-) : Serializable
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

@@ -23,6 +23,9 @@ data class SuoriteDTO(
     var vaadittulkm: Int? = null
 
 ) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

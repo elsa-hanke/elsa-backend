@@ -52,4 +52,8 @@ data class KayttajaDTO(
         "id=$id" +
         ", nimi='$nimi'" +
         "}"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

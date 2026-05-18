@@ -45,7 +45,6 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val pdfService: PdfService,
     private val opintooikeusService: OpintooikeusService,
     private val arkistointiService: ArkistointiService,
-    private val applicationProperties: ApplicationProperties,
     private val logger: Logger = LoggerFactory.getLogger(KoejaksonKoulutussopimusServiceImpl::class.java)
 ) : KoejaksonKoulutussopimusService {
 

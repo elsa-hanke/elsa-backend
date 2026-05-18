@@ -33,4 +33,8 @@ data class SuoritusarvioinninArviointityokalunVastaus(
     @JoinColumn(name = "valittu_vaihtoehto_id")
     var valittuVaihtoehto: ArviointityokaluKysymysVaihtoehto? = null
 
-) : Serializable
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

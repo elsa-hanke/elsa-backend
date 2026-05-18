@@ -18,8 +18,6 @@ class KuntaServiceImpl(
     private val kuntaMapper: KuntaMapper
 ) : KuntaService {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-
     override fun save(kuntaDTO: KuntaDTO): KuntaDTO {
         var kunta = kuntaMapper.toEntity(kuntaDTO)
         kunta = kuntaRepository.save(kunta)

@@ -4,6 +4,7 @@ package fi.elsapalvelu.elsa.extensions
 // mutta lukumäärän on oltava sama. Esim. "testi" täsmää syötteeseen "te?ti", mutta ei syötteeseen "te??ti".
 // * täsmää myös mihin tahansa merkkiin, muttu merkkien määrä voi toistua n kertaa. Esim. "teabcdefgsti" täsmää
 // syötteeseen "te*sti".
+@Suppress("ComplexCondition", "CyclomaticComplexMethod")
 fun String.match(wildcardInput: String): Boolean {
     if ((this.isEmpty() && wildcardInput.isEmpty()) ||
         (wildcardInput.length == 1 && wildcardInput.first() == '*') ||

@@ -9,7 +9,7 @@ plugins {
     id "io.gitlab.arturbosch.detekt" version "${detektVersion}"
     id "jacoco"
     id "org.springframework.boot" version "${springBootVersion}"
-    id "io.spring.dependency-management" version "1.1.0"
+    id "io.spring.dependency-management" version "1.1.7"
     id "com.adarshr.test-logger" version "4.0.0"
     id "com.google.cloud.tools.jib"
     id "com.gorylenko.gradle-git-properties"
@@ -158,12 +158,14 @@ apollo {
     packageName.set("fi.elsapalvelu.elsa")
 }
 
-tasks.register('cleanResources', Delete) {
-    delete "build/resources"
-}
-
 wrapper {
     gradleVersion = "8.14.5"
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config = files("$rootDir/detekt-config.yml")
 }
 
 testlogger {

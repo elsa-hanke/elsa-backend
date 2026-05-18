@@ -14,4 +14,8 @@ data class HyvaksyttyKoejaksonVaiheDTO(
 
 ) : Serializable {
     override fun toString() = "HyvaksyttyKoejaksonVaiheDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

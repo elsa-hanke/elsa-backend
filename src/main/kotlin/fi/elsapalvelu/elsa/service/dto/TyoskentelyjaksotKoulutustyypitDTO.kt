@@ -12,4 +12,8 @@ class TyoskentelyjaksotKoulutustyypitDTO(
 
 ) : Serializable {
     override fun toString() = "TyoskentelyjaksotTilastotDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

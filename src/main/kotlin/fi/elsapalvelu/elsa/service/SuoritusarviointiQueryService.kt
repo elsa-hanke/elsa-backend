@@ -46,7 +46,7 @@ class SuoritusarviointiQueryService(
     }
 
     @Suppress("ComplexMethod")
-    protected fun createSpecification(
+    private fun createSpecification(
         criteria: SuoritusarviointiCriteria?,
         spec: Specification<Suoritusarviointi?>? = null
     ): Specification<Suoritusarviointi?> {

@@ -14,5 +14,9 @@ class SuoritteetTableDTO(
     var arviointiasteikko: ArviointiasteikkoDTO? = null
 
 ) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
     override fun toString() = "SuoritteetTableDTO"
 }

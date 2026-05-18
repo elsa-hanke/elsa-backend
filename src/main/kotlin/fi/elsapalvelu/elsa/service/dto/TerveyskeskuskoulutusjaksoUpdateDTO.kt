@@ -10,4 +10,8 @@ data class TerveyskeskuskoulutusjaksoUpdateDTO(
 
 ) : Serializable {
     override fun toString() = "TerveyskeskuskoulutusjaksoUpdateDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

@@ -26,5 +26,7 @@ data class ErikoistujienSeurantaDTO(
         return true
     }
 
-
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

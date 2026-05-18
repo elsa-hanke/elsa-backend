@@ -10,4 +10,8 @@ data class TeoriakoulutuksetDTO(
 
 ) : Serializable {
     override fun toString() = "TeoriakoulutuksetDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

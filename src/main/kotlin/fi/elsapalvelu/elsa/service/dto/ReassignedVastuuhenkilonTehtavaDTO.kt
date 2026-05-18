@@ -17,4 +17,8 @@ data class ReassignedVastuuhenkilonTehtavaDTO(
 
 ): Serializable {
     override fun toString() = "ReassignedVastuuhenkilonTehtavaDTO()"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

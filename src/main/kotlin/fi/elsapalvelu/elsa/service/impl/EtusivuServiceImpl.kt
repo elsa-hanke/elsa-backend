@@ -25,6 +25,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
+@Suppress("TooManyFunctions", "LongParameterList")
 @Service
 @Transactional
 class EtusivuServiceImpl(

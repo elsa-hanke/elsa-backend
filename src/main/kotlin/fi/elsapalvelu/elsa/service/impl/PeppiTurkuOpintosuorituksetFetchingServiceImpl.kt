@@ -10,8 +10,6 @@ import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
-private const val studyAccomplishmentsEndpoint = "study_accomplishments"
-
 @Service
 class PeppiTurkuOpintosuorituksetFetchingServiceImpl(
     @Qualifier("PeppiTurku") private val peppiTurkuClientBuilder: OkHttpClientBuilder,
@@ -22,7 +20,7 @@ class PeppiTurkuOpintosuorituksetFetchingServiceImpl(
 
     override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
         val endpointBaseUrl =
-            "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl!!}/${studyAccomplishmentsEndpoint}"
+            "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl!!}/study_accomplishments"
         return commonOpintosuorituksetFetchingService.fetchOpintosuoritukset(
             endpointBaseUrl,
             peppiTurkuClientBuilder.okHttpClient(),

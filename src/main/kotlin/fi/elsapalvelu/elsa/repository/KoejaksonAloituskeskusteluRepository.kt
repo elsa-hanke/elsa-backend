@@ -36,7 +36,8 @@ interface KoejaksonAloituskeskusteluRepository : JpaRepository<KoejaksonAloitusk
 
     @Query(
         "select a from KoejaksonAloituskeskustelu a left join a.lahikouluttaja lk left join a.lahiesimies le " +
-            "where (lk.user.id = :userId and a.lahetetty = true and a.lahikouluttajaHyvaksynyt = false) or (le.user.id = :userId and a.lahikouluttajaHyvaksynyt = true and a.lahiesimiesHyvaksynyt = false)"
+            "where (lk.user.id = :userId and a.lahetetty = true and a.lahikouluttajaHyvaksynyt = false) or (le.user.id = :userId and a.lahikouluttajaHyvaksynyt = true" +
+            " and a.lahiesimiesHyvaksynyt = false)"
     )
     fun findAllAvoinByLahikouluttajaUserIdOrLahiesimiesUserId(
         userId: String

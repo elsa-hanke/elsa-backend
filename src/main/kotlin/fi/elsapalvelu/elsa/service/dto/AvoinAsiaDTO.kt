@@ -18,6 +18,10 @@ data class AvoinAsiaDTO(
 
     override fun hashCode() = 31
 
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

@@ -23,8 +23,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.io.IOException
 
-private const val studyRightsEndpoint = "study-rights"
-
 @Service
 class SisuTreOpintotietodataFetchingServiceImpl(
     @Qualifier("SisuTre") private val sisuTreClientBuilder: OkHttpClientBuilder,
@@ -36,7 +34,7 @@ class SisuTreOpintotietodataFetchingServiceImpl(
     private val log = LoggerFactory.getLogger(javaClass)
 
     override suspend fun fetchOpintotietodata(hetu: String): OpintotietodataDTO? {
-        val endpointUrl = "${applicationProperties.getSecurity().getSisuTre().endpointUrl!!}/$studyRightsEndpoint"
+        val endpointUrl = "${applicationProperties.getSecurity().getSisuTre().endpointUrl!!}/study-rights"
         val postBody = "{\"id\": \"$hetu\"}"
         val request = Request.Builder().url(endpointUrl).post(postBody.toRequestBody()).build()
         try {

@@ -26,6 +26,9 @@ data class OpintosuoritusOsakokonaisuusDTO(
     var vanhenemispaiva: LocalDate? = null
 
 ) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -35,5 +38,3 @@ data class OpintosuoritusOsakokonaisuusDTO(
 
     override fun hashCode() = 31
 }
-
-
