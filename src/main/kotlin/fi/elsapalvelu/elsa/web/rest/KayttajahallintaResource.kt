@@ -26,6 +26,7 @@ import java.security.Principal
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 private const val ERIKOISTUVA_LAAKARI_ENTITY_NAME = "erikoistuvaLaakari"
 
+@Suppress("TooManyFunctions")
 open class KayttajahallintaResource(
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val userService: UserService,

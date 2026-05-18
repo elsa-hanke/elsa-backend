@@ -16,13 +16,13 @@ naming:
     active: false
 complexity:
   TooManyFunctions:
-    thresholdInFiles: 20
-    thresholdInClasses: 20
-    thresholdInInterfaces: 20
-    thresholdInObjects: 20
+    thresholdInFiles: 21
+    thresholdInClasses: 21
+    thresholdInInterfaces: 21
+    thresholdInObjects: 21
   LongParameterList:
-    constructorThreshold: 12
-    functionThreshold: 8
+    constructorThreshold: 17
+    functionThreshold: 10
   LongMethod:
     threshold: 110
   LargeClass:

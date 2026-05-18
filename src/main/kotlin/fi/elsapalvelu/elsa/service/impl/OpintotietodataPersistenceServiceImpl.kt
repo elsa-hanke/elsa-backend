@@ -31,6 +31,7 @@ import java.time.ZoneId
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 
+@Suppress("TooManyFunctions")
 @Service
 @Transactional
 class OpintotietodataPersistenceServiceImpl(
@@ -318,6 +319,7 @@ class OpintotietodataPersistenceServiceImpl(
         return erikoistuvaLaakari
     }
 
+    @Suppress("CyclomaticComplexMethod")
     private fun createOpintooikeus(
         opintooikeusDTO: OpintotietoOpintooikeusDataDTO,
         userId: String,

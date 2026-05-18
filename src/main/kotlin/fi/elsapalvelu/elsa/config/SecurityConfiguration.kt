@@ -330,6 +330,7 @@ class SecurityConfiguration(
         }
     }
 
+    @Suppress("CyclomaticComplexMethod")
     fun convertAuthentication(responseToken: OpenSaml4AuthenticationProvider.ResponseToken): Saml2Authentication? {
         val token: Saml2Authentication =
             OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter()

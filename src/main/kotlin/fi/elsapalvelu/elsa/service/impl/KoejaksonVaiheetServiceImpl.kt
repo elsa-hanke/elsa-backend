@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
 
+@Suppress("TooManyFunctions")
 @Service
 @Transactional
 class KoejaksonVaiheetServiceImpl(

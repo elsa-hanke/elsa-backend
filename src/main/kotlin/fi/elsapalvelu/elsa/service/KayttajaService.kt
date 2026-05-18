@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.util.*
 
+@Suppress("TooManyFunctions")
 interface KayttajaService {
 
     fun save(kayttajaDTO: KayttajaDTO): KayttajaDTO

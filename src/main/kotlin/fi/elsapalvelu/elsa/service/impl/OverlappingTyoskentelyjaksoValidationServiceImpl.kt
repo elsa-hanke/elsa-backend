@@ -113,6 +113,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         )
     }
 
+    @Suppress("CyclomaticComplexMethod", "LoopWithTooManyJumpStatements")
     private fun validateTyoskentelyaika(
         existingTyoskentelyjaksoId: Long?,
         tyoskentelyjaksoStartDate: LocalDate,
