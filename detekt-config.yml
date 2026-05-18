@@ -3,8 +3,6 @@ style:
     maxLineLength: 180
   WildcardImport:
     active: false
-  NewLineAtEndOfFile:
-    active: false
   MagicNumber:
     active: false
   ReturnCount:
