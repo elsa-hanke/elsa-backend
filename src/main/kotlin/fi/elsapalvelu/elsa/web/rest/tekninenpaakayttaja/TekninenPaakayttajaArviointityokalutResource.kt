@@ -29,8 +29,7 @@ class TekninenPaakayttajaArviointityokalutResource(
 
     @GetMapping("/arviointityokalut/kategoria/{id}")
     fun getArviointityokaluKategoria(
-        @PathVariable id: Long,
-        principal: Principal?
+        @PathVariable id: Long
     ): ResponseEntity<ArviointityokaluKategoriaDTO> {
         val arviointityokaluKategoriaDTO = arviointityokaluKategoriaService.findOne(id)
         return ResponseUtil.wrapOrNotFound(arviointityokaluKategoriaDTO)
@@ -52,8 +51,7 @@ class TekninenPaakayttajaArviointityokalutResource(
 
     @DeleteMapping("/arviointityokalut/kategoria/{id}")
     fun deleteArviointityokaluKategoria(
-        @PathVariable id: Long,
-        principal: Principal?
+        @PathVariable id: Long
     ): ResponseEntity<Void> {
         arviointityokaluKategoriaService.delete(id)
         return ResponseEntity.noContent().build()
@@ -74,7 +72,6 @@ class TekninenPaakayttajaArviointityokalutResource(
     fun updateArviointityokalu(
         @RequestPart("data") dataJson: String,
         @RequestPart(value = "liiteData", required = false) liiteData: MultipartFile?,
-        principal: Principal?
     ): ResponseEntity<ArviointityokaluDTO> {
         val arviointityokaluDTO = objectMapper.readValue(dataJson, ArviointityokaluDTO::class.java)
         return ResponseEntity.ok(arviointityokaluService.update(arviointityokaluDTO, liiteData))
@@ -93,7 +90,6 @@ class TekninenPaakayttajaArviointityokalutResource(
     @GetMapping("/arviointityokalu/{id}")
     fun getArviointityokalu(
         @PathVariable id: Long,
-        principal: Principal?
     ): ResponseEntity<ArviointityokaluDTO> {
         val arviointityokaluDTO = arviointityokaluService.findOne(id)
         return ResponseUtil.wrapOrNotFound(arviointityokaluDTO)
@@ -102,7 +98,6 @@ class TekninenPaakayttajaArviointityokalutResource(
     @DeleteMapping("/arviointityokalu/{id}")
     fun deleteArviointityokalu(
         @PathVariable id: Long,
-        principal: Principal?
     ): ResponseEntity<Void> {
         arviointityokaluService.delete(id)
         return ResponseEntity.noContent().build()
@@ -110,7 +105,7 @@ class TekninenPaakayttajaArviointityokalutResource(
 
     @PatchMapping("/arviointityokalu/{id}/palauta")
     fun palautaArviointityokalu(
-        @PathVariable id: Long, principal: Principal?
+        @PathVariable id: Long
     ): ResponseEntity<Void> {
         arviointityokaluService.palauta(id)
         return ResponseEntity.ok().build()

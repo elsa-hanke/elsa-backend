@@ -9,7 +9,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes
 class FileSizeExceptionAdvice {
     @ExceptionHandler(MaxUploadSizeExceededException::class)
     fun handleFileSizeException(
-        e: MaxUploadSizeExceededException,
         redirectAttributes: RedirectAttributes
     ): String {
         redirectAttributes.addFlashAttribute("error", "File is too big")

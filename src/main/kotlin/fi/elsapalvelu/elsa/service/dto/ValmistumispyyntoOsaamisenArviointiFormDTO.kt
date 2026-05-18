@@ -10,4 +10,8 @@ data class ValmistumispyyntoOsaamisenArviointiFormDTO(
 
 ): Serializable {
     override fun toString() = "ValmistumispyyntoOsaamisenArviointiFormDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

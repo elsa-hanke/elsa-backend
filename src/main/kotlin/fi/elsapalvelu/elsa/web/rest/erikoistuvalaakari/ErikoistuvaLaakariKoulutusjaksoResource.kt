@@ -33,9 +33,6 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         const val ENTITY_NAME = "koulutusjakso"
     }
 
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
-
     @PostMapping("/koulutusjaksot")
     fun createKoulutusjakso(
         @Valid @RequestBody koulutusjaksoDTO: KoulutusjaksoDTO,

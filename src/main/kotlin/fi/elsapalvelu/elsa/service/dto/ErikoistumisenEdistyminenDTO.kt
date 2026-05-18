@@ -52,4 +52,8 @@ data class ErikoistumisenEdistyminenDTO (
 
     var yekSuoritusPvm: LocalDate? = null
 
-) : Serializable
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

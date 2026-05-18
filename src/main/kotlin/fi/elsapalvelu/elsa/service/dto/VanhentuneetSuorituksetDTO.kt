@@ -10,4 +10,8 @@ data class VanhentuneetSuorituksetDTO (
 
 ) : Serializable {
     override fun toString() = "VanhentuneetSuorituksetDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

@@ -15,4 +15,8 @@ class KayttajahallintaErikoistuvaLaakariFormDTO(
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaErikoistuvaLaakariFormDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

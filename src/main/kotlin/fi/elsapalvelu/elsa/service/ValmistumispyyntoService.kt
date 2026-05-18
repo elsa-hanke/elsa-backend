@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.web.multipart.MultipartFile
 
+@Suppress("TooManyFunctions")
 interface ValmistumispyyntoService {
     fun findErikoisalaTyyppiByOpintooikeusId(opintooikeusId: Long): ErikoisalaTyyppi
 

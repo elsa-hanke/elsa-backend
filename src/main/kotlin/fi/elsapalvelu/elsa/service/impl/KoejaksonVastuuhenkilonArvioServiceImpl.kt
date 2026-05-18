@@ -34,6 +34,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 
+@Suppress("LongParameterList")
 @Service
 @Transactional
 class KoejaksonVastuuhenkilonArvioServiceImpl(

@@ -13,5 +13,9 @@ data class KayttajahallintaYliopistoErikoisalaDTO(
 
 ) : Serializable {
     override fun toString() = "YliopistoErikoisalaDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 

@@ -7,6 +7,10 @@ class KayttajahallintaKayttajatOptionsDTO(
     var erikoisalat: Set<ErikoisalaDTO>? = setOf()
 
 ): Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
     override fun toString(): String {
         return "KayttajahallintaKayttajatOptionsDTO()"
     }
@@ -24,4 +28,3 @@ class KayttajahallintaKayttajatOptionsDTO(
         return true
     }
 }
-

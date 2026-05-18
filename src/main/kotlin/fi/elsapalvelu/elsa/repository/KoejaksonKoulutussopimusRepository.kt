@@ -39,7 +39,8 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
     @Query(
         "select ks " +
             "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt join ks.opintooikeus o " +
-            "where o.yliopisto.id = :yliopistoId and o.erikoisala.id = :erikoisalaId and (ks.vastuuhenkilonKorjausehdotus != null or not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false))"
+            "where o.yliopisto.id = :yliopistoId and o.erikoisala.id = :erikoisalaId and (ks.vastuuhenkilonKorjausehdotus != null or" +
+            " not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false))"
     )
     fun findAllByVastuuhenkiloUserId(
         yliopistoId: Long,
@@ -49,7 +50,8 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
     @Query(
         "select ks " +
             "from KoejaksonKoulutussopimus ks join ks.kouluttajat kt join ks.opintooikeus o " +
-            "where o.yliopisto.id = :yliopistoId and o.erikoisala.id = :erikoisalaId and ks.vastuuhenkiloHyvaksynyt = false and not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false)"
+            "where o.yliopisto.id = :yliopistoId and o.erikoisala.id = :erikoisalaId and ks.vastuuhenkiloHyvaksynyt = false and" +
+            " not exists (select k from ks.kouluttajat k where k.sopimusHyvaksytty = false)"
     )
     fun findAllAvoinForVastuuhenkilo(
         yliopistoId: Long,
@@ -63,7 +65,8 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
 
     @Transactional
     @Modifying
-    @Query("update KoulutussopimuksenKouluttaja k set k.kouluttaja.id = :newKayttaja where k.kouluttaja.id = :currentKayttaja and k.id in (select k2.id from KoulutussopimuksenKouluttaja k2 where k2.koulutussopimus.vastuuhenkiloHyvaksynyt = false)")
+    @Query("update KoulutussopimuksenKouluttaja k set k.kouluttaja.id = :newKayttaja where k.kouluttaja.id = :currentKayttaja and k.id" +
+        " in (select k2.id from KoulutussopimuksenKouluttaja k2 where k2.koulutussopimus.vastuuhenkiloHyvaksynyt = false)")
     fun changeAvoinKouluttaja(currentKayttaja: Long, newKayttaja: Long)
 
     fun existsByKouluttajatIdAndVastuuhenkiloHyvaksynytFalse(id: Long): Boolean

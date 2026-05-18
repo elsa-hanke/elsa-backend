@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
+@Suppress("TooManyFunctions", "LongParameterList")
 @Service
 @Transactional
 class KayttajaServiceImpl(

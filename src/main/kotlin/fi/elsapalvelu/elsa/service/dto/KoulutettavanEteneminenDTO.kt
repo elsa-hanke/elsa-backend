@@ -39,4 +39,8 @@ data class KoulutettavanEteneminenDTO(
     }
 
     override fun hashCode() = Objects.hash(this.opintooikeusId)
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

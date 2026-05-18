@@ -18,5 +18,8 @@ data class OmatTiedotDTO(
     var nimike: String? = null
 
 ) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
     override fun toString() = "OmatTiedotDTO"
 }

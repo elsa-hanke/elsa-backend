@@ -36,6 +36,7 @@ class OpintosuorituksetPersistenceServiceImpl(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
+    @Suppress("CyclomaticComplexMethod")
     override fun createOrUpdateIfChanged(userId: String, opintosuoritukset: OpintosuorituksetPersistenceDTO) {
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         val kurssikoodit =

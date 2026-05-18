@@ -9,8 +9,6 @@ import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
-private const val studentEndpoint = "student"
-
 @Service
 class PeppiTurkuOpintotietodataFetchingServiceImpl(
     @Qualifier("PeppiTurku") private val peppiTurkuClientBuilder: OkHttpClientBuilder,
@@ -20,7 +18,7 @@ class PeppiTurkuOpintotietodataFetchingServiceImpl(
 ) : OpintotietodataFetchingService {
 
     override suspend fun fetchOpintotietodata(hetu: String): OpintotietodataDTO? {
-        val endpointBaseUrl = "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl!!}/$studentEndpoint"
+        val endpointBaseUrl = "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl!!}/student"
         return commonOpintotietodataFetchingServiceImpl.fetchOpintotietodata(
             endpointBaseUrl,
             peppiTurkuClientBuilder.okHttpClient(),

@@ -21,8 +21,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.io.IOException
 
-private const val attainmentsEndpoint = "attainments"
-
 @Service
 class SisuTreOpintosuorituksetFetchingServiceImpl(
     @Qualifier("SisuTre") private val sisuTreClientBuilder: OkHttpClientBuilder,
@@ -35,7 +33,7 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
 
     override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
         val endpointUrl =
-            "${applicationProperties.getSecurity().getSisuTre().endpointUrl!!}/$attainmentsEndpoint"
+            "${applicationProperties.getSecurity().getSisuTre().endpointUrl!!}/attainments"
         val postBody = "{\"id\": \"$hetu\"}"
         val request = Request.Builder().url(endpointUrl).post(postBody.toRequestBody()).build()
         try {

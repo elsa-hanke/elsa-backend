@@ -80,7 +80,8 @@ class OpintoopasServiceImpl(
             opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusVuodet,
             opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusKuukaudet
         )
-        if (opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusVuodet != null || opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusKuukaudet != null) {
+        if (opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusVuodet != null ||
+            opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusKuukaudet != null) {
             opintoopas.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituus = toDays(
                 opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusVuodet,
                 opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynMaksimipituusKuukaudet

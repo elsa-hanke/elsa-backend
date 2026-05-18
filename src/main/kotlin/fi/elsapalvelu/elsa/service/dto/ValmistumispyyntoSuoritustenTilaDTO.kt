@@ -13,5 +13,9 @@ data class ValmistumispyyntoSuoritustenTilaDTO(
 
 ) : Serializable {
     override fun toString() = "ValmistumispyyntoSuoritustenTilaDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 

@@ -8,4 +8,8 @@ data class KayttajaErikoisalatPerYliopistoDTO(
 
     var erikoisalat: List<String>? = null
 
-) : Serializable
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

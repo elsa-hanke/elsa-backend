@@ -11,5 +11,9 @@ data class AuthenticationToken(
 
 ) : Serializable {
     override fun toString() = "AuthenticationToken{accessToken=$accessToken, expires=$expires}"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 

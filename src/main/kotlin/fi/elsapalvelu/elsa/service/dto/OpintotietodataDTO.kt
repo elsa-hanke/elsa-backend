@@ -11,4 +11,8 @@ data class OpintotietodataDTO(
 
 ) : Serializable {
     override fun toString() = "OpintotietodataDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

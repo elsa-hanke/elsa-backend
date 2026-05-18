@@ -23,4 +23,8 @@ data class IlmoitusDTO(
     }
 
     override fun hashCode() = Objects.hash(this.id)
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

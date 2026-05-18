@@ -27,7 +27,6 @@ class JulkisetToiminnotResource(
 
     @GetMapping("/seuraava-paivitys")
     fun getSeuraavaPaivitys(
-        principal: Principal?
     ): ResponseEntity<Instant> {
         val paivitysAika = applicationSettingService.getDatetimeSettingValue(
             ApplicationSettingTyyppi.SEURAAVAN_PAIVITYKSEN_AIKA
@@ -48,9 +47,7 @@ class JulkisetToiminnotResource(
     }
 
     @GetMapping("/ilmoitukset")
-    fun getIlmoitukset(
-        principal: Principal?
-    ): ResponseEntity<List<IlmoitusDTO>> {
+    fun getIlmoitukset(): ResponseEntity<List<IlmoitusDTO>> {
         return ResponseEntity.ok(
             ilmoitusService.findAll()
         )
@@ -59,7 +56,6 @@ class JulkisetToiminnotResource(
     @GetMapping("/ilmoitukset/{id}")
     fun getIlmoitus(
         @PathVariable id: Long,
-        principal: Principal?
     ): ResponseEntity<IlmoitusDTO> {
         return ilmoitusService.findOne(id)?.let {
             ResponseEntity.ok(it)
@@ -67,9 +63,7 @@ class JulkisetToiminnotResource(
     }
 
     @GetMapping("/poissaolon-syyt")
-    fun getPoissaolonSyyt(
-        principal: Principal?
-    ): ResponseEntity<List<PoissaolonSyyDTO>> {
+    fun getPoissaolonSyyt(): ResponseEntity<List<PoissaolonSyyDTO>> {
         return poissaolonSyyService.findAll().let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)

@@ -16,4 +16,8 @@ data class KoulutussopimuksenKoulutuspaikkaDTO(
 
 ) : Serializable {
     override fun toString() = "KoulutussopimuksenKoulutuspaikkaDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

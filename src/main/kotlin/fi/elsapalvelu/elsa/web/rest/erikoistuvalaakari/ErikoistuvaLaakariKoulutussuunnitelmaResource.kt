@@ -35,9 +35,6 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
         const val ENTITY_NAME = "koulutussuunnitelma"
     }
 
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
-
     @PutMapping("/koulutussuunnitelma")
     fun updateKoulutussuunnitelma(
         @Valid koulutussuunnitelmaDTO: KoulutussuunnitelmaDTO,
