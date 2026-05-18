@@ -356,6 +356,7 @@ class TyoskentelyjaksoServiceImpl(
         return null
     }
 
+    @Suppress("CyclomaticComplexMethod")
     fun getTyoskentelyjaksoTilastot(
         tyoskentelyjakso: Tyoskentelyjakso,
         tilastotCounter: TilastotCounter,

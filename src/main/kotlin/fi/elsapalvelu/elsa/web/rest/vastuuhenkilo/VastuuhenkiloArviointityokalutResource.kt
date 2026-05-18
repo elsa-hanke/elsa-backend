@@ -33,7 +33,6 @@ class VastuuhenkiloArviointityokalutResource (
     @GetMapping("/asiakirjat/{id}")
     fun getAsiakirja(
         @PathVariable id: Long,
-        principal: Principal?
     ): ResponseEntity<ByteArray> {
         val arviointityokalu = arviointityokaluService.findOneByLiiteId(id)
         val asiakirjaData: AsiakirjaDataDTO = arviointityokaluService.getAsiakirjaDataDTO(arviointityokalu.liite)

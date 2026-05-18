@@ -45,9 +45,6 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private val fileValidationService: FileValidationService
 ) {
 
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
-
     @GetMapping("/suoritusarvioinnit-rajaimet")
     fun getSuoritusarvioinnitRajaimet(
         principal: Principal?
@@ -226,8 +223,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
             }
 
-            if (suoritusarviointiDTO.arviointiasteikko != null) {
-                throw IllegalArgumentException("Käytettyä arviointiasteikkoa ei voi muokata")
+            require(suoritusarviointiDTO.arviointiasteikko == null) {
+                "Käytettyä arviointiasteikkoa ei voi muokata"
             }
 
             val newAsiakirjat = getMappedFiles(arviointiFiles) ?: mutableSetOf()

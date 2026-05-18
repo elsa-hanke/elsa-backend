@@ -15,6 +15,10 @@ data class AsiakirjaDataDTO(
     var fileSize: Long? = null
 
 ) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is AsiakirjaDataDTO) return false
@@ -23,5 +27,3 @@ data class AsiakirjaDataDTO(
 
     override fun hashCode() = 31
 }
-
-

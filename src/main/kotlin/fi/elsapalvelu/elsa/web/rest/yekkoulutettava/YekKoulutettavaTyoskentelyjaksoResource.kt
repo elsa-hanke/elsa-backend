@@ -30,6 +30,7 @@ private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
 private const val TYOSKENTELYPAIKKA_ENTITY_NAME = "tyoskentelypaikka"
 private const val TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME = "terveyskeskuskoulutusjakson_hyvaksynta"
 
+@Suppress("TooManyFunctions")
 @RestController
 @RequestMapping("/api/yek-koulutettava")
 class YekKoulutettavaTyoskentelyjaksoResource(

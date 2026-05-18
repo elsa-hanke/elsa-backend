@@ -16,4 +16,8 @@ data class SuoritusarvioinnitOptionsDTO(
     override fun toString(): String {
         return "SuoritusarvioinnitOptionsDTO()"
     }
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

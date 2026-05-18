@@ -164,7 +164,7 @@ class ErikoistujienSeurantaQueryService(
         return opintooikeusRepository.findAll(specification, pageableWithSort)
     }
 
-    protected fun createSpecification(
+    private fun createSpecification(
         criteria: ErikoistujanEteneminenCriteria?,
         spec: Specification<Opintooikeus?>? = null
     ): Specification<Opintooikeus?> {

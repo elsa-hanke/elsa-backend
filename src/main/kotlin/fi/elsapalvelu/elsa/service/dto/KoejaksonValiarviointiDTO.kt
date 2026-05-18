@@ -47,5 +47,8 @@ data class KoejaksonValiarviointiDTO(
     var koejaksonOsaamistavoitteet: String? = null
 
 ) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
     override fun toString() = "KoejaksonValiarviointiDTO"
 }

@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.1...HEAD)
 
+- Bump systeminformation from 5.31.5 to 5.31.6 in /e2e [`#558`](https://github.com/elsa-hanke/elsa-backend/pull/558)(16 May 2026)
+- Bump lodash from 4.17.21 to 4.18.1 in /frontend [`#559`](https://github.com/elsa-hanke/elsa-backend/pull/559)(16 May 2026)
+- chore: update Gradle to version 8.14.5 [`#557`](https://github.com/elsa-hanke/elsa-backend/pull/557)(16 May 2026)
 - ELSAINSI-41 Sähköposti on lähetettävä vasta, kun transaktio on suoritettu onnistuneesti [`#555`](https://github.com/elsa-hanke/elsa-backend/pull/555)(11 May 2026)
 - Release v2.1.x main merge [`#554`](https://github.com/elsa-hanke/elsa-backend/pull/554)(11 May 2026)
 - expand e2e tests for koulutussopimus approval process [`#552`](https://github.com/elsa-hanke/elsa-backend/pull/552)(10 May 2026)

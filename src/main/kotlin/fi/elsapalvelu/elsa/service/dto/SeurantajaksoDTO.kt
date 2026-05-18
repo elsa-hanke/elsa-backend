@@ -62,4 +62,8 @@ data class SeurantajaksoDTO(
 
 ) : Serializable {
     override fun toString() = "SeurantajaksoDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

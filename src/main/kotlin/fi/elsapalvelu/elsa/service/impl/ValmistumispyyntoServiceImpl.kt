@@ -48,6 +48,7 @@ private const val VANHENTUNUT_SUORITUS_YEARS_EL = 10L
 private const val VANHENTUNUT_SUORITUS_YEARS_EHL = 6L
 private const val ARVIOINTI_VAHINTAAN = 4
 
+@Suppress("TooManyFunctions", "LargeClass", "LongParameterList")
 @Service
 @Transactional
 class ValmistumispyyntoServiceImpl(
@@ -635,6 +636,7 @@ class ValmistumispyyntoServiceImpl(
         return arviointienTilaDTO
     }
 
+    @Suppress("ComplexCondition")
     override fun getValmistumispyynnonAsiakirja(
         userId: String,
         valmistumispyyntoId: Long,
@@ -678,6 +680,7 @@ class ValmistumispyyntoServiceImpl(
         return null
     }
 
+    @Suppress("ComplexCondition")
     override fun getValmistumispyynnonTyoskentelyjaksoAsiakirja(
         userId: String,
         valmistumispyyntoId: Long,
@@ -960,12 +963,6 @@ class ValmistumispyyntoServiceImpl(
         ) ?: throw EntityNotFoundException("Vastuuhenkilöä, joka hyväksyisi valmistumispyynnon, ei löydy.")
     }
 
-    private fun getVirkailijat(yliopistoId: Long) =
-        kayttajaRepository.findAllByAuthoritiesAndRelYliopisto(
-            listOf(OPINTOHALLINNON_VIRKAILIJA),
-            yliopistoId
-        )
-
     private fun sendMailNotificationUusiValmistumispyynto(
         vastuuhenkiloOsaamisenArvioijaUser: User,
         valmistumispyynto: Valmistumispyynto
@@ -1124,6 +1121,7 @@ class ValmistumispyyntoServiceImpl(
         )
     }
 
+    @Suppress("CyclomaticComplexMethod")
     private fun mapValmistumispyynnonTarkistus(dto: ValmistumispyynnonTarkistusDTO): ValmistumispyynnonTarkistusDTO {
         dto.valmistumispyynto?.opintooikeusId?.let {
             dto.tyoskentelyjaksotTilastot = tyoskentelyjaksoService.getTilastot(it).koulutustyypit
@@ -1165,7 +1163,8 @@ class ValmistumispyyntoServiceImpl(
             // YEK teoriakoulutukset lasketaan opintosuoritteista, riittää että yksi suoritus löytyy
             dto.teoriakoulutusSuoritettu =
                 if (opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID) {
-                    if (opintosuoritukset.count { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS } > 0) opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
+                    if (opintosuoritukset.count { suoritus -> suoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS } > 0)
+                        opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
                     else 0.0
                 } else teoriakoulutukset.filter { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara != null }
                     .sumOf { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara!! }
@@ -1232,6 +1231,7 @@ class ValmistumispyyntoServiceImpl(
         return dto
     }
 
+    @Suppress("LongMethod")
     private fun luoYhteenvetoPdf(
         valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO,
         valmistumispyynto: Valmistumispyynto

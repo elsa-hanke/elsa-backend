@@ -141,6 +141,7 @@ class RelyingPartyConfiguration(
         return if (registrations.size > 0) InMemoryRelyingPartyRegistrationRepository(registrations) else null
     }
 
+    @Suppress("CyclomaticComplexMethod")
     private fun parseHakaFile(entityId: String): String {
         val url = URL(applicationProperties.getSecurity().getHaka().samlHakaMetadataLocation!!)
         val stream: InputStream = url.openStream()

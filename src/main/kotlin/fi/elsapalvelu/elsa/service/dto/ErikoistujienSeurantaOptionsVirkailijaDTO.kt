@@ -26,4 +26,8 @@ class ErikoistujienSeurantaOptionsVirkailijaDTO(
 
         return true
     }
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

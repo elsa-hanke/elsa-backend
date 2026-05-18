@@ -78,4 +78,8 @@ data class TerveyskeskuskoulutusjaksonHyvaksyntaDTO(
     override fun hashCode() = 31
 
     override fun toString() = "TerveyskeskuskoulutusjaksonHyvaksyntaDTO(id: $id)"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

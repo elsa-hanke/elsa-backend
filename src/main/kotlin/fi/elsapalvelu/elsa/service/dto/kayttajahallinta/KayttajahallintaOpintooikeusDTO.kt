@@ -13,4 +13,8 @@ data class KayttajahallintaOpintooikeusDTO(
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaOpintooikeusDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

@@ -32,8 +32,6 @@ class YekKoulutettavaAsiakirjaResource(
   private val opintooikeusService: OpintooikeusService,
   private val valmistumispyyntoService: ValmistumispyyntoService
 ) {
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
 
     @PostMapping("/asiakirjat")
     fun createAsiakirjat(
@@ -154,5 +152,5 @@ class YekKoulutettavaAsiakirjaResource(
         return ResponseEntity.noContent()
             .build()
     }
-    
+
 }

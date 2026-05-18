@@ -35,7 +35,7 @@ class PaivakirjamerkintaQueryService(
     }
 
     @Suppress("ComplexMethod")
-    protected fun createSpecification(
+    private fun createSpecification(
         criteria: PaivakirjamerkintaCriteria?,
         spec: Specification<Paivakirjamerkinta?>? = null
     ): Specification<Paivakirjamerkinta?> {

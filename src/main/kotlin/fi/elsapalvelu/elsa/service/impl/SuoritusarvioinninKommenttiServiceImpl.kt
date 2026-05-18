@@ -32,10 +32,11 @@ class SuoritusarvioinninKommenttiServiceImpl(
         val kayttajaDTO = kayttajaMapper.toDto(kayttaja)
 
         // Tarkisteaan, että muokkaaja on sama kuin kommentin tekijä
-        if (suoritusarvioinninKommenttiDTO.kommentoija != null &&
-            suoritusarvioinninKommenttiDTO.kommentoija != kayttajaDTO
+        require(
+            suoritusarvioinninKommenttiDTO.kommentoija == null ||
+                suoritusarvioinninKommenttiDTO.kommentoija == kayttajaDTO
         ) {
-            throw IllegalArgumentException("Kommenttia voi muokata vain kommentin tekijä.")
+            "Kommenttia voi muokata vain kommentin tekijä."
         }
 
         var suoritusarvioinninKommentti =
@@ -48,29 +49,26 @@ class SuoritusarvioinninKommenttiServiceImpl(
 
         val suoritusarviointi = suoritusarviointiRepository
             .findOneById(suoritusarvioinninKommentti.suoritusarviointi?.id!!).get()
-        if (kayttaja == suoritusarviointi.arvioinninAntaja ||
-            kayttaja == suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja
-        ) {
-            suoritusarvioinninKommentti =
-                suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
-            val user =
-                if (kayttaja == suoritusarviointi.arvioinninAntaja) kayttajaRepository.findById(
-                    suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!
-                ).get().user!!
-                else kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!)
-                    .get().user!!
-            mailService.sendEmailFromTemplate(
-                user,
-                templateName = "suoritusarvioinninKommenttiEmail.html",
-                titleKey = "email.suoritusarvioinninkommentti.title",
-                properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
-            )
-            return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
-        } else {
-            throw IllegalArgumentException(
-                "Kommentin lisääjän täytyy olla joko arviointipyynnön tehnyt tai arvioinnin antaja."
-            )
-        }
+        require(
+            kayttaja == suoritusarviointi.arvioinninAntaja ||
+                kayttaja == suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja
+        ) { "Kommentin lisääjän täytyy olla joko arviointipyynnön tehnyt tai arvioinnin antaja." }
+
+        suoritusarvioinninKommentti =
+            suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
+        val user =
+            if (kayttaja == suoritusarviointi.arvioinninAntaja) kayttajaRepository.findById(
+                suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!
+            ).get().user!!
+            else kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!)
+                .get().user!!
+        mailService.sendEmailFromTemplate(
+            user,
+            templateName = "suoritusarvioinninKommenttiEmail.html",
+            titleKey = "email.suoritusarvioinninkommentti.title",
+            properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
+        )
+        return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
     }
 
     @Transactional(readOnly = true)

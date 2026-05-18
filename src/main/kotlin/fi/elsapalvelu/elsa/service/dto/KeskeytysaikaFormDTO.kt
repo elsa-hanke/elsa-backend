@@ -10,6 +10,10 @@ class KeskeytysaikaFormDTO(
 
 ) : Serializable {
     override fun toString() = "KeskeytysaikaFormDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 
 

@@ -46,9 +46,6 @@ class ErikoistuvaLaakariKoejaksoResource(
     private val objectMapper: ObjectMapper
 ) {
 
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
-
     @GetMapping("/koejakso")
     fun getKoejakso(principal: Principal?): ResponseEntity<KoejaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -694,16 +691,6 @@ class ErikoistuvaLaakariKoejaksoResource(
                 "Erikoistuvan koejakson arviointi ei saa sisältää lähiesihenkilön kuittausta. Lähiesihenkilö määrittelee sen.",
                 entity,
                 "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahiesimiehen-kuittausta"
-            )
-        }
-    }
-
-    private fun validateKuittaus(kuitattu: Boolean, entity: String) {
-        if (!kuitattu) {
-            throw BadRequestAlertException(
-                "Erikoistuva ei voi hyväksyä sopimusta, jos esimies ei ole kuitannut sitä",
-                entity,
-                "dataillegal.erikoistuva-ei-voi-hyvaksya-sopimusta-jos-esimies-ei-ole-kuitannut-sita"
             )
         }
     }

@@ -22,8 +22,6 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
     private val userService: UserService,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) {
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
 
     @GetMapping("/kouluttajavaltuutukset")
     fun getKouluttajavaltuutukset(
