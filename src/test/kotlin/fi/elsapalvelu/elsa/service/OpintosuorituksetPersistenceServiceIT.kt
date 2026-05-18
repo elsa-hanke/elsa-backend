@@ -660,47 +660,47 @@ class OpintosuorituksetPersistenceServiceIT {
         private const val opintosuoritus1NimiSv = "opintosuoritus 1 sv"
         private const val opintosuoritus1Kurssikoodi = "XXX-YYY"
         private val opintosuoritus1Suorituspaiva = LocalDate.ofEpochDay(5L)
-        private val opintosuoritus1Opintopisteet = 10.0
-        private val opintosuoritus1Hyvaksytty = true
-        private val opintosuoritus1ArvioFi = "opintosuoritus 1 arvio fi"
-        private val opintosuoritus1ArvioSv = "opintosuoritus 1 arvio sv"
+        private const val opintosuoritus1Opintopisteet = 10.0
+        private const val opintosuoritus1Hyvaksytty = true
+        private const val opintosuoritus1ArvioFi = "opintosuoritus 1 arvio fi"
+        private const val opintosuoritus1ArvioSv = "opintosuoritus 1 arvio sv"
         private val opintosuoritus1Vanhenemispaiva = LocalDate.ofEpochDay(3650L)
 
         private const val opintosuoritusOsakokonaisuusNimiFi = "opintosuoritus osakokonaisuus fi"
         private const val opintosuoritusOsakokonaisuusNimiSv = "opintosuoritus osakokonaisuus sv"
         private const val opintosuoritusOsakokonaisuusKurssikoodi = "XXX-ZZZ"
         private val opintosuoritusOsakokonaisuusSuorituspaiva = LocalDate.ofEpochDay(7L)
-        private val opintosuoritusOsakokonaisuusOpintopisteet = 2.0
-        private val opintosuoritusOsakokonaisuusHyvaksytty = true
-        private val opintosuoritusOsakokonaisuusArvioFi = "opintosuoritus osakokonaisuus arvio fi"
-        private val opintosuoritusOsakokonaisuusArvioSv = "opintosuoritus osakokonaisuus arvio sv"
+        private const val opintosuoritusOsakokonaisuusOpintopisteet = 2.0
+        private const val opintosuoritusOsakokonaisuusHyvaksytty = true
+        private const val opintosuoritusOsakokonaisuusArvioFi = "opintosuoritus osakokonaisuus arvio fi"
+        private const val opintosuoritusOsakokonaisuusArvioSv = "opintosuoritus osakokonaisuus arvio sv"
         private val opintosuoritusOsakokonaisuusVanhenemispaiva = LocalDate.ofEpochDay(700L)
 
         private const val opintosuoritus2NimiFi = "opintosuoritus 2 fi"
         private const val opintosuoritus2NimiSv = "opintosuoritus 2 sv"
         private const val opintosuoritus2Kurssikoodi = "YYY-XXX"
         private val opintosuoritus2Suorituspaiva = LocalDate.ofEpochDay(6L)
-        private val opintosuoritus2Opintopisteet = 4.5
-        private val opintosuoritus2ArvioFi = "opintosuoritus 2 arvio fi"
-        private val opintosuoritus2ArvioSv = "opintosuoritus 2 arvio sv"
-        private val opintosuoritus2Hyvaksytty = true
+        private const val opintosuoritus2Opintopisteet = 4.5
+        private const val opintosuoritus2ArvioFi = "opintosuoritus 2 arvio fi"
+        private const val opintosuoritus2ArvioSv = "opintosuoritus 2 arvio sv"
+        private const val opintosuoritus2Hyvaksytty = true
 
         private const val opintosuoritus1UpdatedNimiFi = "opintosuoritus 1 updated fi"
         private const val opintosuoritus1UpdatedNimiSv = "opintosuoritus 1 updated sv"
         private val opintosuoritus1UpdatedSuorituspaiva = LocalDate.ofEpochDay(10L)
-        private val opintosuoritus1UpdatedOpintopisteet = 12.0
-        private val opintosuoritus1UpdatedHyvaksytty = false
-        private val opintosuoritus1UpdatedArvioFi = "opintosuoritus 1 updated arvio fi"
+        private const val opintosuoritus1UpdatedOpintopisteet = 12.0
+        private const val opintosuoritus1UpdatedHyvaksytty = false
+        private const val opintosuoritus1UpdatedArvioFi = "opintosuoritus 1 updated arvio fi"
         private val opintosuoritus1UpdatedArvioSv = "opintosuoritus 1 updated arvio sv"
         private val opintosuoritus1UpdatedVanhenemispaiva = LocalDate.ofEpochDay(1000L)
 
         private const val opintosuoritusOsakokonaisuusUpdatedNimiFi = "opintosuoritus osakokonaisuus updated fi"
         private const val opintosuoritusOsakokonaisuusUpdatedNimiSv = "opintosuoritus osakokonaisuus updated sv"
         private val opintosuoritusOsakokonaisuusUpdatedSuorituspaiva = LocalDate.ofEpochDay(12L)
-        private val opintosuoritusOsakokonaisuusUpdatedOpintopisteet = 8.0
-        private val opintosuoritusOsakokonaisuusUpdatedHyvaksytty = false
-        private val opintosuoritusOsakokonaisuusUpdatedArvioFi = "opintosuoritus osakokonaisuus arvio updated fi"
-        private val opintosuoritusOsakokonaisuusUpdatedArvioSv = "opintosuoritus osakokonaisuus arvio updated sv"
+        private const val opintosuoritusOsakokonaisuusUpdatedOpintopisteet = 8.0
+        private const val opintosuoritusOsakokonaisuusUpdatedHyvaksytty = false
+        private const val opintosuoritusOsakokonaisuusUpdatedArvioFi = "opintosuoritus osakokonaisuus arvio updated fi"
+        private const val opintosuoritusOsakokonaisuusUpdatedArvioSv = "opintosuoritus osakokonaisuus arvio updated sv"
         private val opintosuoritusOsakokonaisuusUpdatedVanhenemispaiva = LocalDate.ofEpochDay(900L)
 
         private val yliopistoEnum = YliopistoEnum.HELSINGIN_YLIOPISTO

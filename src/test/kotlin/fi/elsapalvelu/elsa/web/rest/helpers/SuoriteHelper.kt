@@ -8,70 +8,71 @@ import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
 
-class SuoriteHelper {
+object SuoriteHelper {
 
-    companion object {
+    private const val DEFAULT_NIMI = "AAAAAAAAAA"
+    private const val UPDATED_NIMI = "BBBBBBBBBB"
 
-        private const val DEFAULT_NIMI = "AAAAAAAAAA"
-        private const val UPDATED_NIMI = "BBBBBBBBBB"
+    private val DEFAULT_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
+    private val UPDATED_VOIMASSAOLON_ALKAMISPAIVA: LocalDate =
+        LocalDate.now(ZoneId.systemDefault())
 
-        private val DEFAULT_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
-        private val UPDATED_VOIMASSAOLON_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
+    private val DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate =
+        LocalDate.ofEpochDay(30L)
 
-        private val DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.ofEpochDay(30L)
-        private val UPDATED_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
+    private val UPDATED_VOIMASSAOLON_PAATTYMISPAIVA: LocalDate =
+        LocalDate.now(ZoneId.systemDefault())
 
-        @JvmStatic
-        fun createEntity(
-            em: EntityManager,
-            erikoisala: Erikoisala? = null,
-            voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
-            voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA,
-            existingKategoria: SuoritteenKategoria? = null,
-            vaadittuLkm: Int? = null
-        ): Suorite {
-            val suorite = Suorite(
-                nimi = DEFAULT_NIMI,
-                voimassaolonAlkamispaiva = voimassaoloAlkaa,
-                voimassaolonPaattymispaiva = voimassaoloPaattyy,
-                vaadittulkm = vaadittuLkm
-            )
+    fun createEntity(
+        em: EntityManager,
+        erikoisala: Erikoisala? = null,
+        voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
+        voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA,
+        existingKategoria: SuoritteenKategoria? = null,
+        vaadittuLkm: Int? = null
+    ): Suorite {
+        val suorite = Suorite(
+            nimi = DEFAULT_NIMI,
+            voimassaolonAlkamispaiva = voimassaoloAlkaa,
+            voimassaolonPaattymispaiva = voimassaoloPaattyy,
+            vaadittulkm = vaadittuLkm
+        )
 
-            // Lisätään pakollinen tieto
-            var suoritteenKategoria = existingKategoria
-            if (suoritteenKategoria == null) {
-                if (em.findAll(SuoritteenKategoria::class).isEmpty()) {
-                    suoritteenKategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
-                    em.persist(suoritteenKategoria)
-                    em.flush()
-                } else {
-                    suoritteenKategoria = em.findAll(SuoritteenKategoria::class).get(0)
-                }
-            }
-            suorite.kategoria = suoritteenKategoria
-
-            return suorite
-        }
-
-        @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): Suorite {
-            val suorite = Suorite(
-                nimi = UPDATED_NIMI,
-                voimassaolonAlkamispaiva = UPDATED_VOIMASSAOLON_ALKAMISPAIVA,
-                voimassaolonPaattymispaiva = UPDATED_VOIMASSAOLON_PAATTYMISPAIVA
-            )
-
-            // Lisätään pakollinen tieto
-            val suoritteenKategoria: SuoritteenKategoria
+        val suoritteenKategoria = existingKategoria ?: run {
             if (em.findAll(SuoritteenKategoria::class).isEmpty()) {
-                suoritteenKategoria = SuoritteenKategoriaHelper.createUpdatedEntity(em)
-                em.persist(suoritteenKategoria)
-                em.flush()
+                SuoritteenKategoriaHelper.createEntity(em, erikoisala).also {
+                    em.persist(it)
+                    em.flush()
+                }
             } else {
-                suoritteenKategoria = em.findAll(SuoritteenKategoria::class).get(0)
+                em.findAll(SuoritteenKategoria::class).first()
             }
-            suorite.kategoria = suoritteenKategoria
-            return suorite
         }
+
+        suorite.kategoria = suoritteenKategoria
+
+        return suorite
+    }
+
+    fun createUpdatedEntity(em: EntityManager): Suorite {
+        val suorite = Suorite(
+            nimi = UPDATED_NIMI,
+            voimassaolonAlkamispaiva = UPDATED_VOIMASSAOLON_ALKAMISPAIVA,
+            voimassaolonPaattymispaiva = UPDATED_VOIMASSAOLON_PAATTYMISPAIVA
+        )
+
+        val suoritteenKategoria =
+            if (em.findAll(SuoritteenKategoria::class).isEmpty()) {
+                SuoritteenKategoriaHelper.createUpdatedEntity(em).also {
+                    em.persist(it)
+                    em.flush()
+                }
+            } else {
+                em.findAll(SuoritteenKategoria::class).first()
+            }
+
+        suorite.kategoria = suoritteenKategoria
+
+        return suorite
     }
 }

@@ -61,7 +61,7 @@ class YekKoulutettavaTeoriakoulutusResourceIT {
     }
 
 
-    fun initTest(userId: String? = KayttajaHelper.DEFAULT_ID) {
+    fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -101,6 +101,6 @@ class YekKoulutettavaTeoriakoulutusResourceIT {
 
     companion object {
         private const val OPINTOSUORITUS1_KURSSIKOODI = "YLEE0028"
-        private val ENTITY_API_URL: String = "/api/yek-koulutettava/teoriakoulutukset"
+        private const val ENTITY_API_URL: String = "/api/yek-koulutettava/teoriakoulutukset"
     }
 }
