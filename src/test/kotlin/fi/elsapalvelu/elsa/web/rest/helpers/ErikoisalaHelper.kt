@@ -5,15 +5,14 @@ import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
 
 object ErikoisalaHelper {
 
-    private const val DEFAULT_ID = 62L
-    private const val DEFAULT_NIMI = "AAAAAAAAAA"
-    private const val DEFAULT_VIRTAPATEVYYSKOODI = "FFFFFFFFFF"
+        private const val DEFAULT_ID = 62L
+        private const val DEFAULT_NIMI = "AAAAAAAA22"
+        private const val DEFAULT_VIRTAPATEVYYSKOODI = "FFFFFFFFFF"
+        private const val UPDATED_NIMI = "BBBBBBBBBB"
+        private const val UPDATED_VIRTAPATEVYYSKOODI = "GGGGGGGGGG"
 
-    private const val UPDATED_NIMI = "BBBBBBBBBB"
-    private const val UPDATED_VIRTAPATEVYYSKOODI = "GGGGGGGGGG"
-
-    private val DEFAULT_TYYPPI = ErikoisalaTyyppi.LAAKETIEDE
-    private val UPDATED_TYYPPI = ErikoisalaTyyppi.HAMMASLAAKETIEDE
+        private val DEFAULT_TYYPPI: ErikoisalaTyyppi = ErikoisalaTyyppi.LAAKETIEDE
+        private val UPDATED_TYYPPI: ErikoisalaTyyppi = ErikoisalaTyyppi.HAMMASLAAKETIEDE
 
     fun createEntity(
         nimi: String = DEFAULT_NIMI,

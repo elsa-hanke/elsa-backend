@@ -12,31 +12,59 @@ object ValmistumispyyntoHelper {
     private const val DEFAULT_HYVAKSYJA_KORJAUSEHDOTUS = "hyvaksyja korjausehdotus"
     private const val DEFAULT_VIRKAILIJAN_SAATE = "virkailijan saate"
 
-    private fun baseValmistumispyynto(
-        opintooikeus: Opintooikeus
-    ) = Valmistumispyynto(
-        opintooikeus = opintooikeus
-    )
-
     fun createValmistumispyyntoOdottaaArviointia(
         opintooikeus: Opintooikeus,
         erikoistujanKuittausaika: LocalDate? = LocalDate.now()
-    ): Valmistumispyynto =
-        baseValmistumispyynto(opintooikeus).apply {
-            this.erikoistujanKuittausaika = erikoistujanKuittausaika
-        }
+    ): Valmistumispyynto {
+        val valmistumispyynto = Valmistumispyynto(
+            opintooikeus = opintooikeus,
+            erikoistujanKuittausaika = erikoistujanKuittausaika
+        )
+        return valmistumispyynto
+    }
+
+    fun createValmistumispyyntoOsaamisenArviointiPalautettu(
+        opintooikeus: Opintooikeus,
+        vastuuhenkiloOsaamisenArvioija: Kayttaja,
+        vastuuhenkiloOsaamisenArvioijaPalautusaika: LocalDate? = LocalDate.now()
+    ): Valmistumispyynto {
+        val valmistumispyynto = Valmistumispyynto(
+            opintooikeus = opintooikeus,
+            vastuuhenkiloOsaamisenArvioija = vastuuhenkiloOsaamisenArvioija,
+            vastuuhenkiloOsaamisenArvioijaPalautusaika = vastuuhenkiloOsaamisenArvioijaPalautusaika,
+            vastuuhenkiloOsaamisenArvioijaKorjausehdotus = DEFAULT_OSAAMISEN_ARVIOIJA_KORJAUSEHDOTUS
+        )
+        return valmistumispyynto
+    }
+
+    fun createValmistumispyyntoOdottaaVirkailijanTarkastusta(
+        opintooikeus: Opintooikeus,
+        vastuuhenkiloOsaamisenArvioija: Kayttaja,
+        erikoistujanKuittausaika: LocalDate? = LocalDate.now(),
+        vastuuhenkiloOsaamisenArvioijaKuittausaika: LocalDate? = LocalDate.now()
+    ): Valmistumispyynto {
+        val valmistumispyynto = Valmistumispyynto(
+            opintooikeus = opintooikeus,
+            erikoistujanKuittausaika = erikoistujanKuittausaika,
+            vastuuhenkiloOsaamisenArvioija = vastuuhenkiloOsaamisenArvioija,
+            vastuuhenkiloOsaamisenArvioijaKuittausaika = vastuuhenkiloOsaamisenArvioijaKuittausaika
+        )
+        return valmistumispyynto
+    }
 
     fun createValmistumispyyntoVirkailijanTarkastusPalautettu(
         opintooikeus: Opintooikeus,
         virkailija: Kayttaja,
         virkailijanPalautusaika: LocalDate? = LocalDate.now()
-    ): Valmistumispyynto =
-        baseValmistumispyynto(opintooikeus).apply {
-            this.virkailija = virkailija
-            this.virkailijanPalautusaika = virkailijanPalautusaika
-            this.virkailijanKorjausehdotus =
-                DEFAULT_VIRKAILIJA_KORJAUSEHDOTUS
-        }
+    ): Valmistumispyynto {
+        val valmistumispyynto = Valmistumispyynto(
+            opintooikeus = opintooikeus,
+            virkailija = virkailija,
+            virkailijanPalautusaika = virkailijanPalautusaika,
+            virkailijanKorjausehdotus = DEFAULT_VIRKAILIJA_KORJAUSEHDOTUS
+        )
+        return valmistumispyynto
+    }
 
     fun createValmistumispyyntoOdottaaHyvaksyntaa(
         opintooikeus: Opintooikeus,
@@ -57,35 +85,6 @@ object ValmistumispyyntoHelper {
         return valmistumispyynto
     }
 
-    fun createValmistumispyyntoOsaamisenArviointiPalautettu(
-        opintooikeus: Opintooikeus,
-        vastuuhenkiloOsaamisenArvioija: Kayttaja,
-        vastuuhenkiloOsaamisenArvioijaPalautusaika: LocalDate? = LocalDate.now()
-    ): Valmistumispyynto {
-        val valmistumispyynto = Valmistumispyynto(
-            opintooikeus = opintooikeus,
-            vastuuhenkiloOsaamisenArvioija = vastuuhenkiloOsaamisenArvioija,
-            vastuuhenkiloOsaamisenArvioijaPalautusaika = vastuuhenkiloOsaamisenArvioijaPalautusaika,
-            vastuuhenkiloOsaamisenArvioijaKorjausehdotus = ValmistumispyyntoHelper.DEFAULT_OSAAMISEN_ARVIOIJA_KORJAUSEHDOTUS
-        )
-        return valmistumispyynto
-    }
-
-    fun createValmistumispyyntoOdottaaVirkailijanTarkastusta(
-        opintooikeus: Opintooikeus,
-        vastuuhenkiloOsaamisenArvioija: Kayttaja,
-        erikoistujanKuittausaika: LocalDate? = LocalDate.now(),
-        vastuuhenkiloOsaamisenArvioijaKuittausaika: LocalDate? = LocalDate.now()
-    ): Valmistumispyynto {
-        val valmistumispyynto = Valmistumispyynto(
-            opintooikeus = opintooikeus,
-            erikoistujanKuittausaika = erikoistujanKuittausaika,
-            vastuuhenkiloOsaamisenArvioija = vastuuhenkiloOsaamisenArvioija,
-            vastuuhenkiloOsaamisenArvioijaKuittausaika = vastuuhenkiloOsaamisenArvioijaKuittausaika
-        )
-        return valmistumispyynto
-    }
-
     fun createValmistumispyyntoHyvaksyntaPalautettu(
         opintooikeus: Opintooikeus,
         vastuuhenkiloHyvaksyja: Kayttaja,
@@ -95,7 +94,25 @@ object ValmistumispyyntoHelper {
             opintooikeus = opintooikeus,
             vastuuhenkiloHyvaksyja = vastuuhenkiloHyvaksyja,
             vastuuhenkiloHyvaksyjaPalautusaika = vastuuhenkiloHyvaksyjaPalautusaika,
-            vastuuhenkiloHyvaksyjaKorjausehdotus = ValmistumispyyntoHelper.DEFAULT_HYVAKSYJA_KORJAUSEHDOTUS
+            vastuuhenkiloHyvaksyjaKorjausehdotus = DEFAULT_HYVAKSYJA_KORJAUSEHDOTUS
+        )
+        return valmistumispyynto
+    }
+
+    fun createValmistumispyyntoHyvaksyntaAndTarkastusPalautettu(
+        opintooikeus: Opintooikeus,
+        virkailija: Kayttaja,
+        virkailijanPalautusaika: LocalDate? = LocalDate.now(),
+        vastuuhenkiloHyvaksyja: Kayttaja,
+        vastuuhenkiloHyvaksyjaPalautusaika: LocalDate? = LocalDate.now()
+    ): Valmistumispyynto {
+        val valmistumispyynto = Valmistumispyynto(
+            opintooikeus = opintooikeus,
+            virkailija = virkailija,
+            virkailijanPalautusaika = virkailijanPalautusaika,
+            vastuuhenkiloHyvaksyja = vastuuhenkiloHyvaksyja,
+            vastuuhenkiloHyvaksyjaPalautusaika = vastuuhenkiloHyvaksyjaPalautusaika,
+            vastuuhenkiloHyvaksyjaKorjausehdotus = DEFAULT_HYVAKSYJA_KORJAUSEHDOTUS
         )
         return valmistumispyynto
     }
@@ -117,7 +134,7 @@ object ValmistumispyyntoHelper {
             virkailijanPalautusaika = virkailijanPalautusaika,
             vastuuhenkiloHyvaksyja = vastuuhenkiloHyvaksyja,
             vastuuhenkiloHyvaksyjaPalautusaika = vastuuhenkiloHyvaksyjaPalautusaika,
-            vastuuhenkiloHyvaksyjaKorjausehdotus = ValmistumispyyntoHelper.DEFAULT_HYVAKSYJA_KORJAUSEHDOTUS
+            vastuuhenkiloHyvaksyjaKorjausehdotus = DEFAULT_HYVAKSYJA_KORJAUSEHDOTUS
         )
         return valmistumispyynto
     }
@@ -139,27 +156,9 @@ object ValmistumispyyntoHelper {
             vastuuhenkiloOsaamisenArvioijaKuittausaika = vastuuhenkiloOsaamisenArvioijaKuittausaika,
             virkailija = virkailija,
             virkailijanKuittausaika = virkailijanKuittausaika,
-            virkailijanSaate = ValmistumispyyntoHelper.DEFAULT_VIRKAILIJAN_SAATE,
+            virkailijanSaate = DEFAULT_VIRKAILIJAN_SAATE,
             vastuuhenkiloHyvaksyja = vastuuhenkiloHyvaksyja,
             vastuuhenkiloHyvaksyjaKuittausaika = vastuuhenkiloHyvaksyjaKuittausaika
-        )
-        return valmistumispyynto
-    }
-
-    fun createValmistumispyyntoHyvaksyntaAndTarkastusPalautettu(
-        opintooikeus: Opintooikeus,
-        virkailija: Kayttaja,
-        virkailijanPalautusaika: LocalDate? = LocalDate.now(),
-        vastuuhenkiloHyvaksyja: Kayttaja,
-        vastuuhenkiloHyvaksyjaPalautusaika: LocalDate? = LocalDate.now()
-    ): Valmistumispyynto {
-        val valmistumispyynto = Valmistumispyynto(
-            opintooikeus = opintooikeus,
-            virkailija = virkailija,
-            virkailijanPalautusaika = virkailijanPalautusaika,
-            vastuuhenkiloHyvaksyja = vastuuhenkiloHyvaksyja,
-            vastuuhenkiloHyvaksyjaPalautusaika = vastuuhenkiloHyvaksyjaPalautusaika,
-            vastuuhenkiloHyvaksyjaKorjausehdotus = ValmistumispyyntoHelper.DEFAULT_HYVAKSYJA_KORJAUSEHDOTUS
         )
         return valmistumispyynto
     }

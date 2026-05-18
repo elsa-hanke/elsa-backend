@@ -846,7 +846,7 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
-            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(61)))
+            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(62)))
     }
 
     @Test
