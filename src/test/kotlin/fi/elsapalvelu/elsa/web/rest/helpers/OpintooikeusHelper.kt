@@ -1,133 +1,166 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.Asetus
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Opintooikeus
-import fi.elsapalvelu.elsa.domain.Yliopisto
+import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 import java.time.LocalDate
 
-class OpintooikeusHelper {
+object OpintooikeusHelper {
 
-    companion object {
-        val DEFAULT_YLIOPISTO = YliopistoEnum.HELSINGIN_YLIOPISTO
-        const val DEFAULT_ASETUS = "55/2020"
-        private const val DEFAULT_OPISKELIJATUNNUS = "CCCCCCCCCC"
-        private val DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
-        private val DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA: LocalDate = LocalDate.now().plusYears(2)
+    val DEFAULT_YLIOPISTO = YliopistoEnum.HELSINGIN_YLIOPISTO
+    const val DEFAULT_ASETUS = "55/2020"
+    private const val DEFAULT_OPISKELIJATUNNUS = "CCCCCCCCCC"
 
-        @JvmStatic
-        fun addOpintooikeusForErikoistuvaLaakari(
-            em: EntityManager,
-            erikoistuvaLaakari: ErikoistuvaLaakari,
-            alkamispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
-            paattymispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
-            tila: OpintooikeudenTila = OpintooikeudenTila.AKTIIVINEN,
-            viimeinenKatselupaiva: LocalDate? = null
-        ): Opintooikeus {
-            val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
-            em.persist(yliopisto)
+    private val DEFAULT_ALKAMISPAIVA: LocalDate =
+        LocalDate.ofEpochDay(0L)
 
-            val erikoisala = ErikoisalaHelper.createEntity()
-            em.persist(erikoisala)
-            em.flush()
+    private val DEFAULT_PAATTYMISPAIVA: LocalDate =
+        LocalDate.now().plusYears(2)
 
-            val opintoopas = OpintoopasHelper.createEntity(em, erikoisala = erikoisala)
-            em.persist(opintoopas)
-            em.flush()
+    fun addOpintooikeusForErikoistuvaLaakari(
+        em: EntityManager,
+        erikoistuvaLaakari: ErikoistuvaLaakari,
+        alkamispaiva: LocalDate = DEFAULT_ALKAMISPAIVA,
+        paattymispaiva: LocalDate = DEFAULT_PAATTYMISPAIVA,
+        tila: OpintooikeudenTila = OpintooikeudenTila.AKTIIVINEN,
+        viimeinenKatselupaiva: LocalDate? = null
+    ): Opintooikeus {
 
-            val asetus: Asetus
-            if (em.findAll(Asetus::class).isEmpty()) {
-                asetus = Asetus(nimi = DEFAULT_ASETUS)
-                em.persist(asetus)
-                em.flush()
-            } else {
-                asetus = em.findAll(Asetus::class).get(0)
-            }
+        val (yliopisto, erikoisala, opintoopas, asetus) =
+            createBaseEntities(em)
 
-            val opintooikeus = Opintooikeus(
-                opintooikeudenMyontamispaiva = alkamispaiva,
-                opintooikeudenPaattymispaiva = paattymispaiva,
-                opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
-                osaamisenArvioinninOppaanPvm = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
-                erikoistuvaLaakari = erikoistuvaLaakari,
-                yliopisto = yliopisto,
-                erikoisala = erikoisala,
-                opintoopas = opintoopas,
-                asetus = asetus,
-                kaytossa = false,
-                tila = tila,
-                viimeinenKatselupaiva = viimeinenKatselupaiva ?: paattymispaiva.plusMonths(6)
-            )
-            em.persist(opintooikeus)
-            em.flush()
+        val opintooikeus = createOpintooikeus(
+            erikoistuvaLaakari,
+            yliopisto,
+            erikoisala,
+            opintoopas,
+            asetus,
+            alkamispaiva,
+            paattymispaiva,
+            tila,
+            viimeinenKatselupaiva
+        )
 
-            erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
+        em.persist(opintooikeus)
+        em.flush()
 
-            return opintooikeus
+        erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
+
+        return opintooikeus
+    }
+
+    fun addOpintooikeusForYekKoulutettava(
+        em: EntityManager,
+        erikoistuvaLaakari: ErikoistuvaLaakari,
+        alkamispaiva: LocalDate = DEFAULT_ALKAMISPAIVA,
+        paattymispaiva: LocalDate = DEFAULT_PAATTYMISPAIVA,
+        tila: OpintooikeudenTila = OpintooikeudenTila.AKTIIVINEN,
+        viimeinenKatselupaiva: LocalDate? = null
+    ): Opintooikeus {
+
+        val (yliopisto, _, opintoopas, asetus) =
+            createBaseEntities(em)
+
+        val erikoisala = ErikoisalaHelper.createEntityWithId(61L)
+
+        val opintooikeus = createOpintooikeus(
+            erikoistuvaLaakari,
+            yliopisto,
+            erikoisala,
+            opintoopas,
+            asetus,
+            alkamispaiva,
+            paattymispaiva,
+            tila,
+            viimeinenKatselupaiva
+        )
+
+        em.persist(opintooikeus)
+        em.flush()
+
+        erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
+
+        return opintooikeus
+    }
+
+    fun setOpintooikeusKaytossa(
+        erikoistuvaLaakari: ErikoistuvaLaakari,
+        opintooikeus: Opintooikeus
+    ) {
+        erikoistuvaLaakari.opintooikeudet.forEach {
+            it.kaytossa = false
         }
 
-        @JvmStatic
-        fun setOpintooikeusKaytossa(erikoistuvaLaakari: ErikoistuvaLaakari, opintooikeus: Opintooikeus) {
-            erikoistuvaLaakari.opintooikeudet.forEach {
-                it.kaytossa = false
-            }
+        erikoistuvaLaakari.opintooikeudet
+            .firstOrNull { it.id == opintooikeus.id }
+            ?.kaytossa = true
+    }
 
-            erikoistuvaLaakari.opintooikeudet.find { it.id == opintooikeus.id }?.let {
-                it.kaytossa = true
-            }
-        }
+    // ----------------- helpers -----------------
 
-        @JvmStatic
-        fun addOpintooikeusForYekKoulutettava(
-            em: EntityManager,
-            erikoistuvaLaakari: ErikoistuvaLaakari,
-            alkamispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
-            paattymispaiva: LocalDate = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
-            tila: OpintooikeudenTila = OpintooikeudenTila.AKTIIVINEN,
-            viimeinenKatselupaiva: LocalDate? = null
-        ): Opintooikeus {
-            val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
-            em.persist(yliopisto)
+    private fun createBaseEntities(em: EntityManager): BaseEntities {
+        val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
+        em.persist(yliopisto)
 
-            val erikoisala = ErikoisalaHelper.createEntityWithId(61L)
+        val erikoisala = ErikoisalaHelper.createEntity()
+        em.persist(erikoisala)
 
-            val opintoopas = OpintoopasHelper.createEntity(em, erikoisala = erikoisala)
-            em.persist(opintoopas)
-            em.flush()
+        val opintoopas =
+            OpintoopasHelper.createEntity(em, erikoisala = erikoisala)
+        em.persist(opintoopas)
 
-            val asetus: Asetus
-            if (em.findAll(Asetus::class).isEmpty()) {
-                asetus = Asetus(nimi = DEFAULT_ASETUS)
-                em.persist(asetus)
+        val asetus = getOrCreateAsetus(em)
+
+        em.flush()
+
+        return BaseEntities(yliopisto, erikoisala, opintoopas, asetus)
+    }
+
+    private fun getOrCreateAsetus(em: EntityManager): Asetus {
+        val existing = em.findAll(Asetus::class)
+        return if (existing.isEmpty()) {
+            Asetus(nimi = DEFAULT_ASETUS).also {
+                em.persist(it)
                 em.flush()
-            } else {
-                asetus = em.findAll(Asetus::class).get(0)
             }
-
-            val opintooikeus = Opintooikeus(
-                opintooikeudenMyontamispaiva = alkamispaiva,
-                opintooikeudenPaattymispaiva = paattymispaiva,
-                opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
-                osaamisenArvioinninOppaanPvm = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
-                erikoistuvaLaakari = erikoistuvaLaakari,
-                yliopisto = yliopisto,
-                erikoisala = erikoisala,
-                opintoopas = opintoopas,
-                asetus = asetus,
-                kaytossa = false,
-                tila = tila,
-                viimeinenKatselupaiva = viimeinenKatselupaiva ?: paattymispaiva.plusMonths(6)
-            )
-            em.persist(opintooikeus)
-            em.flush()
-
-            erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
-
-            return opintooikeus
+        } else {
+            existing.first()
         }
     }
+
+    private fun createOpintooikeus(
+        erikoistuvaLaakari: ErikoistuvaLaakari,
+        yliopisto: Yliopisto,
+        erikoisala: Erikoisala,
+        opintoopas: Opintoopas,
+        asetus: Asetus,
+        alkamispaiva: LocalDate,
+        paattymispaiva: LocalDate,
+        tila: OpintooikeudenTila,
+        viimeinenKatselupaiva: LocalDate?
+    ): Opintooikeus =
+        Opintooikeus(
+            opintooikeudenMyontamispaiva = alkamispaiva,
+            opintooikeudenPaattymispaiva = paattymispaiva,
+            opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
+            osaamisenArvioinninOppaanPvm = DEFAULT_ALKAMISPAIVA,
+            erikoistuvaLaakari = erikoistuvaLaakari,
+            yliopisto = yliopisto,
+            erikoisala = erikoisala,
+            opintoopas = opintoopas,
+            asetus = asetus,
+            kaytossa = false,
+            tila = tila,
+            viimeinenKatselupaiva =
+                viimeinenKatselupaiva ?: paattymispaiva.plusMonths(6)
+        )
+
+    private data class BaseEntities(
+        val yliopisto: Yliopisto,
+        val erikoisala: Erikoisala,
+        val opintoopas: Opintoopas,
+        val asetus: Asetus
+    )
 }
