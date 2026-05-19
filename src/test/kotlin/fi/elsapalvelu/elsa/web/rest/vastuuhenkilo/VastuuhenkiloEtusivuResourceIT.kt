@@ -495,45 +495,26 @@ class VastuuhenkiloEtusivuResourceIT {
     fun testImpersonation() {
         initTest()
 
-        val yliopisto1 =
-            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
-
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
         val erikoisala1 = erikoisalaRepository.findById(1).get()
-
-        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
-            kayttaja = vastuuhenkilo,
-            yliopisto = yliopisto1,
-            erikoisala = erikoisala1
-        )
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(kayttaja = vastuuhenkilo, yliopisto = yliopisto1, erikoisala = erikoisala1)
         kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
         vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
-        val erikoistuvaLaakari =
-            ErikoistuvaLaakariHelper.createEntity(
-                em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
-            )
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        val tyoskentelyjakso =
-            TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
-        restEtusivuMockMvc.perform(
-            get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari.getOpintooikeusKaytossa()?.id}")
-                .accept(MediaType.APPLICATION_JSON)
-        )
+        restEtusivuMockMvc.perform(get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari.getOpintooikeusKaytossa()?.id}").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isFound)
 
         // Päivitetään Security contextiin impersonoitu käyttäjä
-        val currentAuthentication: Authentication =
-            TestSecurityContextHolder.getContext().authentication
-        val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(
-            ERIKOISTUVA_LAAKARI_IMPERSONATED, currentAuthentication
-        )
+        val currentAuthentication: Authentication = TestSecurityContextHolder.getContext().authentication
+        val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(ERIKOISTUVA_LAAKARI_IMPERSONATED, currentAuthentication)
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
-        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
-            erikoistuvaLaakari.kayttaja?.user?.id,
+        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(erikoistuvaLaakari.kayttaja?.user?.id,
             mapOf(
                 "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari.kayttaja?.user?.firstName),
                 "urn:oid:2.5.4.4" to listOf(erikoistuvaLaakari.kayttaja?.user?.lastName),
@@ -545,11 +526,7 @@ class VastuuhenkiloEtusivuResourceIT {
             )
         )
         val context = TestSecurityContextHolder.getContext()
-        context.authentication = Saml2Authentication(
-            newPrincipal,
-            (currentAuthentication as Saml2Authentication).saml2Response,
-            listOf(switchAuthority)
-        )
+        context.authentication = Saml2Authentication(newPrincipal, (currentAuthentication as Saml2Authentication).saml2Response, listOf(switchAuthority))
         TestSecurityContextHolder.setContext(context)
 
         // GET kutsut sallittuja
@@ -562,18 +539,13 @@ class VastuuhenkiloEtusivuResourceIT {
         val updatedTyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
 
         // Muut kutsut estetty
-        restEtusivuMockMvc.perform(
-            MockMvcRequestBuilders.put("/api/erikoistuva-laakari/tyoskentelyjaksot")
-                .param("tyoskentelyjaksoJson", updatedTyoskentelyjaksoJson)
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andExpect(status().isForbidden)
+        restEtusivuMockMvc.perform(MockMvcRequestBuilders.put("/api/erikoistuva-laakari/tyoskentelyjaksot").param("tyoskentelyjaksoJson", updatedTyoskentelyjaksoJson)
+                .with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isForbidden)
 
         // Yksityisiä päiväkirjamerkintöjä ei palauteta
-        val paivakirjamerkinta1 =
-            PaivakirjamerkintaHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
+        val paivakirjamerkinta1 = PaivakirjamerkintaHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
         paivakirjamerkintaRepository.saveAndFlush(paivakirjamerkinta1)
-        val paivakirjamerkinta2 =
-            PaivakirjamerkintaHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
+        val paivakirjamerkinta2 = PaivakirjamerkintaHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
         paivakirjamerkinta2.yksityinen = true
         paivakirjamerkintaRepository.saveAndFlush(paivakirjamerkinta2)
 
@@ -584,39 +556,22 @@ class VastuuhenkiloEtusivuResourceIT {
             .andExpect(jsonPath("$.content[0].yksityinen").value(false))
 
         // Yksityisiä koulutussuunnitelman kenttiä ei palauteta
-        val koulutussuunnitelma =
-            KoulutussuunnitelmaHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
+        val koulutussuunnitelma = KoulutussuunnitelmaHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
         koulutussuunnitelmaRepository.saveAndFlush(koulutussuunnitelma)
 
         restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/koulutussuunnitelma"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.motivaatiokirje").value(KoulutussuunnitelmaHelper.DEFAULT_MOTIVAATIOKIRJE))
-            .andExpect(
-                jsonPath("$.motivaatiokirjeYksityinen").value(
-                    KoulutussuunnitelmaHelper.DEFAULT_MOTIVAATIOKIRJE_YKSITYINEN
-                )
-            )
+            .andExpect(jsonPath("$.motivaatiokirjeYksityinen").value(KoulutussuunnitelmaHelper.DEFAULT_MOTIVAATIOKIRJE_YKSITYINEN))
             .andExpect(jsonPath("$.opiskeluJaTyohistoria").value(KoulutussuunnitelmaHelper.DEFAULT_OPISKELU_JA_TYOHISTORIA))
-            .andExpect(
-                jsonPath("$.opiskeluJaTyohistoriaYksityinen").value(
-                    KoulutussuunnitelmaHelper.DEFAULT_OPISKELU_JA_TYOHISTORIA_YKSITYINEN
-                )
-            )
+            .andExpect(jsonPath("$.opiskeluJaTyohistoriaYksityinen").value(KoulutussuunnitelmaHelper.DEFAULT_OPISKELU_JA_TYOHISTORIA_YKSITYINEN))
             .andExpect(jsonPath("$.vahvuudet").value(KoulutussuunnitelmaHelper.DEFAULT_VAHVUUDET))
             .andExpect(jsonPath("$.vahvuudetYksityinen").value(KoulutussuunnitelmaHelper.DEFAULT_VAHVUUDET_YKSITYINEN))
             .andExpect(jsonPath("$.tulevaisuudenVisiointi").value(KoulutussuunnitelmaHelper.DEFAULT_TULEVAISUUDEN_VISIOINTI))
-            .andExpect(
-                jsonPath("$.tulevaisuudenVisiointiYksityinen").value(
-                    KoulutussuunnitelmaHelper.DEFAULT_TULEVAISUUDEN_VISIOINTI_YKSITYINEN
-                )
-            )
+            .andExpect(jsonPath("$.tulevaisuudenVisiointiYksityinen").value(KoulutussuunnitelmaHelper.DEFAULT_TULEVAISUUDEN_VISIOINTI_YKSITYINEN))
             .andExpect(jsonPath("$.osaamisenKartuttaminen").value(KoulutussuunnitelmaHelper.DEFAULT_OSAAMISEN_KARTUTTAMINEN))
-            .andExpect(
-                jsonPath("$.osaamisenKartuttaminenYksityinen").value(
-                    KoulutussuunnitelmaHelper.DEFAULT_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN
-                )
-            )
+            .andExpect(jsonPath("$.osaamisenKartuttaminenYksityinen").value(KoulutussuunnitelmaHelper.DEFAULT_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN))
             .andExpect(jsonPath("$.elamankentta").value(KoulutussuunnitelmaHelper.DEFAULT_ELAMANKENTTA))
             .andExpect(jsonPath("$.elamankenttaYksityinen").value(KoulutussuunnitelmaHelper.DEFAULT_ELAMANKENTTA_YKSITYINEN))
 
