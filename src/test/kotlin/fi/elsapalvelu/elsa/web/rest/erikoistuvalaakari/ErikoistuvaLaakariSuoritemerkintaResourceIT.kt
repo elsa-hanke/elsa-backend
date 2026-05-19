@@ -141,7 +141,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initTest()
 
         val databaseSizeBeforeCreate = suoritemerkintaRepository.findAll().size
 
@@ -192,7 +192,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initTest()
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
 
@@ -276,7 +276,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initTest()
 
         val databaseSizeBeforeCreate = suoritemerkintaRepository.findAll().size
 
@@ -359,7 +359,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initTest()
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
 
