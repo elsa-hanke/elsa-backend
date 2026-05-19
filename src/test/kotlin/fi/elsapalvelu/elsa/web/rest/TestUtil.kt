@@ -8,11 +8,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.Description
-import org.hamcrest.TypeSafeDiagnosingMatcher
 import java.io.IOException
-import java.time.ZonedDateTime
-import java.time.format.DateTimeParseException
 import jakarta.persistence.EntityManager
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
@@ -30,12 +26,12 @@ private fun createObjectMapper() =
 /**
  * Convert an object to JSON byte array.
  *
- * @param object the object to convert.
+ * @param obj the object to convert.
  * @return the JSON byte array.
  * @throws IOException
  */
 @Throws(IOException::class)
-fun convertObjectToJsonBytes(`object`: Any): ByteArray = mapper.writeValueAsBytes(`object`)
+fun convertObjectToJsonBytes(obj: Any): ByteArray = mapper.writeValueAsBytes(obj)
 
 /**
  * Create a byte array with a specific size filled with specified data.
@@ -45,30 +41,6 @@ fun convertObjectToJsonBytes(`object`: Any): ByteArray = mapper.writeValueAsByte
  * @return the JSON byte array.
  */
 fun createByteArray(size: Int, data: String) = ByteArray(size) { java.lang.Byte.parseByte(data, 2) }
-
-/**
- * A matcher that tests that the examined string represents the same instant as the reference datetime.
- */
-class ZonedDateTimeMatcher(private val date: ZonedDateTime) : TypeSafeDiagnosingMatcher<String>() {
-
-    override fun matchesSafely(item: String, mismatchDescription: Description): Boolean {
-        try {
-            if (!date.isEqual(ZonedDateTime.parse(item))) {
-                mismatchDescription.appendText("was ").appendValue(item)
-                return false
-            }
-            return true
-        } catch (ex: DateTimeParseException) {
-            mismatchDescription.appendText("was ").appendValue(item)
-                .appendText(", which could not be parsed as a ZonedDateTime")
-            return false
-        }
-    }
-
-    override fun describeTo(description: Description) {
-        description.appendText("a String representing the same Instant as ").appendValue(date)
-    }
-}
 
 /**
  * Verifies the equals/hashcode contract on the domain object.
@@ -102,5 +74,3 @@ fun <T : Any> EntityManager.findAll(clazz: KClass<T>): List<T> {
     val all = cq.select(rootEntry)
     return this.createQuery(all).resultList
 }
-
-const val TEST_USER_LOGIN = "test"

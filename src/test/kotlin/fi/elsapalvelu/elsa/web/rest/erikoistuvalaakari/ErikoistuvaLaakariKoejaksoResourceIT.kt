@@ -940,7 +940,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeCreate)
     }
 
-    private fun initKoejakso(userId: String? = DEFAULT_ID) {
+    private fun initKoejakso() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()

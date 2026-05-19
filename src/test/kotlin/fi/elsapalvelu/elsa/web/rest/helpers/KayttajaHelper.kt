@@ -8,14 +8,11 @@ import jakarta.persistence.EntityManager
 
 object KayttajaHelper {
     const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
-    const val DEFAULT_LOGIN = "johndoe"
     const val DEFAULT_EMAIL = "john.doe@example.com"
     const val DEFAULT_AVATAR_AS_STRING = "AA=="
-    private const val DEFAULT_NIMI = "AAAAAAAAAA"
     private const val UPDATED_NIMI = "BBBBBBBBBB"
     const val DEFAULT_NIMIKE = "DEFAULT_NIMIKE"
 
-    @JvmStatic
     fun createEntity(em: EntityManager, user: User? = null): Kayttaja {
         val kayttaja = Kayttaja(
             nimike = DEFAULT_NIMIKE,
@@ -35,7 +32,6 @@ object KayttajaHelper {
         return kayttaja
     }
 
-    @JvmStatic
     fun createUpdatedEntity(
         em: EntityManager,
         nimi: String = UPDATED_NIMI

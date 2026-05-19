@@ -113,11 +113,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             .andExpect(jsonPath("$[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].id").value(koejaksonLoppukeskustelu.id))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].tyyppi").value("LOPPUKESKUSTELU"))
-            .andExpect(
-                jsonPath("$[0].hyvaksytytVaiheet[1].id").value(
-                    koejaksonKehittamistoimenpiteet.id
-                )
-            )
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].id").value(koejaksonKehittamistoimenpiteet.id))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].tyyppi").value("KEHITTAMISTOIMENPITEET"))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].id").value(koejaksonValiarviointi.id))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].tyyppi").value("VALIARVIOINTI"))
@@ -766,12 +762,10 @@ class VastuuhenkiloKoejaksoResourceIT {
     }
 
     fun initTest(createVastuuhenkilonArvio: Boolean? = true) {
-        user =
-            KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
+        user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
         em.persist(user)
         em.flush()
-        val userDetails = mapOf<String, List<Any>>(
-        )
+        val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
         val authentication = Saml2Authentication(
             DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
@@ -779,8 +773,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             authorities
         )
         TestSecurityContextHolder.getContext().authentication = authentication
-        val erikoistuvaLaakari =
-            ErikoistuvaLaakariHelper.createEntity(em)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         em.persist(erikoistuvaLaakari)
 
         vastuuhenkilo = KayttajaHelper.createEntity(em, user)
@@ -806,8 +799,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
         em.persist(yliopisto)
 
-        koejaksonKoulutussopimus =
-            KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
+        koejaksonKoulutussopimus = KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
         koejaksonKoulutussopimus.kouluttajat =
             mutableSetOf(
                 KoejaksonVaiheetHelper.createKoulutussopimuksenKouluttaja(
@@ -823,11 +815,9 @@ class VastuuhenkiloKoejaksoResourceIT {
             )
         em.persist(koejaksonKoulutussopimus)
 
-        koejaksonAloituskeskustelu =
-            KoejaksonVaiheetHelper.createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+        koejaksonAloituskeskustelu = KoejaksonVaiheetHelper.createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
         em.persist(koejaksonAloituskeskustelu)
-        koejaksonValiarviointi =
-            KoejaksonVaiheetHelper.createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
+        koejaksonValiarviointi = KoejaksonVaiheetHelper.createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
         em.persist(koejaksonValiarviointi)
         koejaksonKehittamistoimenpiteet =
             KoejaksonVaiheetHelper.createKehittamistoimenpiteet(
@@ -836,8 +826,7 @@ class VastuuhenkiloKoejaksoResourceIT {
                 esimies
             )
         em.persist(koejaksonKehittamistoimenpiteet)
-        koejaksonLoppukeskustelu =
-            KoejaksonVaiheetHelper.createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+        koejaksonLoppukeskustelu = KoejaksonVaiheetHelper.createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
         em.persist(koejaksonLoppukeskustelu)
 
         if (createVastuuhenkilonArvio == true) {

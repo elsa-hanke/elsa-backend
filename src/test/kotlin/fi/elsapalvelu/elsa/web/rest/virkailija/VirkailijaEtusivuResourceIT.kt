@@ -717,9 +717,9 @@ class VirkailijaEtusivuResourceIT {
     companion object {
         private val defaultYliopistoEnum = YliopistoEnum.HELSINGIN_YLIOPISTO
         private val anotherYliopistoEnum = YliopistoEnum.OULUN_YLIOPISTO
-        private val erikoisala1Nimi = "erikoisala1"
-        private val erikoisala2Nimi = "erikoisala2"
-        private val asetus1Nimi = "asetus1"
-        private val asetus2Nimi = "asetus2"
+        private const val erikoisala1Nimi = "erikoisala1"
+        private const val erikoisala2Nimi = "erikoisala2"
+        private const val asetus1Nimi = "asetus1"
+        private const val asetus2Nimi = "asetus2"
     }
 }

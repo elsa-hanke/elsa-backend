@@ -8,22 +8,18 @@ import java.time.LocalDate
 import jakarta.persistence.EntityManager
 
 object ErikoistuvaLaakariHelper {
-    private const val DEFAULT_PUHELINNUMERO = "AAAAAAAAAA"
-    private const val UPDATED_PUHELINNUMERO = "BBBBBBBBBB"
     private const val DEFAULT_OPISKELIJATUNNUS = "AAAAAAAAAA"
-    private const val UPDATED_OPISKELIJATUNNUS = "BBBBBBBBBB"
     val DEFAULT_YLIOPISTO = YliopistoEnum.TAMPEREEN_YLIOPISTO
-    val DEFAULT_ASETUS = "55/2020"
+    const val DEFAULT_ASETUS = "55/2020"
     val DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA: LocalDate = LocalDate.ofEpochDay(10L)
     val DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
     val DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA: LocalDate = LocalDate.now().plusYears(2)
     val DEFAULT_LAILLISTAMISPAIVA: LocalDate = LocalDate.ofEpochDay(15L)
     val DEFAULT_LAILLISTAMISTODISTUS_DATA = byteArrayOf(0x2E, 0x38)
-    val DEFAULT_LAILLISTAMISTODISTUS_DATA_AS_STRING = "Ljg="
-    val DEFAULT_LAILLISTAMISTODISTUS_NIMI = "laillistamistodistus.pdf"
-    val DEFAULT_LAILLISTAMISTODISTUS_TYYPPI = "application/pdf"
+    const val DEFAULT_LAILLISTAMISTODISTUS_DATA_AS_STRING = "Ljg="
+    const val DEFAULT_LAILLISTAMISTODISTUS_NIMI = "laillistamistodistus.pdf"
+    const val DEFAULT_LAILLISTAMISTODISTUS_TYYPPI = "application/pdf"
 
-    @JvmStatic
     fun createEntity(
         em: EntityManager,
         user: User? = null,
@@ -103,18 +99,10 @@ object ErikoistuvaLaakariHelper {
         }
 
         val opintooikeus = Opintooikeus(
-            yliopistoOpintooikeusId = yliopistoOpintooikeusId,
-            opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
-            opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva,
-            viimeinenKatselupaiva = opintooikeudenPaattymispaiva?.plusMonths(6),
-            opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS,
-            osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA,
-            erikoistuvaLaakari = erikoistuvaLaakari,
-            yliopisto = erikoistuvanYliopisto,
-            erikoisala = erikoistuvanErikoisala,
-            opintoopas = opintoopasKaytossa,
-            asetus = asetusKaytossa,
-            kaytossa = true,
+            yliopistoOpintooikeusId = yliopistoOpintooikeusId, opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
+            opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva, viimeinenKatselupaiva = opintooikeudenPaattymispaiva?.plusMonths(6),
+            opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS, osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA, erikoistuvaLaakari = erikoistuvaLaakari,
+            yliopisto = erikoistuvanYliopisto, erikoisala = erikoistuvanErikoisala, opintoopas = opintoopasKaytossa, asetus = asetusKaytossa, kaytossa = true,
             tila = OpintooikeudenTila.AKTIIVINEN
         )
         em.persist(opintooikeus)
@@ -126,7 +114,6 @@ object ErikoistuvaLaakariHelper {
         return erikoistuvaLaakari
     }
 
-    @JvmStatic
     fun createUpdatedEntity(em: EntityManager): ErikoistuvaLaakari {
         val erikoistuvaLaakari = ErikoistuvaLaakari()
 

@@ -259,45 +259,19 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
 
         restKoulutussuunnitelmaMockMvc.perform(
             multipart("/api/erikoistuva-laakari/koulutussuunnitelma")
-                .file(
-                    MockMultipartFile(
-                        "koulutussuunnitelmaFile",
-                        "koulutussuunnitelma.pdf",
-                        "application/pdf",
-                        DEFAULT_FILE
-                    )
-                )
-                .file(
-                    MockMultipartFile(
-                        "motivaatiokirjeFile",
-                        "motivaatiokirje.pdf",
-                        "application/pdf",
-                        DEFAULT_FILE
-                    )
-                )
+                .file(MockMultipartFile("koulutussuunnitelmaFile", "koulutussuunnitelma.pdf", "application/pdf", DEFAULT_FILE))
+                .file(MockMultipartFile("motivaatiokirjeFile", "motivaatiokirje.pdf", "application/pdf", DEFAULT_FILE))
                 .param("id", koulutussuunnitelma.id.toString())
                 .param("motivaatiokirje", UPDATED_MOTIVAATIOKIRJE)
-                .param(
-                    "motivaatiokirjeYksityinen",
-                    if (UPDATED_MOTIVAATIOKIRJE_YKSITYINEN) "true" else "false"
-                )
+                .param("motivaatiokirjeYksityinen", if (UPDATED_MOTIVAATIOKIRJE_YKSITYINEN) "true" else "false")
                 .param("opiskeluJaTyohistoria", UPDATED_OPISKELU_JA_TYOHISTORIA)
-                .param(
-                    "opiskeluJaTyohistoriaYksityinen",
-                    UPDATED_OPISKELU_JA_TYOHISTORIA_YKSITYINEN.toString()
-                )
+                .param("opiskeluJaTyohistoriaYksityinen", UPDATED_OPISKELU_JA_TYOHISTORIA_YKSITYINEN.toString())
                 .param("vahvuudet", UPDATED_VAHVUUDET)
                 .param("vahvuudetYksityinen", UPDATED_VAHVUUDET_YKSITYINEN.toString())
                 .param("tulevaisuudenVisiointi", UPDATED_TULEVAISUUDEN_VISIOINTI)
-                .param(
-                    "tulevaisuudenVisiointiYksityinen",
-                    UPDATED_TULEVAISUUDEN_VISIOINTI_YKSITYINEN.toString()
-                )
+                .param("tulevaisuudenVisiointiYksityinen", UPDATED_TULEVAISUUDEN_VISIOINTI_YKSITYINEN.toString())
                 .param("osaamisenKartuttaminen", UPDATED_OSAAMISEN_KARTUTTAMINEN)
-                .param(
-                    "osaamisenKartuttaminenYksityinen",
-                    UPDATED_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN.toString()
-                )
+                .param("osaamisenKartuttaminenYksityinen", UPDATED_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN.toString())
                 .param("elamankentta", UPDATED_ELAMANKENTTA)
                 .param("elamankenttaYksityinen", UPDATED_ELAMANKENTTA_YKSITYINEN.toString())
                 .param("koulutussuunnitelmaAsiakirjaUpdated", true.toString())

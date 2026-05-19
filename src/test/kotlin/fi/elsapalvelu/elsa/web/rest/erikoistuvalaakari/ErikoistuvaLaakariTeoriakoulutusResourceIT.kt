@@ -648,7 +648,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         val DEFAULT_FILE: ByteArray = createByteArray(1, "0")
         val UPDATED_FILE: ByteArray = createByteArray(1, "1")
 
-        private val ENTITY_API_URL: String = "/api/erikoistuva-laakari/teoriakoulutukset"
+        private const val ENTITY_API_URL: String = "/api/erikoistuva-laakari/teoriakoulutukset"
         private val ENTITY_API_URL_ID: String = ENTITY_API_URL + "/{id}"
 
         private val random: Random = SecureRandom()

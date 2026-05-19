@@ -316,7 +316,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         tempFile.deleteOnExit()
     }
 
-    fun initTest(userId: String? = DEFAULT_ID) {
+    fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -391,7 +391,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
+            val suoritusarvioinninArvioitavaKokonaisuus =
+                SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
             suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             return suoritusarviointi
@@ -426,7 +427,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
+            val suoritusarvioinninArvioitavaKokonaisuus =
+                SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
             suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             return suoritusarviointi
