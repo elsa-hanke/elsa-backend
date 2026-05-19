@@ -269,71 +269,39 @@ class VirkailijaValmistumispyyntoResourceIT {
     fun getValmistumispyyntoForVirkailijaTilaOdottaaTarkistusta() {
         initTest()
 
-        val valmistumispyynto =
-            ValmistumispyyntoHelper.createValmistumispyyntoOdottaaVirkailijanTarkastusta(
-                opintooikeus,
-                vastuuhenkilo
-            )
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaVirkailijanTarkastusta(opintooikeus, vastuuhenkilo)
         em.persist(valmistumispyynto)
 
         val hyvaksyntaPvm = LocalDate.ofEpochDay(12)
-        val terveyskeskustyoHyvaksynta =
-            TerveyskeskustyoHelper.createTerveyskeskustyoHyvaksyntaHyvaksytty(
-                opintooikeus,
-                hyvaksyntaPvm
-            )
+        val terveyskeskustyoHyvaksynta = TerveyskeskustyoHelper.createTerveyskeskustyoHyvaksyntaHyvaksytty(opintooikeus, hyvaksyntaPvm)
         em.persist(terveyskeskustyoHyvaksynta)
 
-        val terveyssuoritus = OpintosuoritusHelper.createEntity(
-            em,
-            tyyppiEnum = OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO
-        )
+        val terveyssuoritus = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO)
         em.persist(terveyssuoritus)
-
-        val teoriakoulutus1 =
-            TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
+        val teoriakoulutus1 = TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
         em.persist(teoriakoulutus1)
-
-        val teoriakoulutus2 =
-            TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
+        val teoriakoulutus2 = TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
         em.persist(teoriakoulutus2)
 
-        val sateilysuojakoulutus = OpintosuoritusHelper.createEntity(
-            em,
-            tyyppiEnum = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS
-        )
+        val sateilysuojakoulutus = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
         em.persist(sateilysuojakoulutus)
 
-        val johtamiskoulutus = OpintosuoritusHelper.createEntity(
-            em,
-            tyyppiEnum = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO
-        )
+        val johtamiskoulutus = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
         em.persist(johtamiskoulutus)
 
-        val kuulustelu1 = OpintosuoritusHelper.createEntity(
-            em,
-            tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU
-        )
+        val kuulustelu1 = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
         em.persist(kuulustelu1)
 
-        val kuulustelu2 = OpintosuoritusHelper.createEntity(
-            em,
-            tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU
-        )
+        val kuulustelu2 = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
         em.persist(kuulustelu2)
 
         val koejaksoHyvaksyttyPvm = LocalDate.ofEpochDay(20)
-        val vastuuhenkilonArvio =
-            KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
+        val vastuuhenkilonArvio = KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
         vastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = true
         vastuuhenkilonArvio.vastuuhenkilonKuittausaika = koejaksoHyvaksyttyPvm
         em.persist(vastuuhenkilonArvio)
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/${valmistumispyynto.id}"
-            )
-        )
+        restValmistumispyyntoMockMvc.perform(get("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/${valmistumispyynto.id}"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").isEmpty)
@@ -341,96 +309,33 @@ class VirkailijaValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.valmistumispyynto.muokkauspaiva").value(valmistumispyynto.erikoistujanKuittausaika.toString()))
             .andExpect(jsonPath("$.valmistumispyynto.erikoistujanNimi").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.valmistumispyynto.erikoistujanAvatar").value(KayttajaHelper.DEFAULT_AVATAR_AS_STRING))
-            .andExpect(
-                jsonPath("$.valmistumispyynto.erikoistujanOpiskelijatunnus").value(
-                    valmistumispyynto.opintooikeus?.opiskelijatunnus
-                )
-            )
-            .andExpect(
-                jsonPath("$.valmistumispyynto.erikoistujanSyntymaaika").value(
-                    valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.syntymaaika.toString()
-                )
-            )
+            .andExpect(jsonPath("$.valmistumispyynto.erikoistujanOpiskelijatunnus").value(valmistumispyynto.opintooikeus?.opiskelijatunnus))
+            .andExpect(jsonPath("$.valmistumispyynto.erikoistujanSyntymaaika").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.syntymaaika.toString()))
             .andExpect(jsonPath("$.valmistumispyynto.erikoistujanYliopisto").value(valmistumispyynto.opintooikeus?.yliopisto?.nimi.toString()))
-            .andExpect(
-                jsonPath("$.valmistumispyynto.erikoistujanErikoisala").value(
-                    valmistumispyynto.opintooikeus?.erikoisala?.nimi
-                )
-            )
-            .andExpect(
-                jsonPath("$.valmistumispyynto.erikoistujanLaillistamispaiva").value(
-                    valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.laillistamispaiva.toString()
-                )
-            )
-            .andExpect(
-                jsonPath("$.valmistumispyynto.erikoistujanLaillistamistodistus").value(
-                    ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISTODISTUS_DATA_AS_STRING
-                )
-            )
-            .andExpect(
-                jsonPath("$.valmistumispyynto.erikoistujanLaillistamistodistusNimi").value(
-                    valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.laillistamispaivanLiitetiedostonNimi
-                )
-            )
-            .andExpect(
-                jsonPath("$.valmistumispyynto.erikoistujanLaillistamistodistusTyyppi").value(
-                    valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.laillistamispaivanLiitetiedostonTyyppi
-                )
-            )
+            .andExpect(jsonPath("$.valmistumispyynto.erikoistujanErikoisala").value(valmistumispyynto.opintooikeus?.erikoisala?.nimi))
+            .andExpect(jsonPath("$.valmistumispyynto.erikoistujanLaillistamispaiva").value(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.laillistamispaiva.toString()))
+            .andExpect(jsonPath("$.valmistumispyynto.erikoistujanLaillistamistodistus").value(ErikoistuvaLaakariHelper.DEFAULT_LAILLISTAMISTODISTUS_DATA_AS_STRING))
+            .andExpect(jsonPath("$.valmistumispyynto.erikoistujanLaillistamistodistusNimi").value(
+                    valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.laillistamispaivanLiitetiedostonNimi))
+            .andExpect(jsonPath("$.valmistumispyynto.erikoistujanLaillistamistodistusTyyppi").value(
+                    valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.laillistamispaivanLiitetiedostonTyyppi))
             .andExpect(jsonPath("$.valmistumispyynto.erikoistujanAsetus").value(valmistumispyynto.opintooikeus?.asetus?.nimi))
             .andExpect(jsonPath("$.valmistumispyynto.opintooikeusId").value(valmistumispyynto.opintooikeus?.id))
-            .andExpect(
-                jsonPath("$.valmistumispyynto.opintooikeudenMyontamispaiva").value(
-                    valmistumispyynto.opintooikeus?.opintooikeudenMyontamispaiva.toString()
-                )
-            )
-            .andExpect(
-                jsonPath("$.valmistumispyynto.vastuuhenkiloOsaamisenArvioijaNimi").value(
-                    vastuuhenkilo.getNimi()
-                )
-            )
-            .andExpect(
-                jsonPath("$.valmistumispyynto.vastuuhenkiloOsaamisenArvioijaNimike").value(
-                    vastuuhenkilo.nimike
-                )
-            )
-            .andExpect(
-                jsonPath("$.terveyskeskustyoHyvaksyttyPvm").value(hyvaksyntaPvm.toString())
-            )
-            .andExpect(
-                jsonPath("$.terveyskeskustyoHyvaksyntaId").value(terveyskeskustyoHyvaksynta.id)
-            )
-            .andExpect(
-                jsonPath("$.terveyskeskustyoOpintosuoritusId").value(terveyssuoritus.id)
-            )
-            .andExpect(
-                jsonPath("$.teoriakoulutusSuoritettu").value(
-                    teoriakoulutus1.erikoistumiseenHyvaksyttavaTuntimaara?.plus(
-                        teoriakoulutus2.erikoistumiseenHyvaksyttavaTuntimaara!!
-                    )
-                )
-            )
-            .andExpect(
-                jsonPath("$.teoriakoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara)
-            )
-            .andExpect(
-                jsonPath("$.sateilusuojakoulutusSuoritettu").value(sateilysuojakoulutus.opintopisteet)
-            )
-            .andExpect(
-                jsonPath("$.sateilusuojakoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara)
-            )
-            .andExpect(
-                jsonPath("$.johtamiskoulutusSuoritettu").value(johtamiskoulutus.opintopisteet)
-            )
-            .andExpect(
-                jsonPath("$.johtamiskoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara)
-            )
-            .andExpect(
-                jsonPath("$.kuulustelut").value(Matchers.hasSize<Any>(2))
-            )
-            .andExpect(
-                jsonPath("$.koejaksoHyvaksyttyPvm").value(koejaksoHyvaksyttyPvm.toString())
-            )
+            .andExpect(jsonPath("$.valmistumispyynto.opintooikeudenMyontamispaiva").value(valmistumispyynto.opintooikeus?.opintooikeudenMyontamispaiva.toString()))
+            .andExpect(jsonPath("$.valmistumispyynto.vastuuhenkiloOsaamisenArvioijaNimi").value(vastuuhenkilo.getNimi()))
+            .andExpect(jsonPath("$.valmistumispyynto.vastuuhenkiloOsaamisenArvioijaNimike").value(vastuuhenkilo.nimike))
+            .andExpect(jsonPath("$.terveyskeskustyoHyvaksyttyPvm").value(hyvaksyntaPvm.toString()))
+            .andExpect(jsonPath("$.terveyskeskustyoHyvaksyntaId").value(terveyskeskustyoHyvaksynta.id))
+            .andExpect(jsonPath("$.terveyskeskustyoOpintosuoritusId").value(terveyssuoritus.id))
+            .andExpect(jsonPath("$.teoriakoulutusSuoritettu").value(teoriakoulutus1.erikoistumiseenHyvaksyttavaTuntimaara?.plus(
+                        teoriakoulutus2.erikoistumiseenHyvaksyttavaTuntimaara!!)))
+            .andExpect(jsonPath("$.teoriakoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara))
+            .andExpect(jsonPath("$.sateilusuojakoulutusSuoritettu").value(sateilysuojakoulutus.opintopisteet))
+            .andExpect(jsonPath("$.sateilusuojakoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara))
+            .andExpect(jsonPath("$.johtamiskoulutusSuoritettu").value(johtamiskoulutus.opintopisteet))
+            .andExpect(jsonPath("$.johtamiskoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara))
+            .andExpect(jsonPath("$.kuulustelut").value(Matchers.hasSize<Any>(2)))
+            .andExpect(jsonPath("$.koejaksoHyvaksyttyPvm").value(koejaksoHyvaksyttyPvm.toString()))
     }
 
     @Test

@@ -155,169 +155,59 @@ class VirkailijaEtusivuResourceIT {
 
         erikoistuvaLaakari2.getOpintooikeusKaytossa()?.yliopisto = anotherYliopisto
 
-        tyoskentelyjakso =
-            TyoskentelyjaksoHelper.createEntity(
-                em,
-                erikoistuvaLaakari1.kayttaja?.user
-            )
+        tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari1.kayttaja?.user)
         em.persist(tyoskentelyjakso)
+        em.persist(TeoriakoulutusHelper.createEntity(em, erikoistuvaLaakari1.kayttaja?.user, LocalDate.ofEpochDay(0), LocalDate.ofEpochDay(5), 37.5))
+        em.persist(TeoriakoulutusHelper.createEntity(em, erikoistuvaLaakari1.kayttaja?.user, LocalDate.ofEpochDay(5), LocalDate.ofEpochDay(10), 20.0))
 
-        em.persist(
-            TeoriakoulutusHelper.createEntity(
-                em,
-                erikoistuvaLaakari1.kayttaja?.user,
-                LocalDate.ofEpochDay(0),
-                LocalDate.ofEpochDay(5),
-                37.5
-            )
-        )
-
-        em.persist(
-            TeoriakoulutusHelper.createEntity(
-                em,
-                erikoistuvaLaakari1.kayttaja?.user,
-                LocalDate.ofEpochDay(5),
-                LocalDate.ofEpochDay(10),
-                20.0
-
-            )
-        )
-
-        val johtamisopinnotTyyppi =
-            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
+        val johtamisopinnotTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
         em.persist(johtamisopinnotTyyppi)
 
-        val sateilysuojakoulutusTyyppi =
-            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
+        val sateilysuojakoulutusTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
         em.persist(sateilysuojakoulutusTyyppi)
 
-        val kuulusteluTyyppi =
-            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
+        val kuulusteluTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
         em.persist(kuulusteluTyyppi)
 
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Johtamisopinto 1",
-                kurssikoodi = "JOHT-1",
-                suorituspaiva = LocalDate.ofEpochDay(3L),
-                opintopisteet = 3.0,
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(),
-                tyyppi = johtamisopinnotTyyppi
-            )
-        )
+        em.persist(Opintosuoritus(nimi_fi = "Johtamisopinto 1", kurssikoodi = "JOHT-1", suorituspaiva = LocalDate.ofEpochDay(3L), opintopisteet = 3.0,
+                hyvaksytty = true, opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(), tyyppi = johtamisopinnotTyyppi))
 
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Johtamisopinto 2",
-                kurssikoodi = "JOHT-2",
-                suorituspaiva = LocalDate.ofEpochDay(4L),
-                opintopisteet = 2.0,
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(),
-                tyyppi = johtamisopinnotTyyppi
-            )
-        )
+        em.persist(Opintosuoritus(nimi_fi = "Johtamisopinto 2", kurssikoodi = "JOHT-2", suorituspaiva = LocalDate.ofEpochDay(4L), opintopisteet = 2.0,
+                hyvaksytty = true, opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(), tyyppi = johtamisopinnotTyyppi))
 
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Säteilysuojakoulutus 1",
-                kurssikoodi = "SÄT-1",
-                suorituspaiva = LocalDate.ofEpochDay(3L),
-                opintopisteet = 1.0,
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(),
-                tyyppi = sateilysuojakoulutusTyyppi
-            )
-        )
+        em.persist(Opintosuoritus(nimi_fi = "Säteilysuojakoulutus 1", kurssikoodi = "SÄT-1", suorituspaiva = LocalDate.ofEpochDay(3L), opintopisteet = 1.0,
+                hyvaksytty = true, opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(), tyyppi = sateilysuojakoulutusTyyppi))
 
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Säteilysuojakoulutus 2",
-                kurssikoodi = "SÄT-2",
-                suorituspaiva = LocalDate.ofEpochDay(4L),
-                opintopisteet = 1.0,
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(),
-                tyyppi = sateilysuojakoulutusTyyppi
-            )
-        )
+        em.persist(Opintosuoritus(nimi_fi = "Säteilysuojakoulutus 2", kurssikoodi = "SÄT-2", suorituspaiva = LocalDate.ofEpochDay(4L), opintopisteet = 1.0,
+                hyvaksytty = true, opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(), tyyppi = sateilysuojakoulutusTyyppi))
 
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Kuulustelu 1",
-                kurssikoodi = "TENTTI-1",
-                suorituspaiva = LocalDate.ofEpochDay(3L),
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(),
-                tyyppi = kuulusteluTyyppi
-            )
-        )
+        em.persist(Opintosuoritus(nimi_fi = "Kuulustelu 1", kurssikoodi = "TENTTI-1", suorituspaiva = LocalDate.ofEpochDay(3L), hyvaksytty = true,
+                opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(), tyyppi = kuulusteluTyyppi))
 
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Kuulustelu 2",
-                kurssikoodi = "TENTTI-2",
-                suorituspaiva = LocalDate.ofEpochDay(4L),
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(),
-                tyyppi = kuulusteluTyyppi
-            )
-        )
+        em.persist(Opintosuoritus(nimi_fi = "Kuulustelu 2", kurssikoodi = "TENTTI-2", suorituspaiva = LocalDate.ofEpochDay(4L), hyvaksytty = true,
+                opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa(), tyyppi = kuulusteluTyyppi))
 
         restEtusivuMockMvc.perform(get(ERIKOISTUJIEN_SEURANTA_ENDPOINT_URL))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
-            .andExpect(
-                jsonPath("$.content[0].opintooikeusId").value(
-                    erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id
-                )
-            )
+            .andExpect(jsonPath("$.content[0].opintooikeusId").value(erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id))
             .andExpect(jsonPath("$.content[0].etunimi").value(erikoistuvaLaakari1.kayttaja?.user?.firstName))
             .andExpect(jsonPath("$.content[0].sukunimi").value(erikoistuvaLaakari1.kayttaja?.user?.lastName))
             .andExpect(jsonPath("$.content[0].syntymaaika").value(erikoistuvaLaakari1.syntymaaika.toString()))
             .andExpect(jsonPath("$.content[0].erikoisala").value(erikoistuvaLaakari1.getErikoisalaNimi()))
-            .andExpect(
-                jsonPath("$.content[0].asetus").value(
-                    erikoistuvaLaakari1.getOpintooikeusKaytossa()?.asetus?.nimi
-                )
-            )
+            .andExpect(jsonPath("$.content[0].asetus").value(erikoistuvaLaakari1.getOpintooikeusKaytossa()?.asetus?.nimi))
             .andExpect(jsonPath("$.content[0].erikoisala").value(erikoistuvaLaakari1.getErikoisalaNimi()))
             .andExpect(jsonPath("$.content[0].koejaksoTila").value(KoejaksoTila.EI_AKTIIVINEN.toString()))
-            .andExpect(
-                jsonPath("$.content[0].opintooikeudenMyontamispaiva").value(
-                    erikoistuvaLaakari1.getOpintooikeusKaytossa()?.opintooikeudenMyontamispaiva.toString()
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].opintooikeudenPaattymispaiva").value(
-                    erikoistuvaLaakari1.getOpintooikeusKaytossa()?.opintooikeudenPaattymispaiva.toString()
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].tyoskentelyjaksoTilastot.tyoskentelyaikaYhteensa").value(
-                    5
-                )
-            )
+            .andExpect(jsonPath("$.content[0].opintooikeudenMyontamispaiva").value(erikoistuvaLaakari1.getOpintooikeusKaytossa()?.opintooikeudenMyontamispaiva.toString()))
+            .andExpect(jsonPath("$.content[0].opintooikeudenPaattymispaiva").value(erikoistuvaLaakari1.getOpintooikeusKaytossa()?.opintooikeudenPaattymispaiva.toString()))
+            .andExpect(jsonPath("$.content[0].tyoskentelyjaksoTilastot.tyoskentelyaikaYhteensa").value(5))
             .andExpect(jsonPath("$.content[0].teoriakoulutuksetSuoritettu").value(57.5))
-            .andExpect(
-                jsonPath("$.content[0].teoriakoulutuksetVaadittu").value(
-                    OpintoopasHelper.DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA
-                )
-            )
+            .andExpect(jsonPath("$.content[0].teoriakoulutuksetVaadittu").value(OpintoopasHelper.DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA))
             .andExpect(jsonPath("$.content[0].johtamisopinnotSuoritettu").value(5.0))
-            .andExpect(
-                jsonPath("$.content[0].johtamisopinnotVaadittu").value(
-                    OpintoopasHelper.DEFAULT_ERIKOISALAN_VAATIMA_JOHTAMISOPINTOJEN_VAHIMMAISMAARA
-                )
-            )
+            .andExpect(jsonPath("$.content[0].johtamisopinnotVaadittu").value(OpintoopasHelper.DEFAULT_ERIKOISALAN_VAATIMA_JOHTAMISOPINTOJEN_VAHIMMAISMAARA))
             .andExpect(jsonPath("$.content[0].sateilysuojakoulutuksetSuoritettu").value(2.0))
-            .andExpect(
-                jsonPath("$.content[0].sateilysuojakoulutuksetVaadittu").value(
-                    OpintoopasHelper.DEFAULT_ERIKOISALAN_VAATIMA_SATEILYSUOJAKOULUTUSTEN_VAHIMMAISMAARA
-                )
-            )
+            .andExpect(jsonPath("$.content[0].sateilysuojakoulutuksetVaadittu").value(OpintoopasHelper.DEFAULT_ERIKOISALAN_VAATIMA_SATEILYSUOJAKOULUTUSTEN_VAHIMMAISMAARA))
             .andExpect(jsonPath("$.content[0].valtakunnallisetKuulustelutSuoritettuLkm").value(2))
     }
 
