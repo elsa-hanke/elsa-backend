@@ -165,149 +165,65 @@ class VastuuhenkiloEtusivuResourceIT {
     fun getErikoistujienSeuranta() {
         initTest()
 
-        val yliopisto1 =
-            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
-
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO))
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
-        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
-            kayttaja = vastuuhenkilo,
-            yliopisto = yliopisto1,
-            erikoisala = erikoisala1
-        )
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(kayttaja = vastuuhenkilo, yliopisto = yliopisto1, erikoisala = erikoisala1)
         kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
         vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
-        val erikoistuvaLaakari =
-            ErikoistuvaLaakariHelper.createEntity(
-                em,
-                erikoisala = erikoisala1,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
-            )
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, erikoisala = erikoisala1, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        tyoskentelyjaksoRepository.saveAndFlush(
-            TyoskentelyjaksoHelper.createEntity(
-                em,
-                erikoistuvaLaakari.kayttaja?.user
-            )
-        )
+        tyoskentelyjaksoRepository.saveAndFlush(TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user))
 
-        val arvioitavanKokonaisuudenKategoria =
-            ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala1)
+        val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala1)
         arvioitavanKokonaisuudenKategoriaRepository.save(arvioitavanKokonaisuudenKategoria)
 
-        val arvioitavaKokonaisuus1 =
-            ArvioitavaKokonaisuusHelper.createEntity(
-                em,
-                existingKategoria = arvioitavanKokonaisuudenKategoria
-            )
+        val arvioitavaKokonaisuus1 = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvioitavanKokonaisuudenKategoria)
         arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus1)
 
-        val arvioitavaKokonaisuus2 =
-            ArvioitavaKokonaisuusHelper.createEntity(
-                em,
-                existingKategoria = arvioitavanKokonaisuudenKategoria
-            )
+        val arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvioitavanKokonaisuudenKategoria)
         arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus2)
 
         arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus1)
         arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus2)
 
         // Vain korkein arvosana lasketaan
-        suoritusarviointiRepository.save(
-            SuoritusarviointiHelper.createEntity(
-                em,
-                erikoistuvaLaakari.kayttaja?.user,
-                arviointiasteikonTaso = 2,
-                arvioitavaKokonaisuus = arvioitavaKokonaisuus1
-            )
-        )
-        suoritusarviointiRepository.save(
-            SuoritusarviointiHelper.createEntity(
-                em,
-                erikoistuvaLaakari.kayttaja?.user,
-                arviointiasteikonTaso = 4,
-                arvioitavaKokonaisuus = arvioitavaKokonaisuus1
-            )
-        )
+        suoritusarviointiRepository.save(SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 2,
+                arvioitavaKokonaisuus = arvioitavaKokonaisuus1))
+        suoritusarviointiRepository.save(SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 4,
+                arvioitavaKokonaisuus = arvioitavaKokonaisuus1))
 
-        suoritusarviointiRepository.save(
-            SuoritusarviointiHelper.createEntity(
-                em,
-                erikoistuvaLaakari.kayttaja?.user,
-                arviointiasteikonTaso = 3,
-                arvioitavaKokonaisuus = arvioitavaKokonaisuus2
-            )
-        )
+        suoritusarviointiRepository.save(SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 3,
+                arvioitavaKokonaisuus = arvioitavaKokonaisuus2))
 
         suoritemerkintaRepository.save(SuoritemerkintaHelper.createEntity(em))
-
-        seurantajaksoRepository.save(
-            SeurantajaksoHelper.createEntity(
-                erikoistuvaLaakari,
-                vastuuhenkilo
-            )
-        )
+        seurantajaksoRepository.save(SeurantajaksoHelper.createEntity(erikoistuvaLaakari, vastuuhenkilo))
 
         val seurantajakso = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, vastuuhenkilo)
         seurantajakso.huolenaiheet = "huolenaiheet"
         seurantajaksoRepository.save(seurantajakso)
 
-        restEtusivuMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta"))
-            .andExpect(status().isOk)
+        restEtusivuMockMvc.perform(get("/api/vastuuhenkilo/etusivu/erikoistujien-seuranta")).andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
-            .andExpect(
-                jsonPath("$.content[0].opintooikeusId").value(
-                    erikoistuvaLaakari.getOpintooikeusKaytossa()?.id
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariEtuNimi").value(
-                    erikoistuvaLaakari.kayttaja?.user?.firstName
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariSukuNimi").value(
-                    erikoistuvaLaakari.kayttaja?.user?.lastName
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariSyntymaaika").value(
-                    erikoistuvaLaakari.syntymaaika.toString()
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].tyoskentelyjaksoTilastot.tyoskentelyaikaYhteensa").value(
-                    5
-                )
-            )
+            .andExpect(jsonPath("$.content[0].opintooikeusId").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.id))
+            .andExpect(jsonPath("$.content[0].erikoistuvaLaakariEtuNimi").value(erikoistuvaLaakari.kayttaja?.user?.firstName))
+            .andExpect(jsonPath("$.content[0].erikoistuvaLaakariSukuNimi").value(erikoistuvaLaakari.kayttaja?.user?.lastName))
+            .andExpect(jsonPath("$.content[0].erikoistuvaLaakariSyntymaaika").value(erikoistuvaLaakari.syntymaaika.toString()))
+            .andExpect(jsonPath("$.content[0].tyoskentelyjaksoTilastot.tyoskentelyaikaYhteensa").value(5))
             .andExpect(jsonPath("$.content[0].arviointienKeskiarvo").value(3.5))
             .andExpect(jsonPath("$.content[0].arviointienLkm").value(2))
-            .andExpect(
-                jsonPath("$.content[0].arvioitavienKokonaisuuksienLkm").value(
-                    2
-                )
-            )
+            .andExpect(jsonPath("$.content[0].arvioitavienKokonaisuuksienLkm").value(2))
             .andExpect(jsonPath("$.content[0].seurantajaksotLkm").value(2))
             .andExpect(jsonPath("$.content[0].seurantajaksonHuoletLkm").value(1))
             .andExpect(jsonPath("$.content[0].suoritemerkinnatLkm").value(1))
             .andExpect(jsonPath("$.content[0].koejaksoTila").value(KoejaksoTila.EI_AKTIIVINEN.toString()))
-            .andExpect(
-                jsonPath("$.content[0].opintooikeudenMyontamispaiva").value(
-                    erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintooikeudenMyontamispaiva?.format(
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                    )
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].opintooikeudenPaattymispaiva").value(
-                    erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintooikeudenPaattymispaiva?.format(
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                    )
-                )
-            )
+            .andExpect(jsonPath("$.content[0].opintooikeudenMyontamispaiva").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintooikeudenMyontamispaiva?.format(
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+            .andExpect(jsonPath("$.content[0].opintooikeudenPaattymispaiva").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintooikeudenPaattymispaiva?.format(
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
             .andExpect(jsonPath("$.content[0].asetus").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.asetus?.nimi))
             .andExpect(jsonPath("$.content[0].erikoisala").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala?.nimi))
     }
@@ -503,7 +419,6 @@ class VastuuhenkiloEtusivuResourceIT {
 
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
-
         val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
@@ -514,25 +429,20 @@ class VastuuhenkiloEtusivuResourceIT {
         val currentAuthentication: Authentication = TestSecurityContextHolder.getContext().authentication
         val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(ERIKOISTUVA_LAAKARI_IMPERSONATED, currentAuthentication)
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
-        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(erikoistuvaLaakari.kayttaja?.user?.id,
-            mapOf(
+        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(erikoistuvaLaakari.kayttaja?.user?.id, mapOf(
                 "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari.kayttaja?.user?.firstName),
                 "urn:oid:2.5.4.4" to listOf(erikoistuvaLaakari.kayttaja?.user?.lastName),
                 "nameID" to currentPrincipal.attributes["nameID"],
                 "nameIDFormat" to currentPrincipal.attributes["nameIDFormat"],
                 "nameIDQualifier" to currentPrincipal.attributes["nameIDQualifier"],
                 "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"],
-                "opintooikeusId" to listOf(erikoistuvaLaakari.getOpintooikeusKaytossa()?.id)
-            )
-        )
+                "opintooikeusId" to listOf(erikoistuvaLaakari.getOpintooikeusKaytossa()?.id)))
         val context = TestSecurityContextHolder.getContext()
         context.authentication = Saml2Authentication(newPrincipal, (currentAuthentication as Saml2Authentication).saml2Response, listOf(switchAuthority))
         TestSecurityContextHolder.setContext(context)
 
         // GET kutsut sallittuja
-        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot"))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot")).andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").value(hasSize<Int>(1)))
 
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
@@ -549,11 +459,8 @@ class VastuuhenkiloEtusivuResourceIT {
         paivakirjamerkinta2.yksityinen = true
         paivakirjamerkintaRepository.saveAndFlush(paivakirjamerkinta2)
 
-        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/paivakirjamerkinnat"))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
-            .andExpect(jsonPath("$.content[0].yksityinen").value(false))
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/paivakirjamerkinnat")).andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.content").value(hasSize<Int>(1))).andExpect(jsonPath("$.content[0].yksityinen").value(false))
 
         // Yksityisiä koulutussuunnitelman kenttiä ei palauteta
         val koulutussuunnitelma = KoulutussuunnitelmaHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
@@ -582,9 +489,7 @@ class VastuuhenkiloEtusivuResourceIT {
         koulutussuunnitelma.tulevaisuudenVisiointiYksityinen = true
         koulutussuunnitelmaRepository.saveAndFlush(koulutussuunnitelma)
 
-        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/koulutussuunnitelma"))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari/koulutussuunnitelma")).andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.opiskeluJaTyohistoria").isEmpty)
             .andExpect(jsonPath("$.vahvuudet").isEmpty)
             .andExpect(jsonPath("$.tulevaisuudenVisiointi").isEmpty)
