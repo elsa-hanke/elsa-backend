@@ -46,32 +46,18 @@ private const val VALMISTUMISPYYNTO_ENDPOINT = "/valmistumispyynto"
 @SpringBootTest(classes = [ElsaBackendApp::class])
 class ErikoistuvaLaakariValmistumispyyntoResourceIT {
 
-    @Autowired
-    private lateinit var em: EntityManager
-
-    @Autowired
-    private lateinit var valmistumispyyntoRepository: ValmistumispyyntoRepository
-
-    @Autowired
-    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
-
-    @Autowired
-    private lateinit var restValmistumispyyntoMockMvc: MockMvc
+    @Autowired private lateinit var em: EntityManager
+    @Autowired private lateinit var valmistumispyyntoRepository: ValmistumispyyntoRepository
+    @Autowired private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
+    @Autowired private lateinit var restValmistumispyyntoMockMvc: MockMvc
 
     private lateinit var vastuuhenkiloArvioija: Kayttaja
-
     private lateinit var vastuuhenkiloHyvaksyja: Kayttaja
-
     private lateinit var virkailija: Kayttaja
-
     private lateinit var user: User
-
     private lateinit var tempFile: File
-
     private lateinit var mockMultipartFile: MockMultipartFile
-
     private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
-
     private lateinit var opintooikeus: Opintooikeus
 
     // 1.1.1981
@@ -91,22 +77,10 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     fun getValmistumispyyntoSuoritustenTilaErikoistuvaLaakariHasVanhojaSuorituksiaFalse() {
         initTestWithVoimassaolevatSuoritukset()
 
-        em.persist(
-            OpintosuoritusHelper.createEntity(
-                em,
-                user,
-                tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU,
-                suorituspaiva = LocalDate.ofEpochDay(4000L)
-            )
-        )
+        em.persist(OpintosuoritusHelper.createEntity(em, user, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU, suorituspaiva = LocalDate.ofEpochDay(4000L)))
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoisalaTyyppi").value(ErikoisalaTyyppi.LAAKETIEDE.toString()))
             .andExpect(jsonPath("$.vanhojaTyoskentelyjaksojaOrSuorituksiaExists").value(false))
             .andExpect(jsonPath("$.kuulusteluVanhentunut").value(false))
@@ -117,22 +91,11 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     fun getValmistumispyyntoSuoritustenTilaErikoistuvaHammaslaakariHasVanhojaSuorituksiaFalse() {
         initTestWithVoimassaolevatSuoritukset(ErikoisalaTyyppi.HAMMASLAAKETIEDE)
 
-        em.persist(
-            OpintosuoritusHelper.createEntity(
-                em,
-                user,
-                tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU,
-                suorituspaiva = LocalDate.ofEpochDay(4000L)
-            )
-        )
+        em.persist(OpintosuoritusHelper.createEntity(em, user, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU,
+                suorituspaiva = LocalDate.ofEpochDay(4000L)))
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoisalaTyyppi").value(ErikoisalaTyyppi.HAMMASLAAKETIEDE.toString()))
             .andExpect(jsonPath("$.vanhojaTyoskentelyjaksojaOrSuorituksiaExists").value(false))
             .andExpect(jsonPath("$.kuulusteluVanhentunut").value(false))
@@ -143,23 +106,11 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     fun getValmistumispyyntoSuoritustenTilaErikoistuvaLaakariVanhentunutTyoskentelyjaksoExists() {
         initTestWithVoimassaolevatSuoritukset()
 
-        em.persist(
-            TyoskentelyjaksoHelper.createEntity(
-                em,
-                user,
-                alkamispaiva = LocalDate.ofEpochDay(30L),
-                paattymispaiva = LocalDate.ofEpochDay(100L),
-                tyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.KESKUSSAIRAALA
-            )
-        )
+        em.persist(TyoskentelyjaksoHelper.createEntity(em, user, alkamispaiva = LocalDate.ofEpochDay(30L),
+                paattymispaiva = LocalDate.ofEpochDay(100L), tyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.KESKUSSAIRAALA))
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoisalaTyyppi").value(ErikoisalaTyyppi.LAAKETIEDE.toString()))
             .andExpect(jsonPath("$.vanhojaTyoskentelyjaksojaOrSuorituksiaExists").value(true))
             .andExpect(jsonPath("$.kuulusteluVanhentunut").value(false))
@@ -170,23 +121,11 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     fun getValmistumispyyntoSuoritustenTilaErikoistuvaLaakariVanhentunutTyoskentelyjaksoExistsOnlyByAlkamispaiva() {
         initTestWithVoimassaolevatSuoritukset()
 
-        em.persist(
-            TyoskentelyjaksoHelper.createEntity(
-                em,
-                user,
-                alkamispaiva = LocalDate.ofEpochDay(364L),
-                paattymispaiva = LocalDate.ofEpochDay(800L),
-                tyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.KESKUSSAIRAALA
-            )
-        )
+        em.persist(TyoskentelyjaksoHelper.createEntity(em, user, alkamispaiva = LocalDate.ofEpochDay(364L),
+                paattymispaiva = LocalDate.ofEpochDay(800L), tyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.KESKUSSAIRAALA))
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoisalaTyyppi").value(ErikoisalaTyyppi.LAAKETIEDE.toString()))
             .andExpect(jsonPath("$.vanhojaTyoskentelyjaksojaOrSuorituksiaExists").value(true))
             .andExpect(jsonPath("$.kuulusteluVanhentunut").value(false))
@@ -197,24 +136,11 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     fun getValmistumispyyntoSuoritustenTilaErikoistuvaLaakariVanhentunutTerveyskeskusjaksoIgnored() {
         initTestWithVoimassaolevatSuoritukset()
 
-        em.persist(
-            TyoskentelyjaksoHelper.createEntity(
-                em,
-                user,
-                alkamispaiva = LocalDate.ofEpochDay(30L),
-                paattymispaiva = LocalDate.ofEpochDay(100L),
-                tyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
-                kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
-            )
-        )
+        em.persist(TyoskentelyjaksoHelper.createEntity(em, user, alkamispaiva = LocalDate.ofEpochDay(30L), paattymispaiva = LocalDate.ofEpochDay(100L),
+                tyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS, kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO))
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoisalaTyyppi").value(ErikoisalaTyyppi.LAAKETIEDE.toString()))
             .andExpect(jsonPath("$.vanhojaTyoskentelyjaksojaOrSuorituksiaExists").value(false))
             .andExpect(jsonPath("$.kuulusteluVanhentunut").value(false))
@@ -225,15 +151,8 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     fun getValmistumispyyntoSuoritustenTilaErikoistuvaHammaslaakariVanhentunutTyoskentelyjaksoExists() {
         initTestWithVoimassaolevatSuoritukset(ErikoisalaTyyppi.HAMMASLAAKETIEDE)
 
-        em.persist(
-            TyoskentelyjaksoHelper.createEntity(
-                em,
-                user,
-                alkamispaiva = LocalDate.ofEpochDay(1500L),
-                paattymispaiva = LocalDate.ofEpochDay(1600L),
-                tyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.KESKUSSAIRAALA
-            )
-        )
+        em.persist(TyoskentelyjaksoHelper.createEntity(em, user, alkamispaiva = LocalDate.ofEpochDay(1500L),
+                paattymispaiva = LocalDate.ofEpochDay(1600L), tyoskentelyjaksoTyyppi = TyoskentelyjaksoTyyppi.KESKUSSAIRAALA))
 
         restValmistumispyyntoMockMvc.perform(
             get(
@@ -262,13 +181,8 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
             )
         )
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoisalaTyyppi").value(ErikoisalaTyyppi.HAMMASLAAKETIEDE.toString()))
             .andExpect(jsonPath("$.vanhojaTyoskentelyjaksojaOrSuorituksiaExists").value(true))
             .andExpect(jsonPath("$.kuulusteluVanhentunut").value(false))
@@ -281,13 +195,8 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
 
         em.persist(OpintosuoritusHelper.createEntity(em, user, suorituspaiva = LocalDate.ofEpochDay(100L)))
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.erikoisalaTyyppi").value(ErikoisalaTyyppi.LAAKETIEDE.toString()))
             .andExpect(jsonPath("$.vanhojaTyoskentelyjaksojaOrSuorituksiaExists").value(true))
             .andExpect(jsonPath("$.kuulusteluVanhentunut").value(false))
@@ -658,13 +567,8 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.VASTUUHENKILON_TARKASTUS_PALAUTETTU.toString()))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaKorjausehdotus").value(korjausehdotus))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaPalautusaika").value(LocalDate.now().toString()))
@@ -676,20 +580,12 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         initTestWithVoimassaolevatSuoritukset()
         initValmistumispyynnonHyvaksyjat()
 
-        val valmistumispyynto = Valmistumispyynto(
-            opintooikeus = opintooikeus,
-            erikoistujanKuittausaika = LocalDate.now(),
-            vastuuhenkiloOsaamisenArvioijaKuittausaika = LocalDate.now()
-        )
+        val valmistumispyynto = Valmistumispyynto(opintooikeus = opintooikeus, erikoistujanKuittausaika = LocalDate.now(),
+            vastuuhenkiloOsaamisenArvioijaKuittausaika = LocalDate.now())
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKASTUSTA.toString()))
             .andExpect(jsonPath("$.erikoistujanKuittausaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaKuittausaika").value(LocalDate.now().toString()))
@@ -702,20 +598,11 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         initValmistumispyynnonHyvaksyjat()
 
         val korjausehdotus = "korjausehdotusVirkailija"
-        val valmistumispyynto = Valmistumispyynto(
-            opintooikeus = opintooikeus,
-            virkailijanPalautusaika = LocalDate.now(),
-            virkailijanKorjausehdotus = korjausehdotus
-        )
+        val valmistumispyynto = Valmistumispyynto(opintooikeus = opintooikeus, virkailijanPalautusaika = LocalDate.now(), virkailijanKorjausehdotus = korjausehdotus)
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.VIRKAILIJAN_TARKASTUS_PALAUTETTU.toString()))
             .andExpect(jsonPath("$.virkailijanPalautusaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.virkailijanKorjausehdotus").value(korjausehdotus))
@@ -735,13 +622,8 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA.toString()))
             .andExpect(jsonPath("$.erikoistujanKuittausaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaKuittausaika").value(LocalDate.now().toString()))
@@ -763,11 +645,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT
-            )
-        )
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU.toString()))
@@ -790,13 +668,8 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         )
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.HYVAKSYTTY.toString()))
             .andExpect(jsonPath("$.erikoistujanKuittausaika").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaKuittausaika").value(LocalDate.now().toString()))
@@ -810,11 +683,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         em.flush()
         val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
-        val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
-            "test",
-            authorities
-        )
+        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(user.id, userDetails), "test", authorities)
         TestSecurityContextHolder.getContext().authentication = authentication
 
         val erikoisala = ErikoisalaHelper.createEntity(tyyppi = erikoisalaTyyppi)
@@ -848,25 +717,13 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     }
 
     private fun initValmistumispyynnonHyvaksyjat() {
-        val vastuuhenkiloArvioijaUser = KayttajaResourceWithMockUserIT.createEntity(
-            authority = Authority(
-                VASTUUHENKILO
-            )
-        )
+        val vastuuhenkiloArvioijaUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO))
         em.persist(vastuuhenkiloArvioijaUser)
 
-        val vastuuhenkiloHyvaksyjaUser = KayttajaResourceWithMockUserIT.createEntity(
-            authority = Authority(
-                VASTUUHENKILO
-            )
-        )
+        val vastuuhenkiloHyvaksyjaUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO))
         em.persist(vastuuhenkiloHyvaksyjaUser)
 
-        val virkailijaUser = KayttajaResourceWithMockUserIT.createEntity(
-            authority = Authority(
-                OPINTOHALLINNON_VIRKAILIJA
-            )
-        )
+        val virkailijaUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(OPINTOHALLINNON_VIRKAILIJA))
         em.persist(virkailijaUser)
 
         vastuuhenkiloArvioija = KayttajaHelper.createEntity(em, vastuuhenkiloArvioijaUser)
