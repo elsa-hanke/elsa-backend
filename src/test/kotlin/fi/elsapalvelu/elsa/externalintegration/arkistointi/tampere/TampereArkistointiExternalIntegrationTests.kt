@@ -50,7 +50,6 @@ import java.time.LocalDate
  */
 @SpringBootTest(classes = [TampereArkistointiExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class TampereArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport() {
 
     @Autowired
