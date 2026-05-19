@@ -422,7 +422,6 @@ class KouluttajaKoejaksoResourceIT {
         val valiarviointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
         restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/valiarviointi").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(valiarviointiDTO)).with(csrf())).andExpect(status().isOk)
-
         val valiarviointiList = koejaksonValiarviointiRepository.findAll()
         assertThat(valiarviointiList).hasSize(databaseSizeBeforeUpdate)
         val testValiarviointi = valiarviointiList[valiarviointiList.size - 1]
@@ -443,7 +442,6 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
         koejaksonValiarviointi.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
-
         val databaseSizeBeforeUpdate = koejaksonValiarviointiRepository.findAll().size
         assertNotNull(koejaksonValiarviointi.id)
         val updatedValiarviointi = koejaksonValiarviointiRepository.findById(koejaksonValiarviointi.id).get()
@@ -453,7 +451,6 @@ class KouluttajaKoejaksoResourceIT {
         val valiarviointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
         restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/valiarviointi").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(valiarviointiDTO)).with(csrf())).andExpect(status().isOk)
-
         val valiarviointiList = koejaksonValiarviointiRepository.findAll()
         assertThat(valiarviointiList).hasSize(databaseSizeBeforeUpdate)
         val testValiarviointi = valiarviointiList[valiarviointiList.size - 1]
@@ -475,7 +472,6 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonValiarviointi.muokkauspaiva = LocalDate.now()
         koejaksonValiarviointi.kehittamistoimenpiteet = KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
-
         val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
         assertNotNull(koejaksonKehittamistoimenpiteet.id)
         val updatedKehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findById(koejaksonKehittamistoimenpiteet.id).get()
@@ -517,7 +513,6 @@ class KouluttajaKoejaksoResourceIT {
         em.detach(updatedKehittamistoimenpiteet)
         updatedKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
         updatedKehittamistoimenpiteet.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
-
         val kehittamistoimenpiteetDTO = koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
         restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/kehittamistoimenpiteet").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kehittamistoimenpiteetDTO)).with(csrf())).andExpect(status().isOk)
@@ -545,14 +540,12 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
         koejaksonKehittamistoimenpiteet.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
-
         val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
         assertNotNull(koejaksonKehittamistoimenpiteet.id)
         val updatedKehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findById(koejaksonKehittamistoimenpiteet.id).get()
         em.detach(updatedKehittamistoimenpiteet)
         updatedKehittamistoimenpiteet.lahiesimiesHyvaksynyt = false
         updatedKehittamistoimenpiteet.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
-
         val kehittamistoimenpiteetDTO = koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
         restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/kehittamistoimenpiteet").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kehittamistoimenpiteetDTO)).with(csrf())).andExpect(status().isOk)
@@ -610,7 +603,6 @@ class KouluttajaKoejaksoResourceIT {
         koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
         koejaksonLoppukeskustelu.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
-
         val databaseSizeBeforeUpdate = koejaksonLoppukeskusteluRepository.findAll().size
         assertNotNull(koejaksonLoppukeskustelu.id)
         val updatedLoppukeskustelu = koejaksonLoppukeskusteluRepository.findById(koejaksonLoppukeskustelu.id).get()
@@ -620,7 +612,6 @@ class KouluttajaKoejaksoResourceIT {
         val loppukeskusteluDTO = koejaksonLoppukeskusteluMapper.toDto(updatedLoppukeskustelu)
         restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/loppukeskustelu").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(loppukeskusteluDTO)).with(csrf())).andExpect(status().isOk)
-
         val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
         assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeUpdate)
         val testLoppukeskustelu = loppukeskusteluList[loppukeskusteluList.size - 1]

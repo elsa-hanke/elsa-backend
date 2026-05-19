@@ -6,13 +6,9 @@ import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.ValmistumispyyntoRepository
-import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
-import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoHyvaksyntaFormDTO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoOsaamisenArviointiFormDTO
-import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
-import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
+import fi.elsapalvelu.elsa.security.*
+import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.enumeration.*
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -25,13 +21,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
-import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.security.saml2.provider.service.authentication.*
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -392,8 +386,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.erikoistujanAsetus").value(valmistumispyynto.opintooikeus?.asetus?.nimi))
             .andExpect(jsonPath("$.opintooikeusId").value(valmistumispyynto.opintooikeus?.id))
             .andExpect(jsonPath("$.opintooikeudenMyontamispaiva").value(valmistumispyynto.opintooikeus?.opintooikeudenMyontamispaiva.toString()))
-            .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaNimi").isEmpty)
-            .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaNimike").isEmpty)
+            .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaNimi").isEmpty).andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaNimike").isEmpty)
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaKuittausaika").isEmpty)
     }
 
@@ -421,7 +414,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
         val anotherErikoisala = ErikoisalaHelper.createEntity()
         em.persist(anotherErikoisala)
         val erikoistuvaLaakari = initErikoistuvaLaakari(opintooikeus.yliopisto, anotherErikoisala)
-
         val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(erikoistuvaLaakari.getOpintooikeusKaytossa()!!)
         em.persist(valmistumispyynto)
 
@@ -458,13 +450,10 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
         val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus)
         em.persist(valmistumispyynto)
-
         val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus.erikoistuvaLaakari?.kayttaja?.user)
         em.persist(tyoskentelyjakso)
-
         val arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
         em.persist(arvioitavaKokonaisuus)
-
         val arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em)
         em.persist(arvioitavaKokonaisuus2)
 
@@ -485,10 +474,8 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
         val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus)
         em.persist(valmistumispyynto)
-
         val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus.erikoistuvaLaakari?.kayttaja?.user)
         em.persist(tyoskentelyjakso)
-
         val arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
         em.persist(arvioitavaKokonaisuus)
 
@@ -509,13 +496,10 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
         val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus)
         em.persist(valmistumispyynto)
-
         val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus.erikoistuvaLaakari?.kayttaja?.user)
         em.persist(tyoskentelyjakso)
-
         val arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
         em.persist(arvioitavaKokonaisuus)
-
         val arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em)
         em.persist(arvioitavaKokonaisuus2)
 
@@ -572,8 +556,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
         em.persist(valmistumispyynto)
 
         restValmistumispyyntoMockMvc.perform(get("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_ARVIOINTI_ENDPOINT/${valmistumispyynto.id}"))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(valmistumispyynto.id))
             .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKASTUSTA.toString()))
             .andExpect(jsonPath("$.muokkauspaiva").value(valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika.toString()))
@@ -611,15 +594,9 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
     @Transactional
     fun getValmistumispyyntoWithoutTehtavatDefined() {
         initTest(listOf())
-
         val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus)
         em.persist(valmistumispyynto)
-
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_ARVIOINTI_ENDPOINT/${valmistumispyynto.id}"
-            )
-        ).andExpect(status().is5xxServerError)
+        restValmistumispyyntoMockMvc.perform(get("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_ARVIOINTI_ENDPOINT/${valmistumispyynto.id}")).andExpect(status().is5xxServerError)
     }
 
     @Test
@@ -629,7 +606,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
         val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus)
         em.persist(valmistumispyynto)
-
         val databaseSizeBeforeUpdate = valmistumispyyntoRepository.findAll().size
         val valmistumispyyntoFormDTO = ValmistumispyyntoOsaamisenArviointiFormDTO(true)
 
@@ -655,12 +631,8 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
         val valmistumispyyntoFormDTO = ValmistumispyyntoOsaamisenArviointiFormDTO(true)
 
-        restValmistumispyyntoMockMvc.perform(
-            put("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_ARVIOINTI_ENDPOINT/{id}", valmistumispyynto.id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyyntoFormDTO))
-                .with(csrf())
-        ).andExpect(status().is5xxServerError)
+        restValmistumispyyntoMockMvc.perform(put("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_ARVIOINTI_ENDPOINT/{id}", valmistumispyynto.id)
+                .contentType(MediaType.APPLICATION_JSON).content(convertObjectToJsonBytes(valmistumispyyntoFormDTO)).with(csrf())).andExpect(status().is5xxServerError)
     }
 
     @Test
@@ -678,12 +650,8 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
         val valmistumispyyntoFormDTO = ValmistumispyyntoOsaamisenArviointiFormDTO(true)
 
-        restValmistumispyyntoMockMvc.perform(
-            put("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_ARVIOINTI_ENDPOINT/{id}", valmistumispyynto.id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyyntoFormDTO))
-                .with(csrf())
-        ).andExpect(status().is5xxServerError)
+        restValmistumispyyntoMockMvc.perform(put("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_ARVIOINTI_ENDPOINT/{id}", valmistumispyynto.id)
+                .contentType(MediaType.APPLICATION_JSON).content(convertObjectToJsonBytes(valmistumispyyntoFormDTO)).with(csrf())).andExpect(status().is5xxServerError)
     }
 
     @Test
@@ -700,12 +668,8 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
         val valmistumispyyntoFormDTO = ValmistumispyyntoOsaamisenArviointiFormDTO(true)
 
-        restValmistumispyyntoMockMvc.perform(
-            put("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_ARVIOINTI_ENDPOINT/{id}", valmistumispyynto.id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(valmistumispyyntoFormDTO))
-                .with(csrf())
-        ).andExpect(status().is5xxServerError)
+        restValmistumispyyntoMockMvc.perform(put("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_ARVIOINTI_ENDPOINT/{id}", valmistumispyynto.id)
+                .contentType(MediaType.APPLICATION_JSON).content(convertObjectToJsonBytes(valmistumispyyntoFormDTO)).with(csrf())).andExpect(status().is5xxServerError)
     }
 
     @Test
@@ -771,13 +735,10 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
         val sateilysuojakoulutus = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
         em.persist(sateilysuojakoulutus)
-
         val johtamiskoulutus = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
         em.persist(johtamiskoulutus)
-
         val kuulustelu1 = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
         em.persist(kuulustelu1)
-
         val kuulustelu2 = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
         em.persist(kuulustelu2)
 
@@ -788,8 +749,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
         em.persist(vastuuhenkilonArvio)
 
         restValmistumispyyntoMockMvc.perform(get("${ENDPOINT_BASE_URL}$VALMISTUMISPYYNNON_HYVAKSYNTA_ENDPOINT/${valmistumispyynto.id}"))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(tarkistus.id))
             .andExpect(jsonPath("$.valmistumispyynto.tila").value(ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA.toString()))
             .andExpect(jsonPath("$.valmistumispyynto.muokkauspaiva").value(valmistumispyynto.virkailijanKuittausaika.toString()))
@@ -821,8 +781,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.sateilusuojakoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara))
             .andExpect(jsonPath("$.johtamiskoulutusSuoritettu").value(johtamiskoulutus.opintopisteet))
             .andExpect(jsonPath("$.johtamiskoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara))
-            .andExpect(jsonPath("$.kuulustelut").value(Matchers.hasSize<Any>(2)))
-            .andExpect(jsonPath("$.koejaksoHyvaksyttyPvm").value(koejaksoHyvaksyttyPvm.toString()))
+            .andExpect(jsonPath("$.kuulustelut").value(Matchers.hasSize<Any>(2))).andExpect(jsonPath("$.koejaksoHyvaksyttyPvm").value(koejaksoHyvaksyttyPvm.toString()))
     }
 
     @Test
@@ -878,9 +837,8 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
     fun initTest(vastuuhenkilonTehtavatyypit: List<VastuuhenkilonTehtavatyyppiEnum>) {
         val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(vastuuhenkiloUser)
-        val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(vastuuhenkiloUser.id, userDetails), "test", authorities)
+        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(vastuuhenkiloUser.id, mapOf<String, List<Any>>()), "test", authorities)
         TestSecurityContextHolder.getContext().authentication = authentication
 
         erikoistuvaLaakari = initErikoistuvaLaakari()
@@ -921,8 +879,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT {
 
         kayttaja.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(kayttaja = kayttaja, yliopisto = yliopisto, erikoisala = newErikoisala,
             vastuuhenkilonTehtavat = tehtavat))
-        kayttaja.yliopistotAndErikoisalat.add(
-            KayttajaYliopistoErikoisala(kayttaja = kayttaja, yliopisto = yliopisto, erikoisala = erikoisala, vastuuhenkilonTehtavat = tehtavat))
+        kayttaja.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(kayttaja = kayttaja, yliopisto = yliopisto, erikoisala = erikoisala, vastuuhenkilonTehtavat = tehtavat))
         kayttaja.yliopistotAndErikoisalat.add(
             KayttajaYliopistoErikoisala(kayttaja = kayttaja, yliopisto = yliopisto, erikoisala = anotherNewErikoisala, vastuuhenkilonTehtavat = tehtavat))
     }

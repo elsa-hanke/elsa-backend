@@ -343,11 +343,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
 
         val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
 
-        restValmistumispyyntoMockMvc.perform(
-            multipart("/api/erikoistuva-laakari/valmistumispyynto")
-                .with { it.method = "POST"; it }
-                .with(csrf())
-        ).andExpect(status().isBadRequest)
+        restValmistumispyyntoMockMvc.perform(multipart("/api/erikoistuva-laakari/valmistumispyynto").with { it.method = "POST"; it }.with(csrf())).andExpect(status().isBadRequest)
 
         val valmistumispyynnotList = valmistumispyyntoRepository.findAll()
         assertThat(valmistumispyynnotList).hasSize(valmistumispyyntoTableSizeBeforeCreate)
@@ -365,11 +361,8 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         val selvitysVanhentuneistaSuorituksista = "selvitysVanhentuneistaSuorituksista"
 
         restValmistumispyyntoMockMvc.perform(
-            multipart("/api/erikoistuva-laakari/valmistumispyynto")
-                .with { it.method = "POST"; it }
-                .param("selvitysVanhentuneistaSuorituksista", selvitysVanhentuneistaSuorituksista)
-                .with(csrf())
-        ).andExpect(status().isCreated)
+            multipart("/api/erikoistuva-laakari/valmistumispyynto").with { it.method = "POST"; it }
+                .param("selvitysVanhentuneistaSuorituksista", selvitysVanhentuneistaSuorituksista).with(csrf())).andExpect(status().isCreated)
 
         val valmistumispyynnotList = valmistumispyyntoRepository.findAll()
         assertThat(valmistumispyynnotList).hasSize(valmistumispyyntoTableSizeBeforeCreate + 1)
@@ -384,21 +377,15 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
     fun tryToCreateValmistumispyyntoAlreadyExists() {
         initTestWithVoimassaolevatSuoritukset()
 
-        val valmistumispyynto = Valmistumispyynto(
-            opintooikeus = opintooikeus,
-            vastuuhenkiloOsaamisenArvioijaPalautusaika = LocalDate.now(),
-            selvitysVanhentuneistaSuorituksista = "selvitysVanhentuneistaSuorituksista",
-            vastuuhenkiloOsaamisenArvioijaKorjausehdotus = "korjausehdotus"
-        )
+        val valmistumispyynto = Valmistumispyynto(opintooikeus = opintooikeus,
+            vastuuhenkiloOsaamisenArvioijaPalautusaika = LocalDate.now(), selvitysVanhentuneistaSuorituksista = "selvitysVanhentuneistaSuorituksista",
+            vastuuhenkiloOsaamisenArvioijaKorjausehdotus = "korjausehdotus")
         em.persist(valmistumispyynto)
 
         val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
 
         restValmistumispyyntoMockMvc.perform(
-            multipart("/api/erikoistuva-laakari/valmistumispyynto")
-                .with { it.method = "POST"; it }
-                .with(csrf())
-        ).andExpect(status().isBadRequest)
+            multipart("/api/erikoistuva-laakari/valmistumispyynto").with { it.method = "POST"; it }.with(csrf())).andExpect(status().isBadRequest)
 
         val valmistumispyynnotList = valmistumispyyntoRepository.findAll()
         assertThat(valmistumispyynnotList).hasSize(valmistumispyyntoTableSizeBeforeCreate)
@@ -410,12 +397,8 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         initTestWithVoimassaolevatSuoritukset()
         initValmistumispyynnonHyvaksyjat()
 
-        val valmistumispyynto = Valmistumispyynto(
-            opintooikeus = opintooikeus,
-            vastuuhenkiloOsaamisenArvioijaPalautusaika = LocalDate.now(),
-            selvitysVanhentuneistaSuorituksista = "selvitysVanhentuneistaSuorituksista",
-            vastuuhenkiloOsaamisenArvioijaKorjausehdotus = "korjausehdotus"
-        )
+        val valmistumispyynto = Valmistumispyynto(opintooikeus = opintooikeus, vastuuhenkiloOsaamisenArvioijaPalautusaika = LocalDate.now(),
+            selvitysVanhentuneistaSuorituksista = "selvitysVanhentuneistaSuorituksista", vastuuhenkiloOsaamisenArvioijaKorjausehdotus = "korjausehdotus")
         em.persist(valmistumispyynto)
 
         val valmistumispyyntoTableSizeBeforeCreate = valmistumispyyntoRepository.findAll().size
@@ -435,9 +418,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         assertThat(valmistumispyyntoSaved.erikoistujanKuittausaika).isEqualTo(LocalDate.now())
         assertThat(valmistumispyyntoSaved.vastuuhenkiloOsaamisenArvioijaKorjausehdotus).isNull()
         assertThat(valmistumispyyntoSaved.vastuuhenkiloOsaamisenArvioijaPalautusaika).isNull()
-        assertThat(valmistumispyyntoSaved.selvitysVanhentuneistaSuorituksista).isEqualTo(
-            selvitysVanhentuneistaSuorituksistaUpdated
-        )
+        assertThat(valmistumispyyntoSaved.selvitysVanhentuneistaSuorituksista).isEqualTo(selvitysVanhentuneistaSuorituksistaUpdated)
     }
 
     @Test
@@ -505,13 +486,8 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         initTestWithVoimassaolevatSuoritukset()
         initValmistumispyynnonHyvaksyjat()
 
-        restValmistumispyyntoMockMvc.perform(
-            get(
-                ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        restValmistumispyyntoMockMvc.perform(get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_ENDPOINT))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.tila").value(ValmistumispyynnonTila.UUSI.toString()))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaNimi").value(vastuuhenkiloArvioija.getNimi()))
             .andExpect(jsonPath("$.vastuuhenkiloOsaamisenArvioijaNimike").value(vastuuhenkiloArvioija.nimike))
