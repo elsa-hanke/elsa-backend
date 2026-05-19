@@ -780,7 +780,7 @@ class VastuuhenkiloEtusivuResourceIT {
             .andExpect(jsonPath("$").value(hasSize<Int>(0)))
     }
 
-    fun initTest(createVastuuhenkilonArvio: Boolean? = true) {
+    fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO))
         em.persist(user)
         em.flush()

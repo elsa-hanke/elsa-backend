@@ -1034,8 +1034,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
 
     companion object {
 
-        private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
-
         private const val UPDATED_EMAIL = "doe.john@example.com"
         private const val UPDATED_PHONE = "+358101001010"
 

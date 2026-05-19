@@ -246,7 +246,7 @@ class ErikoistuvaLaakariOpintosuoritusResourceIT {
             .andExpect(jsonPath("$.opintosuoritukset").value(Matchers.hasSize<Any>(1)))
     }
 
-    fun initTest(userId: String? = DEFAULT_ID) {
+    fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()

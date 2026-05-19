@@ -649,7 +649,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         val UPDATED_FILE: ByteArray = createByteArray(1, "1")
 
         private const val ENTITY_API_URL: String = "/api/erikoistuva-laakari/teoriakoulutukset"
-        private val ENTITY_API_URL_ID: String = ENTITY_API_URL + "/{id}"
+        private const val ENTITY_API_URL_ID: String = ENTITY_API_URL + "/{id}"
 
         private val random: Random = SecureRandom()
         private val count: AtomicLong = AtomicLong(random.nextInt().toLong() + (2L * Integer.MAX_VALUE))

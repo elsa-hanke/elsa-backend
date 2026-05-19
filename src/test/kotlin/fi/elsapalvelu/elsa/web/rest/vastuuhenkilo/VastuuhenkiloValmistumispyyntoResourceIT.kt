@@ -39,7 +39,6 @@ import jakarta.persistence.EntityManager
 
 private const val ENDPOINT_BASE_URL = "/api/vastuuhenkilo"
 private const val VALMISTUMISPYYNNOT_ENDPOINT = "/valmistumispyynnot?page=0&size=20&sort=muokkauspaiva,desc"
-private const val VALMISTUMISPYYNNON_HYVAKSYJA_ROLE_ENDPOINT = "/valmistumispyynnon-hyvaksyja-role"
 private const val VALMISTUMISPYYNNON_ARVIOINTI_ENDPOINT = "/valmistumispyynnon-arviointi"
 private const val VALMISTUMISPYYNTO_ARVIOINTIEN_TILA_ENDPOINT = "/valmistumispyynto-arviointien-tila"
 private const val VALMISTUMISPYYNNON_HYVAKSYNTA_ENDPOINT = "/valmistumispyynnon-hyvaksynta"

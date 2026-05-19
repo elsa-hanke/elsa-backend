@@ -20,6 +20,7 @@ object ErikoistuvaLaakariHelper {
     const val DEFAULT_LAILLISTAMISTODISTUS_NIMI = "laillistamistodistus.pdf"
     const val DEFAULT_LAILLISTAMISTODISTUS_TYYPPI = "application/pdf"
 
+    @Suppress("LongParameterList")
     fun createEntity(
         em: EntityManager,
         user: User? = null,

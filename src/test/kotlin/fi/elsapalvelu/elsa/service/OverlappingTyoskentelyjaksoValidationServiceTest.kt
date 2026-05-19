@@ -327,9 +327,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
         testValidateTyoskentelyjakso(true,
             listOf(
                 TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
-                    null,
-                    LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(69L),
-                    100,
+                    null, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(69L), 100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
                             null,
@@ -340,13 +338,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
                         )
                     )
                 ),
-                TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
-                    1,
-                    LocalDate.ofEpochDay(70L),
-                    LocalDate.ofEpochDay(80L),
-                    100,
-                    mutableSetOf()
-                ),
+                TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(1, LocalDate.ofEpochDay(70L), LocalDate.ofEpochDay(80L), 100, mutableSetOf()),
                 TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
                     null,
                     LocalDate.ofEpochDay(81L),
@@ -400,13 +392,8 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
     @Test
     fun `Modify overlapping tyoskentelyjakso when keskeytysaika with hyvaksiluettavat days exists should return false`() {
         val keskeytysaika1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
-            null,
-            LocalDate.ofEpochDay(40L),
-            LocalDate.ofEpochDay(68L),
-            100,
-            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI,
-            vahennetaanKerran = true
-        )
+            null, LocalDate.ofEpochDay(40L), LocalDate.ofEpochDay(68L), 100, PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI,
+            vahennetaanKerran = true)
 
         val tyoskentelyjakso1 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
             null,

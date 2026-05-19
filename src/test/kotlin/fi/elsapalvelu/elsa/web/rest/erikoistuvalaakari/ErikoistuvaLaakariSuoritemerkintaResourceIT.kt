@@ -483,7 +483,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             )
     }
 
-    fun initTest(userId: String? = DEFAULT_ID) {
+    fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -517,8 +517,6 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
     companion object {
 
         private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
-        private const val DEFAULT_LOGIN = "johndoe"
-        private const val DEFAULT_EMAIL = "john.doe@example.com"
 
         private val DEFAULT_SUORITUSPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_SUORITUSPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())

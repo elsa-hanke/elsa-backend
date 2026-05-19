@@ -486,7 +486,7 @@ class ErikoistuvaLaakariKoulutusjaksoResourceIT {
         private const val UPDATED_LUKITTU: Boolean = true
 
         private const val ENTITY_API_URL: String = "/api/erikoistuva-laakari/koulutussuunnitelma/koulutusjaksot"
-        private val ENTITY_API_URL_ID: String = ENTITY_API_URL + "/{id}"
+        private const val ENTITY_API_URL_ID: String = ENTITY_API_URL + "/{id}"
 
         private val random: Random = SecureRandom()
         private val count: AtomicLong = AtomicLong(random.nextInt().toLong() + (2L * Integer.MAX_VALUE))
