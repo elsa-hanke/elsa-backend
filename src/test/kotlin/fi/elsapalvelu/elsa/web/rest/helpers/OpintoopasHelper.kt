@@ -8,9 +8,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
 
-class OpintoopasHelper {
-
-    companion object {
+object OpintoopasHelper {
 
         private const val DEFAULT_NIMI = "AAAAAAAAAA"
         private const val UPDATED_NIMI = "BBBBBBBBBB"
@@ -98,7 +96,7 @@ class OpintoopasHelper {
                 erikoisalanVaatimaJohtamisopintojenVahimmaismaara =
                 UPDATED_ERIKOISALAN_VAATIMA_JOHTAMISOPINTOJEN_VAHIMMAISMAARA
             )
+
         }
-    }
 
 }

@@ -7,34 +7,33 @@ import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 
-class KurssikoodiHelper {
+object KurssikoodiHelper {
 
-    companion object {
+    private const val DEFAULT_TUNNISTE = "AAAAAAAAAA"
+    private val DEFAULT_TYYPPI = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO
 
-        private const val DEFAULT_TUNNISTE = "AAAAAAAAAA"
-        private val DEFAULT_TYYPPI = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO
+    fun createEntity(
+        em: EntityManager,
+        tunniste: String? = DEFAULT_TUNNISTE,
+        tyyppi: OpintosuoritusTyyppiEnum? = DEFAULT_TYYPPI,
+        yliopisto: Yliopisto? = null,
+        isOsakokonaisuus: Boolean = false
+    ): OpintosuoritusKurssikoodi {
 
-        @JvmStatic
-        fun createEntity(
-            em: EntityManager,
-            tunniste: String? = DEFAULT_TUNNISTE,
-            tyyppi: OpintosuoritusTyyppiEnum? = DEFAULT_TYYPPI,
-            yliopisto: Yliopisto?,
-            isOsakokonaisuus: Boolean = false
-        ): OpintosuoritusKurssikoodi {
-            val opintosuoritusTyyppi =
-                em.findAll(OpintosuoritusTyyppi::class).first { it.nimi == tyyppi }
-            val kurssikoodi = OpintosuoritusKurssikoodi(
-                tunniste = tunniste,
-                tyyppi = opintosuoritusTyyppi,
-                isOsakokonaisuus = isOsakokonaisuus,
-                yliopisto = yliopisto ?: em.findAll(Yliopisto::class).first()
-            )
-            em.persist(kurssikoodi)
-            em.flush()
+        val opintosuoritusTyyppi =
+            em.findAll(OpintosuoritusTyyppi::class)
+                .first { it.nimi == tyyppi }
 
-            return kurssikoodi
-        }
+        val kurssikoodi = OpintosuoritusKurssikoodi(
+            tunniste = tunniste,
+            tyyppi = opintosuoritusTyyppi,
+            isOsakokonaisuus = isOsakokonaisuus,
+            yliopisto = yliopisto ?: em.findAll(Yliopisto::class).first()
+        )
 
+        em.persist(kurssikoodi)
+        em.flush()
+
+        return kurssikoodi
     }
 }

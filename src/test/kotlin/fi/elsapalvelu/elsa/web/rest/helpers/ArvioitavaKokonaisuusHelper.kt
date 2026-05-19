@@ -7,77 +7,70 @@ import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
 
-class ArvioitavaKokonaisuusHelper {
+object ArvioitavaKokonaisuusHelper {
+    private const val DEFAULT_NIMI = "AAAAAAAAAA"
+    private const val UPDATED_NIMI = "BBBBBBBBBB"
+    private const val DEFAULT_KUVAUS = "AAAAAAAAAA"
+    private const val UPDATED_KUVAUS = "BBBBBBBBBB"
+    private val DEFAULT_VOIMASSAOLO_ALKAA: LocalDate = LocalDate.ofEpochDay(0L)
+    private val UPDATED_VOIMASSAOLO_ALKAA: LocalDate = LocalDate.now(ZoneId.systemDefault())
+    private val DEFAULT_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.ofEpochDay(30L)
+    private val UPDATED_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.now(ZoneId.systemDefault())
 
-    companion object {
+    @JvmStatic
+    fun createEntity(
+        em: EntityManager,
+        voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
+        voimassaoloLoppuu: LocalDate? = DEFAULT_VOIMASSAOLO_LOPPUU,
+        existingKategoria: ArvioitavanKokonaisuudenKategoria? = null
+    ): ArvioitavaKokonaisuus {
+        val arvioitavaKokonaisuus = ArvioitavaKokonaisuus(
+            nimi = DEFAULT_NIMI,
+            kuvaus = DEFAULT_KUVAUS,
+            voimassaoloAlkaa = voimassaoloAlkaa,
+            voimassaoloLoppuu = voimassaoloLoppuu
+        )
 
-        private const val DEFAULT_NIMI = "AAAAAAAAAA"
-        private const val UPDATED_NIMI = "BBBBBBBBBB"
-
-        private const val DEFAULT_KUVAUS = "AAAAAAAAAA"
-        private const val UPDATED_KUVAUS = "BBBBBBBBBB"
-
-        private val DEFAULT_VOIMASSAOLO_ALKAA: LocalDate = LocalDate.ofEpochDay(0L)
-        private val UPDATED_VOIMASSAOLO_ALKAA: LocalDate = LocalDate.now(ZoneId.systemDefault())
-
-        private val DEFAULT_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.ofEpochDay(30L)
-        private val UPDATED_VOIMASSAOLO_LOPPUU: LocalDate = LocalDate.now(ZoneId.systemDefault())
-
-        @JvmStatic
-        fun createEntity(
-            em: EntityManager,
-            voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
-            voimassaoloLoppuu: LocalDate? = DEFAULT_VOIMASSAOLO_LOPPUU,
-            existingKategoria: ArvioitavanKokonaisuudenKategoria? = null
-        ): ArvioitavaKokonaisuus {
-            val arvioitavaKokonaisuus = ArvioitavaKokonaisuus(
-                nimi = DEFAULT_NIMI,
-                kuvaus = DEFAULT_KUVAUS,
-                voimassaoloAlkaa = voimassaoloAlkaa,
-                voimassaoloLoppuu = voimassaoloLoppuu
-            )
-
-            // Lisätään pakollinen tieto
-            var arvioitavanKokonaisuudenKategoria = existingKategoria
-            if (arvioitavanKokonaisuudenKategoria == null) {
-                if (em.findAll(ArvioitavanKokonaisuudenKategoria::class).isEmpty()) {
-                    arvioitavanKokonaisuudenKategoria =
-                        ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em)
-                    em.persist(arvioitavanKokonaisuudenKategoria)
-                    em.flush()
-                } else {
-                    arvioitavanKokonaisuudenKategoria =
-                        em.findAll(ArvioitavanKokonaisuudenKategoria::class)[0]
-                }
-            }
-            arvioitavaKokonaisuus.kategoria = arvioitavanKokonaisuudenKategoria
-
-            return arvioitavaKokonaisuus
-        }
-
-        @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): ArvioitavaKokonaisuus {
-            val arvioitavaKokonaisuus = ArvioitavaKokonaisuus(
-                nimi = UPDATED_NIMI,
-                kuvaus = UPDATED_KUVAUS,
-                voimassaoloAlkaa = UPDATED_VOIMASSAOLO_ALKAA,
-                voimassaoloLoppuu = UPDATED_VOIMASSAOLO_LOPPUU
-            )
-
-            // Lisätään pakollinen tieto
-            val arvioitavanKokonaisuudenKategoria: ArvioitavanKokonaisuudenKategoria
+        // Lisätään pakollinen tieto
+        var arvioitavanKokonaisuudenKategoria = existingKategoria
+        if (arvioitavanKokonaisuudenKategoria == null) {
             if (em.findAll(ArvioitavanKokonaisuudenKategoria::class).isEmpty()) {
                 arvioitavanKokonaisuudenKategoria =
-                    ArvioitavanKokonaisuudenKategoriaHelper.createUpdatedEntity(em)
+                    ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em)
                 em.persist(arvioitavanKokonaisuudenKategoria)
                 em.flush()
             } else {
                 arvioitavanKokonaisuudenKategoria =
                     em.findAll(ArvioitavanKokonaisuudenKategoria::class)[0]
             }
-            arvioitavaKokonaisuus.kategoria = arvioitavanKokonaisuudenKategoria
-
-            return arvioitavaKokonaisuus
         }
+        arvioitavaKokonaisuus.kategoria = arvioitavanKokonaisuudenKategoria
+
+        return arvioitavaKokonaisuus
+    }
+
+    @JvmStatic
+    fun createUpdatedEntity(em: EntityManager): ArvioitavaKokonaisuus {
+        val arvioitavaKokonaisuus = ArvioitavaKokonaisuus(
+            nimi = UPDATED_NIMI,
+            kuvaus = UPDATED_KUVAUS,
+            voimassaoloAlkaa = UPDATED_VOIMASSAOLO_ALKAA,
+            voimassaoloLoppuu = UPDATED_VOIMASSAOLO_LOPPUU
+        )
+
+        // Lisätään pakollinen tieto
+        val arvioitavanKokonaisuudenKategoria: ArvioitavanKokonaisuudenKategoria
+        if (em.findAll(ArvioitavanKokonaisuudenKategoria::class).isEmpty()) {
+            arvioitavanKokonaisuudenKategoria =
+                ArvioitavanKokonaisuudenKategoriaHelper.createUpdatedEntity(em)
+            em.persist(arvioitavanKokonaisuudenKategoria)
+            em.flush()
+        } else {
+            arvioitavanKokonaisuudenKategoria =
+                em.findAll(ArvioitavanKokonaisuudenKategoria::class)[0]
+        }
+        arvioitavaKokonaisuus.kategoria = arvioitavanKokonaisuudenKategoria
+
+        return arvioitavaKokonaisuus
     }
 }

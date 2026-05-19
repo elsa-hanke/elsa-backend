@@ -3,58 +3,58 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.domain.SuoritteenKategoria
 import fi.elsapalvelu.elsa.web.rest.findAll
-import java.time.LocalDate
-import java.time.ZoneId
 import jakarta.persistence.EntityManager
 
-class SuoritteenKategoriaHelper {
+object SuoritteenKategoriaHelper {
 
-    companion object {
+    private const val DEFAULT_NIMI = "AAAAAAAAAA"
+    private const val UPDATED_NIMI = "BBBBBBBBBB"
 
-        private const val DEFAULT_NIMI = "AAAAAAAAAA"
-        private const val UPDATED_NIMI = "BBBBBBBBBB"
+    fun createEntity(
+        em: EntityManager,
+        existingErikoisala: Erikoisala? = null
+    ): SuoritteenKategoria {
 
-        @JvmStatic
-        fun createEntity(
-            em: EntityManager,
-            existingErikoisala: Erikoisala? = null
-        ): SuoritteenKategoria {
-            val suoritteenKategoria = SuoritteenKategoria(
-                nimi = DEFAULT_NIMI
-            )
+        val suoritteenKategoria = SuoritteenKategoria(
+            nimi = DEFAULT_NIMI
+        )
 
-            var erikoisala = existingErikoisala
-            if (erikoisala == null) {
-                if (em.findAll(Erikoisala::class).isEmpty()) {
-                    erikoisala = ErikoisalaHelper.createEntity()
-                    em.persist(erikoisala)
-                    em.flush()
-                } else {
-                    erikoisala = em.findAll(Erikoisala::class)[0]
-                }
-            }
-            suoritteenKategoria.erikoisala = erikoisala
+        suoritteenKategoria.erikoisala =
+            existingErikoisala ?: resolveErikoisala(em, updated = false)
 
-            return suoritteenKategoria
-        }
+        return suoritteenKategoria
+    }
 
-        @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): SuoritteenKategoria {
-            val suoritteenKategoria = SuoritteenKategoria(
-                nimi = UPDATED_NIMI
-            )
+    fun createUpdatedEntity(em: EntityManager): SuoritteenKategoria {
 
-            // Lisätään pakollinen tieto
-            val erikoisala: Erikoisala
-            if (em.findAll(Erikoisala::class).isEmpty()) {
-                erikoisala = ErikoisalaHelper.createUpdatedEntity()
-                em.persist(erikoisala)
-                em.flush()
+        val suoritteenKategoria = SuoritteenKategoria(
+            nimi = UPDATED_NIMI
+        )
+
+        suoritteenKategoria.erikoisala =
+            resolveErikoisala(em, updated = true)
+
+        return suoritteenKategoria
+    }
+
+    private fun resolveErikoisala(
+        em: EntityManager,
+        updated: Boolean
+    ): Erikoisala {
+        val existing = em.findAll(Erikoisala::class).firstOrNull()
+
+        if (existing != null) return existing
+
+        val created =
+            if (updated) {
+                ErikoisalaHelper.createUpdatedEntity()
             } else {
-                erikoisala = em.findAll(Erikoisala::class).get(0)
+                ErikoisalaHelper.createEntity()
             }
-            suoritteenKategoria.erikoisala = erikoisala
-            return suoritteenKategoria
-        }
+
+        em.persist(created)
+        em.flush()
+
+        return created
     }
 }

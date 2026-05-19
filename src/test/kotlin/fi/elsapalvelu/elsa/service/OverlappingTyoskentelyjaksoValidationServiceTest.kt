@@ -324,32 +324,21 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
 
     @Test
     fun `Modify overlapping tyoskentelyjakso when keskeytysaika with hyvaksiluettavat days exists should return true`() {
-        testValidateTyoskentelyjakso(
-            true,
+        testValidateTyoskentelyjakso(true,
             listOf(
                 TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
-                    null,
-                    LocalDate.ofEpochDay(0L),
-                    LocalDate.ofEpochDay(69L),
-                    100,
+                    null, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(69L), 100,
                     mutableSetOf(
                         KeskeytysaikaMockHelper.createKeskeytysaikaMock(
                             null,
-                            LocalDate.ofEpochDay(40L),
-                            LocalDate.ofEpochDay(69L),
+                            LocalDate.ofEpochDay(40L), LocalDate.ofEpochDay(69L),
                             100,
                             PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI,
                             vahennetaanKerran = true
                         )
                     )
                 ),
-                TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
-                    1,
-                    LocalDate.ofEpochDay(70L),
-                    LocalDate.ofEpochDay(80L),
-                    100,
-                    mutableSetOf()
-                ),
+                TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(1, LocalDate.ofEpochDay(70L), LocalDate.ofEpochDay(80L), 100, mutableSetOf()),
                 TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
                     null,
                     LocalDate.ofEpochDay(81L),
@@ -403,13 +392,8 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
     @Test
     fun `Modify overlapping tyoskentelyjakso when keskeytysaika with hyvaksiluettavat days exists should return false`() {
         val keskeytysaika1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
-            null,
-            LocalDate.ofEpochDay(40L),
-            LocalDate.ofEpochDay(68L),
-            100,
-            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI,
-            vahennetaanKerran = true
-        )
+            null, LocalDate.ofEpochDay(40L), LocalDate.ofEpochDay(68L), 100, PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI,
+            vahennetaanKerran = true)
 
         val tyoskentelyjakso1 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
             null,
@@ -492,39 +476,13 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
 
     @Test
     fun `Modify overlapping tyoskentelyjakso when keskeytysaika with hyvaksiluettavat days per year exists should return true`() {
-        testValidateTyoskentelyjakso(
-            true,
-            listOf(
-                TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
-                    null,
-                    LocalDate.ofEpochDay(0L),
-                    LocalDate.ofEpochDay(69L),
-                    100,
-                    mutableSetOf(
-                        KeskeytysaikaMockHelper.createKeskeytysaikaMock(
-                            null,
-                            LocalDate.ofEpochDay(40L),
-                            LocalDate.ofEpochDay(69L),
-                            100,
-                            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
-                        )
-                    )
-                ),
-                TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
-                    null,
-                    LocalDate.ofEpochDay(370L),
-                    LocalDate.ofEpochDay(450L),
-                    100,
-                    mutableSetOf(
-                        KeskeytysaikaMockHelper.createKeskeytysaikaMock(
-                            null,
-                            LocalDate.ofEpochDay(390L),
-                            LocalDate.ofEpochDay(419L),
-                            100,
-                            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
-                        )
-                    )
-                ),
+        testValidateTyoskentelyjakso(true,
+            listOf(TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(null, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(69L), 100,
+                    mutableSetOf(KeskeytysaikaMockHelper.createKeskeytysaikaMock(
+                            null, LocalDate.ofEpochDay(40L), LocalDate.ofEpochDay(69L), 100, PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI))),
+                TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(null, LocalDate.ofEpochDay(370L), LocalDate.ofEpochDay(450L), 100,
+                    mutableSetOf(KeskeytysaikaMockHelper.createKeskeytysaikaMock(null, LocalDate.ofEpochDay(390L), LocalDate.ofEpochDay(419L), 100,
+                            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI))),
                 TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
                     1,
                     LocalDate.ofEpochDay(451L),
@@ -584,12 +542,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
     @Test
     fun `Modify overlapping tyoskentelyjakso when keskeytysaika with hyvaksiluettavat days per year exists should return false`() {
         val keskeytysaika1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
-            null,
-            LocalDate.ofEpochDay(40L),
-            LocalDate.ofEpochDay(69L),
-            100,
-            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
-        )
+            null, LocalDate.ofEpochDay(40L), LocalDate.ofEpochDay(69L), 100, PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI)
 
         val tyoskentelyjakso1 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
             null,
@@ -1234,106 +1187,40 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
     @Test
     fun `Modify keskeytysaika type when overlapping tyoskentelyjaksot should return false`() {
         val poissaolonSyyMock = mock(PoissaolonSyy::class.java)
-        `when`(poissaolonSyyMock.vahennystyyppi)
-            .thenReturn(PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI)
+        `when`(poissaolonSyyMock.vahennystyyppi).thenReturn(PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI)
         `when`(poissaolonSyyMock.vahennetaanKerran).thenReturn(true)
 
-        val keskeytysaika1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
-            null,
-            LocalDate.ofEpochDay(50L),
-            LocalDate.ofEpochDay(78L),
-            100,
-            poissaolonSyy = poissaolonSyyMock
-        )
-
-        val tyoskentelyjakso1 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
-            null,
-            LocalDate.ofEpochDay(0L),
-            LocalDate.ofEpochDay(364L),
-            100,
-            mutableSetOf(keskeytysaika1)
-        )
+        val keskeytysaika1 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(null, LocalDate.ofEpochDay(50L), LocalDate.ofEpochDay(78L), 100, poissaolonSyy = poissaolonSyyMock)
+        val tyoskentelyjakso1 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(null, LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(364L), 100,
+            mutableSetOf(keskeytysaika1))
 
         `when`(keskeytysaika1.tyoskentelyjakso).thenReturn(tyoskentelyjakso1)
 
-        val keskeytysaika2 = KeskeytysaikaMockHelper.createKeskeytysaikaWithTyoskentelyjaksoMock(
-            1,
-            LocalDate.ofEpochDay(360L),
-            LocalDate.ofEpochDay(364L),
-            100
-        )
+        val keskeytysaika2 = KeskeytysaikaMockHelper.createKeskeytysaikaWithTyoskentelyjaksoMock(1, LocalDate.ofEpochDay(360L), LocalDate.ofEpochDay(364L), 100)
+        val tyoskentelyjakso2 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(1, LocalDate.ofEpochDay(360L), LocalDate.ofEpochDay(370L), 100,
+            mutableSetOf(keskeytysaika2))
 
-        val tyoskentelyjakso2 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
-            1,
-            LocalDate.ofEpochDay(360L),
-            LocalDate.ofEpochDay(370L),
-            100,
-            mutableSetOf(keskeytysaika2)
-        )
-
-        val keskeytysaika3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
-            null,
-            LocalDate.ofEpochDay(380),
-            LocalDate.ofEpochDay(410),
-            100,
-            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI
-        )
-
-        val tyoskentelyjakso3 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
-            null,
-            LocalDate.ofEpochDay(371L),
-            LocalDate.ofEpochDay(415L),
-            100,
-            mutableSetOf(keskeytysaika3)
-        )
+        val keskeytysaika3 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(null, LocalDate.ofEpochDay(380), LocalDate.ofEpochDay(410), 100,
+            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI)
+        val tyoskentelyjakso3 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(null, LocalDate.ofEpochDay(371L), LocalDate.ofEpochDay(415L), 100,
+            mutableSetOf(keskeytysaika3))
 
         `when`(keskeytysaika3.tyoskentelyjakso).thenReturn(tyoskentelyjakso3)
 
-        val keskeytysaika4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
-            null,
-            LocalDate.ofEpochDay(430),
-            LocalDate.ofEpochDay(470),
-            100,
-            poissaolonSyy = poissaolonSyyMock
-        )
-
-        val tyoskentelyjakso4 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
-            null,
-            LocalDate.ofEpochDay(416L),
-            LocalDate.ofEpochDay(500),
-            100,
-            mutableSetOf(keskeytysaika4)
-        )
+        val keskeytysaika4 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(null, LocalDate.ofEpochDay(430), LocalDate.ofEpochDay(470), 100, poissaolonSyy = poissaolonSyyMock)
+        val tyoskentelyjakso4 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(null, LocalDate.ofEpochDay(416L), LocalDate.ofEpochDay(500), 100,
+            mutableSetOf(keskeytysaika4))
 
         `when`(keskeytysaika4.tyoskentelyjakso).thenReturn(tyoskentelyjakso4)
 
-        val keskeytysaika5 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(
-            null,
-            LocalDate.ofEpochDay(550),
-            LocalDate.ofEpochDay(590),
-            100,
-            PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN
-        )
-
-        val tyoskentelyjakso5 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(
-            null,
-            LocalDate.ofEpochDay(501L),
-            LocalDate.ofEpochDay(600),
-            100,
-            mutableSetOf(keskeytysaika5)
-        )
+        val keskeytysaika5 = KeskeytysaikaMockHelper.createKeskeytysaikaMock(null, LocalDate.ofEpochDay(550), LocalDate.ofEpochDay(590), 100,
+            PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN)
+        val tyoskentelyjakso5 = TyoskentelyjaksoMockHelper.createTyoskentelyjaksoMock(null, LocalDate.ofEpochDay(501L), LocalDate.ofEpochDay(600), 100,
+            mutableSetOf(keskeytysaika5))
 
         `when`(keskeytysaika5.tyoskentelyjakso).thenReturn(tyoskentelyjakso5)
 
-        testValidateKeskeytysaika(
-            false,
-            listOf(
-                tyoskentelyjakso1,
-                tyoskentelyjakso2,
-                tyoskentelyjakso3,
-                tyoskentelyjakso4,
-                tyoskentelyjakso5
-            ),
+        testValidateKeskeytysaika(false, listOf(tyoskentelyjakso1, tyoskentelyjakso2, tyoskentelyjakso3, tyoskentelyjakso4, tyoskentelyjakso5),
             // Työskentelyjaksoon 1 (365 päivää) kohdistuu 29 päivän poissaolo, joka hyväksiluetaan.
             // Työskentelyjakso 2 on päällekkäinen viimeisen viiden päivän osalta mutta koska kyseisille päiville
             // kohdistuu 100% poissaolo, ei 100% allokaatio ylity. Vaihdetaan poissaolon tyypiksi
@@ -1343,17 +1230,8 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
             // poissaoloja. Näin ollen työskentelyjakson 3, 4 ja 5 poissaolot eivät vähennä hyväksiluettavien päivien
             // määrää, kun jaksoon 2 kohdistuvaa poissaoloa muokataan.
 
-            createKeskeytysaikaDTO(
-                1,
-                LocalDate.ofEpochDay(360L),
-                LocalDate.ofEpochDay(364L),
-                100,
-                null,
-                poissaolonSyyMock,
-                1,
-                LocalDate.ofEpochDay(360L),
-                LocalDate.ofEpochDay(370L)
-            )
+            createKeskeytysaikaDTO(1, LocalDate.ofEpochDay(360L), LocalDate.ofEpochDay(364L), 100, null, poissaolonSyyMock, 1, LocalDate.ofEpochDay(360L),
+                LocalDate.ofEpochDay(370L))
         )
     }
 

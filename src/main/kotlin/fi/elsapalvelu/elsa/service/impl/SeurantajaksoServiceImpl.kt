@@ -84,16 +84,11 @@ class SeurantajaksoServiceImpl(
         return null
     }
 
-    override fun update(
-        seurantajaksoDTO: SeurantajaksoDTO,
-        userId: String
-    ): SeurantajaksoDTO {
-        var seurantajakso =
-            seurantajaksoRepository.findById(seurantajaksoDTO.id!!)
+    override fun update(seurantajaksoDTO: SeurantajaksoDTO, userId: String): SeurantajaksoDTO {
+        var seurantajakso = seurantajaksoRepository.findById(seurantajaksoDTO.id!!)
                 .orElseThrow { EntityNotFoundException("Seurantajaksoa ei löydy") }
 
-        val updatedSeurantajakso =
-            seurantajaksoMapper.toEntity(seurantajaksoDTO)
+        val updatedSeurantajakso = seurantajaksoMapper.toEntity(seurantajaksoDTO)
 
         if (seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId
             && (seurantajakso.seurantakeskustelunYhteisetMerkinnat == null
@@ -101,12 +96,9 @@ class SeurantajaksoServiceImpl(
         ) {
             seurantajakso.omaArviointi = updatedSeurantajakso.omaArviointi
             seurantajakso.lisahuomioita = updatedSeurantajakso.lisahuomioita
-            seurantajakso.seuraavanJaksonTavoitteet =
-                updatedSeurantajakso.seuraavanJaksonTavoitteet
-            seurantajakso.seurantakeskustelunYhteisetMerkinnat =
-                updatedSeurantajakso.seurantakeskustelunYhteisetMerkinnat
-            seurantajakso.seuraavanKeskustelunAjankohta =
-                updatedSeurantajakso.seuraavanKeskustelunAjankohta
+            seurantajakso.seuraavanJaksonTavoitteet = updatedSeurantajakso.seuraavanJaksonTavoitteet
+            seurantajakso.seurantakeskustelunYhteisetMerkinnat = updatedSeurantajakso.seurantakeskustelunYhteisetMerkinnat
+            seurantajakso.seuraavanKeskustelunAjankohta = updatedSeurantajakso.seuraavanKeskustelunAjankohta
             seurantajakso.korjausehdotus = null
             seurantajakso = seurantajaksoRepository.save(seurantajakso)
 
@@ -122,14 +114,11 @@ class SeurantajaksoServiceImpl(
             if (updatedSeurantajakso.korjausehdotus != null) {
                 seurantajakso.korjausehdotus = updatedSeurantajakso.korjausehdotus
             } else {
-                seurantajakso.edistyminenTavoitteidenMukaista =
-                    updatedSeurantajakso.edistyminenTavoitteidenMukaista
+                seurantajakso.edistyminenTavoitteidenMukaista = updatedSeurantajakso.edistyminenTavoitteidenMukaista
                 seurantajakso.huolenaiheet = updatedSeurantajakso.huolenaiheet
                 seurantajakso.kouluttajanArvio = updatedSeurantajakso.kouluttajanArvio
-                seurantajakso.erikoisalanTyoskentelyvalmiudet =
-                    updatedSeurantajakso.erikoisalanTyoskentelyvalmiudet
-                seurantajakso.jatkotoimetJaRaportointi =
-                    updatedSeurantajakso.jatkotoimetJaRaportointi
+                seurantajakso.erikoisalanTyoskentelyvalmiudet = updatedSeurantajakso.erikoisalanTyoskentelyvalmiudet
+                seurantajakso.jatkotoimetJaRaportointi = updatedSeurantajakso.jatkotoimetJaRaportointi
 
                 if (seurantajakso.seurantakeskustelunYhteisetMerkinnat != null && seurantajakso.korjausehdotus == null) {
                     seurantajakso.hyvaksytty = true
@@ -153,8 +142,7 @@ class SeurantajaksoServiceImpl(
                 }
                 seurantajakso.hyvaksytty == true -> {
                     mailService.sendEmailFromTemplate(
-                        kayttajaRepository.findById(seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                            .get().user!!,
+                        kayttajaRepository.findById(seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!).get().user!!,
                         templateName = "seurantajaksoHyvaksytty.html",
                         titleKey = "email.seurantajaksohyvaksytty.title",
                         properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))
@@ -162,8 +150,7 @@ class SeurantajaksoServiceImpl(
                 }
                 else -> {
                     mailService.sendEmailFromTemplate(
-                        kayttajaRepository.findById(seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                            .get().user!!,
+                        kayttajaRepository.findById(seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!).get().user!!,
                         templateName = "seurantajaksoArvioitu.html",
                         titleKey = "email.seurantajaksoarvioitu.title",
                         properties = mapOf(Pair(MailProperty.ID, seurantajakso.id!!.toString()))

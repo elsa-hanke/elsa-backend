@@ -13,7 +13,7 @@ import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
-import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper.Companion.DEFAULT_NIMIKE
+import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper.DEFAULT_NIMIKE
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.core.IsNull
@@ -940,7 +940,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         assertThat(vastuuhenkilonArvioList).hasSize(databaseSizeBeforeCreate)
     }
 
-    private fun initKoejakso(userId: String? = DEFAULT_ID) {
+    private fun initKoejakso() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -1033,8 +1033,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     }
 
     companion object {
-
-        private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
 
         private const val UPDATED_EMAIL = "doe.john@example.com"
         private const val UPDATED_PHONE = "+358101001010"

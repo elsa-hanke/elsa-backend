@@ -26,6 +26,7 @@ private const val ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET = "koejakson_kehittami
 private const val ENTITY_KOEJAKSON_LOPPUKESKUSTELU = "koejakson_loppukeskustelu"
 private const val ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO = "koejakson_vastuuhenkilon_arvio"
 
+@Suppress("TooManyFunctions")
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariKoejaksoResource(
@@ -614,11 +615,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             objectMapper.readValue(it, KoejaksonVastuuhenkilonArvioDTO::class.java)
         }?.let { vastuuhenkilonArvioDTO ->
             if (vastuuhenkilonArvioDTO.id == null) {
-                throw BadRequestAlertException(
-                    "Virheellinen id",
-                    ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO,
-                    "idnull"
-                )
+                throw BadRequestAlertException("Virheellinen id", ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO, "idnull")
             }
 
             if (vastuuhenkilonArvio.get().virkailija?.sopimusHyvaksytty == true) {
@@ -650,19 +647,14 @@ class ErikoistuvaLaakariKoejaksoResource(
         ) {
             throw BadRequestAlertException(
                 "Koulutussopimus ei saa sisältää vastuuhenkilön kuittausta. Vastuuhenkilö määrittelee sen.",
-                ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal.koulutussopimus-ei-saa-sisaltaa-vastuuhenkilon-kuittausta"
+                ENTITY_KOEJAKSON_SOPIMUS, "dataillegal.koulutussopimus-ei-saa-sisaltaa-vastuuhenkilon-kuittausta"
             )
         }
         if (koulutussopimusDTO.kouluttajat?.any { k ->
-                k.sopimusHyvaksytty == true
-                    || k.kuittausaika != null
+                k.sopimusHyvaksytty == true || k.kuittausaika != null
             } == true) {
-            throw BadRequestAlertException(
-                "Koulutussopimus ei saa sisältää kouluttajan kuittausta. Kouluttaja määrittelee sen.",
-                ENTITY_KOEJAKSON_SOPIMUS,
-                "dataillegal.koulutussopimus-ei-saa-sisaltaa-kouluttajan-kuittausta"
-            )
+            throw BadRequestAlertException("Koulutussopimus ei saa sisältää kouluttajan kuittausta. Kouluttaja määrittelee sen.",
+                ENTITY_KOEJAKSON_SOPIMUS, "dataillegal.koulutussopimus-ei-saa-sisaltaa-kouluttajan-kuittausta")
         }
     }
 
@@ -673,25 +665,15 @@ class ErikoistuvaLaakariKoejaksoResource(
         entity: String
     ) {
         if (id != null) {
-            throw BadRequestAlertException(
-                "Uusi arviointi ei saa sisältää ID:tä",
-                entity,
-                "idexists"
-            )
+            throw BadRequestAlertException("Uusi arviointi ei saa sisältää ID:tä", entity, "idexists")
         }
         if (kouluttaja?.sopimusHyvaksytty == true || kouluttaja?.kuittausaika != null) {
-            throw BadRequestAlertException(
-                "Erikoistuvan koejakson arviointi ei saa sisältää kouluttaja kuittausta. Kouluttaja määrittelee sen.",
-                entity,
-                "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahikouluttaja-kuittausta"
-            )
+            throw BadRequestAlertException("Erikoistuvan koejakson arviointi ei saa sisältää kouluttaja kuittausta. Kouluttaja määrittelee sen.",
+                entity, "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahikouluttaja-kuittausta")
         }
         if (esimies?.sopimusHyvaksytty == true || esimies?.kuittausaika != null) {
-            throw BadRequestAlertException(
-                "Erikoistuvan koejakson arviointi ei saa sisältää lähiesihenkilön kuittausta. Lähiesihenkilö määrittelee sen.",
-                entity,
-                "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahiesimiehen-kuittausta"
-            )
+            throw BadRequestAlertException("Erikoistuvan koejakson arviointi ei saa sisältää lähiesihenkilön kuittausta. Lähiesihenkilö määrittelee sen.",
+                entity, "dataillegal.erikoistuvan-koejakson-arviointi-ei-saa-sisaltaa-lahiesimiehen-kuittausta")
         }
     }
 
@@ -701,11 +683,8 @@ class ErikoistuvaLaakariKoejaksoResource(
     ): MutableSet<AsiakirjaDTO>? {
         files?.let {
             if (!fileValidationService.validate(it, opintooikeusId)) {
-                throw BadRequestAlertException(
-                    "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
-                    ErikoistuvaLaakariTeoriakoulutusResource.ASIAKIRJA_ENTITY_NAME,
-                    "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
-                )
+                throw BadRequestAlertException("Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
+                    ErikoistuvaLaakariTeoriakoulutusResource.ASIAKIRJA_ENTITY_NAME, "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa")
             }
             return it.map { file -> file.mapAsiakirja() }.toMutableSet()
         }

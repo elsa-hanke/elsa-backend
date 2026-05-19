@@ -122,16 +122,9 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         osaaikaProsentti: Double? = null
     ): Boolean {
         var hyvaksiluettavatCounterData: HyvaksiluettavatCounterData? = null
-        fun getHyvaksiluettavatCounterData(
-            tyoskentelyjaksot: List<Tyoskentelyjakso>,
-            calculateUntilDate: LocalDate
-        ): HyvaksiluettavatCounterData {
+        fun getHyvaksiluettavatCounterData(tyoskentelyjaksot: List<Tyoskentelyjakso>, calculateUntilDate: LocalDate): HyvaksiluettavatCounterData {
             if (hyvaksiluettavatCounterData == null) {
-                hyvaksiluettavatCounterData =
-                    tyoskentelyjaksonPituusCounterService.calculateHyvaksiluettavatDaysLeft(
-                        tyoskentelyjaksot,
-                        calculateUntilDate
-                    )
+                hyvaksiluettavatCounterData = tyoskentelyjaksonPituusCounterService.calculateHyvaksiluettavatDaysLeft(tyoskentelyjaksot, calculateUntilDate)
             }
             return hyvaksiluettavatCounterData as HyvaksiluettavatCounterData
         }
@@ -178,14 +171,10 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                             val counterData =
                                 getHyvaksiluettavatCounterData(tyoskentelyjaksot, date.minusDays(1))
                             if (vahennetaanKerran) {
-                                counterData.hyvaksiluettavatDays.putIfAbsent(
-                                    it.poissaolonSyy!!,
-                                    HYVAKSILUETTAVAT_DAYS
-                                )
+                                counterData.hyvaksiluettavatDays.putIfAbsent(it.poissaolonSyy!!, HYVAKSILUETTAVAT_DAYS)
                             }
                             if (!counterData.hyvaksiluettavatPerYearMap.keys.contains(date.year)) {
-                                counterData.hyvaksiluettavatPerYearMap[date.year] =
-                                    HYVAKSILUETTAVAT_DAYS
+                                counterData.hyvaksiluettavatPerYearMap[date.year] = HYVAKSILUETTAVAT_DAYS
                             }
 
                             // Tarkistetaan hyväksiluettavat päivät vuosittaisesta määrästä ja
@@ -201,16 +190,10 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                                 reducedFactor
                             )
                             counterData.hyvaksiluettavatPerYearMap[date.year] =
-                                max(
-                                    0.0,
-                                    counterData.hyvaksiluettavatPerYearMap[date.year]!! - keskeytysaikaFactor
-                                )
+                                max(0.0, counterData.hyvaksiluettavatPerYearMap[date.year]!! - keskeytysaikaFactor)
                             if (vahennetaanKerran) {
                                 counterData.hyvaksiluettavatDays[it.poissaolonSyy!!] =
-                                    max(
-                                        0.0,
-                                        counterData.hyvaksiluettavatDays[it.poissaolonSyy!!]!! - keskeytysaikaFactor
-                                    )
+                                    max(0.0, counterData.hyvaksiluettavatDays[it.poissaolonSyy!!]!! - keskeytysaikaFactor)
                             }
                         }
                         else -> {

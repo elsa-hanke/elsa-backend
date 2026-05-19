@@ -188,7 +188,7 @@ class KouluttajaSuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.lisatiedot").value(DEFAULT_LISATIEDOT))
     }
 
-    fun initTest(userId: String? = DEFAULT_ID) {
+    fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -206,8 +206,6 @@ class KouluttajaSuoritusarviointiResourceIT {
     }
 
     companion object {
-
-        private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
 
         private val DEFAULT_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.now(ZoneId.systemDefault())

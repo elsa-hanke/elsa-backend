@@ -10,31 +10,31 @@ import fi.elsapalvelu.elsa.service.mapper.KoulutussuunnitelmaMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_ELAMANKENTTA
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_ELAMANKENTTA_YKSITYINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_FILE
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_MOTIVAATIOKIRJE
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_MOTIVAATIOKIRJE_YKSITYINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_OPISKELU_JA_TYOHISTORIA
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_OPISKELU_JA_TYOHISTORIA_YKSITYINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_OSAAMISEN_KARTUTTAMINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_TULEVAISUUDEN_VISIOINTI
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_TULEVAISUUDEN_VISIOINTI_YKSITYINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_VAHVUUDET
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.DEFAULT_VAHVUUDET_YKSITYINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_ELAMANKENTTA
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_ELAMANKENTTA_YKSITYINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_MOTIVAATIOKIRJE
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_MOTIVAATIOKIRJE_YKSITYINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_OPISKELU_JA_TYOHISTORIA
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_OPISKELU_JA_TYOHISTORIA_YKSITYINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_OSAAMISEN_KARTUTTAMINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_TULEVAISUUDEN_VISIOINTI
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_TULEVAISUUDEN_VISIOINTI_YKSITYINEN
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_VAHVUUDET
-import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.Companion.UPDATED_VAHVUUDET_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_ELAMANKENTTA
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_ELAMANKENTTA_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_FILE
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_MOTIVAATIOKIRJE
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_MOTIVAATIOKIRJE_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_OPISKELU_JA_TYOHISTORIA
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_OPISKELU_JA_TYOHISTORIA_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_OSAAMISEN_KARTUTTAMINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_TULEVAISUUDEN_VISIOINTI
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_TULEVAISUUDEN_VISIOINTI_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_VAHVUUDET
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.DEFAULT_VAHVUUDET_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_ELAMANKENTTA
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_ELAMANKENTTA_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_MOTIVAATIOKIRJE
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_MOTIVAATIOKIRJE_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_OPISKELU_JA_TYOHISTORIA
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_OPISKELU_JA_TYOHISTORIA_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_OSAAMISEN_KARTUTTAMINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_TULEVAISUUDEN_VISIOINTI
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_TULEVAISUUDEN_VISIOINTI_YKSITYINEN
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_VAHVUUDET
+import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper.UPDATED_VAHVUUDET_YKSITYINEN
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -259,45 +259,19 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
 
         restKoulutussuunnitelmaMockMvc.perform(
             multipart("/api/erikoistuva-laakari/koulutussuunnitelma")
-                .file(
-                    MockMultipartFile(
-                        "koulutussuunnitelmaFile",
-                        "koulutussuunnitelma.pdf",
-                        "application/pdf",
-                        DEFAULT_FILE
-                    )
-                )
-                .file(
-                    MockMultipartFile(
-                        "motivaatiokirjeFile",
-                        "motivaatiokirje.pdf",
-                        "application/pdf",
-                        DEFAULT_FILE
-                    )
-                )
+                .file(MockMultipartFile("koulutussuunnitelmaFile", "koulutussuunnitelma.pdf", "application/pdf", DEFAULT_FILE))
+                .file(MockMultipartFile("motivaatiokirjeFile", "motivaatiokirje.pdf", "application/pdf", DEFAULT_FILE))
                 .param("id", koulutussuunnitelma.id.toString())
                 .param("motivaatiokirje", UPDATED_MOTIVAATIOKIRJE)
-                .param(
-                    "motivaatiokirjeYksityinen",
-                    if (UPDATED_MOTIVAATIOKIRJE_YKSITYINEN) "true" else "false"
-                )
+                .param("motivaatiokirjeYksityinen", if (UPDATED_MOTIVAATIOKIRJE_YKSITYINEN) "true" else "false")
                 .param("opiskeluJaTyohistoria", UPDATED_OPISKELU_JA_TYOHISTORIA)
-                .param(
-                    "opiskeluJaTyohistoriaYksityinen",
-                    UPDATED_OPISKELU_JA_TYOHISTORIA_YKSITYINEN.toString()
-                )
+                .param("opiskeluJaTyohistoriaYksityinen", UPDATED_OPISKELU_JA_TYOHISTORIA_YKSITYINEN.toString())
                 .param("vahvuudet", UPDATED_VAHVUUDET)
                 .param("vahvuudetYksityinen", UPDATED_VAHVUUDET_YKSITYINEN.toString())
                 .param("tulevaisuudenVisiointi", UPDATED_TULEVAISUUDEN_VISIOINTI)
-                .param(
-                    "tulevaisuudenVisiointiYksityinen",
-                    UPDATED_TULEVAISUUDEN_VISIOINTI_YKSITYINEN.toString()
-                )
+                .param("tulevaisuudenVisiointiYksityinen", UPDATED_TULEVAISUUDEN_VISIOINTI_YKSITYINEN.toString())
                 .param("osaamisenKartuttaminen", UPDATED_OSAAMISEN_KARTUTTAMINEN)
-                .param(
-                    "osaamisenKartuttaminenYksityinen",
-                    UPDATED_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN.toString()
-                )
+                .param("osaamisenKartuttaminenYksityinen", UPDATED_OSAAMISEN_KARTUTTAMINEN_YKSITYINEN.toString())
                 .param("elamankentta", UPDATED_ELAMANKENTTA)
                 .param("elamankenttaYksityinen", UPDATED_ELAMANKENTTA_YKSITYINEN.toString())
                 .param("koulutussuunnitelmaAsiakirjaUpdated", true.toString())

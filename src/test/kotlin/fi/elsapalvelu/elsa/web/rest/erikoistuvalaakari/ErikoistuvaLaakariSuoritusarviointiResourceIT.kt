@@ -316,7 +316,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         tempFile.deleteOnExit()
     }
 
-    fun initTest(userId: String? = DEFAULT_ID) {
+    fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -347,8 +347,6 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
     }
 
     companion object {
-
-        private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
 
         private val DEFAULT_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.now(ZoneId.systemDefault())
@@ -391,7 +389,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
+            val suoritusarvioinninArvioitavaKokonaisuus =
+                SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
             suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             return suoritusarviointi
@@ -426,7 +425,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
+            val suoritusarvioinninArvioitavaKokonaisuus =
+                SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
             suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             return suoritusarviointi
