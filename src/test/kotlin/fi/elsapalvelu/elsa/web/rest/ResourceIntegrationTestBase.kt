@@ -31,4 +31,9 @@ open class ResourceIntegrationTestBase {
 
         return erikoistuvaLaakari
     }
+
+    protected fun persistAndFlush(entity: Any) {
+        em.persist(entity)
+        em.flush()
+    }
 }
