@@ -43,7 +43,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     @Autowired private lateinit var koejaksonValiarviointiMapper: KoejaksonValiarviointiMapper
     @Autowired private lateinit var koejaksonKehittamistoimenpiteetMapper: KoejaksonKehittamistoimenpiteetMapper
     @Autowired private lateinit var koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper
-    @Autowired private lateinit var restKoejaksoMockMvc: MockMvc
 
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
     private lateinit var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu
@@ -65,7 +64,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
         koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
         koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
-        restKoejaksoMockMvc.perform(get("/api/kouluttaja/koejaksot")).andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        testMockMvc.perform(get("/api/kouluttaja/koejaksot")).andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$[0].id").value(koejaksonLoppukeskustelu.id)).andExpect(jsonPath("$[0].tila").value(KoejaksoTila.ODOTTAA_HYVAKSYNTAA.name))
             .andExpect(jsonPath("$[0].tyyppi").value(KoejaksoTyyppi.LOPPUKESKUSTELU.name))
             .andExpect(jsonPath("$[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
@@ -84,7 +83,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     fun getKoulutussopimus() {
         initTest()
         assertNotNull(koejaksonKoulutussopimus.id)
-        restKoejaksoMockMvc.perform(get("/api/kouluttaja/koejakso/koulutussopimus/{id}", koejaksonKoulutussopimus.id))
+        testMockMvc.perform(get("/api/kouluttaja/koejakso/koulutussopimus/{id}", koejaksonKoulutussopimus.id))
             .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.id").value(koejaksonKoulutussopimus.id))
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKoulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKoulutussopimus.opintooikeus?.opiskelijatunnus))
@@ -99,7 +98,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     fun getAloituskeskustelu() {
         initTest()
         assertNotNull(koejaksonAloituskeskustelu.id)
-        restKoejaksoMockMvc.perform(get("/api/kouluttaja/koejakso/aloituskeskustelu/{id}", koejaksonAloituskeskustelu.id))
+        testMockMvc.perform(get("/api/kouluttaja/koejakso/aloituskeskustelu/{id}", koejaksonAloituskeskustelu.id))
             .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.id").value(koejaksonAloituskeskustelu.id))
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonAloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonAloituskeskustelu.opintooikeus?.opiskelijatunnus))
@@ -114,7 +113,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     fun getValiarviointi() {
         initTest()
         assertNotNull(koejaksonValiarviointi.id)
-        restKoejaksoMockMvc.perform(get("/api/kouluttaja/koejakso/valiarviointi/{id}", koejaksonValiarviointi.id))
+        testMockMvc.perform(get("/api/kouluttaja/koejakso/valiarviointi/{id}", koejaksonValiarviointi.id))
             .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.id").value(koejaksonValiarviointi.id))
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonValiarviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonValiarviointi.opintooikeus?.opiskelijatunnus))
@@ -127,7 +126,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     fun getKehittamistoimenpiteet() {
         initTest()
         assertNotNull(koejaksonKehittamistoimenpiteet.id)
-        restKoejaksoMockMvc.perform(get("/api/kouluttaja/koejakso/kehittamistoimenpiteet/{id}", koejaksonKehittamistoimenpiteet.id))
+        testMockMvc.perform(get("/api/kouluttaja/koejakso/kehittamistoimenpiteet/{id}", koejaksonKehittamistoimenpiteet.id))
             .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.id").value(koejaksonKehittamistoimenpiteet.id))
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKehittamistoimenpiteet.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKehittamistoimenpiteet.opintooikeus?.opiskelijatunnus))
@@ -140,7 +139,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     fun getLoppukeskustelu() {
         initTest()
         assertNotNull(koejaksonLoppukeskustelu.id)
-        restKoejaksoMockMvc.perform(get("/api/kouluttaja/koejakso/loppukeskustelu/{id}", koejaksonLoppukeskustelu.id))
+        testMockMvc.perform(get("/api/kouluttaja/koejakso/loppukeskustelu/{id}", koejaksonLoppukeskustelu.id))
             .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.id").value(koejaksonLoppukeskustelu.id))
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonLoppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonLoppukeskustelu.opintooikeus?.opiskelijatunnus))
@@ -164,7 +163,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
             it.postitoimipaikka = KoejaksonVaiheetHelper.UPDATED_POSTITOIMIPAIKKA
             it.sopimusHyvaksytty = true
         }
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/koulutussopimus").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/koulutussopimus").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koulutussopimusDTO)).with(csrf())).andExpect(status().isBadRequest)
         assertThat(koejaksonKoulutussopimusRepository.findAll()).hasSize(databaseSizeBeforeUpdate)
     }
@@ -184,7 +183,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
             it.sopimusHyvaksytty = true
         }
 
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/koulutussopimus").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/koulutussopimus").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koulutussopimusDTO)).with(csrf())).andExpect(status().isOk)
 
         val koulutussopimusList = koejaksonKoulutussopimusRepository.findAll()
@@ -217,7 +216,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
             it.sopimusHyvaksytty = false
         }
 
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/koulutussopimus").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/koulutussopimus").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(koulutussopimusDTO)).with(csrf())).andExpect(status().isOk)
 
         val koulutussopimusList = koejaksonKoulutussopimusRepository.findAll()
@@ -248,7 +247,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedAloituskeskustelu.lahikouluttajaHyvaksynyt = true
         updatedAloituskeskustelu.lahikouluttajanKuittausaika = LocalDate.now()
         val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/aloituskeskustelu").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/aloituskeskustelu").contentType(MediaType.APPLICATION_JSON)
             .content(convertObjectToJsonBytes(aloituskeskusteluDTO)).with(csrf())).andExpect(status().isBadRequest)
         val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
         assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeUpdate)
@@ -265,7 +264,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedAloituskeskustelu.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
 
         val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/aloituskeskustelu").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/aloituskeskustelu").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(aloituskeskusteluDTO)).with(csrf())).andExpect(status().isOk)
 
         val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
@@ -289,7 +288,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedAloituskeskustelu.lahikouluttajaHyvaksynyt = false
         updatedAloituskeskustelu.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
         val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/aloituskeskustelu").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/aloituskeskustelu").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(aloituskeskusteluDTO)).with(csrf())).andExpect(status().isOk)
         val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
         assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeUpdate)
@@ -316,7 +315,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedAloituskeskustelu.lahiesimiesHyvaksynyt = true
         updatedAloituskeskustelu.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/aloituskeskustelu").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/aloituskeskustelu").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(aloituskeskusteluDTO)).with(csrf())).andExpect(status().isOk)
         val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
         assertThat(aloituskeskusteluList).hasSize(databaseSizeBeforeUpdate)
@@ -342,7 +341,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedAloituskeskustelu.lahiesimiesHyvaksynyt = false
         updatedAloituskeskustelu.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
         val aloituskeskusteluDTO = koejaksonAloituskeskusteluMapper.toDto(updatedAloituskeskustelu)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/aloituskeskustelu").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/aloituskeskustelu").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(aloituskeskusteluDTO)).with(csrf())).andExpect(status().isOk)
 
         val aloituskeskusteluList = koejaksonAloituskeskusteluRepository.findAll()
@@ -373,7 +372,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedValiarviointi.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
 
         val valiarvointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/valiarviointi").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/valiarviointi").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(valiarvointiDTO)).with(csrf())).andExpect(status().isOk)
         val valiarviointiList = koejaksonValiarviointiRepository.findAll()
         assertThat(valiarviointiList).hasSize(databaseSizeBeforeUpdate)
@@ -404,7 +403,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedValiarviointi.lahiesimiesHyvaksynyt = true
         updatedValiarviointi.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         val valiarviointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/valiarviointi").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/valiarviointi").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(valiarviointiDTO)).with(csrf())).andExpect(status().isOk)
         val valiarviointiList = koejaksonValiarviointiRepository.findAll()
         assertThat(valiarviointiList).hasSize(databaseSizeBeforeUpdate)
@@ -432,7 +431,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedValiarviointi.lahiesimiesHyvaksynyt = false
         updatedValiarviointi.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
         val valiarviointiDTO = koejaksonValiarviointiMapper.toDto(updatedValiarviointi)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/valiarviointi").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/valiarviointi").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(valiarviointiDTO)).with(csrf())).andExpect(status().isOk)
         val valiarviointiList = koejaksonValiarviointiRepository.findAll()
         assertThat(valiarviointiList).hasSize(databaseSizeBeforeUpdate)
@@ -462,7 +461,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
         updatedKehittamistoimenpiteet.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         val kehittamistoimenpiteetDTO = koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/kehittamistoimenpiteet").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/kehittamistoimenpiteet").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kehittamistoimenpiteetDTO)).with(csrf())).andExpect(status().isOk)
         val kehittamistoimenpiteetList = koejaksonKehittamistoimenpiteetRepository.findAll()
         assertThat(kehittamistoimenpiteetList).hasSize(databaseSizeBeforeUpdate)
@@ -495,7 +494,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
         updatedKehittamistoimenpiteet.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         val kehittamistoimenpiteetDTO = koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/kehittamistoimenpiteet").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/kehittamistoimenpiteet").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kehittamistoimenpiteetDTO)).with(csrf())).andExpect(status().isOk)
         val kehittamistoimenpiteetList = koejaksonKehittamistoimenpiteetRepository.findAll()
         assertThat(kehittamistoimenpiteetList).hasSize(databaseSizeBeforeUpdate)
@@ -527,7 +526,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedKehittamistoimenpiteet.lahiesimiesHyvaksynyt = false
         updatedKehittamistoimenpiteet.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
         val kehittamistoimenpiteetDTO = koejaksonKehittamistoimenpiteetMapper.toDto(updatedKehittamistoimenpiteet)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/kehittamistoimenpiteet").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/kehittamistoimenpiteet").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kehittamistoimenpiteetDTO)).with(csrf())).andExpect(status().isOk)
         val kehittamistoimenpiteetList = koejaksonKehittamistoimenpiteetRepository.findAll()
         assertThat(kehittamistoimenpiteetList).hasSize(databaseSizeBeforeUpdate)
@@ -556,7 +555,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedLoppukeskustelu.lahikouluttajaHyvaksynyt = true
         updatedLoppukeskustelu.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         val loppukeskusteluDTO = koejaksonLoppukeskusteluMapper.toDto(updatedLoppukeskustelu)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/loppukeskustelu").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/loppukeskustelu").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(loppukeskusteluDTO)).with(csrf())).andExpect(status().isOk)
         val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
         assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeUpdate)
@@ -588,7 +587,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedLoppukeskustelu.lahiesimiesHyvaksynyt = true
         updatedLoppukeskustelu.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
         val loppukeskusteluDTO = koejaksonLoppukeskusteluMapper.toDto(updatedLoppukeskustelu)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/loppukeskustelu").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/loppukeskustelu").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(loppukeskusteluDTO)).with(csrf())).andExpect(status().isOk)
         val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
         assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeUpdate)
@@ -619,7 +618,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         updatedLoppukeskustelu.lahiesimiesHyvaksynyt = false
         updatedLoppukeskustelu.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
         val loppukeskusteluDTO = koejaksonLoppukeskusteluMapper.toDto(updatedLoppukeskustelu)
-        restKoejaksoMockMvc.perform(put("/api/kouluttaja/koejakso/loppukeskustelu").contentType(MediaType.APPLICATION_JSON)
+        testMockMvc.perform(put("/api/kouluttaja/koejakso/loppukeskustelu").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(loppukeskusteluDTO)).with(csrf())).andExpect(status().isOk)
         val loppukeskusteluList = koejaksonLoppukeskusteluRepository.findAll()
         assertThat(loppukeskusteluList).hasSize(databaseSizeBeforeUpdate)

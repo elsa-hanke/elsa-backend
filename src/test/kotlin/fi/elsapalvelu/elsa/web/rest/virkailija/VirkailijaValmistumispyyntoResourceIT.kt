@@ -7,16 +7,15 @@ import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.ValmistumispyynnonTarkistusRepository
 import fi.elsapalvelu.elsa.repository.ValmistumispyyntoRepository
-import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
+import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
-import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
@@ -29,7 +28,6 @@ import org.springframework.security.saml2.provider.service.authentication.Defaul
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
@@ -42,10 +40,7 @@ private const val VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT = "/valmistumispyynnon-t
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
-class VirkailijaValmistumispyyntoResourceIT {
-
-    @Autowired
-    private lateinit var em: EntityManager
+class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
 
     @Autowired
     private lateinit var valmistumispyyntoRepository: ValmistumispyyntoRepository
@@ -53,16 +48,9 @@ class VirkailijaValmistumispyyntoResourceIT {
     @Autowired
     private lateinit var valmistumispyynnonTarkistusRepository: ValmistumispyynnonTarkistusRepository
 
-    @Autowired
-    private lateinit var restValmistumispyyntoMockMvc: MockMvc
-
     private lateinit var opintooikeus: Opintooikeus
 
     private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
-
-    private lateinit var vastuuhenkilo: Kayttaja
-
-    private lateinit var virkailija: Kayttaja
 
     private lateinit var anotherVastuuhenkilo: Kayttaja
 
@@ -78,7 +66,7 @@ class VirkailijaValmistumispyyntoResourceIT {
             )
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             get(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNOT_ENDPOINT&avoin=true"
             )
@@ -101,7 +89,7 @@ class VirkailijaValmistumispyyntoResourceIT {
             ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus)
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             get(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNOT_ENDPOINT&avoin=true"
             )
@@ -123,7 +111,7 @@ class VirkailijaValmistumispyyntoResourceIT {
         em.persist(valmistumispyynto)
 
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             get(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNOT_ENDPOINT&avoin=false",
             )
@@ -146,7 +134,7 @@ class VirkailijaValmistumispyyntoResourceIT {
         em.persist(valmistumispyynto)
 
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             get(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNOT_ENDPOINT&avoin=false",
             )
@@ -174,7 +162,7 @@ class VirkailijaValmistumispyyntoResourceIT {
         em.persist(valmistumispyynto)
 
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             get(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNOT_ENDPOINT&avoin=false",
             )
@@ -196,7 +184,7 @@ class VirkailijaValmistumispyyntoResourceIT {
         )
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             get(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNOT_ENDPOINT&avoin=false"
             )
@@ -223,7 +211,7 @@ class VirkailijaValmistumispyyntoResourceIT {
         )
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             get(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNOT_ENDPOINT&avoin=false",
             )
@@ -250,7 +238,7 @@ class VirkailijaValmistumispyyntoResourceIT {
         )
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             get(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNOT_ENDPOINT&avoin=false",
             )
@@ -301,7 +289,7 @@ class VirkailijaValmistumispyyntoResourceIT {
         vastuuhenkilonArvio.vastuuhenkilonKuittausaika = koejaksoHyvaksyttyPvm
         em.persist(vastuuhenkilonArvio)
 
-        restValmistumispyyntoMockMvc.perform(get("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/${valmistumispyynto.id}"))
+        testMockMvc.perform(get("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/${valmistumispyynto.id}"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").isEmpty)
@@ -354,7 +342,7 @@ class VirkailijaValmistumispyyntoResourceIT {
             )
         em.persist(valmistumispyynto)
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             get(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/${valmistumispyynto.id}"
             )
@@ -381,7 +369,7 @@ class VirkailijaValmistumispyyntoResourceIT {
         val aiempiElKoulutusSuorituspaiva = LocalDate.ofEpochDay(17)
         val ltTutkintoSuorituspaiva = LocalDate.ofEpochDay(18)
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             multipart(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
                 valmistumispyynto.id
@@ -454,7 +442,7 @@ class VirkailijaValmistumispyyntoResourceIT {
             keskenerainen = true
         )
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             multipart(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
                 valmistumispyynto.id
@@ -515,7 +503,7 @@ class VirkailijaValmistumispyyntoResourceIT {
 
         val databaseSizeBeforeUpdate = valmistumispyynnonTarkistusRepository.findAll().size
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             multipart(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
                 valmistumispyynto.id
@@ -590,7 +578,7 @@ class VirkailijaValmistumispyyntoResourceIT {
             keskenerainen = true
         )
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             put(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
                 valmistumispyynto.id
@@ -620,7 +608,7 @@ class VirkailijaValmistumispyyntoResourceIT {
 
         val korjausehdotus = "korjausehdotus"
 
-        restValmistumispyyntoMockMvc.perform(
+        testMockMvc.perform(
             multipart(
                 "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
                 valmistumispyynto.id
@@ -695,27 +683,5 @@ class VirkailijaValmistumispyyntoResourceIT {
         val yliopisto = virkailijanYliopisto ?: opintooikeus.yliopisto!!
         virkailija.yliopistot.add(yliopisto)
         em.persist(virkailija)
-    }
-
-    private fun initErikoistuvaLaakari(
-        yliopisto: Yliopisto? = null,
-        erikoisala: Erikoisala? = null
-    ): ErikoistuvaLaakari {
-        val erikoistuvaLaakariUser = KayttajaResourceWithMockUserIT.createEntity(
-            authority = Authority(
-                ERIKOISTUVA_LAAKARI
-            )
-        )
-        em.persist(erikoistuvaLaakariUser)
-
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(
-            em,
-            erikoistuvaLaakariUser,
-            yliopisto = yliopisto,
-            erikoisala = erikoisala
-        )
-        em.persist(erikoistuvaLaakari)
-
-        return erikoistuvaLaakari
     }
 }
