@@ -72,8 +72,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         // Lisätään poissaolon syy, jonka voimassaolo ei ole alkanut vielä
         em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(15L), LocalDate.ofEpochDay(20L)))
         // Lisätään poissaolon syy, jonka voimassaolo on jo päättynyt
-        em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
-        em.flush()
+        persistAndFlush(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
     }
 
     @Test
@@ -244,9 +243,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
             hyvaksyttyAiempaanErikoisalaan = ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
         }
 
-        val updatedTyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
-
-        restTyoskentelyjaksoMockMvc.perform(put("/api/erikoistuva-laakari/tyoskentelyjaksot").param("tyoskentelyjaksoJson", updatedTyoskentelyjaksoJson)
+        restTyoskentelyjaksoMockMvc.perform(put("/api/erikoistuva-laakari/tyoskentelyjaksot").param("tyoskentelyjaksoJson", objectMapper.writeValueAsString(tyoskentelyjaksoDTO))
                 .with(csrf())).andExpect(status().isOk)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
@@ -276,10 +273,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
         val tyoskentelyjaksoTableSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
 
-        val id = tyoskentelyjakso.id
-        assertNotNull(id)
+        assertNotNull(tyoskentelyjakso.id)
 
-        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(id).get()
+        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id).get()
         val updatedTyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em)
         val omaaErikoisalaaTukeva = em.findAll(Erikoisala::class).first()
 
@@ -328,10 +324,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         tyoskentelyjakso.suoritusarvioinnit.add(SuoritusarviointiHelper.createEntity(em, user, LocalDate.of(2020, 1, 20)))
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
-        val id = tyoskentelyjakso.id
-        assertNotNull(id)
+        assertNotNull(tyoskentelyjakso.id)
 
-        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(id).get()
+        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id).get()
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(existingTyoskentelyjakso)
 
         // Asetetaan päättymispäivä suoritusarvioinnin ulkopuolelle
@@ -354,10 +349,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         tyoskentelyjakso.suoritusarvioinnit.add(SuoritusarviointiHelper.createEntity(em, user, suoritusarviointiTapahtumanAjankohta))
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
-        val id = tyoskentelyjakso.id
-        assertNotNull(id)
+        assertNotNull(tyoskentelyjakso.id)
 
-        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(id).get()
+        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id).get()
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(existingTyoskentelyjakso)
 
         // Asetetaan päättymispäivä suoritusarvioinnin päivälle
@@ -378,9 +372,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
         val tyoskentelyjaksoTableSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
 
-        val id = tyoskentelyjakso.id
-        assertNotNull(id)
-        val updatedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(id).get()
+        assertNotNull(tyoskentelyjakso.id)
+        val updatedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id).get()
         em.detach(updatedTyoskentelyjakso)
 
         updatedTyoskentelyjakso.id = null
@@ -588,10 +581,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
-        val id = keskeytysaika.id
-        assertNotNull(id)
+        assertNotNull(keskeytysaika.id)
 
-        restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot/{id}", id)).andExpect(status().isOk)
+        restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot/{id}", keskeytysaika.id)).andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.id").value(keskeytysaika.id as Any))
             .andExpect(jsonPath("$.alkamispaiva").value(KeskeytysaikaHelper.DEFAULT_ALKAMISPAIVA.toString()))
             .andExpect(jsonPath("$.paattymispaiva").value(KeskeytysaikaHelper.DEFAULT_PAATTYMISPAIVA.toString()))
@@ -610,10 +602,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
-        val id = keskeytysaika.id
-        assertNotNull(id)
+        assertNotNull(keskeytysaika.id)
 
-        restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot/{id}", id)).andExpect(status().isNotFound)
+        restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot/poissaolot/{id}", keskeytysaika.id)).andExpect(status().isNotFound)
     }
 
     @Test
@@ -627,10 +618,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
         val tyoskentelyjaksoTableSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
 
-        val id = keskeytysaika.id
-        assertNotNull(id)
+        assertNotNull(keskeytysaika.id)
 
-        val updatedKeskeytysaika = keskeytysaikaRepository.findById(id).get()
+        val updatedKeskeytysaika = keskeytysaikaRepository.findById(keskeytysaika.id).get()
         em.detach(updatedKeskeytysaika)
         updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
         updatedKeskeytysaika.paattymispaiva = KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA
@@ -662,10 +652,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
         val tyoskentelyjaksoTableSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
 
-        val id = keskeytysaika.id
-        assertNotNull(id)
+        assertNotNull(keskeytysaika.id)
 
-        val updatedKeskeytysaika = keskeytysaikaRepository.findById(id).get()
+        val updatedKeskeytysaika = keskeytysaikaRepository.findById(keskeytysaika.id).get()
         em.detach(updatedKeskeytysaika)
         updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
         updatedKeskeytysaika.paattymispaiva = KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA
@@ -690,10 +679,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
         val tyoskentelyjaksoTableSizeBeforeUpdate = keskeytysaikaRepository.findAll().size
 
-        val id = keskeytysaika.id
-        assertNotNull(id)
+        assertNotNull(keskeytysaika.id)
 
-        val updatedKeskeytysaika = keskeytysaikaRepository.findById(id).get()
+        val updatedKeskeytysaika = keskeytysaikaRepository.findById(keskeytysaika.id).get()
         em.detach(updatedKeskeytysaika)
         updatedKeskeytysaika.id = null
         updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
@@ -750,13 +738,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         initTest()
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
-        val id = tyoskentelyjakso.id
-        assertNotNull(id)
+        assertNotNull(tyoskentelyjakso.id)
 
         restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/poissaolo-lomake")).andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(2)))
-            .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1))).andExpect(jsonPath("$.tyoskentelyjaksot[0].id").value(id as Any))
+            .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1))).andExpect(jsonPath("$.tyoskentelyjaksot[0].id").value(tyoskentelyjakso.id as Any))
     }
 
     @Test
@@ -764,9 +750,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         initTest()
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
-        val id = tyoskentelyjakso.id
-        assertNotNull(id)
+        assertNotNull(tyoskentelyjakso.id)
 
         restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjakso-lomake")).andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
@@ -837,11 +821,10 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     fun getTyoskentelyjaksoTableWithTerveyskeskusMax() {
         initTest()
 
-        val pituus = 273.75
         val opintoopas = tyoskentelyjakso.opintooikeus?.opintoopas
         opintoopas?.let {
-            it.terveyskeskuskoulutusjaksonVahimmaispituus = pituus
-            it.terveyskeskuskoulutusjaksonMaksimipituus = pituus
+            it.terveyskeskuskoulutusjaksonVahimmaispituus = 273.75
+            it.terveyskeskuskoulutusjaksonMaksimipituus = 273.75
             opintoopasRepository.saveAndFlush(it)
         }
 
@@ -913,12 +896,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         initTest()
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
-        val id = tyoskentelyjakso.id
-        assertNotNull(id)
-
-        val liitettyKoejaksoon = tyoskentelyjakso.liitettyKoejaksoon
-        assertFalse(liitettyKoejaksoon)
+        assertNotNull(tyoskentelyjakso.id)
+        assertFalse(tyoskentelyjakso.liitettyKoejaksoon)
 
         val tyoskentelyjaksoDTO = TyoskentelyjaksoDTO(id = tyoskentelyjakso.id, liitettyKoejaksoon = true)
 
@@ -947,25 +926,20 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun getTerveyskeskuskoulutusjaksoTooShort() {
         initTest(kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO)
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
         restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot/terveyskeskuskoulutusjakso")).andExpect(status().isBadRequest)
     }
 
     @Test
     fun getTerveyskeskuskoulutusjaksoWrongKaytannonKoulutus() {
         initTest(kaytannonKoulutus = KaytannonKoulutusTyyppi.OMAN_ERIKOISALAN_KOULUTUS)
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
         restTyoskentelyjaksoMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjaksot/terveyskeskuskoulutusjakso")).andExpect(status().isBadRequest)
     }
 
     @Test
     fun getTerveyskeskuskoulutusjaksoWithoutVastuuhenkilo() {
         initTest(kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO)
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         tyoskentelyjaksoRepository.saveAndFlush(ErikoistuvaLaakariTyoskentelyjaksoHelper.createEntity(em, user = user,
             paattymispaiva = ErikoistuvaLaakariTyoskentelyjaksoHelper.DEFAULT_ALKAMISPAIVA.plusYears(1)))
@@ -1036,12 +1010,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
     fun initTest(userId: String? = null, kaytannonKoulutus: KaytannonKoulutusTyyppi? = ErikoistuvaLaakariTyoskentelyjaksoHelper.DEFAULT_KAYTANNON_KOULUTUS) {
         user = KayttajaResourceWithMockUserIT.createEntity()
-        em.persist(user)
-        em.flush()
-        val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(userId ?: user.id, mapOf<String, List<Any>>()), "test", authorities)
-        TestSecurityContextHolder.getContext().authentication = authentication
-
+        persistAndFlush(user)
+        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(userId ?: user.id, mapOf<String, List<Any>>()),
+            "test", listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI)))
         tyoskentelyjakso = ErikoistuvaLaakariTyoskentelyjaksoHelper.createEntity(em, user, kaytannonKoulutus = kaytannonKoulutus)
     }
 
