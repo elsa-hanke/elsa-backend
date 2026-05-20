@@ -37,6 +37,7 @@ private const val VALMISTUMISPYYNNON_HYVAKSYNTA_ENDPOINT = "/valmistumispyynnon-
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
+@Transactional
 class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
 
     @Autowired private lateinit var valmistumispyyntoRepository: ValmistumispyyntoRepository
@@ -49,7 +50,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     private lateinit var anotherVastuuhenkilo: Kayttaja
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForOsaamisenArvioijaTilaOdottaaOsaamisenArviointiaAvoin() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -66,7 +66,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForHyvaksyjaTilaOdottaaHyvaksyntaaAvoin() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -83,7 +82,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForOsaamisenArvioijaHyvaksyjaTilaOdottaaHyvaksyntaaAvoin() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI, VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -100,7 +98,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotWithoutTehtavatDefined() {
         initTest(listOf())
 
@@ -112,7 +109,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForHyvaksyjaTilaOdottaaOsaamisenArviointia() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -124,7 +120,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForHyvaksyjaTilaPalautettuByOsaamisenArvioija() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -136,7 +131,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForOsaamisenArvioijaTilaPalautettuByOsaamisenArvioija() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -154,7 +148,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForOsaamisenArvioijaTilaOdottaaVirkailijanTarkastusta() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -171,7 +164,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForHyvaksyjaTilaOdottaaVirkailijanTarkastusta() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -183,7 +175,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForHyvaksyjaTilaPalautettuByVirkailija() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -195,7 +186,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForOsaamisenArvioijaTilaPalautettuByVirkailija() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -213,7 +203,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForOsaamisenArvioijaTilaOdottaaHyvaksyntaa() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -230,7 +219,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForOsaamisenArvioijaTilaPalautettuByHyvaksyja() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -248,7 +236,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForOsaamisenArvioijaHyvaksyjaTilaPalautettuByHyvaksyja() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI, VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -266,7 +253,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForHyvaksyjaTilaPalautettuByHyvaksyja() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -284,7 +270,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForHyvaksyjaTilaPalautettuByHyvaksyjaAndVirkailija() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -304,7 +289,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForHyvaksyjaTilaTilaPalautettuByHyvaksyjaVirkailijaAndOsaamisenArvioija() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -325,7 +309,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForHyvaksyjaTilaAllekirjoitettu() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -342,7 +325,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyynnotForArvioijaHyvaksyjaTilaHyvaksytty() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -359,7 +341,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyyntoForOsaamisenArvioijaTilaOdottaaOsaamisenArviointia() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -388,7 +369,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun tryToGetValmistumispyyntoFromDifferentYliopisto() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -404,7 +384,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun tryToGetValmistumispyyntoFromDifferentErikoisala() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -419,7 +398,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyyntoArviointienTilaHasNotArvioitaviaKokonaisuuksiaWithoutArviointiOrLowerThanFour() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -441,7 +419,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyyntoArviointienTilaHasArvioitaviaKokonaisuuksiaWithoutArviointi() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -465,7 +442,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyyntoArviointienTilaHasArviointiAsteikonTasoLowerThanFour() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -487,7 +463,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyyntoArviointienTilaHasArvioitaviaKokonaisuuksiaWithoutArviointiAndArviointiAsteikonTasoLowerThanFour() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -511,7 +486,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun tryToGetArviointienTilaDifferentYliopisto() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -528,7 +502,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun tryToGetArviointienTilaDifferentErikoisala() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -545,7 +518,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyyntoForOsaamisenArvioijaTilaArvioitu() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -576,7 +548,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyyntoForHyvaksyjaTilaOdottaaOsaamisenArviointia() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -588,7 +559,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyyntoWithoutTehtavatDefined() {
         initTest(listOf())
         val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus)
@@ -597,7 +567,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun ackValmistumispyyntoOsaamisenArviointi() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -619,7 +588,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun tryToAckValmistumispyyntoWithoutTehtavatDefined() {
         initTest(listOf())
 
@@ -633,7 +601,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun tryToAckValmistumispyyntoFromDifferentYliopisto() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -652,7 +619,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun tryToAckValmistumispyyntoFromDifferentErikoisala() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -670,7 +636,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun declineValmistumispyyntoOsaamisenArviointi() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -695,7 +660,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun declineValmistumispyyntoOsaamisenArviointiWithoutKorjausehdotus() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
 
@@ -709,7 +673,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValmistumispyyntoForVirkailijaTilaOdottaaTarkistusta() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -779,7 +742,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun ackValmistumispyyntoHyvaksyja() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
@@ -804,7 +766,6 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun declineValmistumispyyntoHyvaksyja() {
         initTest(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
 
