@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.dto.enumeration.*
 import fi.elsapalvelu.elsa.service.mapper.*
+import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.*
@@ -25,12 +26,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
-class KouluttajaKoejaksoResourceIT {
+class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
 
     @Autowired private lateinit var koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
     @Autowired private lateinit var koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository
@@ -42,7 +42,6 @@ class KouluttajaKoejaksoResourceIT {
     @Autowired private lateinit var koejaksonValiarviointiMapper: KoejaksonValiarviointiMapper
     @Autowired private lateinit var koejaksonKehittamistoimenpiteetMapper: KoejaksonKehittamistoimenpiteetMapper
     @Autowired private lateinit var koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper
-    @Autowired private lateinit var em: EntityManager
     @Autowired private lateinit var restKoejaksoMockMvc: MockMvc
 
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
