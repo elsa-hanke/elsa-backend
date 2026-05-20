@@ -20,7 +20,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -38,7 +37,6 @@ private const val VALMISTUMISPYYNNOT_ENDPOINT =
     "/valmistumispyynnot?page=0&size=20&sort=muokkauspaiva,desc"
 private const val VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT = "/valmistumispyynnon-tarkistus"
 
-@AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
 class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
 
