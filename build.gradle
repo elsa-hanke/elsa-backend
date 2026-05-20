@@ -83,6 +83,9 @@ tasks.register('externalIntegrationTests', Test) {
     group = "verification"
     shouldRunAfter(test)
     reports.html.required = false
+    testlogger {
+        showStandardStreams = true
+    }
 }
 
 check.dependsOn integrationTest
