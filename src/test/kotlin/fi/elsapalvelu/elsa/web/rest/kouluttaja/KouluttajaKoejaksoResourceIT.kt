@@ -30,6 +30,7 @@ import kotlin.test.assertNotNull
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
+@Transactional
 class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
 
     @Autowired private lateinit var koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
@@ -52,7 +53,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     private lateinit var user: User
 
     @Test
-    @Transactional
     fun getKoejaksotByKouluttaja() {
         initTest()
         koejaksonKoulutussopimus.vastuuhenkiloHyvaksynyt = true
@@ -81,7 +81,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getKoulutussopimus() {
         initTest()
         assertNotNull(koejaksonKoulutussopimus.id)
@@ -97,7 +96,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getAloituskeskustelu() {
         initTest()
         assertNotNull(koejaksonAloituskeskustelu.id)
@@ -113,7 +111,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getValiarviointi() {
         initTest()
         assertNotNull(koejaksonValiarviointi.id)
@@ -127,7 +124,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getKehittamistoimenpiteet() {
         initTest()
         assertNotNull(koejaksonKehittamistoimenpiteet.id)
@@ -141,7 +137,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun getLoppukeskustelu() {
         initTest()
         assertNotNull(koejaksonLoppukeskustelu.id)
@@ -155,7 +150,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun ackKoulutussopimusInProgress() {
         initTest()
         koejaksonKoulutussopimus.lahetetty = false
@@ -176,7 +170,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun ackKoulutussopimus() {
         initTest()
         val databaseSizeBeforeUpdate = koejaksonKoulutussopimusRepository.findAll().size
@@ -209,7 +202,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun declineKoulutussopimus() {
         initTest()
         val databaseSizeBeforeUpdate = koejaksonKoulutussopimusRepository.findAll().size
@@ -244,7 +236,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun ackAloituskeskusteluInProgress() {
         initTest()
         koejaksonAloituskeskustelu.lahetetty = false
@@ -264,7 +255,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun ackAloituskeskusteluKouluttaja() {
         initTest()
         val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
@@ -290,7 +280,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun declineAloituskeskusteluKouluttaja() {
         initTest()
         val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
@@ -314,7 +303,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun ackAloituskeskusteluEsimies() {
         initTest(true)
         koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
@@ -342,7 +330,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun declineAloituskeskusteluEsimies() {
         initTest(true)
         koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
@@ -370,7 +357,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun updateValiarviointiKouluttaja() {
         initTest()
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
@@ -403,7 +389,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun ackValiarviointiEsimies() {
         initTest(true)
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
@@ -432,7 +417,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun declineValiarviointiEsimies() {
         initTest(true)
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
@@ -461,7 +445,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun updateKehittamistoimenpiteetKouluttaja() {
         initTest()
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
@@ -493,7 +476,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun ackKehittamistoimenpiteetEsimies() {
         initTest(true)
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
@@ -526,7 +508,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun declineKehittamistoimenpiteetEsimies() {
         initTest(true)
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
@@ -559,7 +540,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun updateLoppukeskusteluKouluttaja() {
         initTest()
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
@@ -590,7 +570,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun ackLoppukeskusteluEsimies() {
         initTest(true)
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
@@ -622,7 +601,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    @Transactional
     fun declineLoppukeskusteluEsimies() {
         initTest(true)
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
