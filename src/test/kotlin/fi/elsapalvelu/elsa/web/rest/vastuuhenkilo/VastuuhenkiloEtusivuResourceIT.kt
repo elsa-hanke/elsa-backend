@@ -104,8 +104,6 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
 
     private lateinit var user: User
 
-    private lateinit var vastuuhenkilo: Kayttaja
-
     @BeforeEach
     fun setup() {
         MockitoAnnotations.openMocks(this)
