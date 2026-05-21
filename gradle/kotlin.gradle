@@ -21,18 +21,6 @@ allOpen {
     annotation("jakarta.persistence.Embeddable")
 }
 
-// ktlint {
-//     ignoreFailures = true
-//     disabledRules = ["no-wildcard-imports", "filename"]
-// }
-// check.dependsOn ktlintCheck
-
-detekt {
-    toolVersion = detektVersion
-    source = files("src/main/kotlin")
-    config = files("detekt-config.yml")
-}
-
 if (OperatingSystem.current().isWindows()) {
     bootRun {
         doFirst {
