@@ -21,28 +21,17 @@ object ErikoistuvaLaakariHelper {
     const val DEFAULT_LAILLISTAMISTODISTUS_TYYPPI = "application/pdf"
 
     @Suppress("LongParameterList")
-    fun createEntity(
-        em: EntityManager,
-        user: User? = null,
-        opintooikeudenAlkamispaiva: LocalDate? = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
-        opintooikeudenPaattymispaiva: LocalDate? = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA,
-        erikoisala: Erikoisala? = null,
-        opintoopas: Opintoopas? = null,
-        yliopisto: Yliopisto? = null,
-        asetus: Asetus? = null,
-        yliopistoOpintooikeusId: String? = (1..8).map { ('a'..'z').random() }.joinToString(""),
-        laillistamispaiva: LocalDate? = DEFAULT_LAILLISTAMISPAIVA,
-        laillistamistodistusData: ByteArray? = DEFAULT_LAILLISTAMISTODISTUS_DATA,
-        laillistamistodistusNimi: String? = DEFAULT_LAILLISTAMISTODISTUS_NIMI,
-        laillistamistodistusTyyppi: String? = DEFAULT_LAILLISTAMISTODISTUS_TYYPPI
-    ): ErikoistuvaLaakari {
+    fun createEntity(em: EntityManager, user: User? = null, opintooikeudenAlkamispaiva: LocalDate? = DEFAULT_OPINTOOIKEUDEN_ALKAMISPAIVA,
+        opintooikeudenPaattymispaiva: LocalDate? = DEFAULT_OPINTOOIKEUDEN_PAATTYMISPAIVA, erikoisala: Erikoisala? = null, opintoopas: Opintoopas? = null,
+        yliopisto: Yliopisto? = null, asetus: Asetus? = null, yliopistoOpintooikeusId: String? = (1..8).map { ('a'..'z').random() }.joinToString(""),
+        laillistamispaiva: LocalDate? = DEFAULT_LAILLISTAMISPAIVA, laillistamistodistusData: ByteArray? = DEFAULT_LAILLISTAMISTODISTUS_DATA,
+        laillistamistodistusNimi: String? = DEFAULT_LAILLISTAMISTODISTUS_NIMI, laillistamistodistusTyyppi: String? = DEFAULT_LAILLISTAMISTODISTUS_TYYPPI): ErikoistuvaLaakari {
         val erikoistuvaLaakari = ErikoistuvaLaakari()
 
         var kayttaja = user?.let { em.findAll(Kayttaja::class).firstOrNull { it.user == user } }
         if (kayttaja == null) {
             kayttaja = KayttajaHelper.createEntity(em, user)
-            em.persist(kayttaja)
-            em.flush()
+            persistAndFlush(em, kayttaja)
         }
 
         erikoistuvaLaakari.syntymaaika = LocalDate.ofEpochDay(5L)
@@ -57,19 +46,15 @@ object ErikoistuvaLaakariHelper {
         if (erikoistuvanYliopisto == null) {
             if (em.findAll(Yliopisto::class).isEmpty()) {
                 erikoistuvanYliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
-                em.persist(erikoistuvanYliopisto)
-                em.flush()
-            } else {
-                erikoistuvanYliopisto = em.findAll(Yliopisto::class).get(0)
-            }
+                persistAndFlush(em, erikoistuvanYliopisto)
+            } else { erikoistuvanYliopisto = em.findAll(Yliopisto::class).get(0) }
         }
 
         var erikoistuvanErikoisala = erikoisala
         if (erikoistuvanErikoisala == null) {
             if (em.findAll(Erikoisala::class).isEmpty()) {
                 erikoistuvanErikoisala = ErikoisalaHelper.createEntity()
-                em.persist(erikoistuvanErikoisala)
-                em.flush()
+                persistAndFlush(em, erikoistuvanErikoisala)
             } else {
                 erikoistuvanErikoisala = em.findAll(Erikoisala::class).get(0)
             }
@@ -78,10 +63,8 @@ object ErikoistuvaLaakariHelper {
         var opintoopasKaytossa = opintoopas
         if (opintoopasKaytossa == null) {
             if (em.findAll(Opintoopas::class).isEmpty()) {
-                opintoopasKaytossa =
-                    OpintoopasHelper.createEntity(em, erikoisala = erikoistuvanErikoisala)
-                em.persist(opintoopasKaytossa)
-                em.flush()
+                opintoopasKaytossa = OpintoopasHelper.createEntity(em, erikoisala = erikoistuvanErikoisala)
+                persistAndFlush(em, opintoopasKaytossa)
             } else {
                 opintoopasKaytossa = em.findAll(Opintoopas::class).get(0)
                 opintoopasKaytossa.erikoisala = erikoistuvanErikoisala
@@ -92,27 +75,28 @@ object ErikoistuvaLaakariHelper {
         if (asetusKaytossa == null) {
             if (em.findAll(Asetus::class).isEmpty()) {
                 asetusKaytossa = Asetus(nimi = DEFAULT_ASETUS)
-                em.persist(asetusKaytossa)
-                em.flush()
+                persistAndFlush(em, asetusKaytossa)
             } else {
                 asetusKaytossa = em.findAll(Asetus::class).get(0)
             }
         }
 
-        val opintooikeus = Opintooikeus(
-            yliopistoOpintooikeusId = yliopistoOpintooikeusId, opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
+        val opintooikeus = Opintooikeus(yliopistoOpintooikeusId = yliopistoOpintooikeusId, opintooikeudenMyontamispaiva = opintooikeudenAlkamispaiva,
             opintooikeudenPaattymispaiva = opintooikeudenPaattymispaiva, viimeinenKatselupaiva = opintooikeudenPaattymispaiva?.plusMonths(6),
             opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS, osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA, erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = erikoistuvanYliopisto, erikoisala = erikoistuvanErikoisala, opintoopas = opintoopasKaytossa, asetus = asetusKaytossa, kaytossa = true,
-            tila = OpintooikeudenTila.AKTIIVINEN
-        )
-        em.persist(opintooikeus)
-        em.flush()
+            tila = OpintooikeudenTila.AKTIIVINEN)
+        persistAndFlush(em, opintooikeus)
 
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
         erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
 
         return erikoistuvaLaakari
+    }
+
+    private fun persistAndFlush(em: EntityManager, entity: Any) {
+        em.persist(entity)
+        em.flush()
     }
 
     fun createUpdatedEntity(em: EntityManager): ErikoistuvaLaakari {

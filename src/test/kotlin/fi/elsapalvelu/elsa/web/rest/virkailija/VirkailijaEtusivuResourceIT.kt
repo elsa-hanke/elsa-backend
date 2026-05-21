@@ -346,11 +346,7 @@ class VirkailijaEtusivuResourceIT {
     fun testImpersonation() {
         initTest()
 
-        tyoskentelyjakso =
-            TyoskentelyjaksoHelper.createEntity(
-                em,
-                erikoistuvaLaakari1.kayttaja?.user
-            )
+        tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari1.kayttaja?.user)
         em.persist(tyoskentelyjakso)
 
         restEtusivuMockMvc.perform(
@@ -360,11 +356,8 @@ class VirkailijaEtusivuResourceIT {
             .andExpect(status().isFound)
 
         // Päivitetään Security contextiin impersonoitu käyttäjä
-        val currentAuthentication: Authentication =
-            TestSecurityContextHolder.getContext().authentication
-        val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(
-            ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA, currentAuthentication
-        )
+        val currentAuthentication: Authentication = TestSecurityContextHolder.getContext().authentication
+        val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA, currentAuthentication)
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
         val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
             erikoistuvaLaakari1.kayttaja?.user?.id,

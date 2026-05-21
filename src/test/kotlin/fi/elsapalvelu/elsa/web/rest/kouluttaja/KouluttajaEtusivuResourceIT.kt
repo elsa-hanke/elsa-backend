@@ -282,11 +282,7 @@ class KouluttajaEtusivuResourceIT {
     fun getKoejaksotList() {
         initTest()
 
-        val erikoistuvaLaakari1 =
-            ErikoistuvaLaakariHelper.createEntity(
-                em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
-            )
+        val erikoistuvaLaakari1 = ErikoistuvaLaakariHelper.createEntity(em, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari1)
 
         val esimies = KayttajaHelper.createEntity(em)
@@ -300,11 +296,7 @@ class KouluttajaEtusivuResourceIT {
             )
         )
 
-        val erikoistuvaLaakari2 =
-            ErikoistuvaLaakariHelper.createEntity(
-                em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
-            )
+        val erikoistuvaLaakari2 = ErikoistuvaLaakariHelper.createEntity(em, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari2)
 
         valiarviointiRepository.save(
@@ -315,11 +307,7 @@ class KouluttajaEtusivuResourceIT {
             )
         )
 
-        val erikoistuvaLaakari3 =
-            ErikoistuvaLaakariHelper.createEntity(
-                em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
-            )
+        val erikoistuvaLaakari3 = ErikoistuvaLaakariHelper.createEntity(em, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari3)
 
         kehittamistoimenpiteetRepository.save(

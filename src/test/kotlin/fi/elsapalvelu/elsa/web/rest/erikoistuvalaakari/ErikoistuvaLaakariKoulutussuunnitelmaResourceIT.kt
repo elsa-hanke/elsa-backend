@@ -245,8 +245,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
 
         val databaseSizeBeforeUpdate = koulutussuunnitelmaRepository.findAll().size
 
-        restKoulutussuunnitelmaMockMvc.perform(
-            multipart("/api/erikoistuva-laakari/koulutussuunnitelma")
+        restKoulutussuunnitelmaMockMvc.perform(multipart("/api/erikoistuva-laakari/koulutussuunnitelma")
                 .file(MockMultipartFile("koulutussuunnitelmaFile", "koulutussuunnitelma.pdf", "application/pdf", DEFAULT_FILE))
                 .file(MockMultipartFile("motivaatiokirjeFile", "motivaatiokirje.pdf", "application/pdf", DEFAULT_FILE))
                 .param("id", koulutussuunnitelma.id.toString())

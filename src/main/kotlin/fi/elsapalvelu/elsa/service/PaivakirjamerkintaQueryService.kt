@@ -35,28 +35,20 @@ class PaivakirjamerkintaQueryService(
     }
 
     @Suppress("ComplexMethod")
-    private fun createSpecification(
-        criteria: PaivakirjamerkintaCriteria?,
-        spec: Specification<Paivakirjamerkinta?>? = null
-    ): Specification<Paivakirjamerkinta?> {
+    private fun createSpecification(criteria: PaivakirjamerkintaCriteria?, spec: Specification<Paivakirjamerkinta?>? = null): Specification<Paivakirjamerkinta?> {
         var specification: Specification<Paivakirjamerkinta?> = spec ?: Specification.unrestricted()
         if (criteria != null) {
             if (criteria.id != null) {
-                specification = specification.and { root, _, cb ->
-                        cb.equal(root.get(Paivakirjamerkinta_.id), criteria.id!!.equals)
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Paivakirjamerkinta_.id), criteria.id!!.equals) }
             }
             if (criteria.paivamaara != null) {
                 if (criteria.paivamaara!!.specified != null) {
                     specification = specification.and { root, _, cb ->
-                            if (criteria.paivamaara!!.specified) cb.isNotNull(
-                                root.get(Paivakirjamerkinta_.paivamaara)
-                            ) else cb.isNull(root.get(Paivakirjamerkinta_.paivamaara))
+                            if (criteria.paivamaara!!.specified) cb.isNotNull(root.get(Paivakirjamerkinta_.paivamaara)) else cb.isNull(root.get(Paivakirjamerkinta_.paivamaara))
                         }
                 }
                 if (criteria.paivamaara!!.greaterThanOrEqual != null) {
-                    specification =
-                        specification.and { root, _, cb ->
+                    specification = specification.and { root, _, cb ->
                             cb.greaterThanOrEqualTo(root.get(Paivakirjamerkinta_.paivamaara), criteria.paivamaara!!.greaterThanOrEqual)
                         }
                 }
@@ -88,19 +80,14 @@ class PaivakirjamerkintaQueryService(
             }
             if (criteria.aihekategoriaId != null) {
                 specification = specification.and { root, _, cb ->
-                        cb.equal(root.join(Paivakirjamerkinta_.aihekategoriat, JoinType.LEFT)
-                                .get(PaivakirjaAihekategoria_.id),
-                            criteria.aihekategoriaId!!.equals
-                        )
+                        cb.equal(root.join(Paivakirjamerkinta_.aihekategoriat, JoinType.LEFT).get(PaivakirjaAihekategoria_.id),
+                            criteria.aihekategoriaId!!.equals)
                     }
             }
             if (criteria.teoriakoulutusId != null) {
                 specification = specification.and { root, _, cb ->
-                        cb.equal(
-                            root.join(Paivakirjamerkinta_.teoriakoulutus, JoinType.LEFT)
-                                .get(Teoriakoulutus_.id),
-                            criteria.teoriakoulutusId!!.equals
-                        )
+                        cb.equal(root.join(Paivakirjamerkinta_.teoriakoulutus, JoinType.LEFT).get(Teoriakoulutus_.id),
+                            criteria.teoriakoulutusId!!.equals)
                     }
             }
         }

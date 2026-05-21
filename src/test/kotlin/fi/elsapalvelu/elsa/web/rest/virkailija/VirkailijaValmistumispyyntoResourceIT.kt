@@ -275,11 +275,8 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         val johtamiskoulutus = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
         em.persist(johtamiskoulutus)
 
-        val kuulustelu1 = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
-        em.persist(kuulustelu1)
-
-        val kuulustelu2 = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
-        em.persist(kuulustelu2)
+        em.persist(OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU))
+        em.persist(OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU))
 
         val koejaksoHyvaksyttyPvm = LocalDate.ofEpochDay(20)
         val vastuuhenkilonArvio = KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
@@ -288,8 +285,7 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         em.persist(vastuuhenkilonArvio)
 
         testMockMvc.perform(get("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/${valmistumispyynto.id}"))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").isEmpty)
             .andExpect(jsonPath("$.valmistumispyynto.tila").value(ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKASTUSTA.toString()))
             .andExpect(jsonPath("$.valmistumispyynto.muokkauspaiva").value(valmistumispyynto.erikoistujanKuittausaika.toString()))
@@ -353,11 +349,7 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     fun ackValmistumispyynnonTarkistus() {
         initTest()
 
-        val valmistumispyynto =
-            ValmistumispyyntoHelper.createValmistumispyyntoOdottaaVirkailijanTarkastusta(
-                opintooikeus,
-                vastuuhenkilo
-            )
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaVirkailijanTarkastusta(opintooikeus, vastuuhenkilo)
         em.persist(valmistumispyynto)
 
         val databaseSizeBeforeUpdate = valmistumispyynnonTarkistusRepository.findAll().size
@@ -404,13 +396,9 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         assertThat(updatedValmistumispyynto.ptlSuoritettu).isTrue
         assertThat(updatedValmistumispyynto.ptlSuorituspaiva).isEqualTo(ptlSuorituspaiva)
         assertThat(updatedValmistumispyynto.aiempiElKoulutusSuoritettu).isTrue
-        assertThat(updatedValmistumispyynto.aiempiElKoulutusSuorituspaiva).isEqualTo(
-            aiempiElKoulutusSuorituspaiva
-        )
+        assertThat(updatedValmistumispyynto.aiempiElKoulutusSuorituspaiva).isEqualTo(aiempiElKoulutusSuorituspaiva)
         assertThat(updatedValmistumispyynto.ltTutkintoSuoritettu).isTrue
-        assertThat(updatedValmistumispyynto.ltTutkintoSuorituspaiva).isEqualTo(
-            ltTutkintoSuorituspaiva
-        )
+        assertThat(updatedValmistumispyynto.ltTutkintoSuorituspaiva).isEqualTo(ltTutkintoSuorituspaiva)
         assertThat(updatedValmistumispyynto.yliopistosairaalanUlkopuolinenTyoTarkistettu).isTrue
         assertThat(updatedValmistumispyynto.yliopistosairaalatyoTarkistettu).isTrue
         assertThat(updatedValmistumispyynto.kokonaistyoaikaTarkistettu).isTrue
@@ -480,11 +468,7 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
     fun ackExistingValmistumispyynnonTarkistus() {
         initTest()
 
-        val valmistumispyynto =
-            ValmistumispyyntoHelper.createValmistumispyyntoOdottaaVirkailijanTarkastusta(
-                opintooikeus,
-                vastuuhenkilo
-            )
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaVirkailijanTarkastusta(opintooikeus, vastuuhenkilo)
         em.persist(valmistumispyynto)
 
         val yekSuorituspaiva = LocalDate.ofEpochDay(15)
@@ -492,20 +476,12 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         val aiempiElKoulutusSuorituspaiva = LocalDate.ofEpochDay(17)
         val ltTutkintoSuorituspaiva = LocalDate.ofEpochDay(18)
 
-        val valmistumispyynnonTarkistus = ValmistumispyynnonTarkistus(
-            valmistumispyynto = valmistumispyynto,
-            yekSuoritettu = true,
-            yekSuorituspaiva = yekSuorituspaiva
-        )
+        val valmistumispyynnonTarkistus = ValmistumispyynnonTarkistus(valmistumispyynto = valmistumispyynto, yekSuoritettu = true, yekSuorituspaiva = yekSuorituspaiva)
         em.persist(valmistumispyynnonTarkistus)
 
         val databaseSizeBeforeUpdate = valmistumispyynnonTarkistusRepository.findAll().size
 
-        testMockMvc.perform(
-            multipart(
-                "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
-                valmistumispyynto.id
-            )
+        testMockMvc.perform(multipart("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}", valmistumispyynto.id)
                 .param("ptlSuoritettu", "true")
                 .param("ptlSuorituspaiva", ptlSuorituspaiva.toString())
                 .param("aiempiElKoulutusSuoritettu", "true")
@@ -524,12 +500,9 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
 
         val valmistumispyynnonTarkistuksetList = valmistumispyynnonTarkistusRepository.findAll()
         assertThat(valmistumispyynnonTarkistuksetList).hasSize(databaseSizeBeforeUpdate)
-        val updatedValmistumispyynto =
-            valmistumispyynnonTarkistuksetList[valmistumispyynnonTarkistuksetList.size - 1]
+        val updatedValmistumispyynto = valmistumispyynnonTarkistuksetList[valmistumispyynnonTarkistuksetList.size - 1]
         assertThat(updatedValmistumispyynto.valmistumispyynto?.virkailija).isEqualTo(virkailija)
-        assertThat(updatedValmistumispyynto.valmistumispyynto?.virkailijanKuittausaika).isEqualTo(
-            LocalDate.now()
-        )
+        assertThat(updatedValmistumispyynto.valmistumispyynto?.virkailijanKuittausaika).isEqualTo(LocalDate.now())
         assertThat(updatedValmistumispyynto.valmistumispyynto?.virkailijanPalautusaika).isNull()
         assertThat(updatedValmistumispyynto.valmistumispyynto?.virkailijanKorjausehdotus).isNull()
         assertThat(updatedValmistumispyynto.yekSuoritettu).isFalse
@@ -537,13 +510,9 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         assertThat(updatedValmistumispyynto.ptlSuoritettu).isTrue
         assertThat(updatedValmistumispyynto.ptlSuorituspaiva).isEqualTo(ptlSuorituspaiva)
         assertThat(updatedValmistumispyynto.aiempiElKoulutusSuoritettu).isTrue
-        assertThat(updatedValmistumispyynto.aiempiElKoulutusSuorituspaiva).isEqualTo(
-            aiempiElKoulutusSuorituspaiva
-        )
+        assertThat(updatedValmistumispyynto.aiempiElKoulutusSuorituspaiva).isEqualTo(aiempiElKoulutusSuorituspaiva)
         assertThat(updatedValmistumispyynto.ltTutkintoSuoritettu).isTrue
-        assertThat(updatedValmistumispyynto.ltTutkintoSuorituspaiva).isEqualTo(
-            ltTutkintoSuorituspaiva
-        )
+        assertThat(updatedValmistumispyynto.ltTutkintoSuorituspaiva).isEqualTo(ltTutkintoSuorituspaiva)
         assertThat(updatedValmistumispyynto.yliopistosairaalanUlkopuolinenTyoTarkistettu).isTrue
         assertThat(updatedValmistumispyynto.yliopistosairaalatyoTarkistettu).isTrue
         assertThat(updatedValmistumispyynto.kokonaistyoaikaTarkistettu).isTrue

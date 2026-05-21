@@ -50,34 +50,22 @@ class SuoritusarviointiQueryService(
         var specification: Specification<Suoritusarviointi?> = spec ?: Specification.unrestricted()
         if (criteria != null) {
             if (criteria.id != null) {
-                specification = specification.and { root, _, cb ->
-                        cb.equal(root.get(Suoritusarviointi_.id), criteria.id!!.equals)
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.id), criteria.id!!.equals) }
             }
             if (criteria.tapahtumanAjankohta != null) {
-                specification = specification.and { root, _, cb ->
-                        cb.equal(root.get(Suoritusarviointi_.tapahtumanAjankohta), criteria.tapahtumanAjankohta!!.equals)
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.tapahtumanAjankohta), criteria.tapahtumanAjankohta!!.equals) }
             }
             if (criteria.arvioitavaTapahtuma != null) {
-                specification = specification.and { root, _, cb ->
-                        cb.equal(root.get(Suoritusarviointi_.arvioitavaTapahtuma), criteria.arvioitavaTapahtuma!!.equals)
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.arvioitavaTapahtuma), criteria.arvioitavaTapahtuma!!.equals) }
             }
             if (criteria.pyynnonAika != null) {
-                specification = specification.and { root, _, cb ->
-                        cb.equal(root.get(Suoritusarviointi_.pyynnonAika), criteria.pyynnonAika!!.equals)
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.pyynnonAika), criteria.pyynnonAika!!.equals) }
             }
             if (criteria.vaativuustaso != null) {
-                specification = specification.and { root, _, cb ->
-                        cb.equal(root.get(Suoritusarviointi_.vaativuustaso), criteria.vaativuustaso!!.equals)
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.vaativuustaso), criteria.vaativuustaso!!.equals) }
             }
             if (criteria.sanallinenArviointi != null) {
-                specification = specification.and { root, _, cb ->
-                        cb.equal(root.get(Suoritusarviointi_.sanallinenArviointi), criteria.sanallinenArviointi!!.equals)
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.sanallinenArviointi), criteria.sanallinenArviointi!!.equals) }
             }
             if (criteria.arviointiAika != null) {
                 specification = specification.and { root, _, cb ->

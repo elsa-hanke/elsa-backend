@@ -50,8 +50,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     @GetMapping("/koejakso")
     fun getKoejakso(principal: Principal?): ResponseEntity<KoejaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         val result = KoejaksoDTO()
 
         koejaksonKoulutussopimusService.findByOpintooikeusId(opintooikeusId)

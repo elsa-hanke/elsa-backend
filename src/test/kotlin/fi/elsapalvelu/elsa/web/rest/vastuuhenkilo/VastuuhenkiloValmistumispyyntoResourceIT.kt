@@ -555,14 +555,11 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         em.persist(sateilysuojakoulutus)
         val johtamiskoulutus = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
         em.persist(johtamiskoulutus)
-        val kuulustelu1 = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
-        em.persist(kuulustelu1)
-        val kuulustelu2 = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
-        em.persist(kuulustelu2)
-        val koejaksoHyvaksyttyPvm = LocalDate.ofEpochDay(20)
+        em.persist(OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU))
+        em.persist(OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU))
         val vastuuhenkilonArvio = KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
         vastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = true
-        vastuuhenkilonArvio.vastuuhenkilonKuittausaika = koejaksoHyvaksyttyPvm
+        vastuuhenkilonArvio.vastuuhenkilonKuittausaika = LocalDate.ofEpochDay(20)
         em.persist(vastuuhenkilonArvio)
         testMockMvc.perform(get("${ENDPOINT_BASE_URL}$VALMISTUMISPYYNNON_HYVAKSYNTA_ENDPOINT/${valmistumispyynto.id}")).andExpect(status().isOk)
             .andExpect(content().contentType(APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.id").value(tarkistus.id))
@@ -596,7 +593,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
             .andExpect(jsonPath("$.sateilusuojakoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara))
             .andExpect(jsonPath("$.johtamiskoulutusSuoritettu").value(johtamiskoulutus.opintopisteet))
             .andExpect(jsonPath("$.johtamiskoulutusVaadittu").value(opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara))
-            .andExpect(jsonPath("$.kuulustelut").value(Matchers.hasSize<Any>(2))).andExpect(jsonPath("$.koejaksoHyvaksyttyPvm").value(koejaksoHyvaksyttyPvm.toString()))
+            .andExpect(jsonPath("$.kuulustelut").value(Matchers.hasSize<Any>(2))).andExpect(jsonPath("$.koejaksoHyvaksyttyPvm").value(LocalDate.ofEpochDay(20).toString()))
     }
 
     @Test
