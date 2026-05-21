@@ -190,10 +190,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
 
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
         persistAndFlush(erikoistuvaLaakari)
-
-        val yliopisto2 = Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO)
-        em.persist(yliopisto2)
-        persistAndFlush(ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto2))
+        persistAndFlush(ErikoistuvaLaakariHelper.createEntity(em, yliopisto = persistYliopisto(YliopistoEnum.HELSINGIN_YLIOPISTO)))
 
         // Virkailijalle listataan vain saman yliopiston erikoistujat.
         val expectedSize = if (rolePath == TEKNINEN_PAAKAYTTAJA_ROLE_PATH) 2 else 1
@@ -209,10 +206,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
 
         val erikoisala = erikoisalaRepository.findById(1).get()
         val vastuuhenkilo = KayttajahallintaResourceHelper.createKouluttaja(em, yliopisto, erikoisala)
-
-        val yliopisto2 = Yliopisto(nimi = YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
-        em.persist(yliopisto2)
-        KayttajahallintaResourceHelper.createKouluttaja(em, yliopisto2, erikoisala)
+        KayttajahallintaResourceHelper.createKouluttaja(em, persistYliopisto(YliopistoEnum.ITA_SUOMEN_YLIOPISTO), erikoisala)
 
         // Virkailijalle listataan vain saman yliopiston kouluttajat.
         val expectedSize = if (rolePath == TEKNINEN_PAAKAYTTAJA_ROLE_PATH) 2 else 1
@@ -228,10 +222,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
 
         val erikoisala = erikoisalaRepository.findById(1).get()
         val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
-
-        val yliopisto2 = Yliopisto(nimi = YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
-        em.persist(yliopisto2)
-        KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto2, erikoisala)
+        KayttajahallintaResourceHelper.createVastuuhenkilo(em, persistYliopisto(YliopistoEnum.ITA_SUOMEN_YLIOPISTO), erikoisala)
 
         // Virkailijalle listataan vain saman yliopiston vastuuhenkilöt.
         val expectedSize = if (rolePath == TEKNINEN_PAAKAYTTAJA_ROLE_PATH) 2 else 1
@@ -247,8 +238,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
 
         KayttajahallintaResourceHelper.createVirkailija(em, yliopisto)
 
-        val yliopisto2 = Yliopisto(nimi = YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
-        em.persist(yliopisto2)
+        val yliopisto2 = persistYliopisto(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
         KayttajahallintaResourceHelper.createVirkailija(em, yliopisto2)
         KayttajahallintaResourceHelper.createVirkailija(em, yliopisto2)
 
@@ -278,17 +268,11 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun postErikoistuvaLaakariByVirkailijaFromSameYliopisto() {
         initTest(OPINTOHALLINNON_VIRKAILIJA, true)
 
-        val erikoisala = ErikoisalaHelper.createEntity()
-        em.persist(erikoisala)
-
-        val asetus = em.findAll(Asetus::class).get(0)
-        val opintoopas = em.findAll(Opintoopas::class).get(0)
-
         val kayttajahallintaErikoistuvaLaakariDTO = KayttajahallintaResourceHelper.getDefaultErikoistuvaLaakariDTO()
         kayttajahallintaErikoistuvaLaakariDTO.yliopistoId = yliopisto.id
-        kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId = erikoisala.id
-        kayttajahallintaErikoistuvaLaakariDTO.asetusId = asetus.id
-        kayttajahallintaErikoistuvaLaakariDTO.opintoopasId = opintoopas.id
+        kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId = createPersistedErikoisala().id
+        kayttajahallintaErikoistuvaLaakariDTO.asetusId = em.findAll(Asetus::class).get(0).id
+        kayttajahallintaErikoistuvaLaakariDTO.opintoopasId = em.findAll(Opintoopas::class).get(0).id
 
         testMockMvc.perform(post("/api/$VIRKAILIJA_ROLE_PATH/erikoistuvat-laakarit").contentType(APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaErikoistuvaLaakariDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isCreated)
@@ -302,12 +286,9 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
         persistAndFlush(erikoistuvaLaakari)
 
-        val erikoisala = ErikoisalaHelper.createEntity()
-        em.persist(erikoisala)
-
         val kayttajahallintaErikoistuvaLaakariDTO = KayttajahallintaResourceHelper.getDefaultErikoistuvaLaakariDTO()
         kayttajahallintaErikoistuvaLaakariDTO.yliopistoId = yliopisto.id
-        kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId = erikoisala.id
+        kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId = createPersistedErikoisala().id
         kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite = erikoistuvaLaakari.kayttaja?.user?.email
 
         testMockMvc.perform(post("/api/$rolePath/erikoistuvat-laakarit").contentType(APPLICATION_JSON)
@@ -319,12 +300,9 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun postErikoistuvaLaakariWithoutValidYliopisto(rolePath: String) {
         initTest(getRole(rolePath), true)
 
-        val erikoisala = ErikoisalaHelper.createEntity()
-        em.persist(erikoisala)
-
         val kayttajahallintaErikoistuvaLaakariDTO = KayttajahallintaResourceHelper.getDefaultErikoistuvaLaakariDTO()
         kayttajahallintaErikoistuvaLaakariDTO.yliopistoId = KayttajahallintaResourceHelper.count.incrementAndGet()
-        kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId = erikoisala.id
+        kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId = createPersistedErikoisala().id
 
         testMockMvc.perform(post("/api/$rolePath/erikoistuvat-laakarit").contentType(APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaErikoistuvaLaakariDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isBadRequest)
@@ -347,8 +325,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun patchErikoistuvaLaakariNotAllowedToModifyDifferentYliopistoAssignedToVirkailija() {
         initTest(getRole(OPINTOHALLINNON_VIRKAILIJA), false)
 
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
-        em.persist(erikoistuvaLaakari)
+        val erikoistuvaLaakari = createPersistedErikoistuvaLaakari()
 
         val kayttajahallintaErikoistuvaLaakariDTO = KayttajahallintaErikoistuvaLaakariUpdateDTO(sahkoposti = KayttajaHelper.DEFAULT_EMAIL + "x")
         testMockMvc.perform(patch("/api/$VIRKAILIJA_ROLE_PATH/erikoistuvat-laakarit/${erikoistuvaLaakari.kayttaja?.user?.id}").contentType(APPLICATION_JSON)
@@ -360,11 +337,8 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun patchErikoistuvaLaakari(rolePath: String) {
         initTest(getRole(rolePath), true)
 
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
-        em.persist(erikoistuvaLaakari)
-
         val kayttajahallintaErikoistuvaLaakariDTO = KayttajahallintaErikoistuvaLaakariUpdateDTO(sahkoposti = KayttajaHelper.DEFAULT_EMAIL + "x")
-        val userId = erikoistuvaLaakari.kayttaja?.user?.id
+        val userId = createPersistedErikoistuvaLaakari().kayttaja?.user?.id
         testMockMvc.perform(patch("/api/$rolePath/erikoistuvat-laakarit/$userId").contentType(APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaErikoistuvaLaakariDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isOk)
 
@@ -428,8 +402,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun postVastuuhenkiloAsTekninenPaakayttajaWithDifferentYliopistoInYliopistotAndErikoisalat() {
         initTest(TEKNINEN_PAAKAYTTAJA)
 
-        val erikoisala = erikoisalaRepository.findById(1).get()
-        val erikoisalaDTO = erikoisalaMapper.toDto(erikoisala)
+        val erikoisalaDTO = erikoisalaMapper.toDto(erikoisalaRepository.findById(1).get())
 
         val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO().apply {
             yliopisto = YliopistoDTO(id = 1000)
@@ -459,8 +432,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         initTest(getRole(rolePath), true)
 
         val erikoisala = erikoisalaRepository.findById(1).get()
-        val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
-        em.persist(vastuuhenkilo)
+        val vastuuhenkilo = createPersistedVastuuhenkilo(yliopisto, erikoisala)
         vastuuhenkilo.user?.email = KayttajaHelper.DEFAULT_EMAIL
 
         val yliopistoDTO = yliopistoMapper.toDto(yliopisto)
@@ -480,8 +452,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         initTest(getRole(rolePath), true)
 
         val erikoisala = erikoisalaRepository.findById(1).get()
-        val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
-        em.persist(vastuuhenkilo)
+        val vastuuhenkilo = createPersistedVastuuhenkilo(yliopisto, erikoisala)
         vastuuhenkilo.user?.eppn = KayttajahallintaResourceHelper.DEFAULT_EPPN
         vastuuhenkilo.user?.email = KayttajaHelper.DEFAULT_EMAIL
 
@@ -542,8 +513,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         initTest(getRole(rolePath), true)
 
         val erikoisala = erikoisalaRepository.findById(1).get()
-        val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
-        em.persist(vastuuhenkilo)
+        val vastuuhenkilo = createPersistedVastuuhenkilo(yliopisto, erikoisala)
 
         val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
         vastuuhenkilo.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat.add(vastuuhenkilonTehtava)
@@ -566,8 +536,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         initTest(getRole(rolePath), true)
 
         val erikoisala = erikoisalaRepository.findById(1).get()
-        val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
-        em.persist(vastuuhenkilo)
+        val vastuuhenkilo = createPersistedVastuuhenkilo(yliopisto, erikoisala)
 
         val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
         vastuuhenkilo.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat.add(vastuuhenkilonTehtava)
@@ -594,9 +563,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun putVastuuhenkiloTehtavaRemovedButNotReassigned(rolePath: String) {
         initTest(getRole(rolePath), true)
 
-        val erikoisala = erikoisalaRepository.findById(1).get()
-        val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
-        em.persist(vastuuhenkilo)
+        val vastuuhenkilo = createPersistedVastuuhenkilo(yliopisto, erikoisalaRepository.findById(1).get())
 
         val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
         vastuuhenkilo.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat.add(vastuuhenkilonTehtava)
@@ -615,8 +582,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         initTest(getRole(rolePath), true)
 
         val erikoisala = erikoisalaRepository.findById(1).get()
-        val vastuuhenkiloForReassignedTehtava = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
-        em.persist(vastuuhenkiloForReassignedTehtava)
+        val vastuuhenkiloForReassignedTehtava = createPersistedVastuuhenkilo(yliopisto, erikoisala)
         val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
         vastuuhenkilo.tila = KayttajatilinTila.KUTSUTTU
         em.persist(vastuuhenkilo)
@@ -655,10 +621,8 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun putVastuuhenkiloWithNewErikoisala(rolePath: String) {
         initTest(getRole(rolePath), true)
 
-        val erikoisala = erikoisalaRepository.findById(1).get()
+        val vastuuhenkilo = createPersistedVastuuhenkilo(yliopisto, erikoisalaRepository.findById(1).get())
         val erikoisala2 = erikoisalaRepository.findById(2).get()
-        val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
-        em.persist(vastuuhenkilo)
 
         val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
         val yliopistotAndErikoisalatList = vastuuhenkilo.yliopistotAndErikoisalat.toList()
@@ -684,10 +648,8 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun putVastuuhenkiloWithRemovedErikoisala(rolePath: String) {
         initTest(getRole(rolePath), true)
 
-        val erikoisala = erikoisalaRepository.findById(1).get()
-        val erikoisala2 = erikoisalaRepository.findById(2).get()
-        val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
-        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(kayttaja = vastuuhenkilo, yliopisto = yliopisto, erikoisala = erikoisala2)
+        val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisalaRepository.findById(1).get())
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(kayttaja = vastuuhenkilo, yliopisto = yliopisto, erikoisala = erikoisalaRepository.findById(2).get())
         em.persist(yliopistoAndErikoisala)
         vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
@@ -706,11 +668,9 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun putVastuuhenkiloWithRemovedErikoisalaTehtavaNotReassigned(rolePath: String) {
         initTest(getRole(rolePath), true)
 
-        val erikoisala = erikoisalaRepository.findById(1).get()
-        val erikoisala2 = erikoisalaRepository.findById(2).get()
-        val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
+        val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisalaRepository.findById(1).get())
         val vastuuhenkilonTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class)[0]
-        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(kayttaja = vastuuhenkilo, yliopisto = yliopisto, erikoisala = erikoisala2)
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(kayttaja = vastuuhenkilo, yliopisto = yliopisto, erikoisala = erikoisalaRepository.findById(2).get())
         em.persist(yliopistoAndErikoisala)
         yliopistoAndErikoisala.vastuuhenkilonTehtavat.add(vastuuhenkilonTehtava)
         vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
@@ -744,8 +704,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun postVirkailijaWithEmailAddressInUse(rolePath: String) {
         initTest(getRole(rolePath), true)
 
-        val virkailija = KayttajahallintaResourceHelper.createVirkailija(em, yliopisto)
-        em.persist(virkailija)
+        val virkailija = createPersistedVirkailija(yliopisto)
         virkailija.user?.email = KayttajaHelper.DEFAULT_EMAIL
 
         val yliopistoDTO = yliopistoMapper.toDto(yliopisto)
@@ -763,8 +722,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun postVirkailijaWithEppnInUse(rolePath: String) {
         initTest(getRole(rolePath), true)
 
-        val virkailija = KayttajahallintaResourceHelper.createVirkailija(em, yliopisto)
-        em.persist(virkailija)
+        val virkailija = createPersistedVirkailija(yliopisto)
         virkailija.user?.eppn = KayttajahallintaResourceHelper.DEFAULT_EPPN
         virkailija.user?.email = KayttajaHelper.DEFAULT_EMAIL
 
@@ -801,8 +759,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     @Test
     fun postPaakayttajaWithEmailAddressInUse() {
         initTest(TEKNINEN_PAAKAYTTAJA, false)
-        val paakayttaja = KayttajahallintaResourceHelper.createPaakayttaja(em)
-        em.persist(paakayttaja)
+        val paakayttaja = createPersistedPaakayttaja()
         paakayttaja.user?.email = KayttajaHelper.DEFAULT_EMAIL
         val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO().apply { sahkoposti = KayttajaHelper.DEFAULT_EMAIL }
 
@@ -814,8 +771,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun postPaakayttajaWithEppnInUse() {
         initTest(TEKNINEN_PAAKAYTTAJA, false)
 
-        val paakayttaja = KayttajahallintaResourceHelper.createPaakayttaja(em)
-        em.persist(paakayttaja)
+        val paakayttaja = createPersistedPaakayttaja()
         paakayttaja.user?.eppn = KayttajahallintaResourceHelper.DEFAULT_EPPN
         paakayttaja.user?.email = KayttajaHelper.DEFAULT_EMAIL
 
@@ -933,22 +889,14 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     fun getRole(rolePath: String): String = if (rolePath == TEKNINEN_PAAKAYTTAJA_ROLE_PATH) { TEKNINEN_PAAKAYTTAJA } else OPINTOHALLINNON_VIRKAILIJA
 
     fun initTest(role: String, addDefaultYliopistoForRole: Boolean = false) {
-        yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
-        em.persist(yliopisto)
+        yliopisto = persistYliopisto(DEFAULT_YLIOPISTO)
         val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(role))
         persistAndFlush(user)
-        val authorities = listOf(SimpleGrantedAuthority(role))
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(user.id, mapOf<String, List<Any>>()), "test", authorities)
+        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(user.id, mapOf<String, List<Any>>()), "test", listOf(SimpleGrantedAuthority(role)))
 
         val kayttaja = KayttajaHelper.createEntity(em, user)
         if (role == OPINTOHALLINNON_VIRKAILIJA) {
-            if (addDefaultYliopistoForRole) {
-                kayttaja.yliopistot.add(yliopisto)
-            } else {
-                val yliopisto = Yliopisto(nimi = YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
-                em.persist(yliopisto)
-                kayttaja.yliopistot.add(yliopisto)
-            }
+            if (addDefaultYliopistoForRole) kayttaja.yliopistot.add(yliopisto) else kayttaja.yliopistot.add(persistYliopisto(YliopistoEnum.ITA_SUOMEN_YLIOPISTO))
         }
         em.persist(kayttaja)
 
