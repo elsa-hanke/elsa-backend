@@ -19,7 +19,6 @@ import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.ArkistointiService
 import fi.elsapalvelu.elsa.service.MailService
-import fi.elsapalvelu.elsa.service.PdfService
 import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoHyvaksyntaFormDTO
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -43,7 +42,6 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import jakarta.persistence.EntityManager
 
@@ -84,16 +82,6 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      */
     @MockitoBean
     private lateinit var arkistointiService: ArkistointiService
-
-    /**
-     * Mocked so that PDF generation (Thymeleaf rendering) is skipped entirely.
-     * The private luoYhteenvetoPdf / luoLiitteetPdf / luoErikoistujanTiedotPdf methods
-     * write to a ByteArrayOutputStream and then save the bytes to [asiakirjaRepository];
-     * with pdfService mocked the OutputStream stays empty (valid, just zero-byte PDF).
-     * This allows execution to reach the arkistointiService.muodostaSahke call.
-     */
-    @MockitoBean
-    private lateinit var pdfService: PdfService
 
     @MockitoBean
     private lateinit var mailService: MailService
