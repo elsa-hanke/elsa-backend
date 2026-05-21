@@ -54,7 +54,6 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
     @Autowired private lateinit var kayttajaRepository: KayttajaRepository
     @Autowired private lateinit var kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository
     @Autowired private lateinit var opintooikeusRepository: OpintooikeusRepository
-    @Autowired private lateinit var opintoopasRepository: OpintoopasRepository
     @Autowired private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
     @Autowired private lateinit var kuntaMapper: KuntaMapper
     @Autowired private lateinit var erikoisalaMapper: ErikoisalaMapper
