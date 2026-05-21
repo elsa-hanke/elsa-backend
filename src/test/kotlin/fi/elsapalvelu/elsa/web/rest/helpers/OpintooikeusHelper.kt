@@ -28,15 +28,14 @@ object OpintooikeusHelper {
         viimeinenKatselupaiva: LocalDate? = null
     ): Opintooikeus {
 
-        val (yliopisto, erikoisala, opintoopas, asetus) =
-            createBaseEntities(em)
+        val baseEntities = createBaseEntities(em)
 
         val opintooikeus = createOpintooikeus(
             erikoistuvaLaakari,
-            yliopisto,
-            erikoisala,
-            opintoopas,
-            asetus,
+            baseEntities.yliopisto,
+            baseEntities.erikoisala,
+            baseEntities.opintoopas,
+            baseEntities.asetus,
             alkamispaiva,
             paattymispaiva,
             tila,
@@ -60,17 +59,16 @@ object OpintooikeusHelper {
         viimeinenKatselupaiva: LocalDate? = null
     ): Opintooikeus {
 
-        val (yliopisto, _, opintoopas, asetus) =
-            createBaseEntities(em)
+        val baseEntities = createBaseEntities(em)
 
         val erikoisala = ErikoisalaHelper.createEntityWithId(61L)
 
         val opintooikeus = createOpintooikeus(
             erikoistuvaLaakari,
-            yliopisto,
+            baseEntities.yliopisto,
             erikoisala,
-            opintoopas,
-            asetus,
+            baseEntities.opintoopas,
+            baseEntities.asetus,
             alkamispaiva,
             paattymispaiva,
             tila,

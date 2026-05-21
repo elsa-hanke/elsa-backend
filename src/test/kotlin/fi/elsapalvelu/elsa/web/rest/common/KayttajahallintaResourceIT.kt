@@ -303,7 +303,8 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         persistAndFlush(erikoistuvaLaakari)
         em.persist(VerificationToken(user = User(id = erikoistuvaLaakari.kayttaja?.user?.id)))
 
-        testMockMvc.perform(put("/api/$VIRKAILIJA_ROLE_PATH/erikoistuvat-laakarit/${erikoistuvaLaakari.id}/kutsu").with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isNoContent)
+        testMockMvc.perform(put("/api/$VIRKAILIJA_ROLE_PATH/erikoistuvat-laakarit/${erikoistuvaLaakari.id}/kutsu").with(SecurityMockMvcRequestPostProcessors.csrf()))
+            .andExpect(status().isNoContent)
     }
 
     @Test
@@ -314,7 +315,8 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         persistAndFlush(erikoistuvaLaakari)
         em.persist(VerificationToken(user = User(id = erikoistuvaLaakari.kayttaja?.user?.id)))
 
-        testMockMvc.perform(put("/api/$VIRKAILIJA_ROLE_PATH/erikoistuvat-laakarit/$${erikoistuvaLaakari.id}/kutsu").with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isBadRequest)
+        testMockMvc.perform(put("/api/$VIRKAILIJA_ROLE_PATH/erikoistuvat-laakarit/$${erikoistuvaLaakari.id}/kutsu").with(SecurityMockMvcRequestPostProcessors.csrf()))
+            .andExpect(status().isBadRequest)
     }
 
     @ParameterizedTest
@@ -330,7 +332,8 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     @ValueSource(strings = [TEKNINEN_PAAKAYTTAJA_ROLE_PATH, VIRKAILIJA_ROLE_PATH])
     fun postVastuuhenkiloWithoutYliopisto(rolePath: String) {
         initTest(getRole(rolePath), true)
-        val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO().apply { yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1000))) }
+        val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO()
+            .apply { yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1000))) }
         testMockMvc.perform(post("/api/$rolePath/vastuuhenkilot").contentType(APPLICATION_JSON).content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().is5xxServerError)
     }
@@ -552,7 +555,8 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         val newKayttajaYliopistoErikoisalaDTO = KayttajaYliopistoErikoisalaDTO(erikoisala = erikoisalaMapper.toDto(erikoisala2),
             yliopisto = yliopistoMapper.toDto(yliopisto), vastuuhenkilonTehtavat = mutableSetOf(vastuuhenkilonTehtavatyyppiMapper.toDto(vastuuhenkilonTehtava)))
 
-        val khallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO().apply { yliopistotAndErikoisalat = setOf(existingKayttajaYliopistoErikoisalaDTO, newKayttajaYliopistoErikoisalaDTO) }
+        val khallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO()
+            .apply { yliopistotAndErikoisalat = setOf(existingKayttajaYliopistoErikoisalaDTO, newKayttajaYliopistoErikoisalaDTO) }
 
         testMockMvc.perform(put("/api/$rolePath/vastuuhenkilot/${vastuuhenkilo.id}").contentType(APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(khallintaKayttajaDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isOk)

@@ -69,18 +69,6 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
     private lateinit var koulutussuunnitelmaRepository: KoulutussuunnitelmaRepository
 
     @Autowired
-    private lateinit var koulutussuunnitelmaMapper: KoulutussuunnitelmaMapper
-
-    @Autowired
-    private lateinit var jacksonMessageConverter: MappingJackson2HttpMessageConverter
-
-    @Autowired
-    private lateinit var pageableArgumentResolver: PageableHandlerMethodArgumentResolver
-
-    @Autowired
-    private lateinit var validator: Validator
-
-    @Autowired
     private lateinit var em: EntityManager
 
     @Autowired

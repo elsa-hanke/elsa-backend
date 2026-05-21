@@ -161,7 +161,8 @@ class PaakayttajaKayttajahallintaResourceIT: ResourceIntegrationTestBase() {
     fun postPaakayttaja() {
         initTest(TEKNINEN_PAAKAYTTAJA, false)
         testMockMvc.perform(post("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/paakayttajat").contentType(APPLICATION_JSON)
-            .content(convertObjectToJsonBytes(KayttajahallintaResourceHelper.getDefaultKayttajaDTO())).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isCreated)
+            .content(convertObjectToJsonBytes(KayttajahallintaResourceHelper.getDefaultKayttajaDTO())).with(SecurityMockMvcRequestPostProcessors.csrf()))
+            .andExpect(status().isCreated)
     }
 
     @Test

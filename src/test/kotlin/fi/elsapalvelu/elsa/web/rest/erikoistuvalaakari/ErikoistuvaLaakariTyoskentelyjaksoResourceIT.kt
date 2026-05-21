@@ -51,7 +51,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Autowired private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
     @Autowired private lateinit var kuntaMapper: KuntaMapper
     @Autowired private lateinit var erikoisalaMapper: ErikoisalaMapper
-    @Autowired private lateinit var keskeytysaikaMapper: KeskeytysaikaMapper
     @Autowired private lateinit var objectMapper: ObjectMapper
 
     private lateinit var tyoskentelyjakso: Tyoskentelyjakso
