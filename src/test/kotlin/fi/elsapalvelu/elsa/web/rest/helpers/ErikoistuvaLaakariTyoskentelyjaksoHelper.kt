@@ -10,16 +10,16 @@ import jakarta.persistence.EntityManager
 import java.time.LocalDate
 
 object ErikoistuvaLaakariTyoskentelyjaksoHelper {
-    public val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 1, 1)
-    public val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 2, 1)
-    public val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 1, 30)
-    public val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 4, 1)
-    public const val DEFAULT_OSAAIKAPROSENTTI: Int = 100
-    public const val UPDATED_OSAAIKAPROSENTTI: Int = 50
-    public val DEFAULT_KAYTANNON_KOULUTUS: KaytannonKoulutusTyyppi = KaytannonKoulutusTyyppi.OMAN_ERIKOISALAN_KOULUTUS
-    public val UPDATED_KAYTANNON_KOULUTUS: KaytannonKoulutusTyyppi = KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
-    public const val DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN: Boolean = false
-    public const val UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN: Boolean = true
+    val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 1, 1)
+    val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.of(2020, 2, 1)
+    val DEFAULT_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 1, 30)
+    val UPDATED_PAATTYMISPAIVA: LocalDate = LocalDate.of(2020, 4, 1)
+    const val DEFAULT_OSAAIKAPROSENTTI: Int = 100
+    const val UPDATED_OSAAIKAPROSENTTI: Int = 50
+    val DEFAULT_KAYTANNON_KOULUTUS: KaytannonKoulutusTyyppi = KaytannonKoulutusTyyppi.OMAN_ERIKOISALAN_KOULUTUS
+    val UPDATED_KAYTANNON_KOULUTUS: KaytannonKoulutusTyyppi = KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
+    const val DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN: Boolean = false
+    const val UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN: Boolean = true
 
     fun createEntity(em: EntityManager, user: User? = null, alkamispaiva: LocalDate? = DEFAULT_ALKAMISPAIVA, paattymispaiva: LocalDate? = DEFAULT_PAATTYMISPAIVA,
                      kaytannonKoulutus: KaytannonKoulutusTyyppi? = DEFAULT_KAYTANNON_KOULUTUS): Tyoskentelyjakso {

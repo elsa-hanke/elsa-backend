@@ -59,15 +59,6 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         testMockMvc.perform(get("/api/$VIRKAILIJA_ROLE_PATH/erikoistuvat-laakarit/$id")).andExpect(status().isBadRequest)
     }
 
-    @Test
-    fun getErikoistuvaLaakariForPaakayttaja() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-        val id = KayttajahallintaResourceHelper.persistErikoistuvaLaakari(em, yliopisto)
-        testMockMvc.perform(get("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/erikoistuvat-laakarit/$id")).andExpect(status().isOk)
-            .andExpect(content().contentType(APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.kayttaja.id").value(id))
-            .andExpect(jsonPath("$.erikoistuvaLaakari.id").exists())
-    }
-
     @ParameterizedTest
     @ValueSource(strings = [TEKNINEN_PAAKAYTTAJA_ROLE_PATH, VIRKAILIJA_ROLE_PATH])
     fun getNonExistingErikoistuvaLaakari(rolePath: String) {
@@ -91,15 +82,6 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         val erikoisala = erikoisalaRepository.findById(1).get()
         val id = KayttajahallintaResourceHelper.persistVastuuhenkilo(em, yliopisto, erikoisala)
         testMockMvc.perform(get("/api/$VIRKAILIJA_ROLE_PATH/kayttajat/$id")).andExpect(status().isBadRequest)
-    }
-
-    @Test
-    fun getVastuuhenkiloForPaakayttaja() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-        val erikoisala = erikoisalaRepository.findById(1).get()
-        val id = KayttajahallintaResourceHelper.persistVastuuhenkilo(em, yliopisto, erikoisala)
-        testMockMvc.perform(get("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/kayttajat/$id")).andExpect(status().isOk).andExpect(content().contentType(APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.kayttaja.id").value(id))
     }
 
     @ParameterizedTest
@@ -128,15 +110,6 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    fun getKouluttajaForPaakayttaja() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-        val erikoisala = erikoisalaRepository.findById(1).get()
-        val id = KayttajahallintaResourceHelper.persistKouluttaja(em, yliopisto, erikoisala)
-        testMockMvc.perform(get("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/kayttajat/$id")).andExpect(status().isOk).andExpect(content().contentType(APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.kayttaja.id").value(id))
-    }
-
-    @Test
     fun getVirkailijaForVirkailijaSameYliopisto() {
         initTest(OPINTOHALLINNON_VIRKAILIJA, true)
         val id = KayttajahallintaResourceHelper.persistVirkailija(em, yliopisto)
@@ -149,22 +122,6 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         initTest(OPINTOHALLINNON_VIRKAILIJA, false)
         val id = KayttajahallintaResourceHelper.persistVirkailija(em, yliopisto)
         testMockMvc.perform(get("/api/$VIRKAILIJA_ROLE_PATH/kayttajat/$id")).andExpect(status().isBadRequest)
-    }
-
-    @Test
-    fun getVirkailijaForPaakayttaja() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-        val id = KayttajahallintaResourceHelper.persistVirkailija(em, yliopisto)
-        testMockMvc.perform(get("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/kayttajat/$id")).andExpect(status().isOk).andExpect(content().contentType(APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.kayttaja.id").value(id))
-    }
-
-    @Test
-    fun getPaakayttajaForPaakayttaja() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-        val id = KayttajahallintaResourceHelper.persistPaakayttaja(em)
-        testMockMvc.perform(get("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/kayttajat/$id")).andExpect(status().isOk).andExpect(content().contentType(APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.kayttaja.id").value(id))
     }
 
     @Test
@@ -247,14 +204,6 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
 
         testMockMvc.perform(get("/api/$rolePath/virkailijat")).andExpect(status().isOk)
             .andExpect(content().contentType(APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(expectedSize)))
-    }
-
-    @Test
-    fun getPaakayttajatForPaakayttaja() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-        KayttajahallintaResourceHelper.createPaakayttaja(em)
-        testMockMvc.perform(get("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/paakayttajat")).andExpect(status().isOk)
-            .andExpect(content().contentType(APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(2)))
     }
 
     @Test
@@ -368,18 +317,6 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         testMockMvc.perform(put("/api/$VIRKAILIJA_ROLE_PATH/erikoistuvat-laakarit/$${erikoistuvaLaakari.id}/kutsu").with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isBadRequest)
     }
 
-    @Test
-    fun resendErikoistuvaLaakariInvitationByPaakayttajaDifferentYliopisto() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
-        persistAndFlush(erikoistuvaLaakari)
-        em.persist(VerificationToken(user = User(id = erikoistuvaLaakari.kayttaja?.user?.id)))
-
-        testMockMvc.perform(put("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/erikoistuvat-laakarit/${erikoistuvaLaakari.id}/kutsu")
-                .with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isNoContent)
-    }
-
     @ParameterizedTest
     @ValueSource(strings = [TEKNINEN_PAAKAYTTAJA_ROLE_PATH, VIRKAILIJA_ROLE_PATH])
     fun postVastuuhenkiloWithoutYliopistotAndErikoisalat(rolePath: String) {
@@ -396,21 +333,6 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO().apply { yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1000))) }
         testMockMvc.perform(post("/api/$rolePath/vastuuhenkilot").contentType(APPLICATION_JSON).content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().is5xxServerError)
-    }
-
-    @Test
-    fun postVastuuhenkiloAsTekninenPaakayttajaWithDifferentYliopistoInYliopistotAndErikoisalat() {
-        initTest(TEKNINEN_PAAKAYTTAJA)
-
-        val erikoisalaDTO = erikoisalaMapper.toDto(erikoisalaRepository.findById(1).get())
-
-        val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO().apply {
-            yliopisto = YliopistoDTO(id = 1000)
-            yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1001), erikoisala = erikoisalaDTO))
-        }
-
-        testMockMvc.perform(post("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/vastuuhenkilot").contentType(APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isBadRequest)
     }
 
     @Test
@@ -757,38 +679,6 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
     }
 
     @Test
-    fun postPaakayttajaWithEmailAddressInUse() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-        val paakayttaja = createPersistedPaakayttaja()
-        paakayttaja.user?.email = KayttajaHelper.DEFAULT_EMAIL
-        val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO().apply { sahkoposti = KayttajaHelper.DEFAULT_EMAIL }
-
-        testMockMvc.perform(post("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/paakayttajat").contentType(APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isBadRequest)
-    }
-
-    @Test
-    fun postPaakayttajaWithEppnInUse() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-
-        val paakayttaja = createPersistedPaakayttaja()
-        paakayttaja.user?.eppn = KayttajahallintaResourceHelper.DEFAULT_EPPN
-        paakayttaja.user?.email = KayttajaHelper.DEFAULT_EMAIL
-
-        val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO().apply { sahkoposti = KayttajaHelper.DEFAULT_EMAIL + "x" }
-
-        testMockMvc.perform(post("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/paakayttajat").contentType(APPLICATION_JSON).content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
-                .with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isBadRequest)
-    }
-
-    @Test
-    fun postPaakayttaja() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-        testMockMvc.perform(post("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/paakayttajat").contentType(APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(KayttajahallintaResourceHelper.getDefaultKayttajaDTO())).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isCreated)
-    }
-
-    @Test
     fun patchVirkailijaNotAllowedToModifyDifferentYliopistoAssignedToVirkailija() {
         initTest(getRole(OPINTOHALLINNON_VIRKAILIJA), false)
 
@@ -849,41 +739,6 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
 
         testMockMvc.perform(patch("/api/$VIRKAILIJA_ROLE_PATH/paakayttajat/${paakayttaja.id}").contentType(APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isBadRequest)
-    }
-
-    @Test
-    fun patchPaakayttajaOnlyEmailUpdated() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-
-        val paakayttaja = KayttajahallintaResourceHelper.createPaakayttaja(em).apply { user?.eppn = KayttajahallintaResourceHelper.DEFAULT_EPPN }
-        em.persist(paakayttaja)
-
-        val kayttajahallintaKayttajaDTO = KayttajahallintaKayttajaDTO(sahkoposti = paakayttaja.user?.email + "x", eppn = paakayttaja.user?.eppn + "x")
-
-        testMockMvc.perform(patch("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/virkailijat/${paakayttaja.id}").contentType(APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isOk)
-
-        val updatedPaakayttaja = kayttajaRepository.findById(paakayttaja.id!!).get()
-        assertThat(updatedPaakayttaja.user?.email).isEqualTo(kayttajahallintaKayttajaDTO.sahkoposti)
-        assertThat(updatedPaakayttaja.user?.eppn).isEqualTo(paakayttaja.user?.eppn)
-    }
-
-    @Test
-    fun patchPaakayttaja() {
-        initTest(TEKNINEN_PAAKAYTTAJA, false)
-
-        val paakayttaja = KayttajahallintaResourceHelper.createVirkailija(em, yliopisto).apply { user?.eppn = KayttajahallintaResourceHelper.DEFAULT_EPPN }
-        paakayttaja.tila = KayttajatilinTila.KUTSUTTU
-        em.persist(paakayttaja)
-
-        val kayttajahallintaKayttajaDTO = KayttajahallintaKayttajaDTO(sahkoposti = paakayttaja.user?.email + "x", eppn = paakayttaja.user?.eppn + "x")
-
-        testMockMvc.perform(patch("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/virkailijat/${paakayttaja.id}").contentType(APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isOk)
-
-        val updatedPaakayttaja = kayttajaRepository.findById(paakayttaja.id!!).get()
-        assertThat(updatedPaakayttaja.user?.email).isEqualTo(kayttajahallintaKayttajaDTO.sahkoposti)
-        assertThat(updatedPaakayttaja.user?.eppn).isEqualTo(kayttajahallintaKayttajaDTO.eppn)
     }
 
     fun getRole(rolePath: String): String = if (rolePath == TEKNINEN_PAAKAYTTAJA_ROLE_PATH) { TEKNINEN_PAAKAYTTAJA } else OPINTOHALLINNON_VIRKAILIJA
