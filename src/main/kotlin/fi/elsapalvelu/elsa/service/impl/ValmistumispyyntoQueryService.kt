@@ -31,7 +31,7 @@ class ValmistumispyyntoQueryService(
         excludedErikoisalaIds: List<Long>,
         langkey: String?
     ): Page<Valmistumispyynto> {
-        val specification: Specification<Valmistumispyynto> = Specification.where { root, cq, cb ->
+        val specification = Specification<Valmistumispyynto> { root, cq, cb ->
             val predicates: MutableList<Predicate> = mutableListOf()
             val opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus> =
                 root.join(Valmistumispyynto_.opintooikeus)
@@ -94,7 +94,7 @@ class ValmistumispyyntoQueryService(
         erikoisalaIds: List<Long>,
         langkey: String?
     ): Page<Valmistumispyynto> {
-        val specification: Specification<Valmistumispyynto> = Specification.where { root, cq, cb ->
+        val specification = Specification<Valmistumispyynto> { root, cq, cb ->
             val predicates: MutableList<Predicate> = mutableListOf()
             val opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus> =
                 root.join(Valmistumispyynto_.opintooikeus)

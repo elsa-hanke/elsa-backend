@@ -47,7 +47,7 @@ class SuoritusarviointiQueryService(
 
     @Suppress("ComplexMethod")
     private fun createSpecification(criteria: SuoritusarviointiCriteria?, spec: Specification<Suoritusarviointi?>? = null): Specification<Suoritusarviointi?> {
-        var specification: Specification<Suoritusarviointi?> = Specification.where(spec)
+        var specification: Specification<Suoritusarviointi?> = spec ?: Specification.unrestricted()
         if (criteria != null) {
             if (criteria.id != null) {
                 specification = specification.and { root, _, cb ->

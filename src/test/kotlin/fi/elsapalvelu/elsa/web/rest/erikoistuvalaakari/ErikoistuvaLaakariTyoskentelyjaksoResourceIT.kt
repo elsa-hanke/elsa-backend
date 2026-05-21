@@ -205,7 +205,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         val tyoskentelyjaksoTableSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
 
         assertNotNull(tyoskentelyjakso.id)
-        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id).get()
+        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
         val updatedTyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em)
         val omaaErikoisalaaTukeva = em.findAll(Erikoisala::class).first()
 
@@ -243,7 +243,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
         assertNotNull(tyoskentelyjakso.id)
 
-        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id).get()
+        val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
         val updatedTyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em)
         val omaaErikoisalaaTukeva = em.findAll(Erikoisala::class).first()
 
@@ -295,7 +295,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         assertNotNull(tyoskentelyjakso.id)
 
-        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id).get())
+        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get())
 
         // Asetetaan päättymispäivä suoritusarvioinnin ulkopuolelle
         tyoskentelyjaksoDTO.apply { paattymispaiva = LocalDate.of(2020, 1, 19) }
@@ -318,7 +318,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
         assertNotNull(tyoskentelyjakso.id)
 
-        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id).get())
+        val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get())
 
         // Asetetaan päättymispäivä suoritusarvioinnin päivälle
         tyoskentelyjaksoDTO.apply { paattymispaiva = suoritusarviointiTapahtumanAjankohta }
@@ -338,7 +338,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         val tyoskentelyjaksoTableSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
 
         assertNotNull(tyoskentelyjakso.id)
-        val updatedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id).get()
+        val updatedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
         em.detach(updatedTyoskentelyjakso)
 
         updatedTyoskentelyjakso.id = null

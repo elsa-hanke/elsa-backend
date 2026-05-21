@@ -152,7 +152,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonKoulutussopimusRepository.saveAndFlush(koejaksonKoulutussopimus)
         val databaseSizeBeforeUpdate = koejaksonKoulutussopimusRepository.findAll().size
         assertNotNull(koejaksonKoulutussopimus.id)
-        val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(koejaksonKoulutussopimus.id).get()
+        val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(koejaksonKoulutussopimus.id!!).get()
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
         koulutussopimusDTO.kouluttajat?.forEach {
             it.lahiosoite = KoejaksonVaiheetHelper.UPDATED_LAHIOSOITE
@@ -170,7 +170,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         initTest()
         val databaseSizeBeforeUpdate = koejaksonKoulutussopimusRepository.findAll().size
         assertNotNull(koejaksonKoulutussopimus.id)
-        val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(koejaksonKoulutussopimus.id).get()
+        val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(koejaksonKoulutussopimus.id!!).get()
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
         koulutussopimusDTO.kouluttajat?.forEach {
             it.puhelin = KoejaksonVaiheetHelper.UPDATED_PHONE
@@ -202,7 +202,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         initTest()
         val databaseSizeBeforeUpdate = koejaksonKoulutussopimusRepository.findAll().size
         assertNotNull(koejaksonKoulutussopimus.id)
-        val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(koejaksonKoulutussopimus.id).get()
+        val updatedKoulutussopimus = koejaksonKoulutussopimusRepository.findById(koejaksonKoulutussopimus.id!!).get()
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
         koulutussopimusDTO.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
         koulutussopimusDTO.kouluttajat?.forEach {
@@ -239,7 +239,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
 
         val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
         assertNotNull(koejaksonAloituskeskustelu.id)
-        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskustelu.id).get()
+        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskustelu.id!!).get()
         em.detach(updatedAloituskeskustelu)
         updatedAloituskeskustelu.lahikouluttajaHyvaksynyt = true
         updatedAloituskeskustelu.lahikouluttajanKuittausaika = LocalDate.now()
@@ -255,7 +255,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         initTest()
         val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
         assertNotNull(koejaksonAloituskeskustelu.id)
-        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskustelu.id).get()
+        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskustelu.id!!).get()
         em.detach(updatedAloituskeskustelu)
         updatedAloituskeskustelu.lahikouluttajaHyvaksynyt = true
         updatedAloituskeskustelu.lahikouluttajanKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
@@ -280,7 +280,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         initTest()
         val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
         assertNotNull(koejaksonAloituskeskustelu.id)
-        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskustelu.id).get()
+        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskustelu.id!!).get()
         em.detach(updatedAloituskeskustelu)
         updatedAloituskeskustelu.lahikouluttajaHyvaksynyt = false
         updatedAloituskeskustelu.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
@@ -307,7 +307,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
 
         val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
         assertNotNull(koejaksonAloituskeskustelu.id)
-        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskustelu.id).get()
+        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskustelu.id!!).get()
         em.detach(updatedAloituskeskustelu)
         updatedAloituskeskustelu.lahiesimiesHyvaksynyt = true
         updatedAloituskeskustelu.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
@@ -333,7 +333,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
         val databaseSizeBeforeUpdate = koejaksonAloituskeskusteluRepository.findAll().size
         assertNotNull(koejaksonAloituskeskustelu.id)
-        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskustelu.id).get()
+        val updatedAloituskeskustelu = koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskustelu.id!!).get()
         em.detach(updatedAloituskeskustelu)
         updatedAloituskeskustelu.lahiesimiesHyvaksynyt = false
         updatedAloituskeskustelu.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
@@ -360,7 +360,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonAloituskeskusteluRepository.saveAndFlush(koejaksonAloituskeskustelu)
         val databaseSizeBeforeUpdate = koejaksonValiarviointiRepository.findAll().size
         assertNotNull(koejaksonValiarviointi.id)
-        val updatedValiarviointi = koejaksonValiarviointiRepository.findById(koejaksonValiarviointi.id).get()
+        val updatedValiarviointi = koejaksonValiarviointiRepository.findById(koejaksonValiarviointi.id!!).get()
         em.detach(updatedValiarviointi)
         updatedValiarviointi.kehittamistoimenpiteet = KoejaksonVaiheetHelper.DEFAULT_KEHITTAMISTOIMENPITEET
         updatedValiarviointi.edistyminenTavoitteidenMukaista = false
@@ -395,7 +395,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
         val databaseSizeBeforeUpdate = koejaksonValiarviointiRepository.findAll().size
         assertNotNull(koejaksonValiarviointi.id)
-        val updatedValiarviointi = koejaksonValiarviointiRepository.findById(koejaksonValiarviointi.id).get()
+        val updatedValiarviointi = koejaksonValiarviointiRepository.findById(koejaksonValiarviointi.id!!).get()
         em.detach(updatedValiarviointi)
         updatedValiarviointi.lahiesimiesHyvaksynyt = true
         updatedValiarviointi.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
@@ -423,7 +423,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
         val databaseSizeBeforeUpdate = koejaksonValiarviointiRepository.findAll().size
         assertNotNull(koejaksonValiarviointi.id)
-        val updatedValiarviointi = koejaksonValiarviointiRepository.findById(koejaksonValiarviointi.id).get()
+        val updatedValiarviointi = koejaksonValiarviointiRepository.findById(koejaksonValiarviointi.id!!).get()
         em.detach(updatedValiarviointi)
         updatedValiarviointi.lahiesimiesHyvaksynyt = false
         updatedValiarviointi.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
@@ -452,7 +452,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
         val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
         assertNotNull(koejaksonKehittamistoimenpiteet.id)
-        val updatedKehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findById(koejaksonKehittamistoimenpiteet.id).get()
+        val updatedKehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findById(koejaksonKehittamistoimenpiteet.id!!).get()
         em.detach(updatedKehittamistoimenpiteet)
         updatedKehittamistoimenpiteet.kehittamistoimenpiteetRiittavat = true
         updatedKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
@@ -486,7 +486,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
         val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
         assertNotNull(koejaksonKehittamistoimenpiteet.id)
-        val updatedKehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findById(koejaksonKehittamistoimenpiteet.id).get()
+        val updatedKehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findById(koejaksonKehittamistoimenpiteet.id!!).get()
         em.detach(updatedKehittamistoimenpiteet)
         updatedKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
         updatedKehittamistoimenpiteet.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
@@ -518,7 +518,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonKehittamistoimenpiteetRepository.saveAndFlush(koejaksonKehittamistoimenpiteet)
         val databaseSizeBeforeUpdate = koejaksonKehittamistoimenpiteetRepository.findAll().size
         assertNotNull(koejaksonKehittamistoimenpiteet.id)
-        val updatedKehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findById(koejaksonKehittamistoimenpiteet.id).get()
+        val updatedKehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository.findById(koejaksonKehittamistoimenpiteet.id!!).get()
         em.detach(updatedKehittamistoimenpiteet)
         updatedKehittamistoimenpiteet.lahiesimiesHyvaksynyt = false
         updatedKehittamistoimenpiteet.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS
@@ -546,7 +546,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonValiarviointiRepository.saveAndFlush(koejaksonValiarviointi)
         val databaseSizeBeforeUpdate = koejaksonLoppukeskusteluRepository.findAll().size
         assertNotNull(koejaksonLoppukeskustelu.id)
-        val updatedLoppukeskustelu = koejaksonLoppukeskusteluRepository.findById(koejaksonLoppukeskustelu.id).get()
+        val updatedLoppukeskustelu = koejaksonLoppukeskusteluRepository.findById(koejaksonLoppukeskustelu.id!!).get()
         em.detach(updatedLoppukeskustelu)
         updatedLoppukeskustelu.esitetaanKoejaksonHyvaksymista = true
         updatedLoppukeskustelu.lahikouluttajaHyvaksynyt = true
@@ -579,7 +579,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
         val databaseSizeBeforeUpdate = koejaksonLoppukeskusteluRepository.findAll().size
         assertNotNull(koejaksonLoppukeskustelu.id)
-        val updatedLoppukeskustelu = koejaksonLoppukeskusteluRepository.findById(koejaksonLoppukeskustelu.id).get()
+        val updatedLoppukeskustelu = koejaksonLoppukeskusteluRepository.findById(koejaksonLoppukeskustelu.id!!).get()
         em.detach(updatedLoppukeskustelu)
         updatedLoppukeskustelu.lahiesimiesHyvaksynyt = true
         updatedLoppukeskustelu.lahiesimiehenKuittausaika = KoejaksonVaiheetHelper.DEFAULT_MYONTAMISPAIVA
@@ -610,7 +610,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
         val databaseSizeBeforeUpdate = koejaksonLoppukeskusteluRepository.findAll().size
         assertNotNull(koejaksonLoppukeskustelu.id)
-        val updatedLoppukeskustelu = koejaksonLoppukeskusteluRepository.findById(koejaksonLoppukeskustelu.id).get()
+        val updatedLoppukeskustelu = koejaksonLoppukeskusteluRepository.findById(koejaksonLoppukeskustelu.id!!).get()
         em.detach(updatedLoppukeskustelu)
         updatedLoppukeskustelu.lahiesimiesHyvaksynyt = false
         updatedLoppukeskustelu.korjausehdotus = KoejaksonVaiheetHelper.UPDATED_KORJAUSEHDOTUS

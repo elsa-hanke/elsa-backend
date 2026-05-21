@@ -97,7 +97,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
         spec: Specification<TerveyskeskuskoulutusjaksonHyvaksynta?>? = null
     ): Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> {
         var specification: Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> =
-            Specification.where(spec)
+            spec ?: Specification.unrestricted()
         criteria?.let {
             it.erikoisalaId?.let { erikoisalaId ->
                 specification = specification.and(

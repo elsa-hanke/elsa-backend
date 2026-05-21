@@ -61,6 +61,8 @@ tasks.register('integrationTest', Test) {
     useJUnitPlatform()
     description = "Execute integration tests."
     group = "verification"
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
     include "**/*IT*", "**/*IntTest*"
     testLogging {
         events 'FAILED', 'SKIPPED'
@@ -100,7 +102,7 @@ configurations {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven { url "https://build.shibboleth.net/nexus/content/repositories/releases/" }
+    maven { url = "https://build.shibboleth.net/nexus/content/repositories/releases/" }
 }
 
 dependencies {

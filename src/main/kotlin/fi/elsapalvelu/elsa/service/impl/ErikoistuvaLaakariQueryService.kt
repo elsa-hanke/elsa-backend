@@ -29,8 +29,7 @@ class ErikoistuvaLaakariQueryService(
         yliopistoId: Long?,
         langkey: String?
     ): Page<KayttajahallintaKayttajaListItemDTO> {
-        val specification = Specification
-            .where(hasName(criteria?.nimi, langkey))
+        val specification = hasName(criteria?.nimi, langkey)
             .and(hasErikoisala(criteria?.erikoisalaId))
             .and(hasYliopisto(yliopistoId))
             .and(hasUseaOpintooikeus(criteria?.useaOpintooikeus))
@@ -43,8 +42,7 @@ class ErikoistuvaLaakariQueryService(
         pageable: Pageable,
         langkey: String?
     ): Page<KayttajahallintaKayttajaListItemDTO> {
-        val specification = Specification
-            .where(hasName(criteria?.nimi, langkey))
+        val specification = hasName(criteria?.nimi, langkey)
             .and(hasErikoisala(criteria?.erikoisalaId))
             .and(hasUseaOpintooikeus(criteria?.useaOpintooikeus))
         return erikoistuvaLaakariRepository.findAll(specification, pageable).map { mapErikoistuvaLaakari(it) }
@@ -122,4 +120,3 @@ class ErikoistuvaLaakariQueryService(
         })
     }
 }
-

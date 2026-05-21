@@ -33,8 +33,7 @@ class KayttajaQueryService(
         yliopistoId: Long,
         langkey: String?
     ): Page<KayttajahallintaKayttajaListItemDTO> {
-        val specification = Specification
-            .where(hasYliopisto(authority, yliopistoId))
+        val specification = hasYliopisto(authority, yliopistoId)
             .and(hasAuthority(authority))
             .and(hasName(criteria?.nimi, langkey))
             .and(hasErikoisala(criteria?.erikoisalaId))
@@ -48,8 +47,7 @@ class KayttajaQueryService(
         pageable: Pageable,
         langkey: String?
     ): Page<KayttajahallintaKayttajaListItemDTO> {
-        val specification = Specification
-            .where(hasAuthority(authority))
+        val specification = hasAuthority(authority)
             .and(hasName(criteria?.nimi, langkey))
             .and(hasErikoisala(criteria?.erikoisalaId))
         return kayttajaRepository.findAll(specification, pageable).map { mapKayttaja(it) }
@@ -67,13 +65,11 @@ class KayttajaQueryService(
     ): Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO> {
 
         val specification = if (nullAuthority == true) {
-            Specification
-                .where(hasCertainOrNoAuthorities(authorities))
+            hasCertainOrNoAuthorities(authorities)
                 .and(hasName(criteria?.nimi, langkey))
                 .and(hasErikoisala(criteria?.erikoisalaId))
             } else {
-                Specification
-                    .where(hasAuthorities(authorities))
+                hasAuthorities(authorities)
                     .and(hasName(criteria?.nimi, langkey))
                     .and(hasErikoisala(criteria?.erikoisalaId))
             }

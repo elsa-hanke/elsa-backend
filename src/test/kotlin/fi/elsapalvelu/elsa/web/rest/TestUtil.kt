@@ -18,7 +18,7 @@ private val mapper = createObjectMapper()
 private fun createObjectMapper() =
     ObjectMapper().apply {
         configure(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS, false)
-        setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+        setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY)
         registerModule(JavaTimeModule())
         registerKotlinModule()
     }

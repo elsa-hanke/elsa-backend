@@ -165,7 +165,7 @@ class ErikoistuvaLaakariKeskeytysaikaResourceIT: ResourceIntegrationTestBase() {
 
         assertNotNull(keskeytysaika.id)
 
-        val updatedKeskeytysaika = keskeytysaikaRepository.findById(keskeytysaika.id).get()
+        val updatedKeskeytysaika = keskeytysaikaRepository.findById(keskeytysaika.id!!).get()
         em.detach(updatedKeskeytysaika)
         updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
         updatedKeskeytysaika.paattymispaiva = KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA
@@ -199,7 +199,7 @@ class ErikoistuvaLaakariKeskeytysaikaResourceIT: ResourceIntegrationTestBase() {
 
         assertNotNull(keskeytysaika.id)
 
-        val updatedKeskeytysaika = keskeytysaikaRepository.findById(keskeytysaika.id).get()
+        val updatedKeskeytysaika = keskeytysaikaRepository.findById(keskeytysaika.id!!).get()
         em.detach(updatedKeskeytysaika)
         updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
         updatedKeskeytysaika.paattymispaiva = KeskeytysaikaHelper.UPDATED_PAATTYMISPAIVA
@@ -225,7 +225,7 @@ class ErikoistuvaLaakariKeskeytysaikaResourceIT: ResourceIntegrationTestBase() {
 
         assertNotNull(keskeytysaika.id)
 
-        val updatedKeskeytysaika = keskeytysaikaRepository.findById(keskeytysaika.id).get()
+        val updatedKeskeytysaika = keskeytysaikaRepository.findById(keskeytysaika.id!!).get()
         em.detach(updatedKeskeytysaika)
         updatedKeskeytysaika.id = null
         updatedKeskeytysaika.alkamispaiva = KeskeytysaikaHelper.UPDATED_ALKAMISPAIVA
