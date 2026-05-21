@@ -173,7 +173,7 @@ class KoejaksonKoulutussopimusServiceImpl(
     private fun arkistoiKoulutussopimus(
         opintooikeus: Opintooikeus?,
         asiakirja: Asiakirja,
-        koulutussopimus: KoejaksonKoulutussopimus?,
+        koulutussopimus: KoejaksonKoulutussopimus,
         yliopisto: YliopistoEnum
     ) {
         logger.info("Kasitellaan koulutussopimuksesta pdf arkistointi")
