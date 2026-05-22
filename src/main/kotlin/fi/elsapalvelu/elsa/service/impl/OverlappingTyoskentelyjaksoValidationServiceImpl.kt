@@ -113,7 +113,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
             if (hyvaksiluettavatCounterData == null) {
                 hyvaksiluettavatCounterData = tyoskentelyjaksonPituusCounterService.calculateHyvaksiluettavatDaysLeft(tyoskentelyjaksot, calculateUntilDate)
             }
-            return hyvaksiluettavatCounterData as HyvaksiluettavatCounterData
+            return hyvaksiluettavatCounterData
         }
 
         // Mikäli työskentelyjakso sijoittuu tulevaisuuteen eikä sille ole määritelty päättymispäivää
