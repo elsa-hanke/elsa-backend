@@ -1,9 +1,6 @@
 package fi.elsapalvelu.elsa.externalintegration.sisu.hy
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
@@ -16,12 +13,12 @@ import fi.elsapalvelu.elsa.service.impl.SisuHyOpintotietodataFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.impl.SisuTutkintoohjelmaFetchingServiceImpl
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
@@ -50,6 +47,9 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
     @Autowired
     private lateinit var sisuHyOpintosuorituksetFetchingServiceImpl: SisuHyOpintosuorituksetFetchingServiceImpl
 
+    @Autowired
+    private lateinit var sisuHyClientBuilderImpl: SisuHyClientBuilderImpl
+
     override val opintotietodataService: OpintotietodataFetchingService
         get() = sisuHyOpintotietodataFetchingServiceImpl
 
@@ -58,6 +58,13 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
 
     @Autowired
     private lateinit var sisuTutkintoohjelmaFetchingService: SisuTutkintoohjelmaFetchingService
+
+    @Test
+    fun shouldBuildApolloClientWithoutRuntimeLinkageErrors() {
+        assertThatCode { sisuHyClientBuilderImpl.apolloClient() }
+            .describedAs("Apollo client creation must not fail because of incompatible runtime dependencies")
+            .doesNotThrowAnyException()
+    }
 
     @Test
     fun shouldFetchTutkintoohjelmatWithoutErrors() {

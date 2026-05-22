@@ -8,7 +8,9 @@ import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.impl.PeppiOuluClientBuilderImpl
 import fi.elsapalvelu.elsa.service.impl.PeppiOuluOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.impl.PeppiOuluOpintotietodataFetchingServiceImpl
+import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
@@ -28,6 +30,9 @@ class PeppiOuluExternalIntegrationTests : FetchingServiceExternalIntegrationBase
     @Autowired
     private lateinit var peppiOuluOpintosuorituksetFetchingServiceImpl: PeppiOuluOpintosuorituksetFetchingServiceImpl
 
+    @Autowired
+    private lateinit var peppiOuluClientBuilderImpl: PeppiOuluClientBuilderImpl
+
     override val opintotietodataService: OpintotietodataFetchingService
         get() = peppiOuluOpintotietodataFetchingServiceImpl
 
@@ -35,6 +40,13 @@ class PeppiOuluExternalIntegrationTests : FetchingServiceExternalIntegrationBase
         get() = peppiOuluOpintosuorituksetFetchingServiceImpl
 
     override fun getTestHetu() = "010190-982B"
+
+    @Test
+    fun shouldBuildApolloClientWithoutRuntimeLinkageErrors() {
+        assertThatCode { peppiOuluClientBuilderImpl.apolloClient() }
+            .describedAs("Apollo client creation must not fail because of incompatible runtime dependencies")
+            .doesNotThrowAnyException()
+    }
 }
 
 @SpringBootConfiguration

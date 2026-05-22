@@ -87,7 +87,7 @@ class KayttajaQueryService(
                 val rootJoin = root.join(Kayttaja_.yliopistot)
                 cb.`in`(rootJoin.get(Yliopisto_.id)).value(yliopistoId)
             } else {
-                val subquery = query.subquery(Long::class.java)
+                val subquery = query!!.subquery(Long::class.java)
                 val subRoot = subquery.from(KayttajaYliopistoErikoisala::class.java)
                 val rootJoin = subRoot.join(KayttajaYliopistoErikoisala_.kayttaja)
                 val yliopistoJoin = subRoot.join(KayttajaYliopistoErikoisala_.yliopisto)
@@ -103,7 +103,7 @@ class KayttajaQueryService(
 
     private fun hasOpintooikeusYliopisto(yliopistoId: Long?): Specification<Kayttaja> {
         return (Specification<Kayttaja> { root, query, cb ->
-            val subquery = query.subquery(Long::class.java)
+            val subquery = query!!.subquery(Long::class.java)
             val subRoot = subquery.from(Opintooikeus::class.java)
             val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
             val yliopistoJoin = subRoot.join(Opintooikeus_.yliopisto)
@@ -149,7 +149,7 @@ class KayttajaQueryService(
     private fun hasErikoisala(erikoisalaId: LongFilter?): Specification<Kayttaja> {
         return (Specification<Kayttaja> { root, query, cb ->
             erikoisalaId?.let {
-                val subquery = query.subquery(Long::class.java)
+                val subquery = query!!.subquery(Long::class.java)
                 val subRoot = subquery.from(KayttajaYliopistoErikoisala::class.java)
                 val rootJoin = subRoot.join(KayttajaYliopistoErikoisala_.kayttaja)
                 val erikoisalaJoin = subRoot.join(KayttajaYliopistoErikoisala_.erikoisala)

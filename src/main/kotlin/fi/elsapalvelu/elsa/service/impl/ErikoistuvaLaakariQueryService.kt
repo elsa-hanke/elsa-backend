@@ -74,7 +74,7 @@ class ErikoistuvaLaakariQueryService(
     private fun hasErikoisala(erikoisalaId: LongFilter?): Specification<ErikoistuvaLaakari> {
         return (Specification<ErikoistuvaLaakari> { root, query, cb ->
             erikoisalaId?.let {
-                val subquery = query.subquery(Long::class.java)
+                val subquery = query!!.subquery(Long::class.java)
                 val subRoot = subquery.from(Opintooikeus::class.java)
                 val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
                 val erikoisalaJoin = subRoot.join(Opintooikeus_.erikoisala)
@@ -91,7 +91,7 @@ class ErikoistuvaLaakariQueryService(
     private fun hasYliopisto(yliopistoId: Long?): Specification<ErikoistuvaLaakari> {
         return (Specification<ErikoistuvaLaakari> { root, query, cb ->
             yliopistoId?.let {
-                val subquery = query.subquery(Long::class.java)
+                val subquery = query!!.subquery(Long::class.java)
                 val subRoot = subquery.from(Opintooikeus::class.java)
                 val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
                 val yliopistoJoin = subRoot.join(Opintooikeus_.yliopisto)
@@ -108,7 +108,7 @@ class ErikoistuvaLaakariQueryService(
     private fun hasUseaOpintooikeus(useaOpintooikeus: BooleanFilter?): Specification<ErikoistuvaLaakari> {
         return (Specification<ErikoistuvaLaakari> { root, query, cb ->
             if (useaOpintooikeus?.equals == true) {
-                val subquery = query.subquery(Long::class.java)
+                val subquery = query!!.subquery(Long::class.java)
                 val subRoot = subquery.from(Opintooikeus::class.java)
                 val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
                 subquery.select(cb.count(subRoot.get(Opintooikeus_.id)))
