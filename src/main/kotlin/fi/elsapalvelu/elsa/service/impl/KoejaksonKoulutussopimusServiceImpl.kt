@@ -73,7 +73,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                     listOf(VASTUUHENKILO),
                     koulutussopimus.opintooikeus?.yliopisto?.id,
                     koulutussopimus.opintooikeus?.erikoisala?.id,
-                    VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+                    KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
                 )
             koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
 
@@ -422,7 +422,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                 listOf(VASTUUHENKILO),
                 koulutussopimus.opintooikeus?.yliopisto?.id,
                 koulutussopimus.opintooikeus?.erikoisala?.id,
-                VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
+                KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
             )
         if (vastuuhenkilo?.user?.id == userId) {
             return Optional.of(koulutussopimus).map(koejaksonKoulutussopimusMapper::toDto)

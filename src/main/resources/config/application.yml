@@ -79,7 +79,7 @@ logging:
     javax.management.remote: WARN
     jdk.event.security: INFO
     jdk.internal.httpclient: WARN
-    liquibase: WARN
+    liquibase: INFO
     org.apache: WARN
     org.ehcache: WARN
     org.glassfish.jaxb.runtime: WARN

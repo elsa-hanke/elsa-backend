@@ -12,7 +12,7 @@ interface KoejaksonKoulutussopimusService {
     ): KoejaksonKoulutussopimusDTO?
 
     fun update(
-        koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO,
+        koulutussopimusDTO: KoejaksonKoulutussopimusDTO,
         userId: String
     ): KoejaksonKoulutussopimusDTO
 
