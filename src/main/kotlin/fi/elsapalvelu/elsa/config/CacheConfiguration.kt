@@ -52,7 +52,7 @@ class CacheConfiguration(
     }
 
     @Bean
-    @Suppress("MaxLineLength")
+    @Suppress("LongMethod")
     fun cacheManagerCustomizer(): JCacheManagerCustomizer {
         // @formatter:off
         return JCacheManagerCustomizer { cm ->

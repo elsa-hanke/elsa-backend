@@ -71,6 +71,7 @@ import javax.crypto.spec.SecretKeySpec
  */
 private const val DEFAULT_RELAY_STATE = "elsa"
 
+@Suppress("TooManyFunctions")
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
@@ -94,25 +95,35 @@ class SecurityConfiguration(
 
     private val log = LoggerFactory.getLogger(SecurityConfiguration::class.java)
 
-    @Suppress("LongMethod")
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        val withHttpOnlyFalse = CookieCsrfTokenRepository.withHttpOnlyFalse()
-        val authenticationProvider = OpenSaml4AuthenticationProvider()
+        configureCsrf(http)
+        configureFilters(http)
+        configureExceptionHandling(http)
+        configureHeaders(http)
+        configureAuthorization(http)
 
-        authenticationProvider.setAssertionValidator(createAssertionValidator())
-        authenticationProvider.setResponseAuthenticationConverter(authenticationConverter())
+        if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT) || env.activeProfiles.contains(SPRING_PROFILE_PRODUCTION)) {
+            configureSaml(http)
+        }
+        return http.build()
+    }
+
+    private fun configureCsrf(http: HttpSecurity) {
+        val withHttpOnlyFalse = CookieCsrfTokenRepository.withHttpOnlyFalse()
         withHttpOnlyFalse.setCookieCustomizer { c -> c.domain(applicationProperties.getCsrf().cookie.domain) }
         val requestHandler = CsrfTokenRequestAttributeHandler()
         requestHandler.setCsrfRequestAttributeName(null)
+        http.csrf { csrf ->
+            csrf
+                .csrfTokenRequestHandler(requestHandler)
+                .csrfTokenRepository(withHttpOnlyFalse)
+                .ignoringRequestMatchers("/api/logout")
+        }
+    }
 
-        val httpConfiguration = http
-            .csrf { csrf ->
-                csrf
-                    .csrfTokenRequestHandler(requestHandler)
-                    .csrfTokenRepository(withHttpOnlyFalse)
-                    .ignoringRequestMatchers("/api/logout")
-            }
+    private fun configureFilters(http: HttpSecurity) {
+        http
             .addFilterBefore(corsFilter, CsrfFilter::class.java)
             .addFilterAfter(
                 applicationProperties.getCsrf().cookie.domain?.let {
@@ -130,153 +141,128 @@ class SecurityConfiguration(
                 ),
                 AuthorizationFilter::class.java
             )
-            .exceptionHandling { ex ->
-                ex.accessDeniedHandler { request, response, _ ->
-                    AuditLoggingWrapper.warn(
-                        "Access denied for " +
-                            "user: ${request.let { it?.userPrincipal?.name }}, " +
-                            "method: ${request.method}, " +
-                            "path: ${request.requestURI}}, " +
-                            "ip: ${request.getHeader("X-Forwarded-For")}"
-                    )
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN)
-                }
+    }
+
+    private fun configureExceptionHandling(http: HttpSecurity) {
+        http.exceptionHandling { ex ->
+            ex.accessDeniedHandler { request, response, _ ->
+                AuditLoggingWrapper.warn(
+                    "Access denied for " +
+                        "user: ${request.let { it?.userPrincipal?.name }}, " +
+                        "method: ${request.method}, " +
+                        "path: ${request.requestURI}}, " +
+                        "ip: ${request.getHeader("X-Forwarded-For")}"
+                )
+                response.sendError(HttpServletResponse.SC_FORBIDDEN)
+            }
                 .authenticationEntryPoint { _, response, _ ->
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
                 }
+        }
+    }
+
+    private fun configureHeaders(http: HttpSecurity) {
+        http.headers { h ->
+            h.httpStrictTransportSecurity { sec ->
+                // 12 months
+                sec.maxAgeInSeconds(31536000)
+                    .includeSubDomains(true)
+                    .preload(false)
+                    .requestMatcher(AnyRequestMatcher.INSTANCE)
             }
-            .headers { h ->
-                h.httpStrictTransportSecurity { sec ->
-                    // 12 months
-                    sec.maxAgeInSeconds(31536000)
-                        .includeSubDomains(true)
-                        .preload(false)
-                        .requestMatcher(AnyRequestMatcher.INSTANCE)
-                }
-                    .contentSecurityPolicy { p ->
-                        p.policyDirectives("default-src 'self'; frame-src 'self' data:; script-src 'self'" +
+                .contentSecurityPolicy { p ->
+                    p.policyDirectives("default-src 'self'; frame-src 'self' data:; script-src 'self'" +
                         " 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; style-src 'self' 'unsafe-inline';" +
                         " img-src 'self' data:; font-src 'self' data:")
-                    }
-                    .referrerPolicy { p ->
-                        p.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
-                    }
-                    .permissionsPolicyHeader { p ->
-                        p.policy("geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera" +
-                            " 'none'; magnetometer 'none'; gyroscope 'none'; speaker 'none'; fullscreen 'self'; payment 'none'")
-                    }
-                    h.frameOptions { o ->
-                        o.deny()
-                    }
-
+                }
+                .referrerPolicy { p ->
+                    p.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                }
+                .permissionsPolicyHeader { p ->
+                    p.policy("geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera" +
+                        " 'none'; magnetometer 'none'; gyroscope 'none'; speaker 'none'; fullscreen 'self'; payment 'none'")
+                }
+            h.frameOptions { o ->
+                o.deny()
             }
-            .authorizeHttpRequests { authorize ->
-                authorize
-                    .requestMatchers("/authorize").authenticated()
-                    .requestMatchers("/").permitAll() // ohjaus etusivulle
-                    .requestMatchers("/kirjaudu").permitAll()
-                    .requestMatchers("/api/").permitAll()
-                    .requestMatchers("/api/haka-yliopistot").permitAll()
-                    .requestMatchers("/api/julkinen/**").permitAll()
-                    .requestMatchers("/api/auth-info").denyAll()
-                    .requestMatchers("/api/login/impersonate")
-                    .hasAnyAuthority(VASTUUHENKILO, KOULUTTAJA, OPINTOHALLINNON_VIRKAILIJA)
-                    .requestMatchers(HttpMethod.GET, "/api/erikoistuva-laakari")
-                    .hasAnyAuthority(
-                        ERIKOISTUVA_LAAKARI,
-                        YEK_KOULUTETTAVA,
-                        ERIKOISTUVA_LAAKARI_IMPERSONATED,
-                        ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
-                    )
-                    .requestMatchers(HttpMethod.PUT, "/api/erikoistuva-laakari")
-                    .hasAnyAuthority(
-                        ERIKOISTUVA_LAAKARI,
-                        YEK_KOULUTETTAVA
-                    )
-                    .requestMatchers(HttpMethod.POST, "/api/erikoistuva-laakari/muokkausoikeudet")
-                    .hasAnyAuthority(
-                        ERIKOISTUVA_LAAKARI,
-                        YEK_KOULUTETTAVA
-                    )
-                    .requestMatchers(HttpMethod.GET, "/api/erikoistuva-laakari/**")
-                    .hasAnyAuthority(
-                        ERIKOISTUVA_LAAKARI,
-                        ERIKOISTUVA_LAAKARI_IMPERSONATED,
-                        ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
-                    )
-                    .requestMatchers(
-                        "/api/erikoistuva-laakari/tyoskentelyjaksot/**",
-                        "/api/erikoistuva-laakari/teoriakoulutukset/**"
-                    )
-                    .hasAnyAuthority(
-                        ERIKOISTUVA_LAAKARI,
-                        ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
-                    )
-                    .requestMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
-                    .requestMatchers(HttpMethod.GET, "/api/yek-koulutettava/**")
-                    .hasAnyAuthority(
-                        YEK_KOULUTETTAVA,
-                        ERIKOISTUVA_LAAKARI_IMPERSONATED,
-                        ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
-                    )
-                    .requestMatchers(
-                        "/api/yek-koulutettava/tyoskentelyjaksot/**",
-                        "/api/yek-koulutettava/laillistamispaiva"
-                    )
-                    .hasAnyAuthority(
-                        YEK_KOULUTETTAVA,
-                        ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
-                    )
-                    .requestMatchers("/api/yek-koulutettava/**").hasAuthority(YEK_KOULUTETTAVA)
-                    .requestMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
-                    .requestMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
-                    .requestMatchers("/api/tekninen-paakayttaja/**")
-                    .hasAuthority(TEKNINEN_PAAKAYTTAJA)
-                    .requestMatchers("/api/virkailija/**").hasAuthority(OPINTOHALLINNON_VIRKAILIJA)
-                    .requestMatchers(HttpMethod.PUT, "/api/kayttaja")
-                    .hasAnyAuthority(
-                        ERIKOISTUVA_LAAKARI,
-                        YEK_KOULUTETTAVA,
-                        KOULUTTAJA,
-                        VASTUUHENKILO,
-                        OPINTOHALLINNON_VIRKAILIJA,
-                        TEKNINEN_PAAKAYTTAJA
-                    )
-                    .requestMatchers("/api/**").authenticated()
-                    .requestMatchers("/management/health").permitAll()
-                    .requestMatchers("/management/info").denyAll()
-                    .requestMatchers("/management/**").hasAuthority(ADMIN)
-            }
+        }
+    }
 
-        if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT) || env.activeProfiles.contains(
-                SPRING_PROFILE_PRODUCTION
-            )
-        ) {
-            val relyingPartyRegistrationRepository =
-                applicationContext.getBean(RelyingPartyRegistrationRepository::class.java)
-            val relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver =
-                DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
-            httpConfiguration.saml2Login { l ->
-                l.authenticationConverter(Saml2AuthenticationTokenConverter(relyingPartyRegistrationResolver))
+    private fun configureAuthorization(http: HttpSecurity) {
+        http.authorizeHttpRequests { authorize ->
+            authorize
+                .requestMatchers("/authorize").authenticated()
+                .requestMatchers("/").permitAll() // ohjaus etusivulle
+                .requestMatchers("/kirjaudu").permitAll()
+                .requestMatchers("/api/").permitAll()
+                .requestMatchers("/api/haka-yliopistot").permitAll()
+                .requestMatchers("/api/julkinen/**").permitAll()
+                .requestMatchers("/api/auth-info").denyAll()
+                .requestMatchers("/api/login/impersonate")
+                .hasAnyAuthority(VASTUUHENKILO, KOULUTTAJA, OPINTOHALLINNON_VIRKAILIJA)
+                .requestMatchers(HttpMethod.GET, "/api/erikoistuva-laakari")
+                .hasAnyAuthority(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA, ERIKOISTUVA_LAAKARI_IMPERSONATED, ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
+                .requestMatchers(HttpMethod.PUT, "/api/erikoistuva-laakari")
+                .hasAnyAuthority(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA)
+                .requestMatchers(HttpMethod.POST, "/api/erikoistuva-laakari/muokkausoikeudet")
+                .hasAnyAuthority(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA)
+                .requestMatchers(HttpMethod.GET, "/api/erikoistuva-laakari/**")
+                .hasAnyAuthority(ERIKOISTUVA_LAAKARI, ERIKOISTUVA_LAAKARI_IMPERSONATED, ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
+                .requestMatchers(
+                    "/api/erikoistuva-laakari/tyoskentelyjaksot/**",
+                    "/api/erikoistuva-laakari/teoriakoulutukset/**"
+                )
+                .hasAnyAuthority(ERIKOISTUVA_LAAKARI, ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
+                .requestMatchers("/api/erikoistuva-laakari/**").hasAuthority(ERIKOISTUVA_LAAKARI)
+                .requestMatchers(HttpMethod.GET, "/api/yek-koulutettava/**")
+                .hasAnyAuthority(YEK_KOULUTETTAVA, ERIKOISTUVA_LAAKARI_IMPERSONATED, ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
+                .requestMatchers(
+                    "/api/yek-koulutettava/tyoskentelyjaksot/**",
+                    "/api/yek-koulutettava/laillistamispaiva"
+                )
+                .hasAnyAuthority(YEK_KOULUTETTAVA, ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
+                .requestMatchers("/api/yek-koulutettava/**").hasAuthority(YEK_KOULUTETTAVA)
+                .requestMatchers("/api/kouluttaja/**").hasAuthority(KOULUTTAJA)
+                .requestMatchers("/api/vastuuhenkilo/**").hasAuthority(VASTUUHENKILO)
+                .requestMatchers("/api/tekninen-paakayttaja/**")
+                .hasAuthority(TEKNINEN_PAAKAYTTAJA)
+                .requestMatchers("/api/virkailija/**").hasAuthority(OPINTOHALLINNON_VIRKAILIJA)
+                .requestMatchers(HttpMethod.PUT, "/api/kayttaja")
+                .hasAnyAuthority(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA, KOULUTTAJA, VASTUUHENKILO, OPINTOHALLINNON_VIRKAILIJA, TEKNINEN_PAAKAYTTAJA)
+                .requestMatchers("/api/**").authenticated()
+                .requestMatchers("/management/health").permitAll()
+                .requestMatchers("/management/info").denyAll()
+                .requestMatchers("/management/**").hasAuthority(ADMIN)
+        }
+    }
+
+    private fun configureSaml(http: HttpSecurity) {
+        val authenticationProvider = OpenSaml4AuthenticationProvider()
+        authenticationProvider.setAssertionValidator(createAssertionValidator())
+        authenticationProvider.setResponseAuthenticationConverter(authenticationConverter())
+        val relyingPartyRegistrationRepository =
+            applicationContext.getBean(RelyingPartyRegistrationRepository::class.java)
+        val relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver =
+            DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
+        http.saml2Login { l ->
+            l.authenticationConverter(Saml2AuthenticationTokenConverter(relyingPartyRegistrationResolver))
                 .authenticationManager(ProviderManager(authenticationProvider))
                 .defaultSuccessUrl("/", true)
                 .failureUrl("/kirjaudu")
-            }
-            httpConfiguration
-                .addFilterBefore(ElsaUriFilter(applicationProperties), CsrfFilter::class.java)
-                .saml2Logout { saml2 ->
-                    saml2.logoutRequest { request ->
-                        request.logoutRequestResolver(
-                            logoutRequestResolver(relyingPartyRegistrationResolver)
-                        )
-                    }.logoutUrl("/api/logout").logoutResponse { response ->
-                        response.logoutResponseResolver(
-                            logoutResponseResolver(relyingPartyRegistrationResolver)
-                        )
-                    }
-                }.logout { l -> l.logoutSuccessUrl("/") }
         }
-        return http.build()
+        http
+            .addFilterBefore(ElsaUriFilter(applicationProperties), CsrfFilter::class.java)
+            .saml2Logout { saml2 ->
+                saml2.logoutRequest { request ->
+                    request.logoutRequestResolver(
+                        logoutRequestResolver(relyingPartyRegistrationResolver)
+                    )
+                }.logoutUrl("/api/logout").logoutResponse { response ->
+                    response.logoutResponseResolver(
+                        logoutResponseResolver(relyingPartyRegistrationResolver)
+                    )
+                }
+            }.logout { l -> l.logoutSuccessUrl("/") }
     }
 
     @Bean
@@ -330,7 +316,7 @@ class SecurityConfiguration(
         }
     }
 
-    @Suppress("CyclomaticComplexMethod")
+    @Suppress("CyclomaticComplexMethod", "LongMethod")
     fun convertAuthentication(responseToken: OpenSaml4AuthenticationProvider.ResponseToken): Saml2Authentication? {
         val token: Saml2Authentication =
             OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter()
@@ -341,11 +327,8 @@ class SecurityConfiguration(
 
         // Suomi.fi
         val hetu = principal.attributes["urn:oid:1.2.246.21"]?.get(0) as String?
-
         // Haka
         val eppn = principal.attributes["urn:oid:1.3.6.1.4.1.5923.1.1.1.6"]?.get(0) as String?
-        //val eduPersonAffiliation = principal.attributes["urn:oid:1.3.6.1.4.1.5923.1.1.1.1"]?.get(0)
-        //val organization = principal.attributes["schacHomeOrganization"]?.get(0)
 
         val response = responseToken.response
         val assertion = CollectionUtils.firstElement(response.assertions)
@@ -353,13 +336,10 @@ class SecurityConfiguration(
         principal.attributes["nameID"] = mutableListOf(nameID?.value) as List<*>?
         principal.attributes["nameIDFormat"] = mutableListOf(nameID?.format) as List<*>?
         principal.attributes["nameIDQualifier"] = mutableListOf(nameID?.nameQualifier) as List<*>?
-        principal.attributes["nameIDSPQualifier"] =
-            mutableListOf(nameID?.spNameQualifier) as List<*>?
+        principal.attributes["nameIDSPQualifier"] = mutableListOf(nameID?.spNameQualifier) as List<*>?
 
         val decodedKey = Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
-        val originalKey: SecretKey = SecretKeySpec(
-            decodedKey, 0, decodedKey.size, applicationProperties.getSecurity().secretKeyAlgorithm
-        )
+        val originalKey: SecretKey = SecretKeySpec(decodedKey, 0, decodedKey.size, applicationProperties.getSecurity().secretKeyAlgorithm)
 
         val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
         val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
@@ -370,9 +350,7 @@ class SecurityConfiguration(
         if (verificationToken != null && verificationToken != DEFAULT_RELAY_STATE) {
             verificationTokenRepository.findById(verificationToken).ifPresent {
                 tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
-                userService.createOrUpdateUserWithToken(
-                    tokenUser, it, cipher, originalKey, hetu, eppn, firstName, lastName
-                )
+                userService.createOrUpdateUserWithToken(tokenUser, it, cipher, originalKey, hetu, eppn, firstName, lastName)
             }
         }
 
@@ -382,26 +360,16 @@ class SecurityConfiguration(
             requireNotNull(hetu)
 
             if (existingUser == null) {
-                fetchAndHandleOpintotietodataForFirstLogin(
-                    cipher,
-                    originalKey,
-                    hetu,
-                    firstName,
-                    lastName
-                )
+                fetchAndHandleOpintotietodataForFirstLogin(cipher, originalKey, hetu, firstName, lastName)
                 existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
 
                 // Lokaalissa ympäristössä luodaan uusi käyttäjä, jos sitä ei löydy.
                 if (existingUser == null && env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
-                    opintotietodataPersistenceService.createWithoutOpintotietodata(
-                        cipher, originalKey, hetu, firstName, lastName
-                    )
+                    opintotietodataPersistenceService.createWithoutOpintotietodata(cipher, originalKey, hetu, firstName, lastName)
                     existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
                 }
 
-                existingUser?.let { user ->
-                    fetchAndHandleOpintosuorituksetNonBlocking(user.id!!, hetu)
-                }
+                existingUser?.let { user -> fetchAndHandleOpintosuorituksetNonBlocking(user.id!!, hetu) }
             } else {
                 fetchAndUpdateOpintotietodataIfChanged(existingUser.id!!, hetu, firstName, lastName)
                 fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id!!, hetu)
@@ -418,8 +386,7 @@ class SecurityConfiguration(
             throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
         } else {
             // Tarkistetaan, että käyttäjän nimi on ajan tasalla
-            if ((firstName != "" && lastName != "") &&
-                (existingUser.firstName != firstName || existingUser.lastName != lastName)) {
+            if ((firstName != "" && lastName != "") && (existingUser.firstName != firstName || existingUser.lastName != lastName)) {
                 existingUser.firstName = firstName
                 existingUser.lastName = lastName
                 userRepository.save(existingUser)
@@ -444,10 +411,8 @@ class SecurityConfiguration(
                 existingUser.activeAuthority = Authority(name = KOULUTTAJA)
                 userRepository.save(existingUser)
             } else {
-                log.error(
-                    "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole voimassaolevaa " +
-                        "opinto-oikeutta, opinto-oikeuden tila ei salli kirjautumista tai opinto-oikeuden erikoisala " +
-                        "ei ole liittynyt Elsaan."
+                log.error("Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole voimassaolevaa " +
+                        "opinto-oikeutta, opinto-oikeuden tila ei salli kirjautumista tai opinto-oikeuden erikoisala ei ole liittynyt Elsaan."
                 )
                 throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
             }
@@ -463,9 +428,7 @@ class SecurityConfiguration(
             userRepository.save(existingUser)
         }
 
-        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal),
-            token.saml2Response,
-            kayttaja.user?.authorities?.map { SimpleGrantedAuthority(it.name) })
+        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal), token.saml2Response, kayttaja.user?.authorities?.map { SimpleGrantedAuthority(it.name) })
     }
 
     private fun shouldFetchOpintotietodata(

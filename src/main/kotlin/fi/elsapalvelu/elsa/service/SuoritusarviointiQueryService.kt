@@ -46,113 +46,54 @@ class SuoritusarviointiQueryService(
     }
 
     @Suppress("ComplexMethod")
-    private fun createSpecification(
-        criteria: SuoritusarviointiCriteria?,
-        spec: Specification<Suoritusarviointi?>? = null
-    ): Specification<Suoritusarviointi?> {
-        var specification: Specification<Suoritusarviointi?> = Specification.where(spec)
+    private fun createSpecification(criteria: SuoritusarviointiCriteria?, spec: Specification<Suoritusarviointi?>? = null): Specification<Suoritusarviointi?> {
+        var specification: Specification<Suoritusarviointi?> = spec ?: Specification.unrestricted()
         if (criteria != null) {
             if (criteria.id != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.get(Suoritusarviointi_.id),
-                            criteria.id!!.equals
-                        )
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.id), criteria.id!!.equals) }
             }
             if (criteria.tapahtumanAjankohta != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.get(Suoritusarviointi_.tapahtumanAjankohta),
-                            criteria.tapahtumanAjankohta!!.equals
-                        )
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.tapahtumanAjankohta), criteria.tapahtumanAjankohta!!.equals) }
             }
             if (criteria.arvioitavaTapahtuma != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.get(Suoritusarviointi_.arvioitavaTapahtuma),
-                            criteria.arvioitavaTapahtuma!!.equals
-                        )
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.arvioitavaTapahtuma), criteria.arvioitavaTapahtuma!!.equals) }
             }
             if (criteria.pyynnonAika != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.get(Suoritusarviointi_.pyynnonAika),
-                            criteria.pyynnonAika!!.equals
-                        )
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.pyynnonAika), criteria.pyynnonAika!!.equals) }
             }
             if (criteria.vaativuustaso != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.get(Suoritusarviointi_.vaativuustaso),
-                            criteria.vaativuustaso!!.equals
-                        )
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.vaativuustaso), criteria.vaativuustaso!!.equals) }
             }
             if (criteria.sanallinenArviointi != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.get(Suoritusarviointi_.sanallinenArviointi),
-                            criteria.sanallinenArviointi!!.equals
-                        )
-                    }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.sanallinenArviointi), criteria.sanallinenArviointi!!.equals) }
             }
             if (criteria.arviointiAika != null) {
-                specification =
-                    specification.and { root, _, cb ->
+                specification = specification.and { root, _, cb ->
                         if (criteria.arviointiAika!!.specified != null) {
                             if (criteria.arviointiAika!!.specified) cb.isNotNull(
-                                root.get(
-                                    Suoritusarviointi_.arviointiAika
-                                )
+                                root.get(Suoritusarviointi_.arviointiAika)
                             ) else cb.isNull(root.get(Suoritusarviointi_.arviointiAika))
                         } else {
-                            cb.equal(
-                                root.get(Suoritusarviointi_.arviointiAika),
-                                criteria.arviointiAika!!.equals
-                            )
+                            cb.equal(root.get(Suoritusarviointi_.arviointiAika), criteria.arviointiAika!!.equals)
                         }
                     }
             }
             if (criteria.tyoskentelyjaksoId != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.join(Suoritusarviointi_.tyoskentelyjakso, JoinType.INNER)
-                                .get(Tyoskentelyjakso_.id),
-                            criteria.tyoskentelyjaksoId!!.equals
-                        )
+                specification = specification.and { root, _, cb ->
+                        cb.equal(root.join(Suoritusarviointi_.tyoskentelyjakso, JoinType.INNER).get(Tyoskentelyjakso_.id), criteria.tyoskentelyjaksoId!!.equals)
                     }
             }
             if (criteria.arvioitavaKokonaisuusId != null) {
                 val kokonaisuusSpecification = createSpecification(null) { root, _, cb ->
-                    val arvioitavaKokonaisuusJoin =
-                        root.join(Suoritusarviointi_.arvioitavatKokonaisuudet)
+                    val arvioitavaKokonaisuusJoin = root.join(Suoritusarviointi_.arvioitavatKokonaisuudet)
                             .join(SuoritusarvioinninArvioitavaKokonaisuus_.arvioitavaKokonaisuus)
-                    cb.equal(
-                        arvioitavaKokonaisuusJoin.get(ArvioitavaKokonaisuus_.id),
-                        criteria.arvioitavaKokonaisuusId
-                    )
+                    cb.equal(arvioitavaKokonaisuusJoin.get(ArvioitavaKokonaisuus_.id), criteria.arvioitavaKokonaisuusId)
                 }
                 specification = specification.and(kokonaisuusSpecification)
             }
             if (criteria.arvioinninAntajaId != null) {
-                specification =
-                    specification.and { root, _, cb ->
-                        cb.equal(
-                            root.join(Suoritusarviointi_.arvioinninAntaja, JoinType.INNER)
-                                .get(Kayttaja_.id),
-                            criteria.arvioinninAntajaId!!.equals
-                        )
+                specification = specification.and { root, _, cb ->
+                        cb.equal(root.join(Suoritusarviointi_.arvioinninAntaja, JoinType.INNER).get(Kayttaja_.id), criteria.arvioinninAntajaId!!.equals)
                     }
             }
         }

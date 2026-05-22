@@ -6,9 +6,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 
-class TyoskentelypaikkaHelper {
-
-    companion object {
+object TyoskentelypaikkaHelper {
 
         const val DEFAULT_NIMI = "AAAAAAAAAA"
         const val UPDATED_NIMI = "BBBBBBBBBB"
@@ -66,5 +64,5 @@ class TyoskentelypaikkaHelper {
 
             return tyoskentelypaikka
         }
-    }
+
 }

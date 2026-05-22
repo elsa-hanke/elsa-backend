@@ -7,61 +7,56 @@ import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
 
-class ArvioitavanKokonaisuudenKategoriaHelper {
+object ArvioitavanKokonaisuudenKategoriaHelper {
+    private const val DEFAULT_NIMI = "AAAAAAAAAA"
+    private const val UPDATED_NIMI = "BBBBBBBBBB"
+    private const val DEFAULT_JARJESTYSNUMERO: Int = 1
+    private const val UPDATED_JARJESTYSNUMERO: Int = 2
 
-    companion object {
+    @JvmStatic
+    fun createEntity(
+        em: EntityManager,
+        existingErikoisala: Erikoisala? = null
+    ): ArvioitavanKokonaisuudenKategoria {
+        val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoria(
+            nimi = DEFAULT_NIMI,
+            jarjestysnumero = DEFAULT_JARJESTYSNUMERO
+        )
 
-        private const val DEFAULT_NIMI = "AAAAAAAAAA"
-        private const val UPDATED_NIMI = "BBBBBBBBBB"
-
-        private const val DEFAULT_JARJESTYSNUMERO: Int = 1
-        private const val UPDATED_JARJESTYSNUMERO: Int = 2
-
-        @JvmStatic
-        fun createEntity(
-            em: EntityManager,
-            existingErikoisala: Erikoisala? = null
-        ): ArvioitavanKokonaisuudenKategoria {
-            val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoria(
-                nimi = DEFAULT_NIMI,
-                jarjestysnumero = DEFAULT_JARJESTYSNUMERO
-            )
-
-            // Lisätään pakollinen tieto
-            var erikoisala = existingErikoisala
-            if (erikoisala == null) {
-                if (em.findAll(Erikoisala::class).isEmpty()) {
-                    erikoisala = ErikoisalaHelper.createEntity()
-                    em.persist(erikoisala)
-                    em.flush()
-                } else {
-                    erikoisala = em.findAll(Erikoisala::class)[0]
-                }
-            }
-            arvioitavanKokonaisuudenKategoria.erikoisala = erikoisala
-
-            return arvioitavanKokonaisuudenKategoria
-        }
-
-        @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): ArvioitavanKokonaisuudenKategoria {
-            val kategoria = ArvioitavanKokonaisuudenKategoria(
-                nimi = UPDATED_NIMI,
-                jarjestysnumero = UPDATED_JARJESTYSNUMERO
-            )
-
-            // Lisätään pakollinen tieto
-            val erikoisala: Erikoisala
+        // Lisätään pakollinen tieto
+        var erikoisala = existingErikoisala
+        if (erikoisala == null) {
             if (em.findAll(Erikoisala::class).isEmpty()) {
-                erikoisala = ErikoisalaHelper.createUpdatedEntity()
+                erikoisala = ErikoisalaHelper.createEntity()
                 em.persist(erikoisala)
                 em.flush()
             } else {
                 erikoisala = em.findAll(Erikoisala::class)[0]
             }
-            kategoria.erikoisala = erikoisala
-
-            return kategoria
         }
+        arvioitavanKokonaisuudenKategoria.erikoisala = erikoisala
+
+        return arvioitavanKokonaisuudenKategoria
+    }
+
+    @JvmStatic
+    fun createUpdatedEntity(em: EntityManager): ArvioitavanKokonaisuudenKategoria {
+        val kategoria = ArvioitavanKokonaisuudenKategoria(
+            nimi = UPDATED_NIMI,
+            jarjestysnumero = UPDATED_JARJESTYSNUMERO
+        )
+
+        // Lisätään pakollinen tieto
+        val erikoisala: Erikoisala
+        if (em.findAll(Erikoisala::class).isEmpty()) {
+            erikoisala = ErikoisalaHelper.createUpdatedEntity()
+            em.persist(erikoisala)
+            em.flush()
+        } else {
+            erikoisala = em.findAll(Erikoisala::class)[0]
+        }
+        kategoria.erikoisala = erikoisala
+
+        return kategoria
     }
 }

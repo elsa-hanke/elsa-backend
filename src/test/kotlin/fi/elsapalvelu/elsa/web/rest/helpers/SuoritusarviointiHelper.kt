@@ -6,9 +6,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
 
-class SuoritusarviointiHelper {
-
-    companion object {
+object SuoritusarviointiHelper {
 
         private val DEFAULT_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.now(ZoneId.systemDefault())
@@ -178,5 +176,5 @@ class SuoritusarviointiHelper {
 
             return suoritusarviointi
         }
-    }
+
 }

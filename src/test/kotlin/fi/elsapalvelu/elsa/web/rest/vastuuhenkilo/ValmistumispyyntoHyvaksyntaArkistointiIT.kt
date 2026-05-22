@@ -43,7 +43,6 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import jakarta.persistence.EntityManager
 
@@ -92,6 +91,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      * with pdfService mocked the OutputStream stays empty (valid, just zero-byte PDF).
      * This allows execution to reach the arkistointiService.muodostaSahke call.
      */
+    @Suppress("UnusedPrivateProperty")
     @MockitoBean
     private lateinit var pdfService: PdfService
 
@@ -115,6 +115,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private var committedOpintooikeusId: Long? = null
     private var committedErikoistuvaLaakariId: Long? = null
     private var committedYliopistoId: Long? = null
+    private val committedExtraErikoisalaIds: MutableList<Long> = mutableListOf()
 
     /**
      * Deletes rows committed by the non-@Transactional tests in FK-safe order
@@ -126,7 +127,8 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      *  3. rel_kayttaja__yliopisto                           (join table FK → yliopisto)
      *  4. rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi  (FK → kayttaja_yliopisto_erikoisala)
      *  5. kayttaja_yliopisto_erikoisala                     (FK → yliopisto)
-     *  6. erikoisala (extras with nimi='AAAAAAAAAA')        (no remaining FK refs)
+     *  6. erikoisala extras created by initVastuuhenkiloErikoisalat
+     *     (no remaining FK refs)
      *  7. opintooikeus                                      (FK → erikoistuva_laakari, yliopisto)
      *  8. erikoistuva_laakari                               (no remaining FK references from our data)
      *  9. yliopisto                                         (no remaining FK references from our data)
@@ -159,9 +161,9 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                     "(SELECT id FROM kayttaja_yliopisto_erikoisala WHERE yliopisto_id = $yId)"
             ).executeUpdate()
             em.createNativeQuery("DELETE FROM kayttaja_yliopisto_erikoisala WHERE yliopisto_id = $yId").executeUpdate()
-            // Extra erikoisala rows created by initVastuuhenkiloErikoisalat use DEFAULT_NIMI ("AAAAAAAAAA"),
-            // which never appears in the 61 seeded erikoisalat.
-            em.createNativeQuery("DELETE FROM erikoisala WHERE nimi = 'AAAAAAAAAA'").executeUpdate()
+            if (committedExtraErikoisalaIds.isNotEmpty()) {
+                em.createNativeQuery("DELETE FROM erikoisala WHERE id IN (${committedExtraErikoisalaIds.joinToString()})").executeUpdate()
+            }
             em.createNativeQuery("DELETE FROM opintooikeus WHERE id = $ooId").executeUpdate()
             if (elId != null) {
                 em.createNativeQuery("DELETE FROM erikoistuva_laakari WHERE id = $elId").executeUpdate()
@@ -174,6 +176,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         committedOpintooikeusId = null
         committedErikoistuvaLaakariId = null
         committedYliopistoId = null
+        committedExtraErikoisalaIds.clear()
     }
 
     // -------------------------------------------------------------------------
@@ -478,6 +481,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     ) {
         val extra1 = ErikoisalaHelper.createEntity().also { em.persist(it) }
         val extra2 = ErikoisalaHelper.createEntity().also { em.persist(it) }
+        committedExtraErikoisalaIds.addAll(listOf(extra1.id!!, extra2.id!!))
 
         listOf(extra1, erikoisala, extra2).forEach { ala ->
             kayttaja.yliopistotAndErikoisalat.add(

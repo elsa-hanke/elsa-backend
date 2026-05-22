@@ -6,9 +6,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
 
-class SuoritemerkintaHelper {
-
-    companion object {
+object SuoritemerkintaHelper {
 
         private val DEFAULT_SUORITUSPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_SUORITUSPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
@@ -108,5 +106,5 @@ class SuoritemerkintaHelper {
 
             return suoritemerkinta
         }
-    }
+
 }
