@@ -6,7 +6,7 @@ plugins {
     id "org.jetbrains.kotlin.plugin.spring" version "${kotlinVersion}"
     id "org.jetbrains.kotlin.plugin.jpa" version "${kotlinVersion}"
     // id "org.jlleitschuh.gradle.ktlint" version "11.2.0"
-    id "io.gitlab.arturbosch.detekt" version "${detektVersion}"
+    id "dev.detekt" version "${detektVersion}"
     id "jacoco"
     id "org.springframework.boot" version "${springBootVersion}"
     id "io.spring.dependency-management" version "1.1.7"
@@ -15,14 +15,15 @@ plugins {
     id "com.gorylenko.gradle-git-properties"
     id "org.liquibase.gradle" version "2.1.1"
     id "org.sonarqube"
-    id "com.apollographql.apollo3" version "${apolloVersion}"
+    id "com.apollographql.apollo" version "${apolloVersion}"
     id "org.hibernate.orm" version "${hibernateVersion}"
     id "org.cyclonedx.bom" version "3.2.4"
 }
 
 apollo {
-    packageName.set("fi.elsapalvelu.elsa")
-    generateKotlinModels.set(true)
+    service("service") {
+        packageName.set("fi.elsapalvelu.elsa")
+    }
 }
 
 group = "fi.elsapalvelu.elsa"
@@ -75,12 +76,12 @@ tasks.register('integrationTest', Test) {
 
 check.dependsOn integrationTest
 tasks.register('testReport', TestReport) {
-    destinationDirectory = file("$buildDir/reports/tests")
+    destinationDirectory = layout.buildDirectory.dir("reports/tests")
     testResults.from(test)
 }
 
 tasks.register('integrationTestReport', TestReport) {
-    destinationDirectory = file("$buildDir/reports/tests")
+    destinationDirectory = layout.buildDirectory.dir("reports/tests")
     testResults.from(integrationTest)
 }
 
@@ -142,7 +143,7 @@ dependencies {
     implementation "net.coobird:thumbnailator:0.4.14"
     implementation "org.fluentd:fluent-logger:0.3.4"
     implementation "com.sndyuk:logback-more-appenders:1.8.6"
-    implementation "com.apollographql.apollo3:apollo-runtime:${apolloVersion}"
+    implementation "com.apollographql.apollo:apollo-runtime:${apolloVersion}"
     implementation "com.squareup.okhttp3:okhttp-tls:4.9.3"
     implementation "net.javacrumbs.shedlock:shedlock-spring:4.33.0"
     implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.33.0"
@@ -156,18 +157,15 @@ dependencies {
     implementation 'net.i2p.crypto:eddsa:0.3.0'
 }
 
-apollo {
-    packageName.set("fi.elsapalvelu.elsa")
-}
 
 wrapper {
-    gradleVersion = "8.14.5"
+    gradleVersion = "9.3.1"
 }
 
 detekt {
     buildUponDefaultConfig = true
     allRules = false
-    config = files("$rootDir/detekt-config.yml")
+    config.setFrom(files("$rootDir/detekt-config.yml"))
 }
 
 testlogger {

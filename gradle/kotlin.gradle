@@ -24,7 +24,7 @@ allOpen {
 if (OperatingSystem.current().isWindows()) {
     bootRun {
         doFirst {
-            classpath += files("$buildDir/classes/kotlin/main")
+            classpath += files("${layout.buildDirectory.get().asFile}/classes/kotlin/main")
         }
     }
 }
@@ -36,7 +36,7 @@ jacocoTestReport {
 
 sonarqube {
     properties {
-        property "sonar.kotlin.detekt.reportPaths", detekt.reports.xml.destination
+        property "sonar.sarifReportPaths", "${layout.buildDirectory.get().asFile}/reports/detekt/detekt.sarif"
     }
 }
 

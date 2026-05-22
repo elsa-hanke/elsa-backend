@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import com.apollographql.apollo3.exception.ApolloException
+import com.apollographql.apollo.exception.ApolloException
 import fi.elsapalvelu.elsa.OpintosuorituksetPeppiOuluQuery
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate

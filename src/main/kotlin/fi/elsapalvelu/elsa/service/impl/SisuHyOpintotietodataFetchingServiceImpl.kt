@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import com.apollographql.apollo3.exception.ApolloException
+import com.apollographql.apollo.exception.ApolloException
 import fi.elsapalvelu.elsa.OpintotietodataSisuHyQuery
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_SISU_KOULUTUS

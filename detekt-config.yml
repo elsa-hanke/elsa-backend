@@ -14,13 +14,15 @@ naming:
     active: false
 complexity:
   TooManyFunctions:
-    thresholdInClasses: 20
-    thresholdInInterfaces: 16
+    allowedFunctionsPerClass: 20
+    allowedFunctionsPerInterface: 16
   LongParameterList:
-    constructorThreshold: 17
-    functionThreshold: 10
+    allowedConstructorParameters: 17
+    allowedFunctionParameters: 10
   ComplexCondition:
-    threshold: 5
+    allowedConditions: 5
+  CyclomaticComplexMethod:
+    allowedComplexity: 15
   NestedBlockDepth:
     active: false
 exceptions:
