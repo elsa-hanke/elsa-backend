@@ -1,9 +1,10 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum.*
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
@@ -102,29 +103,17 @@ class KoejaksonKoulutussopimusServiceImpl(
         }
     }
 
-    override fun update(
-        koejaksonKoulutussopimusDTO: KoejaksonKoulutussopimusDTO,
-        userId: String
-    ): KoejaksonKoulutussopimusDTO {
+    override fun update(koulutussopimusDTO: KoejaksonKoulutussopimusDTO, userId: String): KoejaksonKoulutussopimusDTO {
         try {
-            var koulutussopimus =
-                koejaksonKoulutussopimusRepository.findById(koejaksonKoulutussopimusDTO.id!!)
-                    .orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
+            var koulutussopimus = koejaksonKoulutussopimusRepository.findById(koulutussopimusDTO.id!!).orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
+            val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            val updatedKoulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koulutussopimusDTO)
 
-            val kirjautunutErikoistuvaLaakari =
-                erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-
-            val updatedKoulutussopimus =
-                koejaksonKoulutussopimusMapper.toEntity(koejaksonKoulutussopimusDTO)
-
-            if (kirjautunutErikoistuvaLaakari != null
-                && kirjautunutErikoistuvaLaakari == koulutussopimus.opintooikeus?.erikoistuvaLaakari
-            ) {
+            if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == koulutussopimus.opintooikeus?.erikoistuvaLaakari) {
                 koulutussopimus = handleErikoistuva(koulutussopimus, updatedKoulutussopimus)
-
                 koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
-                    user.email = koejaksonKoulutussopimusDTO.erikoistuvanSahkoposti
-                    user.phoneNumber = koejaksonKoulutussopimusDTO.erikoistuvanPuhelinnumero
+                    user.email = koulutussopimusDTO.erikoistuvanSahkoposti
+                    user.phoneNumber = koulutussopimusDTO.erikoistuvanPuhelinnumero
                     userRepository.save(user)
                 }
             }
@@ -132,11 +121,9 @@ class KoejaksonKoulutussopimusServiceImpl(
             koulutussopimus.kouluttajat?.toTypedArray()?.forEach {
                 if (it.kouluttaja?.user?.id == userId) {
                     koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
-
                     val kayttaja = it.kouluttaja!!
                     val user = it.kouluttaja?.user!!
-                    val kouluttaja =
-                        koejaksonKoulutussopimusDTO.kouluttajat?.first { it.kayttajaUserId == userId }
+                    val kouluttaja = koulutussopimusDTO.kouluttajat?.first { it.kayttajaUserId == userId }
                     user.phoneNumber = kouluttaja?.puhelin
                     user.email = kouluttaja?.sahkoposti?.lowercase()
                     kayttaja.nimike = kouluttaja?.nimike
@@ -145,29 +132,22 @@ class KoejaksonKoulutussopimusServiceImpl(
                 }
             }
 
-            val vastuuhenkilo =
-                kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
-                    listOf(VASTUUHENKILO),
-                    koulutussopimus.opintooikeus?.yliopisto?.id,
-                    koulutussopimus.opintooikeus?.erikoisala?.id,
-                    VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
-                )
+            val vastuuhenkilo = kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(listOf(VASTUUHENKILO),
+                koulutussopimus.opintooikeus?.yliopisto?.id, koulutussopimus.opintooikeus?.erikoisala?.id, KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN)
             if (vastuuhenkilo?.user?.id == userId) {
                 logger.info("Kasitellaan vastuuhenkilo paivitys  KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-                koulutussopimus =
-                    handleVastuuhenkilo(koulutussopimus, updatedKoulutussopimus, vastuuhenkilo)
+                koulutussopimus = handleVastuuhenkilo(koulutussopimus, updatedKoulutussopimus, vastuuhenkilo)
                 logger.info("Kasitelty vastuuhenkilo paivitys KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
 
                 koulutussopimus.vastuuhenkilo?.user?.let {
-                    it.phoneNumber = koejaksonKoulutussopimusDTO.vastuuhenkilo?.puhelin
-                    it.email = koejaksonKoulutussopimusDTO.vastuuhenkilo?.sahkoposti
+                    it.phoneNumber = koulutussopimusDTO.vastuuhenkilo?.puhelin
+                    it.email = koulutussopimusDTO.vastuuhenkilo?.sahkoposti
                     logger.info("Kasitellaan vastuuhenkilo paivitys  KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
                     userRepository.save(it)
                     logger.info("Kasitelty vastuuhenkilo paivitys KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
                 }
             }
 
-            logger.info("Kasitellaan kouluttaja paivitys kantaan KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
             koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
             logger.info("Kasitelty kouluttaja paivitys kantaan KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
 
@@ -175,42 +155,46 @@ class KoejaksonKoulutussopimusServiceImpl(
             if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
                 logger.info("Kasitellaan sopimus hyvaksytty KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
                 val asiakirja = luoPdf(dto, koulutussopimus)
-
                 logger.info("Luotu koulutussopimuksesta pdf: $asiakirja.id")
                 val yliopisto = koulutussopimus.opintooikeus?.yliopisto?.nimi!!
 
                 if (arkistointiService.onKaytossa(yliopisto, CaseType.SOPIMUS)) {
-                    logger.info("Kasitellaan koulutussopimuksesta pdf arkistointi")
-                    val result = arkistointiService.muodostaSahke(
-                        koulutussopimus.opintooikeus,
-                        listOf(
-                            RecordProperties(asiakirja, RecordType.SOPIMUS)
-                        ),
-                        caseId = koulutussopimus.id!!.toString(),
-                        tarkastaja = "",
-                        tarkastusPaiva = null,
-                        hyvaksyja = koulutussopimus.vastuuhenkilo?.user?.getName(),
-                        hyvaksymisPaiva = koulutussopimus.vastuuhenkilonKuittausaika,
-                        yliopisto = yliopisto,
-                        caseType = CaseType.SOPIMUS
-                    )
-                    logger.info("Koulutussopimuksesta pdf arkistointi onnistui")
-                    logger.info("Koulutussopimuksesta pdf arkistointi tuloste: ${result.zipFilePath}")
-
-                    val erikoisala = koulutussopimus.opintooikeus?.erikoisala!!
-                    val yek = erikoisala.id == YEK_ERIKOISALA_ID
-                    logger.info("Lahetetaan arkistopyynto: ${result.zipFilePath}")
-                    arkistointiService.laheta(yliopisto, result.zipFilePath, CaseType.SOPIMUS, yek)
-                    logger.info("Lahetettiin arkistopyynto")
+                    arkistoiKoulutussopimus(koulutussopimus.opintooikeus, asiakirja, koulutussopimus, yliopisto)
                 }
             }
-
-            return dto
+                return dto
         }
-        catch( e: Exception) {
+        catch(e: Exception) {
             logger.error("Virhe koulutussopimuksen päivityksessä: ${e.message}", e)
             throw e
         }
+    }
+
+    private fun arkistoiKoulutussopimus(
+        opintooikeus: Opintooikeus?,
+        asiakirja: Asiakirja,
+        koulutussopimus: KoejaksonKoulutussopimus,
+        yliopisto: YliopistoEnum
+    ) {
+        logger.info("Kasitellaan koulutussopimuksesta pdf arkistointi")
+        val result = arkistointiService.muodostaSahke(
+            opintooikeus,
+            listOf(RecordProperties(asiakirja, RecordType.SOPIMUS)),
+            caseId = koulutussopimus.id!!.toString(),
+            tarkastaja = "",
+            tarkastusPaiva = null,
+            hyvaksyja = koulutussopimus.vastuuhenkilo?.user?.getName(),
+            hyvaksymisPaiva = koulutussopimus.vastuuhenkilonKuittausaika,
+            yliopisto = yliopisto,
+            caseType = CaseType.SOPIMUS
+        )
+        logger.info("Koulutussopimuksesta pdf arkistointi onnistui, tuloste: ${result.zipFilePath}")
+
+        val erikoisala = opintooikeus?.erikoisala!!
+        val yek = erikoisala.id == YEK_ERIKOISALA_ID
+        logger.info("Lahetetaan arkistopyynto: ${result.zipFilePath}")
+        arkistointiService.laheta(yliopisto, result.zipFilePath, CaseType.SOPIMUS, yek)
+        logger.info("Lahetettiin arkistopyynto")
     }
 
     private fun handleErikoistuva(
@@ -259,10 +243,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         return result
     }
 
-    private fun handleKouluttaja(
-        koulutussopimus: KoejaksonKoulutussopimus,
-        kouluttaja: KoulutussopimuksenKouluttaja,
-        updated: KoejaksonKoulutussopimus
+    private fun handleKouluttaja(koulutussopimus: KoejaksonKoulutussopimus, kouluttaja: KoulutussopimuksenKouluttaja, updated: KoejaksonKoulutussopimus
     ): KoejaksonKoulutussopimus {
         val updatedKouluttaja = updated.kouluttajat?.first { k -> k.id == kouluttaja.id }
         kouluttaja.toimipaikka = updatedKouluttaja?.toimipaikka
@@ -294,28 +275,18 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         // Sähköposti vastuuhenkilölle hyväksytystä sopimuksesta
         if (result.kouluttajat?.all { it.sopimusHyvaksytty } == true) {
-            val vastuuhenkilo =
-                kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
-                    listOf(VASTUUHENKILO),
-                    koulutussopimus.opintooikeus?.yliopisto?.id,
-                    koulutussopimus.opintooikeus?.erikoisala?.id,
-                    VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
-                )
+            val vastuuhenkilo = kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(listOf(VASTUUHENKILO),
+                    koulutussopimus.opintooikeus?.yliopisto?.id, koulutussopimus.opintooikeus?.erikoisala?.id,
+                    VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN)
             vastuuhenkilo?.user?.let {
-                mailService.sendEmailFromTemplate(
-                    it,
-                    templateName = "koulutussopimusVastuuhenkilolle.html",
-                    titleKey = "email.koulutussopimusvastuuhenkilolle.title",
-                    properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
-                )
+                mailService.sendEmailFromTemplate(it, templateName = "koulutussopimusVastuuhenkilolle.html", titleKey = "email.koulutussopimusvastuuhenkilolle.title",
+                    properties = mapOf(Pair(MailProperty.ID, result.id!!.toString())))
             }
         }
 
         // Sähköposti erikoistuvalle ja toiselle kouluttajalle palautetusta sopimuksesta
         else if (result.korjausehdotus != null) {
-            val erikoistuvaLaakari =
-                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+            val erikoistuvaLaakari = kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!).get().user!!
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
                 templateName = "koulutussopimusPalautettu.html",
@@ -329,13 +300,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                         kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
                         templateName = "koulutussopimusPalautettuKouluttaja.html",
                         titleKey = "email.koulutussopimuspalautettu.title",
-                        properties = mapOf(
-                            Pair(
-                                MailProperty.NAME,
-                                erikoistuvaLaakari.getName()
-                            ),
-                            Pair(MailProperty.TEXT, result.korjausehdotus!!)
-                        )
+                        properties = mapOf(Pair(MailProperty.NAME, erikoistuvaLaakari.getName()), Pair(MailProperty.TEXT, result.korjausehdotus!!))
                     )
                 }
             }

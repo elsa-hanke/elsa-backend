@@ -107,7 +107,7 @@ class StaleXsrfCookieClearingFilterTest {
         val request = MockHttpServletRequest().apply { setCookies(xsrf("only-token")) }
         filter().doFilter(request, MockHttpServletResponse(), chain)
         // MockFilterChain records the request it was called with; null means it was never called
-        assertThat(chain.request).isNotNull()
+        assertThat(chain.request!!).isNotNull()
     }
 
     @Test
@@ -115,7 +115,6 @@ class StaleXsrfCookieClearingFilterTest {
         val chain = MockFilterChain()
         val request = MockHttpServletRequest().apply { setCookies(xsrf("stale"), xsrf("current")) }
         filter().doFilter(request, MockHttpServletResponse(), chain)
-        assertThat(chain.request).isNotNull()
+        assertThat(chain.request!!).isNotNull()
     }
 }
-

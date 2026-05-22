@@ -9,6 +9,9 @@ test:
 itest:
   ./gradlew clean integrationTest
 
+detekt:
+  ./gradlew clean detekt
+
 init:
   @docker volume create elsa_db_data > /dev/null 2>&1 || true
   @docker network create elsa > /dev/null 2>&1 || true

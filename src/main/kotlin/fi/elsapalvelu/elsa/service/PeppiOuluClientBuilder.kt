@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
-import com.apollographql.apollo3.ApolloClient
+import com.apollographql.apollo.ApolloClient
 
 interface PeppiOuluClientBuilder {
 

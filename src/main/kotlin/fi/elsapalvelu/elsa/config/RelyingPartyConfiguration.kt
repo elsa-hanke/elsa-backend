@@ -43,37 +43,19 @@ class RelyingPartyConfiguration(
 
         // Suomi.fi
         if (applicationProperties.getSecurity().getSuomifi().enabled == true) {
-            val publicKeyResource: Resource =
-                resourceLoader.getResource(
-                    applicationProperties.getSecurity().getSuomifi().samlCertificateLocation!!
-                )
+            val publicKeyResource: Resource = resourceLoader.getResource(applicationProperties.getSecurity().getSuomifi().samlCertificateLocation!!)
             val bytes = publicKeyResource.inputStream.use { it.readBytes() }
-            val certificate: X509Certificate =
-                X509Support.decodeCertificate(bytes)!!
+            val certificate: X509Certificate = X509Support.decodeCertificate(bytes)!!
 
-            val privateKeyResource: Resource =
-                resourceLoader.getResource(
-                    applicationProperties.getSecurity().getSuomifi().samlPrivateKeyLocation!!
-                )
-            val rsa: RSAPrivateKey =
-                RsaKeyConverters.pkcs8().convert(privateKeyResource.inputStream)!!
+            val privateKeyResource: Resource = resourceLoader.getResource(applicationProperties.getSecurity().getSuomifi().samlPrivateKeyLocation!!)
+            val rsa: RSAPrivateKey = RsaKeyConverters.pkcs8().convert(privateKeyResource.inputStream)!!
 
-            val signingCredential: Saml2X509Credential =
-                Saml2X509Credential.signing(rsa, certificate)
-            val decryptionCredential: Saml2X509Credential =
-                Saml2X509Credential.decryption(rsa, certificate)
+            val signingCredential: Saml2X509Credential = Saml2X509Credential.signing(rsa, certificate)
+            val decryptionCredential: Saml2X509Credential = Saml2X509Credential.decryption(rsa, certificate)
 
-            val registration = RelyingPartyRegistrations
-                .fromMetadataLocation(
-                    applicationProperties.getSecurity()
-                        .getSuomifi().samlSuomifiMetadataLocation!!
-                )
+            val registration = RelyingPartyRegistrations.fromMetadataLocation(applicationProperties.getSecurity().getSuomifi().samlSuomifiMetadataLocation!!)
                 .registrationId("suomifi")
-                .assertingPartyMetadata { party ->
-                    party.entityId(
-                        applicationProperties.getSecurity().getSuomifi().samlSuomifiEntityId!!
-                    )
-                }
+                .assertingPartyMetadata { party -> party.entityId(applicationProperties.getSecurity().getSuomifi().samlSuomifiEntityId!!) }
                 .apply {
                     applicationProperties.getSecurity().getSuomifi().samlSpEntityId
                         ?.let { entityId(it) }
@@ -96,29 +78,19 @@ class RelyingPartyConfiguration(
 
         // Haka
         if (applicationProperties.getSecurity().getHaka().enabled == true) {
-            val publicKeyResource: Resource =
-                resourceLoader.getResource(
-                    applicationProperties.getSecurity().getHaka().samlCertificateLocation!!
-                )
+            val publicKeyResource: Resource = resourceLoader.getResource(applicationProperties.getSecurity().getHaka().samlCertificateLocation!!)
             val bytes = publicKeyResource.inputStream.use { it.readBytes() }
             val certificate: X509Certificate =
                 X509Support.decodeCertificate(bytes)!!
 
-            val privateKeyResource: Resource =
-                resourceLoader.getResource(
-                    applicationProperties.getSecurity().getHaka().samlPrivateKeyLocation!!
-                )
-            val rsa: RSAPrivateKey =
-                RsaKeyConverters.pkcs8().convert(privateKeyResource.inputStream)!!
+            val privateKeyResource: Resource = resourceLoader.getResource(applicationProperties.getSecurity().getHaka().samlPrivateKeyLocation!!)
+            val rsa: RSAPrivateKey = RsaKeyConverters.pkcs8().convert(privateKeyResource.inputStream)!!
 
-            val signingCredential: Saml2X509Credential =
-                Saml2X509Credential.signing(rsa, certificate)
-            val decryptionCredential: Saml2X509Credential =
-                Saml2X509Credential.decryption(rsa, certificate)
+            val signingCredential: Saml2X509Credential = Saml2X509Credential.signing(rsa, certificate)
+            val decryptionCredential: Saml2X509Credential = Saml2X509Credential.decryption(rsa, certificate)
 
             yliopistoRepository.findAllHaka().forEach {
-                registrations.add(
-                    RelyingPartyRegistrations
+                registrations.add(RelyingPartyRegistrations
                         .fromMetadata(ByteArrayInputStream(parseHakaFile(it.hakaEntityId!!).toByteArray()))
                         .registrationId(it.hakaId!!)
                         .assertingPartyMetadata { party ->
@@ -126,11 +98,7 @@ class RelyingPartyConfiguration(
                             party.wantAuthnRequestsSigned(true)
                         }
                         .signingX509Credentials { signing -> signing.add(signingCredential) }
-                        .decryptionX509Credentials { decryption ->
-                            decryption.add(
-                                decryptionCredential
-                            )
-                        }
+                        .decryptionX509Credentials { decryption -> decryption.add(decryptionCredential) }
                         .singleLogoutServiceBinding(Saml2MessageBinding.REDIRECT)
                         .singleLogoutServiceResponseLocation("{baseUrl}/logout/saml2/slo")
                         .build()

@@ -56,9 +56,7 @@ class EtusivuServiceImpl(
     private val erikoisalaRepository: ErikoisalaRepository
 ) : EtusivuService {
 
-    override fun getErikoistujienSeurantaVastuuhenkiloRajaimet(
-        userId: String
-    ): ErikoistujienSeurantaDTO {
+    override fun getErikoistujienSeurantaVastuuhenkiloRajaimet(userId: String): ErikoistujienSeurantaDTO {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
         val seurantaDTO = ErikoistujienSeurantaDTO()
         kayttaja?.let {
@@ -78,11 +76,7 @@ class EtusivuServiceImpl(
         return seurantaDTO
     }
 
-    override fun getErikoistujienSeurantaForVastuuhenkilo(
-        userId: String,
-        criteria: ErikoistujanEteneminenCriteria,
-        pageable: Pageable,
-    ): Page<ErikoistujanEteneminenDTO>? {
+    override fun getErikoistujienSeurantaForVastuuhenkilo(userId: String, criteria: ErikoistujanEteneminenCriteria, pageable: Pageable): Page<ErikoistujanEteneminenDTO>? {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
         kayttaja?.let { k ->
             return erikoistujienSeurantaQueryService.findByErikoisalaAndYliopisto(
@@ -95,11 +89,7 @@ class EtusivuServiceImpl(
         return null
     }
 
-    override fun getKoulutettavienSeurantaForVastuuhenkilo(
-        userId: String,
-        criteria: ErikoistujanEteneminenCriteria,
-        pageable: Pageable
-    ): Page<KoulutettavanEteneminenDTO>? {
+    override fun getKoulutettavienSeurantaForVastuuhenkilo(userId: String, criteria: ErikoistujanEteneminenCriteria, pageable: Pageable): Page<KoulutettavanEteneminenDTO>? {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
         kayttaja?.let { k ->
             return erikoistujienSeurantaQueryService.findByErikoisalaAndYliopisto(
@@ -112,9 +102,7 @@ class EtusivuServiceImpl(
         return null
     }
 
-    override fun getErikoistujienSeurantaKouluttajaRajaimet(
-        userId: String
-    ): ErikoistujienSeurantaDTO {
+    override fun getErikoistujienSeurantaKouluttajaRajaimet(userId: String): ErikoistujienSeurantaDTO {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
         val seurantaDTO = ErikoistujienSeurantaDTO()
         kayttaja?.let {
@@ -134,11 +122,7 @@ class EtusivuServiceImpl(
         return seurantaDTO
     }
 
-    override fun getErikoistujienSeurantaForKouluttaja(
-        userId: String,
-        criteria: ErikoistujanEteneminenCriteria,
-        pageable: Pageable,
-    ): Page<ErikoistujanEteneminenDTO>? {
+    override fun getErikoistujienSeurantaForKouluttaja(userId: String, criteria: ErikoistujanEteneminenCriteria, pageable: Pageable): Page<ErikoistujanEteneminenDTO>? {
         val kayttaja: Kayttaja? = kayttajaRepository.findOneByUserId(userId).orElse(null)
         kayttaja?.let { k ->
             return erikoistujienSeurantaQueryService.findByKouluttajaValtuutus(
@@ -150,26 +134,20 @@ class EtusivuServiceImpl(
         return null
     }
 
-    private fun getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(
-        opintooikeus: Opintooikeus
-    ): ErikoistujanEteneminenDTO {
+    private fun getErikoistujanEteneminenForKouluttajaOrVastuuhenkilo(opintooikeus: Opintooikeus): ErikoistujanEteneminenDTO {
         val eteneminen = ErikoistujanEteneminenDTO()
 
         // Erikoistujan tiedot
         eteneminen.opintooikeusId = opintooikeus.id
-        eteneminen.erikoistuvaLaakariEtuNimi =
-            opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName
-        eteneminen.erikoistuvaLaakariSukuNimi =
-            opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.lastName
+        eteneminen.erikoistuvaLaakariEtuNimi = opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName
+        eteneminen.erikoistuvaLaakariSukuNimi = opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.lastName
         eteneminen.erikoistuvaLaakariSyntymaaika = opintooikeus.erikoistuvaLaakari?.syntymaaika
         eteneminen.opintooikeudenMyontamispaiva = opintooikeus.opintooikeudenMyontamispaiva
         eteneminen.opintooikeudenPaattymispaiva = opintooikeus.opintooikeudenPaattymispaiva
         eteneminen.asetus = opintooikeus.asetus?.nimi
         eteneminen.erikoisala = opintooikeus.erikoisala?.nimi
-        eteneminen.laakarikoulutusSuoritettuSuomiTaiBelgia =
-            opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia
-        eteneminen.laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia =
-            opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
+        eteneminen.laakarikoulutusSuoritettuSuomiTaiBelgia = opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia
+        eteneminen.laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia = opintooikeus.erikoistuvaLaakari?.laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
 
         // Työskentelyjaksot
         eteneminen.tyoskentelyjaksoTilastot = tyoskentelyjaksoService.getTilastot(opintooikeus)
@@ -177,58 +155,38 @@ class EtusivuServiceImpl(
         // Suoritusarvioinnit
         val suoritusarvioinnitMap = getSuoritusarvioinnitMap(opintooikeus.id!!)
         eteneminen.arviointienKeskiarvo = getArviointienKeskiarvo(suoritusarvioinnitMap)
-        eteneminen.arviointienLkm =
-            getArvioitavatKokonaisuudetVahintaanYksiArvioLkm(suoritusarvioinnitMap)
-        eteneminen.arvioitavienKokonaisuuksienLkm =
-            getArvioitavienKokonaisuuksienLkm(opintooikeus, suoritusarvioinnitMap.keys)
+        eteneminen.arviointienLkm = getArvioitavatKokonaisuudetVahintaanYksiArvioLkm(suoritusarvioinnitMap)
+        eteneminen.arvioitavienKokonaisuuksienLkm = getArvioitavienKokonaisuuksienLkm(opintooikeus, suoritusarvioinnitMap.keys)
 
         // Seurantajaksot
         val seurantajaksot = seurantajaksoRepository.findByOpintooikeusId(opintooikeus.id!!)
         eteneminen.seurantajaksotLkm = seurantajaksot.size
-        eteneminen.seurantajaksonHuoletLkm =
-            seurantajaksot.filter { jakso -> jakso.huolenaiheet != null }.size
+        eteneminen.seurantajaksonHuoletLkm = seurantajaksot.filter { jakso -> jakso.huolenaiheet != null }.size
 
         // Suoritemerkinnät
         val suoritemerkinnatMap = getSuoritemerkinnatMap(opintooikeus.id!!)
         eteneminen.suoritemerkinnatLkm = getSuoritemerkinnatLkm(suoritemerkinnatMap)
-        eteneminen.vaaditutSuoritemerkinnatLkm =
-            getVaaditutSuoritemerkinnatLkm(opintooikeus, suoritemerkinnatMap.values.flatten())
+        eteneminen.vaaditutSuoritemerkinnatLkm = getVaaditutSuoritemerkinnatLkm(opintooikeus, suoritemerkinnatMap.values.flatten())
 
-        val opintosuoritukset =
-            opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!).asSequence()
+        val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!).asSequence()
         val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
             opintooikeus.erikoistuvaLaakari?.id!!,
             YEK_ERIKOISALA_ID
         )
         eteneminen.koejaksoTila = getKoejaksoTila(opintooikeus, opintosuoritukset)
-        eteneminen.terveyskeskuskoulutusjaksoSuoritettu =
-            getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset + yekSuoritukset)
+        eteneminen.terveyskeskuskoulutusjaksoSuoritettu = getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset + yekSuoritukset)
 
         return eteneminen
     }
 
-    override fun getErikoistujienSeurantaForVirkailija(
-        userId: String,
-        criteria: ErikoistujanEteneminenCriteria,
-        pageable: Pageable
-    ): Page<ErikoistujanEteneminenVirkailijaDTO>? {
+    override fun getErikoistujienSeurantaForVirkailija(userId: String, criteria: ErikoistujanEteneminenCriteria, pageable: Pageable): Page<ErikoistujanEteneminenVirkailijaDTO>? {
         kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
             // Opintohallinnon virkailija toimii vain yhden yliopiston alla.
             k.yliopistot.firstOrNull()?.let {
-                return erikoistujienSeurantaQueryService.findByCriteriaAndYliopistoId(
-                    criteria,
-                    pageable,
-                    it.id!!,
-                    k.user?.langKey,
-                    YEK_ERIKOISALA_ID
-                ).map { opintooikeus ->
-                    val opintosuoritukset =
-                        opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!)
-                            .asSequence()
-                    val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
-                        opintooikeus.erikoistuvaLaakari?.id!!,
-                        YEK_ERIKOISALA_ID
-                    )
+                return erikoistujienSeurantaQueryService.findByCriteriaAndYliopistoId(criteria, pageable, it.id!!, k.user?.langKey, YEK_ERIKOISALA_ID)
+                    .map { opintooikeus ->
+                    val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(opintooikeus.id!!).asSequence()
+                    val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(opintooikeus.erikoistuvaLaakari?.id!!, YEK_ERIKOISALA_ID)
                     ErikoistujanEteneminenVirkailijaDTO(
                         opintooikeus.id,
                         opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName,
@@ -240,11 +198,8 @@ class EtusivuServiceImpl(
                         opintooikeus.opintooikeudenMyontamispaiva,
                         opintooikeus.opintooikeudenPaattymispaiva,
                         tyoskentelyjaksoService.getTilastot(opintooikeus),
-                        getTeoriakoulutuksetTuntimaara(
-                            opintooikeus.id!!,
-                            opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID,
-                            opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
-                        ),
+                        getTeoriakoulutuksetTuntimaara(opintooikeus.id!!, opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID,
+                            opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara),
                         opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara,
                         getJohtamisopinnotSuoritettu(opintosuoritukset),
                         opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
@@ -259,11 +214,7 @@ class EtusivuServiceImpl(
         return null
     }
 
-    override fun getKoulutettavienSeurantaForVirkailija(
-        userId: String,
-        criteria: ErikoistujanEteneminenCriteria,
-        pageable: Pageable
-    ): Page<KoulutettavanEteneminenDTO>? {
+    override fun getKoulutettavienSeurantaForVirkailija(userId: String, criteria: ErikoistujanEteneminenCriteria, pageable: Pageable): Page<KoulutettavanEteneminenDTO>? {
         kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
             // Opintohallinnon virkailija toimii vain yhden yliopiston alla.
             k.yliopistot.firstOrNull()?.let {
@@ -280,8 +231,7 @@ class EtusivuServiceImpl(
     }
 
     override fun getErikoistumisenSeurantaForErikoistuja(userId: String): ErikoistumisenEdistyminenDTO? {
-        val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
         val opintooikeus = opintooikeusRepository.findById(opintooikeusId).orElse(null)
         return opintooikeus
             .let {
@@ -289,14 +239,9 @@ class EtusivuServiceImpl(
                 val arvioitavatKokonaisuudetWithArviointi = suoritusarvioinnitMap.keys
                 val suoritemerkinnatMap = getSuoritemerkinnatMap(it.id!!)
                 val suoritemerkinnat = suoritemerkinnatMap.values.flatten()
-                val opintosuoritukset =
-                    opintosuoritusRepository.findAllByOpintooikeusId(it.id!!).asSequence()
-                val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
-                    opintooikeus.erikoistuvaLaakari?.id!!,
-                    YEK_ERIKOISALA_ID
-                )
-                val arviointiasteikko =
-                    it.opintoopas?.arviointiasteikko?.let { arviointiasteikkoMapper.toDto(it) }
+                val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it.id!!).asSequence()
+                val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(opintooikeus.erikoistuvaLaakari?.id!!, YEK_ERIKOISALA_ID)
+                val arviointiasteikko = it.opintoopas?.arviointiasteikko?.let { arviointiasteikkoMapper.toDto(it) }
 
                 ErikoistumisenEdistyminenDTO(
                     getArviointienKeskiarvo(suoritusarvioinnitMap),
@@ -305,17 +250,11 @@ class EtusivuServiceImpl(
                     arviointiasteikko,
                     getSuoritemerkinnatLkm(suoritemerkinnatMap),
                     getVaaditutSuoritemerkinnatLkm(it, suoritemerkinnat),
-                    getSuoriteOsaAlueetSuoritettuLkm(
-                        suoritemerkinnatMap,
-                        it.osaamisenArvioinninOppaanPvm!!
-                    ),
+                    getSuoriteOsaAlueetSuoritettuLkm(suoritemerkinnatMap, it.osaamisenArvioinninOppaanPvm!!),
                     getSuoriteOsaAlueetVaadittuLkm(it, suoritemerkinnatMap),
                     tyoskentelyjaksoService.getTilastot(it),
-                    getTeoriakoulutuksetTuntimaara(
-                        it.id!!,
-                        opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID,
-                        opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
-                    ),
+                    getTeoriakoulutuksetTuntimaara(it.id!!, opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID,
+                        opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara),
                     it.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara,
                     getJohtamisopinnotSuoritettu(opintosuoritukset),
                     it.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
@@ -335,10 +274,8 @@ class EtusivuServiceImpl(
 
     override fun getAvoimetAsiatForErikoistuja(userId: String): List<AvoinAsiaDTO>? {
         val avoimetAsiatList = mutableListOf<AvoinAsiaDTO>()
-        val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
-        val user = userRepository.findById(userId)
-            .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+        val user = userRepository.findById(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         var locale = Locale.forLanguageTag("fi")
         if (user.langKey != null) locale = Locale.forLanguageTag(user.langKey)
 
@@ -347,11 +284,7 @@ class EtusivuServiceImpl(
         mapAloituskeskusteluPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
         mapVastuuhenkilonarvioPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
         mapSeurantajaksotPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
-        mapTerveyskeskuskoulutusjaksoPalautettuOrHaettavissaIfExists(
-            avoimetAsiatList,
-            opintooikeusId,
-            locale
-        )
+        mapTerveyskeskuskoulutusjaksoPalautettuOrHaettavissaIfExists(avoimetAsiatList, opintooikeusId, locale)
         mapValmistumispyyntoPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
 
         return avoimetAsiatList.sortedBy { it.pvm }
@@ -359,20 +292,13 @@ class EtusivuServiceImpl(
 
     override fun getAvoimetAsiatForYekKoulutettava(userId: String): List<AvoinAsiaDTO>? {
         val avoimetAsiatList = mutableListOf<AvoinAsiaDTO>()
-        val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
-        val user = userRepository.findById(userId)
-            .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+        val user = userRepository.findById(userId).orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         var locale = Locale.forLanguageTag("fi")
         if (user.langKey != null) locale = Locale.forLanguageTag(user.langKey)
 
         mapVanhenevatKatseluoikeudetToAvoimetAsiatIfExists(avoimetAsiatList, opintooikeusId, locale)
-        mapTerveyskeskuskoulutusjaksoPalautettuOrHaettavissaIfExists(
-            avoimetAsiatList,
-            opintooikeusId,
-            locale,
-            true
-        )
+        mapTerveyskeskuskoulutusjaksoPalautettuOrHaettavissaIfExists(avoimetAsiatList, opintooikeusId, locale, true)
         mapValmistumispyyntoPalautettuIfExists(avoimetAsiatList, opintooikeusId, locale)
 
         return avoimetAsiatList.sortedBy { it.pvm }
@@ -384,18 +310,11 @@ class EtusivuServiceImpl(
             getVanhenevatKatseluoikeudetPaattymispaivaBeforeDate(),
             getVanhenevatKatseluoikeudetPaattymispaivaAfterDate()
         ).map {
-            KatseluoikeusDTO(
-                it.valtuuttajaOpintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
-                it.paattymispaiva
-            )
+            KatseluoikeusDTO(it.valtuuttajaOpintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(), it.paattymispaiva)
         }
     }
 
-    private fun mapVanhenevatKatseluoikeudetToAvoimetAsiatIfExists(
-        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
-        opintooikeusId: Long,
-        locale: Locale
-    ) {
+    private fun mapVanhenevatKatseluoikeudetToAvoimetAsiatIfExists(avoimetAsiatList: MutableList<AvoinAsiaDTO>, opintooikeusId: Long, locale: Locale) {
         kouluttajavaltuutusRepository.findAllByValtuuttajaOpintooikeusIdAndPaattymispaivaBeforeAndPaattymispaivaAfter(
             opintooikeusId,
             getVanhenevatKatseluoikeudetPaattymispaivaBeforeDate(),
@@ -404,22 +323,16 @@ class EtusivuServiceImpl(
             val avoinAsia = AvoinAsiaDTO(
                 it.id,
                 AvoinAsiaTyyppiEnum.KOULUTTAJAVALTUUTUS,
-                messageSource.getMessage(
-                    "avoimetasiat.kouluttajavaltuutus",
-                    arrayOf("${it.valtuutettu?.user?.firstName} ${it.valtuutettu?.user?.lastName}"),
-                    locale
-                ),
+                messageSource.getMessage("avoimetasiat.kouluttajavaltuutus", arrayOf("${it.valtuutettu?.user?.firstName} ${it.valtuutettu?.user?.lastName}"), locale),
                 it.paattymispaiva
             )
             avoimetAsiatList.add(avoinAsia)
         }
     }
 
-    private fun getVanhenevatKatseluoikeudetPaattymispaivaBeforeDate() =
-        LocalDate.now(clock).plusMonths(1).plusDays(1)
+    private fun getVanhenevatKatseluoikeudetPaattymispaivaBeforeDate() = LocalDate.now(clock).plusMonths(1).plusDays(1)
 
-    private fun getVanhenevatKatseluoikeudetPaattymispaivaAfterDate() =
-        LocalDate.now(clock).minusDays(1)
+    private fun getVanhenevatKatseluoikeudetPaattymispaivaAfterDate() = LocalDate.now(clock).minusDays(1)
 
     private fun getSuoritusarvioinnitMap(opintooikeusId: Long): Map<ArvioitavaKokonaisuus, Int> {
         return suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
@@ -431,12 +344,9 @@ class EtusivuServiceImpl(
     }
 
     private fun getArviointienKeskiarvo(suoritusarvioinnitMap: Map<ArvioitavaKokonaisuus, Int>): Double? =
-        if (suoritusarvioinnitMap.isNotEmpty())
-            suoritusarvioinnitMap.values.sumOf { it } / suoritusarvioinnitMap.keys.size.toDouble()
-        else null
+        if (suoritusarvioinnitMap.isNotEmpty()) suoritusarvioinnitMap.values.sumOf { it } / suoritusarvioinnitMap.keys.size.toDouble() else null
 
-    private fun getArvioitavatKokonaisuudetVahintaanYksiArvioLkm(suoritusarvioinnitMap: Map<ArvioitavaKokonaisuus, Int>): Int =
-        suoritusarvioinnitMap.keys.size
+    private fun getArvioitavatKokonaisuudetVahintaanYksiArvioLkm(suoritusarvioinnitMap: Map<ArvioitavaKokonaisuus, Int>): Int = suoritusarvioinnitMap.keys.size
 
     private fun getArvioitavienKokonaisuuksienLkm(
         opintooikeus: Opintooikeus,
@@ -470,31 +380,22 @@ class EtusivuServiceImpl(
     }
 
     private fun getSuoritemerkinnatMap(opintooikeusId: Long): Map<Suorite, List<Suoritemerkinta>> =
-        suoritemerkintaRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
-            .groupBy { merkinta -> merkinta.suorite!! }
+        suoritemerkintaRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).groupBy { merkinta -> merkinta.suorite!! }
 
     private fun getSuoritemerkinnatLkm(suoritemerkinnatMap: Map<Suorite, List<Suoritemerkinta>>): Int {
         var lkm = 0
         suoritemerkinnatMap.forEach {
             // Mikäli vaadittu määrä asetettu, ei huomioida sen yli meneviä suoritemerkintöjä.
             val merkinnat =
-                if (it.key.vaadittulkm != null && it.value.size > it.key.vaadittulkm!!)
-                    it.key.vaadittulkm!!
+                if (it.key.vaadittulkm != null && it.value.size > it.key.vaadittulkm!!) it.key.vaadittulkm!!
                 else it.value.size
             lkm = lkm.plus(merkinnat)
         }
         return lkm
     }
 
-    private fun getVaaditutSuoritemerkinnatLkm(
-        opintooikeus: Opintooikeus,
-        suoritemerkinnat: List<Suoritemerkinta>
-    ): Int {
-        val suoritteenKategoriatByVoimassa =
-            suoritteenKategoriaRepository.findAllByErikoisalaIdAndValid(
-                opintooikeus.erikoisala?.id,
-                opintooikeus.osaamisenArvioinninOppaanPvm!!
-            )
+    private fun getVaaditutSuoritemerkinnatLkm(opintooikeus: Opintooikeus, suoritemerkinnat: List<Suoritemerkinta>): Int {
+        val suoritteenKategoriatByVoimassa = suoritteenKategoriaRepository.findAllByErikoisalaIdAndValid(opintooikeus.erikoisala?.id, opintooikeus.osaamisenArvioinninOppaanPvm!!)
 
         var vaaditutSuoritteetLkm = suoritteenKategoriatByVoimassa.sumOf { kategoria ->
             kategoria.suoritteet.filter { suorite ->
@@ -511,11 +412,7 @@ class EtusivuServiceImpl(
             // jos siihen kohdistuu suoritemerkintä ja vaadittulkm on asetettu.
             // Ei kuitenkaan lisätä lukumäärään koko vaadittua määrää, koska voimassaolo kyseisen suoritteen tai sen
             // kategorian osalta on jo umpeutunut, eikä vaatimus näin ollen myöskään ole enää voimassa.
-            if (suoriteOrKategoriaNotVoimassa(
-                    it.suorite!!,
-                    opintooikeus.osaamisenArvioinninOppaanPvm!!
-                ) && it.suorite?.vaadittulkm != null
-            ) {
+            if (suoriteOrKategoriaNotVoimassa(it.suorite!!, opintooikeus.osaamisenArvioinninOppaanPvm!!) && it.suorite?.vaadittulkm != null) {
                 vaaditutSuoritteetLkm++
             }
         }
@@ -577,25 +474,13 @@ class EtusivuServiceImpl(
         return suoriteOsaalueetVaadittuLkm
     }
 
-    private fun suoriteOrKategoriaNotVoimassa(
-        suorite: Suorite,
-        osaamisenArvioinninOppaanPvm: LocalDate
-    ): Boolean {
-        val suoriteVoimassa = isValidByVoimassaDate(
-            suorite.voimassaolonAlkamispaiva!!,
-            suorite.voimassaolonPaattymispaiva,
-            osaamisenArvioinninOppaanPvm
-        )
+    private fun suoriteOrKategoriaNotVoimassa(suorite: Suorite, osaamisenArvioinninOppaanPvm: LocalDate): Boolean {
+        val suoriteVoimassa = isValidByVoimassaDate(suorite.voimassaolonAlkamispaiva!!, suorite.voimassaolonPaattymispaiva, osaamisenArvioinninOppaanPvm)
         return !suoriteVoimassa
     }
 
-    private fun isValidByVoimassaDate(
-        voimassaoloAlkaaDate: LocalDate,
-        voimassaoloPaattyy: LocalDate?,
-        osaamisenArvioinninOppaanPvm: LocalDate
-    ): Boolean =
-        voimassaoloAlkaaDate <= osaamisenArvioinninOppaanPvm &&
-            (voimassaoloPaattyy == null || voimassaoloPaattyy >= osaamisenArvioinninOppaanPvm)
+    private fun isValidByVoimassaDate(voimassaoloAlkaaDate: LocalDate, voimassaoloPaattyy: LocalDate?, osaamisenArvioinninOppaanPvm: LocalDate): Boolean =
+        voimassaoloAlkaaDate <= osaamisenArvioinninOppaanPvm && (voimassaoloPaattyy == null || voimassaoloPaattyy >= osaamisenArvioinninOppaanPvm)
 
     private fun getTeoriakoulutuksetTuntimaara(opintooikeusId: Long, yek: Boolean, vaadittu: Double?): Double =
         if (yek) {
@@ -609,9 +494,7 @@ class EtusivuServiceImpl(
             t.erikoistumiseenHyvaksyttavaTuntimaara ?: 0.0
         }
 
-    private fun getJohtamisopinnotSuoritettu(
-        opintosuoritukset: Sequence<Opintosuoritus>
-    ): Double {
+    private fun getJohtamisopinnotSuoritettu(opintosuoritukset: Sequence<Opintosuoritus>): Double {
         return opintosuoritukset.filter { opintosuoritus ->
             opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.JOHTAMISOPINTO
         }.sumOf { johtamisopinto ->
@@ -619,9 +502,7 @@ class EtusivuServiceImpl(
         }
     }
 
-    private fun getSateilysuojakoulutuksetSuoritettu(
-        opintosuoritukset: Sequence<Opintosuoritus>
-    ): Double {
+    private fun getSateilysuojakoulutuksetSuoritettu(opintosuoritukset: Sequence<Opintosuoritus>): Double {
         return opintosuoritukset.filter { opintosuoritus ->
             opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS
         }.sumOf { sateilysuojakoulutus ->
@@ -634,20 +515,14 @@ class EtusivuServiceImpl(
             opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU && opintosuoritus.hyvaksytty
         }
 
-    private fun getKoejaksoTila(
-        opintooikeus: Opintooikeus,
-        opintosuoritukset: Sequence<Opintosuoritus>
-    ): KoejaksoTila {
+    private fun getKoejaksoTila(opintooikeus: Opintooikeus, opintosuoritukset: Sequence<Opintosuoritus>): KoejaksoTila {
         if (koejaksonSuoritusmerkintaExists(opintosuoritukset)) {
             return KoejaksoTila.HYVAKSYTTY
         }
 
-        val koulutussopimus =
-            koejaksonKoulutussopimusRepository.findByOpintooikeusId(opintooikeus.id!!)
-        val vastuuhenkilonArvio =
-            koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(opintooikeus.id!!)
-        val aloituskeskustelu =
-            koejaksonAloituskeskusteluRepository.findByOpintooikeusId(opintooikeus.id!!)
+        val koulutussopimus = koejaksonKoulutussopimusRepository.findByOpintooikeusId(opintooikeus.id!!)
+        val vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(opintooikeus.id!!)
+        val aloituskeskustelu = koejaksonAloituskeskusteluRepository.findByOpintooikeusId(opintooikeus.id!!)
 
         return if (vastuuhenkilonArvio.isPresent && vastuuhenkilonArvio.get().koejaksoHyvaksytty == true) {
             KoejaksoTila.HYVAKSYTTY
@@ -668,16 +543,11 @@ class EtusivuServiceImpl(
 
     private fun getTerveyskeskuskoulutusjaksoSuoritettu(opintosuoritukset: Sequence<Opintosuoritus>): Boolean {
         return opintosuoritukset.any {
-            (it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO
-                || it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO) && it.hyvaksytty
+            (it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO || it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO) && it.hyvaksytty
         }
     }
 
-    private fun mapKoulutussopimusPalautettuIfExists(
-        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
-        opintooikeusId: Long,
-        locale: Locale
-    ) {
+    private fun mapKoulutussopimusPalautettuIfExists(avoimetAsiatList: MutableList<AvoinAsiaDTO>, opintooikeusId: Long, locale: Locale) {
         koejaksonKoulutussopimusRepository.findByOpintooikeusId(opintooikeusId).ifPresent {
             if (!it.korjausehdotus.isNullOrBlank()) {
                 avoimetAsiatList.add(
@@ -695,11 +565,7 @@ class EtusivuServiceImpl(
         }
     }
 
-    private fun mapAloituskeskusteluPalautettuIfExists(
-        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
-        opintooikeusId: Long,
-        locale: Locale
-    ) {
+    private fun mapAloituskeskusteluPalautettuIfExists(avoimetAsiatList: MutableList<AvoinAsiaDTO>, opintooikeusId: Long, locale: Locale) {
         koejaksonAloituskeskusteluRepository.findByOpintooikeusId(opintooikeusId).ifPresent {
             if (!it.korjausehdotus.isNullOrBlank()) {
                 avoimetAsiatList.add(
@@ -717,11 +583,7 @@ class EtusivuServiceImpl(
         }
     }
 
-    private fun mapVastuuhenkilonarvioPalautettuIfExists(
-        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
-        opintooikeusId: Long,
-        locale: Locale
-    ) {
+    private fun mapVastuuhenkilonarvioPalautettuIfExists(avoimetAsiatList: MutableList<AvoinAsiaDTO>, opintooikeusId: Long, locale: Locale) {
         koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(opintooikeusId).ifPresent {
             if (!it.virkailijanKorjausehdotus.isNullOrBlank() || !it.vastuuhenkilonKorjausehdotus.isNullOrBlank()) {
                 avoimetAsiatList.add(
@@ -739,11 +601,7 @@ class EtusivuServiceImpl(
         }
     }
 
-    private fun mapSeurantajaksotPalautettuIfExists(
-        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
-        opintooikeusId: Long,
-        locale: Locale
-    ) {
+    private fun mapSeurantajaksotPalautettuIfExists(avoimetAsiatList: MutableList<AvoinAsiaDTO>, opintooikeusId: Long, locale: Locale) {
         seurantajaksoRepository.findByOpintooikeusId(opintooikeusId).forEach {
             if (!it.korjausehdotus.isNullOrBlank()) {
                 avoimetAsiatList.add(
@@ -781,8 +639,7 @@ class EtusivuServiceImpl(
         if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(opintooikeusId, opintooikeus.erikoistuvaLaakari?.id!!)) {
             return
         }
-        val hyvaksynta =
-            terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(opintooikeusId)
+        val hyvaksynta = terveyskeskuskoulutusjaksonHyvaksyntaRepository.findByOpintooikeusId(opintooikeusId)
         if (hyvaksynta != null) {
             if (!hyvaksynta.virkailijanKorjausehdotus.isNullOrBlank() || !hyvaksynta.vastuuhenkilonKorjausehdotus.isNullOrBlank()) {
                 avoimetAsiatList.add(
@@ -814,42 +671,20 @@ class EtusivuServiceImpl(
         }
     }
 
-    private fun mapValmistumispyyntoPalautettuIfExists(
-        avoimetAsiatList: MutableList<AvoinAsiaDTO>,
-        opintooikeusId: Long,
-        locale: Locale
-    ) {
+    private fun mapValmistumispyyntoPalautettuIfExists(avoimetAsiatList: MutableList<AvoinAsiaDTO>, opintooikeusId: Long, locale: Locale) {
         valmistumispyyntoRepository.findByOpintooikeusId(opintooikeusId)?.let {
-            if (it.vastuuhenkiloOsaamisenArvioijaPalautusaika != null ||
-                it.virkailijanPalautusaika != null ||
-                it.vastuuhenkiloHyvaksyjaPalautusaika != null
-            ) {
-                avoimetAsiatList.add(
-                    AvoinAsiaDTO(
-                        it.id,
-                        tyyppi = AvoinAsiaTyyppiEnum.VALMISTUMISPYYNTO,
-                        asia = messageSource.getMessage(
-                            "avoimetasiat.valmistumispyynto",
-                            arrayOf(),
-                            locale
-                        ),
-                        pvm = getValmistumispyynnonPalautusaika(it)
-                    )
-                )
+            if (it.vastuuhenkiloOsaamisenArvioijaPalautusaika != null || it.virkailijanPalautusaika != null || it.vastuuhenkiloHyvaksyjaPalautusaika != null) {
+                avoimetAsiatList.add(AvoinAsiaDTO(it.id, tyyppi = AvoinAsiaTyyppiEnum.VALMISTUMISPYYNTO, asia = messageSource.getMessage("avoimetasiat.valmistumispyynto",
+                            arrayOf(), locale), pvm = getValmistumispyynnonPalautusaika(it)))
             }
         }
     }
 
     private fun getValmistumispyynnonPalautusaika(valmistumispyynto: Valmistumispyynto) =
-        valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika
-            ?: valmistumispyynto.virkailijanPalautusaika
-            ?: valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika
+        valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika ?: valmistumispyynto.virkailijanPalautusaika ?: valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika
 
     private fun mapKoulutettavanEdistyminen(opintooikeus: Opintooikeus): KoulutettavanEteneminenDTO {
-        val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
-            opintooikeus.erikoistuvaLaakari?.id!!,
-            YEK_ERIKOISALA_ID
-        )
+        val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(opintooikeus.erikoistuvaLaakari?.id!!, YEK_ERIKOISALA_ID)
         return KoulutettavanEteneminenDTO(
             opintooikeusId = opintooikeus.id,
             etunimi = opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.firstName,

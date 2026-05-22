@@ -4,22 +4,18 @@ import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.TerveyskeskuskoulutusjaksonHyvaksynta
 import java.time.LocalDate
 
-class TerveyskeskustyoHelper {
+object TerveyskeskustyoHelper {
 
-    companion object {
+    private val DEFAULT_KUITTAUSAIKA = LocalDate.ofEpochDay(7)
 
-        private val DEFAULT_KUITTAUSAIKA = LocalDate.ofEpochDay(7)
-
-        @JvmStatic
-        fun createTerveyskeskustyoHyvaksyntaHyvaksytty(
-            opintooikeus: Opintooikeus,
-            hyvaksyttyPvm: LocalDate? = DEFAULT_KUITTAUSAIKA
-        ): TerveyskeskuskoulutusjaksonHyvaksynta {
-            return TerveyskeskuskoulutusjaksonHyvaksynta(
-                opintooikeus = opintooikeus,
-                vastuuhenkiloHyvaksynyt = true,
-                vastuuhenkilonKuittausaika = hyvaksyttyPvm
-            )
-        }
+    fun createTerveyskeskustyoHyvaksyntaHyvaksytty(
+        opintooikeus: Opintooikeus,
+        hyvaksyttyPvm: LocalDate? = DEFAULT_KUITTAUSAIKA
+    ): TerveyskeskuskoulutusjaksonHyvaksynta {
+        return TerveyskeskuskoulutusjaksonHyvaksynta(
+            opintooikeus = opintooikeus,
+            vastuuhenkiloHyvaksynyt = true,
+            vastuuhenkilonKuittausaika = hyvaksyttyPvm
+        )
     }
 }

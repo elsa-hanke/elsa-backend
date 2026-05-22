@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.network.okHttpClient
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.network.okHttpClient
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
 import fi.elsapalvelu.elsa.service.GraphQLClientBuilder

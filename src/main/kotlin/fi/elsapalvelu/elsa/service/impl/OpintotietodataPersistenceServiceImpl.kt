@@ -320,50 +320,18 @@ class OpintotietodataPersistenceServiceImpl(
     }
 
     @Suppress("CyclomaticComplexMethod")
-    private fun createOpintooikeus(
-        opintooikeusDTO: OpintotietoOpintooikeusDataDTO,
-        userId: String,
-        erikoistuvaLaakari: ErikoistuvaLaakari
-    ) {
-        val opintooikeusId =
-            checkOpintooikeusIdValueExistsOrLogError(
-                opintooikeusDTO.id,
-                opintooikeusDTO.yliopisto,
-                userId
-            ) ?: return
+    private fun createOpintooikeus(opintooikeusDTO: OpintotietoOpintooikeusDataDTO, userId: String, erikoistuvaLaakari: ErikoistuvaLaakari) {
+        val opintooikeusId = checkOpintooikeusIdValueExistsOrLogError(opintooikeusDTO.id, opintooikeusDTO.yliopisto, userId) ?: return
         val yliopisto = findYliopistoOrLogError(opintooikeusDTO.yliopisto) ?: return
-        val asetusStr =
-            checkAsetusValueExistsOrLogError(
-                opintooikeusDTO.asetus,
-                opintooikeusDTO.yliopisto,
-                userId
-            ) ?: return
+        val asetusStr = checkAsetusValueExistsOrLogError(opintooikeusDTO.asetus, opintooikeusDTO.yliopisto, userId) ?: return
         val asetus = findAsetusOrLogError(asetusStr, opintooikeusDTO.yliopisto, userId) ?: return
-        val opintooikeudenTila =
-            checkOpintooikeudenTilaValueExistsOrLogError(
-                opintooikeusDTO.tila,
-                opintooikeusDTO.yliopisto,
-                userId
-            )
-                ?: return
-        val opintooikeudenAlkamispaiva = checkOpintooikeudenAlkamispaivaValidDateExistsOrLogError(
-            opintooikeusDTO.opintooikeudenAlkamispaiva, opintooikeusDTO.yliopisto, userId
-        ) ?: return
+        val opintooikeudenTila = checkOpintooikeudenTilaValueExistsOrLogError(opintooikeusDTO.tila, opintooikeusDTO.yliopisto, userId) ?: return
+        val opintooikeudenAlkamispaiva =
+            checkOpintooikeudenAlkamispaivaValidDateExistsOrLogError(opintooikeusDTO.opintooikeudenAlkamispaiva, opintooikeusDTO.yliopisto, userId) ?: return
         val opintooikeudenPaattymispaiva =
-            checkOpintooikeudenPaattymispaivaValidDateExistsOrLogError(
-                opintooikeusDTO.opintooikeudenPaattymispaiva, opintooikeusDTO.yliopisto, userId
-            ) ?: return
-        val erikoisala =
-            findErikoisalaOrLogError(
-                opintooikeusDTO.erikoisalaTunnisteList,
-                opintooikeusDTO.yliopisto,
-                userId
-            ) ?: return
-        val opintoopas =
-            findOpintoopasByErikoisalaAndVoimassaDateOrLogWarn(
-                erikoisala.id!!,
-                opintooikeudenAlkamispaiva,
-                opintooikeusDTO.yliopisto,
+            checkOpintooikeudenPaattymispaivaValidDateExistsOrLogError(opintooikeusDTO.opintooikeudenPaattymispaiva, opintooikeusDTO.yliopisto, userId) ?: return
+        val erikoisala = findErikoisalaOrLogError(opintooikeusDTO.erikoisalaTunnisteList, opintooikeusDTO.yliopisto, userId) ?: return
+        val opintoopas = findOpintoopasByErikoisalaAndVoimassaDateOrLogWarn(erikoisala.id!!, opintooikeudenAlkamispaiva, opintooikeusDTO.yliopisto,
                 userId
             ) ?: findLatestOpintoopasByErikoisalaOrLogError(erikoisala.id!!) ?: return
 

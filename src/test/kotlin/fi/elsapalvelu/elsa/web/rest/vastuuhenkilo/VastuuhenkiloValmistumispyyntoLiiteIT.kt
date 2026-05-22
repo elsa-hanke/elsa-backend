@@ -82,7 +82,8 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         initTestWithTehtavatyypit(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
     }
 
-    private fun initTestWithTehtavatyypit(vastuuhenkilonTehtavatyypit: List<VastuuhenkilonTehtavatyyppiEnum>) {        val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity()
+    private fun initTestWithTehtavatyypit(vastuuhenkilonTehtavatyypit: List<VastuuhenkilonTehtavatyyppiEnum>) {
+        val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(vastuuhenkiloUser)
 
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))

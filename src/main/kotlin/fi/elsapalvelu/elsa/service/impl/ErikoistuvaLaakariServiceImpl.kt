@@ -53,9 +53,7 @@ class ErikoistuvaLaakariServiceImpl(
         return erikoistuvaLaakariMapper.toDto(erikoistuvaLaakari)
     }
 
-    override fun save(
-        kayttajahallintaErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariDTO
-    ): ErikoistuvaLaakariDTO {
+    override fun save(kayttajahallintaErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariDTO): ErikoistuvaLaakariDTO {
         var user = User(
             login = kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite,
             firstName = kayttajahallintaErikoistuvaLaakariDTO.etunimi,
@@ -68,20 +66,14 @@ class ErikoistuvaLaakariServiceImpl(
         user = userRepository.save(user)
 
 
-        var kayttaja = Kayttaja(
-            user = user, tila = KayttajatilinTila.KUTSUTTU
-        )
+        var kayttaja = Kayttaja(user = user, tila = KayttajatilinTila.KUTSUTTU)
         kayttaja = kayttajaRepository.save(kayttaja)
 
-        var erikoistuvaLaakari = ErikoistuvaLaakari(
-            kayttaja = kayttaja,
-        )
+        var erikoistuvaLaakari = ErikoistuvaLaakari(kayttaja = kayttaja,)
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        val asetus =
-            asetusRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!)
-        val opintoopas =
-            opintoopasRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!)
+        val asetus = asetusRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!)
+        val opintoopas = opintoopasRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!)
 
         // Asetetaan mahdollisesti muille olemassaoleville opinto-oikeuksille kaytossa = false, koska käytössä voi
         // olla vain yksi kerrallaan.
