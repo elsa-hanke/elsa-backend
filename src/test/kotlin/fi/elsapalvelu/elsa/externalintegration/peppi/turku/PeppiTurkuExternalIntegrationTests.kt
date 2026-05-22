@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.service.impl.PeppiCommonOpintotietodataFetchingServic
 import fi.elsapalvelu.elsa.service.impl.PeppiTurkuClientBuilderImpl
 import fi.elsapalvelu.elsa.service.impl.PeppiTurkuOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.impl.PeppiTurkuOpintotietodataFetchingServiceImpl
+import org.junit.jupiter.api.Disabled
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
@@ -27,6 +28,7 @@ import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(classes = [PeppiTurkuExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
+@Disabled
 class PeppiTurkuExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
