@@ -1,5 +1,17 @@
 import com.adarshr.gradle.testlogger.theme.ThemeType
 
+buildscript {
+    repositories {
+        maven { url = 'https://repo.spring.io/milestone' }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.liquibase:liquibase-gradle-plugin:${liquibasePluginVersion}"
+        classpath "org.liquibase:liquibase-core:4.31.1"
+    }
+}
+
 plugins {
     id "org.jetbrains.kotlin.jvm" version "${kotlinVersion}"
     id "org.jetbrains.kotlin.kapt" version "${kotlinVersion}"
@@ -13,12 +25,13 @@ plugins {
     id "com.adarshr.test-logger" version "4.0.0"
     id "com.google.cloud.tools.jib"
     id "com.gorylenko.gradle-git-properties"
-    id "org.liquibase.gradle" version "2.1.1"
     id "org.sonarqube"
     id "com.apollographql.apollo" version "${apolloVersion}"
     id "org.hibernate.orm" version "${hibernateVersion}"
     id "org.cyclonedx.bom" version "3.2.4"
 }
+
+apply plugin: 'org.liquibase.gradle'
 
 apollo {
     service("service") {
