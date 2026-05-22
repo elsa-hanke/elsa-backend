@@ -85,6 +85,8 @@ tasks.register('externalIntegrationTests', Test) {
     description = "Execute external integration tests."
     group = "verification"
     shouldRunAfter(test)
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
     reports.html.required = false
     testlogger {
         showStandardStreams = true
