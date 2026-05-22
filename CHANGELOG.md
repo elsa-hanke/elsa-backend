@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.1...HEAD)
 
+- Bump webpack from 5.71.0 to 5.106.2 in /frontend [`#566`](https://github.com/elsa-hanke/elsa-backend/pull/566)(19 May 2026)
+- Bump sha.js from 2.4.11 to 2.4.12 in /frontend [`#567`](https://github.com/elsa-hanke/elsa-backend/pull/567)(18 May 2026)
+- ELSAINSI-3 Detekt käyttöönotto [`#568`](https://github.com/elsa-hanke/elsa-backend/pull/568)(18 May 2026)
 - Bump systeminformation from 5.31.5 to 5.31.6 in /e2e [`#558`](https://github.com/elsa-hanke/elsa-backend/pull/558)(16 May 2026)
 - Bump lodash from 4.17.21 to 4.18.1 in /frontend [`#559`](https://github.com/elsa-hanke/elsa-backend/pull/559)(16 May 2026)
 - chore: update Gradle to version 8.14.5 [`#557`](https://github.com/elsa-hanke/elsa-backend/pull/557)(16 May 2026)

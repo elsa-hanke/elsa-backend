@@ -50,7 +50,9 @@ springBoot {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'external-integration'
+    }
     exclude "**/*IT*", "**/*IntTest*"
     testLogging {
         events 'FAILED', 'SKIPPED'
@@ -59,7 +61,9 @@ test {
 }
 
 tasks.register('integrationTest', Test) {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'external-integration'
+    }
     description = "Execute integration tests."
     group = "verification"
     testClassesDirs = sourceSets.test.output.classesDirs
@@ -72,6 +76,19 @@ tasks.register('integrationTest', Test) {
         environment 'spring.profiles.active', 'testcontainers'
     }
     reports.html.required = false
+}
+
+tasks.register('externalIntegrationTests', Test) {
+    useJUnitPlatform {
+        includeTags 'external-integration'
+    }
+    description = "Execute external integration tests."
+    group = "verification"
+    shouldRunAfter(test)
+    reports.html.required = false
+    testlogger {
+        showStandardStreams = true
+    }
 }
 
 check.dependsOn integrationTest
