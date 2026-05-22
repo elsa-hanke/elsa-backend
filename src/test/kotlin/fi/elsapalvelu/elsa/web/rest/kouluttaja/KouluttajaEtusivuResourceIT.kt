@@ -112,21 +112,11 @@ class KouluttajaEtusivuResourceIT {
     fun getErikoistujienSeurantaRajaimet() {
         initTest()
 
-        val yliopisto1 =
-            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
-        val erikoisala1 = erikoisalaRepository.save(
-            Erikoisala(
-                nimi = "Erikoisala 1",
-                tyyppi = ErikoisalaTyyppi.LAAKETIEDE
-            )
-        )
+        val erikoisala1 = erikoisalaRepository.save(Erikoisala(nimi = "Erikoisala 1", tyyppi = ErikoisalaTyyppi.LAAKETIEDE))
 
-        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
-            kayttaja = kouluttaja,
-            yliopisto = yliopisto1,
-            erikoisala = erikoisala1
-        )
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(kayttaja = kouluttaja, yliopisto = yliopisto1, erikoisala = erikoisala1)
         kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
         kouluttaja.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
@@ -135,18 +125,8 @@ class KouluttajaEtusivuResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat").value(hasSize<Int>(1)))
             .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat[0].yliopistoNimi").value(yliopisto1.nimi.toString()))
-            .andExpect(
-                jsonPath("$.kayttajaYliopistoErikoisalat[0].erikoisalat").value(
-                    hasSize<Int>(
-                        1
-                    )
-                )
-            )
-            .andExpect(
-                jsonPath("$.kayttajaYliopistoErikoisalat[0].erikoisalat[0]").value(
-                    erikoisala1.nimi
-                )
-            )
+            .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat[0].erikoisalat").value(hasSize<Int>(1)))
+            .andExpect(jsonPath("$.kayttajaYliopistoErikoisalat[0].erikoisalat[0]").value(erikoisala1.nimi))
             .andExpect(jsonPath("$.erikoisalat").value(hasSize<Int>(1)))
     }
 
@@ -155,21 +135,11 @@ class KouluttajaEtusivuResourceIT {
     fun getErikoistujienSeurantaEmptyList() {
         initTest()
 
-        val yliopisto1 =
-            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
 
-        val erikoisala1 = erikoisalaRepository.save(
-            Erikoisala(
-                nimi = "Erikoisala 1",
-                tyyppi = ErikoisalaTyyppi.LAAKETIEDE
-            )
-        )
+        val erikoisala1 = erikoisalaRepository.save(Erikoisala(nimi = "Erikoisala 1", tyyppi = ErikoisalaTyyppi.LAAKETIEDE))
 
-        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
-            kayttaja = kouluttaja,
-            yliopisto = yliopisto1,
-            erikoisala = erikoisala1
-        )
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(kayttaja = kouluttaja, yliopisto = yliopisto1, erikoisala = erikoisala1)
         kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
         kouluttaja.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
@@ -184,51 +154,26 @@ class KouluttajaEtusivuResourceIT {
     fun getErikoistujienSeuranta() {
         initTest()
 
-        val yliopisto1 =
-            yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
-
+        val yliopisto1 = yliopistoRepository.save(Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO))
         val erikoisala1 = erikoisalaRepository.findById(1).get()
 
-        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
-            kayttaja = kouluttaja,
-            yliopisto = yliopisto1,
-            erikoisala = erikoisala1
-        )
+        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(kayttaja = kouluttaja, yliopisto = yliopisto1, erikoisala = erikoisala1)
         kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
         kouluttaja.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
-        val erikoistuvaLaakari =
-            ErikoistuvaLaakariHelper.createEntity(
-                em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
-            )
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        kouluttajavaltuutusRepository.save(
-            Kouluttajavaltuutus(
-                alkamispaiva = LocalDate.now().minusMonths(6),
-                paattymispaiva = LocalDate.now().plusMonths(6),
-                valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                valtuutettu = kouluttaja,
-                valtuutuksenLuontiaika = Instant.now(),
-                valtuutuksenMuokkausaika = Instant.now()
-            )
-        )
+        kouluttajavaltuutusRepository.save(Kouluttajavaltuutus(alkamispaiva = LocalDate.now().minusMonths(6),
+                paattymispaiva = LocalDate.now().plusMonths(6), valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
+                valtuutettu = kouluttaja, valtuutuksenLuontiaika = Instant.now(), valtuutuksenMuokkausaika = Instant.now()))
 
-        tyoskentelyjaksoRepository.saveAndFlush(
-            TyoskentelyjaksoHelper.createEntity(
-                em,
-                erikoistuvaLaakari.kayttaja?.user
-            )
-        )
+        tyoskentelyjaksoRepository.saveAndFlush(TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user))
 
-        val arvioitavanKokonaisuudenKategoria =
-            ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala1)
+        val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala1)
         arvioitavanKokonaisuudenKategoriaRepository.save(arvioitavanKokonaisuudenKategoria)
-
         val arvioitavaKokonaisuus1 = ArvioitavaKokonaisuusHelper.createEntity(em)
         arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus1)
-
         val arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em)
         arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus2)
 
@@ -236,40 +181,15 @@ class KouluttajaEtusivuResourceIT {
         arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus2)
 
         // Vain korkein arvosana lasketaan
-        suoritusarviointiRepository.save(
-            SuoritusarviointiHelper.createEntity(
-                em,
-                erikoistuvaLaakari.kayttaja?.user,
-                arviointiasteikonTaso = 2,
-                arvioitavaKokonaisuus = arvioitavaKokonaisuus1
-            )
-        )
-        suoritusarviointiRepository.save(
-            SuoritusarviointiHelper.createEntity(
-                em,
-                erikoistuvaLaakari.kayttaja?.user,
-                arviointiasteikonTaso = 4,
-                arvioitavaKokonaisuus = arvioitavaKokonaisuus1
-            )
-        )
+        suoritusarviointiRepository.save(SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 2,
+            arvioitavaKokonaisuus = arvioitavaKokonaisuus1))
+        suoritusarviointiRepository.save(SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 4,
+                arvioitavaKokonaisuus = arvioitavaKokonaisuus1))
 
         suoritusarviointiRepository.save(
-            SuoritusarviointiHelper.createEntity(
-                em,
-                erikoistuvaLaakari.kayttaja?.user,
-                arviointiasteikonTaso = 3,
-                arvioitavaKokonaisuus = arvioitavaKokonaisuus2
-            )
-        )
-
+            SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 3, arvioitavaKokonaisuus = arvioitavaKokonaisuus2))
         suoritemerkintaRepository.save(SuoritemerkintaHelper.createEntity(em))
-
-        seurantajaksoRepository.save(
-            SeurantajaksoHelper.createEntity(
-                erikoistuvaLaakari,
-                kouluttaja
-            )
-        )
+        seurantajaksoRepository.save(SeurantajaksoHelper.createEntity(erikoistuvaLaakari, kouluttaja))
 
         val seurantajakso = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, kouluttaja)
         seurantajakso.huolenaiheet = "huolenaiheet"
@@ -280,56 +200,22 @@ class KouluttajaEtusivuResourceIT {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
-            .andExpect(
-                jsonPath("$.content[0].opintooikeusId").value(
-                    erikoistuvaLaakari.getOpintooikeusKaytossa()?.id
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariEtuNimi").value(
-                    erikoistuvaLaakari.kayttaja?.user?.firstName
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariSukuNimi").value(
-                    erikoistuvaLaakari.kayttaja?.user?.lastName
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].erikoistuvaLaakariSyntymaaika").value(
-                    erikoistuvaLaakari.syntymaaika.toString()
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].tyoskentelyjaksoTilastot.tyoskentelyaikaYhteensa").value(
-                    5
-                )
-            )
+            .andExpect(jsonPath("$.content[0].opintooikeusId").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.id))
+            .andExpect(jsonPath("$.content[0].erikoistuvaLaakariEtuNimi").value(erikoistuvaLaakari.kayttaja?.user?.firstName))
+            .andExpect(jsonPath("$.content[0].erikoistuvaLaakariSukuNimi").value(erikoistuvaLaakari.kayttaja?.user?.lastName))
+            .andExpect(jsonPath("$.content[0].erikoistuvaLaakariSyntymaaika").value(erikoistuvaLaakari.syntymaaika.toString()))
+            .andExpect(jsonPath("$.content[0].tyoskentelyjaksoTilastot.tyoskentelyaikaYhteensa").value(5))
             .andExpect(jsonPath("$.content[0].arviointienKeskiarvo").value(3.5))
             .andExpect(jsonPath("$.content[0].arviointienLkm").value(2))
-            .andExpect(
-                jsonPath("$.content[0].arvioitavienKokonaisuuksienLkm").value(
-                    2
-                )
-            )
+            .andExpect(jsonPath("$.content[0].arvioitavienKokonaisuuksienLkm").value(2))
             .andExpect(jsonPath("$.content[0].seurantajaksotLkm").value(2))
             .andExpect(jsonPath("$.content[0].seurantajaksonHuoletLkm").value(1))
             .andExpect(jsonPath("$.content[0].suoritemerkinnatLkm").value(1))
             .andExpect(jsonPath("$.content[0].koejaksoTila").value(KoejaksoTila.EI_AKTIIVINEN.toString()))
-            .andExpect(
-                jsonPath("$.content[0].opintooikeudenMyontamispaiva").value(
-                    erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintooikeudenMyontamispaiva?.format(
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                    )
-                )
-            )
-            .andExpect(
-                jsonPath("$.content[0].opintooikeudenPaattymispaiva").value(
-                    erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintooikeudenPaattymispaiva?.format(
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                    )
-                )
-            )
+            .andExpect(jsonPath("$.content[0].opintooikeudenMyontamispaiva").value(
+                    erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintooikeudenMyontamispaiva?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+            .andExpect(jsonPath("$.content[0].opintooikeudenPaattymispaiva").value(
+                    erikoistuvaLaakari.getOpintooikeusKaytossa()?.opintooikeudenPaattymispaiva?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
             .andExpect(jsonPath("$.content[0].asetus").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.asetus?.nimi))
             .andExpect(jsonPath("$.content[0].erikoisala").value(erikoistuvaLaakari.getOpintooikeusKaytossa()?.erikoisala?.nimi))
     }
@@ -396,11 +282,7 @@ class KouluttajaEtusivuResourceIT {
     fun getKoejaksotList() {
         initTest()
 
-        val erikoistuvaLaakari1 =
-            ErikoistuvaLaakariHelper.createEntity(
-                em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
-            )
+        val erikoistuvaLaakari1 = ErikoistuvaLaakariHelper.createEntity(em, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari1)
 
         val esimies = KayttajaHelper.createEntity(em)
@@ -414,11 +296,7 @@ class KouluttajaEtusivuResourceIT {
             )
         )
 
-        val erikoistuvaLaakari2 =
-            ErikoistuvaLaakariHelper.createEntity(
-                em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
-            )
+        val erikoistuvaLaakari2 = ErikoistuvaLaakariHelper.createEntity(em, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari2)
 
         valiarviointiRepository.save(
@@ -429,11 +307,7 @@ class KouluttajaEtusivuResourceIT {
             )
         )
 
-        val erikoistuvaLaakari3 =
-            ErikoistuvaLaakariHelper.createEntity(
-                em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
-            )
+        val erikoistuvaLaakari3 = ErikoistuvaLaakariHelper.createEntity(em, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari3)
 
         kehittamistoimenpiteetRepository.save(

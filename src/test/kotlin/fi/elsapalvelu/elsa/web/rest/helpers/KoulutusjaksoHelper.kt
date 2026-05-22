@@ -4,74 +4,76 @@ import fi.elsapalvelu.elsa.domain.Koulutusjakso
 import fi.elsapalvelu.elsa.domain.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.web.rest.findAll
+import jakarta.persistence.EntityManager
 import java.time.LocalDate
 import java.time.ZoneId
-import jakarta.persistence.EntityManager
 
-class KoulutusjaksoHelper {
+object KoulutusjaksoHelper {
 
-    companion object {
+    private const val DEFAULT_NIMI = "AAAAAAAAAA"
+    private const val UPDATED_NIMI = "BBBBBBBBBB"
 
-        private const val DEFAULT_NIMI = "AAAAAAAAAA"
-        private const val UPDATED_NIMI = "BBBBBBBBBB"
+    private const val DEFAULT_MUUT_OSAAMISTAVOITTEET = "AAAAAAAAAA"
+    private const val UPDATED_MUUT_OSAAMISTAVOITTEET = "BBBBBBBBBB"
 
-        private const val DEFAULT_MUUT_OSAAMISTAVOITTEET = "AAAAAAAAAA"
-        private const val UPDATED_MUUT_OSAAMISTAVOITTEET = "BBBBBBBBBB"
+    private val DEFAULT_LUOTU = LocalDate.ofEpochDay(0L)
+    private val UPDATED_LUOTU = LocalDate.now(ZoneId.systemDefault())
 
-        private val DEFAULT_LUOTU: LocalDate = LocalDate.ofEpochDay(0L)
-        private val UPDATED_LUOTU: LocalDate = LocalDate.now(ZoneId.systemDefault())
+    private val DEFAULT_TALLENNETTU = LocalDate.ofEpochDay(0L)
+    private val UPDATED_TALLENNETTU = LocalDate.now(ZoneId.systemDefault())
 
-        private val DEFAULT_TALLENNETTU: LocalDate = LocalDate.ofEpochDay(0L)
-        private val UPDATED_TALLENNETTU: LocalDate = LocalDate.now(ZoneId.systemDefault())
+    private const val DEFAULT_LUKITTU = false
+    private const val UPDATED_LUKITTU = true
 
-        private const val DEFAULT_LUKITTU: Boolean = false
-        private const val UPDATED_LUKITTU: Boolean = true
+    fun createEntity(em: EntityManager, user: User? = null): Koulutusjakso {
+        val koulutusjakso = Koulutusjakso(
+            nimi = DEFAULT_NIMI,
+            muutOsaamistavoitteet = DEFAULT_MUUT_OSAAMISTAVOITTEET,
+            luotu = DEFAULT_LUOTU,
+            tallennettu = DEFAULT_TALLENNETTU,
+            lukittu = DEFAULT_LUKITTU
+        )
 
-        @JvmStatic
-        fun createEntity(em: EntityManager, user: User? = null): Koulutusjakso {
-            val koulutusjakso = Koulutusjakso(
-                nimi = DEFAULT_NIMI,
-                muutOsaamistavoitteet = DEFAULT_MUUT_OSAAMISTAVOITTEET,
-                luotu = DEFAULT_LUOTU,
-                tallennettu = DEFAULT_TALLENNETTU,
-                lukittu = DEFAULT_LUKITTU
-            )
+        val koulutussuunnitelma = resolveKoulutussuunnitelma(em, user, updated = false)
+        koulutusjakso.koulutussuunnitelma = koulutussuunnitelma
 
-            // Lisätään pakollinen tieto
-            val koulutussuunnitelma: Koulutussuunnitelma
-            if (em.findAll(Koulutussuunnitelma::class).isEmpty()) {
-                koulutussuunnitelma = KoulutussuunnitelmaHelper.createEntity(em, user)
-                em.persist(koulutussuunnitelma)
-                em.flush()
+        return koulutusjakso
+    }
+
+    fun createUpdatedEntity(em: EntityManager): Koulutusjakso {
+        val koulutusjakso = Koulutusjakso(
+            nimi = UPDATED_NIMI,
+            muutOsaamistavoitteet = UPDATED_MUUT_OSAAMISTAVOITTEET,
+            luotu = UPDATED_LUOTU,
+            tallennettu = UPDATED_TALLENNETTU,
+            lukittu = UPDATED_LUKITTU
+        )
+
+        val koulutussuunnitelma = resolveKoulutussuunnitelma(em, updated = true)
+        koulutusjakso.koulutussuunnitelma = koulutussuunnitelma
+
+        return koulutusjakso
+    }
+
+    private fun resolveKoulutussuunnitelma(
+        em: EntityManager,
+        user: User? = null,
+        updated: Boolean
+    ): Koulutussuunnitelma {
+        val existing = em.findAll(Koulutussuunnitelma::class).firstOrNull()
+
+        if (existing != null) return existing
+
+        val created =
+            if (updated) {
+                KoulutussuunnitelmaHelper.createUpdatedEntity(em)
             } else {
-                koulutussuunnitelma = em.findAll(Koulutussuunnitelma::class).get(0)
+                KoulutussuunnitelmaHelper.createEntity(em, user)
             }
-            koulutusjakso.koulutussuunnitelma = koulutussuunnitelma
 
-            return koulutusjakso
-        }
+        em.persist(created)
+        em.flush()
 
-        @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): Koulutusjakso {
-            val koulutusjakso = Koulutusjakso(
-                nimi = UPDATED_NIMI,
-                muutOsaamistavoitteet = UPDATED_MUUT_OSAAMISTAVOITTEET,
-                luotu = UPDATED_LUOTU,
-                tallennettu = UPDATED_TALLENNETTU,
-                lukittu = UPDATED_LUKITTU
-            )
-
-            val koulutussuunnitelma: Koulutussuunnitelma
-            if (em.findAll(Koulutussuunnitelma::class).isEmpty()) {
-                koulutussuunnitelma = KoulutussuunnitelmaHelper.createUpdatedEntity(em)
-                em.persist(koulutussuunnitelma)
-                em.flush()
-            } else {
-                koulutussuunnitelma = em.findAll(Koulutussuunnitelma::class).get(0)
-            }
-            koulutusjakso.koulutussuunnitelma = koulutussuunnitelma
-
-            return koulutusjakso
-        }
+        return created
     }
 }

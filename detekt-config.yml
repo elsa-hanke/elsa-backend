@@ -3,8 +3,6 @@ style:
     maxLineLength: 180
   WildcardImport:
     active: false
-  NewLineAtEndOfFile:
-    active: false
   MagicNumber:
     active: false
   ReturnCount:
@@ -16,19 +14,15 @@ naming:
     active: false
 complexity:
   TooManyFunctions:
-    thresholdInFiles: 21
-    thresholdInClasses: 21
-    thresholdInInterfaces: 21
-    thresholdInObjects: 21
+    allowedFunctionsPerClass: 20
+    allowedFunctionsPerInterface: 16
   LongParameterList:
-    constructorThreshold: 17
-    functionThreshold: 10
-  LongMethod:
-    threshold: 110
-  LargeClass:
-    threshold: 1000
+    allowedConstructorParameters: 17
+    allowedFunctionParameters: 10
   ComplexCondition:
-    threshold: 5
+    allowedConditions: 5
+  CyclomaticComplexMethod:
+    allowedComplexity: 15
   NestedBlockDepth:
     active: false
 exceptions:

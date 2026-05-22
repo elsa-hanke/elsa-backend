@@ -68,208 +68,78 @@ class ErikoistuvaLaakariEtusivuResourceIT {
 
     @BeforeEach
     fun setup() {
-        val user =
-            KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI))
+        val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI))
         em.persist(user)
         em.flush()
         val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
-        val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
-            "test",
-            authorities
-        )
+        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(user.id, userDetails), "test", authorities)
         TestSecurityContextHolder.getContext().authentication = authentication
 
         val erikoisala = ErikoisalaHelper.createEntity()
         em.persist(erikoisala)
 
-        erikoistuvaLaakari =
-            ErikoistuvaLaakariHelper.createEntity(em, user, erikoisala = erikoisala)
+        erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user, erikoisala = erikoisala)
 
-        em.persist(
-            TyoskentelyjaksoHelper.createEntity(
-                em,
-                erikoistuvaLaakari.kayttaja?.user
-            )
-        )
+        em.persist(TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user))
 
-        arvioitavanKokonaisuudenKategoria =
-            ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala)
+        arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala)
         em.persist(arvioitavanKokonaisuudenKategoria)
 
-        arvioitavaKokonaisuus1 =
-            ArvioitavaKokonaisuusHelper.createEntity(
-                em,
-                existingKategoria = arvioitavanKokonaisuudenKategoria
-            )
+        arvioitavaKokonaisuus1 = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvioitavanKokonaisuudenKategoria)
         em.persist(arvioitavaKokonaisuus1)
         arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus1)
 
-        arvioitavaKokonaisuus2 =
-            ArvioitavaKokonaisuusHelper.createEntity(
-                em,
-                existingKategoria = arvioitavanKokonaisuudenKategoria
-            )
+        arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvioitavanKokonaisuudenKategoria)
         em.persist(arvioitavaKokonaisuus2)
         arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus2)
 
-        val suoritusarviointi1 = SuoritusarviointiHelper.createEntity(
-            em,
-            erikoistuvaLaakari.kayttaja?.user,
-            arviointiasteikonTaso = 2,
-            arvioitavaKokonaisuus = arvioitavaKokonaisuus1
-        )
+        val suoritusarviointi1 = SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 2,
+            arvioitavaKokonaisuus = arvioitavaKokonaisuus1)
         em.persist(suoritusarviointi1)
 
-        val suoritusarviointi2 = SuoritusarviointiHelper.createEntity(
-            em,
-            erikoistuvaLaakari.kayttaja?.user,
-            arviointiasteikonTaso = 3,
-            arvioitavaKokonaisuus = arvioitavaKokonaisuus2
-        )
+        val suoritusarviointi2 = SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 3,
+            arvioitavaKokonaisuus = arvioitavaKokonaisuus2)
         em.persist(suoritusarviointi2)
 
         suoritteenKategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
         em.persist(suoritteenKategoria)
 
-        suorite1 =
-            SuoriteHelper.createEntity(
-                em,
-                existingKategoria = suoritteenKategoria,
-                vaadittuLkm = 1
-            )
+        suorite1 = SuoriteHelper.createEntity(em, existingKategoria = suoritteenKategoria, vaadittuLkm = 1)
         em.persist(suorite1)
         suoritteenKategoria.suoritteet.add(suorite1)
 
-        suorite2 =
-            SuoriteHelper.createEntity(
-                em,
-                existingKategoria = suoritteenKategoria,
-                vaadittuLkm = 5
-            )
+        suorite2 = SuoriteHelper.createEntity(em, existingKategoria = suoritteenKategoria, vaadittuLkm = 5)
         em.persist(suorite2)
         suoritteenKategoria.suoritteet.add(suorite2)
 
-        suoritemerkinta = SuoritemerkintaHelper.createEntity(
-            em,
-            erikoisala,
-            erikoistuvaLaakari.kayttaja?.user,
-            existingSuorite = suorite1
-        )
+        suoritemerkinta = SuoritemerkintaHelper.createEntity(em, erikoisala, erikoistuvaLaakari.kayttaja?.user, existingSuorite = suorite1)
         em.persist(suoritemerkinta)
+        em.persist(SuoritemerkintaHelper.createEntity(em, erikoisala, erikoistuvaLaakari.kayttaja?.user, existingSuorite = suorite2))
+        em.persist(TeoriakoulutusHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, LocalDate.ofEpochDay(0), LocalDate.ofEpochDay(5), 37.5))
+        em.persist(TeoriakoulutusHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, LocalDate.ofEpochDay(5), LocalDate.ofEpochDay(10), 20.0))
 
-        em.persist(
-            SuoritemerkintaHelper.createEntity(
-                em,
-                erikoisala,
-                erikoistuvaLaakari.kayttaja?.user,
-                existingSuorite = suorite2
-            )
-        )
-
-        em.persist(
-            TeoriakoulutusHelper.createEntity(
-                em,
-                erikoistuvaLaakari.kayttaja?.user,
-                LocalDate.ofEpochDay(0),
-                LocalDate.ofEpochDay(5),
-                37.5
-            )
-        )
-
-        em.persist(
-            TeoriakoulutusHelper.createEntity(
-                em,
-                erikoistuvaLaakari.kayttaja?.user,
-                LocalDate.ofEpochDay(5),
-                LocalDate.ofEpochDay(10),
-                20.0
-
-            )
-        )
-
-        val johtamisopinnotTyyppi =
-            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
+        val johtamisopinnotTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
         em.persist(johtamisopinnotTyyppi)
 
-        val sateilysuojakoulutusTyyppi =
-            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
+        val sateilysuojakoulutusTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
         em.persist(sateilysuojakoulutusTyyppi)
 
-        val kuulusteluTyyppi =
-            OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
+        val kuulusteluTyyppi = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
         em.persist(kuulusteluTyyppi)
 
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Johtamisopinto 1",
-                kurssikoodi = "JOHT-1",
-                suorituspaiva = LocalDate.ofEpochDay(3L),
-                opintopisteet = 3.0,
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                tyyppi = johtamisopinnotTyyppi
-            )
-        )
-
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Johtamisopinto 2",
-                kurssikoodi = "JOHT-2",
-                suorituspaiva = LocalDate.ofEpochDay(4L),
-                opintopisteet = 2.0,
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                tyyppi = johtamisopinnotTyyppi
-            )
-        )
-
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Säteilysuojakoulutus 1",
-                kurssikoodi = "SÄT-1",
-                suorituspaiva = LocalDate.ofEpochDay(3L),
-                opintopisteet = 1.0,
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                tyyppi = sateilysuojakoulutusTyyppi
-            )
-        )
-
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Säteilysuojakoulutus 2",
-                kurssikoodi = "SÄT-2",
-                suorituspaiva = LocalDate.ofEpochDay(4L),
-                opintopisteet = 1.0,
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                tyyppi = sateilysuojakoulutusTyyppi
-            )
-        )
-
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Kuulustelu 1",
-                kurssikoodi = "TENTTI-1",
-                suorituspaiva = LocalDate.ofEpochDay(3L),
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                tyyppi = kuulusteluTyyppi
-            )
-        )
-
-        em.persist(
-            Opintosuoritus(
-                nimi_fi = "Kuulustelu 2",
-                kurssikoodi = "TENTTI-2",
-                suorituspaiva = LocalDate.ofEpochDay(4L),
-                hyvaksytty = true,
-                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
-                tyyppi = kuulusteluTyyppi
-            )
-        )
+        em.persist(Opintosuoritus(nimi_fi = "Johtamisopinto 1", kurssikoodi = "JOHT-1", suorituspaiva = LocalDate.ofEpochDay(3L), opintopisteet = 3.0,
+                hyvaksytty = true, opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(), tyyppi = johtamisopinnotTyyppi))
+        em.persist(Opintosuoritus(nimi_fi = "Johtamisopinto 2", kurssikoodi = "JOHT-2", suorituspaiva = LocalDate.ofEpochDay(4L), opintopisteet = 2.0,
+                hyvaksytty = true, opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(), tyyppi = johtamisopinnotTyyppi))
+        em.persist(Opintosuoritus(nimi_fi = "Säteilysuojakoulutus 1", kurssikoodi = "SÄT-1", suorituspaiva = LocalDate.ofEpochDay(3L), opintopisteet = 1.0,
+                hyvaksytty = true, opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(), tyyppi = sateilysuojakoulutusTyyppi))
+        em.persist(Opintosuoritus(nimi_fi = "Säteilysuojakoulutus 2", kurssikoodi = "SÄT-2", suorituspaiva = LocalDate.ofEpochDay(4L), opintopisteet = 1.0,
+                hyvaksytty = true, opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(), tyyppi = sateilysuojakoulutusTyyppi))
+        em.persist(Opintosuoritus(nimi_fi = "Kuulustelu 1", kurssikoodi = "TENTTI-1", suorituspaiva = LocalDate.ofEpochDay(3L),
+                hyvaksytty = true, opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(), tyyppi = kuulusteluTyyppi))
+        em.persist(Opintosuoritus(nimi_fi = "Kuulustelu 2", kurssikoodi = "TENTTI-2", suorituspaiva = LocalDate.ofEpochDay(4L),
+                hyvaksytty = true, opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(), tyyppi = kuulusteluTyyppi))
     }
 
     @Test

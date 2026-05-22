@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
 import org.springframework.core.log.LogMessage
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.InternalAuthenticationServiceException
@@ -23,10 +24,9 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.filter.OncePerRequestFilter
-import org.springframework.web.util.UrlPathHelper
 import java.time.LocalDate
 import jakarta.persistence.EntityNotFoundException
 import jakarta.servlet.FilterChain
@@ -205,7 +205,7 @@ class ElsaSwitchUserFilter(
 
     companion object {
         private fun createMatcher(pattern: String): RequestMatcher {
-            return AntPathRequestMatcher(pattern, "GET", true, UrlPathHelper())
+            return PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, pattern)
         }
     }
 }

@@ -604,11 +604,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         return null
     }
 
-    private fun validateLaillistamispaivaAndTodistus(
-        user: UserDTO,
-        laillistamispaiva: LocalDate?,
-        laillistamistodistus: MultipartFile?
-    ) {
+    private fun validateLaillistamispaivaAndTodistus(user: UserDTO, laillistamispaiva: LocalDate?, laillistamistodistus: MultipartFile?) {
         if ((laillistamispaiva == null || laillistamistodistus == null) &&
             !erikoistuvaLaakariService.laillistamispaivaAndTodistusExists(
                 user.id!!
@@ -624,103 +620,61 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
 
     private fun validateNewTyoskentelyjaksoDTO(it: TyoskentelyjaksoDTO) {
         if (it.id != null) {
-            throw BadRequestAlertException(
-                "Uusi tyoskentelyjakso ei saa sisältää ID:tä",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
-                "idexists"
-            )
+            throw BadRequestAlertException("Uusi tyoskentelyjakso ei saa sisältää ID:tä", TYOSKENTELYJAKSO_ENTITY_NAME, "idexists")
         }
         if (it.tyoskentelypaikka == null || it.tyoskentelypaikka!!.id != null) {
-            throw BadRequestAlertException(
-                "Uusi tyoskentelypaikka ei saa sisältää ID:tä",
-                TYOSKENTELYPAIKKA_ENTITY_NAME,
-                "idexists"
-            )
+            throw BadRequestAlertException("Uusi tyoskentelypaikka ei saa sisältää ID:tä", TYOSKENTELYPAIKKA_ENTITY_NAME, "idexists")
         }
     }
 
-    private fun validateTyoskentelyaika(
-        opintooikeusId: Long,
-        tyoskentelyjaksoDTO: TyoskentelyjaksoDTO
-    ) {
-        if (!overlappingTyoskentelyjaksoValidationService.validateTyoskentelyjakso(
-                opintooikeusId,
-                tyoskentelyjaksoDTO
-            )
-        ) {
+    private fun validateTyoskentelyaika(opintooikeusId: Long, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
+        if (!overlappingTyoskentelyjaksoValidationService.validateTyoskentelyjakso(opintooikeusId, tyoskentelyjaksoDTO)) {
             throwOverlappingTyoskentelyjaksotException()
         }
     }
 
-    private fun validateAlkamisJaPaattymispaiva(
-        opintooikeusId: Long,
-        tyoskentelyjaksoDTO: TyoskentelyjaksoDTO
-    ) {
+    private fun validateAlkamisJaPaattymispaiva(opintooikeusId: Long, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
         tyoskentelyjaksoDTO.paattymispaiva?.isBefore(tyoskentelyjaksoDTO.alkamispaiva)?.let {
             if (it) {
-                throw BadRequestAlertException(
-                    "Työskentelyjakson päättymispäivä ei saa olla ennen alkamisaikaa",
-                    TYOSKENTELYPAIKKA_ENTITY_NAME,
-                    "dataillegal.tyoskentelyjakson-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa"
-                )
+                throw BadRequestAlertException("Työskentelyjakson päättymispäivä ei saa olla ennen alkamisaikaa",
+                    TYOSKENTELYPAIKKA_ENTITY_NAME, "dataillegal.tyoskentelyjakson-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa")
             }
         }
 
-        if (!tyoskentelyjaksoService.validateAlkamisJaPaattymispaiva(
-                tyoskentelyjaksoDTO,
-                opintooikeusId
-            )
+        if (!tyoskentelyjaksoService.validateAlkamisJaPaattymispaiva(tyoskentelyjaksoDTO, opintooikeusId)
         ) {
-            throw BadRequestAlertException(
-                "Työskentelyjakson alkamis- tai päättymispäivä ei ole kelvollinen.",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
-                "dataillegal.tyoskentelyjakson-paattymispaiva-ei-ole-kelvollinen"
-            )
+            throw BadRequestAlertException("Työskentelyjakson alkamis- tai päättymispäivä ei ole kelvollinen.",
+                TYOSKENTELYJAKSO_ENTITY_NAME, "dataillegal.tyoskentelyjakson-paattymispaiva-ei-ole-kelvollinen")
         }
     }
 
     private fun validateKeskeytysaikaDTO(keskeytysaikaDTO: KeskeytysaikaDTO) {
         if (keskeytysaikaDTO.alkamispaiva == null || keskeytysaikaDTO.paattymispaiva == null) {
-            throw BadRequestAlertException(
-                "Keskeytysajan alkamis- ja päättymispäivä ovat pakollisia tietoja",
-                KESKEYTYSAIKA_ENTITY_NAME,
-                "dataillegal.keskeytysaika-alkamis-ja-paattymispaiva-ovat-pakollisia-tietoja"
-            )
+            throw BadRequestAlertException("Keskeytysajan alkamis- ja päättymispäivä ovat pakollisia tietoja",
+                KESKEYTYSAIKA_ENTITY_NAME, "dataillegal.keskeytysaika-alkamis-ja-paattymispaiva-ovat-pakollisia-tietoja")
         }
 
         if (keskeytysaikaDTO.alkamispaiva!!.isAfter(keskeytysaikaDTO.paattymispaiva)) {
-            throw BadRequestAlertException(
-                "Keskeytysajan päättymispäivä ei saa olla ennen alkamisaikaa",
-                KESKEYTYSAIKA_ENTITY_NAME,
-                "dataillegal.keskeytysajan-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa"
-            )
+            throw BadRequestAlertException("Keskeytysajan päättymispäivä ei saa olla ennen alkamisaikaa",
+                KESKEYTYSAIKA_ENTITY_NAME, "dataillegal.keskeytysajan-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa")
         }
 
         if (keskeytysaikaDTO.alkamispaiva!!.isBefore(keskeytysaikaDTO.tyoskentelyjakso!!.alkamispaiva)) {
-            throw BadRequestAlertException(
-                "Keskeytysajan alkamispäivä ei voi olla ennen työskentelyjakson alkamispäivää",
-                KESKEYTYSAIKA_ENTITY_NAME,
-                "dataillegal.keskeytysajan-alkamispaiva-ei-voi-olla-ennen-tyoskentelyjakson-alkamispaivaa"
-            )
+            throw BadRequestAlertException("Keskeytysajan alkamispäivä ei voi olla ennen työskentelyjakson alkamispäivää",
+                KESKEYTYSAIKA_ENTITY_NAME, "dataillegal.keskeytysajan-alkamispaiva-ei-voi-olla-ennen-tyoskentelyjakson-alkamispaivaa")
         }
 
         if (keskeytysaikaDTO.tyoskentelyjakso!!.paattymispaiva != null && keskeytysaikaDTO.paattymispaiva!!.isAfter(
-                keskeytysaikaDTO.tyoskentelyjakso!!.paattymispaiva
-            )
+                keskeytysaikaDTO.tyoskentelyjakso!!.paattymispaiva)
         ) {
             throw BadRequestAlertException(
                 "Keskeytysajan päättymispäivä ei voi olla työskentelyjakson päättymispäivän jälkeen",
-                KESKEYTYSAIKA_ENTITY_NAME,
-                "dataillegal.keskeytysajan-paattymispaiva-ei-voi-olla-tyoskentelyjakson-paattymispaivan-jalkeen"
-            )
+                KESKEYTYSAIKA_ENTITY_NAME, "dataillegal.keskeytysajan-paattymispaiva-ei-voi-olla-tyoskentelyjakson-paattymispaivan-jalkeen")
         }
 
         if (keskeytysaikaDTO.tyoskentelyjakso == null) {
-            throw BadRequestAlertException(
-                "Keskeytysajan täytyy kohdistua työskentelyjaksoon",
-                KESKEYTYSAIKA_ENTITY_NAME,
-                "dataillegal.keskeytysajan-taytyy-kohdistua-tyoskentelyjaksoon"
-            )
+            throw BadRequestAlertException("Keskeytysajan täytyy kohdistua työskentelyjaksoon",
+                KESKEYTYSAIKA_ENTITY_NAME, "dataillegal.keskeytysajan-taytyy-kohdistua-tyoskentelyjaksoon")
         }
     }
 
@@ -728,32 +682,22 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
                 .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
         ) {
-            val opintooikeus =
-                opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+            val opintooikeus = opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
             if (!opintooikeus.muokkausoikeudetVirkailijoilla) {
-                throw BadRequestAlertException(
-                    "Ei oikeuksia muokata erikoistujan tietoja",
-                    entity,
-                    "dataillegal.ei-oikeuksia-muokata-erikoistujan-tietoja"
-                )
+                throw BadRequestAlertException("Ei oikeuksia muokata erikoistujan tietoja",
+                    entity, "dataillegal.ei-oikeuksia-muokata-erikoistujan-tietoja")
             }
         }
     }
 
     private fun throwOverlappingTyoskentelyjaksotException() {
-        throw BadRequestAlertException(
-            "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
-            TYOSKENTELYJAKSO_ENTITY_NAME,
-            "dataillegal.paallekkaisten-tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy"
-        )
+        throw BadRequestAlertException("Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a", TYOSKENTELYJAKSO_ENTITY_NAME,
+            "dataillegal.paallekkaisten-tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy")
     }
 
     private fun liitettyTerveyskoulutusjaksoonException(e: ValidationException): BadRequestAlertException {
-        return BadRequestAlertException(
-            e.message ?: "Validaatiovirhe",
-            TYOSKENTELYJAKSO_ENTITY_NAME,
-            "dataillegal.terveyskeskuskoulutusjaksoon-liitettya-tyoskentelyjaksoa-ei-voi-paivittaa"
-        )
+        return BadRequestAlertException(e.message ?: "Validaatiovirhe", TYOSKENTELYJAKSO_ENTITY_NAME,
+            "dataillegal.terveyskeskuskoulutusjaksoon-liitettya-tyoskentelyjaksoa-ei-voi-paivittaa")
     }
 
 }

@@ -156,8 +156,7 @@ class SuoritusarviointiServiceImpl(
         suoritusarviointi.arviointiPerustuu = suoritusarviointiDTO.arviointiPerustuu
         suoritusarviointi.muuPeruste = suoritusarviointiDTO.muuPeruste
         suoritusarviointi.arvioitavatKokonaisuudet.forEach {
-            it.arviointiasteikonTaso =
-                suoritusarviointiDTO.arvioitavatKokonaisuudet?.first { k -> k.id == it.id }?.arviointiasteikonTaso
+            it.arviointiasteikonTaso = suoritusarviointiDTO.arvioitavatKokonaisuudet?.first { k -> k.id == it.id }?.arviointiasteikonTaso
         }
 
         val existingVastauksetById = suoritusarviointi.arviointityokaluVastaukset.associateBy { it.id }.toMutableMap()

@@ -11,9 +11,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
 
-class TyoskentelyjaksoHelper {
-
-    companion object {
+object TyoskentelyjaksoHelper {
 
         private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
@@ -108,5 +106,5 @@ class TyoskentelyjaksoHelper {
             tyoskentelyjakso.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return tyoskentelyjakso
         }
-    }
+
 }

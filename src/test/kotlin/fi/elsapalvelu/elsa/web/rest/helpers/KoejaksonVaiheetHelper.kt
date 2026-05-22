@@ -4,9 +4,7 @@ import fi.elsapalvelu.elsa.domain.*
 import java.time.LocalDate
 import java.time.ZoneId
 
-class KoejaksonVaiheetHelper {
-
-    companion object {
+object KoejaksonVaiheetHelper {
         const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
         const val DEFAULT_LOGIN = "johndoe"
         const val DEFAULT_EMAIL = "john.doe@example.com"
@@ -152,5 +150,5 @@ class KoejaksonVaiheetHelper {
                 vastuuhenkilo = vastuuhenkilo,
             )
         }
-    }
+
 }
