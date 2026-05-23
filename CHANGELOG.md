@@ -2,6 +2,12 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.1...HEAD)
 
+- Bump svgo from 2.8.0 to 2.8.2 in /frontend [`#573`](https://github.com/elsa-hanke/elsa-backend/pull/573)(22 May 2026)
+- ApolloClient version mismatch fix [`#575`](https://github.com/elsa-hanke/elsa-backend/pull/575)(22 May 2026)
+- Bump rollup from 2.70.1 to 2.80.0 in /frontend [`#570`](https://github.com/elsa-hanke/elsa-backend/pull/570)(22 May 2026)
+- Bump lodash from 4.17.23 to 4.18.1 in /e2e [`#571`](https://github.com/elsa-hanke/elsa-backend/pull/571)(22 May 2026)
+- ELSAINSI-3 Detekt käyttöönotto [`#572`](https://github.com/elsa-hanke/elsa-backend/pull/572)(22 May 2026)
+- ELSAINSI-37 Integraatioiden testaus [`#556`](https://github.com/elsa-hanke/elsa-backend/pull/556)(22 May 2026)
 - Bump webpack from 5.71.0 to 5.106.2 in /frontend [`#566`](https://github.com/elsa-hanke/elsa-backend/pull/566)(19 May 2026)
 - Bump sha.js from 2.4.11 to 2.4.12 in /frontend [`#567`](https://github.com/elsa-hanke/elsa-backend/pull/567)(18 May 2026)
 - ELSAINSI-3 Detekt käyttöönotto [`#568`](https://github.com/elsa-hanke/elsa-backend/pull/568)(18 May 2026)
