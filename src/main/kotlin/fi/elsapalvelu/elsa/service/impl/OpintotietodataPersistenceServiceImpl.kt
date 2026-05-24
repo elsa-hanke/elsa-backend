@@ -22,8 +22,10 @@ import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import jakarta.persistence.EntityNotFoundException
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
+import org.springframework.core.env.Environment
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -48,7 +50,8 @@ class OpintotietodataPersistenceServiceImpl(
     private val clock: Clock,
     private val opintooikeusHerateRepository: OpintooikeusHerateRepository,
     private val mailService: MailService,
-    private val applicationProperties: ApplicationProperties
+    private val applicationProperties: ApplicationProperties,
+    private val env: Environment
 ) : OpintotietodataPersistenceService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -172,9 +175,12 @@ class OpintotietodataPersistenceServiceImpl(
         }
     }
 
-    override fun createWithoutOpintotietodata(
+    override fun createWithoutOpintotietodataOnlyDevDoNotUseInProd(
         cipher: Cipher, originalKey: SecretKey, hetu: String?, etunimi: String, sukunimi: String
     ) {
+        if (!env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
+            throw IllegalStateException("This is allowed only in DEVELOPMENT mode.")
+        }
         val erikoistuvaLaakari = createErikoistuvaLaakari(
             cipher,
             originalKey,

@@ -365,7 +365,7 @@ class SecurityConfiguration(
 
                 // Lokaalissa ympäristössä luodaan uusi käyttäjä, jos sitä ei löydy.
                 if (existingUser == null && env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
-                    opintotietodataPersistenceService.createWithoutOpintotietodata(cipher, originalKey, hetu, firstName, lastName)
+                    opintotietodataPersistenceService.createWithoutOpintotietodataOnlyDevDoNotUseInProd(cipher, originalKey, hetu, firstName, lastName)
                     existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
                 }
 
