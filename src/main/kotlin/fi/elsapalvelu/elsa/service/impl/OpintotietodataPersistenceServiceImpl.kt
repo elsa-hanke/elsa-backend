@@ -178,8 +178,8 @@ class OpintotietodataPersistenceServiceImpl(
     override fun createWithoutOpintotietodataOnlyDevDoNotUseInProd(
         cipher: Cipher, originalKey: SecretKey, hetu: String?, etunimi: String, sukunimi: String
     ) {
-        if (!env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
-            throw IllegalStateException("This is allowed only in DEVELOPMENT mode.")
+        check(env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
+            "This is allowed only in DEVELOPMENT mode."
         }
         val erikoistuvaLaakari = createErikoistuvaLaakari(
             cipher,
