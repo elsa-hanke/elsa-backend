@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.1...HEAD)
 
+- Rename createWithoutOpintotietodata method and restrict usage only to development mode [`#576`](https://github.com/elsa-hanke/elsa-backend/pull/576)(24 May 2026)
 - Bump svgo from 2.8.0 to 2.8.2 in /frontend [`#573`](https://github.com/elsa-hanke/elsa-backend/pull/573)(22 May 2026)
 - ApolloClient version mismatch fix [`#575`](https://github.com/elsa-hanke/elsa-backend/pull/575)(22 May 2026)
 - Bump rollup from 2.70.1 to 2.80.0 in /frontend [`#570`](https://github.com/elsa-hanke/elsa-backend/pull/570)(22 May 2026)
