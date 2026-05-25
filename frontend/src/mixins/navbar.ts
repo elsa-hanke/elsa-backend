@@ -16,10 +16,11 @@ export default class NavbarMixin extends Vue {
   async mounted() {
     if (this.isErikoistuvaLaakari) {
       const erikoistuvaLaakari = (await getErikoistuvaLaakari()).data
-      this.opintooikeudet = erikoistuvaLaakari.opintooikeudet.sort(
-        (a: Opintooikeus, b: Opintooikeus) =>
+      this.opintooikeudet = erikoistuvaLaakari.opintooikeudet
+        .filter((o: Opintooikeus) => o.erikoisalaId !== 61)
+        .sort((a: Opintooikeus, b: Opintooikeus) =>
           sortByDateDesc(a.opintooikeudenMyontamispaiva, b.opintooikeudenMyontamispaiva)
-      )
+        )
       this.opintooikeusKaytossa = this.getOpintooikeusKaytossa(
         erikoistuvaLaakari.opintooikeusKaytossaId
       )
