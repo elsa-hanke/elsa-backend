@@ -14,15 +14,15 @@ export default class NavbarMixin extends Vue {
   opintooikeudet: null | Opintooikeus[] = null
 
   async mounted() {
-      const erikoistuvaLaakari = (await getErikoistuvaLaakari()).data
-      this.opintooikeudet = erikoistuvaLaakari.opintooikeudet
-        .filter((o: Opintooikeus) => o.erikoisalaId !== 61)
-        .sort((a: Opintooikeus, b: Opintooikeus) =>
-          sortByDateDesc(a.opintooikeudenMyontamispaiva, b.opintooikeudenMyontamispaiva)
-        )
-      this.opintooikeusKaytossa = this.getOpintooikeusKaytossa(
-        erikoistuvaLaakari.opintooikeusKaytossaId
+    const erikoistuvaLaakari = (await getErikoistuvaLaakari()).data
+    this.opintooikeudet = erikoistuvaLaakari.opintooikeudet
+      .filter((o: Opintooikeus) => o.erikoisalaId !== 61)
+      .sort((a: Opintooikeus, b: Opintooikeus) =>
+        sortByDateDesc(a.opintooikeudenMyontamispaiva, b.opintooikeudenMyontamispaiva)
       )
+    this.opintooikeusKaytossa = this.getOpintooikeusKaytossa(
+      erikoistuvaLaakari.opintooikeusKaytossaId
+    )
   }
 
   get isErikoistuvaLaakari() {
