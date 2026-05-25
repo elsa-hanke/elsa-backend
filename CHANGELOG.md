@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.1...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.2...HEAD)
 
 - Rename createWithoutOpintotietodata method and restrict usage only to development mode [`#576`](https://github.com/elsa-hanke/elsa-backend/pull/576)(24 May 2026)
 - Bump svgo from 2.8.0 to 2.8.2 in /frontend [`#573`](https://github.com/elsa-hanke/elsa-backend/pull/573)(22 May 2026)
@@ -21,6 +21,10 @@
 - enhance e2e tests for valmistumispyyntö approval process with verification tokens [`#551`](https://github.com/elsa-hanke/elsa-backend/pull/551)(8 May 2026)
 - enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
 - ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
+
+## [v2.1.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.1...v2.1.2) - 25 May 2026
+
+- ELSA-1140:  poistettu filteröinti YEK-käyttäjältä [`#578`](https://github.com/elsa-hanke/elsa-backend/pull/578)(25 May 2026)
 
 ## [v2.1.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.0...v2.1.1) - 7 May 2026
 
