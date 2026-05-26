@@ -109,6 +109,10 @@ management:
     metrics:
       export:
         enabled: true
-        namespace: ElsaBackend
+        # Namespace is overridden per-environment via the
+        # MANAGEMENT_CLOUDWATCH2_METRICS_EXPORT_NAMESPACE container env var
+        # (elsa-dev / elsa-staging / elsa-prod / elsa-sandbox).
+        # The value below is only a safety fallback when no env var is present.
+        namespace: ${MANAGEMENT_CLOUDWATCH2_METRICS_EXPORT_NAMESPACE:ElsaBackend}
         step: 1m
 
