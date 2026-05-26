@@ -429,7 +429,8 @@ class SecurityConfiguration(
             userRepository.save(existingUser)
         }
 
-        alertPublisherService.publishAlert(subject = "TESTI", message = "Test message")
+        alertPublisherService.publishAlert(subject = "TESTI",
+            message = "Test message")
 
         return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal), token.saml2Response, kayttaja.user?.authorities?.map { SimpleGrantedAuthority(it.name) })
     }
