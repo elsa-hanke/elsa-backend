@@ -269,6 +269,8 @@ application:
       endpoint-url: https://mixqa.uef.fi/api/v1/elsa
   feedback:
     to: mirja.lukkari@oulu.fi
+  alert:
+    sns-topic-arn: ${ALERT_SNS_TOPIC_ARN:}
   opintohallintoemail:
     hki:
     oulu:
