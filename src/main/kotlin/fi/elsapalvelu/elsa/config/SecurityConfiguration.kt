@@ -90,7 +90,8 @@ class SecurityConfiguration(
     private val userRepository: UserRepository,
     private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
     private val env: Environment,
-    private val applicationContext: ApplicationContext
+    private val applicationContext: ApplicationContext,
+    private val alertPublisherService: AlertPublisherService
 ) {
 
     private val log = LoggerFactory.getLogger(SecurityConfiguration::class.java)
@@ -427,6 +428,8 @@ class SecurityConfiguration(
             existingUser.activeAuthority = existingUser.authorities.first()
             userRepository.save(existingUser)
         }
+
+        alertPublisherService.publishAlert(subject = "TESTI", message = "Test message")
 
         return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal), token.saml2Response, kayttaja.user?.authorities?.map { SimpleGrantedAuthority(it.name) })
     }
