@@ -347,6 +347,8 @@ class SecurityConfiguration(
         val verificationToken = attr.request.getParameter("RelayState")
         var tokenUser: User? = null
 
+        alertPublisherService.publishAlert(subject = "TESTI", message = "Test message")
+
         // Kutsuttu käyttäjä
         if (verificationToken != null && verificationToken != DEFAULT_RELAY_STATE) {
             verificationTokenRepository.findById(verificationToken).ifPresent {
@@ -428,9 +430,6 @@ class SecurityConfiguration(
             existingUser.activeAuthority = existingUser.authorities.first()
             userRepository.save(existingUser)
         }
-
-        alertPublisherService.publishAlert(subject = "TESTI",
-            message = "Test message")
 
         return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal), token.saml2Response, kayttaja.user?.authorities?.map { SimpleGrantedAuthority(it.name) })
     }
