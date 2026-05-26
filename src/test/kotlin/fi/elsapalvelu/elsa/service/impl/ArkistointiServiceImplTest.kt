@@ -113,7 +113,10 @@ class ArkistointiServiceImplTest {
         return ArkistointiServiceImpl(
             applicationProperties = applicationProperties,
             tampereLouhiService = TampereLouhiService(org.springframework.core.io.DefaultResourceLoader(), applicationProperties),
-            helsinkiSiiloService = HelsinkiSiiloService(applicationProperties)
+            helsinkiSiiloService = HelsinkiSiiloService(applicationProperties),
+            alertPublisherService = object : fi.elsapalvelu.elsa.service.AlertPublisherService {
+                override fun publishAlert(subject: String, message: String) = Unit
+            }
         )
     }
 

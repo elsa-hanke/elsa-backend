@@ -5,6 +5,7 @@ import org.springframework.boot.web.servlet.ServletContextInitializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
+import org.springframework.security.web.session.HttpSessionEventPublisher
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.CorsFilter
 import tech.jhipster.config.JHipsterProperties
@@ -49,4 +50,15 @@ class WebConfigurer(
         }
         return CorsFilter(source)
     }
+
+    /**
+     * Registers [HttpSessionEventPublisher] as a servlet listener so that
+     * Spring Security publishes [org.springframework.security.web.session.HttpSessionCreatedEvent] and
+     * [org.springframework.security.web.session.HttpSessionDestroyedEvent].
+     *
+     * These events are consumed by [fi.elsapalvelu.elsa.service.ActiveSessionsMetricsService]
+     * to keep the `http.sessions.active` Micrometer gauge accurate.
+     */
+    @Bean
+    fun httpSessionEventPublisher(): HttpSessionEventPublisher = HttpSessionEventPublisher()
 }

@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.impl.ArkistointiServiceImpl
+import fi.elsapalvelu.elsa.service.impl.AlertPublisherServiceImpl
 import fi.elsapalvelu.elsa.service.impl.HelsinkiSiiloService
 import fi.elsapalvelu.elsa.service.impl.TampereLouhiService
 import org.assertj.core.api.Assertions.assertThat
@@ -232,7 +233,8 @@ class TampereArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppor
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     TampereLouhiService::class,
-    ArkistointiServiceImpl::class
+    ArkistointiServiceImpl::class,
+    AlertPublisherServiceImpl::class  // single always-registered impl; no-ops when SNS not configured
 )
 class TampereArkistointiExternalIntegrationTestApplication {
 

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.service.AlertPublisherService
 import fi.elsapalvelu.elsa.service.ArkistointiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.*
 import org.apache.commons.codec.digest.DigestUtils
@@ -22,7 +23,8 @@ import java.util.zip.ZipOutputStream
 class ArkistointiServiceImpl(
     private val applicationProperties: ApplicationProperties,
     private val tampereLouhiService: TampereLouhiService,
-    private val helsinkiSiiloService: HelsinkiSiiloService
+    private val helsinkiSiiloService: HelsinkiSiiloService,
+    private val alertPublisherService: AlertPublisherService
 ) : ArkistointiService {
     private val log = LoggerFactory.getLogger(ArkistointiServiceImpl::class.java)
 
@@ -227,11 +229,29 @@ class ArkistointiServiceImpl(
     ) {
         when (yliopisto) {
             YliopistoEnum.TAMPEREEN_YLIOPISTO -> {
-                tampereLouhiService.laheta(filePath, yek)
+                try {
+                    tampereLouhiService.laheta(filePath, yek)
+                } catch (e: Exception) {
+                    alertPublisherService.publishAlert(
+                        subject = "Tampere arkistointi epäonnistui",
+                        message = "Arkistointitiedoston lähetys Louhi SFTP-palvelimelle epäonnistui. " +
+                            "Tiedosto: $filePath, CaseType: ${caseType.value}. Virhe: ${e.message}"
+                    )
+                    throw e
+                }
             }
 
             YliopistoEnum.HELSINGIN_YLIOPISTO -> {
-                helsinkiSiiloService.laheta(filePath, caseType)
+                try {
+                    helsinkiSiiloService.laheta(filePath, caseType)
+                } catch (e: Exception) {
+                    alertPublisherService.publishAlert(
+                        subject = "Helsinki arkistointi epäonnistui",
+                        message = "Arkistointitiedoston lähetys HY Siilo-palveluun epäonnistui. " +
+                            "Tiedosto: $filePath, CaseType: ${caseType.value}. Virhe: ${e.message}"
+                    )
+                    throw e
+                }
             }
 
             else -> log.info("Integraatiota arkistointiin ei ole tuettu yliopistossa ${yliopisto.name}")

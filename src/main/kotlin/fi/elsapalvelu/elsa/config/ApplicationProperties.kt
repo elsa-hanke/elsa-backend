@@ -17,6 +17,7 @@ class ApplicationProperties {
     private val feedback = Feedback()
     private val arkistointi = Arkistointi()
     private val opintohallintoemail = Opintohallintoemail()
+    private val alert = Alert()
 
     fun getCsrf(): Csrf {
         return csrf
@@ -36,6 +37,10 @@ class ApplicationProperties {
 
     fun getOpintohallintoemail(): Opintohallintoemail {
         return opintohallintoemail
+    }
+
+    fun getAlert(): Alert {
+        return alert
     }
 
     class Csrf {
@@ -246,5 +251,9 @@ class ApplicationProperties {
         var tre: String? = null
         var turku: String? = null
         var uef: String? = null
+    }
+
+    class Alert {
+        var snsTopicArn: String? = null
     }
  }
