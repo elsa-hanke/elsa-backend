@@ -77,6 +77,8 @@ spring:
     aws:
       s3:
         enabled: false
+      sns:
+        enabled: false
 
 server:
   port: 10344
