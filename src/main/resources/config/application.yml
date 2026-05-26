@@ -270,7 +270,7 @@ application:
   feedback:
     to: mirja.lukkari@oulu.fi
   alert:
-    sns-topic-arn: ${ALERT_SNS_TOPIC_ARN:}
+    sns-topic-arn: ${APPLICATION_ALERT_SNS_TOPIC_ARN:}
   opintohallintoemail:
     hki:
     oulu:
