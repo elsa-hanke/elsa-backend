@@ -114,7 +114,9 @@ class ArkistointiServiceImplTest {
             applicationProperties = applicationProperties,
             tampereLouhiService = TampereLouhiService(org.springframework.core.io.DefaultResourceLoader(), applicationProperties),
             helsinkiSiiloService = HelsinkiSiiloService(applicationProperties),
-            alertPublisherService = NoOpAlertPublisherService()
+            alertPublisherService = object : fi.elsapalvelu.elsa.service.AlertPublisherService {
+                override fun publishAlert(subject: String, message: String) = Unit
+            }
         )
     }
 
