@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Lazy
 import org.springframework.core.env.Environment
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient
 
@@ -58,6 +59,7 @@ class CloudWatchMeterRegistryConfiguration {
      * `management.cloudwatch2.metrics.export.<suffix>`.
      */
     @Bean
+    @Lazy(false)
     @ConditionalOnMissingBean(CloudWatchConfig::class)
     fun cloudWatchConfig(environment: Environment): CloudWatchConfig {
         return CloudWatchConfig { key ->
@@ -73,6 +75,7 @@ class CloudWatchMeterRegistryConfiguration {
      * chain (which fails on ECS Fargate where `AWS_REGION` is not auto-injected).
      */
     @Bean
+    @Lazy(false)
     @ConditionalOnMissingBean(CloudWatchAsyncClient::class)
     fun cloudWatchAsyncClient(configurer: AwsClientBuilderConfigurer): CloudWatchAsyncClient {
         log.info("Creating CloudWatchAsyncClient via Spring Cloud AWS AwsClientBuilderConfigurer")
@@ -94,6 +97,7 @@ class CloudWatchMeterRegistryConfiguration {
      * and receives all JVM / HTTP / custom meters.
      */
     @Bean
+    @Lazy(false)
     @ConditionalOnMissingBean(CloudWatchMeterRegistry::class)
     fun cloudWatchMeterRegistry(
         config: CloudWatchConfig,
