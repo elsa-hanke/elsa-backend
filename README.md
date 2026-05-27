@@ -2,7 +2,7 @@
 
 ### Justfile-komennot 
 
-Projektissa on valmiita kehityskomentoja `Justfile`-tiedostossa.
+Projektissa on valmiita kehityskomentoja `Justfile`-tiedostossa
 
 - `just br` (build-run): ajaa ensin buildin ja käynnistää sen jälkeen backendin sekä frontendin
 - `just r` (run): käynnistää backendin ja frontendin ilman build-vaihetta.
