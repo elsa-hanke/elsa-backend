@@ -29,9 +29,13 @@ class ActiveSessionsMetricsService(registry: MeterRegistry) {
     private val activeSessions = AtomicInteger(0)
 
     init {
+        // Note: the "application" tag is intentionally omitted here because
+        // management.metrics.tags.application already adds it as a global common tag.
+        // Adding it explicitly a second time would create a duplicate CloudWatch
+        // dimension (application=elsa-backend AND application=elsaBackend), which
+        // AWS rejects with InvalidParameterValue.
         Gauge.builder("http.sessions.active", activeSessions, AtomicInteger::toDouble)
             .description("Number of currently active HTTP sessions (proxy for logged-in users)")
-            .tag("application", "elsa-backend")
             .register(registry)
     }
 

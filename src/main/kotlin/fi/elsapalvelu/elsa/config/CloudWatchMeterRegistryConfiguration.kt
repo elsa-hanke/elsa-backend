@@ -8,9 +8,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Lazy
+import org.springframework.context.event.EventListener
 import org.springframework.core.env.Environment
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient
 
@@ -46,7 +48,9 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient
     havingValue = "true",
     matchIfMissing = false
 )
-class CloudWatchMeterRegistryConfiguration {
+class CloudWatchMeterRegistryConfiguration(
+    private val environment: Environment
+) {
 
     private val log = LoggerFactory.getLogger(CloudWatchMeterRegistryConfiguration::class.java)
 
@@ -61,7 +65,7 @@ class CloudWatchMeterRegistryConfiguration {
     @Bean
     @Lazy(false)
     @ConditionalOnMissingBean(CloudWatchConfig::class)
-    fun cloudWatchConfig(environment: Environment): CloudWatchConfig {
+    fun cloudWatchConfig(): CloudWatchConfig {
         return CloudWatchConfig { key ->
             // key format: "cloudwatch.namespace", "cloudwatch.step", "cloudwatch.batchSize" …
             val suffix = key.removePrefix("cloudwatch.")
@@ -110,5 +114,29 @@ class CloudWatchMeterRegistryConfiguration {
             config.step()
         )
         return CloudWatchMeterRegistry(config, clock, client)
+    }
+
+    /**
+     * Logs CloudWatch export configuration once the application is fully started.
+     *
+     * This fires AFTER context refresh, so the message appears in the tail of startup logs
+     * (after "Application is running!") and confirms the registry is active.
+     *
+     * NOTE: Spring Cloud AWS 3.x ships its own [io.awspring.cloud.autoconfigure.metrics.CloudWatchExportAutoConfiguration]
+     * which is enabled by default (matchIfMissing=true on spring.cloud.aws.cloudwatch.enabled).
+     * Because this class is a regular @Configuration (not @AutoConfiguration) it is processed
+     * FIRST, so all three beans below are created before Spring Cloud AWS's auto-config can see
+     * them. The Spring Cloud AWS auto-config then finds all beans present and skips them
+     * (@ConditionalOnMissingBean on each of its factory methods).
+     */
+    @EventListener(ApplicationReadyEvent::class)
+    fun logCloudWatchConfig() {
+        val namespace = environment.getProperty("management.cloudwatch2.metrics.export.namespace")
+        val step = environment.getProperty("management.cloudwatch2.metrics.export.step")
+        log.info(
+            "CloudWatch metrics export is ACTIVE – namespace='{}', step={}",
+            namespace,
+            step
+        )
     }
 }
