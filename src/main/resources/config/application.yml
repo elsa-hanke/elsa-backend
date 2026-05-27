@@ -95,15 +95,6 @@ logging:
     com.itextpdf.layout.renderer: OFF
     com.itextpdf.pdfa.PdfADocument: OFF
     com.itextpdf.kernel.pdf.PdfReader: OFF
-    fi.elsapalvelu.elsa.config.CloudWatchMeterRegistryConfiguration: DEBUG
-    # Micrometer CloudWatch2 registry – prints every publish/flush cycle
-    io.micrometer.cloudwatch2: DEBUG
-    # AWS SDK request/response pipeline – prints the HTTP call to CloudWatch
-    # (will show "SdkClientException: Unable to load region" locally – expected)
-    software.amazon.awssdk.core.internal.http.pipeline: DEBUG
-    software.amazon.awssdk.services.cloudwatch: DEBUG
-    # Spring Boot Actuator metrics auto-configuration decisions
-    org.springframework.boot.actuate.autoconfigure.metrics: DEBUG
 
 spring:
   application:
