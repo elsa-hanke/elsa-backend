@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.2...HEAD)
 
+- Bump picomatch from 2.3.1 to 2.3.2 in /frontend [`#580`](https://github.com/elsa-hanke/elsa-backend/pull/580)(26 May 2026)
+- Implement alert publishing for archiving failures and add SNS config [`#579`](https://github.com/elsa-hanke/elsa-backend/pull/579)(26 May 2026)
 - Rename createWithoutOpintotietodata method and restrict usage only to development mode [`#576`](https://github.com/elsa-hanke/elsa-backend/pull/576)(24 May 2026)
 - Bump svgo from 2.8.0 to 2.8.2 in /frontend [`#573`](https://github.com/elsa-hanke/elsa-backend/pull/573)(22 May 2026)
 - ApolloClient version mismatch fix [`#575`](https://github.com/elsa-hanke/elsa-backend/pull/575)(22 May 2026)
