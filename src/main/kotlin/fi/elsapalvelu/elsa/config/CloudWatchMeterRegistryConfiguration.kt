@@ -4,6 +4,7 @@ import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer
 import io.micrometer.cloudwatch2.CloudWatchConfig
 import io.micrometer.cloudwatch2.CloudWatchMeterRegistry
 import io.micrometer.core.instrument.Clock
+import io.micrometer.core.instrument.config.MeterFilter
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -38,6 +39,14 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient
  *                                 its internal [java.util.concurrent.ScheduledExecutorService]
  *                                 starts at boot even when `spring.main.lazy-initialization=true`
  *
+ * **Metric filtering:**
+ * An opt-in allowlist is read from `management.cloudwatch2.metrics.filter.allowed-names`
+ * (comma-separated metric names). When the property is set, only those exact metric names
+ * are forwarded to CloudWatch; all others are DENIED at the CloudWatch registry level while
+ * remaining accessible via the in-process composite registry (`/actuator/metrics`).
+ * Adding a new metric to CloudWatch requires only a property change + redeploy —
+ * no infra-live / Terraform changes are necessary.
+ *
  * Active only when `management.cloudwatch2.metrics.export.enabled=true`.
  */
 @Configuration(proxyBeanMethods = false)
@@ -63,6 +72,7 @@ class CloudWatchMeterRegistryConfiguration(
      * `management.cloudwatch2.metrics.export.<suffix>`.
      */
     @Bean
+    @Lazy(false)
     @ConditionalOnMissingBean(CloudWatchConfig::class)
     fun cloudWatchConfig(): CloudWatchConfig {
         return CloudWatchConfig { key ->
@@ -78,6 +88,7 @@ class CloudWatchMeterRegistryConfiguration(
      * chain (which fails on ECS Fargate where `AWS_REGION` is not auto-injected).
      */
     @Bean
+    @Lazy(false)
     @ConditionalOnMissingBean(CloudWatchAsyncClient::class)
     fun cloudWatchAsyncClient(configurer: AwsClientBuilderConfigurer): CloudWatchAsyncClient {
         log.info("Creating CloudWatchAsyncClient via Spring Cloud AWS AwsClientBuilderConfigurer")
@@ -93,12 +104,17 @@ class CloudWatchMeterRegistryConfiguration(
      * published.  Forcing eager initialization ensures the scheduler is running from
      * application startup.
      *
+     * When `management.cloudwatch2.metrics.filter.allowed-names` is set (comma-separated),
+     * a [MeterFilter] is attached so only those exact metric names are shipped to CloudWatch.
+     * All other meters continue to exist in the in-process composite registry.
+     *
      * Spring Boot's [io.micrometer.core.instrument.composite.CompositeMeterRegistry]
      * auto-configuration picks up ALL [io.micrometer.core.instrument.MeterRegistry] beans
      * via `ObjectProvider`, so this registry is automatically included in the composite
      * and receives all JVM / HTTP / custom meters.
      */
     @Bean
+    @Lazy(false)
     @ConditionalOnMissingBean(CloudWatchMeterRegistry::class)
     fun cloudWatchMeterRegistry(
         config: CloudWatchConfig,
@@ -110,7 +126,42 @@ class CloudWatchMeterRegistryConfiguration(
             config.namespace(),
             config.step()
         )
-        return CloudWatchMeterRegistry(config, clock, client)
+        val registry = CloudWatchMeterRegistry(config, clock, client)
+
+        val allowedNames = resolveAllowedMetricNames()
+        if (allowedNames.isNotEmpty()) {
+            log.info(
+                "CloudWatch metric filter active – {} metrics allowed: {}",
+                allowedNames.size,
+                allowedNames.sorted().joinToString(", ")
+            )
+            registry.config().meterFilter(
+                MeterFilter.denyUnless { id -> id.name in allowedNames }
+            )
+        } else {
+            log.warn(
+                "CloudWatch metric filter is NOT configured " +
+                    "(management.cloudwatch2.metrics.filter.allowed-names is empty). " +
+                    "ALL metrics will be exported — this may generate a lot of noise and cost."
+            )
+        }
+
+        return registry
+    }
+
+    /**
+     * Reads `management.cloudwatch2.metrics.filter.allowed-names` as a
+     * comma-separated string and returns the trimmed, non-blank names as a [Set].
+     *
+     * Returns an empty set when the property is absent or blank.
+     */
+    private fun resolveAllowedMetricNames(): Set<String> {
+        val raw = environment.getProperty("management.cloudwatch2.metrics.filter.allowed-names")
+            ?: return emptySet()
+        return raw.split(",")
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .toSet()
     }
 
     /**

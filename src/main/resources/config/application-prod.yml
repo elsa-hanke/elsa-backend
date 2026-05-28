@@ -108,11 +108,26 @@ management:
   cloudwatch2:
     metrics:
       export:
+        # CloudWatch export is enabled in all prod-family environments by default.
+        # Override per-environment via env var: MANAGEMENT_CLOUDWATCH2_METRICS_EXPORT_ENABLED=false
         enabled: true
-        # Namespace is overridden per-environment via the
-        # MANAGEMENT_CLOUDWATCH2_METRICS_EXPORT_NAMESPACE container env var
-        # (elsa-dev / elsa-staging / elsa-prod / elsa-sandbox).
-        # The value below is only a safety fallback when no env var is present.
-        namespace: ${MANAGEMENT_CLOUDWATCH2_METRICS_EXPORT_NAMESPACE:ElsaBackend}
+        # CloudWatch namespace. The same default is used across all environments
+        # since each environment runs in a separate AWS account (metrics are
+        # inherently isolated by account boundary).
+        # Override only if needed: MANAGEMENT_CLOUDWATCH2_METRICS_EXPORT_NAMESPACE=my-custom-name
+        namespace: elsa
+        # How often metrics are shipped to CloudWatch.
+        # Override via: MANAGEMENT_CLOUDWATCH2_METRICS_EXPORT_STEP=2m
         step: 1m
+      filter:
+        # Comma-separated list of metric names forwarded to CloudWatch.
+        # Every other meter is silently dropped at the CloudWatch registry level
+        # (it remains available in the in-process composite registry / /actuator/metrics).
+        # To add a new metric: append its name here and redeploy — no infra-live changes needed.
+        allowed-names: >-
+          jvm.memory.used,jvm.memory.max,jvm.gc.pause,
+          system.cpu.usage,process.cpu.usage,
+          executor.active,executor.queued,executor.pool.size,
+          hikaricp.connections.active,hikaricp.connections.pending,hikaricp.connections.timeout,
+          http.sessions.active
 
