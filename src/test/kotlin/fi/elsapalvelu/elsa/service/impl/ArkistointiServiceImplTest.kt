@@ -13,6 +13,8 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
+import fi.elsapalvelu.elsa.service.metrics.ArkistointiMetricsService
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.apache.commons.codec.digest.DigestUtils
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -116,7 +118,8 @@ class ArkistointiServiceImplTest {
             helsinkiSiiloService = HelsinkiSiiloService(applicationProperties),
             alertPublisherService = object : fi.elsapalvelu.elsa.service.AlertPublisherService {
                 override fun publishAlert(subject: String, message: String) = Unit
-            }
+            },
+            arkistointiMetrics = ArkistointiMetricsService(SimpleMeterRegistry())
         )
     }
 
