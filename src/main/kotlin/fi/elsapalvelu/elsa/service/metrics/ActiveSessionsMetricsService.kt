@@ -21,10 +21,16 @@ class ActiveSessionsMetricsService(registry: MeterRegistry) : ElsaMetricsService
         description = "Number of currently active authenticated user sessions (proxy for logged-in users)"
     )
 
+    private val totalSessions = counter(
+        "http.sessions.total",
+        "Total number of successful authenticated logins since application start"
+    )
+
     @EventListener
     fun onAuthenticationSuccess(event: InteractiveAuthenticationSuccessEvent) {
         val count = activeSessions.incrementAndGet()
-        log.debug("User authenticated ({}), active sessions={}", event.authentication.name, count)
+        totalSessions.increment()
+        log.debug("User authenticated ({}), active sessions={}, total logins={}", event.authentication.name, count, totalSessions.count())
     }
 
     @EventListener
