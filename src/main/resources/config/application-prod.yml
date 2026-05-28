@@ -109,10 +109,13 @@ management:
     metrics:
       export:
         enabled: true
-        # Namespace is overridden per-environment via the
-        # MANAGEMENT_CLOUDWATCH2_METRICS_EXPORT_NAMESPACE container env var
-        # (elsa-dev / elsa-staging / elsa-prod / elsa-sandbox).
-        # The value below is only a safety fallback when no env var is present.
-        namespace: ${MANAGEMENT_CLOUDWATCH2_METRICS_EXPORT_NAMESPACE:ElsaBackend}
+        namespace: elsa
         step: 1m
+      filter:
+        allowed-names: >-
+          jvm.memory.used,jvm.memory.max,jvm.gc.pause,
+          system.cpu.usage,process.cpu.usage,
+          executor.active,
+          hikaricp.connections.active,hikaricp.connections.pending,hikaricp.connections.timeout,
+          http.sessions.active
 

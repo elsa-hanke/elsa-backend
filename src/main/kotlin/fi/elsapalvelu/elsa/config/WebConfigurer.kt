@@ -56,7 +56,7 @@ class WebConfigurer(
      * Spring Security publishes [org.springframework.security.web.session.HttpSessionCreatedEvent] and
      * [org.springframework.security.web.session.HttpSessionDestroyedEvent].
      *
-     * These events are consumed by [fi.elsapalvelu.elsa.service.ActiveSessionsMetricsService]
+     * These events are consumed by [fi.elsapalvelu.elsa.service.metrics.ActiveSessionsMetricsService]
      * to keep the `http.sessions.active` Micrometer gauge accurate.
      */
     @Bean
