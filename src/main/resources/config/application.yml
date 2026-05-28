@@ -28,6 +28,7 @@ management:
             "jhimetrics",
             "logfile",
             "loggers",
+            "metrics",
             "threaddump",
             "caches",
             "liquibase",
