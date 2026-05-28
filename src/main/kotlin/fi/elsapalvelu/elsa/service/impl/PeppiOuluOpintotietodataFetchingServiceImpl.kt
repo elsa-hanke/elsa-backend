@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import com.apollographql.apollo.exception.ApolloException
 import fi.elsapalvelu.elsa.OpintotietodataPeppiOuluQuery
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS
@@ -14,7 +13,6 @@ import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.PeppiOpintooikeudenTila
-import org.apache.commons.lang3.exception.ExceptionUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -28,35 +26,42 @@ class PeppiOuluOpintotietodataFetchingServiceImpl(
     private val log = LoggerFactory.getLogger(javaClass)
 
     override suspend fun fetchOpintotietodata(hetu: String): OpintotietodataDTO? {
-        try {
-            val response =
-                peppiOuluClientBuilder.apolloClient().query(OpintotietodataPeppiOuluQuery(id = hetu))
-                    .execute()
+        val response = peppiOuluClientBuilder.apolloClient()
+            .query(OpintotietodataPeppiOuluQuery(id = hetu))
+            .execute()
 
-            return response.data?.private_person_by_personal_identity_code?.let {
-                OpintotietodataDTO(
-                    syntymaaika = it.dateOfBirth?.tryParseToLocalDate(),
-                    opintooikeudet = it.studyRights?.filter { opintooikeus ->
-                        (opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS ||
-                            opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS) ||
-                            opintooikeus.virtaPatevyyskoodi == YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI
-                    }?.map { opintooikeus ->
-                        val erikoisalaTunniste = opintooikeus.virtaPatevyyskoodi
-                        OpintotietoOpintooikeusDataDTO(
-                            id = opintooikeus.id,
-                            tila = mapOpintooikeudenTila(opintooikeus.state),
-                            opintooikeudenAlkamispaiva = opintooikeus.valid?.startDate?.tryParseToLocalDate(),
-                            opintooikeudenPaattymispaiva = opintooikeus.valid?.endDate?.tryParseToLocalDate(),
-                            asetus = convertPeppiAsetusString(opintooikeus.decreeOnUniversityDegrees?.shortName?.fi),
-                            erikoisalaTunnisteList = if (erikoisalaTunniste != null) listOf(erikoisalaTunniste) else null,
-                            opiskelijatunnus = it.studentNumber,
-                            yliopisto = YliopistoEnum.OULUN_YLIOPISTO
-                        )
-                    })
-            }
-        } catch (exception: ApolloException) {
-            log.error("Opinto-oikeustietoja ei saatu haettua Oulun Pepistä. Virhe: ${exception.message} ${ExceptionUtils.getStackTrace(exception)}")
+        // In Apollo 4, network errors are stored in response.exception instead of being thrown.
+        response.exception?.let { ex ->
+            log.error("Opinto-oikeustietoja ei saatu haettua Oulun Pepistä. Virhe: ${ex.message}", ex)
+            throw ex
+        }
+
+        if (response.hasErrors()) {
+            val errMsg = response.errors!!.joinToString { it.message }
+            log.error("Opinto-oikeustietoja ei saatu haettua Oulun Pepistä. GraphQL-virheet: $errMsg")
             return null
+        }
+
+        return response.data?.private_person_by_personal_identity_code?.let {
+            OpintotietodataDTO(
+                syntymaaika = it.dateOfBirth?.tryParseToLocalDate(),
+                opintooikeudet = it.studyRights?.filter { opintooikeus ->
+                    (opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS ||
+                        opintooikeus.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS) ||
+                        opintooikeus.virtaPatevyyskoodi == YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI
+                }?.map { opintooikeus ->
+                    val erikoisalaTunniste = opintooikeus.virtaPatevyyskoodi
+                    OpintotietoOpintooikeusDataDTO(
+                        id = opintooikeus.id,
+                        tila = mapOpintooikeudenTila(opintooikeus.state),
+                        opintooikeudenAlkamispaiva = opintooikeus.valid?.startDate?.tryParseToLocalDate(),
+                        opintooikeudenPaattymispaiva = opintooikeus.valid?.endDate?.tryParseToLocalDate(),
+                        asetus = convertPeppiAsetusString(opintooikeus.decreeOnUniversityDegrees?.shortName?.fi),
+                        erikoisalaTunnisteList = if (erikoisalaTunniste != null) listOf(erikoisalaTunniste) else null,
+                        opiskelijatunnus = it.studentNumber,
+                        yliopisto = YliopistoEnum.OULUN_YLIOPISTO
+                    )
+                })
         }
     }
 

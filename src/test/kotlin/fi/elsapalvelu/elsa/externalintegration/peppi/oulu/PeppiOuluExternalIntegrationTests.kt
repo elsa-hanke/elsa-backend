@@ -1,15 +1,20 @@
 package fi.elsapalvelu.elsa.externalintegration.peppi.oulu
 
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.exception.ApolloException
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.impl.PeppiOuluClientBuilderImpl
 import fi.elsapalvelu.elsa.service.impl.PeppiOuluOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.impl.PeppiOuluOpintotietodataFetchingServiceImpl
+import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
 import org.assertj.core.api.Assertions.assertThatCode
-import org.junit.jupiter.api.Disabled
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,7 +27,6 @@ import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(classes = [PeppiOuluExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class PeppiOuluExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
@@ -40,13 +44,33 @@ class PeppiOuluExternalIntegrationTests : FetchingServiceExternalIntegrationBase
     override val opintosuorituksetService: OpintosuorituksetFetchingService
         get() = peppiOuluOpintosuorituksetFetchingServiceImpl
 
-    override fun getTestHetu() = "010190-982B"
+    override fun getTestHetu() = "260863-997M"
 
     @Test
     fun shouldBuildApolloClientWithoutRuntimeLinkageErrors() {
         assertThatCode { peppiOuluClientBuilderImpl.apolloClient() }
             .describedAs("Apollo client creation must not fail because of incompatible runtime dependencies")
             .doesNotThrowAnyException()
+    }
+
+    @Test
+    fun shouldThrowApolloExceptionWhenUrlIsInvalid() {
+        val invalidClientBuilder = object : GraphQLClientBuilder {
+            override fun okHttpClient() = OkHttpClient()
+            override fun apolloClient(): ApolloClient = ApolloClient.Builder()
+                .serverUrl("https://this-host-does-not-exist.invalid/graphql")
+                .build()
+        }
+        val serviceWithInvalidUrl = PeppiOuluOpintotietodataFetchingServiceImpl(
+            invalidClientBuilder,
+            Mockito.mock(YliopistoRepository::class.java)
+        )
+
+        assertThatThrownBy {
+            runBlocking { serviceWithInvalidUrl.fetchOpintotietodata("260863-997M") }
+        }
+            .isInstanceOf(ApolloException::class.java)
+            .hasMessageContaining("Failed to execute GraphQL http network request")
     }
 }
 
