@@ -44,6 +44,10 @@ class FileValidationServiceImpl(
                 log.warn("Tiedosto nimeltä '${file.originalFilename}' on jo olemassa opintooikeudella $opintooikeusId.")
                 return false
             }
+            if ( file.isEmpty ) {
+                log.warn("Tiedosto  '${file.originalFilename}'  on tyhjä opintooikeudella $opintooikeusId.")
+                return false
+            }
         }
 
         return true
