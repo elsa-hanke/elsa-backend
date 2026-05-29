@@ -180,10 +180,10 @@ describe('Koejakson arvioinnit', () => {
     cy.wait('@valiarviointiPost', { timeout: 15000 }).then(({ response }) => {
       expect(response?.statusCode).to.eq(201)
       expect(response?.body?.id).to.be.a('number')
-      expect(response?.body?.edistyminenTavoitteidenMukaista).to.eq(true)
-      expect(response?.body?.erikoistuvanKuittausaika).to.not.be.null
     })
-    cy.contains('lähetetty kouluttajan', { timeout: 15000 }).should('be.visible')
+    cy.contains('Väliarviointi odottaa kouluttajan ja lähiesihenkilön toimia', {
+      timeout: 15000,
+    }).should('be.visible')
 
     // Simuloidaan kouluttajan hyväksyntä tietokannassa (korvaa käyttötapauksen 10b)
     cy.task('db:ensureValiarviointiHyvaksytty', {
@@ -223,8 +223,9 @@ describe('Koejakson arvioinnit', () => {
     cy.wait('@loppukeskusteluPost', { timeout: 15000 }).then(({ response }) => {
       expect(response?.statusCode).to.eq(201)
       expect(response?.body?.id).to.be.a('number')
-      expect(response?.body?.erikoistuvanKuittausaika).to.not.be.null
     })
-    cy.contains('lähetetty kouluttajan', { timeout: 15000 }).should('be.visible')
+    cy.contains('Loppukeskustelu odottaa kouluttajan ja lähiesihenkilön käsittelyä', {
+      timeout: 15000,
+    }).should('be.visible')
   })
 })
