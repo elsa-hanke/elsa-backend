@@ -17,6 +17,9 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
+import fi.elsapalvelu.elsa.service.metrics.ArkistointiMetricsService
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
@@ -234,6 +237,7 @@ class TampereArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppor
 @Import(
     TampereLouhiService::class,
     ArkistointiServiceImpl::class,
+    ArkistointiMetricsService::class,
     AlertPublisherServiceImpl::class  // single always-registered impl; no-ops when SNS not configured
 )
 class TampereArkistointiExternalIntegrationTestApplication {
@@ -246,5 +250,8 @@ class TampereArkistointiExternalIntegrationTestApplication {
     @Bean
     fun helsinkiSiiloService(): HelsinkiSiiloService =
         Mockito.mock(HelsinkiSiiloService::class.java)
+
+    @Bean
+    fun meterRegistry(): MeterRegistry = SimpleMeterRegistry()
 }
 

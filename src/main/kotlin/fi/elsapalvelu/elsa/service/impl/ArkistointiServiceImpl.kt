@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.service.AlertPublisherService
 import fi.elsapalvelu.elsa.service.ArkistointiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.*
+import fi.elsapalvelu.elsa.service.metrics.ArkistointiMetricsService
 import org.apache.commons.codec.digest.DigestUtils
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -24,7 +25,8 @@ class ArkistointiServiceImpl(
     private val applicationProperties: ApplicationProperties,
     private val tampereLouhiService: TampereLouhiService,
     private val helsinkiSiiloService: HelsinkiSiiloService,
-    private val alertPublisherService: AlertPublisherService
+    private val alertPublisherService: AlertPublisherService,
+    private val arkistointiMetrics: ArkistointiMetricsService
 ) : ArkistointiService {
     private val log = LoggerFactory.getLogger(ArkistointiServiceImpl::class.java)
 
@@ -227,34 +229,42 @@ class ArkistointiServiceImpl(
         caseType: CaseType,
         yek: Boolean
     ) {
-        when (yliopisto) {
-            YliopistoEnum.TAMPEREEN_YLIOPISTO -> {
-                try {
-                    tampereLouhiService.laheta(filePath, yek)
-                } catch (e: Exception) {
-                    alertPublisherService.publishAlert(
-                        subject = "Tampere arkistointi epäonnistui",
-                        message = "Arkistointitiedoston lähetys Louhi SFTP-palvelimelle epäonnistui. " +
-                            "Tiedosto: $filePath, CaseType: ${caseType.value}. Virhe: ${e.message}"
-                    )
-                    throw e
+        arkistointiMetrics.activeArkistointiOperations.incrementAndGet()
+        try {
+            when (yliopisto) {
+                YliopistoEnum.TAMPEREEN_YLIOPISTO -> {
+                    try {
+                        tampereLouhiService.laheta(filePath, yek)
+                    } catch (e: Exception) {
+                        alertPublisherService.publishAlert(
+                            subject = "Tampere arkistointi epäonnistui",
+                            message = "Arkistointitiedoston lähetys Louhi SFTP-palvelimelle epäonnistui. " +
+                                "Tiedosto: $filePath, CaseType: ${caseType.value}. Virhe: ${e.message}"
+                        )
+                        arkistointiMetrics.recordError(yliopisto, caseType)
+                        throw e
+                    }
                 }
-            }
 
-            YliopistoEnum.HELSINGIN_YLIOPISTO -> {
-                try {
-                    helsinkiSiiloService.laheta(filePath, caseType)
-                } catch (e: Exception) {
-                    alertPublisherService.publishAlert(
-                        subject = "Helsinki arkistointi epäonnistui",
-                        message = "Arkistointitiedoston lähetys HY Siilo-palveluun epäonnistui. " +
-                            "Tiedosto: $filePath, CaseType: ${caseType.value}. Virhe: ${e.message}"
-                    )
-                    throw e
+                YliopistoEnum.HELSINGIN_YLIOPISTO -> {
+                    try {
+                        helsinkiSiiloService.laheta(filePath, caseType)
+                    } catch (e: Exception) {
+                        alertPublisherService.publishAlert(
+                            subject = "Helsinki arkistointi epäonnistui",
+                            message = "Arkistointitiedoston lähetys HY Siilo-palveluun epäonnistui. " +
+                                "Tiedosto: $filePath, CaseType: ${caseType.value}. Virhe: ${e.message}"
+                        )
+                        arkistointiMetrics.recordError(yliopisto, caseType)
+                        throw e
+                    }
                 }
-            }
 
-            else -> log.info("Integraatiota arkistointiin ei ole tuettu yliopistossa ${yliopisto.name}")
+                else -> log.info("Integraatiota arkistointiin ei ole tuettu yliopistossa ${yliopisto.name}")
+            }
+            arkistointiMetrics.recordSuccess(yliopisto, caseType)
+        } finally {
+            arkistointiMetrics.activeArkistointiOperations.updateAndGet { maxOf(0, it - 1) }
         }
     }
 
