@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.2...HEAD)
 
+- Bump tmp from 0.2.5 to 0.2.7 in /e2e [`#587`](https://github.com/elsa-hanke/elsa-backend/pull/587)(28 May 2026)
+- Add CloudWatch metrics export configuration and client bean [`#586`](https://github.com/elsa-hanke/elsa-backend/pull/586)(28 May 2026)
 - Bump picomatch from 2.3.1 to 2.3.2 in /frontend [`#580`](https://github.com/elsa-hanke/elsa-backend/pull/580)(26 May 2026)
 - Implement alert publishing for archiving failures and add SNS config [`#579`](https://github.com/elsa-hanke/elsa-backend/pull/579)(26 May 2026)
 - Rename createWithoutOpintotietodata method and restrict usage only to development mode [`#576`](https://github.com/elsa-hanke/elsa-backend/pull/576)(24 May 2026)
