@@ -9,6 +9,8 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.service.AlertPublisherService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import fi.elsapalvelu.elsa.service.metrics.ArkistointiMetricsService
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -47,7 +49,8 @@ class ArkistointiAlertTest {
             applicationProperties = applicationProperties,
             tampereLouhiService = tampereLouhiService,
             helsinkiSiiloService = helsinkiSiiloService,
-            alertPublisherService = alertPublisherService
+            alertPublisherService = alertPublisherService,
+            arkistointiMetrics = ArkistointiMetricsService(SimpleMeterRegistry())
         )
     }
 

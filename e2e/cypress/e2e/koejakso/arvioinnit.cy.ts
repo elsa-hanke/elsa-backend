@@ -75,6 +75,7 @@ describe('Koejakson arvioinnit', () => {
     })
 
     // ── Käyttötapaus 9a: Erikoistuja täyttää ja lähettää aloituskeskustelun ──
+    cy.intercept('POST', '**/koejakso/aloituskeskustelu').as('aloituskeskusteluPost')
 
     cy.visit('/koejakso/aloituskeskustelu')
     cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
@@ -128,8 +129,15 @@ describe('Koejakson arvioinnit', () => {
     cy.contains('button', 'Lähetä').click()
     // Vahvistetaan lähetys-modaalin "Lähetä"-painikkeella (confirm-send -modaali)
     cy.get('#confirm-send').find('button').contains('Lähetä').click()
+    cy.wait('@aloituskeskusteluPost', { timeout: 15000 }).then(({ response }) => {
+      expect(response?.statusCode).to.eq(201)
+      expect(response?.body?.id).to.be.a('number')
+      expect(response?.body?.koejaksonSuorituspaikka).to.eq('E2E Testisairaala')
+      expect(response?.body?.erikoistuvanKuittausaika).to.not.be.null
+    })
     // Lomake lähetetty – sivu pysyy samalla URL:lla mutta näyttää vain luku -tilan
     cy.contains('lähetetty kouluttajan', { timeout: 15000 }).should('be.visible')
+    cy.contains('E2E-testiosaamistavoitteet').should('be.visible')
 
     // Simuloidaan kouluttajan ja esihenkilön hyväksyntä tietokannassa
     // (korvaa käyttötapauksen 9b, joka vaatii dev-kirjautumispisteen)
@@ -169,7 +177,13 @@ describe('Koejakson arvioinnit', () => {
     cy.contains('button', 'Lähetä').click()
     // Vahvistetaan lähetys-modaalin "Lähetä"-painikkeella (confirm-send -modaali)
     cy.get('#confirm-send').find('button').contains('Lähetä').click()
-    cy.wait('@valiarviointiPost', { timeout: 15000 })
+    cy.wait('@valiarviointiPost', { timeout: 15000 }).then(({ response }) => {
+      expect(response?.statusCode).to.eq(201)
+      expect(response?.body?.id).to.be.a('number')
+    })
+    cy.contains('Väliarviointi odottaa kouluttajan ja lähiesihenkilön toimia', {
+      timeout: 15000,
+    }).should('be.visible')
 
     // Simuloidaan kouluttajan hyväksyntä tietokannassa (korvaa käyttötapauksen 10b)
     cy.task('db:ensureValiarviointiHyvaksytty', {
@@ -206,8 +220,12 @@ describe('Koejakson arvioinnit', () => {
     cy.contains('button', 'Lähetä').click()
     // Vahvistetaan lähetys-modaalin "Lähetä"-painikkeella (confirm-send -modaali)
     cy.get('#confirm-send').find('button').contains('Lähetä').click()
-    cy.wait('@loppukeskusteluPost', { timeout: 15000 })
-    cy.contains('Koejakso').should('be.visible')
+    cy.wait('@loppukeskusteluPost', { timeout: 15000 }).then(({ response }) => {
+      expect(response?.statusCode).to.eq(201)
+      expect(response?.body?.id).to.be.a('number')
+    })
+    cy.contains('Loppukeskustelu odottaa kouluttajan ja lähiesihenkilön käsittelyä', {
+      timeout: 15000,
+    }).should('be.visible')
   })
 })
-
