@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.config.YEK_KOULUTETTAVA_SISU_HY_KOULUTUS
 import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila.Companion.fromSisuOpintooikeudenTilaStr
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.extensions.checkErrors
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
@@ -28,18 +29,7 @@ class SisuHyOpintotietodataFetchingServiceImpl(
         val response = sisuHyClientBuilder.apolloClient()
             .query(OpintotietodataSisuHyQuery(id = hetu))
             .execute()
-
-        // In Apollo 4, network errors are stored in response.exception instead of being thrown.
-        response.exception?.let { ex ->
-            log.error("Opinto-oikeustietoja ei saatu haettua HY:n Sisusta. Virhe: ${ex.message}", ex)
-            throw ex
-        }
-
-        if (response.hasErrors()) {
-            val errMsg = response.errors!!.joinToString { it.message }
-            log.error("Opinto-oikeustietoja ei saatu haettua HY:n Sisusta. GraphQL-virheet: $errMsg")
-            return null
-        }
+            .checkErrors("Opinto-oikeustietoja ei saatu haettua HY:n Sisusta", log)
 
         return response.data?.private_person_by_personal_identity_code?.let {
             OpintotietodataDTO(

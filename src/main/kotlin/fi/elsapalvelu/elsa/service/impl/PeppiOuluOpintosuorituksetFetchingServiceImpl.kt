@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.OpintosuorituksetPeppiOuluQuery
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.extensions.checkErrors
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
@@ -25,18 +26,7 @@ class PeppiOuluOpintosuorituksetFetchingServiceImpl(
         val response = peppiOuluClientBuilder.apolloClient()
             .query(OpintosuorituksetPeppiOuluQuery(id = hetu))
             .execute()
-
-        // In Apollo 4, network errors are stored in response.exception instead of being thrown.
-        response.exception?.let { ex ->
-            log.error("Opintosuoritustietoja ei saatu haettua Oulun Pepistä. Virhe: ${ex.message}", ex)
-            throw ex
-        }
-
-        if (response.hasErrors()) {
-            val errMsg = response.errors!!.joinToString { it.message }
-            log.error("Opintosuoritustietoja ei saatu haettua Oulun Pepistä. GraphQL-virheet: $errMsg")
-            return null
-        }
+            .checkErrors("Opintosuoritustietoja ei saatu haettua Oulun Pepistä", log)
 
         return response.data?.private_person_by_personal_identity_code?.attainments?.let {
             OpintosuorituksetPersistenceDTO(
