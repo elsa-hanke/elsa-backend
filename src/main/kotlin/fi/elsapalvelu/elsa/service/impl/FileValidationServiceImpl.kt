@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.security.SecurityLoggingWrapper
 import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.FileValidationService
 import org.slf4j.LoggerFactory
@@ -28,16 +27,17 @@ class FileValidationServiceImpl(
         val allowedContentTypesOrDefault = allowedContentTypes ?: defaultAllowedContentTypes
         val existingFileNames = asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map { it.nimi }
         files.forEach { file ->
+            val contentType = file.contentType
             if (file.originalFilename.isNullOrBlank()) {
                 log.warn("Tiedoston nimi on tyhjä.")
                 return false
             }
             if (file.originalFilename!!.length > MAXIMUM_FILE_NAME_LENGTH) {
-                log.warn("Opintooikeus: ${opintooikeusId} - Tiedoston nimi '${file.originalFilename}' on liian pitkä.")
+                log.warn("Opintooikeus: $opintooikeusId - Tiedoston nimi '${file.originalFilename}' on liian pitkä.")
                 return false
             }
-            if (!allowedContentTypesOrDefault.contains(file.contentType)) {
-                log.warn("Opintooikeus: ${opintooikeusId} - Tiedoston '${file.originalFilename}' tyyppi '${file.contentType}' ei ole sallittu.")
+            if (contentType == null || contentType !in allowedContentTypesOrDefault) {
+                log.warn("Opintooikeus: $opintooikeusId - Tiedoston '${file.originalFilename}' tyyppi '$contentType' ei ole sallittu.")
                 return false
             }
             if (existingFileNames.contains(file.originalFilename)) {
@@ -51,14 +51,10 @@ class FileValidationServiceImpl(
 
     override fun validate(files: List<MultipartFile>, allowedContentTypes: List<String>?): Boolean {
         val allowedContentTypesOrDefault = allowedContentTypes ?: defaultAllowedContentTypes
-        if (files.any {
-                it.isEmpty ||
-                    it.contentType?.toString() !in allowedContentTypesOrDefault ||
-                    it.name.length > MAXIMUM_FILE_NAME_LENGTH
-            }) {
-            return false
+        return !files.any {
+            it.isEmpty ||
+                (it.contentType ?: "") !in allowedContentTypesOrDefault ||
+                it.name.length > MAXIMUM_FILE_NAME_LENGTH
         }
-
-        return true
     }
 }
