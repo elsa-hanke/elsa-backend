@@ -44,7 +44,7 @@ class PeppiOuluExternalIntegrationTests : FetchingServiceExternalIntegrationBase
     override val opintosuorituksetService: OpintosuorituksetFetchingService
         get() = peppiOuluOpintosuorituksetFetchingServiceImpl
 
-    override fun getTestHetu() = "260863-997M"
+    override fun getTestHetu() = "010190-982B"
 
     @Test
     fun shouldBuildApolloClientWithoutRuntimeLinkageErrors() {
