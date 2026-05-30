@@ -8,7 +8,6 @@ import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
-import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.DayOfWeek
@@ -22,16 +21,21 @@ data class PaattyvaOikeus (
 )
 
 @Component
-class ScheduledPaattyvaOpintooikeusHerate (
+class ScheduledPaattyvaOpintooikeusHerate(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val mailService: MailService,
     private val opintooikeusHerateRepository: OpintooikeusHerateRepository
-) {
-    private val log = LoggerFactory.getLogger(javaClass)
+) : AbstractTriggerableJob() {
+
+    override val jobName = "paattyvaOpintooikeusHerate"
 
     @Scheduled(cron = "0 0 6 * * 1", zone = "Europe/Helsinki")
     @SchedulerLock(name = "paattyvaOpintooikeusHerate", lockAtLeastFor = "5S", lockAtMostFor = "10M")
     fun fetchPaattyvatOpintooikeudet() {
+        runJob()
+    }
+
+    override fun runJob() {
         val today = LocalDate.now()
         val monday = today.with(DayOfWeek.MONDAY)
         val sunday = today.with(DayOfWeek.SUNDAY)

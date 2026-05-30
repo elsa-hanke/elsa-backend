@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.*
 import kotlinx.coroutines.runBlocking
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
-import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
@@ -17,8 +16,9 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
     private val kayttajaRepository: KayttajaRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val opintosuoritusService: OpintosuoritusService
-) {
-    private val log = LoggerFactory.getLogger(javaClass)
+) : AbstractTriggerableJob() {
+
+    override val jobName = "terveyskeskuskoulutusjaksoSuoritusmerkinta"
 
     @Scheduled(cron = "0 0 10 * * *", zone = "Europe/Helsinki")
     @SchedulerLock(
@@ -27,6 +27,10 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
         lockAtMostFor = "10M"
     )
     fun check() {
+        runJob()
+    }
+
+    override fun runJob() {
         runBlocking {
             try {
                 opintooikeusService.findAllByTerveyskoulutusjaksoSuorittamatta().forEach {

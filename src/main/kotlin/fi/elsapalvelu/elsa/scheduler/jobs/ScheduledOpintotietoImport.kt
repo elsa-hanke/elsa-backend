@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.*
 import kotlinx.coroutines.*
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
-import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
@@ -26,12 +25,17 @@ class ScheduledOpintotietoImport(
     private val opintosuorituksetPersistenceService: OpintosuorituksetPersistenceService,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val applicationProperties: ApplicationProperties
-) {
-    private val log = LoggerFactory.getLogger(javaClass)
+) : AbstractTriggerableJob() {
+
+    override val jobName = "opintotietoImport"
 
     @Scheduled(cron = "0 0 4 ? * *", zone = "Europe/Helsinki")
     @SchedulerLock(name = "opintotietoImport", lockAtLeastFor = "5S", lockAtMostFor = "10M")
     fun import() {
+        runJob()
+    }
+
+    override fun runJob() {
         val timestamp = LocalDateTime.now()
         val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
         val decodedKey = Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
