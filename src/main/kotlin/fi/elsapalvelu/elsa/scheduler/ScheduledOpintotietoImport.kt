@@ -32,7 +32,6 @@ class ScheduledOpintotietoImport(
     @Scheduled(cron = "0 0 4 ? * *", zone = "Europe/Helsinki")
     @SchedulerLock(name = "opintotietoImport", lockAtLeastFor = "5S", lockAtMostFor = "10M")
     fun import() {
-        log.info("OpintotietoImport käynnistetty")
         val timestamp = LocalDateTime.now()
         val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
         val decodedKey = Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
@@ -45,47 +44,36 @@ class ScheduledOpintotietoImport(
         val opintosuoritusServices =
             opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
                 .associateBy { it.getYliopisto() }
-        val opintooikeudet = opintooikeusRepository.findAllValid()
-            .distinctBy { Pair(it.erikoistuvaLaakari?.id, it.yliopisto?.id) }
-        log.info("OpintotietoImport: löydetty ${opintooikeudet.size} käyttäjää")
-        opintooikeudet.forEachIndexed { index, opintooikeus ->
-            val user = opintooikeus.erikoistuvaLaakari?.kayttaja?.user!!
-            val yliopistoNimi = opintooikeus.yliopisto?.nimi
-            log.info(
-                "OpintotietoImport: käyttäjä ${index + 1}/${opintooikeudet.size}: " +
-                    "userId=${user.id}, yliopisto=$yliopistoNimi"
-            )
-            getHetu(user, cipher, originalKey)?.let { hetu ->
-                runBlocking {
-                    try {
-                        opintotietoServices[yliopistoNimi]?.fetchOpintotietodata(hetu)
-                            ?.let { data ->
-                                opintotietodataPersistenceService.createOrUpdateOpintotieto(
-                                    user.id!!,
-                                    data
-                                )
-                            }
-                        opintosuoritusServices[yliopistoNimi]?.fetchOpintosuoritukset(hetu)
-                            ?.let { data ->
-                                opintosuorituksetPersistenceService.createOrUpdateIfChanged(
-                                    user.id!!,
-                                    data
-                                )
-                            }
-                    } catch (e: Exception) {
-                        log.error(
-                            "OpintotietoImport virhe käyttäjälle ${user.id} " +
-                                "(yliopisto=$yliopistoNimi): ${e.message}",
-                            e
-                        )
+        opintooikeusRepository.findAllValid()
+            .distinctBy { Pair(it.erikoistuvaLaakari?.id, it.yliopisto?.id) }.forEach {
+                val user = it.erikoistuvaLaakari?.kayttaja?.user!!
+                getHetu(user, cipher, originalKey)?.let { hetu ->
+                    runBlocking {
+                        try {
+                            opintotietoServices[it.yliopisto?.nimi]?.fetchOpintotietodata(hetu)
+                                ?.let { data ->
+                                    opintotietodataPersistenceService.createOrUpdateOpintotieto(
+                                        user.id!!,
+                                        data
+                                    )
+                                }
+                            opintosuoritusServices[it.yliopisto?.nimi]?.fetchOpintosuoritukset(hetu)
+                                ?.let { data ->
+                                    opintosuorituksetPersistenceService.createOrUpdateIfChanged(
+                                        user.id!!,
+                                        data
+                                    )
+                                }
+                        } catch (e: Exception) {
+                            log.error("OpintotietoImport virhe: ${e.message}")
+                        }
                     }
                 }
             }
-        }
         log.info(
-            "OpintotietoImport valmis ${
+            "OpintotietoImport completed in ${
                 Duration.between(timestamp, LocalDateTime.now()).toSeconds()
-            } sekunnissa"
+            } seconds."
         )
     }
 
