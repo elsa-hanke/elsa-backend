@@ -146,5 +146,11 @@ describe('Arviointipyyntö', () => {
 
     // Tallennettu – palataan arvioinnit-listalle
     cy.url().should('include', '/arvioinnit')
+
+    // Varmistetaan, että arviointipyyntö näkyy Arvioinnit-välilehdellä itsearvioinnin jälkeen.
+    // Odotetaan mahdollinen navigointi päälistanäkymään, jossa 'Arvioinnit'-tab on oletuksena auki.
+    cy.contains('h1', 'Arvioinnit').should('be.visible')
+    // Tapahtuman nimi pitää näkyä jossain listataulussa (odottaa arvioijan vastausta)
+    cy.contains('E2E Testitapahtuma').should('be.visible')
   })
 })

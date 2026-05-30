@@ -117,6 +117,12 @@ describe('Työskentelyjakso', () => {
     // Tallennuksen jälkeen palataan työskentelyjakson sivulle
     cy.url().should('not.include', '/poissaolot/uusi')
 
+    // Varmistetaan, että lisätty poissaolo näkyy työskentelyjakson sivulla
+    cy.url().should('match', /\/tyoskentelyjaksot\/\d+$/)
+    cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
+    // Poissaolon päivämäärät tai "Poissaolot"-otsikko on näkyvissä detail-sivulla
+    cy.contains(/poissaolo|15\.02\.2025/i).should('be.visible')
+
     // --- Vaihe 4: Näytetään päivitetty työkertymä listassa ---
     cy.visit('/tyoskentelyjaksot')
     cy.get('.tyoskentelyjaksot, main').should('be.visible')
