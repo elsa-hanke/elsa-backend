@@ -1,11 +1,14 @@
-package fi.elsapalvelu.elsa.scheduler
+package fi.elsapalvelu.elsa.scheduler.jobs
 
+import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
 import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaFetchingService
 import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaImportService
 import kotlinx.coroutines.runBlocking
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.time.Duration
+import java.time.LocalDateTime
 
 @Component
 class ScheduledSisuTutkintoohjelmaImport(
@@ -22,14 +25,21 @@ class ScheduledSisuTutkintoohjelmaImport(
     }
 
     override fun runJob() {
+        log.info("SisuTutkintoohjelmaImport käynnistetty")
+        val timestamp = LocalDateTime.now()
         runBlocking {
             try {
                 sisuTutkintoohjelmaFetchingService.fetch()?.let {
                     sisuTutkintoohjelmaImportService.import(it)
                 }
             } catch (e: Exception) {
-                log.error("SisuTutkintoohjelmaExportJob virhe: ${e.message}")
+                log.error("SisuTutkintoohjelmaImport virhe: ${e.message}", e)
             }
         }
+        log.info(
+            "SisuTutkintoohjelmaImport valmis ${
+                Duration.between(timestamp, LocalDateTime.now()).toSeconds()
+            } sekunnissa"
+        )
     }
 }

@@ -1,20 +1,23 @@
-package fi.elsapalvelu.elsa.scheduler
+package fi.elsapalvelu.elsa.scheduler.jobs
 
 import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.OpintooikeusHerate
 import fi.elsapalvelu.elsa.repository.OpintooikeusHerateRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.DayOfWeek
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 
-data class PaattyvaOikeus (
+data class PaattyvaOikeus(
     var maaraaikainen: Boolean,
     var paattymispaiva: LocalDate?,
     var erikoistuvaLaakari: ErikoistuvaLaakari?
@@ -36,6 +39,8 @@ class ScheduledPaattyvaOpintooikeusHerate(
     }
 
     override fun runJob() {
+        log.info("PaattyvaOpintooikeusHerate käynnistetty")
+        val timestamp = LocalDateTime.now()
         val today = LocalDate.now()
         val monday = today.with(DayOfWeek.MONDAY)
         val sunday = today.with(DayOfWeek.SUNDAY)
@@ -51,11 +56,18 @@ class ScheduledPaattyvaOpintooikeusHerate(
             opintooikeusRepository.findAllPaattyvatByTimeFrame(monday.plusYears(1), sunday.plusYears(1))
                 .mapNotNull { mapPaattyvaOikeus(it).takeIf { o -> !o.maaraaikainen } }
         )
+        val totalCount = paattyvatOikeudet.sumOf { it.size }
+        log.info("PaattyvaOpintooikeusHerate: löydetty $totalCount päättyvää opinto-oikeutta")
         paattyvatOikeudet.forEach {
             if (it.isNotEmpty()) it.forEach { oikeus ->
                 lahetaHerate(oikeus)
             }
         }
+        log.info(
+            "PaattyvaOpintooikeusHerate valmis ${
+                Duration.between(timestamp, LocalDateTime.now()).toSeconds()
+            } sekunnissa"
+        )
     }
 
     fun mapPaattyvaOikeus(opintoOikeus: Opintooikeus): PaattyvaOikeus {
@@ -69,6 +81,10 @@ class ScheduledPaattyvaOpintooikeusHerate(
     fun lahetaHerate(paattyvaOikeus: PaattyvaOikeus) {
         try {
             val user = paattyvaOikeus.erikoistuvaLaakari?.kayttaja?.user ?: return
+            log.info(
+                "PaattyvaOpintooikeusHerate: lähetetään herätesähköposti käyttäjälle userId=${user.id}, " +
+                    "paattymispaiva=${paattyvaOikeus.paattymispaiva}, maaraaikainen=${paattyvaOikeus.maaraaikainen}"
+            )
             val properties =
                 if (paattyvaOikeus.maaraaikainen) {
                     mapOf(
@@ -107,7 +123,11 @@ class ScheduledPaattyvaOpintooikeusHerate(
             } else opintooikeusHerate.paattymassaHerateLahetetty = Instant.now()
             opintooikeusHerateRepository.save(opintooikeusHerate)
         } catch (e: Exception) {
-            log.error("Herätteen lähetys päättyvästä opinto-oikeudesta ei onnistunut.", e)
+            log.error(
+                "PaattyvaOpintooikeusHerate: herätteen lähetys epäonnistui käyttäjälle " +
+                    "userId=${paattyvaOikeus.erikoistuvaLaakari?.kayttaja?.user?.id}: ${e.message}",
+                e
+            )
         }
     }
 }
