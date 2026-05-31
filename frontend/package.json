@@ -9,12 +9,10 @@
     "serve": "vue-cli-service serve",
     "build": "vue-tsc --noEmit && vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
-    "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint --no-fix --max-errors 0 --max-warnings 0",
     "generate-thirdparty": "yarn licenses generate-disclaimer > public/thirdparty.txt",
     "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'",
-    "lint:fix": "vue-cli-service lint --fix",
-    "test:e2e:headless": "vue-cli-service test:e2e --headless"
+    "lint:fix": "vue-cli-service lint --fix"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
@@ -58,7 +56,6 @@
     "@typescript-eslint/parser": "^5.4.0",
     "@vue/cli": "^4.5.15",
     "@vue/cli-plugin-babel": "~5.0.4",
-    "@vue/cli-plugin-e2e-cypress": "~5.0.4",
     "@vue/cli-plugin-eslint": "~5.0.4",
     "@vue/cli-plugin-router": "~5.0.4",
     "@vue/cli-plugin-typescript": "~5.0.4",
@@ -69,7 +66,6 @@
     "@vue/eslint-config-typescript": "^9.1.0",
     "@vue/test-utils": "^1.0.3",
     "@vue/vue2-jest": "^27.0.0-alpha.3",
-    "cypress": "^8.3.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-webpack": "^0.13.1",
