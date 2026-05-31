@@ -28,7 +28,12 @@
             :aria-label="$t('sulje')"
             @click="onClose"
           >
-            <font-awesome-icon icon="times" class="times" transform="shrink-4" :aria-hidden="true" />
+            <font-awesome-icon
+              icon="times"
+              class="times"
+              transform="shrink-4"
+              :aria-hidden="true"
+            />
           </b-button>
           <h3 class="mb-0">{{ title }}</h3>
         </div>
@@ -63,7 +68,7 @@
     }
 
     get buttonAriaLabel() {
-      return this.ariaLabel || this.title || this.$t('lisatietoja') as string
+      return this.ariaLabel || this.title || (this.$t('lisatietoja') as string)
     }
 
     onClose() {

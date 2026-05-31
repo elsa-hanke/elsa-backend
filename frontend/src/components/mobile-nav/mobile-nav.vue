@@ -37,7 +37,14 @@
         <font-awesome-icon :icon="['fas', 'university']" fixed-width size="lg" />
         {{ $t('teoriakoulutukset') }}
       </b-nav-item>
-      <b-nav-item v-if="$isErikoistuva()" v-b-toggle.osaaminen-toggle class="osaaminen-nav" :aria-expanded="String(osaaminenExpanded)" aria-controls="osaaminen-toggle" @click="osaaminenExpanded = !osaaminenExpanded">
+      <b-nav-item
+        v-if="$isErikoistuva()"
+        v-b-toggle.osaaminen-toggle
+        class="osaaminen-nav"
+        :aria-expanded="String(osaaminenExpanded)"
+        aria-controls="osaaminen-toggle"
+        @click="osaaminenExpanded = !osaaminenExpanded"
+      >
         <font-awesome-icon icon="award" fixed-width size="lg" :aria-hidden="true" />
         {{ $t('osaaminen') }}
         <span class="closed" :aria-hidden="true">

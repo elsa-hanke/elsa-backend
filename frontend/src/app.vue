@@ -3,12 +3,9 @@
     <!-- Skip to main content link for keyboard users -->
     <a href="#main-content" class="skip-to-main">{{ $t('hyppaa-paasisaltoon') }}</a>
     <!-- Aria-live region for SPA route change announcements -->
-    <div
-      id="route-announcer"
-      aria-live="polite"
-      aria-atomic="true"
-      class="sr-only"
-    >{{ routeAnnouncement }}</div>
+    <div id="route-announcer" aria-live="polite" aria-atomic="true" class="sr-only">
+      {{ routeAnnouncement }}
+    </div>
     <div id="main-content">
       <router-view class="router-view" />
     </div>

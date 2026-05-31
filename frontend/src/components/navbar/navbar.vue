@@ -37,11 +37,7 @@
         {{ $t('viestit') }}
       </b-nav-item>-->
 
-      <b-nav-item-dropdown
-        class="user-dropdown align-self-center px-3"
-        :text="displayName"
-        right
-      >
+      <b-nav-item-dropdown class="user-dropdown align-self-center px-3" :text="displayName" right>
         <template #button-content>
           <user-avatar
             :src-base64="avatar"
@@ -51,11 +47,7 @@
           />
         </template>
         <div class="user-dropdown-content" role="menu" :aria-label="$t('kayttajavalikko')">
-          <b-dropdown-item
-            v-if="!account.impersonated"
-            :to="{ name: 'profiili' }"
-            role="menuitem"
-          >
+          <b-dropdown-item v-if="!account.impersonated" :to="{ name: 'profiili' }" role="menuitem">
             {{ $t('oma-profiilini') }}
           </b-dropdown-item>
           <hr class="p-0 m-0" />
@@ -72,7 +64,11 @@
               v-for="opintooikeus in opintooikeudet"
               :key="opintooikeus.id"
               role="menuitem"
-              :aria-current="opintooikeusKaytossa && opintooikeus.id === opintooikeusKaytossa.id ? 'true' : undefined"
+              :aria-current="
+                opintooikeusKaytossa && opintooikeus.id === opintooikeusKaytossa.id
+                  ? 'true'
+                  : undefined
+              "
               @click="changeOpintooikeus(opintooikeus)"
             >
               <div

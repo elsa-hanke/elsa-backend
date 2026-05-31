@@ -6,7 +6,12 @@
     aria-live="assertive"
     aria-atomic="true"
   >
-    <font-awesome-icon icon="info-circle" fixed-width class="text-size-lg mr-1" aria-hidden="true" />
+    <font-awesome-icon
+      icon="info-circle"
+      fixed-width
+      class="text-size-lg mr-1"
+      aria-hidden="true"
+    />
     {{ $t('lomake-sisaltaa-virheita') }}
   </div>
 </template>

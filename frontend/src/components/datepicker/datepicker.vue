@@ -38,7 +38,11 @@
           v-on="$listeners"
         >
           <template #button-content>
-            <font-awesome-icon :icon="['far', 'calendar-alt']" class="text-primary" :aria-hidden="true" />
+            <font-awesome-icon
+              :icon="['far', 'calendar-alt']"
+              class="text-primary"
+              :aria-hidden="true"
+            />
             <span class="sr-only">{{ $t('avaa-kalenteri') }}</span>
           </template>
         </b-form-datepicker>

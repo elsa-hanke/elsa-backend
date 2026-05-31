@@ -216,34 +216,34 @@
         padding: 0;
         margin: 0;
       }
-        .multiselect__tag {
-          font-size: $font-size-sm;
-          font-weight: $font-weight-500;
-          background: #005a8e;
-          color: $white;
-          border-radius: $rounded-pill;
-          margin-right: 6px;
+      .multiselect__tag {
+        font-size: $font-size-sm;
+        font-weight: $font-weight-500;
+        background: #005a8e;
+        color: $white;
+        border-radius: $rounded-pill;
+        margin-right: 6px;
 
-          .multiselect__tag-icon {
-            border-radius: 0;
-            line-height: 22px;
+        .multiselect__tag-icon {
+          border-radius: 0;
+          line-height: 22px;
 
-            &:focus,
-            &:hover {
-              background: #003d61;
-            }
+          &:focus,
+          &:hover {
+            background: #003d61;
+          }
 
-            &:focus {
-              outline: 2px solid $white;
-              outline-offset: -2px;
-            }
+          &:focus {
+            outline: 2px solid $white;
+            outline-offset: -2px;
+          }
 
-            &::after {
-              color: $white;
-              font-size: $font-size-lg;
-            }
+          &::after {
+            color: $white;
+            font-size: $font-size-lg;
           }
         }
+      }
     }
 
     .multiselect__content-wrapper {

@@ -1,400 +1,411 @@
 # Saavutettavuuskorjaukset – Elsa-verkkopalvelu
 
-**Versio:** 1.0  
+**Versio:** 2.0 (päivitetty PDF-raportin pohjalta)
 **Päiväys:** 31.5.2026  
-**Perusta:** Ulkopuolisen asiantuntijaorganisaation 12/2025 tekemä saavutettavuusarviointi ja prioriteettilistaus
+**Perusta:** Gofore Oy:n saavutettavuusarviointi WCAG 2.2 A/AA, 9.12.2025 (Ruut Kiiskilä, Mikko Pärnä)  
+**Priorisointi:** Asiakkaan prioriteettilistaus (priorisoitu korjausjärjestys 1–6)
 
 ---
 
 ## Yhteenveto
 
-Tässä dokumentissa kuvataan kaikki saavutettavuusarvioinnin pohjalta tehdyt korjaukset Elsa-verkkopalvelun frontend-koodiin. Korjaukset on ryhmitelty priorisoidun korjauslistan mukaan. Jokaisen korjauksen yhteydessä on ohje, miten muutos voidaan testata manuaalisesti.
+Tässä dokumentissa kuvataan kaikki Gofore Oy:n saavutettavuusraportin ja asiakkaan prioriteettilistauksen pohjalta toteutetut korjaukset Elsa-verkkopalvelun frontend-koodiin. Jokaiselle korjaukselle on kirjattu:
+- Viittaus PDF-raportin sivuun
+- Korjattu tiedosto
+- Tekniset muutokset
+- Testausohjeet
+
+Lisäksi on toteutettu automaattiset saavutettavuustestit (`cypress-axe`), jotka löytyvät hakemistosta `e2e/cypress/e2e/saavutettavuus/`.
 
 ---
 
-## Prioriteetti 1 – Käyttöä estävät ongelmat
+## Prioriteetti 1 – Käyttöä estävät ongelmat (kaikki käyttäjäroolit)
 
-### 1. Kalenteripainike (Datepicker) – WCAG 2.1.1, 2.4.6, 2.4.7
+### 1. Näkyvä kohdistus puuttuu painikkeista – WCAG 2.4.7 (s. 9–10)
+
+**Korjattu tiedosto:** `frontend/src/styles/app.scss`
+
+**Tekninen muutos:**  
+Poistettu CSS-sääntö `.btn:focus, .btn:active { outline: none !important; box-shadow: none; }`.  
+Korvattu seuraavin säännöin:
+- `.btn:focus` → näyttää `outline: 2px solid $primary` + `box-shadow`
+- `.btn:focus:not(:focus-visible)` → poistaa kehyksen hiirenkäyttäjiltä (moderni selaintuki)
+- `.btn:active` → ei kehystä klikkaustilassa
+- Vastaava korjaus `ul.nav.nav-tabs li a.nav-link:focus` -elementeille
+- Lisätty `.sr-only`-apuluokka koko sovelluksen käyttöön
+- Lisätty `a:focus` ja `.nav-link:focus` fokustyylit
+
+Lisätty myös `scroll-padding-top: 80px` estämään kohdistetun elementin piiloutuminen kiinteän ylätunnisteen taakse (WCAG 2.4.11*).
+
+**Manuaalinen testaus:**
+1. Paina Tab etusivulla – jokainen painikeinteraktio saa sinisen kehyksen.
+2. Klikkaa samaa painiketta hiirellä – kehystä ei näy (`:focus-visible`).
+3. Tarkista välilehdet ja haitarit.
+
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/yleinen-sivurakenne.cy.ts` → "Näkyvä kohdistus painikkeissa"
+
+---
+
+### 2. Kalenteripainike ei fokusoidu näppäimistöllä – WCAG 2.1.1, 2.4.6, 2.4.7 (s. 32)
 
 **Korjattu tiedosto:** `frontend/src/components/datepicker/datepicker.vue`
 
-**Mitä korjattiin:**
-- Poistettu koodi, joka asetti kalenteripainikkeelle `tabindex="-1"`. Aiemmin kalenteripainike ei saanut näppäinfokusta lainkaan, koska tabindex-arvo esti sen fokusoinnin.
-- Lisätty kalenteripainikkeelle kuvaava saavutettava nimi (`aria-label="Avaa kalenteri"`) – aiemmin painike ei kertonut toimintaansa apuvälinekäytössä.
-- Lisätty `<span class="sr-only">` -elementti painikkeen sisälle, joka kertoo ruudunlukijalle painikkeen tarkoituksen.
-- Lisätty Bootstrap Vue:n kalenterinavigointipainikkeiden suomenkieliset selitteet (`label-prev-month`, `label-next-month`, `label-current-month`, `label-today`).
-- Muutettu kalenterin piilottama label-elementti CSS:n avulla visuaalisesti piilotetuksi mutta ruudunlukijalle luettavaksi (aiemmin `display: none` piilotti sen myös ruudunlukijalta).
+**Tekninen muutos:**
+- Poistettu `mounted()`-koukussa suoritettu `button.setAttribute('tabindex', '-1')` — tämä esti täysin kalenteripainikkeen fokusoinnin.
+- Lisätty `label-button-aria-label="$t('avaa-kalenteri')"` → painikkeen nimi suomeksi.
+- Lisätty `<span class="sr-only">{{ $t('avaa-kalenteri') }}</span>` painikkeen sisälle ruudunlukijaa varten.
+- Lisätty `label-prev-month`, `label-next-month`, `label-current-month`, `label-today`, `label-selected`.
+- Muutettu piilotustyyli `display: none` → `position: absolute; clip: rect(0,0,0,0)` (ruudunlukija pääsee käsiksi).
+- Ikonille `aria-hidden="true"`.
 
-**Miten testata manuaalisesti:**
-1. Avaa lomake, jossa on päivämääräkenttä.
-2. Siirry Tab-näppäimellä kenttään. Näppäimistöllä pitäisi pystyä siirtymään myös kalenteripainikkeeseen (seuraava Tab-painallus).
-3. Paina Enter tai välilyönti kalenteripainikkeella – kalenterin pitäisi avautua.
-4. Tarkista ruudunlukijalla (VoiceOver/NVDA): painikkeen nimen pitäisi kuulua "Avaa kalenteri".
-5. Kalenterin sisällä nuolinäppäimillä navigointi pitäisi toimia ja kuukauden vaihtonappien nimet kuulua suomeksi.
+**Manuaalinen testaus:**
+1. Siirry työskentelyjakson lisäämislomakkeelle.
+2. Tab-näppäimellä pitäisi päästä kalenteripainikkeeseen.
+3. Enter tai välilyönti avaa kalenterin.
+4. VoiceOver/NVDA: painike kuuluu "Avaa kalenteri".
+5. Kalenterin navigointipainikkeet kuuluvat suomeksi.
 
----
-
-### 2. Haitarielementti (Accordion) – WCAG 1.3.1, 4.1.2, 2.4.7
-
-**Korjattu tiedosto:** `frontend/src/components/accordian/accordian.vue`
-
-**Mitä korjattiin:**
-- Muutettu `role="tab"` → `role="button"`. Haitarielementti käyttäytyi aiemmin kuin välilehti (tab), mikä oli semanttisesti väärä rooli. Nyt se on painike, jota voi laajentaa ja supistaa.
-- Lisätty `aria-expanded`-attribuutti, joka kertoo ruudunlukijalle, onko haitari auki (`"true"`) vai kiinni (`"false"`).
-- Haitareilla, joilla ei ole sisältöä (tyhjä default-slot), `tabindex="-1"` asetetaan automaattisesti, jolloin ne eivät saa turhaan näppäinfokusta.
-- Lisätty näkyvä kohdistuskehys (outline) haitariotsikon `:focus`-tilaan.
-
-**Miten testata manuaalisesti:**
-1. Navigoi Tab-näppäimellä sivulle, jossa on haitarielementtejä (esim. koulutussuunnitelma-sivu tai kouluttajan arviointisivu).
-2. Kun haitari saa fokuksen, sen ympärille pitäisi ilmestyä näkyvä sininen kehys.
-3. Paina Enter tai välilyönti – haitarin pitäisi avautua/sulkeutua.
-4. Tarkista ruudunlukijalla: haitarin tila pitäisi kuulua "laajennettu" tai "supistettu" (`aria-expanded`).
-5. Haitarit, joissa ei ole sisältöä, eivät saa enää näppäinfokusta.
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/datepicker.cy.ts`
 
 ---
 
-### 3. Näkyvä kohdistus puuttuu painikkeista – WCAG 2.4.7
-
-**Korjattu tiedosto:** `frontend/src/styles/app.scss`
-
-**Mitä korjattiin:**
-- Poistettu CSS-sääntö `.btn:focus, .btn:active { outline: none !important; box-shadow: none; }`, joka esti kaikkien painikkeiden näkyvän kohdistuksen.
-- Korvattu sääntö modernilla toteutuksella, joka:
-  - Näyttää sinisen 2px-kehyksen (`outline: 2px solid $primary`) ja box-shadow-effektin, kun painike saa näppäinfokuksen.
-  - Piilottaa kehyksen, kun painike aktivoidaan hiirellä (`:focus:not(:focus-visible)`) – tämä estää turhan kehyksen hiirenkäyttäjille.
-  - Poistaa kehyksen vain `active`-tilasta (klikkaustilasta).
-- Lisätty sama kohdistuksen korjaus navigaatiovälilehtiin (`ul.nav.nav-tabs`).
-- Lisätty `scroll-padding-top: 80px` html-elementille, jolloin fokusoidut elementit eivät päädy kiinteän ylätunnisteen taakse vierittäessä.
-- Lisätty vastaava kohdistuskorjaus linkeille ja nav-link-elementeille.
-
-**Miten testata manuaalisesti:**
-1. Siirry sivulle, jossa on painikkeita (esim. etusivu tai lomakesivu).
-2. Paina Tab-näppäintä, kunnes jokin painike saa fokuksen.
-3. Painikkeen ympärillä pitäisi näkyä sininen kehys (outline).
-4. Klikkaa samaa painiketta hiirellä – kehystä ei pitäisi enää näkyä aktivoinnin jälkeen.
-5. Tarkista myös välilehdet (tab-elementit) ja haitarielementit.
-
----
-
-### 4. Liitetiedoston lisääminen ei onnistu näppäimistöllä – WCAG 2.1.1, 4.1.2
+### 3. Liitetiedoston lisääminen ei onnistu näppäimistöllä – WCAG 2.1.1, 4.1.2 (s. 30)
 
 **Korjattu tiedosto:** `frontend/src/components/asiakirjat/asiakirjat-upload.vue`
 
-**Mitä korjattiin:**
-- Lisätty tiedostonlatauspainikkeen label-elementille `tabindex="0"`, jolloin se voidaan fokusoida näppäimistöllä.
-- Lisätty `role="button"` label-elementille, jolloin ruudunlukija tunnistaa sen painikkeena.
-- Lisätty Enter- ja välilyönti-näppäinten kuuntelijat (`@keydown.enter.prevent` ja `@keydown.space.prevent`), jotka käynnistävät tiedoston valinnan näppäimistöllä.
-- Korvattu HTML:n `disabled`-attribuutti (joka ei ole label-elementille validi) `aria-disabled`-attribuutilla.
-- Lisätty näkyvä kohdistuskehys ladatun tiedoston label-elementille.
-- Lisätty `aria-label`-nimet lataus- ja poistopainikkeille tiedoston nimellä (esim. "Lataa tiedostonimi.pdf", "Poista tiedostonimi.pdf").
+**Tekninen muutos:**
+- `tabindex="0"` ja `role="button"` label-elementille.
+- `@keydown.enter.prevent="triggerFileInput"` ja `@keydown.space.prevent="triggerFileInput"`.
+- `triggerFileInput()`-metodi kutsuu `input.click()`.
+- `disabled` → `aria-disabled` (ei validi attribuutti labelilla).
+- Näkyvä `focus`-tyyli labelille.
 
-**Miten testata manuaalisesti:**
-1. Siirry sivulle, jossa voi lisätä liitetiedoston (esim. Arviointipyynto tai Asiakirjat-sivu).
-2. Paina Tab-näppäintä, kunnes "Lisää liitetiedosto" -painike saa fokuksen – sen ympärille pitäisi ilmestyä kehys.
-3. Paina Enter tai välilyönti – tiedostonvalintaikkuna pitäisi avautua.
-4. Tarkista ruudunlukijalla: painikkeen roolin pitäisi olla "painike" ja nimen pitäisi vastata painikeen tekstiä.
-5. Tarkista, että lataus- ja poistopainikkeet saavat kontekstuaalisen nimen (tiedoston nimi).
+**Manuaalinen testaus:**
+1. Siirry arviointipyyntölomakkeelle.
+2. Tab liitetiedoston lisäyspainikkeelle → kehys näkyy.
+3. Enter tai välilyönti → tiedostonvalintaikkuna avautuu.
+
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/liitetiedosto.cy.ts`
 
 ---
 
-### 5. Lisätietopainikkeella ei ole saavutettavaa nimeä – WCAG 4.1.2, 2.1.1, 2.4.7
+### 4. Lataus/poisto-painikkeiden nimet puuttuvat – WCAG 4.1.2 (s. 30)
+
+**Korjattu tiedosto:** `frontend/src/components/asiakirjat/asiakirjat-content.vue`
+
+**Tekninen muutos:**
+- Latauspainike: `:aria-label="\`${$t('lataa')} ${row.item.nimi}\`"`
+- Poistopainike: `:aria-label="\`${$t('poista')} ${row.item.nimi}\`"`
+- Ikoneille `aria-hidden="true"`.
+
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/liitetiedosto.cy.ts` → "latauspainikkeella on aria-label"
+
+---
+
+### 5. Lisätietopainikkeilla ei saavutettavaa nimeä – WCAG 4.1.2, 2.1.1 (s. 31)
 
 **Korjattu tiedosto:** `frontend/src/components/popover/popover.vue`
 
-**Mitä korjattiin:**
-- Lisätty info-painikkeelle `aria-label`-attribuutti. Painike käyttää nyt `title`-propsia tai oletuksena "Lisätietoja" (i18n-avain `lisatietoja`). Voidaan myös ohittaa `aria-label`-propilla.
-- Lisätty `aria-expanded`-attribuutti, joka kertoo ruudunlukijalle, onko ponnahdusikkuna auki.
-- Lisätty `aria-controls`-attribuutti, joka yhdistää painikkeen ohjaamaansa popover-elementtiin.
-- Lisätty ikonille `aria-hidden="true"`, jolloin ruudunlukija ei lue ikonin alt-tekstiä.
-- Sulkemispainikkeen `aria-label` muutettu suomeksi ("Sulje").
+**Tekninen muutos:**
+- `:aria-label="buttonAriaLabel"` → lukee `title`-propsista tai `$t('lisatietoja')`.
+- `:aria-expanded="String(popoverShow)"`.
+- `:aria-controls="\`${uid}-popover\`"` ja `id` popoverille.
+- Sulkemispainike: `aria-label="Close"` → `$t('sulje')`.
+- Ikonille `aria-hidden="true"`.
 
-**Miten testata manuaalisesti:**
-1. Siirry lomakesivulle, jossa on info-ikoni-painike (ⓘ).
-2. Siirry Tab-näppäimellä painikkeelle.
-3. Tarkista ruudunlukijalla: painike pitäisi kuulua nimellä, kuten "Lisätietoja" tai otsikon nimi.
-4. Paina Enter tai välilyönti – ponnahdusikkuna avautuu.
-5. Tarkista, kuuluuko `aria-expanded`-tila muuttuvan ("laajennettu"/"supistettu").
-6. Sulkemispainike pitäisi kuulua "Sulje"-nimellä.
+**Manuaalinen testaus:**
+1. Siirry sivulle, jossa on info-ikoni (ⓘ).
+2. Tab siihen → ruudunlukija lukee "Lisätietoja" tai otsikon nimen.
+3. Enter → ponnahdusikkuna avautuu, `aria-expanded="true"`.
+4. Sulje → `aria-expanded="false"`.
+
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/popover.cy.ts`
 
 ---
 
-### 6. Monivalinta-pudotusvalikko (Multiselect) – WCAG 1.3.1, 1.3.2, 1.4.1, 1.4.3, 1.4.11, 2.1.1, 2.4.3, 2.4.7, 4.1.2
+### 6. Haitarielementit – väärä rooli ja puuttuva tila – WCAG 1.3.1, 4.1.2 (s. 43)
+
+**Korjattu tiedosto:** `frontend/src/components/accordian/accordian.vue`
+
+**Tekninen muutos:**
+- `role="tab"` → `role="button"`.
+- `:aria-expanded="$slots.default ? String(visible) : undefined"`.
+- Tyhjille haitareille `tabindex="-1"`.
+- `:focus`-tyyli: `outline: 2px solid $primary; outline-offset: -2px`.
+
+**Manuaalinen testaus:**
+1. Tab haitarille → sininen kehys.
+2. Enter/välilyönti → avautuu/sulkeutuu.
+3. Ruudunlukija: "laajennettu" / "supistettu".
+4. Ei enää roolia "välilehti".
+
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/accordion.cy.ts`
+
+---
+
+### 7. Monivalinta-pudotusvalikko – kontrasti ja nimet – WCAG 1.3.1–4.1.2 (s. 35–36)
 
 **Korjattu tiedosto:** `frontend/src/components/multiselect/multiselect.vue`
 
-**Mitä korjattiin:**
-- Lisätty tyhjennyspainikkeelle `aria-label="Tyhjennä valinta"` – aiemmin painike oli nimetön.
-- Lisätty tyhjennyspainikkeelle näkyvä kohdistuskehys (`:focus`-tila).
-- Lisätty ikonille `aria-hidden="true"`.
-- Muutettu valittujen tagien taustaväri tummennetuksi (#005a8e), jolloin tekstikontrasti on vähintään 4.5:1 (aiemmin kontrasti oli vain ~3.1:1 liian vaalealla sinisellä).
-- Lisätty tag-poistopainikkeen (×) kohdistustila, jolloin näkyvä kohdistuskehys ilmestyy.
-- Parannettu valitun vaihtoehdon kontrasti listassa (teksti mustaksi, tausta vaaleammaksi tummemmaksi harmaiksi).
-- Muutettu korostetun vaihtoehdon taustaväri selkeämmäksi sinertäväksi (#daedf8) ja lisätty sininen kehys (`outline: 2px solid $primary`).
+**Tekninen muutos:**
+- Tyhjennyspainike: `aria-label="Tyhjennä valinta"`, ikoni `aria-hidden`.
+- Tyhjennyspainike: näkyvä `:focus`-tyyli.
+- Tagien taustaväri → `#005a8e` (kontrasti ≥ 4.5:1 valkoisella tekstillä).
+- Tag-poistopainike: `:focus` → `outline: 2px solid $white`.
+- Korostetun vaihtoehdon väri → sinertävä `#daedf8` + sininen kehys.
+- Valitun vaihtoehdon väri → mustavalkoinen (`#c0c0c0` tausta + musta teksti).
 
-**Miten testata manuaalisesti:**
-1. Siirry lomakesivulle, jossa on monivalintakenttä (esim. erikoisala tai koulutuspaikka).
-2. Paina Tab-näppäintä, kunnes kenttä saa fokuksen.
-3. Paina alanuoli tai kirjoita hakutermi – lista pitäisi avautua, ja korostettu vaihtoehto näkyy kehystettynä.
-4. Valitse vaihtoehto Enter-näppäimellä.
-5. Tarkista, että valittu arvo näkyy tummana tagina riittävällä kontrastilla.
-6. Kohdista tyhjennyspainike (×) ja tarkista, onko sillä näkyvä kehys. Paina Enter – valinnan pitäisi tyhjentyä. Tarkista ruudunlukijalla painikkeen nimi "Tyhjennä valinta".
-7. Jos on monivalintatagin poistopainike (×), kohdista se Tab-näppäimellä ja tarkista kohdistuksen näkyvyys.
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/arviointipyynto-a11y.cy.ts` → "multiselect-tyhjennyspainikkeen aria-label"
 
 ---
 
-### 7. Virhetila ilmaistu vain värillä – WCAG 1.4.1
+### 8. Virhetila ilmaistu vain värillä – WCAG 1.4.1 (s. 11)
 
-**Korjattu tiedostoista:** `frontend/src/components/form-error/form-error.vue`
+**Korjattu tiedosto:** `frontend/src/components/form-error/form-error.vue`
 
-**Mitä korjattiin:**
-- Lisätty lomakeen yhteenvetovirheilmoitukselle `role="alert"` ja `aria-live="assertive"`, jolloin ruudunlukija lukee virheistä heti automaattisesti.
-- Lisätty ikonille `aria-hidden="true"` (jotta ruudunlukija ei lue ikonin nimeä erikseen).
+**Tekninen muutos:**
+- `role="alert"`, `aria-live="assertive"`, `aria-atomic="true"`.
+- Ikonille `aria-hidden="true"`.
 
-**Miten testata manuaalisesti:**
-1. Avaa lomake (esim. työskentelyjakson lisäyslomake).
-2. Yritä lähettää lomake tyhjänä tai virheellisillä tiedoilla.
-3. Ruudunlukijalla (VoiceOver tai NVDA) pitäisi automaattisesti kuulua virheilmoitus.
-4. Visuaalisesti virheilmoituksen pitäisi näkyä punaisena tekstinä ikonin kanssa.
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/lomakevirheet.cy.ts`
 
 ---
 
-## Prioriteetti 2 – Käyttöä merkittävästi vaikeuttavat ongelmat
+## Prioriteetti 2 – Käyttöä merkittävästi vaikeuttavat
 
-### 8. Hyppylinkki pääsisältöön puuttuu – WCAG 2.4.1
+### 9. Hyppylinkki pääsisältöön puuttuu – WCAG 2.4.1 (s. 24)
 
 **Korjattu tiedosto:** `frontend/src/app.vue`
 
-**Mitä korjattiin:**
-- Lisätty "Hyppää pääsisältöön" -linkki sovelluksen ensimmäiseksi elementiksi.
-- Linkki on oletuksena visuaalisesti piilotettu mutta näkyy, kun se saa fokuksen (näppäimistökäyttäjille).
-- Linkki vie `#main-content`-ankkuriin, joka on pääsisältöalueen wrapper-elementti.
+`<a href="#main-content" class="skip-to-main">Hyppää pääsisältöön</a>` sovelluksen ensimmäiseksi elementiksi. Oletuksena `top: -9999px`, fokusoitaessa `top: 0`.
 
-**Miten testata manuaalisesti:**
-1. Avaa mikä tahansa sivu Elsa-palvelussa.
-2. Paina Tab-näppäintä sivun alussa.
-3. Ensimmäisenä pitäisi ilmestyä sininen "Hyppää pääsisältöön" -painike sivun vasempaan yläkulmaan.
-4. Paina Enter – fokuksen pitäisi siirtyä pääsisältöalueen alkuun, ohittaen navigaation.
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/yleinen-sivurakenne.cy.ts`
 
 ---
 
-### 9. SPA-näkymänvaihto ei ilmoita ruudunlukijalle – WCAG 2.4.3, 4.1.3
+### 10. SPA-navigointi ei ilmoita ruudunlukijalle – WCAG 2.4.3, 4.1.3 (s. 15)
 
-**Korjattu tiedostot:** `frontend/src/app.vue`
+**Korjattu tiedosto:** `frontend/src/app.vue`
 
-**Mitä korjattiin:**
-- Lisätty `aria-live="polite"` -alue, joka ilmoittaa sivun otsikon ruudunlukijalle näkymänvaihdon jälkeen.
-- Lisätty reittimuutoksen kuuntelija (`@Watch('$route')`), joka:
-  - Päivittää live-alueen tekstin sivun otsikolla.
-  - Siirtää näppäimistöfokuksen pääsisältöalueen alkuun (käyttää `tabindex="-1"` ja `focus()` väliaikaisesti).
+`aria-live="polite"` -alue + `@Watch('$route')` siirtää fokuksen `#main-content`-elementtiin ja päivittää live-alueen sivun otsikolla.
 
-**Miten testata manuaalisesti:**
-1. Avaa Elsa-palvelu ja aktivoi ruudunlukija (VoiceOver tai NVDA).
-2. Navigoi eri sivuille klikkaamalla navigaatiolinkkejä tai käyttämällä näppäimistöä.
-3. Ruudunlukijan pitäisi ilmoittaa uuden sivun otsikko navigoinnin jälkeen.
-4. Fokuksen pitäisi siirtyä pääsisältöalueen alkuun jokaisella sivunavigaatiolla.
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/yleinen-sivurakenne.cy.ts`
 
 ---
 
-### 10. Valikkopainikkeen aria-label on englanninkielinen – WCAG 3.3.2
+### 11. Valikkopainikkeen aria-label englanninkielinen – WCAG 3.3.2 (s. 56)
 
 **Korjattu tiedosto:** `frontend/src/components/navbar/navbar.vue`
 
-**Mitä korjattiin:**
-- Lisätty `b-navbar-toggle` -elementille suomenkielinen `aria-label="Avaa valikko"`.
-- Ikonien `font-awesome-icon`-elementeille lisätty `aria-hidden="true"`, jolloin ruudunlukija ei lue ikonien nimiä (kuten "times" tai "bars").
+`aria-label="$t('avaa-valikko')"` → "Avaa valikko". Ikonit `aria-hidden="true"`.
 
-**Miten testata manuaalisesti:**
-1. Kaventele selaimen ikkunaa mobiilileveyteen (alle 992px) tai käytä mobiililaitetta.
-2. Paina Tab-näppäintä, kunnes hamburger-valikko-painike saa fokuksen.
-3. Ruudunlukijalla pitäisi kuulua "Avaa valikko" eikä "Menu" tai englanniksi "toggle navigation".
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/navigaatio.cy.ts`
 
 ---
 
-### 11. Profiilivalikon puutteellinen ohjelmallinen rakenne – WCAG 1.3.1
+### 12. Profiilivalikon puutteellinen ohjelmallinen rakenne – WCAG 1.3.1 (s. 39)
 
 **Korjattu tiedosto:** `frontend/src/components/navbar/navbar.vue`
 
-**Mitä korjattiin:**
-- Lisätty `role="menu"` ja `aria-label="Käyttäjävalikko"` valikkosisältö-diviin.
-- Kaikille valikkokohteille lisätty `role="menuitem"`.
-- Lisätty `aria-current="true"` tällä hetkellä aktiiviselle opinto-oikeudelle ja roolille, jolloin apuvälinekäyttäjä tietää mikä vaihtoehto on valittuna.
-- Kaikille check-ikoneille lisätty `aria-hidden="true"`.
-- Lisätty profiili-dropdownille suomenkielinen otsikko (`displayName`).
+`role="menu"` + `aria-label="Käyttäjävalikko"` valikkosisältöön. `role="menuitem"` kohteille. `aria-current="true"` aktiiviselle valinnalle.
 
-**Miten testata manuaalisesti:**
-1. Kirjaudu Elsa-palveluun.
-2. Paina Tab-näppäintä, kunnes käyttäjäavatarin dropdown-painike saa fokuksen. Paina Enter.
-3. Ruudunlukijalla pitäisi kuulua, että valikko avautuu ("Käyttäjävalikko").
-4. Jos käyttäjällä on useita opinto-oikeuksia tai rooleja, aktiivinen vaihtoehto pitäisi kuulua merkittynä (esim. "Erikoistuva lääkäri, valittu").
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/navigaatio.cy.ts`
 
 ---
 
-### 12. Sivunavigaation listarakenne on rikki – WCAG 1.3.1, 4.1.2
+### 13. Sivunavigaation listarakenne rikki – WCAG 1.3.1, 4.1.2 (s. 38)
 
-**Korjattu tiedostot:** `frontend/src/components/sidebar-menu/sidebar-menu.vue`, `frontend/src/components/mobile-nav/mobile-nav.vue`
+**Korjattu tiedostot:** `sidebar-menu.vue`, `mobile-nav.vue`
 
-**Mitä korjattiin:**
-- Lisätty `aria-label="Päänavigaatio"` sivunavigaation `<nav>`-elementille (desktop).
-- Lisätty `aria-label="Päänavigaatio"` mobiilinavigaation `<b-nav>`-elementille.
-- Muutettu "Osaaminen"-navigaatiokohta rikkinäisestä ankkuri-elementistä (linkki ilman `to`-propsia) semanttisesti oikeaksi `<button>`-elementiksi.
-  - Lisätty `aria-expanded` ja `aria-controls="osaaminen-toggle"` buttonille.
-  - Lisätty näkyvä kohdistuskehys.
-  - Lisätty `aria-hidden="true"` ikonipiiloille (chevron-up/down).
-- Vastaava korjaus tehty mobiilinavigaatioon.
+`aria-label="Päänavigaatio"` navigaatioelementeille. "Osaaminen" muutettu `<button>`-elementiksi `aria-expanded`-attribuutilla.
 
-**Miten testata manuaalisesti:**
-1. Avaa Elsa-palvelu ja navigoi sivunavigaatioon Tab-näppäimellä.
-2. Ruudunlukijalla pitäisi kuulua navigaatioalueen nimi "Päänavigaatio" kun alueelle navigoidaan.
-3. Siirry "Osaaminen"-kohtaan – sen pitäisi käyttäytyä painikkeena linkin sijaan.
-4. Paina Enter tai välilyönti "Osaaminen"-painikkeella – alavalikko avautuu/sulkeutuu.
-5. Ruudunlukijalla pitäisi kuulua `aria-expanded`-tila: "laajennettu" / "supistettu".
-6. Tarkista, ettei samalla sivulla ole tuplanappia (painike+linkki samassa elementissä).
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/navigaatio.cy.ts`
 
 ---
 
-### 13. Pakollisten kenttien merkintä epäselvä – WCAG 3.3.2
+### 14. Pakollisten kenttien merkintä epäselvä – WCAG 3.3.2 (s. 27)
 
 **Korjattu tiedosto:** `frontend/src/components/form-group/form-group.vue`
 
-**Mitä korjattiin:**
-- Lisätty `<span class="sr-only">{{ $t('pakollinen-tieto') }}</span>` asteriskin (*) yhteyteen. Ruudunlukija lukee nyt "pakollinen tieto" näkyvän asteriskin sijaan.
-- Lisätty info-ikonille `aria-label="Lisätietoja"`, jolloin ruudunlukija lukee tarkoituksen ikonin fonttinimen sijaan.
+`<span class="sr-only">pakollinen tieto</span>` asteriskin yhteyteen. Info-ikonille `aria-label="Lisätietoja"`.
 
-**Miten testata manuaalisesti:**
-1. Avaa lomake, jossa on pakollisia kenttiä (merkitty *).
-2. Navigoi Tab-näppäimellä pakollisen kentän otsikkoon.
-3. Ruudunlukijalla pitäisi kuulua "Kentän nimi, pakollinen tieto" pelkän "*" sijaan.
-4. Jos kentällä on info-ikoni (ⓘ), sen pitäisi kuulua nimellä "Lisätietoja".
+**Automaattitesti:** `e2e/cypress/e2e/saavutettavuus/lomakevirheet.cy.ts`
 
 ---
 
-### 14. Toimintojen palaute puuttuu (toast/aria-live) – WCAG 4.1.3
+### 15. Toimintojen palaute puuttuu (toast) – WCAG 4.1.3 (s. 25)
 
 **Korjattu tiedosto:** `frontend/src/utils/toast.ts`
 
-**Mitä korjattiin:**
-- Lisätty fontawesome-ikoneille `aria-hidden="true"`, jolloin ruudunlukija ei lue ikonien nimiä.
-- Asetettu `autoHideDelay: 5000` (onnistumistoiminnot) ja `autoHideDelay: 7000` (virhetoiminnot) – enemmän aikaa kuulla ilmoitus.
-- Käytetään Bootstrap Vue:n sisäänrakennettua `aria-live`-tukea (`variant: 'danger'` → `aria-live="assertive"`, `variant: 'success'` → `aria-live="polite"`).
-
-**Miten testata manuaalisesti:**
-1. Aktivoi ruudunlukija (VoiceOver/NVDA).
-2. Tallenna lomake onnistuneesti – onnistumistoast pitäisi kuulua automaattisesti.
-3. Aiheuta virhetilanne (esim. verkkovirhe tai virheellinen lomake) – virhetoast pitäisi kuulua välittömästi.
-4. Ilmoituksella on pidemmän näyttöaika, joten ruudunlukijalla on aikaa lukea se.
+Ikonit `aria-hidden`. `autoHideDelay: 5000/7000`. BV käyttää `aria-live` sisäisesti varianttikohtaisesti.
 
 ---
 
-## Prioriteetti 3 – Käyttöä vaikeuttavat ongelmat
-
-### 15. Kirjautumissivulta puuttuu pääsisältömaamerkki – WCAG 1.3.1
+### 16. Kirjautumissivulta puuttuu main-maamerkki – WCAG 1.3.1 (s. 48)
 
 **Korjattu tiedosto:** `frontend/src/views/login/login-view.vue`
 
-**Mitä korjattiin:**
-- Lisätty kirjautumissivulle `<main id="main-content">` -elementti, johon router-view on kapseloitu. Aiemmin kirjautumissivulla ei ollut lainkaan main-merkkipistettä, mikä poikkesi muun palvelun käytännöstä.
-
-**Miten testata manuaalisesti:**
-1. Avaa kirjautumissivu.
-2. Tarkista ruudunlukijalla maamerkkiluettelo (VoiceOverissa rotor → Landmarks, NVDA:ssa Insert+F7).
-3. Luettelossa pitäisi näkyä "Main" tai "Pääsisältö" -maamerkki.
+Lisätty `<main id="main-content">`.
 
 ---
 
-### 16. Scroll-padding: kohdistunut elementti piiloutuu ylätunnisteen taakse – WCAG 2.4.11
+### 17. Kohdistunut elementti piiloutuu ylätunnisteen alle – WCAG 2.4.11* (s. 61)
 
 **Korjattu tiedosto:** `frontend/src/styles/app.scss`
 
-**Mitä korjattiin:**
-- Lisätty `scroll-padding-top: 80px` HTML-elementille. Tämä varmistaa, että kun selain vierittää sivun automaattisesti fokusoidulle elementille (esim. Tab-näppäimellä navigoitaessa), elementti ei päädy kiinteän ylätunnisteen alle.
-
-**Miten testata manuaalisesti:**
-1. Avaa sivu, jolla on paljon sisältöä (esim. Työskentelyjaksot-sivu).
-2. Paina Tab-näppäintä toistuvasti ja seuraa, siirtyykö fokus sivun alla oleviin elementteihin.
-3. Tarkista, ettei fokusoidut elementit päädy piilotetuksi kiinteän ylätunnisteen alle.
-4. Tämä on erityisen tärkeä mobiililla ja suurennetuilla näytöillä.
+`scroll-padding-top: 80px` HTML-elementille.
 
 ---
 
-## Uudet i18n-lokalisointiavaimet
+## Automaattiset saavutettavuustestit
 
-Seuraavat suomenkieliset avaimet lisättiin `fi.json`-tiedostoon:
+Sijainti: `e2e/cypress/e2e/saavutettavuus/`
 
-| Avain | Suomenkielinen teksti |
+| Testitiedosto | Testattava alue |
 |---|---|
-| `hyppaa-paasisaltoon` | Hyppää pääsisältöön |
-| `avaa-kalenteri` | Avaa kalenteri |
-| `kuluva-kuukausi` | Kuluva kuukausi |
-| `edellinen-kuukausi` | Edellinen kuukausi |
-| `seuraava-kuukausi` | Seuraava kuukausi |
-| `tanaan` | Tänään |
-| `valittu` | Valittu |
-| `tyhjenna-valinta` | Tyhjennä valinta |
-| `sulje` | Sulje |
-| `lisatietoja` | Lisätietoja |
-| `avaa-valikko` | Avaa valikko |
-| `sulje-valikko` | Sulje valikko |
-| `kayttajavalikko` | Käyttäjävalikko |
-| `paanavigaatio` | Päänavigaatio |
-| `sivunavigaatio` | Sivunavigaatio |
+| `yleinen-sivurakenne.cy.ts` | Skip-link, main-landmark, nav aria-label, SPA-ilmoitus, fokus |
+| `datepicker.cy.ts` | Kalenteripainike: fokusoitavuus, nimi, navigointi |
+| `accordion.cy.ts` | Haitari: rooli, aria-expanded, näppäimistö, fokus |
+| `liitetiedosto.cy.ts` | Tiedostolatauspainike: tabindex, role, aria-label |
+| `popover.cy.ts` | Info-painike: aria-label, aria-expanded, fokus |
+| `navigaatio.cy.ts` | Navbar: suomenkielinen label, role="menu", sivunavigaatio |
+| `lomakevirheet.cy.ts` | role="alert", aria-live, sr-only pakollinen |
+| `arviointipyynto-a11y.cy.ts` | Integraatiotesti: kaikki korjatut komponentit |
 
-Vastaavat ruotsinkieliset käännökset lisättiin `sv.json`-tiedostoon.
+`cy.checkPageA11y()` ajaa axe-core WCAG 2.1 AA -säännöt.  
+Tuntemat puutteet on poissuljettu `KNOWN_UNFIXED_VIOLATIONS`-listalla `ui.ts`:ssä.
+
+### Asentaminen
+
+```bash
+cd e2e
+yarn add --dev cypress-axe axe-core
+```
 
 ---
 
-## Yhteenveto muutetuista tiedostoista
+## Vielä korjaamattomat ongelmat – yksityiskohtaiset estäjät
 
-| Tiedosto | Korjatut ongelmat |
+### 🔴 Prioriteetti 1 – Estävät
+
+#### Single-select ja multiselect: combobox-rooli, aria-tilat, DOM-järjestys (s. 33–36)
+**WCAG:** 1.3.1, 1.3.2, 1.4.3, 1.4.11, 2.4.3, 4.1.2  
+**Estäjä:** `vue-multiselect@2.1.6` ei toteuta WAI-ARIA 1.1 combobox-patternia. NVDA lukee kaikki vaihtoehdot "blank". Tagien DOM-sijainti on kirjastokoodissa eikä konfiguroitavissa. Korjaus = kirjastovaihto `@vueform/multiselect` tai vastaavaan. Vaatii kaikkien ~50 käyttöpaikan regressiotestauksen.  
+**Arvioitu työmäärä:** 5–7 päivää.
+
+#### Ei-natiivit pudotusvalikot mobiiliruudunlukijalla (s. 55)
+**WCAG:** 4.1.2  
+**Estäjä:** TalkBack/iOS VoiceOver eivät tue `vue-multiselect`-pohjaista komponenttia. Vaatii saman kirjastovaihdon.
+
+---
+
+### 🟡 Prioriteetti 2 – Merkittävät
+
+#### Lomakkeen lähetysvirhe: fokus ensimmäiseen virhekenttään (s. 16)
+**WCAG:** 1.3.1  
+**Estäjä:** Noin 20 lomakekomponenttia, joissa on oma Vuelidate-validaatiologiikka. Korjausmalli on selvä (`this.$el.querySelector('.is-invalid')?.focus()`) mutta vaatii muutoksen jokaiseen erikseen.  
+**Arvioitu työmäärä:** 2–3 päivää.
+
+#### Label/for-kytkentä puuttuu päivämääräkentiltä (s. 20)
+**WCAG:** 1.3.1  
+**Estäjä:** `b-form-datepicker` (Bootstrap Vue) yliajaa ulkoiset label-kytkennät sisäisellä rakenteellaan. Korjaus vaatisi päivämääräkomponentin korvaamisen tai Bootstrap Vue:n laajentamisen.  
+**Arvioitu työmäärä:** 1–2 päivää.
+
+#### Otsikointirakenne puutteellinen (s. 18)
+**WCAG:** 1.3.1  
+**Estäjä:** Sivukohtainen ongelma ~15 sivulla. Ei yhtä komponenttia korjattavaksi – vaatii jokaisen sivun manuaalisen tarkistuksen.  
+**Arvioitu työmäärä:** 2–3 päivää.
+
+#### Radiopainikeryhmät ilman fieldset/legend (s. 41)
+**WCAG:** 1.3.1  
+**Estäjä:** Toistuu useilla lomakkeilla ja erityisesti arviointityökalut-modaali-ikkunoissa, joissa haitari+radio-yhdistelmä on monimutkainen.  
+**Arvioitu työmäärä:** 1–2 päivää.
+
+#### Valintaruuturyhmät ilman fieldset/legend (s. 42)
+**WCAG:** 1.3.1  
+**Estäjä:** Sama kuin radiopainikeryhmillä. Lisäksi Valmistumispyyntö-sivulla erityinen kohdistuksen katoaminen painikkeen poistuessa DOM:sta.  
+**Arvioitu työmäärä:** 1 päivä.
+
+#### Virheviestit eivät ohjelmallisesti kytketty kenttiin (s. 16)
+**WCAG:** 1.3.1  
+**Estäjä:** `elsa-form-group`-komponentti ei välitä `aria-describedby`-kytkentää automaattisesti. Vaatii komponentin laajentamisen ja kaikkien lomakekäyttöpaikkojen päivittämisen.  
+**Arvioitu työmäärä:** 1–2 päivää.
+
+#### Kontekstinmuutos kouluttajan hakukentässä (s. 23)
+**WCAG:** 3.2.2  
+**Estäjä:** Kouluttajan etusivun live-haku siirtää kohdistusta odottamattomasti. Vaatii debounce-logiikan lisäämisen ja hakupainikkeen lisäämistä tai ohjetekstin lisäämistä.  
+**Arvioitu työmäärä:** 0.5–1 päivä.
+
+#### Arviointityökalun valinnasta avautuu suoraan modaali (s. 23)
+**WCAG:** 3.2.2  
+**Estäjä:** Kouluttajan arviointinäkymässä valinta pudotusvalikosta avaa suoraan modaalin. Vaatii UX-päätöksen (erillinen painike) ja logiikan muutoksen.  
+**Arvioitu työmäärä:** 0.5–1 päivä.
+
+---
+
+### 🟠 Prioriteetti 3 – Vaikeuttavat
+
+#### SVG-piirakkakuvaajien tekstivastineet (s. 28)
+**WCAG:** 1.1.1  
+**Estäjä:** `vue-apexcharts` ei tue SVG-sektoreiden ARIA-annotointia. Vaatii kirjastovaihdon tai SVG-post-prosessointia.  
+**Arvioitu työmäärä:** 3–5 päivää.
+
+#### Murupolun nav-landmark ja erottimet (s. 40)
+**WCAG:** 1.3.1, 4.1.2  
+**Estäjä:** `b-breadcrumb` renderöi `aria-label="breadcrumb"` englanniksi. Korjaus: oma wrapper-komponentti tai jokaisen käyttöpaikan muuttaminen.  
+**Arvioitu työmäärä:** 0.5 päivää.
+
+#### Riittämätön tekstikontrasti (s. 12–13)
+**WCAG:** 1.4.3  
+**Puutteet:** `$red: #fb462f` (3.5:1), `$green: #41b257` toasteissa (2.7:1), harmaat ohjetekstit `#808080` (3.9:1)  
+**Estäjä:** Globaalit värimuuttujat `_variables.scss`. Muutos vaikuttaa koko sovellukseen, vaatii UI-suunnittelijan hyväksynnän ja visuaalisen regressiotestauksen.  
+**Arvioitu työmäärä:** 1 päivä + visuaalinen tarkistus.
+
+#### Riittämätön kontrasti UI-elementeissä (s. 14)
+**WCAG:** 1.4.11  
+**Puutteet:** Lomakekenttien ääriviivat `#ced4da` (1.5:1), pudotusvalikoiden nuolikuvake `#999999` (2.8:1)  
+**Estäjä:** Globaali muuttuja. Muutos vaikuttaa kaikkiin lomakekenttiin visuaalisesti.  
+**Arvioitu työmäärä:** 0.5 päivää.
+
+#### Taulukoiden esitys mobiilissa (s. 60)
+**WCAG:** 1.3.1  
+**Estäjä:** Bootstrap Vue `b-table` stacked-moodissa menettää taulukkosemantiikan. Vaatii custom-responsiivisen toteutuksen.  
+**Arvioitu työmäärä:** 2–3 päivää.
+
+---
+
+## Muutetut tiedostot
+
+| Tiedosto | Muutos |
 |---|---|
-| `frontend/src/components/datepicker/datepicker.vue` | Kalenterin tabindex, aria-label, suomenkieliset nimet |
-| `frontend/src/components/accordian/accordian.vue` | role="button", aria-expanded, näkyvä fokus |
-| `frontend/src/styles/app.scss` | Globaalit fokustyylit, scroll-padding-top, sr-only |
-| `frontend/src/app.vue` | Skip-link, aria-live-alue, route-kuuntelija |
-| `frontend/src/components/multiselect/multiselect.vue` | Kontrasti, aria-label, fokustyylit |
-| `frontend/src/components/popover/popover.vue` | aria-label, aria-expanded, aria-controls |
-| `frontend/src/components/form-error/form-error.vue` | role="alert", aria-live |
-| `frontend/src/components/navbar/navbar.vue` | Suomenkielinen aria-label, role="menu", aria-current |
-| `frontend/src/components/mobile-nav/mobile-nav.vue` | aria-label, aria-expanded |
-| `frontend/src/components/sidebar-menu/sidebar-menu.vue` | aria-label, semanttinen button |
-| `frontend/src/components/form-group/form-group.vue` | sr-only pakollinen-tieto, aria-label |
-| `frontend/src/components/asiakirjat/asiakirjat-upload.vue` | tabindex, role="button", näppäinkaappaus |
-| `frontend/src/components/asiakirjat/asiakirjat-content.vue` | aria-label lataus/poisto-painikkeille |
-| `frontend/src/utils/toast.ts` | aria-hidden ikoneille, autoHideDelay |
-| `frontend/src/views/login/login-view.vue` | `<main>` -maamerkki |
-| `frontend/src/locales/fi.json` | Uudet saavutettavuusavaimet |
-| `frontend/src/locales/sv.json` | Uudet saavutettavuusavaimet (ruotsi) |
+| `components/datepicker/datepicker.vue` | tabindex=-1 poistettu, aria-label, suomenkieliset nimet |
+| `components/accordian/accordian.vue` | role="button", aria-expanded, fokustyylit |
+| `styles/app.scss` | Fokustyylit, scroll-padding-top, .sr-only |
+| `app.vue` | Skip-link, aria-live, route-watch |
+| `components/multiselect/multiselect.vue` | aria-label, tagikontrastit, fokustyylit |
+| `components/popover/popover.vue` | aria-label, aria-expanded, aria-controls |
+| `components/form-error/form-error.vue` | role="alert", aria-live="assertive" |
+| `components/navbar/navbar.vue` | aria-label="Avaa valikko", role="menu", aria-current |
+| `components/mobile-nav/mobile-nav.vue` | aria-label, aria-expanded |
+| `components/sidebar-menu/sidebar-menu.vue` | aria-label="Päänavigaatio", `<button>` |
+| `components/form-group/form-group.vue` | sr-only pakollinen, aria-label |
+| `components/asiakirjat/asiakirjat-upload.vue` | tabindex, role="button", Enter/Space |
+| `components/asiakirjat/asiakirjat-content.vue` | aria-label lataukselle/poistolle |
+| `utils/toast.ts` | aria-hidden, autoHideDelay |
+| `views/login/login-view.vue` | `<main>`-maamerkki |
+| `locales/fi.json` | 15 uutta saavutettavuusavainta |
+| `locales/sv.json` | 15 uutta avainta |
+| `e2e/package.json` | cypress-axe + axe-core |
+| `e2e/cypress/support/e2e.ts` | cypress-axe import |
+| `e2e/cypress/support/commands/ui.ts` | checkPageA11y, assertFocusVisible |
+| `e2e/cypress/e2e/saavutettavuus/*.cy.ts` | 8 uutta testitiedostoa |
+| `e2e/cypress/e2e/arvioinnit/arviointipyynto.cy.ts` | cy.checkPageA11y() lisätty |
 
 ---
 
-## Vielä korjaamattomat ongelmat
+## Seuraavat askeleet (suositus)
 
-Seuraavat ongelmat tunnistettiin saavutettavuusarviossa mutta eivät ole mukana tässä korjauserässä. Nämä vaativat laajempia rakenteellisia muutoksia tai erillisen suunnittelun:
-
-### Prioriteetti 1 (käyttöä estävät):
-- **Single-select pudotusvalikko**: combobox-rooli, aria-expanded, listbox-rakenne ja ruudunlukijaongelmat vaativat putkiston uudelleensuunnittelun tai kolmannen osapuolen komponenttikirjaston päivityksen.
-- **Multiselect: Tehdyt valinnat eivät näy DOM-järjestyksessä oikein**: Tämä vaatii vue-multiselect-komponentin laajaa muutosta tai uuden komponenttikirjaston käyttöönottoa.
-
-### Prioriteetti 2 (käyttöä merkittävästi vaikeuttavat):
-- **Otsikointirakenne (h1–h6)**: Monet sivut puuttuvat H1-otsikoita tai otsikkohierarkia on väärä. Tämä vaatii jokaisen sivun manuaalista läpikäyntiä.
-- **Lomakkeen lähetysvirhe: fokus ensimmäiseen virhekenttään**: Tämä vaatii lomakedatan validointilogiikan muuttamista jokaisessa lomakekomponentissa.
-- **label/for-kytkentä päivämääräkentille**: Bootstrap Vue:n `b-form-datepicker`-komponentti hoitaa label-kytkennän sisäisesti, mutta ulkoinen label-elementti on kytkettävä manuaalisesti.
-- **Radiopainikeryhmien fieldset/legend-rakenne**: Vaatii jokaisen radiopainikeryhmän muuttamista.
-- **Valintaruuturyhmien fieldset/legend-rakenne**: Sama kuin radiopainikkeet.
-
-### Prioriteetti 3 (käyttöä vaikeuttavat):
-- **SVG-piirakkakuvaajien tekstivastineet**: Vaatii erillisen visualisoinnin uudelleensuunnittelun.
-- **Taulukkorakenne mobiilissa**: Taulukot muuttuvat korttimuotoon mutta säilyttävät taulukon ohjelmallisen rakenteen.
-- **Murupolkuelementin nav-landmark ja erottimet**: b-breadcrumb-komponentin aria-label tulee englanninkielisenä – vaatii jokaiselle sivulle muutoksen tai oman wrapper-komponentin.
-
----
-
-## Testaussuositus
-
-Korjauksia suositellaan testattavan seuraavilla välineillä:
-
-1. **Näppäimistökäyttö** (Chrome/Firefox): Käy kaikki lomakekentät, painikkeet, haitarit ja navigaatio Tab-näppäimellä läpi ja tarkista näkyvä kohdistus.
-2. **NVDA + Firefox/Edge** (Windows): Tarkista erityisesti lomakkeiden virheviestit, toast-ilmoitukset ja navigaatiorakenne.
-3. **VoiceOver + Safari** (macOS): Tarkista lomakekentät, haitarit, profiilivalikko ja näkymänvaihtokuulutukset.
-4. **TalkBack + Chrome** (Android): Tarkista erikoistujan näkymät mobiililla.
-5. **Kontrastin tarkistus**: Käytä axe-selainlaajennusta tai Colour Contrast Analyser -työkalua tarkistamaan jäljellä olevat kontrastiongelmat.
-
+1. **Heti (sprint 1):** `vue-multiselect` → saavutettava vaihtoehto – suurin yksittäinen estäjä (koskee kaikkia rooleja, prio 1).
+2. **Sprint 2:** Lomakefokus virhetilanteessa, `aria-describedby`-kytkennät, radiopaikeryhmät, kontekstinmuutokset kouluttajan näkymissä.
+3. **Sprint 3:** Otsikointiaudit kaikilla sivuilla, kontrasteKorjaukset UI-suunnittelijan kanssa.
+4. **Sprint 4:** SVG-kuvaajien tekstivastineet, taulukkosemantiikka mobiilissa.
