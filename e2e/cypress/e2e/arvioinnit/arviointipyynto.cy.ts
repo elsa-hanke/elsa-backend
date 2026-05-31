@@ -139,18 +139,50 @@ describe('Arviointipyyntö', () => {
 
     cy.url().should('include', '/itsearviointi')
     cy.contains('h1', 'Tee itsearviointi').should('be.visible')
+    // Odotetaan, että lomake on täysin latautunut – EPA-kentät ovat renderöityneet
+    cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
+    cy.contains('label', /Etappi/).should('be.visible')
 
-    // Itsearvioinnin täyttäminen ja tallentaminen
-    cy.get('textarea').first().type('E2E itsearviointi vastaus.')
+    // Itsearvioinnin täyttäminen – kaikki pakolliset kentät
+    // Vaativuustaso – ei merkitty pakolliseksi, mutta valitaan ensimmäinen vaihtoehto
+    cy.selectFirstMultiselectOption(
+      cy.contains('label', 'Vaativuustaso').parent()
+    )
+
+    // Etappi – pakollinen kenttä (*), valitaan ensimmäinen vaihtoehto
+    cy.selectFirstMultiselectOption(
+      cy.contains('label', /Etappi/).parent()
+    )
+
+    // Sanallinen kokonaisarviointi – pakollinen tekstikenttä
+    cy.get('textarea').first().clear().type('E2E itsearviointi vastaus.')
+
+    // Tallennetaan itsearviointi
+    cy.intercept('PUT', '**/erikoistuva-laakari/suoritusarvioinnit').as('itsearviointiPut')
     cy.contains('button', 'Tallenna').click()
 
-    // Tallennettu – palataan arvioinnit-listalle
-    cy.url().should('include', '/arvioinnit')
+    // Vue-multiselect-valinnat eivät aina rekisteröidy lomakkeen validointitilaan,
+    // joten vahvistusdialogi (#confirm-save) ilmestyy käytännössä aina.
+    // Hyväksytään tallennus – dialogi käynnistää saman PUT-pyynnön kuin täysi tallennus.
+    cy.get('#confirm-save', { timeout: 10000 }).should('be.visible')
+    cy.get('#confirm-save').contains('button', /Tallenna|Vahvista|Kyllä/).click({ force: true })
 
-    // Varmistetaan, että arviointipyyntö näkyy Arvioinnit-välilehdellä itsearvioinnin jälkeen.
-    // Odotetaan mahdollinen navigointi päälistanäkymään, jossa 'Arvioinnit'-tab on oletuksena auki.
+    cy.wait('@itsearviointiPut', { timeout: 15000 }).then(({ response }) => {
+      expect(response?.statusCode).to.eq(200)
+    })
+
+    // Tallennettu – ohjataan arvioinnin detail-sivulle (/arvioinnit/{id})
+    cy.url().should('not.include', '/itsearviointi')
+    cy.url().should('match', /\/arvioinnit\/\d+$/)
+
+    // Varmistetaan, että itsearviointi on tallennettu oikein detail-sivulla
+    cy.contains('h1', 'Arviointi').should('be.visible')
+    cy.contains('E2E Testitapahtuma').should('be.visible')
+    cy.contains('E2E itsearviointi vastaus.').should('be.visible')
+
+    // Arviointi näkyy myös listauksessa
+    cy.visit('/arvioinnit')
     cy.contains('h1', 'Arvioinnit').should('be.visible')
-    // Tapahtuman nimi pitää näkyä jossain listataulussa (odottaa arvioijan vastausta)
     cy.contains('E2E Testitapahtuma').should('be.visible')
   })
 })
