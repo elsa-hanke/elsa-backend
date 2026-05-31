@@ -114,14 +114,14 @@ describe('Työskentelyjakso', () => {
       .type('28.02.2025')
       .blur()
     cy.contains('button', 'Tallenna').click()
-    // Tallennuksen jälkeen palataan työskentelyjakson sivulle
+    // Tallennuksen jälkeen ohjataan poissaolon detail-sivulle
     cy.url().should('not.include', '/poissaolot/uusi')
+    cy.url().should('match', /\/tyoskentelyjaksot\/poissaolot\/\d+$/)
 
-    // Varmistetaan, että lisätty poissaolo näkyy työskentelyjakson sivulla
-    cy.url().should('match', /\/tyoskentelyjaksot\/\d+$/)
+    // Varmistetaan, että poissaolon tiedot näkyvät detail-sivulla
     cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
-    // Poissaolon päivämäärät tai "Poissaolot"-otsikko on näkyvissä detail-sivulla
-    cy.contains(/poissaolo|15\.02\.2025/i).should('be.visible')
+    cy.contains(/15\.2\.2025|15\.02\.2025/i).should('be.visible')
+    cy.contains(/28\.2\.2025|28\.02\.2025/i).should('be.visible')
 
     // --- Vaihe 4: Näytetään päivitetty työkertymä listassa ---
     cy.visit('/tyoskentelyjaksot')
