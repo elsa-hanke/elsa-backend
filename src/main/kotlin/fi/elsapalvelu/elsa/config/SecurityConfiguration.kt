@@ -195,6 +195,7 @@ class SecurityConfiguration(
                 .requestMatchers("/").permitAll() // ohjaus etusivulle
                 .requestMatchers("/kirjaudu").permitAll()
                 .requestMatchers("/api/").permitAll()
+                .requestMatchers("/api/ping").permitAll()
                 .requestMatchers("/api/haka-yliopistot").permitAll()
                 .requestMatchers("/api/julkinen/**").permitAll()
                 .requestMatchers("/api/auth-info").denyAll()
