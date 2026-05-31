@@ -67,6 +67,19 @@ describe('Koulutussuunnitelma', () => {
     cy.contains('E2E Testi Koulutusjakso').should('be.visible')
     cy.contains('Testataan e2e-automaatiolla.').should('be.visible')
 
+    // Muokkauslinkki on käytettävissä koulutusjakson sivulla
+    cy.url().then((url) => {
+      const id = url.split('/').pop()
+      cy.visit(`/koulutussuunnitelma/koulutusjaksot/${id}/muokkaus`)
+    })
+    cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
+    // Lomakkeessa on jo täytetty nimi
+    cy.contains('label', 'Koulutusjakson nimi')
+      .parent()
+      .find('input[type="text"]')
+      .first()
+      .should('have.value', 'E2E Testi Koulutusjakso')
+
     // Uusi koulutusjakso näkyy koulutussuunnitelmassa
     cy.visit('/koulutussuunnitelma')
     cy.contains('E2E Testi Koulutusjakso').should('be.visible')
