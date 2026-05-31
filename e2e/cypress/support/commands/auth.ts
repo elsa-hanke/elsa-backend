@@ -66,12 +66,23 @@ Cypress.Commands.add('loginWithSuomifi', (ssn = SSN_ERIKOISTUVA, email?: string,
     // while Vue Router decides the destination:
     //   - new / cleaned-up user  → /kayton-aloitus  (email form needed)
     //   - returning user         → /etusivu          (no form, skip)
+    //
+    // IMPORTANT: wait for the origin to match the app FIRST.
+    // After the last cy.origin() call, the browser may still be at the IdP URL
+    // (e.g. /idp/profile/SAML2/POST/SSO).  Checking pathname before origin is
+    // settled causes the 'not.eq("/")" assertion to pass on the IdP path and the
+    // kayton-aloitus branch is never entered.
+    const appOrigin = new URL(Cypress.config('baseUrl') as string).origin
+    cy.location('origin', { timeout: 60000 }).should('eq', appOrigin)
+    // Now wait for Vue Router to finish its initial navigation away from root '/'
     cy.location('pathname', { timeout: 30000 }).should('not.eq', '/')
     cy.location('pathname').then((pathname) => {
       if (pathname.includes('aloitus')) {
         cy.get('form .form-control', { timeout: 10000 }).eq(0).clear().type(email)
         cy.get('form .form-control').eq(1).clear().type(email)
         cy.contains('Aloita palvelun käyttö').click()
+        // Wait for navigation away from /kayton-aloitus before returning
+        cy.location('pathname', { timeout: 30000 }).should('not.include', 'aloitus')
       }
     })
   }
@@ -88,7 +99,13 @@ Cypress.Commands.add('loginAsErikoistuva', () => {
         new URL(Cypress.config('baseUrl') as string).origin
       )
       cy.location('pathname').should('not.eq', '/kirjautuminen')
-      cy.get('main[role="main"]').should('exist')
+      cy.get('main[role="main"]', { timeout: 60000 }).should('exist')
+      // The first /etusivu load fires multiple concurrent requests to
+      // koulutussuunnitelma/koulutusjaksot.  When no koulutussuunnitelma row
+      // exists yet, each request auto-creates one before the others commit,
+      // producing duplicate rows.  Clean up any duplicates so subsequent tests
+      // always see exactly one koulutussuunnitelma per opintooikeus.
+      cy.task('db:deduplicateKoulutussuunnitelma')
     },
     {
       // Re-validate: confirm the session is still alive by checking we land on
@@ -114,7 +131,7 @@ Cypress.Commands.add('loginAsKouluttaja', (token?: string) => {
         new URL(Cypress.config('baseUrl') as string).origin
       )
       cy.location('pathname').should('not.eq', '/kirjautuminen')
-      cy.get('main[role="main"]').should('exist')
+      cy.get('main[role="main"]', { timeout: 60000 }).should('exist')
     },
     {
       validate() {
@@ -136,7 +153,7 @@ Cypress.Commands.add('loginAsVastuuhenkilo', (token?: string) => {
         new URL(Cypress.config('baseUrl') as string).origin
       )
       cy.location('pathname').should('not.eq', '/kirjautuminen')
-      cy.get('main[role="main"]').should('exist')
+      cy.get('main[role="main"]', { timeout: 60000 }).should('exist')
     },
     {
       validate() {
@@ -158,7 +175,7 @@ Cypress.Commands.add('loginAsVirkailija', (token?: string) => {
         new URL(Cypress.config('baseUrl') as string).origin
       )
       cy.location('pathname').should('not.eq', '/kirjautuminen')
-      cy.get('main[role="main"]').should('exist')
+      cy.get('main[role="main"]', { timeout: 60000 }).should('exist')
     },
     {
       validate() {

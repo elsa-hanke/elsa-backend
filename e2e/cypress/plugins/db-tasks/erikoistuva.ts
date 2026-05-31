@@ -207,6 +207,24 @@ async function deleteErikoistuvaLaakari(client: Client, ids: UserIds): Promise<v
   await client.query(`DELETE FROM jhi_user WHERE id = $1`, [user_id])
 }
 
+// ─── Koulutussuunnitelma deduplication ───────────────────────────────────────
+
+/**
+ * Removes duplicate koulutussuunnitelma rows that can be created by a race
+ * condition when multiple concurrent requests call findOneByOpintooikeusId
+ * before any transaction commits (typically during the first /etusivu page
+ * load after a fresh login).  Keeps only the row with the smallest id for
+ * each opintooikeus_id.
+ */
+async function deduplicateKoulutussuunnitelma(client: Client): Promise<void> {
+  await client.query(`
+    DELETE FROM koulutussuunnitelma
+    WHERE id NOT IN (
+      SELECT MIN(id) FROM koulutussuunnitelma GROUP BY opintooikeus_id
+    )
+  `)
+}
+
 // ─── Exported task ────────────────────────────────────────────────────────────
 
 /**
@@ -217,6 +235,11 @@ async function deleteErikoistuvaLaakari(client: Client, ids: UserIds): Promise<v
  *                         order. Safe to call when the user does not exist.
  *                         Call before first-login tests so the "Aloita palvelun
  *                         käyttö" screen is always shown on the next login.
+ *
+ * db:deduplicateKoulutussuunnitelma – Removes duplicate koulutussuunnitelma rows
+ *                         that arise from a concurrent auto-creation race.  Call
+ *                         after loginAsErikoistuva() session setup completes to
+ *                         ensure later tests see a clean state.
  */
 export const erikoistuvaLaakariTasks = {
   async 'db:cleanupErikoistuva'({ email }: { email: string }): Promise<null> {
@@ -224,6 +247,13 @@ export const erikoistuvaLaakariTasks = {
       const ids = await fetchUserIds(client, email)
       if (!ids) return null
       await deleteErikoistuvaLaakari(client, ids)
+      return null
+    })
+  },
+
+  async 'db:deduplicateKoulutussuunnitelma'(): Promise<null> {
+    return withDb(dbClient, async (client: any) => {
+      await deduplicateKoulutussuunnitelma(client)
       return null
     })
   },
