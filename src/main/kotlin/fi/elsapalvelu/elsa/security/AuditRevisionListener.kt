@@ -14,7 +14,7 @@ class AuditRevisionListener : RevisionListener {
         val audit = revisionEntity as AuditRevisionEntity
         val context = SecurityContextHolder.getContext()
         audit.userId =
-            if (context.authentication != null) {
+            if (context.authentication is Saml2Authentication) {
                 val authentication = context.authentication as Saml2Authentication
                 val principal = authentication.principal as AuthenticatedPrincipal
                 principal.name
