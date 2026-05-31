@@ -75,8 +75,6 @@ spring:
       enabled: true
   cloud:
     aws:
-      s3:
-        enabled: false
       sns:
         enabled: false
 
