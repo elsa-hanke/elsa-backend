@@ -22,7 +22,7 @@ describe('Yleinen sivurakenne – saavutettavuus', () => {
     cy.get('[role="status"]', { timeout: 8000 }).should('not.exist')
 
     // ── Skip-to-main-linkki on sivun ensimmäinen kohdistettava elementti (WCAG 2.4.1)
-    cy.get('body').trigger('keydown', { key: 'Tab' })
+    cy.get('body').trigger('keydown', { key: 'Tab', force: true })
     cy.get('a[href="#main-content"]').should('exist')
 
     // ── Skip-to-main-linkki on oletuksena visuaalisesti piilotettu ───────────
