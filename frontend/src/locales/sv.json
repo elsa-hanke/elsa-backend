@@ -1,1 +1,18 @@
-{}
+{
+  "hyppaa-paasisaltoon": "Hoppa till huvudinnehållet",
+  "avaa-kalenteri": "Öppna kalender",
+  "kuluva-kuukausi": "Aktuell månad",
+  "edellinen-kuukausi": "Föregående månad",
+  "seuraava-kuukausi": "Nästa månad",
+  "tanaan": "Idag",
+  "valittu": "Vald",
+  "tyhjenna-valinta": "Rensa val",
+  "sulje": "Stäng",
+  "lisatietoja": "Mer information",
+  "avaa-valikko": "Öppna meny",
+  "sulje-valikko": "Stäng meny",
+  "kayttajavalikko": "Användarmeny",
+  "paanavigaatio": "Huvudnavigation",
+  "sivunavigaatio": "Sidnavigation"
+}
+

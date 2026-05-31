@@ -19,10 +19,15 @@
       </b-navbar-brand>
     </router-link>
 
-    <b-navbar-toggle v-if="!$screen.lg" target="sidebar-right" class="border-0">
+    <b-navbar-toggle
+      v-if="!$screen.lg"
+      target="sidebar-right"
+      class="border-0"
+      :aria-label="$t('avaa-valikko')"
+    >
       <template #default="{ expanded }">
-        <font-awesome-icon v-if="expanded" :icon="['fas', 'times']" size="lg" />
-        <font-awesome-icon v-else :icon="['fas', 'bars']" size="lg" />
+        <font-awesome-icon v-if="expanded" :icon="['fas', 'times']" size="lg" :aria-hidden="true" />
+        <font-awesome-icon v-else :icon="['fas', 'bars']" size="lg" :aria-hidden="true" />
       </template>
     </b-navbar-toggle>
 
@@ -32,7 +37,11 @@
         {{ $t('viestit') }}
       </b-nav-item>-->
 
-      <b-nav-item-dropdown class="user-dropdown align-self-center px-3" right>
+      <b-nav-item-dropdown
+        class="user-dropdown align-self-center px-3"
+        :text="displayName"
+        right
+      >
         <template #button-content>
           <user-avatar
             :src-base64="avatar"
@@ -41,12 +50,16 @@
             :display-name="displayName"
           />
         </template>
-        <div class="user-dropdown-content">
-          <b-dropdown-item v-if="!account.impersonated" :to="{ name: 'profiili' }">
+        <div class="user-dropdown-content" role="menu" :aria-label="$t('kayttajavalikko')">
+          <b-dropdown-item
+            v-if="!account.impersonated"
+            :to="{ name: 'profiili' }"
+            role="menuitem"
+          >
             {{ $t('oma-profiilini') }}
           </b-dropdown-item>
           <hr class="p-0 m-0" />
-          <b-dropdown-item @click="logout">
+          <b-dropdown-item role="menuitem" @click="logout">
             {{ $t('kirjaudu-ulos') }}
             <b-form ref="logoutForm" :action="logoutUrl" method="POST" />
           </b-dropdown-item>
@@ -58,6 +71,8 @@
             <b-dropdown-item
               v-for="opintooikeus in opintooikeudet"
               :key="opintooikeus.id"
+              role="menuitem"
+              :aria-current="opintooikeusKaytossa && opintooikeus.id === opintooikeusKaytossa.id ? 'true' : undefined"
               @click="changeOpintooikeus(opintooikeus)"
             >
               <div
@@ -75,6 +90,7 @@
                     fixed-width
                     size="lg"
                     class="text-success"
+                    :aria-hidden="true"
                   />
                 </div>
                 <div class="flex-column">
@@ -91,7 +107,12 @@
             <div class="dropdown-item dropdown-item__header mt-1 pb-1">
               <span class="font-weight-500">{{ $t('valitse-rooli') }}</span>
             </div>
-            <b-dropdown-item v-if="$hasErikoistujaRole()" @click="changeToErikoistuja">
+            <b-dropdown-item
+              v-if="$hasErikoistujaRole()"
+              role="menuitem"
+              :aria-current="$isErikoistuva() ? 'true' : undefined"
+              @click="changeToErikoistuja"
+            >
               <div
                 class="d-flex"
                 :class="{
@@ -105,6 +126,7 @@
                     fixed-width
                     size="lg"
                     class="text-success"
+                    :aria-hidden="true"
                   />
                 </div>
                 <div class="flex-column">
@@ -112,7 +134,12 @@
                 </div>
               </div>
             </b-dropdown-item>
-            <b-dropdown-item v-if="$hasYekRole()" @click="changeToYekKoulutettava">
+            <b-dropdown-item
+              v-if="$hasYekRole()"
+              role="menuitem"
+              :aria-current="$isYekKoulutettava() ? 'true' : undefined"
+              @click="changeToYekKoulutettava"
+            >
               <div
                 class="d-flex"
                 :class="{
@@ -126,6 +153,7 @@
                     fixed-width
                     size="lg"
                     class="text-success"
+                    :aria-hidden="true"
                   />
                 </div>
                 <div class="flex-column">
@@ -133,7 +161,12 @@
                 </div>
               </div>
             </b-dropdown-item>
-            <b-dropdown-item v-if="$hasKouluttajaRole()" @click="changeToKouluttaja">
+            <b-dropdown-item
+              v-if="$hasKouluttajaRole()"
+              role="menuitem"
+              :aria-current="$isKouluttaja() ? 'true' : undefined"
+              @click="changeToKouluttaja"
+            >
               <div
                 class="d-flex"
                 :class="{
@@ -147,6 +180,7 @@
                     fixed-width
                     size="lg"
                     class="text-success"
+                    :aria-hidden="true"
                   />
                 </div>
                 <div class="flex-column">

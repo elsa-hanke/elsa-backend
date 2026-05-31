@@ -22,7 +22,11 @@
       class="user-select-none"
       :class="[isPrimaryButton ? 'primary mb-4' : 'outline-primary mb-4']"
       :for="uid"
-      :disabled="uploading || disabled"
+      :aria-disabled="uploading || disabled ? 'true' : undefined"
+      tabindex="0"
+      role="button"
+      @keydown.enter.prevent="triggerFileInput"
+      @keydown.space.prevent="triggerFileInput"
       v-on="$listeners"
     >
       <span>{{ buttonText }}</span>
@@ -265,6 +269,13 @@
       return `elsa-asiakirjat-upload-${(this as any)._uid}`
     }
 
+    triggerFileInput() {
+      if (!this.uploading && !this.disabled) {
+        const input = document.getElementById(this.uid) as HTMLInputElement | null
+        input?.click()
+      }
+    }
+
     get hasErrors() {
       return (
         this.maxFilesTotalSizeExceeded ||
@@ -290,8 +301,13 @@
     font-weight: 500;
     padding: 0.375rem 1.625rem;
     border-radius: 50rem;
-    &[disabled] {
+    &[aria-disabled='true'] {
       opacity: 0.6;
+      pointer-events: none;
+    }
+    &:focus {
+      outline: 2px solid $primary;
+      outline-offset: 2px;
     }
     &.primary {
       color: $white;
@@ -299,7 +315,7 @@
       border: 2px solid transparent;
       &:hover,
       &:active {
-        &:not([disabled]) {
+        &:not([aria-disabled='true']) {
           background-color: darken($primary, 15);
           cursor: pointer;
         }
@@ -311,7 +327,7 @@
       border: 2px solid $primary;
       &:hover,
       &:active {
-        &:not([disabled]) {
+        &:not([aria-disabled='true']) {
           color: $btn-primary-hover-background-color;
           border-color: $btn-primary-hover-border-color;
           cursor: pointer;

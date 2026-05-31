@@ -9,8 +9,9 @@
         'px-lg-6': icon,
         'px-lg-4': !icon
       }"
-      role="tab"
-      tabindex="0"
+      role="button"
+      :tabindex="!$slots.default ? '-1' : '0'"
+      :aria-expanded="$slots.default ? String(visible) : undefined"
       @click="toggle"
       @keyup.space="toggle"
       @keyup.enter="toggle"
@@ -84,6 +85,11 @@
 
   .accordian-header {
     cursor: pointer;
+
+    &:focus {
+      outline: 2px solid $primary;
+      outline-offset: -2px;
+    }
 
     &.empty {
       cursor: auto;

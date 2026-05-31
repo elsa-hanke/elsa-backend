@@ -4,6 +4,7 @@
       id="sidebar-menu"
       class="border-right bg-white font-weight-500 d-none d-lg-block d-xl-block"
       :class="sidebarPosition"
+      :aria-label="$t('paanavigaatio')"
     >
       <b-nav vertical>
         <b-nav-item
@@ -62,20 +63,25 @@
           <font-awesome-icon :icon="['fas', 'university']" fixed-width size="lg" />
           {{ $t('opintosuoritukset') }}
         </b-nav-item>
-        <b-nav-item
-          v-if="$isErikoistuva() && !isImpersonatedErikoistujaVirkailija"
-          v-b-toggle.osaaminen-toggle
-          class="osaaminen-nav"
-        >
-          <font-awesome-icon icon="award" fixed-width size="lg" />
-          {{ $t('osaaminen') }}
-          <span class="closed">
-            <font-awesome-icon icon="chevron-down" />
-          </span>
-          <span class="open">
-            <font-awesome-icon icon="chevron-up" />
-          </span>
-        </b-nav-item>
+        <li class="nav-item border-bottom">
+          <button
+            v-if="$isErikoistuva() && !isImpersonatedErikoistujaVirkailija"
+            v-b-toggle.osaaminen-toggle
+            class="osaaminen-nav nav-link btn btn-link w-100 text-left"
+            :aria-expanded="osaaminenExpanded ? 'true' : 'false'"
+            aria-controls="osaaminen-toggle"
+            @click="osaaminenExpanded = !osaaminenExpanded"
+          >
+            <font-awesome-icon icon="award" fixed-width size="lg" :aria-hidden="true" />
+            {{ $t('osaaminen') }}
+            <span class="closed" :aria-hidden="true">
+              <font-awesome-icon icon="chevron-down" />
+            </span>
+            <span class="open" :aria-hidden="true">
+              <font-awesome-icon icon="chevron-up" />
+            </span>
+          </button>
+        </li>
         <b-collapse id="osaaminen-toggle">
           <b-nav-item link-classes="pb-2 pt-2 ml-5" :to="{ name: 'paivittaiset-merkinnat' }">
             {{ $t('paivittaiset-merkinnat') }}
@@ -225,6 +231,7 @@
     sideNavSubItemHeight = 38
     sidebarPosition = 'position-fixed'
     featurePreviewModeEnabled = process.env.VUE_APP_FEATURE_PREVIEW_MODE_ENABLED === 'true'
+    osaaminenExpanded = false
 
     // Tarkistetaan sivunavigaation paikka
     mounted() {
@@ -301,9 +308,30 @@
         background-color: rgba($primary, 0.1);
       }
 
+      &:focus {
+        outline: 2px solid $primary;
+        outline-offset: -2px;
+      }
+
       &.router-link-active {
         background-color: $primary;
         color: white;
+      }
+    }
+
+    .osaaminen-nav {
+      color: $black;
+      background: transparent;
+      border: none;
+      font-weight: $font-weight-500;
+
+      &:hover {
+        background-color: rgba($primary, 0.1);
+      }
+
+      &:focus {
+        outline: 2px solid $primary;
+        outline-offset: -2px;
       }
     }
   }

@@ -1,7 +1,9 @@
 <template>
   <div class="d-flex flex-column">
     <navbar-not-logged-in />
-    <router-view></router-view>
+    <main id="main-content">
+      <router-view></router-view>
+    </main>
   </div>
 </template>
 

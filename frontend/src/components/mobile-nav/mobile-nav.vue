@@ -1,6 +1,6 @@
 <template>
   <b-sidebar id="sidebar-right" right no-header backdrop bg-variant="white" class="mobile-menu">
-    <b-nav vertical class="main-mobile-nav">
+    <b-nav vertical class="main-mobile-nav" :aria-label="$t('paanavigaatio')">
       <b-nav-item v-if="!$isTekninenPaakayttaja()" class="border-bottom" :to="{ name: 'etusivu' }">
         <font-awesome-icon icon="home" fixed-width size="lg" />
         {{ $t('etusivu') }}
@@ -37,13 +37,13 @@
         <font-awesome-icon :icon="['fas', 'university']" fixed-width size="lg" />
         {{ $t('teoriakoulutukset') }}
       </b-nav-item>
-      <b-nav-item v-if="$isErikoistuva()" v-b-toggle.osaaminen-toggle class="osaaminen-nav">
-        <font-awesome-icon icon="award" fixed-width size="lg" />
+      <b-nav-item v-if="$isErikoistuva()" v-b-toggle.osaaminen-toggle class="osaaminen-nav" :aria-expanded="String(osaaminenExpanded)" aria-controls="osaaminen-toggle" @click="osaaminenExpanded = !osaaminenExpanded">
+        <font-awesome-icon icon="award" fixed-width size="lg" :aria-hidden="true" />
         {{ $t('osaaminen') }}
-        <span class="closed">
+        <span class="closed" :aria-hidden="true">
           <font-awesome-icon icon="chevron-down" />
         </span>
-        <span class="open">
+        <span class="open" :aria-hidden="true">
           <font-awesome-icon icon="chevron-up" />
         </span>
       </b-nav-item>
@@ -332,6 +332,7 @@
   })
   export default class MobileNav extends Mixins(NavbarMixin) {
     featurePreviewModeEnabled = process.env.VUE_APP_FEATURE_PREVIEW_MODE_ENABLED === 'true'
+    osaaminenExpanded = false
 
     get isImpersonated() {
       return this.account?.impersonated

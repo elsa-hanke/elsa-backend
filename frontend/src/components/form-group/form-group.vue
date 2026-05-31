@@ -4,15 +4,17 @@
       <div class="d-flex justify-content-between align-items-center flex-wrap">
         <div :class="{ 'mr-3': addNewEnabled }">
           {{ label }}
-          <span class="text-primary">
-            {{ required ? '*' : '' }}
-            <font-awesome-icon
-              v-if="help"
-              v-b-popover.hover.top="help"
-              icon="info-circle"
-              fixed-width
-            />
-          </span>
+    <span class="text-primary">
+              {{ required ? '*' : '' }}
+              <span v-if="required" class="sr-only">{{ $t('pakollinen-tieto') }}</span>
+              <font-awesome-icon
+                v-if="help"
+                v-b-popover.hover.top="help"
+                icon="info-circle"
+                fixed-width
+                :aria-label="$t('lisatietoja')"
+              />
+            </span>
           <slot name="label-help" />
         </div>
         <div v-if="$slots['help']" class="form-group-help font-weight-400">
