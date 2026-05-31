@@ -61,10 +61,19 @@ Cypress.Commands.add('loginWithSuomifi', (ssn = SSN_ERIKOISTUVA, email?: string,
   })
 
   if (email !== undefined) {
-    // "Aloita palvelun käyttö" screen — only shown once per user.
-    cy.get('form .form-control').eq(0).clear().type(email)
-    cy.get('form .form-control').eq(1).clear().type(email)
-    cy.contains('Aloita palvelun käyttö').click()
+    // "Aloita palvelun käyttö" screen is only shown on the very first login for
+    // a user who has no e-mail set.  After SAML the app lands briefly on '/'
+    // while Vue Router decides the destination:
+    //   - new / cleaned-up user  → /kayton-aloitus  (email form needed)
+    //   - returning user         → /etusivu          (no form, skip)
+    cy.location('pathname', { timeout: 30000 }).should('not.eq', '/')
+    cy.location('pathname').then((pathname) => {
+      if (pathname.includes('aloitus')) {
+        cy.get('form .form-control', { timeout: 10000 }).eq(0).clear().type(email)
+        cy.get('form .form-control').eq(1).clear().type(email)
+        cy.contains('Aloita palvelun käyttö').click()
+      }
+    })
   }
 })
 
