@@ -2,7 +2,7 @@
   <div>
     <b-input-group class="date-input-group">
       <b-form-input
-        :id="`date-input-${id}`"
+        :id="id"
         v-model="form.dateStr"
         class="date-input"
         :state="validateState('dateStr')"

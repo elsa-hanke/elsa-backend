@@ -124,6 +124,21 @@
       return ''
     }
 
+    mounted() {
+      this.fixAutocomplete()
+    }
+
+    updated() {
+      this.fixAutocomplete()
+    }
+
+    fixAutocomplete() {
+      const input = this.$el.querySelector<HTMLInputElement>('input.multiselect__input')
+      if (input && input.getAttribute('autocomplete') === 'nope') {
+        input.setAttribute('autocomplete', 'off')
+      }
+    }
+
     clearMultiselect() {
       this.$emit('valueToBeCleared', this.$attrs.value)
       this.$emit('input', null)

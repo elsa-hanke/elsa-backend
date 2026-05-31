@@ -58,7 +58,7 @@ describe('Datepicker (kalenterivalitsin) – saavutettavuus', () => {
 
   // ── Axe-tarkistus sivulla (WCAG 2.1 AA) ──────────────────────────────────
   it('työskentelyjakson lisäämissivulla ei WCAG-rikkomuksia datepicker-alueella', () => {
-    cy.checkPageA11y('.date-input-group, [id^="date-input-"]')
+    cy.checkPageA11y('.date-input-group')
   })
 })
 

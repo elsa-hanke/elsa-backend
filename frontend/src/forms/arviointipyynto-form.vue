@@ -133,7 +133,9 @@
           </elsa-form-multiselect>
           <small class="form-text text-muted">
             {{ $t('valitse-arvioija-help') }}
-            <b-link :to="{ name: 'profiili' }">{{ $t('profiilissasi') }}</b-link>
+            <b-link :to="{ name: 'profiili' }" style="text-decoration: underline">
+              {{ $t('profiilissasi') }}
+            </b-link>
           </small>
           <b-form-invalid-feedback :id="`${uid}-feedback`">
             {{ $t('pakollinen-tieto') }}
