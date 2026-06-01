@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.2...HEAD)
 
+- Add management port and job triggering endpoint [`#594`](https://github.com/elsa-hanke/elsa-backend/pull/594)(31 May 2026)
+- Bump axios from 1.15.2 to 1.16.0 in /frontend [`#593`](https://github.com/elsa-hanke/elsa-backend/pull/593)(31 May 2026)
+- Add E2E tests for editing training periods and theory training [`#595`](https://github.com/elsa-hanke/elsa-backend/pull/595)(31 May 2026)
 - Bump flatted from 3.2.5 to 3.4.2 in /frontend [`#592`](https://github.com/elsa-hanke/elsa-backend/pull/592)(29 May 2026)
 - Enhance E2E tests for koejakso evaluation and approval process [`#591`](https://github.com/elsa-hanke/elsa-backend/pull/591)(29 May 2026)
 - Add metrics for archiving and PDF generation operations [`#589`](https://github.com/elsa-hanke/elsa-backend/pull/589)(29 May 2026)
