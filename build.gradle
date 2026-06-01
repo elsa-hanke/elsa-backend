@@ -170,6 +170,7 @@ dependencies {
     testImplementation "com.h2database:h2:2.4.240"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.2.1'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.2.1'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-sns:3.2.1'
     implementation 'io.micrometer:micrometer-registry-cloudwatch2'
     implementation "org.apache.commons:commons-text:1.10.0"
