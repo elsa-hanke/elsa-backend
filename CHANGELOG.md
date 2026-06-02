@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.2...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.3...HEAD)
 
 - Revert "Remove unnecessary AWS S3 dependency and configuration (#597)" [`#599`](https://github.com/elsa-hanke/elsa-backend/pull/599)(1 June 2026)
 - Remove unused frontend dependencies [`#596`](https://github.com/elsa-hanke/elsa-backend/pull/596)(1 June 2026)
@@ -34,6 +34,8 @@
 - enhance e2e tests for valmistumispyyntö approval process with verification tokens [`#551`](https://github.com/elsa-hanke/elsa-backend/pull/551)(8 May 2026)
 - enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
 - ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
+
+## [v2.1.3](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.2...v2.1.3) - 2 June 2026
 
 ## [v2.1.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.1...v2.1.2) - 25 May 2026
 
