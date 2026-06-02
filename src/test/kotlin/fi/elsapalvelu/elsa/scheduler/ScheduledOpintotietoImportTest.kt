@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.Yliopisto
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.scheduler.jobs.ScheduledOpintotietoImport
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.OpintosuorituksetPersistenceService
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
