@@ -130,6 +130,29 @@ async function deleteTyoskentelypaikkaRows(client: Client, paikkaIds: number[]):
   await client.query(`DELETE FROM tyoskentelypaikka WHERE id = ANY($1::bigint[])`, [paikkaIds])
 }
 
+// ─── Teoriakoulutus cleanup ───────────────────────────────────────────────────
+
+async function deleteTeoriakoulutusRows(client: Client, el_id: number): Promise<void> {
+  // Poistetaan ensin mahdolliset todistustiedostot (asiakirja) ennen teoriakoulutusrivejä.
+  // Asiakirja-rivit on jo poistettu opintooikeus_id:n kautta deleteOpintooikeusRows:ssa,
+  // mutta jos asiakirjalla on erillinen teoriakoulutus_id-viite, poistetaan se ensin.
+  await client.query(
+    `DELETE FROM asiakirja
+     WHERE teoriakoulutus_id IN (
+       SELECT id FROM teoriakoulutus
+       WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)
+     )`,
+    [el_id]
+  ).catch(() => {
+    // Sarake teoriakoulutus_id ei välttämättä ole olemassa kaikissa ympäristöissä – ohitetaan
+  })
+  await client.query(
+    `DELETE FROM teoriakoulutus
+     WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)`,
+    [el_id]
+  )
+}
+
 // ─── Opintooikeus cleanup ─────────────────────────────────────────────────────
 
 async function deleteOpintooikeusRows(client: Client, el_id: number): Promise<void> {
@@ -170,6 +193,7 @@ async function deleteErikoistuvaLaakari(client: Client, ids: UserIds): Promise<v
     await deleteKoulutussuunnitelmaRows(client, el_id)
     await deleteTyoskentelyjaksoRows(client, el_id)
     await deleteTyoskentelypaikkaRows(client, paikkaIds)
+    await deleteTeoriakoulutusRows(client, el_id)
     await deleteOpintooikeusRows(client, el_id)
 
     await client.query(`DELETE FROM erikoistuva_laakari WHERE id = $1`, [el_id])
