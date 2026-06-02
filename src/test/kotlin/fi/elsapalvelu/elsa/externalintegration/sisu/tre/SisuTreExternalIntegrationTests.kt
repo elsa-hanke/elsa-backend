@@ -41,7 +41,6 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(classes = [SisuTreExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
@@ -85,6 +84,13 @@ class SisuTreExternalIntegrationTestApplication {
         Jackson2ObjectMapperBuilderCustomizer {
             it.featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         }
+
+    @Bean
+    fun objectMapper(): ObjectMapper =
+        ObjectMapper()
+            .registerModule(JavaTimeModule())
+            .registerModule(KotlinModule.Builder().build())
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
     @Bean
     fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
