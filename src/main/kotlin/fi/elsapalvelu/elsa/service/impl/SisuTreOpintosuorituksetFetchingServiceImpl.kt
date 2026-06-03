@@ -66,19 +66,15 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
                 }
             }
         } catch (e: JsonProcessingException) {
-            log.error(
-                "$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}"
-            )
+            log.error("$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}", e)
+            throw e
         } catch (e: JsonMappingException) {
-            log.error(
-                "$JSON_MAPPING_ERROR: $endpointUrl ${e.message} "
-            )
+            log.error("$JSON_MAPPING_ERROR: $endpointUrl ${e.message}", e)
+            throw e
         } catch (e: IOException) {
-            log.error(
-                "$JSON_FETCHING_ERROR: $endpointUrl ${e.message}"
-            )
+            log.error("$JSON_FETCHING_ERROR: $endpointUrl ${e.message}", e)
+            throw e
         }
-        return null
     }
 
     override fun shouldFetchOpintosuoritukset(): Boolean {
