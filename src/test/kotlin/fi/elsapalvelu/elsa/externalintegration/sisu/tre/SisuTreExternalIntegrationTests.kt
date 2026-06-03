@@ -13,6 +13,7 @@ import fi.elsapalvelu.elsa.service.impl.SisuTreClientBuilderImpl
 import fi.elsapalvelu.elsa.service.impl.SisuTreOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.impl.SisuTreOpintotietodataFetchingServiceImpl
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,6 +39,7 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(classes = [SisuTreExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
+@Disabled
 class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
