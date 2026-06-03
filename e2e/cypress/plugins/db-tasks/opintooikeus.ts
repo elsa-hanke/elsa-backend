@@ -1,12 +1,6 @@
-/*
-
-INSERT INTO public.opintooikeus (id, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva, opiskelijatunnus, osaamisen_arvioinnin_oppaan_pvm, erikoistuva_laakari_id, yliopisto_id, erikoisala_id, opintoopas_id, asetus_id, kaytossa, yliopisto_opintooikeus_id, tila, muokkausaika, terveyskeskuskoulutusjakso_suoritettu, muokkausoikeudet_virkailijoilla, viimeinen_katselupaiva) VALUES (506, '2021-01-04', '2026-05-05', null, '2022-09-07', 668, 5, 50, 17, 5, true, '505266_291916_T', 'VALMISTUNUT', '2026-06-02 01:44:29.236085', true, true, '2026-11-05');
-INSERT INTO public.opintooikeus (id, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva, opiskelijatunnus, osaamisen_arvioinnin_oppaan_pvm, erikoistuva_laakari_id, yliopisto_id, erikoisala_id, opintoopas_id, asetus_id, kaytossa, yliopisto_opintooikeus_id, tila, muokkausaika, terveyskeskuskoulutusjakso_suoritettu, muokkausoikeudet_virkailijoilla, viimeinen_katselupaiva) VALUES (7503, '2019-06-10', '2026-12-31', null, '2024-09-25', 668, 5, 61, 178, 5, false, '505266_274861_T', 'AKTIIVINEN', '2026-06-02 01:44:29.242707', true, false, '2027-06-30');
-
- */
 import { Client } from 'pg'
 import { dbClient, withDb } from './db-client'
-import {getErikoistujaLaakariId} from './db-helpers'
+import {addRoletoUser, getErikoistujaLaakariId} from './db-helpers'
 
 export type OpintoOikeus = {
   id: number,
@@ -42,15 +36,23 @@ export const opintoOikeusTasks = {
         throw new Error('db:seedOpintooikeus requires { email, opintoOikeus }')
       }
 
+
       const erikoistuva = await getErikoistujaLaakariId(client, email)
 
       if (!erikoistuva) {
         throw new Error(`Could not find erikoistuva with email ${email}`)
       }
 
-      opintoOikeus.erikoistuva_laakari_id = erikoistuva
+      if( opintoOikeus.erikoisala_id === 61 ) {
+        await addRoletoUser(client, email, 'ROLE_YEK_KOULUTETTAVA')
+      }
 
       console.log(opintoOikeus)
+
+      opintoOikeus.erikoistuva_laakari_id = erikoistuva
+      if ( opintoOikeus.kaytossa ) {
+        await client.query(`UPDATE public.opintooikeus SET kaytossa = false WHERE erikoistuva_laakari_id = $1`, [erikoistuva])
+      }
 
       const sql = "INSERT INTO public.opintooikeus (id, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva, opiskelijatunnus, " +
         "osaamisen_arvioinnin_oppaan_pvm, erikoistuva_laakari_id, yliopisto_id, erikoisala_id, opintoopas_id, asetus_id, kaytossa, yliopisto_opintooikeus_id, tila, muokkausaika, terveyskeskuskoulutusjakso_suoritettu, muokkausoikeudet_virkailijoilla, viimeinen_katselupaiva) " +

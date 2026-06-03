@@ -1,5 +1,6 @@
 import { E2E_ERIKOISTUVA_EMAIL } from '../../support/commands'
 import { OpintoOikeus } from '../../plugins/db-tasks/opintooikeus'
+import {SSN_ERIKOISTUVA} from "../../support/commands/credentials";
 
 
 describe('Katseluoikeudet', () => {
@@ -7,7 +8,7 @@ describe('Katseluoikeudet', () => {
     asetus_id: 5,
     erikoisala_id: 50,
     erikoistuva_laakari_id: 0,
-    kaytossa: true,
+    kaytossa: false,
     muokkausaika: "2021-01-04",
     muokkausoikeudet_virkailijoilla: true,
     myontamispaiva: "2021-01-04",
@@ -36,14 +37,16 @@ describe('Katseluoikeudet', () => {
     osaamisen_arvioinnin_oppaan_pvm: "2022-09-07",
     paattymispaiva: "2026-05-05",
     terveyskeskuskoulutusjakso_suoritettu: false,
-    yliopisto_opintooikeus_id: "1234",
+    yliopisto_opintooikeus_id: "4321",
     tila: "AKTIIVINEN",
     viimeinen_katselupaiva: "2026-11-05",
     yliopisto_id: 5,
     id: 507
   }
 
+
   before(() => {
+    cy.log('BEFORE!!!')
     Cypress.session.clearAllSavedSessions()
     cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
     cy.task('db:cleanupOpintooikeus', {email: E2E_ERIKOISTUVA_EMAIL})
@@ -55,6 +58,38 @@ describe('Katseluoikeudet', () => {
       cy.task('db:seedOpintooikeus', { email: E2E_ERIKOISTUVA_EMAIL, opintoOikeus })
       cy.task('db:seedOpintooikeus', { email: E2E_ERIKOISTUVA_EMAIL, opintoOikeus: opintoOikeusAktiivinen })
       cy.visit('/profiili')
+
+      cy.get('#__BVID__26').click()
+
+      cy.getCookie('XSRF-TOKEN').then((cookie) => {
+        cy.request({
+          method: 'POST',
+          url: '/api/logout',
+          headers: { 'X-XSRF-TOKEN': cookie?.value ?? '' },
+        })
+      })
+
+      cy.visit('/')
+      cy.visit('/kirjautuminen')
+
+      cy.get(':nth-child(3) > .btn').click()
+
+
+      cy.origin('https://testi.apro.tunnistus.fi', () => {
+
+        cy.get('body').then(($body) => {
+          const exists = $body.find('[name="_eventId_proceed"]').length > 0
+          if (exists) {
+            cy.get('[name="_eventId_proceed"]').click()
+          }
+          else {
+            cy.get('#continue-button').click()
+          }
+        })
+      })
+
+      cy.get('#__BVID__26').click()
     })
+
   })
 })

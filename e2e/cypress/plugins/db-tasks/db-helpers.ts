@@ -86,3 +86,11 @@ export async function deleteKoejaksoRowsByOpintooikeusId(
   await client.query(`DELETE FROM koejakson_koulutussopimus        WHERE opintooikeus_id = $1`, [oid])
 }
 
+export async function addRoletoUser(client: Client, email: string, role: string): Promise<void> {
+  await client.query(
+    `INSERT INTO jhi_user_authority (user_id, authority_name)
+     VALUES ((SELECT id FROM jhi_user WHERE email = $1), $2)
+     ON CONFLICT DO NOTHING`,
+    [email, role]
+  )
+}
