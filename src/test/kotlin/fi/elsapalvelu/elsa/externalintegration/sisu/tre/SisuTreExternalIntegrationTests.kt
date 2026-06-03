@@ -1,9 +1,6 @@
 package fi.elsapalvelu.elsa.externalintegration.sisu.tre
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
@@ -16,13 +13,13 @@ import fi.elsapalvelu.elsa.service.impl.SisuTreClientBuilderImpl
 import fi.elsapalvelu.elsa.service.impl.SisuTreOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.impl.SisuTreOpintotietodataFetchingServiceImpl
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
@@ -71,6 +68,7 @@ class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase()
 
 @SpringBootConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
+@ImportAutoConfiguration(JacksonAutoConfiguration::class)
 @Import(
     AuthenticationTokenClientBuilderImpl::class,
     SisuTreAuthenticationTokenServiceImpl::class,
@@ -79,18 +77,13 @@ class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase()
     SisuTreOpintosuorituksetFetchingServiceImpl::class
 )
 class SisuTreExternalIntegrationTestApplication {
+
     @Bean
     fun jacksonCustomizer(): Jackson2ObjectMapperBuilderCustomizer =
         Jackson2ObjectMapperBuilderCustomizer {
             it.featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         }
 
-    @Bean
-    fun objectMapper(): ObjectMapper =
-        ObjectMapper()
-            .registerModule(JavaTimeModule())
-            .registerModule(KotlinModule.Builder().build())
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
     @Bean
     fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
