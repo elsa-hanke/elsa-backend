@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.3...HEAD)
 
+- Add compile-time guards for spring-cloud-aws-starter-s3 dependency [`#600`](https://github.com/elsa-hanke/elsa-backend/pull/600)(2 June 2026)
 - Revert "Remove unnecessary AWS S3 dependency and configuration (#597)" [`#599`](https://github.com/elsa-hanke/elsa-backend/pull/599)(1 June 2026)
 - Remove unused frontend dependencies [`#596`](https://github.com/elsa-hanke/elsa-backend/pull/596)(1 June 2026)
 - Remove unnecessary AWS S3 dependency and configuration [`#597`](https://github.com/elsa-hanke/elsa-backend/pull/597)(1 June 2026)
