@@ -57,9 +57,8 @@ describe('Katseluoikeudet', () => {
       cy.loginAsErikoistuva()
       cy.task('db:seedOpintooikeus', { email: E2E_ERIKOISTUVA_EMAIL, opintoOikeus })
       cy.task('db:seedOpintooikeus', { email: E2E_ERIKOISTUVA_EMAIL, opintoOikeus: opintoOikeusAktiivinen })
-      cy.visit('/profiili')
 
-
+      cy.log('kirjaudutaan ulos')
       // Kirjaudutaan ulos, että käyttöoikeudet / roolit päivittyvät
       cy.getCookie('XSRF-TOKEN').then((cookie) => {
         cy.request({
@@ -70,6 +69,7 @@ describe('Katseluoikeudet', () => {
       })
 
 
+      cy.log('kirjaudutaan takaisin sisälle')
       // Kirjaudutaan takaiisn sisälle
       cy.visit('/')
       cy.visit('/kirjautuminen')
