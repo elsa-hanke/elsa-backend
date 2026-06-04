@@ -2,6 +2,11 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.3...HEAD)
 
+- Bump http-proxy-middleware from 2.0.4 to 2.0.9 in /frontend [`#607`](https://github.com/elsa-hanke/elsa-backend/pull/607)(3 June 2026)
+- Bump js-yaml from 3.14.1 to 3.14.2 in /frontend [`#605`](https://github.com/elsa-hanke/elsa-backend/pull/605)(3 June 2026)
+- Bump async from 2.6.3 to 2.6.4 in /frontend [`#601`](https://github.com/elsa-hanke/elsa-backend/pull/601)(3 June 2026)
+- Bump @babel/helpers from 7.23.4 to 7.29.7 in /frontend [`#602`](https://github.com/elsa-hanke/elsa-backend/pull/602)(3 June 2026)
+- fix integration login bug + update error handling + logging for Apollo 4 integration [`#588`](https://github.com/elsa-hanke/elsa-backend/pull/588)(3 June 2026)
 - Add compile-time guards for spring-cloud-aws-starter-s3 dependency [`#600`](https://github.com/elsa-hanke/elsa-backend/pull/600)(2 June 2026)
 - Revert "Remove unnecessary AWS S3 dependency and configuration (#597)" [`#599`](https://github.com/elsa-hanke/elsa-backend/pull/599)(1 June 2026)
 - Remove unused frontend dependencies [`#596`](https://github.com/elsa-hanke/elsa-backend/pull/596)(1 June 2026)
