@@ -59,8 +59,8 @@ describe('Katseluoikeudet', () => {
       cy.task('db:seedOpintooikeus', { email: E2E_ERIKOISTUVA_EMAIL, opintoOikeus: opintoOikeusAktiivinen })
       cy.visit('/profiili')
 
-      cy.get('#__BVID__26').click()
 
+      // Kirjaudutaan ulos, että käyttöoikeudet / roolit päivittyvät
       cy.getCookie('XSRF-TOKEN').then((cookie) => {
         cy.request({
           method: 'POST',
@@ -69,12 +69,14 @@ describe('Katseluoikeudet', () => {
         })
       })
 
+
+      // Kirjaudutaan takaiisn sisälle
       cy.visit('/')
       cy.visit('/kirjautuminen')
 
       cy.get(':nth-child(3) > .btn').click()
 
-
+      // Suomi.fi muistaa kirjautumisen -> joten  mennään eteenpäin...
       cy.origin('https://testi.apro.tunnistus.fi', () => {
 
         cy.get('body').then(($body) => {
@@ -88,7 +90,10 @@ describe('Katseluoikeudet', () => {
         })
       })
 
+      // Tarkistetaan valikosta, että siellä näkyy YEK ja erikoistuva roolit
       cy.get('#__BVID__26').click()
+      cy.get(':nth-child(5) > :nth-child(3) > .dropdown-item > .d-flex > :nth-child(2)').should('exist')
+      cy.get(':nth-child(5) > :nth-child(4) > .dropdown-item > .d-flex > :nth-child(2)').should('exist')
     })
 
   })
