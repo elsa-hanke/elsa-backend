@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.3...HEAD)
 
+- Bump launch-editor from 2.3.0 to 2.14.1 in /frontend [`#609`](https://github.com/elsa-hanke/elsa-backend/pull/609)(4 June 2026)
+- Bump prismjs from 1.27.0 to 1.30.0 in /frontend [`#606`](https://github.com/elsa-hanke/elsa-backend/pull/606)(4 June 2026)
 - Bump http-proxy-middleware from 2.0.4 to 2.0.9 in /frontend [`#607`](https://github.com/elsa-hanke/elsa-backend/pull/607)(3 June 2026)
 - Bump js-yaml from 3.14.1 to 3.14.2 in /frontend [`#605`](https://github.com/elsa-hanke/elsa-backend/pull/605)(3 June 2026)
 - Bump async from 2.6.3 to 2.6.4 in /frontend [`#601`](https://github.com/elsa-hanke/elsa-backend/pull/601)(3 June 2026)
