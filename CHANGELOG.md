@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.3...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.4...HEAD)
 
 - Bump launch-editor from 2.3.0 to 2.14.1 in /frontend [`#609`](https://github.com/elsa-hanke/elsa-backend/pull/609)(4 June 2026)
 - Bump prismjs from 1.27.0 to 1.30.0 in /frontend [`#606`](https://github.com/elsa-hanke/elsa-backend/pull/606)(4 June 2026)
@@ -42,6 +42,10 @@
 - enhance e2e tests for valmistumispyyntö approval process with verification tokens [`#551`](https://github.com/elsa-hanke/elsa-backend/pull/551)(8 May 2026)
 - enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
 - ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
+
+## [v2.1.4](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.3...v2.1.4) - 5 June 2026
+
+- ELSA-1140 + e2e testit [`#608`](https://github.com/elsa-hanke/elsa-backend/pull/608)(5 June 2026)
 
 ## [v2.1.3](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.2...v2.1.3) - 2 June 2026
 
