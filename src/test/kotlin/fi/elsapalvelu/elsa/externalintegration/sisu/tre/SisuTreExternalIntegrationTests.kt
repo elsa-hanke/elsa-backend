@@ -39,7 +39,6 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(classes = [SisuTreExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
@@ -57,6 +56,8 @@ class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase()
     /** Direct handle on the token service so we can test auth in isolation. */
     @Autowired
     private lateinit var authenticationTokenService: AuthenticationTokenService
+
+    override fun getTestHetu() = "170999-998Y"
 
     @Test
     fun shouldFetchAccessToken() {

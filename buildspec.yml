@@ -1,8 +1,8 @@
 version: 0.2
 env:
   variables:
-    APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION: s3://elsa-dev-cert-bucket/hy-sisu.crt
-    APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION: s3://elsa-dev-cert-bucket/hy-sisu.key
+    APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION: s3://elsa-dev-cert-bucket/new-hy-sisu.crt
+    APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION: s3://elsa-dev-cert-bucket/new-hy-sisu.key
     APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION: s3://elsa-dev-cert-bucket/id_ed25519_louhi_elsatest
   parameter-store:
     APPLICATION_SECURITY_PEPPI_OULU_TOKEN: /dev/application/peppioulu/token
@@ -32,9 +32,13 @@ phases:
       - chmod +x gradlew
   build:
     commands:
+      - aws s3 cp "$APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION" /tmp/hy-sisu.crt
+      - chmod 600 /tmp/hy-sisu.crt
+      - aws s3 cp "$APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION" /tmp/hy-sisu.key
+      - chmod 600 /tmp/hy-sisu.key
       - aws s3 cp "$APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION" /tmp/louhi_elsatest
       - chmod 600 /tmp/louhi_elsatest
-      - APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION=file:/tmp/louhi_elsatest ./gradlew externalIntegrationTests
+      - APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION=file:/tmp/hy-sisu.crt APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION=file:/tmp/hy-sisu.key APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION=file:/tmp/louhi_elsatest ./gradlew externalIntegrationTests
   post_build:
     commands:
       - echo "Build status $CODEBUILD_BUILD_SUCCEEDING"
