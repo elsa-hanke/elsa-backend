@@ -19,7 +19,9 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
@@ -38,7 +40,6 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(classes = [SisuHyExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
@@ -81,6 +82,7 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
 
 @SpringBootConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
+@ImportAutoConfiguration(JacksonAutoConfiguration::class)
 @Import(
     SisuHyClientBuilderImpl::class,
     SisuHyOpintotietodataFetchingServiceImpl::class,
