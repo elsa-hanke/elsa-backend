@@ -32,9 +32,9 @@ phases:
       - chmod +x gradlew
   build:
     commands:
-      - aws s3 cp "APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION" /tmp/hy-sisu.crt
+      - aws s3 cp "$APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION" /tmp/hy-sisu.crt
       - chmod 600 /tmp/hy-sisu.crt
-      - aws s3 cp "APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION" /tmp/hy-sisu.key
+      - aws s3 cp "$APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION" /tmp/hy-sisu.key
       - chmod 600 /tmp/hy-sisu.key
       - aws s3 cp "$APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION" /tmp/louhi_elsatest
       - chmod 600 /tmp/louhi_elsatest
