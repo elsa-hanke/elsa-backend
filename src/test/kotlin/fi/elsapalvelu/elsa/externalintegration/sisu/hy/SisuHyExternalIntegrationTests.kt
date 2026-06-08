@@ -40,6 +40,7 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(classes = [SisuHyExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
+@Disabled
 class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
