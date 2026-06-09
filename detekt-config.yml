@@ -1,6 +1,8 @@
 style:
   MaxLineLength:
     maxLineLength: 180
+  UnusedVariable:
+    active: true
   WildcardImport:
     active: false
   MagicNumber:
