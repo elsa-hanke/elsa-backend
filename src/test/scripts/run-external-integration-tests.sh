@@ -8,11 +8,13 @@ GRADLE_EXIT=${PIPESTATUS[0]}
 
 FAILED_TESTS=$(grep -E "^\s+Test .* FAILED" "$OUTPUT_FILE")
 if [ -n "$FAILED_TESTS" ]; then
-    printf '\n' >&2
-    printf '\033[1;31m==================================================\n' >&2
-    printf 'FAILED TESTS:\n' >&2
-    printf '%s\n' "$FAILED_TESTS" >&2
-    printf '==================================================\033[0m\n' >&2
+    echo "" >&2
+    echo "ERROR ==================================================" >&2
+    echo "ERROR FAILED TESTS:" >&2
+    while IFS= read -r line; do
+        echo "ERROR $line" >&2
+    done <<< "$FAILED_TESTS"
+    echo "ERROR ==================================================" >&2
 fi
 
 exit $GRADLE_EXIT
