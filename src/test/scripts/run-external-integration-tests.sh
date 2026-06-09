@@ -6,7 +6,7 @@ OUTPUT_FILE="/tmp/gradle-test-output.txt"
 ./gradlew externalIntegrationTests 2>&1 | tee "$OUTPUT_FILE"
 GRADLE_EXIT=${PIPESTATUS[0]}
 
-FAILED_TESTS=$(grep -E "^\s+Test .* FAILED" "$OUTPUT_FILE")
+FAILED_TESTS=$(awk '/^[^ ]/ { class=$0 } /FAILED/ { print class " >" $0 }' "$OUTPUT_FILE")
 if [ -n "$FAILED_TESTS" ]; then
     echo "" >&2
     echo "ERROR ==================================================" >&2
