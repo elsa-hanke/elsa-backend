@@ -28,7 +28,7 @@ object ErikoistuvaLaakariHelper {
         laillistamistodistusNimi: String? = DEFAULT_LAILLISTAMISTODISTUS_NIMI, laillistamistodistusTyyppi: String? = DEFAULT_LAILLISTAMISTODISTUS_TYYPPI): ErikoistuvaLaakari {
         val erikoistuvaLaakari = ErikoistuvaLaakari()
 
-        var kayttaja = user?.let { em.findAll(Kayttaja::class).firstOrNull { it.user == user } }
+        var kayttaja = user?.let { u -> em.findAll(Kayttaja::class).firstOrNull { it.user == u } }
         if (kayttaja == null) {
             kayttaja = KayttajaHelper.createEntity(em, user)
             persistAndFlush(em, kayttaja)

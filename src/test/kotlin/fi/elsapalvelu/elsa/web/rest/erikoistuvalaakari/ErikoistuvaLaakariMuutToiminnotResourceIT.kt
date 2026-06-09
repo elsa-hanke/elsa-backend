@@ -102,7 +102,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
             testLahikouluttaja?.user?.authorities?.contains(
                 Authority(name = KOULUTTAJA)
             )
-        )
+        ).isTrue()
 
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat).hasSize(1)
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto).isEqualTo(opintooikeus.yliopisto)
@@ -137,7 +137,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
             testLahikouluttaja?.user?.authorities?.contains(
                 Authority(name = KOULUTTAJA)
             )
-        )
+        ).isTrue()
 
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat).hasSize(1)
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto).isEqualTo(newOpintooikeus.yliopisto)

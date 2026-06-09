@@ -298,7 +298,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get())
 
         // Asetetaan päättymispäivä suoritusarvioinnin ulkopuolelle
-        tyoskentelyjaksoDTO.apply { paattymispaiva = LocalDate.of(2020, 1, 19) }
+        tyoskentelyjaksoDTO.paattymispaiva = LocalDate.of(2020, 1, 19)
 
         val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
 
@@ -321,7 +321,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get())
 
         // Asetetaan päättymispäivä suoritusarvioinnin päivälle
-        tyoskentelyjaksoDTO.apply { paattymispaiva = suoritusarviointiTapahtumanAjankohta }
+        tyoskentelyjaksoDTO.paattymispaiva = suoritusarviointiTapahtumanAjankohta
 
         val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
 
