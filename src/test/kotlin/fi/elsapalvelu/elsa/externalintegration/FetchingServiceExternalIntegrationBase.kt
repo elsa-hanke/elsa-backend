@@ -75,6 +75,11 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
                         .describedAs("asetus should be populated")
                         .isNotBlank
 
+                    assertThat(it.erikoisalaTunnisteList)
+                        .describedAs("erikoisalaTunnisteList should be populated")
+                        .isNotNull
+                        .isNotEmpty
+
                     assertThat(it.tila)
                         .describedAs("tila should be populated")
                         .isNotNull
