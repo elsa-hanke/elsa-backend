@@ -131,7 +131,7 @@ class UserServiceImpl(
                     user.avatar = null
                 }
             }
-        } catch (ex: UnsupportedFormatException) {
+        } catch (_: UnsupportedFormatException) {
             log.debug("Päivitettävä profiilikuva ei ole tuettu")
         }
 
@@ -194,7 +194,7 @@ class UserServiceImpl(
                 val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
                 val ciphertext = if (hetu != null)
                     cipher.doFinal(
-                        hetu.toString().toByteArray(StandardCharsets.UTF_8)
+                        hetu.toByteArray(StandardCharsets.UTF_8)
                     ) else null
 
                 tokenUser.hetu = ciphertext
