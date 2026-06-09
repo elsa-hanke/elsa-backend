@@ -101,7 +101,7 @@ class OpintooikeusServiceIT {
 
         assertFalse(elOikeus.kaytossa)
         assertFalse(yekOikeus.kaytossa)
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
     }
 
     @Test
@@ -128,7 +128,7 @@ class OpintooikeusServiceIT {
 
         assertFalse(expiredOikeus.kaytossa)
         assertFalse(yekOikeus.kaytossa)
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
     }
 
     @Test
@@ -182,7 +182,7 @@ class OpintooikeusServiceIT {
         assertFalse(user.authorities.contains(Authority(YEK_KOULUTETTAVA)))
         assertTrue(user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI)))
         assertFalse(yekOikeus.kaytossa)
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
 
         val oikeusKaytossa = erikoistuvaLaakari.opintooikeudet.firstOrNull { it.kaytossa == true }
         assertEquals(erikoistuvaLaakari.aktiivinenOpintooikeus, oikeusKaytossa?.id)
@@ -222,7 +222,7 @@ class OpintooikeusServiceIT {
         assertTrue(user.authorities.contains(Authority(YEK_KOULUTETTAVA)))
         assertTrue(user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI)))
 
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
         assertEquals(erikoistuvaLaakari.aktiivinenOpintooikeus, oikeusKaytossa?.id)
     }
 
@@ -256,7 +256,7 @@ class OpintooikeusServiceIT {
         assertTrue(user.authorities.contains(Authority(YEK_KOULUTETTAVA)))
         assertFalse(user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI)))
 
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
     }
 
     @Test
@@ -289,7 +289,7 @@ class OpintooikeusServiceIT {
         assertFalse(user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI)))
 
         assertTrue(expiredOikeus.kaytossa)
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
     }
 
     @Test
@@ -335,6 +335,6 @@ class OpintooikeusServiceIT {
         assertFalse(user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI)))
 
         assertTrue(expiredOikeus.kaytossa)
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
     }
 }

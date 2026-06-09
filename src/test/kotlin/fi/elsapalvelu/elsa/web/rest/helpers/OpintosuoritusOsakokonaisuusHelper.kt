@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.Opintosuoritus
 import fi.elsapalvelu.elsa.domain.OpintosuoritusOsakokonaisuus
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
@@ -14,9 +15,9 @@ object OpintosuoritusOsakokonaisuusHelper {
     const val DEFAULT_KURSSIKOODI = "DDDDDDDDDD"
     const val DEFAULT_ARVIO_FI = "DDDDDDDDDD"
     const val DEFAULT_ARVIO_SV = "DDDDDDDDDE"
-    val DEFAULT_SUORITUSPAIVA = LocalDate.ofEpochDay(0L)
-    val DEFAULT_VANHENEMISPAIVA = LocalDate.ofEpochDay(5L)
-    val DEFAULT_MUOKKAUSAIKA = LocalDate.ofEpochDay(5L).atStartOfDay(ZoneId.systemDefault()).toInstant()
+    val DEFAULT_SUORITUSPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
+    val DEFAULT_VANHENEMISPAIVA: LocalDate = LocalDate.ofEpochDay(5L)
+    val DEFAULT_MUOKKAUSAIKA: Instant = LocalDate.ofEpochDay(5L).atStartOfDay(ZoneId.systemDefault()).toInstant()
 
     fun createEntity(
         em: EntityManager,

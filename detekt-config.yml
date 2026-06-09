@@ -1,6 +1,10 @@
 style:
   MaxLineLength:
     maxLineLength: 180
+  UnusedVariable:
+    active: true
+  VarCouldBeVal:
+    ignoreLateinitVar: true
   WildcardImport:
     active: false
   MagicNumber:

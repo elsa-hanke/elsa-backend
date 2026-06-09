@@ -48,8 +48,8 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
             .isNotNull
             .isNotEmpty
 
-        result.opintooikeudet?.forEach {
-            log(it)
+        result.opintooikeudet?.forEach { oikeus ->
+            log(oikeus)
 
             assertThat(result.opintooikeudet)
                 .describedAs("opintooikeudet must not be empty")

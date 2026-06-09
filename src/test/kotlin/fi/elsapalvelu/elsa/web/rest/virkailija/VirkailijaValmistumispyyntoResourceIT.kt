@@ -422,11 +422,6 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
 
         val yekSuorituspaiva = LocalDate.ofEpochDay(15)
 
-        val valmistumispyynnonTarkistusDTO = ValmistumispyynnonTarkistusUpdateDTO(
-            yekSuoritettu = true,
-            yekSuorituspaiva = yekSuorituspaiva,
-            keskenerainen = true
-        )
 
         testMockMvc.perform(
             multipart(

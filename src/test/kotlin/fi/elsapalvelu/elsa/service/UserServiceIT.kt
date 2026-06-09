@@ -36,7 +36,7 @@ class UserServiceIT {
 
     private lateinit var user: User
 
-    private lateinit var userDetails: MutableMap<String, List<Any>>
+    private val userDetails: MutableMap<String, List<Any>> = mutableMapOf()
 
     @BeforeEach
     fun init() {
@@ -48,10 +48,9 @@ class UserServiceIT {
             lastName = DEFAULT_LASTNAME,
             langKey = DEFAULT_LANGKEY
         )
-        userDetails = mutableMapOf(
-            "urn:oid:2.5.4.42" to listOf(DEFAULT_FIRSTNAME),
-            "urn:oid:2.5.4.4" to listOf(DEFAULT_LASTNAME)
-        )
+        userDetails.clear()
+        userDetails["urn:oid:2.5.4.42"] = listOf(DEFAULT_FIRSTNAME)
+        userDetails["urn:oid:2.5.4.4"] = listOf(DEFAULT_LASTNAME)
     }
 
     @Test
