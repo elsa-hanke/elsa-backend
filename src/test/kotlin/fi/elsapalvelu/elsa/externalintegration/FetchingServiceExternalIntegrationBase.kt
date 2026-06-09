@@ -37,14 +37,18 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
 
     protected open fun assertValidOpintotietodata(result: OpintotietodataDTO?, yliopisto: YliopistoEnum?) {
         assertThat(result)
-            .describedAs("fetchOpintotietodata must not return null (indicates network/parsing failure)")
+            .describedAs(
+                "fetchOpintotietodata returned null for $yliopisto – " +
+                    "the server responded but returned no data for the test hetu. " +
+                    "Check that the test hetu has active study rights in the target environment."
+            )
             .isNotNull
-        assertThat(result?.opintooikeudet)
+        assertThat(result!!.opintooikeudet)
             .describedAs("fetchOpintotietodata should return at least one opintooikeus for test hetu")
             .isNotNull
             .isNotEmpty
 
-        result?.opintooikeudet?.forEach {
+        result.opintooikeudet?.forEach {
             log(it)
 
             assertThat(result.opintooikeudet)
@@ -122,19 +126,22 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
         yliopisto: YliopistoEnum?
     ) {
         assertThat(result)
-            .describedAs("fetchOpintosuoritukset must not return null (indicates network/parsing failure)")
+            .describedAs(
+                "fetchOpintosuoritukset returned null for $yliopisto – " +
+                    "the server responded but returned no attainment data for the test hetu."
+            )
             .isNotNull
 
-        assertThat(result?.items)
+        assertThat(result!!.items)
             .describedAs("items must not be null or empty")
             .isNotNull
             .isNotEmpty
 
-        assertThat(result?.yliopisto)
+        assertThat(result.yliopisto)
             .describedAs("yliopisto should match service yliopisto")
             .isEqualTo(yliopisto)
 
-        result?.items?.forEach { suoritus ->
+        result.items?.forEach { suoritus ->
 
             log(suoritus)
 
@@ -220,4 +227,3 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
         )
     }
 }
-

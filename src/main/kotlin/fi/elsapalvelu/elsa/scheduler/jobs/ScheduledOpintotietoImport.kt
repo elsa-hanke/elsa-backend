@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.scheduler
+package fi.elsapalvelu.elsa.scheduler.jobs
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.User
@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.*
 import kotlinx.coroutines.*
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
-import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
@@ -17,6 +16,7 @@ import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
+import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
 
 @Component
 class ScheduledOpintotietoImport(
@@ -26,12 +26,18 @@ class ScheduledOpintotietoImport(
     private val opintosuorituksetPersistenceService: OpintosuorituksetPersistenceService,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val applicationProperties: ApplicationProperties
-) {
-    private val log = LoggerFactory.getLogger(javaClass)
+) : AbstractTriggerableJob() {
+
+    override val jobName = "opintotietoImport"
 
     @Scheduled(cron = "0 0 4 ? * *", zone = "Europe/Helsinki")
     @SchedulerLock(name = "opintotietoImport", lockAtLeastFor = "5S", lockAtMostFor = "10M")
     fun import() {
+        runJob()
+    }
+
+    override fun runJob() {
+        log.info("OpintotietoImport käynnistetty")
         val timestamp = LocalDateTime.now()
         val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
         val decodedKey = Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
@@ -44,36 +50,47 @@ class ScheduledOpintotietoImport(
         val opintosuoritusServices =
             opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
                 .associateBy { it.getYliopisto() }
-        opintooikeusRepository.findAllValid()
-            .distinctBy { Pair(it.erikoistuvaLaakari?.id, it.yliopisto?.id) }.forEach {
-                val user = it.erikoistuvaLaakari?.kayttaja?.user!!
-                getHetu(user, cipher, originalKey)?.let { hetu ->
-                    runBlocking {
-                        try {
-                            opintotietoServices[it.yliopisto?.nimi]?.fetchOpintotietodata(hetu)
-                                ?.let { data ->
-                                    opintotietodataPersistenceService.createOrUpdateOpintotieto(
-                                        user.id!!,
-                                        data
-                                    )
-                                }
-                            opintosuoritusServices[it.yliopisto?.nimi]?.fetchOpintosuoritukset(hetu)
-                                ?.let { data ->
-                                    opintosuorituksetPersistenceService.createOrUpdateIfChanged(
-                                        user.id!!,
-                                        data
-                                    )
-                                }
-                        } catch (e: Exception) {
-                            log.error("OpintotietoImport virhe: ${e.message}")
-                        }
+        val opintooikeudet = opintooikeusRepository.findAllValid()
+            .distinctBy { Pair(it.erikoistuvaLaakari?.id, it.yliopisto?.id) }
+        log.info("OpintotietoImport: löydetty ${opintooikeudet.size} käyttäjää")
+        opintooikeudet.forEachIndexed { index, opintooikeus ->
+            val user = opintooikeus.erikoistuvaLaakari?.kayttaja?.user!!
+            val yliopistoNimi = opintooikeus.yliopisto?.nimi
+            log.info(
+                "OpintotietoImport: käyttäjä ${index + 1}/${opintooikeudet.size}: " +
+                    "userId=${user.id}, yliopisto=$yliopistoNimi"
+            )
+            getHetu(user, cipher, originalKey)?.let { hetu ->
+                runBlocking {
+                    try {
+                        opintotietoServices[yliopistoNimi]?.fetchOpintotietodata(hetu)
+                            ?.let { data ->
+                                opintotietodataPersistenceService.createOrUpdateOpintotieto(
+                                    user.id!!,
+                                    data
+                                )
+                            }
+                        opintosuoritusServices[yliopistoNimi]?.fetchOpintosuoritukset(hetu)
+                            ?.let { data ->
+                                opintosuorituksetPersistenceService.createOrUpdateIfChanged(
+                                    user.id!!,
+                                    data
+                                )
+                            }
+                    } catch (e: Exception) {
+                        log.error(
+                            "OpintotietoImport virhe käyttäjälle ${user.id} " +
+                                "(yliopisto=$yliopistoNimi): ${e.message}",
+                            e
+                        )
                     }
                 }
             }
+        }
         log.info(
-            "OpintotietoImport completed in ${
+            "OpintotietoImport valmis ${
                 Duration.between(timestamp, LocalDateTime.now()).toSeconds()
-            } seconds."
+            } sekunnissa"
         )
     }
 

@@ -5,16 +5,14 @@
   "resolutions": {
     "vue": "2.6.14"
   },
-"scripts": {
+  "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-tsc --noEmit && vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
-    "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint --no-fix --max-errors 0 --max-warnings 0",
     "generate-thirdparty": "yarn licenses generate-disclaimer > public/thirdparty.txt",
     "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'",
-    "lint:fix": "vue-cli-service lint --fix",
-    "test:e2e:headless": "vue-cli-service test:e2e --headless"
+    "lint:fix": "vue-cli-service lint --fix"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
@@ -26,7 +24,7 @@
     "@types/vuelidate": "^0.7.13",
     "@vue/composition-api": "^1.0.0-beta.21",
     "apexcharts": "^3.22.3",
-    "axios": "^1.15.2",
+    "axios": "^1.16.0",
     "babel-jest": "^27.5.1",
     "bootstrap": "^4.5.2",
     "bootstrap-vue": "^2.17.0",
@@ -34,8 +32,7 @@
     "date-fns": "^2.16.1",
     "dompurify": "^3.3.1",
     "lodash": "^4.18.1",
-    "register-service-worker": "^1.7.1",
-    "tinymce": "^7.2.0",
+    "tinymce": "^7.9.3",
     "vue": "2.6.14",
     "vue-apexcharts": "^1.6.0",
     "vue-avatar": "^2.3.0",
@@ -52,7 +49,6 @@
     "vuex": "^3.4.0"
   },
   "devDependencies": {
-    "@babel/polyfill": "^7.7.0",
     "@intlify/vue-i18n-loader": "^1.0.0",
     "@types/dompurify": "^3.2.0",
     "@types/jest": "^24.0.19",
@@ -60,9 +56,7 @@
     "@typescript-eslint/parser": "^5.4.0",
     "@vue/cli": "^4.5.15",
     "@vue/cli-plugin-babel": "~5.0.4",
-    "@vue/cli-plugin-e2e-cypress": "~5.0.4",
     "@vue/cli-plugin-eslint": "~5.0.4",
-    "@vue/cli-plugin-pwa": "~5.0.4",
     "@vue/cli-plugin-router": "~5.0.4",
     "@vue/cli-plugin-typescript": "~5.0.4",
     "@vue/cli-plugin-unit-jest": "~5.0.4",
@@ -72,9 +66,6 @@
     "@vue/eslint-config-typescript": "^9.1.0",
     "@vue/test-utils": "^1.0.3",
     "@vue/vue2-jest": "^27.0.0-alpha.3",
-    "bootstrap": "^4.5.2",
-    "copy-webpack-plugin": "6.0.2",
-    "cypress": "^8.3.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-webpack": "^0.13.1",
@@ -84,7 +75,6 @@
     "git-describe": "^4.0.4",
     "jest": "^27.1.0",
     "mutationobserver-shim": "^0.3.3",
-    "node-forge": "1.4.0",
     "popper.js": "^1.16.0",
     "portal-vue": "^2.1.6",
     "prettier": "^2.4.1",

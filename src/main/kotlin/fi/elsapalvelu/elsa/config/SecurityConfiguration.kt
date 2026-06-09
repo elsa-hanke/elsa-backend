@@ -195,6 +195,7 @@ class SecurityConfiguration(
                 .requestMatchers("/").permitAll() // ohjaus etusivulle
                 .requestMatchers("/kirjaudu").permitAll()
                 .requestMatchers("/api/").permitAll()
+                .requestMatchers("/api/ping").permitAll()
                 .requestMatchers("/api/haka-yliopistot").permitAll()
                 .requestMatchers("/api/julkinen/**").permitAll()
                 .requestMatchers("/api/auth-info").denyAll()
@@ -471,30 +472,20 @@ class SecurityConfiguration(
         cipher: Cipher, originalKey: SecretKey, hetu: String, firstName: String, lastName: String
     ) {
         runBlocking {
-            supervisorScope {
-                try {
-                    val deferreds: List<Deferred<OpintotietodataDTO?>> =
-                        opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }
-                            .map { service ->
-                                async(Dispatchers.IO) {
-                                    service.fetchOpintotietodata(hetu)
-                                }
-                            }
-
-                    deferreds.awaitAll().filterNotNull().let {
-                        opintotietodataPersistenceService.create(
-                            cipher,
-                            originalKey,
-                            hetu,
-                            firstName,
-                            lastName,
-                            it
-                        )
-                    }
-                } catch (ex: Exception) {
-                    if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
-                    log.error("Virhe opintotietodatan haussa tai tallentamisessa: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
+            try {
+                fetchOpintotietodata(hetu).let {
+                    opintotietodataPersistenceService.create(
+                        cipher,
+                        originalKey,
+                        hetu,
+                        firstName,
+                        lastName,
+                        it
+                    )
                 }
+            } catch (ex: Exception) {
+                if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
+                log.error("Virhe opintotietodatan haussa tai tallentamisessa: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
             }
         }
     }
@@ -506,50 +497,75 @@ class SecurityConfiguration(
         lastName: String
     ) {
         runBlocking {
-            supervisorScope {
-                try {
-                    val deferreds: List<Deferred<OpintotietodataDTO?>> =
-                        opintotietodataFetchingServices.filter { it.shouldFetchOpintotietodata() }
-                            .map { service ->
-                                async(Dispatchers.IO) {
-                                    service.fetchOpintotietodata(hetu)
-                                }
-                            }
-
-                    deferreds.awaitAll().filterNotNull().let {
-                        if (it.isNotEmpty()) {
-                            opintotietodataPersistenceService.createOrUpdateIfChanged(
-                                userId,
-                                firstName,
-                                lastName,
-                                it
-                            )
-                        } else {
-                            log.info("Kirjautuessa ladatut opintotiedot olivat tyhjät käyttäjälle: $userId")
-                        }
+            try {
+                fetchOpintotietodata(hetu).let {
+                    if (it.isNotEmpty()) {
+                        opintotietodataPersistenceService.createOrUpdateIfChanged(
+                            userId,
+                            firstName,
+                            lastName,
+                            it
+                        )
+                    } else {
+                        log.info("Kirjautuessa ladatut opintotiedot olivat tyhjät käyttäjälle: $userId")
                     }
-                } catch (ex: Exception) {
-                    if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
-                    log.error("Virhe opintotietodatan haussa tai päivittämisessä: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
                 }
+            } catch (ex: Exception) {
+                if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
+                log.error("Virhe opintotietodatan haussa tai päivittämisessä käyttäjälle $userId: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
             }
         }
     }
 
+    private suspend fun fetchOpintotietodata(hetu: String): List<OpintotietodataDTO> =
+        supervisorScope {
+            opintotietodataFetchingServices.map { service ->
+                async(Dispatchers.IO) {
+                    fetchOpintotietodataForService(service, hetu)
+                }
+            }.awaitAll().filterNotNull()
+        }
+
+    private suspend fun fetchOpintotietodataForService(
+        service: OpintotietodataFetchingService,
+        hetu: String
+    ): OpintotietodataDTO? =
+        try {
+            if (service.shouldFetchOpintotietodata()) {
+                service.fetchOpintotietodata(hetu)
+            } else {
+                null
+            }
+        } catch (ex: CancellationException) {
+            throw ex  // never swallow coroutine cancellation
+        } catch (ex: Exception) {
+            if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw ex
+            log.error(
+                "Virhe opintotietodatan haussa yliopistolle ${service.getYliopisto().name}: " +
+                    "${ex.message} ${ExceptionUtils.getStackTrace(ex)}"
+            )
+            null
+        }
+
     private fun fetchAndHandleOpintosuorituksetNonBlocking(userId: String, hetu: String) {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        try {
-            opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
-                .map { service ->
-                    scope.launch {
+        opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
+            .forEach { service ->
+                scope.launch {
+                    try {
                         service.fetchOpintosuoritukset(hetu)?.let {
                             opintosuorituksetPersistenceService.createOrUpdateIfChanged(userId, it)
                         }
+                    } catch (ex: CancellationException) {
+                        throw ex
+                    } catch (ex: Exception) {
+                        log.error(
+                            "Virhe opintosuoritusten haussa yliopistolle ${service.getYliopisto().name} " +
+                                "käyttäjälle $userId: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}"
+                        )
                     }
                 }
-        } catch (ex: Exception) {
-            log.error("Virhe opintosuoritusten haussa tai tallentamisessa: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
-        }
+            }
     }
 
     private fun createAssertionValidator(): Converter<OpenSaml4AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> {
