@@ -102,7 +102,6 @@ tasks.register('externalIntegrationTests', Test) {
     classpath = sourceSets.test.runtimeClasspath
     reports.html.required = false
     testlogger {
-        theme = ThemeType.PLAIN
         showStandardStreams = true
     }
 }
