@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.4...HEAD)
 
+- Bump express from 4.18.2 to 4.22.2 in /frontend [`#603`](https://github.com/elsa-hanke/elsa-backend/pull/603)(8 June 2026)
+- Bump tinymce from 7.2.0 to 7.9.3 in /frontend [`#610`](https://github.com/elsa-hanke/elsa-backend/pull/610)(8 June 2026)
+- enable peppi Tampere externalIntegrationTests [`#611`](https://github.com/elsa-hanke/elsa-backend/pull/611)(8 June 2026)
 - Bump launch-editor from 2.3.0 to 2.14.1 in /frontend [`#609`](https://github.com/elsa-hanke/elsa-backend/pull/609)(4 June 2026)
 - Bump prismjs from 1.27.0 to 1.30.0 in /frontend [`#606`](https://github.com/elsa-hanke/elsa-backend/pull/606)(4 June 2026)
 - Bump http-proxy-middleware from 2.0.4 to 2.0.9 in /frontend [`#607`](https://github.com/elsa-hanke/elsa-backend/pull/607)(3 June 2026)
