@@ -1,9 +1,6 @@
 package fi.elsapalvelu.elsa.externalintegration.peppi.turku
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
@@ -14,7 +11,6 @@ import fi.elsapalvelu.elsa.service.impl.PeppiCommonOpintotietodataFetchingServic
 import fi.elsapalvelu.elsa.service.impl.PeppiTurkuClientBuilderImpl
 import fi.elsapalvelu.elsa.service.impl.PeppiTurkuOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.impl.PeppiTurkuOpintotietodataFetchingServiceImpl
-import org.junit.jupiter.api.Disabled
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
@@ -28,7 +24,6 @@ import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(classes = [PeppiTurkuExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class PeppiTurkuExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
@@ -43,7 +38,7 @@ class PeppiTurkuExternalIntegrationTests : FetchingServiceExternalIntegrationBas
     override val opintosuorituksetService: OpintosuorituksetFetchingService
         get() = peppiTurkuOpintosuorituksetFetchingServiceImpl
 
-    override fun getTestHetu() = "030884-227C"
+    override fun getTestHetu() = "010957-994N"
 }
 
 @SpringBootConfiguration
