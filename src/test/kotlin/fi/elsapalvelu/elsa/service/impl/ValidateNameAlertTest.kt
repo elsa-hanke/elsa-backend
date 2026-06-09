@@ -60,9 +60,6 @@ class ValidateNameAlertTest {
             alertPublisherService = alertPublisherService
         )
 
-        val keyGenerator = KeyGenerator.getInstance("AES")
-        keyGenerator.init(128)
-        val secretKey = keyGenerator.generateKey()
         cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
 
         token = VerificationToken()

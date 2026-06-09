@@ -55,7 +55,7 @@ object KoejaksonVaiheetHelper {
         ): KoejaksonAloituskeskustelu {
             val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonAloituskeskustelu(
-                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
+                opintooikeus = opintooikeus,
                 koejaksonSuorituspaikka = DEFAULT_KOULUTUSPAIKKA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
                 koejaksonPaattymispaiva = DEFAULT_PAATTYMISPAIVA,
