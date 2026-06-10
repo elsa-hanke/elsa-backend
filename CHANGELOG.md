@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.4...HEAD)
 
+- enhance error handling for GraphQL responses by logging specific no value present errors [`#616`](https://github.com/elsa-hanke/elsa-backend/pull/616)(10 June 2026)
+- Update minimum file size error message for document uploads [`#615`](https://github.com/elsa-hanke/elsa-backend/pull/615)(9 June 2026)
+- Add alert publishing for failed user login due to incorrect name [`#612`](https://github.com/elsa-hanke/elsa-backend/pull/612)(9 June 2026)
+- ELSA1-1145: lisälogitus tyoskentelyjakon asiakirjoihin [`#590`](https://github.com/elsa-hanke/elsa-backend/pull/590)(9 June 2026)
 - Bump express from 4.18.2 to 4.22.2 in /frontend [`#603`](https://github.com/elsa-hanke/elsa-backend/pull/603)(8 June 2026)
 - Bump tinymce from 7.2.0 to 7.9.3 in /frontend [`#610`](https://github.com/elsa-hanke/elsa-backend/pull/610)(8 June 2026)
 - enable peppi Tampere externalIntegrationTests [`#611`](https://github.com/elsa-hanke/elsa-backend/pull/611)(8 June 2026)
