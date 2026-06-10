@@ -422,10 +422,7 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { Validation, validationMixin } from 'vuelidate'
-  import { required, requiredIf, minLength } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import { ELSA_API_LOCATION } from '@/api'
   import AsiakirjatContent from '@/components/asiakirjat/asiakirjat-content.vue'
@@ -456,6 +453,8 @@
     tyoskentelyjaksoKaytannonKoulutusLabel,
     tyoskentelypaikkaTyyppiLabel
   } from '@/utils/tyoskentelyjakso'
+  import type { Validation } from '@/utils/validators'
+  import { required, requiredIf, minLength } from '@/utils/validators'
 
   @Component({
     components: {
@@ -471,7 +470,7 @@
       ErikoistuvaDetails
     }
   })
-  export default class TerveyskeskuskoulutusjaksoForm extends Mixins(validationMixin) {
+  export default class TerveyskeskuskoulutusjaksoForm extends Vue {
     $refs!: {
       laillistamispaiva: ElsaFormDatepicker
     }

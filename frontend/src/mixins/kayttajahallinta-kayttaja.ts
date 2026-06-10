@@ -1,5 +1,4 @@
 import { Component, Mixins } from 'vue-property-decorator'
-import { validationMixin } from 'vuelidate'
 
 import KayttajahallintaMixin from './kayttajahallinta'
 
@@ -10,10 +9,7 @@ import { getTitleFromAuthorities } from '@/utils/functions'
 import { toastFail, toastSuccess } from '@/utils/toast'
 
 @Component({})
-export default class KayttajahallintaKayttajaMixin extends Mixins(
-  validationMixin,
-  KayttajahallintaMixin
-) {
+export default class KayttajahallintaKayttajaMixin extends Mixins(KayttajahallintaMixin) {
   loading = true
   kayttajaWrapper: KayttajahallintaKayttajaWrapper | null = null
   updatingTila = false

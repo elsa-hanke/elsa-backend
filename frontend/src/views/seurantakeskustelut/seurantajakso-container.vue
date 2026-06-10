@@ -8,8 +8,7 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
+  import { Vue, Component } from 'vue-property-decorator'
 
   import SeurantajaksoViewErikoistuja from '@/views/seurantakeskustelut/erikoistuva/seurantajakso-erikoistuja.vue'
   import SeurantajaksoViewKouluttajaVastuuhenkilo from '@/views/seurantakeskustelut/kouluttaja-vastuuhenkilo/seurantajakso-kouluttaja-vastuuhenkilo.vue'

@@ -16,8 +16,7 @@
   import 'tinymce/plugins/table/plugin'
 
   import Editor from '@tinymce/tinymce-vue'
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
+  import { Vue, Component } from 'vue-property-decorator'
 
   @Component({
     components: {

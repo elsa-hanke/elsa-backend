@@ -11,8 +11,7 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
+  import { Vue, Component } from 'vue-property-decorator'
 
   import MobileNav from '@/components/mobile-nav/mobile-nav.vue'
   import NavbarImpersonated from '@/components/navbar/navbar-impersonate.vue'

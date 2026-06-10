@@ -1,38 +1,24 @@
-import { Vue } from 'vue-property-decorator'
+import { ComponentPublicInstance } from 'vue'
 
-export function toastSuccess(vue: Vue, message: any) {
-  const h = vue.$root.$createElement
-  const vNodesMsg = h('div', { class: ['d-flex', 'align-items-center'] }, [
-    h('font-awesome-icon', {
-      props: { icon: 'check-circle', 'fixed-width': true, size: 'lg' },
-      class: ['mr-2']
-    }),
-    `${message}`
-  ])
+// Global toast state for bootstrap-vue-next programmatic toasts
+let _toastHandler: ((message: string, variant: string) => void) | null = null
 
-  vue.$root.$bvToast.toast([vNodesMsg], {
-    variant: 'success',
-    solid: true,
-    // noAutoHide: true,
-    bodyClass: 'shadow rounded p-3 pr-4'
-  })
+export function registerToastHandler(handler: (message: string, variant: string) => void) {
+  _toastHandler = handler
 }
 
-export function toastFail(vue: Vue, message: any) {
-  const h = vue.$root.$createElement
+export function toastSuccess(vue: ComponentPublicInstance | any, message: any) {
+  if (_toastHandler) {
+    _toastHandler(String(message), 'success')
+  } else {
+    console.info('[Toast Success]', message)
+  }
+}
 
-  const vNodesMsg = h('div', { class: ['d-flex', 'align-items-center'] }, [
-    h('font-awesome-icon', {
-      props: { icon: 'exclamation-circle', 'fixed-width': true, size: 'lg' },
-      class: ['mr-2']
-    }),
-    `${message}`
-  ])
-
-  vue.$root.$bvToast.toast(vNodesMsg, {
-    variant: 'danger',
-    solid: true,
-    // noAutoHide: true,
-    bodyClass: 'shadow rounded p-3 pr-4'
-  })
+export function toastFail(vue: ComponentPublicInstance | any, message: any) {
+  if (_toastHandler) {
+    _toastHandler(String(message), 'danger')
+  } else {
+    console.error('[Toast Fail]', message)
+  }
 }

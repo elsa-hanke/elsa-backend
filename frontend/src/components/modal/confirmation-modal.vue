@@ -18,12 +18,10 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -35,7 +33,7 @@
       }
     }
   })
-  export default class ElsaConfirmationModal extends Mixins(validationMixin) {
+  export default class ElsaConfirmationModal extends Vue {
     @Prop({ required: true, type: String })
     id!: string
 

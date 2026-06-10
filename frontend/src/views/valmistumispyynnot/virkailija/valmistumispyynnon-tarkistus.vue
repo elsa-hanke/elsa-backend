@@ -868,8 +868,6 @@
   import { AxiosError } from 'axios'
   import DOMPurify from 'dompurify'
   import { Component, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, requiredIf } from 'vuelidate/lib/validators'
 
   import { ELSA_API_LOCATION } from '@/api'
   import { getValmistumispyyntoTarkistus, putValmistumispyynto } from '@/api/virkailija'
@@ -896,6 +894,7 @@
   import { ValmistumispyynnonTila } from '@/utils/constants'
   import { mapFile, mapFiles } from '@/utils/fileMapper'
   import { toastSuccess, toastFail } from '@/utils/toast'
+  import { required, requiredIf } from '@/utils/validators'
   import OpintosuoritusTab from '@/views/opintosuoritukset/opintosuoritus-tab.vue'
 
   @Component({
@@ -915,7 +914,6 @@
     }
   })
   export default class ValmistumispyynnonTarkistus extends Mixins<ValmistumispyyntoMixin>(
-    validationMixin,
     ValmistumispyyntoMixin
   ) {
     $refs!: {

@@ -1,43 +1,43 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import Vue from 'vue'
+import { App } from 'vue'
 
 import store from '@/store'
 import { ELSA_ROLE } from '@/utils/roles'
 
-export class RolesPlugin {
-  public install(vue: typeof Vue) {
-    vue.prototype.$isErikoistuva = (): boolean => {
+export default {
+  install(app: App) {
+    app.config.globalProperties.$isErikoistuva = (): boolean => {
       return store.getters['auth/account'].activeAuthority === ELSA_ROLE.ErikoistuvaLaakari
     }
 
-    vue.prototype.$hasErikoistujaRole = (): boolean => {
+    app.config.globalProperties.$hasErikoistujaRole = (): boolean => {
       const authorities = store.getters['auth/account'].authorities
       return authorities.includes(ELSA_ROLE.ErikoistuvaLaakari)
     }
 
-    vue.prototype.$isYekKoulutettava = (): boolean => {
+    app.config.globalProperties.$isYekKoulutettava = (): boolean => {
       return store.getters['auth/account'].activeAuthority === ELSA_ROLE.YEKKoulutettava
     }
 
-    vue.prototype.$hasYekRole = (): boolean => {
+    app.config.globalProperties.$hasYekRole = (): boolean => {
       const authorities = store.getters['auth/account'].authorities
       return authorities.includes(ELSA_ROLE.YEKKoulutettava)
     }
 
-    vue.prototype.$isKouluttaja = (): boolean => {
+    app.config.globalProperties.$isKouluttaja = (): boolean => {
       return store.getters['auth/account'].activeAuthority === ELSA_ROLE.Kouluttaja
     }
 
-    vue.prototype.$hasKouluttajaRole = (): boolean => {
+    app.config.globalProperties.$hasKouluttajaRole = (): boolean => {
       const authorities = store.getters['auth/account'].authorities
       return authorities.includes(ELSA_ROLE.Kouluttaja)
     }
 
-    vue.prototype.$isVastuuhenkilo = (): boolean => {
+    app.config.globalProperties.$isVastuuhenkilo = (): boolean => {
       return store.getters['auth/account'].activeAuthority === ELSA_ROLE.Vastuuhenkilo
     }
 
-    vue.prototype.$isTerveyskeskuskoulutusjaksoVastuuhenkilo = (): boolean => {
+    app.config.globalProperties.$isTerveyskeskuskoulutusjaksoVastuuhenkilo = (): boolean => {
       const data = store.getters['auth/account']
       return (
         data.activeAuthority === ELSA_ROLE.Vastuuhenkilo &&
@@ -45,7 +45,7 @@ export class RolesPlugin {
       )
     }
 
-    vue.prototype.$isYekTerveyskeskuskoulutusjaksoVastuuhenkilo = (): boolean => {
+    app.config.globalProperties.$isYekTerveyskeskuskoulutusjaksoVastuuhenkilo = (): boolean => {
       const data = store.getters['auth/account']
       return (
         data.activeAuthority === ELSA_ROLE.Vastuuhenkilo &&
@@ -53,28 +53,28 @@ export class RolesPlugin {
       )
     }
 
-    vue.prototype.$isValmistumisenVastuuhenkilo = (): boolean => {
+    app.config.globalProperties.$isValmistumisenVastuuhenkilo = (): boolean => {
       const data = store.getters['auth/account']
       return data.activeAuthority === ELSA_ROLE.Vastuuhenkilo && data.valmistumisenVastuuhenkilo
     }
 
-    vue.prototype.$isYekValmistumisenVastuuhenkilo = (): boolean => {
+    app.config.globalProperties.$isYekValmistumisenVastuuhenkilo = (): boolean => {
       const data = store.getters['auth/account']
       return data.activeAuthority === ELSA_ROLE.Vastuuhenkilo && data.yekValmistumisenVastuuhenkilo
     }
 
-    vue.prototype.$isTekninenPaakayttaja = (): boolean => {
+    app.config.globalProperties.$isTekninenPaakayttaja = (): boolean => {
       return store.getters['auth/account'].activeAuthority === ELSA_ROLE.TekninenPaakayttaja
     }
 
-    vue.prototype.$isVirkailija = (): boolean => {
+    app.config.globalProperties.$isVirkailija = (): boolean => {
       return store.getters['auth/account'].activeAuthority === ELSA_ROLE.OpintohallinnonVirkailija
     }
   }
 }
 
-declare module 'vue/types/vue' {
-  interface Vue {
+declare module '@vue/runtime-core' {
+  interface ComponentCustomProperties {
     $isErikoistuva: Function
     $isYekKoulutettava: Function
     $isKouluttaja: Function
@@ -90,5 +90,3 @@ declare module 'vue/types/vue' {
     $hasErikoistujaRole: Function
   }
 }
-
-Vue.use(new RolesPlugin())

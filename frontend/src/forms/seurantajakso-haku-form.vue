@@ -105,9 +105,8 @@
 </template>
 
 <script lang="ts">
-  import { BModal } from 'bootstrap-vue'
-  import Component from 'vue-class-component'
-  import { Mixins, Prop, Vue } from 'vue-property-decorator'
+  import { BModal } from 'bootstrap-vue-next'
+  import { Component, Mixins, Prop, Vue } from 'vue-property-decorator'
 
   import { postKoulutusjakso } from '@/api/erikoistuva'
   import ElsaButton from '@/components/button/button.vue'

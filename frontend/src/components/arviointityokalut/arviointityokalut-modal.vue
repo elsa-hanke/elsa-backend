@@ -23,7 +23,7 @@
   </b-modal>
 </template>
 <script lang="ts">
-  import { BvModalEvent } from 'bootstrap-vue'
+  // BvModalEvent removed - using generic Event type instead
   import { Vue, Component, Prop } from 'vue-property-decorator'
 
   import ArviointityokalutModalContent from '@/components/arviointityokalut/arviointityokalut-modal-content.vue'
@@ -74,7 +74,7 @@
       this.skipConfirm = true
     }
 
-    async onHide(event: BvModalEvent) {
+    async onHide(event: any) {
       // Tarkista, onko poistuminen jo vahvistettu
       if (!this.skipConfirm) {
         event.preventDefault()

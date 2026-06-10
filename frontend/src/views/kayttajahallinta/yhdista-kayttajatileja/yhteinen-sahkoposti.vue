@@ -57,16 +57,14 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Mixins, Prop, Watch } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, email, sameAs } from 'vuelidate/lib/validators'
+  import { Component, Prop, Watch, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import ElsaFormMultiselect from '@/components/multiselect/multiselect.vue'
   import UserAvatar from '@/components/user-avatar/user-avatar.vue'
   import { YhdistaKayttajatilejaForm } from '@/types'
+  import { required, email, sameAs } from '@/utils/validators'
 
   @Component({
     components: {
@@ -76,7 +74,7 @@
       ElsaButton
     }
   })
-  export default class YhteinenSahkoposti extends Mixins(validationMixin) {
+  export default class YhteinenSahkoposti extends Vue {
     @Prop({ required: true })
     form!: YhdistaKayttajatilejaForm
 

@@ -101,9 +101,7 @@
 
 <script lang="ts">
   import { AxiosError } from 'axios'
-  import { Component, Mixins } from 'vue-property-decorator'
-  import { Validation, validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import {
     deleteArviointityokalutKategoria,
@@ -117,6 +115,8 @@
   import { ArviointityokaluKategoria, ElsaError } from '@/types'
   import { confirmExit } from '@/utils/confirm'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required } from '@/utils/validators'
+  import type { Validation } from '@/utils/validators'
 
   @Component({
     components: {
@@ -133,7 +133,7 @@
       }
     }
   })
-  export default class KategoriaView extends Mixins(validationMixin) {
+  export default class KategoriaView extends Vue {
     items = [
       {
         text: this.$t('etusivu'),

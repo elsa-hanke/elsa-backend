@@ -169,8 +169,7 @@
 
 <script lang="ts">
   import { format } from 'date-fns'
-  import Component from 'vue-class-component'
-  import { Vue } from 'vue-property-decorator'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import { getAloituskeskustelu as getAloituskeskusteluKouluttaja } from '@/api/kouluttaja'
   import { getAloituskeskustelu as getAloituskeskusteluVastuuhenkilo } from '@/api/vastuuhenkilo'

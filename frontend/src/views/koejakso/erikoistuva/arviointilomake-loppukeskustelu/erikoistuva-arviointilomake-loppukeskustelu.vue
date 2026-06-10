@@ -190,10 +190,7 @@
 <script lang="ts">
   import { format } from 'date-fns'
   import _get from 'lodash/get'
-  import Component from 'vue-class-component'
-  import { Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'
@@ -218,6 +215,7 @@
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
   import { resolveOpintooikeusKaytossa } from '@/utils/opintooikeus'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -233,7 +231,7 @@
       KoulutuspaikanArvioijat
     }
   })
-  export default class ErikoistuvaArviointilomakeLoppukeskustelu extends Mixins(validationMixin) {
+  export default class ErikoistuvaArviointilomakeLoppukeskustelu extends Vue {
     $refs!: {
       koulutuspaikanArvioijat: KoulutuspaikanArvioijat
       koejaksonPaattymispaiva: ElsaFormDatepicker

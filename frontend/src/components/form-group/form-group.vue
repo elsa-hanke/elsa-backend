@@ -53,9 +53,9 @@
 </template>
 
 <script lang="ts">
-  import { BvModalEvent } from 'bootstrap-vue'
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
+  // BvModalEvent removed - using generic Event type instead
+  import { Vue } from 'vue-property-decorator'
+  import { Component } from 'vue-property-decorator'
   import { Prop } from 'vue-property-decorator'
 
   import { confirmExit } from '@/utils/confirm'
@@ -83,7 +83,7 @@
       this.skipConfirm = true
     }
 
-    async onHide(event: BvModalEvent) {
+    async onHide(event: any) {
       // Tarkista, onko poistuminen jo vahvistettu
       if (!this.skipConfirm) {
         event.preventDefault()

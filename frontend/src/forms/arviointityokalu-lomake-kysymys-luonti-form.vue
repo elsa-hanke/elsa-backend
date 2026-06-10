@@ -133,8 +133,7 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Prop, Vue } from 'vue-property-decorator'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'

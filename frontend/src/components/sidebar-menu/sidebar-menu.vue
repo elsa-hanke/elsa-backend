@@ -213,8 +213,7 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
+  import { Vue, Component } from 'vue-property-decorator'
 
   import store from '@/store'
   import { ELSA_ROLE } from '@/utils/roles'

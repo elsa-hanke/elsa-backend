@@ -273,11 +273,7 @@
 <script lang="ts">
   import { format } from 'date-fns'
   import _get from 'lodash/get'
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
-  import { Prop } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, requiredIf, email, between } from 'vuelidate/lib/validators'
+  import { Vue, Component, Prop } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'
@@ -296,9 +292,10 @@
     Opintooikeus
   } from '@/types'
   import { resolveOpintooikeusKaytossa } from '@/utils/opintooikeus'
+  import { required, requiredIf, email, between } from '@/utils/validators'
 
   @Component({
-    mixins: [validationMixin],
+    // validationMixin removed - use @vuelidate/vuelidate v2
     components: {
       ElsaFormGroup,
       ElsaFormError,
@@ -573,7 +570,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   ::v-deep {
     .textarea-min-height {
       min-height: 200px;

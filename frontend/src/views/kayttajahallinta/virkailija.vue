@@ -199,7 +199,6 @@
 <script lang="ts">
   import { AxiosError } from 'axios'
   import { Component, Mixins } from 'vue-property-decorator'
-  import { required, email, sameAs } from 'vuelidate/lib/validators'
 
   import { getKayttaja, patchVirkailija } from '@/api/kayttajahallinta'
   import ElsaButton from '@/components/button/button.vue'
@@ -209,6 +208,7 @@
   import { KayttajahallintaUpdateKayttaja, ElsaError } from '@/types'
   import { confirmExit } from '@/utils/confirm'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required, email, sameAs } from '@/utils/validators'
 
   @Component({
     components: {

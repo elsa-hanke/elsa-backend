@@ -113,9 +113,7 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Prop, Vue } from 'vue-property-decorator'
-  import { required, requiredIf } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'
@@ -130,6 +128,7 @@
     Teoriakoulutus
   } from '@/types'
   import { paivakirjamerkintaMuuAiheId } from '@/utils/constants'
+  import { required, requiredIf } from '@/utils/validators'
 
   @Component({
     components: {

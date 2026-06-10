@@ -47,15 +47,13 @@
 
 <script lang="ts">
   import _get from 'lodash/get'
-  import Component from 'vue-class-component'
-  import { Prop, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { email, required } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import store from '@/store'
   import { Vastuuhenkilo } from '@/types'
   import { defaultVastuuhenkilo, phoneNumber } from '@/utils/constants'
+  import { email, required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -74,7 +72,7 @@
       }
     }
   })
-  export default class VastuuhenkiloKoulutussopimusForm extends Mixins(validationMixin) {
+  export default class VastuuhenkiloKoulutussopimusForm extends Vue {
     @Prop({ required: true, default: {} })
     vastuuhenkilo!: Vastuuhenkilo
 

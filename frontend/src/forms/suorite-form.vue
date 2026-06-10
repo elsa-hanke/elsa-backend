@@ -127,9 +127,7 @@
 
 <script lang="ts">
   import Editor from '@tinymce/tinymce-vue'
-  import { Component, Mixins, Prop } from 'vue-property-decorator'
-  import { Validation, validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'
@@ -139,6 +137,8 @@
   import ElsaTextEditor from '@/components/text-editor/text-editor.vue'
   import { SuoriteWithErikoisala, SuoritteenKategoria } from '@/types'
   import { sortByAsc } from '@/utils/sort'
+  import { required } from '@/utils/validators'
+  import type { Validation } from '@/utils/validators'
 
   @Component({
     components: {
@@ -151,7 +151,7 @@
       ElsaTextEditor
     }
   })
-  export default class SuoriteForm extends Mixins(validationMixin) {
+  export default class SuoriteForm extends Vue {
     $refs!: {
       voimassaolonAlkamispaiva: ElsaFormDatepicker
       voimassaolonPaattymispaiva: ElsaFormDatepicker

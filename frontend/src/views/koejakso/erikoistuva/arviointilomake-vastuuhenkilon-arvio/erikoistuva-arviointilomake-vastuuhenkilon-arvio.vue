@@ -402,8 +402,6 @@
 <script lang="ts">
   import axios from 'axios'
   import { Component, Vue } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { email, required, requiredIf } from 'vuelidate/lib/validators'
 
   import { getVastuuhenkilonArvioLomake } from '@/api/erikoistuva'
   import AsiakirjatContent from '@/components/asiakirjat/asiakirjat-content.vue'
@@ -431,9 +429,10 @@
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { email, required, requiredIf } from '@/utils/validators'
 
   @Component({
-    mixins: [validationMixin],
+    // validationMixin removed - use @vuelidate/vuelidate v2
     components: {
       AsiakirjatContent,
       AsiakirjatUpload,

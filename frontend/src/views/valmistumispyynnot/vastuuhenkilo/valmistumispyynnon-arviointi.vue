@@ -278,8 +278,6 @@
 <script lang="ts">
   import { AxiosError } from 'axios'
   import { Component, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, requiredIf } from 'vuelidate/lib/validators'
 
   import { ELSA_API_LOCATION } from '@/api'
   import {
@@ -300,6 +298,7 @@
   } from '@/types'
   import { confirmExit } from '@/utils/confirm'
   import { toastSuccess, toastFail } from '@/utils/toast'
+  import { required, requiredIf } from '@/utils/validators'
 
   @Component({
     components: {
@@ -311,7 +310,6 @@
     }
   })
   export default class ValmistumispyynnonArviointi extends Mixins<ValmistumispyyntoMixin>(
-    validationMixin,
     ValmistumispyyntoMixin
   ) {
     validations() {

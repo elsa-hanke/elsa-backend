@@ -335,9 +335,7 @@
 
 <script lang="ts">
   import axios, { AxiosError } from 'axios'
-  import Avatar from 'vue-avatar'
   import { Component, Vue, Prop } from 'vue-property-decorator'
-  import { email, required } from 'vuelidate/lib/validators'
 
   import AsiakirjatContent from '@/components/asiakirjat/asiakirjat-content.vue'
   import AsiakirjatUpload from '@/components/asiakirjat/asiakirjat-upload.vue'
@@ -345,6 +343,7 @@
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'
   import ElsaFormError from '@/components/form-error/form-error.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
+  import Avatar from '@/components/user-avatar/avatar'
   import store from '@/store'
   import {
     OmatTiedotLomakeErikoistuja,
@@ -360,6 +359,7 @@
   import { getTitleFromAuthorities } from '@/utils/functions'
   import { sortByDesc } from '@/utils/sort'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { email, required } from '@/utils/validators'
 
   @Component({
     components: {

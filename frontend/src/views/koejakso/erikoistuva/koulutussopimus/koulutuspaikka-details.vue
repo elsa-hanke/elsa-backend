@@ -52,15 +52,14 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Vue, Prop } from 'vue-property-decorator'
-  import { required, requiredIf } from 'vuelidate/lib/validators'
+  import { Component, Vue, Prop } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import ElsaPopover from '@/components/popover/popover.vue'
   import { Koulutuspaikka } from '@/types'
   import { defaultKoulutuspaikka } from '@/utils/constants'
+  import { required, requiredIf } from '@/utils/validators'
 
   @Component({
     components: {

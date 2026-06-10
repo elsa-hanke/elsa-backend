@@ -120,10 +120,7 @@
 
 <script lang="ts">
   import axios from 'axios'
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import AsiakirjatContent from '@/components/asiakirjat/asiakirjat-content.vue'
   import AsiakirjatUpload from '@/components/asiakirjat/asiakirjat-upload.vue'
@@ -133,6 +130,7 @@
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import { Asiakirja, Teoriakoulutus } from '@/types'
   import { mapFiles } from '@/utils/fileMapper'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -154,7 +152,7 @@
       }
     }
   })
-  export default class TeoriakoulutusForm extends Mixins(validationMixin) {
+  export default class TeoriakoulutusForm extends Vue {
     $refs!: {
       alkamispaiva: ElsaFormDatepicker
       paattymispaiva: ElsaFormDatepicker

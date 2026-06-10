@@ -62,8 +62,7 @@
 
 <script lang="ts">
   import axios from 'axios'
-  import Vue from 'vue'
-  import { Component } from 'vue-property-decorator'
+  import { Vue, Component } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import store from '@/store'

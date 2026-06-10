@@ -1,7 +1,11 @@
-import { BootstrapVue } from 'bootstrap-vue'
-import Vue from 'vue'
+import { BToastPlugin, BootstrapVueNext } from 'bootstrap-vue-next'
+import { App } from 'vue'
 import '@/styles/bootstrap.scss'
+import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 
-Vue.use(BootstrapVue, {
-  breakpoints: [`xs`, 'sm', 'md', 'lg', 'xl', 'xxl']
-})
+export default {
+  install(app: App) {
+    app.use(BootstrapVueNext)
+    app.use(BToastPlugin)
+  }
+}

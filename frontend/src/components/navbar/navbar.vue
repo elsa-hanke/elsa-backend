@@ -177,9 +177,9 @@
 </template>
 
 <script lang="ts">
-  import Avatar from 'vue-avatar'
   import { Component, Mixins } from 'vue-property-decorator'
 
+  import Avatar from '@/components/user-avatar/avatar'
   import UserAvatar from '@/components/user-avatar/user-avatar.vue'
   import NavbarMixin from '@/mixins/navbar'
 
@@ -192,7 +192,7 @@
   export default class Navbar extends Mixins(NavbarMixin) {}
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   @import '~@/styles/variables';
   @import '~bootstrap/scss/mixins/breakpoints';
 

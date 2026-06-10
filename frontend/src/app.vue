@@ -66,13 +66,11 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import TietosuojaselosteModal from '@/components/tietosuojaseloste/tietosuojaseloste-modal.vue'
   import PalauteFormModal from '@/forms/palaute-form-modal.vue'
   import store from '@/store'
-  import { Meta } from '@/utils/decorators'
 
   @Component({
     components: {
@@ -94,20 +92,6 @@
 
     hidePalauteFormModal() {
       this.showPalauteFormModal = false
-    }
-
-    @Meta
-    getMetaInfo() {
-      if (this.$route && this.$route.name) {
-        return {
-          title: this.$t(this.$route.name),
-          titleTemplate: `%s - ${this.$t('elsa-palvelu')}`
-        }
-      }
-      return {
-        title: this.$t('elsa-palvelu'),
-        titleTemplate: null
-      }
     }
 
     get isLoggedIn() {

@@ -605,9 +605,7 @@
 </template>
 
 <script lang="ts">
-  import { Component, Mixins, Prop, Vue } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { maxValue, minValue, required, requiredIf } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import { getUusinOpas } from '@/api/tekninen-paakayttaja'
   import ElsaButton from '@/components/button/button.vue'
@@ -616,6 +614,7 @@
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import { Arviointiasteikko, Opintoopas } from '@/types'
   import { ArviointiasteikkoTyyppi } from '@/utils/constants'
+  import { maxValue, minValue, required, requiredIf } from '@/utils/validators'
 
   @Component({
     components: {
@@ -625,7 +624,7 @@
       ElsaFormDatepicker
     }
   })
-  export default class OpintoopasForm extends Mixins(validationMixin) {
+  export default class OpintoopasForm extends Vue {
     $refs!: {
       voimassaoloAlkaa: ElsaFormDatepicker
       voimassaoloPaattyy: ElsaFormDatepicker

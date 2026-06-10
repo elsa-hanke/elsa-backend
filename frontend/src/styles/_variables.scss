@@ -1,4 +1,4 @@
-// Boostrap variables
+// Bootstrap variables
 $white: #ffffff;
 $gray-100: #f5f5f6;
 $gray-200: #f1f1f3;
@@ -27,7 +27,6 @@ $navbar-dark-color: $white;
 $card-cap-bg: $primary;
 $card-border-width: 0;
 $card-cap-color: $white;
-$breadcrumb-bg: none;
 $breadcrumb-divider: quote('>');
 $body-color: $black;
 $h1-font-size: 1.375rem;
@@ -51,8 +50,8 @@ $btn-active-box-shadow: none;
 $btn-border-radius: 50rem;
 $btn-disabled-opacity: 1;
 $btn-border-width: 2px;
-$modal-header-padding: 0.75rem 1.25rem;
-$modal-header-border-width: 0;
+$modal-header-padding-y: 0.75rem;
+$modal-header-padding-x: 1.25rem;
 $modal-header-border-width: 0;
 $modal-content-border-width: 0;
 $grid-breakpoints: (
@@ -67,7 +66,6 @@ $pagination-border-width: 0;
 $hr-margin-y: 1.5rem;
 $hr-color: $gray-300;
 $nav-tabs-border-width: 0;
-$nav-tabs-link-active-bg: none;
 $border-color: $gray-300;
 $alert-border-width: 1px;
 $form-feedback-valid-color: $success;
@@ -76,7 +74,7 @@ $input-btn-padding-y: 0.375rem;
 $input-btn-padding-x: 0.75rem;
 $popover-max-width: 552px;
 $input-disabled-bg: #f5f5f6;
-$progress-border-radius: none;
+$progress-border-radius: 0;
 $border-width: 1px;
 $table-border-width: $border-width;
 $table-border-color: $border-color;
@@ -111,9 +109,10 @@ $dropdown-border-color: rgba($black, 0.15);
 $dropdown-border-width: $border-width;
 $border-radius: 0.25rem;
 $rounded-pill: 50rem;
-$table-cell-padding: 0.5rem;
-$form-group-margin-bottom: 1.5rem;
-$paragraph-margin-bottom: 2rem;
+$table-cell-padding-y: 0.5rem;
+$table-cell-padding-x: 0.5rem;
+// Bootstrap 4 compat alias
+$table-cell-padding: $table-cell-padding-y;
 $modal-content-border-radius: 0.75rem;
 $pagination-active-bg: #b1b1b1;
 $input-border-radius: $border-radius;
@@ -137,8 +136,6 @@ $btn-danger-border-color: $btn-danger-color;
 $btn-danger-hover-color: #fb462f;
 $btn-danger-hover-border-color: #fb462f;
 $backdrop-background-color: #f7f7f7;
-$b-table-sort-icon-bg-not-sorted: none;
-$b-table-sort-icon-bg-dark-not-sorted: none;
 $sidebar-width: 230px;
 
 // This table defines the theme colors (variant names)

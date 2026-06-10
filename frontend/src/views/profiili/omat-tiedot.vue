@@ -307,16 +307,14 @@
 
 <script lang="ts">
   import axios, { AxiosError } from 'axios'
-  import Avatar from 'vue-avatar'
   import { TranslateResult } from 'vue-i18n'
-  import { Component, Vue, Prop, Mixins } from 'vue-property-decorator'
-  import { Validation, validationMixin } from 'vuelidate'
-  import { minLength, required, email } from 'vuelidate/lib/validators'
+  import { Component, Vue, Prop } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormError from '@/components/form-error/form-error.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import ElsaFormMultiselect from '@/components/multiselect/multiselect.vue'
+  import Avatar from '@/components/user-avatar/avatar'
   import store from '@/store'
   import {
     ElsaError,
@@ -329,6 +327,8 @@
   import { phoneNumber } from '@/utils/constants'
   import { getTitleFromAuthorities } from '@/utils/functions'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { minLength, required, email } from '@/utils/validators'
+  import type { Validation } from '@/utils/validators'
 
   @Component({
     components: {
@@ -339,7 +339,7 @@
       ElsaFormMultiselect
     }
   })
-  export default class OmatTiedot extends Mixins(validationMixin) {
+  export default class OmatTiedot extends Vue {
     @Prop({ required: false, default: false })
     editing!: boolean
     needEmailConfirm = false

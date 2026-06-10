@@ -313,9 +313,7 @@
 
 <script lang="ts">
   import axios from 'axios'
-  import Component from 'vue-class-component'
-  import { Prop, Vue } from 'vue-property-decorator'
-  import { required, between, requiredIf, integer } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import AsiakirjatContent from '@/components/asiakirjat/asiakirjat-content.vue'
   import AsiakirjatUpload from '@/components/asiakirjat/asiakirjat-upload.vue'
@@ -337,6 +335,7 @@
   import { sortByAsc } from '@/utils/sort'
   import { toastFail } from '@/utils/toast'
   import { tyoskentelypaikkaTyyppiLabel } from '@/utils/tyoskentelyjakso'
+  import { required, between, requiredIf, integer } from '@/utils/validators'
   import KouluttajaKoulutussopimusForm from '@/views/koejakso/kouluttaja/kouluttaja-koulutussopimus-form.vue'
 
   @Component({

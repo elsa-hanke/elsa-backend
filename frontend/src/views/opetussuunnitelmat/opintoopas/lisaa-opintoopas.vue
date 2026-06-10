@@ -34,17 +34,17 @@
 
 <script lang="ts">
   import { AxiosError } from 'axios'
-  import Avatar from 'vue-avatar'
   import { Component, Vue } from 'vue-property-decorator'
-  import { required } from 'vuelidate/lib/validators'
 
   import { getArviointiasteikot, getErikoisala, postOpinoopas } from '@/api/tekninen-paakayttaja'
   import ElsaButton from '@/components/button/button.vue'
+  import Avatar from '@/components/user-avatar/avatar'
   import OpintoopasForm from '@/forms/opintoopas-form.vue'
   import YekOpintoopasForm from '@/forms/yek-opintoopas-form.vue'
   import { Arviointiasteikko, ElsaError, Opintoopas, UusiOpintoopas } from '@/types'
   import { ERIKOISALA_YEK_ID } from '@/utils/constants'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {

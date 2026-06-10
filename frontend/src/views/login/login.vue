@@ -173,7 +173,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   .text-primary {
     font-size: 1.75rem;
   }

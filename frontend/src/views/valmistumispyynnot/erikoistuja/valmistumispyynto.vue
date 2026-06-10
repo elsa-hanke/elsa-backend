@@ -432,8 +432,6 @@
 <script lang="ts">
   import { AxiosError } from 'axios'
   import { Component, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { requiredIf, required, email } from 'vuelidate/lib/validators'
 
   import {
     getValmistumispyynto,
@@ -463,6 +461,7 @@
   import { ErikoisalaTyyppi, ValmistumispyynnonTila, phoneNumber } from '@/utils/constants'
   import { mapFile, mapFiles } from '@/utils/fileMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { requiredIf, required, email } from '@/utils/validators'
   import ValmistumispyynnonTilaErikoistuja from '@/views/valmistumispyynnot/erikoistuja/valmistumispyynnon-tila-erikoistuja.vue'
 
   @Component({
@@ -480,7 +479,6 @@
     }
   })
   export default class ValmistumispyyntoErikoistuja extends Mixins<ValmistumispyyntoMixin>(
-    validationMixin,
     ValmistumispyyntoMixin
   ) {
     $refs!: {
@@ -719,7 +717,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   @import '~@/styles/variables';
   @import '~bootstrap/scss/mixins/breakpoints';
 

@@ -64,14 +64,13 @@
 </template>
 
 <script lang="ts">
-  import { Component, Mixins, Prop } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormError from '@/components/form-error/form-error.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import { SuoritteenKategoria } from '@/types'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -80,7 +79,7 @@
       ElsaFormGroup
     }
   })
-  export default class SuoritteenKategoriaForm extends Mixins(validationMixin) {
+  export default class SuoritteenKategoriaForm extends Vue {
     @Prop({ required: false, default: false })
     editing!: boolean
 

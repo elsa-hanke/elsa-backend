@@ -116,9 +116,7 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Mixins, Prop } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormError from '@/components/form-error/form-error.vue'
@@ -136,6 +134,7 @@
   } from '@/types'
   import { sortByAsc } from '@/utils/sort'
   import { tyoskentelyjaksoLabel } from '@/utils/tyoskentelyjakso'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {

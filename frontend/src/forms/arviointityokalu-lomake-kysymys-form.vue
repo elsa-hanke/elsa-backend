@@ -92,8 +92,7 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Vue, Prop } from 'vue-property-decorator'
+  import { Component, Vue, Prop } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'

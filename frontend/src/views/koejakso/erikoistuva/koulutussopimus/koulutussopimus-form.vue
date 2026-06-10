@@ -217,10 +217,7 @@
 <script lang="ts">
   import { format } from 'date-fns'
   import _get from 'lodash/get'
-  import Component from 'vue-class-component'
-  import { Vue, Prop, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, email } from 'vuelidate/lib/validators'
+  import { Component, Vue, Prop } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'
@@ -238,6 +235,7 @@
   import { defaultKouluttaja, defaultKoulutuspaikka, phoneNumber } from '@/utils/constants'
   import { formatList } from '@/utils/kouluttajaAndVastuuhenkiloListFormatter'
   import { resolveOpintooikeusKaytossa } from '@/utils/opintooikeus'
+  import { required, email } from '@/utils/validators'
   import KouluttajaDetails from '@/views/koejakso/erikoistuva/koulutussopimus/kouluttaja-details.vue'
   import KoulutuspaikkaDetails from '@/views/koejakso/erikoistuva/koulutussopimus/koulutuspaikka-details.vue'
 
@@ -264,7 +262,7 @@
       }
     }
   })
-  export default class KoulutussopimusForm extends Mixins(validationMixin) {
+  export default class KoulutussopimusForm extends Vue {
     $refs!: {
       kouluttajaDetails: any
       koulutuspaikkaDetails: any

@@ -157,10 +157,8 @@
 
 <script lang="ts">
   import { AxiosError } from 'axios'
-  import { Component, Mixins } from 'vue-property-decorator'
+  import { Component, Vue } from 'vue-property-decorator'
   import draggable from 'vuedraggable'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
 
   import {
     getArviointityokalu,
@@ -196,6 +194,7 @@
   } from '@/utils/constants'
   import { mapFile, mapFiles } from '@/utils/fileMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -223,7 +222,7 @@
       }
     }
   })
-  export default class LisaaArviointityokalu extends Mixins(validationMixin) {
+  export default class LisaaArviointityokalu extends Vue {
     items = [
       {
         text: this.$t('etusivu'),

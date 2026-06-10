@@ -271,10 +271,7 @@
 
 <script lang="ts">
   import _get from 'lodash/get'
-  import Component from 'vue-class-component'
-  import { Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, requiredIf } from 'vuelidate/lib/validators'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import { getLoppukeskustelu as getLoppukeskusteluKouluttaja } from '@/api/kouluttaja'
   import { getLoppukeskustelu as getLoppukeskusteluVastuuhenkilo } from '@/api/vastuuhenkilo'
@@ -298,6 +295,7 @@
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required, requiredIf } from '@/utils/validators'
 
   @Component({
     components: {
@@ -323,7 +321,7 @@
       }
     }
   })
-  export default class ArviointilomakeLoppukeskustelu extends Mixins(validationMixin) {
+  export default class ArviointilomakeLoppukeskustelu extends Vue {
     skipRouteExitConfirm!: boolean
     items = [
       {

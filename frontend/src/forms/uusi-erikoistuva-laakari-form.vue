@@ -215,10 +215,7 @@
 
 <script lang="ts">
   import { AxiosError } from 'axios'
-  import Component from 'vue-class-component'
-  import { Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, email, sameAs } from 'vuelidate/lib/validators'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import { getErikoistuvaLaakariLomake, postErikoistuvaLaakari } from '@/api/kayttajahallinta'
   import ElsaButton from '@/components/button/button.vue'
@@ -236,6 +233,7 @@
   import { dateBetween } from '@/utils/date'
   import { sortByAsc } from '@/utils/sort'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required, email, sameAs } from '@/utils/validators'
 
   @Component({
     components: {
@@ -279,7 +277,7 @@
       }
     }
   })
-  export default class ErikoistuvaLaakariForm extends Mixins(validationMixin) {
+  export default class ErikoistuvaLaakariForm extends Vue {
     $refs!: {
       opiskeluoikeudenAlkamispaiva: ElsaFormDatepicker
       opiskeluoikeudenPaattymispaiva: ElsaFormDatepicker

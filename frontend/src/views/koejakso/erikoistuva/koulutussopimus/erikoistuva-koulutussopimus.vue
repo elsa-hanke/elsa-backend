@@ -118,8 +118,7 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Vue } from 'vue-property-decorator'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import { getKoulutussopimusLomake } from '@/api/erikoistuva'
   import ElsaButton from '@/components/button/button.vue'

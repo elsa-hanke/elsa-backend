@@ -153,9 +153,7 @@
 </template>
 
 <script lang="ts">
-  import { Component, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import {
     deleteArviointityokalu,
@@ -173,6 +171,7 @@
   import { ArviointityokaluTila } from '@/utils/constants'
   import { mapFile } from '@/utils/fileMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -191,7 +190,7 @@
       }
     }
   })
-  export default class ArviointityokaluView extends Mixins(validationMixin) {
+  export default class ArviointityokaluView extends Vue {
     items = [
       {
         text: this.$t('etusivu'),
