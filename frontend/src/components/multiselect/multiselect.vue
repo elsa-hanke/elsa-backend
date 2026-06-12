@@ -35,7 +35,7 @@
 </template>
 
 <script lang="ts">
-  import Multiselect from 'vue-multiselect'
+  import { Multiselect } from 'vue-multiselect'
   import { Vue, Component, Prop } from 'vue-property-decorator'
 
   @Component({

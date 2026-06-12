@@ -1,9 +1,10 @@
 import { ComponentPublicInstance } from 'vue'
 
 // Global toast state for bootstrap-vue-next programmatic toasts
-let _toastHandler: ((message: string, variant: string) => void) | null = null
+type ToastHandler = (message: string, variant: string) => void
+let _toastHandler: ToastHandler | null = null
 
-export function registerToastHandler(handler: (message: string, variant: string) => void) {
+export function registerToastHandler(handler: ToastHandler) {
   _toastHandler = handler
 }
 
