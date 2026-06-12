@@ -20,6 +20,9 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "bootstrap-vue-next": [
+        "./node_modules/bootstrap-vue-next/dist/index"
       ]
     },
     "lib": [

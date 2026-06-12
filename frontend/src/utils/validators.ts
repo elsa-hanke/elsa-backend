@@ -81,3 +81,14 @@ export interface Validation {
   $reset(): void
   [key: string]: any
 }
+
+// vuelidate-compatible helpers object
+export const helpers = {
+  regex: (_name: string, pattern: RegExp) => {
+    return (value: string): boolean => {
+      if (!value) return true
+      return pattern.test(value)
+    }
+  }
+}
+
