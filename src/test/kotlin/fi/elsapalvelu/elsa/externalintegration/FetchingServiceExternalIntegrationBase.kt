@@ -21,6 +21,8 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
 
     protected open fun getTestHetu() = "210281-9988"
 
+    protected open val assertErikoisalaTunnisteList: Boolean = true
+
     @Test
     fun shouldFetchOpintotietodataWithoutErrors() {
         val yliopisto = opintotietodataService.getYliopisto()
@@ -74,6 +76,13 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
                     assertThat(it.asetus)
                         .describedAs("asetus should be populated")
                         .isNotBlank
+
+                    if (assertErikoisalaTunnisteList) {
+                        assertThat(it.erikoisalaTunnisteList)
+                            .describedAs("erikoisalaTunnisteList should be populated")
+                            .isNotNull
+                            .isNotEmpty
+                    }
 
                     assertThat(it.tila)
                         .describedAs("tila should be populated")
