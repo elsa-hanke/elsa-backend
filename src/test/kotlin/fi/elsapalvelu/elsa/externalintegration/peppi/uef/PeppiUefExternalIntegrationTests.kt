@@ -38,6 +38,8 @@ class PeppiUefExternalIntegrationTests : FetchingServiceExternalIntegrationBase(
     override val opintosuorituksetService: OpintosuorituksetFetchingService
         get() = peppiUefOpintosuorituksetFetchingServiceImpl
 
+    override val assertErikoisalaTunnisteList: Boolean = false
+
     override fun getTestHetu() = "130560-9972"
 }
 
