@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.web.rest.findAll
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
@@ -14,10 +15,10 @@ object OpintosuoritusHelper {
     const val DEFAULT_KURSSIKOODI = "DDDDDDDDDD"
     const val DEFAULT_ARVIO_FI = "BBBBBBBBBB"
     const val DEFAULT_ARVIO_SV = "BBBBBBBBBC"
-    val DEFAULT_OPINTOSUORITUSTYYPPI = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO
-    val DEFAULT_SUORITUSPAIVA = LocalDate.ofEpochDay(0L)
-    val DEFAULT_VANHENEMISPAIVA = LocalDate.ofEpochDay(5L)
-    val DEFAULT_MUOKKAUSAIKA = LocalDate.ofEpochDay(5L).atStartOfDay(ZoneId.systemDefault()).toInstant()
+    val DEFAULT_OPINTOSUORITUSTYYPPI: OpintosuoritusTyyppiEnum = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO
+    val DEFAULT_SUORITUSPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
+    val DEFAULT_VANHENEMISPAIVA: LocalDate = LocalDate.ofEpochDay(5L)
+    val DEFAULT_MUOKKAUSAIKA: Instant = LocalDate.ofEpochDay(5L).atStartOfDay(ZoneId.systemDefault()).toInstant()
 
     @JvmStatic
     fun createEntity(

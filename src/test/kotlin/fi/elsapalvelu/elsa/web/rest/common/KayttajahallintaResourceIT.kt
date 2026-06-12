@@ -480,7 +480,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
                 .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isCreated)
 
         val originalVastuuhenkilonTehtavat = kayttajaRepository.findById(vastuuhenkilo.id!!).get().yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat
-        assertThat(!originalVastuuhenkilonTehtavat.contains(vastuuhenkilonTehtava))
+        assertThat(originalVastuuhenkilonTehtavat).doesNotContain(vastuuhenkilonTehtava)
     }
 
     @ParameterizedTest
@@ -538,7 +538,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         assertThat(updatedVastuuhenkilo.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat).size().isEqualTo(0)
 
         val updatedVastuuhenkiloWithReassignedTehtava = kayttajaRepository.findById(vastuuhenkiloForReassignedTehtava.id!!).get()
-        assertThat(updatedVastuuhenkiloWithReassignedTehtava.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat.contains(vastuuhenkilonTehtava))
+        assertThat(updatedVastuuhenkiloWithReassignedTehtava.yliopistotAndErikoisalat.first().vastuuhenkilonTehtavat).contains(vastuuhenkilonTehtava)
     }
 
     @ParameterizedTest

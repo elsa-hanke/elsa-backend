@@ -28,9 +28,17 @@ fun <D : Operation.Data> ApolloResponse<D>.checkErrors(context: String, log: Log
                 err.extensions?.let { append(", extensions: $it") }
             }
         }
+        if (hasOnlyNoValuePresentGraphQLErrors()) {
+            log.warn("$context. GraphQL-virheet: $errMsg")
+            return this
+        }
+
         log.error("$context. GraphQL-virheet: $errMsg")
         throw RuntimeException("$context. GraphQL-virheet: $errMsg")
     }
 
     return this
 }
+
+private fun <D : Operation.Data> ApolloResponse<D>.hasOnlyNoValuePresentGraphQLErrors(): Boolean =
+    errors?.all { it.message.contains(GRAPHQL_NO_VALUE_PRESENT_ERROR) } == true
