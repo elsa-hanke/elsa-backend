@@ -8,6 +8,9 @@ import com.nhaarman.mockitokotlin2.whenever
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.service.AlertPublisherService
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
+import fi.elsapalvelu.elsa.service.arkistointi.HelsinkiSiiloService
+import fi.elsapalvelu.elsa.service.arkistointi.TampereLouhiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.metrics.ArkistointiMetricsService
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry

@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl
+package fi.elsapalvelu.elsa.service.arkistointi
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
@@ -7,8 +7,16 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.service.AlertPublisherService
-import fi.elsapalvelu.elsa.service.ArkistointiService
-import fi.elsapalvelu.elsa.service.dto.arkistointi.*
+import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiMetadata
+import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseFile
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import fi.elsapalvelu.elsa.service.dto.arkistointi.ContactInformation
+import fi.elsapalvelu.elsa.service.dto.arkistointi.PublicityClass
+import fi.elsapalvelu.elsa.service.dto.arkistointi.Record
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
+import fi.elsapalvelu.elsa.service.dto.arkistointi.TransferInformation
 import fi.elsapalvelu.elsa.service.metrics.ArkistointiMetricsService
 import org.apache.commons.codec.digest.DigestUtils
 import org.slf4j.LoggerFactory
@@ -16,7 +24,7 @@ import org.springframework.stereotype.Service
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.time.LocalDate
-import java.util.*
+import java.util.ResourceBundle
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
