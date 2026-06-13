@@ -9,8 +9,8 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.checkErrors
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.integration.AbstractOpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
-import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.PeppiOpintooikeudenTila
@@ -21,8 +21,8 @@ import org.springframework.stereotype.Service
 @Service
 class PeppiOuluOpintotietodataFetchingServiceImpl(
     @Qualifier("PeppiOulu") private val peppiOuluClientBuilder: GraphQLClientBuilder,
-    private val yliopistoRepository: YliopistoRepository
-) : OpintotietodataFetchingService {
+    yliopistoRepository: YliopistoRepository
+) : AbstractOpintotietodataFetchingService(yliopistoRepository, YliopistoEnum.OULUN_YLIOPISTO) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -53,14 +53,6 @@ class PeppiOuluOpintotietodataFetchingServiceImpl(
                     )
                 })
         }
-    }
-
-    override fun shouldFetchOpintotietodata(): Boolean {
-        return yliopistoRepository.findOneByNimi(YliopistoEnum.OULUN_YLIOPISTO)?.haeOpintotietodata == true
-    }
-
-    override fun getYliopisto(): YliopistoEnum {
-        return YliopistoEnum.OULUN_YLIOPISTO
     }
 
     private fun mapOpintooikeudenTila(tila: String?): OpintooikeudenTila? {

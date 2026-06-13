@@ -3,8 +3,8 @@ package fi.elsapalvelu.elsa.service.integration.peppi.uef
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.integration.AbstractOpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
-import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import org.springframework.beans.factory.annotation.Qualifier
@@ -15,8 +15,8 @@ class PeppiUefOpintosuorituksetFetchingServiceImpl(
     @Qualifier("PeppiUef") private val peppiUefClientBuilder: OkHttpClientBuilder,
     private val commonOpintosuorituksetFetchingService: PeppiCommonOpintosuorituksetFetchingService,
     private val applicationProperties: ApplicationProperties,
-    private val yliopistoRepository: YliopistoRepository
-) : OpintosuorituksetFetchingService {
+    yliopistoRepository: YliopistoRepository
+) : AbstractOpintosuorituksetFetchingService(yliopistoRepository, YliopistoEnum.ITA_SUOMEN_YLIOPISTO) {
 
     override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
         val endpointBaseUrl =
@@ -27,13 +27,5 @@ class PeppiUefOpintosuorituksetFetchingServiceImpl(
             hetu,
             YliopistoEnum.ITA_SUOMEN_YLIOPISTO
         )
-    }
-
-    override fun shouldFetchOpintosuoritukset(): Boolean {
-        return yliopistoRepository.findOneByNimi(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)?.haeOpintotietodata == true
-    }
-
-    override fun getYliopisto(): YliopistoEnum {
-        return YliopistoEnum.ITA_SUOMEN_YLIOPISTO
     }
 }

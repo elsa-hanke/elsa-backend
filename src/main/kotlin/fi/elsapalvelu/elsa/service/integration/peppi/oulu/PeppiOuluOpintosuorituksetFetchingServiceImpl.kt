@@ -5,8 +5,8 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.checkErrors
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.integration.AbstractOpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
-import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusOsakokonaisuusDTO
@@ -17,8 +17,8 @@ import org.springframework.stereotype.Service
 @Service
 class PeppiOuluOpintosuorituksetFetchingServiceImpl(
     @Qualifier("PeppiOulu") private val peppiOuluClientBuilder: GraphQLClientBuilder,
-    private val yliopistoRepository: YliopistoRepository
-) : OpintosuorituksetFetchingService {
+    yliopistoRepository: YliopistoRepository
+) : AbstractOpintosuorituksetFetchingService(yliopistoRepository, YliopistoEnum.OULUN_YLIOPISTO) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -62,13 +62,5 @@ class PeppiOuluOpintosuorituksetFetchingServiceImpl(
             arvio_sv = osakokonaisuus.grade?.name?.sv,
             vanhenemispaiva = osakokonaisuus.expiryDate?.tryParseToLocalDate(),
         )
-    }
-
-    override fun shouldFetchOpintosuoritukset(): Boolean {
-        return yliopistoRepository.findOneByNimi(YliopistoEnum.OULUN_YLIOPISTO)?.haeOpintotietodata == true
-    }
-
-    override fun getYliopisto(): YliopistoEnum {
-        return YliopistoEnum.OULUN_YLIOPISTO
     }
 }

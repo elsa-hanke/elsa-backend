@@ -7,8 +7,9 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.integration.AbstractOpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.LocalizedString
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
-import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR
@@ -26,8 +27,8 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
     @Qualifier("SisuTre") private val sisuTreClientBuilder: OkHttpClientBuilder,
     private val applicationProperties: ApplicationProperties,
     private val objectMapper: ObjectMapper,
-    private val yliopistoRepository: YliopistoRepository
-) : OpintosuorituksetFetchingService {
+    yliopistoRepository: YliopistoRepository
+) : AbstractOpintosuorituksetFetchingService(yliopistoRepository, YliopistoEnum.TAMPEREEN_YLIOPISTO) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -77,13 +78,6 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
         }
     }
 
-    override fun shouldFetchOpintosuoritukset(): Boolean {
-        return yliopistoRepository.findOneByNimi(YliopistoEnum.TAMPEREEN_YLIOPISTO)?.haeOpintotietodata == true
-    }
-
-    override fun getYliopisto(): YliopistoEnum {
-        return YliopistoEnum.TAMPEREEN_YLIOPISTO
-    }
 }
 
 data class AttainmentsResponse(val attainments: List<Attainment>)
@@ -107,10 +101,5 @@ data class CourseUnit(
 data class Grade(
     val name: LocalizedString?,
     val passed: Boolean
-)
-
-data class LocalizedString(
-    val fi: String?,
-    val sv: String?
 )
 

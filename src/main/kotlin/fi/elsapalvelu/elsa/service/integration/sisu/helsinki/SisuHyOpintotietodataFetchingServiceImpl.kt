@@ -9,8 +9,8 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.checkErrors
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.integration.AbstractOpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
-import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import org.slf4j.LoggerFactory
@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service
 @Service
 class SisuHyOpintotietodataFetchingServiceImpl(
     @Qualifier("SisuHy") private val sisuHyClientBuilder: GraphQLClientBuilder,
-    private val yliopistoRepository: YliopistoRepository
-) : OpintotietodataFetchingService {
+    yliopistoRepository: YliopistoRepository
+) : AbstractOpintotietodataFetchingService(yliopistoRepository, YliopistoEnum.HELSINGIN_YLIOPISTO) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -53,13 +53,5 @@ class SisuHyOpintotietodataFetchingServiceImpl(
                     )
                 })
         }
-    }
-
-    override fun shouldFetchOpintotietodata(): Boolean {
-        return yliopistoRepository.findOneByNimi(YliopistoEnum.HELSINGIN_YLIOPISTO)?.haeOpintotietodata == true
-    }
-
-    override fun getYliopisto(): YliopistoEnum {
-        return YliopistoEnum.HELSINGIN_YLIOPISTO
     }
 }

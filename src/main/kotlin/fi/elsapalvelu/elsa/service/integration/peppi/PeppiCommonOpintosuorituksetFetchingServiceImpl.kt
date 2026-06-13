@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
+import fi.elsapalvelu.elsa.service.integration.LocalizedString
 import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
@@ -88,7 +89,3 @@ data class StudyAccomplishment(
     val arvio: LocalizedString?
 )
 
-data class LocalizedString(
-    val fi: String?,
-    val sv: String?
-)

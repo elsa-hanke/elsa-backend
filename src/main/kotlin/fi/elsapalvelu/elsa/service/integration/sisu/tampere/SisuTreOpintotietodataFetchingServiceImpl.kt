@@ -8,8 +8,8 @@ import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila.Companion.fromS
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.integration.AbstractOpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
-import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR
@@ -28,8 +28,8 @@ class SisuTreOpintotietodataFetchingServiceImpl(
     @Qualifier("SisuTre") private val sisuTreClientBuilder: OkHttpClientBuilder,
     private val applicationProperties: ApplicationProperties,
     private val objectMapper: ObjectMapper,
-    private val yliopistoRepository: YliopistoRepository
-) : OpintotietodataFetchingService {
+    yliopistoRepository: YliopistoRepository
+) : AbstractOpintotietodataFetchingService(yliopistoRepository, YliopistoEnum.TAMPEREEN_YLIOPISTO) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -77,14 +77,6 @@ class SisuTreOpintotietodataFetchingServiceImpl(
             log.error("$JSON_FETCHING_ERROR: $endpointUrl ${e.message}", e)
             throw e
         }
-    }
-
-    override fun shouldFetchOpintotietodata(): Boolean {
-        return yliopistoRepository.findOneByNimi(YliopistoEnum.TAMPEREEN_YLIOPISTO)?.haeOpintotietodata == true
-    }
-
-    override fun getYliopisto(): YliopistoEnum {
-        return YliopistoEnum.TAMPEREEN_YLIOPISTO
     }
 }
 
