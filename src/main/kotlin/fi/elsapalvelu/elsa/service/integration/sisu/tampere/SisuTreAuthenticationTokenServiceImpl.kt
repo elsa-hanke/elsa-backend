@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl
+package fi.elsapalvelu.elsa.service.integration.sisu.tampere
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonProcessingException

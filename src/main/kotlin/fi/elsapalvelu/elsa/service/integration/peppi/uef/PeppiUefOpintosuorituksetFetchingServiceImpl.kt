@@ -1,11 +1,11 @@
-package fi.elsapalvelu.elsa.service.impl
+package fi.elsapalvelu.elsa.service.integration.peppi.uef
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.OkHttpClientBuilder
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
-import fi.elsapalvelu.elsa.service.PeppiCommonOpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service

@@ -1,27 +1,26 @@
-package fi.elsapalvelu.elsa.service.impl
+package fi.elsapalvelu.elsa.service.integration.peppi.turku
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.OkHttpClientBuilder
-import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
-import fi.elsapalvelu.elsa.service.PeppiCommonOpintosuorituksetFetchingService
-import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
+import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintotietodataFetchingServiceImpl
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
 @Service
-class PeppiTurkuOpintosuorituksetFetchingServiceImpl(
+class PeppiTurkuOpintotietodataFetchingServiceImpl(
     @Qualifier("PeppiTurku") private val peppiTurkuClientBuilder: OkHttpClientBuilder,
-    private val commonOpintosuorituksetFetchingService: PeppiCommonOpintosuorituksetFetchingService,
+    private val commonOpintotietodataFetchingServiceImpl: PeppiCommonOpintotietodataFetchingServiceImpl,
     private val applicationProperties: ApplicationProperties,
     private val yliopistoRepository: YliopistoRepository
-) : OpintosuorituksetFetchingService {
+) : OpintotietodataFetchingService {
 
-    override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
-        val endpointBaseUrl =
-            "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl!!}/study_accomplishments"
-        return commonOpintosuorituksetFetchingService.fetchOpintosuoritukset(
+    override suspend fun fetchOpintotietodata(hetu: String): OpintotietodataDTO? {
+        val endpointBaseUrl = "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl!!}/student"
+        return commonOpintotietodataFetchingServiceImpl.fetchOpintotietodata(
             endpointBaseUrl,
             peppiTurkuClientBuilder.okHttpClient(),
             hetu,
@@ -29,7 +28,7 @@ class PeppiTurkuOpintosuorituksetFetchingServiceImpl(
         )
     }
 
-    override fun shouldFetchOpintosuoritukset(): Boolean {
+    override fun shouldFetchOpintotietodata(): Boolean {
         return yliopistoRepository.findOneByNimi(YliopistoEnum.TURUN_YLIOPISTO)?.haeOpintotietodata == true
     }
 

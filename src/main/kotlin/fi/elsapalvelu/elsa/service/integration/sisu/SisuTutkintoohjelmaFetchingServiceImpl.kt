@@ -1,11 +1,11 @@
-package fi.elsapalvelu.elsa.service.impl
+package fi.elsapalvelu.elsa.service.integration.sisu
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
-import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaFetchingService
+import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingService
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR

@@ -6,11 +6,11 @@ import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegratio
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
-import fi.elsapalvelu.elsa.service.impl.PeppiCommonOpintosuorituksetFetchingServiceImpl
-import fi.elsapalvelu.elsa.service.impl.PeppiCommonOpintotietodataFetchingServiceImpl
-import fi.elsapalvelu.elsa.service.impl.PeppiUefClientBuilderImpl
-import fi.elsapalvelu.elsa.service.impl.PeppiUefOpintosuorituksetFetchingServiceImpl
-import fi.elsapalvelu.elsa.service.impl.PeppiUefOpintotietodataFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintosuorituksetFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintotietodataFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.integration.peppi.uef.PeppiUefClientBuilderImpl
+import fi.elsapalvelu.elsa.service.integration.peppi.uef.PeppiUefOpintosuorituksetFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.integration.peppi.uef.PeppiUefOpintotietodataFetchingServiceImpl
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration

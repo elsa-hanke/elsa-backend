@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service
+package fi.elsapalvelu.elsa.service.integration.peppi
 
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO

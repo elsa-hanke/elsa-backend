@@ -8,10 +8,10 @@ import fi.elsapalvelu.elsa.service.AuthenticationTokenService
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.impl.AuthenticationTokenClientBuilderImpl
-import fi.elsapalvelu.elsa.service.impl.SisuTreAuthenticationTokenServiceImpl
-import fi.elsapalvelu.elsa.service.impl.SisuTreClientBuilderImpl
-import fi.elsapalvelu.elsa.service.impl.SisuTreOpintosuorituksetFetchingServiceImpl
-import fi.elsapalvelu.elsa.service.impl.SisuTreOpintotietodataFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.integration.sisu.tampere.SisuTreAuthenticationTokenServiceImpl
+import fi.elsapalvelu.elsa.service.integration.sisu.tampere.SisuTreClientBuilderImpl
+import fi.elsapalvelu.elsa.service.integration.sisu.tampere.SisuTreOpintosuorituksetFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.integration.sisu.tampere.SisuTreOpintotietodataFetchingServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test

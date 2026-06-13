@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl
+package fi.elsapalvelu.elsa.service.integration.sisu.tampere
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonMappingException
@@ -108,3 +108,9 @@ data class Grade(
     val name: LocalizedString?,
     val passed: Boolean
 )
+
+data class LocalizedString(
+    val fi: String?,
+    val sv: String?
+)
+

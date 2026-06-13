@@ -6,11 +6,11 @@ import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegratio
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
-import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaFetchingService
-import fi.elsapalvelu.elsa.service.impl.SisuHyClientBuilderImpl
-import fi.elsapalvelu.elsa.service.impl.SisuHyOpintosuorituksetFetchingServiceImpl
-import fi.elsapalvelu.elsa.service.impl.SisuHyOpintotietodataFetchingServiceImpl
-import fi.elsapalvelu.elsa.service.impl.SisuTutkintoohjelmaFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingService
+import fi.elsapalvelu.elsa.service.integration.sisu.helsinki.SisuHyClientBuilderImpl
+import fi.elsapalvelu.elsa.service.integration.sisu.helsinki.SisuHyOpintosuorituksetFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.integration.sisu.helsinki.SisuHyOpintotietodataFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingServiceImpl
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode

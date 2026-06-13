@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service
+package fi.elsapalvelu.elsa.service.integration.peppi.oulu
 
 import com.apollographql.apollo.ApolloClient
 

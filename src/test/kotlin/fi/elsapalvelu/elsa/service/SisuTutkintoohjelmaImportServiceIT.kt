@@ -4,9 +4,10 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.Erikoisala
 import fi.elsapalvelu.elsa.domain.ErikoisalaSisuTutkintoohjelma
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
-import fi.elsapalvelu.elsa.service.impl.Entity
-import fi.elsapalvelu.elsa.service.impl.Qualifications
-import fi.elsapalvelu.elsa.service.impl.Requirement
+import fi.elsapalvelu.elsa.service.integration.sisu.Entity
+import fi.elsapalvelu.elsa.service.integration.sisu.Qualifications
+import fi.elsapalvelu.elsa.service.integration.sisu.Requirement
+import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaImportService
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll

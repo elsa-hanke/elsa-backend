@@ -8,9 +8,9 @@ import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
 import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
-import fi.elsapalvelu.elsa.service.impl.PeppiOuluClientBuilderImpl
-import fi.elsapalvelu.elsa.service.impl.PeppiOuluOpintosuorituksetFetchingServiceImpl
-import fi.elsapalvelu.elsa.service.impl.PeppiOuluOpintotietodataFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.integration.peppi.oulu.PeppiOuluClientBuilderImpl
+import fi.elsapalvelu.elsa.service.integration.peppi.oulu.PeppiOuluOpintosuorituksetFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.integration.peppi.oulu.PeppiOuluOpintotietodataFetchingServiceImpl
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import org.assertj.core.api.Assertions.assertThatCode
