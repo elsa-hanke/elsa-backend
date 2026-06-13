@@ -9,8 +9,8 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.checkErrors
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
-import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
-import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
+import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.PeppiOpintooikeudenTila

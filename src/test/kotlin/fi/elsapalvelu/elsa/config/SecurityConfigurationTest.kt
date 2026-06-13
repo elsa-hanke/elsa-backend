@@ -10,9 +10,9 @@ import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
 import fi.elsapalvelu.elsa.repository.VerificationTokenRepository
 import fi.elsapalvelu.elsa.service.OpintooikeusService
-import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.OpintosuorituksetPersistenceService
-import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.OpintotietodataPersistenceService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO

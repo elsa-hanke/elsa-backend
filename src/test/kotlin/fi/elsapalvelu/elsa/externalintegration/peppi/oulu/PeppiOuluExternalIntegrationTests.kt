@@ -5,9 +5,9 @@ import com.apollographql.apollo.exception.ApolloException
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
-import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
-import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
-import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
+import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.peppi.oulu.PeppiOuluClientBuilderImpl
 import fi.elsapalvelu.elsa.service.integration.peppi.oulu.PeppiOuluOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.integration.peppi.oulu.PeppiOuluOpintotietodataFetchingServiceImpl

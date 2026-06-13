@@ -4,7 +4,7 @@ import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.network.okHttpClient
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
-import fi.elsapalvelu.elsa.service.GraphQLClientBuilder
+import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.ResourceLoader

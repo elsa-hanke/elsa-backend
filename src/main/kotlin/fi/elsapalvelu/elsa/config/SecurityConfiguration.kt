@@ -9,6 +9,8 @@ import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.security.StaleXsrfCookieClearingFilter
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import jakarta.persistence.EntityNotFoundException
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.*

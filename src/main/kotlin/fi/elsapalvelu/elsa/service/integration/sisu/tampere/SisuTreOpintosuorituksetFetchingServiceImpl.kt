@@ -7,8 +7,8 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
-import fi.elsapalvelu.elsa.service.OkHttpClientBuilder
-import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
+import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR

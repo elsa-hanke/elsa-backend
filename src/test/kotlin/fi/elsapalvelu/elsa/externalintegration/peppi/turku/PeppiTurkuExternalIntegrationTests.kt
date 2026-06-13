@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
-import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
-import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintotietodataFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.integration.peppi.turku.PeppiTurkuClientBuilderImpl

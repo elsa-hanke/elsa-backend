@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.integration.peppi.uef
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
-import fi.elsapalvelu.elsa.service.OkHttpClientBuilder
+import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service

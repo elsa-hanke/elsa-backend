@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.externalintegration
 
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
-import fi.elsapalvelu.elsa.service.OpintotietodataFetchingService
-import fi.elsapalvelu.elsa.service.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusOsakokonaisuusDTO
@@ -11,7 +11,6 @@ import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.slf4j.LoggerFactory
 
 abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestSupport() {
 
