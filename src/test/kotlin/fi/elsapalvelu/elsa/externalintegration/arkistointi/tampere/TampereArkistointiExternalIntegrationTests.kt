@@ -4,13 +4,13 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.externalintegration.ExternalIntegrationTestSupport
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
+import fi.elsapalvelu.elsa.service.arkistointi.HelsinkiSiiloService
+import fi.elsapalvelu.elsa.service.arkistointi.TampereLouhiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
-import fi.elsapalvelu.elsa.service.impl.ArkistointiServiceImpl
 import fi.elsapalvelu.elsa.service.impl.AlertPublisherServiceImpl
-import fi.elsapalvelu.elsa.service.impl.HelsinkiSiiloService
-import fi.elsapalvelu.elsa.service.impl.TampereLouhiService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.Disabled

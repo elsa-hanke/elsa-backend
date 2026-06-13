@@ -2,8 +2,8 @@ package fi.elsapalvelu.elsa
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.repository.ErikoisalaSisuTutkintoohjelmaRepository
-import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaFetchingService
-import fi.elsapalvelu.elsa.service.SisuTutkintoohjelmaImportService
+import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingService
+import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaImportService
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -98,6 +98,8 @@ class ElsaBackendApp(
                 Application '${env.getProperty("spring.application.name")}' is running!
                 Local:      http://localhost:$serverPort$contextPath
                 Profile(s): ${env.activeProfiles.joinToString(",")}
+                Java: ${Runtime.version()}
+                Kotlin: ${KotlinVersion.CURRENT}
                 ----------------------------------------------------------
                 """.trimIndent()
             )

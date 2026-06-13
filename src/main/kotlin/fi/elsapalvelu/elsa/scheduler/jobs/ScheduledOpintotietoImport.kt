@@ -17,6 +17,8 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
+import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 
 @Component
 class ScheduledOpintotietoImport(
