@@ -40,9 +40,6 @@ object ErikoistuvaLaakariHelper {
         erikoistuvaLaakari.laillistamistodistus = AsiakirjaData(data = laillistamistodistusData)
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = laillistamistodistusNimi
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = laillistamistodistusTyyppi
-        // NOTE: do NOT persist erikoistuvaLaakari here – the @NotEmpty constraint on opintooikeudet
-        // is now enforced at flush time (Kotlin 2.4 propagates annotations to backing fields).
-        // We persist it together with the first opintooikeus further below.
 
         var erikoistuvanYliopisto = yliopisto
         if (erikoistuvanYliopisto == null) {
@@ -88,8 +85,6 @@ object ErikoistuvaLaakariHelper {
             opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS, osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA, erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = erikoistuvanYliopisto, erikoisala = erikoistuvanErikoisala, opintoopas = opintoopasKaytossa, asetus = asetusKaytossa, kaytossa = true,
             tila = OpintooikeudenTila.AKTIIVINEN)
-        // Add to the collection BEFORE the first flush so the @NotEmpty constraint is satisfied
-        // when Hibernate validates erikoistuvaLaakari on its first INSERT.
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
         em.persist(erikoistuvaLaakari)
         em.persist(opintooikeus)
