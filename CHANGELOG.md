@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- Peppi and Sisu services: refactoring and reorganization [`#622`](https://github.com/elsa-hanke/elsa-backend/pull/622)(13 June 2026)
 - More external integration tests [`#614`](https://github.com/elsa-hanke/elsa-backend/pull/614)(12 June 2026)
 - enhance error handling for GraphQL responses by logging specific no value present errors [`#616`](https://github.com/elsa-hanke/elsa-backend/pull/616)(10 June 2026)
 - Update minimum file size error message for document uploads [`#615`](https://github.com/elsa-hanke/elsa-backend/pull/615)(9 June 2026)
