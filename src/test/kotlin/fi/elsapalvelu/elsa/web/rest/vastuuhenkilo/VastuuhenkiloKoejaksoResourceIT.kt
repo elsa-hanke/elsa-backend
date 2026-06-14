@@ -753,7 +753,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         em.persist(koejaksonLoppukeskustelu)
 
         if (createVastuuhenkilonArvio == true) {
-            koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari)
+            koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
             em.persist(koejaksonVastuuhenkilonArvio)
         }
     }

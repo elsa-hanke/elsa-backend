@@ -26,7 +26,6 @@ data class KoejaksonVastuuhenkilonArvio(
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var opintooikeus: Opintooikeus? = null,
 
-    @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var vastuuhenkilo: Kayttaja? = null,

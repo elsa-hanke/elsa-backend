@@ -40,7 +40,6 @@ object ErikoistuvaLaakariHelper {
         erikoistuvaLaakari.laillistamistodistus = AsiakirjaData(data = laillistamistodistusData)
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = laillistamistodistusNimi
         erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi = laillistamistodistusTyyppi
-        em.persist(erikoistuvaLaakari)
 
         var erikoistuvanYliopisto = yliopisto
         if (erikoistuvanYliopisto == null) {
@@ -86,9 +85,11 @@ object ErikoistuvaLaakariHelper {
             opiskelijatunnus = DEFAULT_OPISKELIJATUNNUS, osaamisenArvioinninOppaanPvm = DEFAULT_ERIKOISTUMISEN_ALOITUSPAIVA, erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = erikoistuvanYliopisto, erikoisala = erikoistuvanErikoisala, opintoopas = opintoopasKaytossa, asetus = asetusKaytossa, kaytossa = true,
             tila = OpintooikeudenTila.AKTIIVINEN)
-        persistAndFlush(em, opintooikeus)
-
         erikoistuvaLaakari.opintooikeudet.add(opintooikeus)
+        em.persist(erikoistuvaLaakari)
+        em.persist(opintooikeus)
+        em.flush()  // Hibernate inserts ErikoistuvaLaakari first (FK dependency), then Opintooikeus
+
         erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
 
         return erikoistuvaLaakari
