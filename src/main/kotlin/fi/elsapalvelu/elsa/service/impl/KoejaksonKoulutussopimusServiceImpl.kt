@@ -193,8 +193,16 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         val erikoisala = opintooikeus?.erikoisala!!
         val yek = erikoisala.id == YEK_ERIKOISALA_ID
+        val erikoistujanNimi = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
         logger.info("Lahetetaan arkistopyynto: ${result.zipFilePath}")
-        arkistointiService.laheta(yliopisto, result.zipFilePath, CaseType.SOPIMUS, yek)
+        arkistointiService.laheta(
+            yliopisto = yliopisto,
+            filePath = result.zipFilePath,
+            caseType = CaseType.SOPIMUS,
+            yek = yek,
+            caseId = koulutussopimus.id!!.toString(),
+            erikoistujanNimi = erikoistujanNimi
+        )
         logger.info("Lahetettiin arkistopyynto")
     }
 

@@ -71,7 +71,9 @@ class ArkistointiAlertTest {
                 yliopisto = YliopistoEnum.HELSINGIN_YLIOPISTO,
                 filePath = "/tmp/test.zip",
                 caseType = CaseType.VALMISTUMINEN,
-                yek = false
+                yek = false,
+                caseId = "42",
+                erikoistujanNimi = "Matti Meikäläinen"
             )
         }
 
@@ -81,12 +83,15 @@ class ArkistointiAlertTest {
 
         assertThat(subjectCaptor.firstValue).contains("Helsinki")
         assertThat(messageCaptor.firstValue).contains("HY Siilo connection refused")
+        assertThat(messageCaptor.firstValue).contains("Id: 42")
+        assertThat(messageCaptor.firstValue).contains("Matti Meikäläinen")
     }
 
     @Test
     fun `alert is published when Helsinki archiving fails with non-200 response`() {
         whenever(helsinkiSiiloService.laheta(any(), any()))
-            .thenThrow(RuntimeException("HY arkistointi epäonnistui: HTTP 503 Service Unavailable, URL: http://esb-api.it.helsinki.fi/unisign/elsa/archive/abc123. Palvelimen vastaus: (tyhjä)"))
+            .thenThrow(RuntimeException("HY arkistointi epäonnistui: HTTP 503 Service Unavailable, " +
+                "URL: http://esb-api.it.helsinki.fi/unisign/elsa/archive/abc123. Palvelimen vastaus: (tyhjä)"))
 
         assertThrows(RuntimeException::class.java) {
             arkistointiService.laheta(
@@ -134,7 +139,9 @@ class ArkistointiAlertTest {
                 yliopisto = YliopistoEnum.TAMPEREEN_YLIOPISTO,
                 filePath = "/tmp/tre.zip",
                 caseType = CaseType.VALMISTUMINEN,
-                yek = false
+                yek = false,
+                caseId = "17",
+                erikoistujanNimi = "Aino Aaltonen"
             )
         }
 
@@ -145,6 +152,8 @@ class ArkistointiAlertTest {
         assertThat(subjectCaptor.firstValue).contains("Tampere")
         assertThat(messageCaptor.firstValue).contains("SFTP connection timed out")
         assertThat(messageCaptor.firstValue).contains("localhost") // SFTP host must be in the alert
+        assertThat(messageCaptor.firstValue).contains("Id: 17")
+        assertThat(messageCaptor.firstValue).contains("Aino Aaltonen")
     }
 
     @Test

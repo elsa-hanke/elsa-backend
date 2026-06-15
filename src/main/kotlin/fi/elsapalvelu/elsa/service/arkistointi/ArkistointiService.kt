@@ -21,7 +21,14 @@ interface ArkistointiService {
         caseType: CaseType = CaseType.VALMISTUMINEN
     ): ArkistointiResult
 
-    fun laheta(yliopisto: YliopistoEnum, filePath: String, caseType: CaseType, yek: Boolean)
+    fun laheta(
+        yliopisto: YliopistoEnum,
+        filePath: String,
+        caseType: CaseType,
+        yek: Boolean,
+        caseId: String? = null,
+        erikoistujanNimi: String? = null
+    )
 
     fun onKaytossa(yliopisto: YliopistoEnum, caseType: CaseType): Boolean
 }
