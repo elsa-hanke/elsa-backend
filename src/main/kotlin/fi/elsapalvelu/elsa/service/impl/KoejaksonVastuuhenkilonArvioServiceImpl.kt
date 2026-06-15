@@ -367,7 +367,15 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 caseType = CaseType.KOEJAKSO
             )
             val yek = erikoisala.id == YEK_ERIKOISALA_ID
-            arkistointiService.laheta(yliopisto, result.zipFilePath, CaseType.KOEJAKSO, yek)
+            val erikoistujanNimi = vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
+            arkistointiService.laheta(
+                yliopisto = yliopisto,
+                filePath = result.zipFilePath,
+                caseType = CaseType.KOEJAKSO,
+                yek = yek,
+                caseId = vastuuhenkilonArvio.id!!.toString(),
+                erikoistujanNimi = erikoistujanNimi
+            )
         }
 
     }

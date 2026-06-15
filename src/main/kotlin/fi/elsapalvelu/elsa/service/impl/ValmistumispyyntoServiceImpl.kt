@@ -367,7 +367,15 @@ class ValmistumispyyntoServiceImpl(
         )
         val erikoisala = valmistumispyynto.opintooikeus?.erikoisala!!
         val yek = erikoisala.id == YEK_ERIKOISALA_ID
-        arkistointiService.laheta(nimi!!, result.zipFilePath, CaseType.VALMISTUMINEN, yek)
+        val erikoistujanNimi = valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
+        arkistointiService.laheta(
+            yliopisto = nimi!!,
+            filePath = result.zipFilePath,
+            caseType = CaseType.VALMISTUMINEN,
+            yek = yek,
+            caseId = id.toString(),
+            erikoistujanNimi = erikoistujanNimi
+        )
         log.info("Sahke muodostettu ja lahetetty [valmistumispyyntoId=$id, yek=$yek]")
     }
 

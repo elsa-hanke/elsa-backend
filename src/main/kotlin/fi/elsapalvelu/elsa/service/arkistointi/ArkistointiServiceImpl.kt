@@ -235,7 +235,9 @@ class ArkistointiServiceImpl(
         yliopisto: YliopistoEnum,
         filePath: String,
         caseType: CaseType,
-        yek: Boolean
+        yek: Boolean,
+        caseId: String?,
+        erikoistujanNimi: String?
     ) {
         arkistointiMetrics.activeArkistointiOperations.incrementAndGet()
         try {
@@ -244,10 +246,18 @@ class ArkistointiServiceImpl(
                     try {
                         tampereLouhiService.laheta(filePath, yek)
                     } catch (e: Exception) {
+                        val sftpHost = applicationProperties.getArkistointi().getTre().host ?: "tuntematon"
                         alertPublisherService.publishAlert(
                             subject = "Tampere arkistointi epäonnistui",
-                            message = "Arkistointitiedoston lähetys Louhi SFTP-palvelimelle epäonnistui. " +
-                                "Tiedosto: $filePath, CaseType: ${caseType.value}. Virhe: ${e.message}"
+                            message = buildAlertMessage(
+                                intro = "Arkistointitiedoston lähetys Louhi SFTP-palvelimelle epäonnistui.",
+                                extra = "SFTP-palvelin: $sftpHost.",
+                                filePath = filePath,
+                                caseType = caseType,
+                                caseId = caseId,
+                                erikoistujanNimi = erikoistujanNimi,
+                                error = e.message
+                            )
                         )
                         arkistointiMetrics.recordError(yliopisto, caseType)
                         throw e
@@ -260,8 +270,15 @@ class ArkistointiServiceImpl(
                     } catch (e: Exception) {
                         alertPublisherService.publishAlert(
                             subject = "Helsinki arkistointi epäonnistui",
-                            message = "Arkistointitiedoston lähetys HY Siilo-palveluun epäonnistui. " +
-                                "Tiedosto: $filePath, CaseType: ${caseType.value}. Virhe: ${e.message}"
+                            message = buildAlertMessage(
+                                intro = "Arkistointitiedoston lähetys HY Siilo-palveluun epäonnistui.",
+                                extra = null,
+                                filePath = filePath,
+                                caseType = caseType,
+                                caseId = caseId,
+                                erikoistujanNimi = erikoistujanNimi,
+                                error = e.message
+                            )
                         )
                         arkistointiMetrics.recordError(yliopisto, caseType)
                         throw e
@@ -305,5 +322,23 @@ class ArkistointiServiceImpl(
 
         val metadataProperties = getMetadataForYliopisto(yliopisto)
         return metadataProperties?.getCaseMetadata(caseType) != null
+    }
+
+    private fun buildAlertMessage(
+        intro: String,
+        extra: String?,
+        filePath: String,
+        caseType: CaseType,
+        caseId: String?,
+        erikoistujanNimi: String?,
+        error: String?
+    ): String = buildString {
+        append(intro)
+        if (extra != null) append(" $extra")
+        append(" CaseType: ${caseType.value}")
+        if (caseId != null) append(", Id: $caseId")
+        if (erikoistujanNimi != null) append(". Erikoistuva lääkäri: $erikoistujanNimi")
+        append(". Tiedosto: $filePath")
+        append(". Virhe: $error")
     }
 }

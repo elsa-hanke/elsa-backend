@@ -56,7 +56,10 @@ class HelsinkiSiiloService(
             okHttpClient.newCall(request).execute().use { response ->
                 val responseBody = response.body?.string()
                 if (!response.isSuccessful) {
-                    throw RuntimeException("HY arkistointi epäonnistui: ${response.code} - $responseBody")
+                    throw RuntimeException(
+                        "HY arkistointi epäonnistui: HTTP ${response.code} ${response.message}, " +
+                            "URL: $url. Palvelimen vastaus: ${responseBody?.take(500) ?: "(tyhjä)"}"
+                    )
                 }
                 log.info("HY arkistointivastaus: ${response.code} $responseBody")
             }
