@@ -244,9 +244,11 @@ class ArkistointiServiceImpl(
                     try {
                         tampereLouhiService.laheta(filePath, yek)
                     } catch (e: Exception) {
+                        val sftpHost = applicationProperties.getArkistointi().getTre().host ?: "tuntematon"
                         alertPublisherService.publishAlert(
                             subject = "Tampere arkistointi epäonnistui",
                             message = "Arkistointitiedoston lähetys Louhi SFTP-palvelimelle epäonnistui. " +
+                                "SFTP-palvelin: $sftpHost. " +
                                 "Tiedosto: $filePath, CaseType: ${caseType.value}. Virhe: ${e.message}"
                         )
                         arkistointiMetrics.recordError(yliopisto, caseType)
