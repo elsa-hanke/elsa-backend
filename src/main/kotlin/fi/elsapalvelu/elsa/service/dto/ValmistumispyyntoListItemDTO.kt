@@ -21,4 +21,8 @@ data class ValmistumispyyntoListItemDTO(
 
 ): Serializable {
     override fun toString() = "ValmistumispyyntoListItemDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

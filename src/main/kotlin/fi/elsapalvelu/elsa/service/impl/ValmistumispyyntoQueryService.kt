@@ -31,7 +31,7 @@ class ValmistumispyyntoQueryService(
         excludedErikoisalaIds: List<Long>,
         langkey: String?
     ): Page<Valmistumispyynto> {
-        val specification: Specification<Valmistumispyynto> = Specification.where { root, cq, cb ->
+        val specification = Specification<Valmistumispyynto> { root, cq, cb ->
             val predicates: MutableList<Predicate> = mutableListOf()
             val opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus> =
                 root.join(Valmistumispyynto_.opintooikeus)
@@ -94,7 +94,7 @@ class ValmistumispyyntoQueryService(
         erikoisalaIds: List<Long>,
         langkey: String?
     ): Page<Valmistumispyynto> {
-        val specification: Specification<Valmistumispyynto> = Specification.where { root, cq, cb ->
+        val specification = Specification<Valmistumispyynto> { root, cq, cb ->
             val predicates: MutableList<Predicate> = mutableListOf()
             val opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus> =
                 root.join(Valmistumispyynto_.opintooikeus)
@@ -255,17 +255,6 @@ class ValmistumispyyntoQueryService(
     ): Predicate {
         val yliopisto: Path<Yliopisto> = opintooikeusJoin.get(Opintooikeus_.yliopisto)
         return cb.equal(yliopisto.get(Yliopisto_.id), yliopistoId)
-    }
-
-    private fun getErikoisalaPredicate(
-        erikoisalaId: LongFilter?,
-        opintooikeusJoin: Join<Valmistumispyynto?, Opintooikeus>,
-        cb: CriteriaBuilder
-    ): Predicate? {
-        return erikoisalaId?.let {
-            val erikoisala: Path<Erikoisala> = opintooikeusJoin.get(Opintooikeus_.erikoisala)
-            cb.equal(erikoisala.get(Erikoisala_.id), erikoisalaId.equals)
-        }
     }
 
     private fun getErikoisalatPredicate(

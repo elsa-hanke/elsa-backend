@@ -21,6 +21,7 @@ private const val ARVIOITAVA_KOKONAISUUS_ENTITY_NAME = "arvioitavakokonaisuus"
 private const val SUORITTEEN_KATEGORIA_ENTITY_NAME = "suoritteenkategoria"
 private const val SUORITE_ENTITY_NAME = "suorite"
 
+@Suppress("TooManyFunctions")
 @RestController
 @RequestMapping("/api/tekninen-paakayttaja")
 class TekninenPaakayttajaOpetussuunnitelmatResource(
@@ -114,7 +115,8 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     @PostMapping("/arvioitavankokonaisuudenkategoria")
-    fun createArvioitavanKokonaisuudenKategoria(@Valid @RequestBody arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO): ResponseEntity<ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO> {
+    fun createArvioitavanKokonaisuudenKategoria(@Valid @RequestBody arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO):
+        ResponseEntity<ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO> {
         if (arvioitavanKokonaisuudenKategoriaDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi kategoria ei saa sisältää id:tä",
@@ -130,7 +132,8 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     @PutMapping("/arvioitavankokonaisuudenkategoria")
-    fun updateArvioitavanKokonaisuudenKategoria(@Valid @RequestBody arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO): ResponseEntity<ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO> {
+    fun updateArvioitavanKokonaisuudenKategoria(@Valid @RequestBody arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO):
+        ResponseEntity<ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO> {
         if (arvioitavanKokonaisuudenKategoriaDTO.id == null) {
             throw BadRequestAlertException(
                 "Virheellinen id",
@@ -176,8 +179,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
 
     @DeleteMapping("/arvioitavatkokonaisuudet/{id}")
     fun deleteArvioitavaKokonaisuus(
-        @PathVariable id: Long,
-        principal: Principal?
+        @PathVariable id: Long
     ): ResponseEntity<Void> {
         arvioitavaKokonaisuusService.delete(id)
         return ResponseEntity
@@ -265,8 +267,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
 
     @DeleteMapping("/suoritteet/{id}")
     fun deleteSuorite(
-        @PathVariable id: Long,
-        principal: Principal?
+        @PathVariable id: Long
     ): ResponseEntity<Void> {
         suoriteService.delete(id)
         return ResponseEntity

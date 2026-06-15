@@ -12,4 +12,8 @@ data class PalauteDTO(
 
     var anonyymiPalaute: Boolean = false
 
-): Serializable
+): Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

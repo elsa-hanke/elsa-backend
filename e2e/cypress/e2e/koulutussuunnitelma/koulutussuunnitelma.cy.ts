@@ -51,14 +51,37 @@ describe('Koulutussuunnitelma', () => {
       .type('Testataan e2e-automaatiolla.')
 
     // 5. Koulutusjakson tallentaminen
+    cy.intercept('POST', '**/erikoistuva-laakari/koulutussuunnitelma/koulutusjaksot').as(
+      'koulutusjaksoPost'
+    )
     cy.contains('button', 'Tallenna koulutusjakso').click()
+    cy.wait('@koulutusjaksoPost').then(({ response }) => {
+      expect(response?.statusCode).to.eq(201)
+      expect(response?.body?.id).to.be.a('number')
+      expect(response?.body?.nimi).to.eq('E2E Testi Koulutusjakso')
+      expect(response?.body?.muutOsaamistavoitteet).to.eq('Testataan e2e-automaatiolla.')
+    })
 
     // Tallennuksen jälkeen ohjaudutaan koulutusjakson sivulle
     cy.url().should('match', /\/koulutussuunnitelma\/koulutusjaksot\/\d+$/)
+    cy.contains('E2E Testi Koulutusjakso').should('be.visible')
+    cy.contains('Testataan e2e-automaatiolla.').should('be.visible')
+
+    // Muokkauslinkki on käytettävissä koulutusjakson sivulla
+    cy.url().then((url) => {
+      const id = url.split('/').pop()
+      cy.visit(`/koulutussuunnitelma/koulutusjaksot/${id}/muokkaus`)
+    })
+    cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
+    // Lomakkeessa on jo täytetty nimi
+    cy.contains('label', 'Koulutusjakson nimi')
+      .parent()
+      .find('input[type="text"]')
+      .first()
+      .should('have.value', 'E2E Testi Koulutusjakso')
 
     // Uusi koulutusjakso näkyy koulutussuunnitelmassa
     cy.visit('/koulutussuunnitelma')
     cy.contains('E2E Testi Koulutusjakso').should('be.visible')
   })
 })
-

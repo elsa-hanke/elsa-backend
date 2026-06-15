@@ -9,4 +9,8 @@ data class RecordProperties(
 
     var type: RecordType
 
-) : Serializable
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

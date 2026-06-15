@@ -14,7 +14,7 @@ import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelypaikkaHelper.Companion.DEFAULT_NIMI
+import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelypaikkaHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -102,7 +102,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
             testLahikouluttaja?.user?.authorities?.contains(
                 Authority(name = KOULUTTAJA)
             )
-        )
+        ).isTrue()
 
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat).hasSize(1)
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto).isEqualTo(opintooikeus.yliopisto)
@@ -137,7 +137,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
             testLahikouluttaja?.user?.authorities?.contains(
                 Authority(name = KOULUTTAJA)
             )
-        )
+        ).isTrue()
 
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat).hasSize(1)
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto).isEqualTo(newOpintooikeus.yliopisto)
@@ -151,7 +151,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         initKouluttajaWithYliopistoAndErikoisala(opintooikeus.yliopisto, opintooikeus.erikoisala)
 
         val databaseSizeBeforeCreate = kayttajaRepository.findAll().size
-        val uusiLahikouluttajaDTO = UusiLahikouluttajaDTO(DEFAULT_NIMI, DEFAULT_EMAIL)
+         val uusiLahikouluttajaDTO = UusiLahikouluttajaDTO(TyoskentelypaikkaHelper.DEFAULT_NIMI, DEFAULT_EMAIL)
 
         restLahikouluttajatMockMvc.perform(
             post("/api/erikoistuva-laakari/lahikouluttajat")
@@ -192,8 +192,8 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
     }
 
     fun initKouluttajaWithYliopistoAndErikoisala(yliopisto: Yliopisto? = null, erikoisala: Erikoisala? = null) {
-        val kouluttajaUser =
-            KayttajaResourceWithMockUserIT.createEntity(DEFAULT_NIMI, DEFAULT_EMAIL, Authority(name = KOULUTTAJA))
+         val kouluttajaUser =
+            KayttajaResourceWithMockUserIT.createEntity(TyoskentelypaikkaHelper.DEFAULT_NIMI, DEFAULT_EMAIL, Authority(name = KOULUTTAJA))
         em.persist(kouluttajaUser)
         em.flush()
         val kouluttajaKayttaja = KayttajaHelper.createEntity(em, kouluttajaUser)

@@ -1,5 +1,77 @@
 # Changelog
 
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
+
+- Peppi and Sisu services: refactoring and reorganization [`#622`](https://github.com/elsa-hanke/elsa-backend/pull/622)(13 June 2026)
+- More external integration tests [`#614`](https://github.com/elsa-hanke/elsa-backend/pull/614)(12 June 2026)
+- enhance error handling for GraphQL responses by logging specific no value present errors [`#616`](https://github.com/elsa-hanke/elsa-backend/pull/616)(10 June 2026)
+- Update minimum file size error message for document uploads [`#615`](https://github.com/elsa-hanke/elsa-backend/pull/615)(9 June 2026)
+- Add alert publishing for failed user login due to incorrect name [`#612`](https://github.com/elsa-hanke/elsa-backend/pull/612)(9 June 2026)
+- ELSA1-1145: lisälogitus tyoskentelyjakon asiakirjoihin [`#590`](https://github.com/elsa-hanke/elsa-backend/pull/590)(9 June 2026)
+- Bump express from 4.18.2 to 4.22.2 in /frontend [`#603`](https://github.com/elsa-hanke/elsa-backend/pull/603)(8 June 2026)
+- Bump tinymce from 7.2.0 to 7.9.3 in /frontend [`#610`](https://github.com/elsa-hanke/elsa-backend/pull/610)(8 June 2026)
+- enable peppi Tampere externalIntegrationTests [`#611`](https://github.com/elsa-hanke/elsa-backend/pull/611)(8 June 2026)
+- Bump launch-editor from 2.3.0 to 2.14.1 in /frontend [`#609`](https://github.com/elsa-hanke/elsa-backend/pull/609)(4 June 2026)
+- Bump prismjs from 1.27.0 to 1.30.0 in /frontend [`#606`](https://github.com/elsa-hanke/elsa-backend/pull/606)(4 June 2026)
+- Bump http-proxy-middleware from 2.0.4 to 2.0.9 in /frontend [`#607`](https://github.com/elsa-hanke/elsa-backend/pull/607)(3 June 2026)
+- Bump js-yaml from 3.14.1 to 3.14.2 in /frontend [`#605`](https://github.com/elsa-hanke/elsa-backend/pull/605)(3 June 2026)
+- Bump async from 2.6.3 to 2.6.4 in /frontend [`#601`](https://github.com/elsa-hanke/elsa-backend/pull/601)(3 June 2026)
+- Bump @babel/helpers from 7.23.4 to 7.29.7 in /frontend [`#602`](https://github.com/elsa-hanke/elsa-backend/pull/602)(3 June 2026)
+- fix integration login bug + update error handling + logging for Apollo 4 integration [`#588`](https://github.com/elsa-hanke/elsa-backend/pull/588)(3 June 2026)
+- Add compile-time guards for spring-cloud-aws-starter-s3 dependency [`#600`](https://github.com/elsa-hanke/elsa-backend/pull/600)(2 June 2026)
+- Revert "Remove unnecessary AWS S3 dependency and configuration (#597)" [`#599`](https://github.com/elsa-hanke/elsa-backend/pull/599)(1 June 2026)
+- Remove unused frontend dependencies [`#596`](https://github.com/elsa-hanke/elsa-backend/pull/596)(1 June 2026)
+- Remove unnecessary AWS S3 dependency and configuration [`#597`](https://github.com/elsa-hanke/elsa-backend/pull/597)(1 June 2026)
+- Add management port and job triggering endpoint [`#594`](https://github.com/elsa-hanke/elsa-backend/pull/594)(31 May 2026)
+- Bump axios from 1.15.2 to 1.16.0 in /frontend [`#593`](https://github.com/elsa-hanke/elsa-backend/pull/593)(31 May 2026)
+- Add E2E tests for editing training periods and theory training [`#595`](https://github.com/elsa-hanke/elsa-backend/pull/595)(31 May 2026)
+- Bump flatted from 3.2.5 to 3.4.2 in /frontend [`#592`](https://github.com/elsa-hanke/elsa-backend/pull/592)(29 May 2026)
+- Enhance E2E tests for koejakso evaluation and approval process [`#591`](https://github.com/elsa-hanke/elsa-backend/pull/591)(29 May 2026)
+- Add metrics for archiving and PDF generation operations [`#589`](https://github.com/elsa-hanke/elsa-backend/pull/589)(29 May 2026)
+- Bump tmp from 0.2.5 to 0.2.7 in /e2e [`#587`](https://github.com/elsa-hanke/elsa-backend/pull/587)(28 May 2026)
+- Add CloudWatch metrics export configuration and client bean [`#586`](https://github.com/elsa-hanke/elsa-backend/pull/586)(28 May 2026)
+- Bump picomatch from 2.3.1 to 2.3.2 in /frontend [`#580`](https://github.com/elsa-hanke/elsa-backend/pull/580)(26 May 2026)
+- Implement alert publishing for archiving failures and add SNS config [`#579`](https://github.com/elsa-hanke/elsa-backend/pull/579)(26 May 2026)
+- Rename createWithoutOpintotietodata method and restrict usage only to development mode [`#576`](https://github.com/elsa-hanke/elsa-backend/pull/576)(24 May 2026)
+- Bump svgo from 2.8.0 to 2.8.2 in /frontend [`#573`](https://github.com/elsa-hanke/elsa-backend/pull/573)(22 May 2026)
+- ApolloClient version mismatch fix [`#575`](https://github.com/elsa-hanke/elsa-backend/pull/575)(22 May 2026)
+- Bump rollup from 2.70.1 to 2.80.0 in /frontend [`#570`](https://github.com/elsa-hanke/elsa-backend/pull/570)(22 May 2026)
+- Bump lodash from 4.17.23 to 4.18.1 in /e2e [`#571`](https://github.com/elsa-hanke/elsa-backend/pull/571)(22 May 2026)
+- ELSAINSI-3 Detekt käyttöönotto [`#572`](https://github.com/elsa-hanke/elsa-backend/pull/572)(22 May 2026)
+- ELSAINSI-37 Integraatioiden testaus [`#556`](https://github.com/elsa-hanke/elsa-backend/pull/556)(22 May 2026)
+- Bump webpack from 5.71.0 to 5.106.2 in /frontend [`#566`](https://github.com/elsa-hanke/elsa-backend/pull/566)(19 May 2026)
+- Bump sha.js from 2.4.11 to 2.4.12 in /frontend [`#567`](https://github.com/elsa-hanke/elsa-backend/pull/567)(18 May 2026)
+- ELSAINSI-3 Detekt käyttöönotto [`#568`](https://github.com/elsa-hanke/elsa-backend/pull/568)(18 May 2026)
+- Bump systeminformation from 5.31.5 to 5.31.6 in /e2e [`#558`](https://github.com/elsa-hanke/elsa-backend/pull/558)(16 May 2026)
+- Bump lodash from 4.17.21 to 4.18.1 in /frontend [`#559`](https://github.com/elsa-hanke/elsa-backend/pull/559)(16 May 2026)
+- chore: update Gradle to version 8.14.5 [`#557`](https://github.com/elsa-hanke/elsa-backend/pull/557)(16 May 2026)
+- ELSAINSI-41 Sähköposti on lähetettävä vasta, kun transaktio on suoritettu onnistuneesti [`#555`](https://github.com/elsa-hanke/elsa-backend/pull/555)(11 May 2026)
+- Release v2.1.x main merge [`#554`](https://github.com/elsa-hanke/elsa-backend/pull/554)(11 May 2026)
+- expand e2e tests for koulutussopimus approval process [`#552`](https://github.com/elsa-hanke/elsa-backend/pull/552)(10 May 2026)
+- enhance e2e tests for valmistumispyyntö approval process with verification tokens [`#551`](https://github.com/elsa-hanke/elsa-backend/pull/551)(8 May 2026)
+- enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
+- ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
+
+## [v2.1.5](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.4...v2.1.5) - 12 June 2026
+
+- Update feedback email and enhance file validation logging [`#621`](https://github.com/elsa-hanke/elsa-backend/pull/621)(12 June 2026)
+
+## [v2.1.4](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.3...v2.1.4) - 5 June 2026
+
+- ELSA-1140 + e2e testit [`#608`](https://github.com/elsa-hanke/elsa-backend/pull/608)(5 June 2026)
+
+## [v2.1.3](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.2...v2.1.3) - 2 June 2026
+
+## [v2.1.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.1...v2.1.2) - 25 May 2026
+
+- ELSA-1140:  poistettu filteröinti YEK-käyttäjältä [`#578`](https://github.com/elsa-hanke/elsa-backend/pull/578)(25 May 2026)
+
+## [v2.1.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.0...v2.1.1) - 7 May 2026
+
+- ELSA-1134: korjattu testi toimimaan oikein (päivämäärä muotojen korjaus) [`#550`](https://github.com/elsa-hanke/elsa-backend/pull/550)(7 May 2026)
+- ELSA-1134: xml konversiotesti arkistointiin vaiheeseen  [`#549`](https://github.com/elsa-hanke/elsa-backend/pull/549)(7 May 2026)
+- ELSA-1135: jacksonVersion conflict fix + enhance error logging for exception handlers [`#548`](https://github.com/elsa-hanke/elsa-backend/pull/548)(7 May 2026)
+
 ## [v2.1.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.0.1...v2.1.0) - 6 May 2026
 
 - enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)

@@ -26,7 +26,6 @@ data class KoejaksonVastuuhenkilonArvio(
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var opintooikeus: Opintooikeus? = null,
 
-    @NotNull
     @ManyToOne(optional = false)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var vastuuhenkilo: Kayttaja? = null,
@@ -85,12 +84,12 @@ data class KoejaksonVastuuhenkilonArvio(
 ) : Serializable {
 
     @PrePersist
-    protected fun onCreate() {
+    fun onCreate() {
         muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
     }
 
     @PreUpdate
-    protected fun onUpdate() {
+    fun onUpdate() {
         muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
     }
 

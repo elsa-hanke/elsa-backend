@@ -25,7 +25,6 @@ class TekninenPaakayttajaIlmoituksetResource(
     @DeleteMapping("/ilmoitukset/{id}")
     fun deleteTeoriakoulutus(
         @PathVariable id: Long,
-        principal: Principal?
     ): ResponseEntity<Void> {
         ilmoitusService.delete(id)
         return ResponseEntity.noContent().build()

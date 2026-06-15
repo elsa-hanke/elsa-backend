@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.service.OkHttpClientBuilder
+import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service

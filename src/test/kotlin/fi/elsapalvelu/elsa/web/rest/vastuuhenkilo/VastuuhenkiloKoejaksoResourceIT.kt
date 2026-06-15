@@ -44,44 +44,22 @@ import kotlin.test.assertNotNull
 @SpringBootTest(classes = [ElsaBackendApp::class])
 class VastuuhenkiloKoejaksoResourceIT {
 
-    @Autowired
-    private lateinit var koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
-
-    @Autowired
-    private lateinit var koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper
-
-    @Autowired
-    private lateinit var koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
-
-    @Autowired
-    private lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
-
-    @Autowired
-    private lateinit var koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
-
-    @Autowired
-    private lateinit var kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository
-
-    @Autowired
-    private lateinit var em: EntityManager
-
-    @Autowired
-    private lateinit var restKoejaksoMockMvc: MockMvc
+    @Autowired private lateinit var koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
+    @Autowired private lateinit var koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper
+    @Autowired private lateinit var koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
+    @Autowired  private lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
+    @Autowired private lateinit var koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
+    @Autowired private lateinit var kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository
+    @Autowired private lateinit var em: EntityManager
+    @Autowired private lateinit var restKoejaksoMockMvc: MockMvc
 
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
-
     private lateinit var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu
-
     private lateinit var koejaksonValiarviointi: KoejaksonValiarviointi
-
     private lateinit var koejaksonKehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet
-
     private lateinit var koejaksonLoppukeskustelu: KoejaksonLoppukeskustelu
-
     private lateinit var koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
-
     private lateinit var user: User
-
     private lateinit var vastuuhenkilo: Kayttaja
 
     @Autowired
@@ -113,11 +91,7 @@ class VastuuhenkiloKoejaksoResourceIT {
             .andExpect(jsonPath("$[0].erikoistuvanNimi").value(koejaksonLoppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].id").value(koejaksonLoppukeskustelu.id))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[0].tyyppi").value("LOPPUKESKUSTELU"))
-            .andExpect(
-                jsonPath("$[0].hyvaksytytVaiheet[1].id").value(
-                    koejaksonKehittamistoimenpiteet.id
-                )
-            )
+            .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].id").value(koejaksonKehittamistoimenpiteet.id))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[1].tyyppi").value("KEHITTAMISTOIMENPITEET"))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].id").value(koejaksonValiarviointi.id))
             .andExpect(jsonPath("$[0].hyvaksytytVaiheet[2].tyyppi").value("VALIARVIOINTI"))
@@ -136,11 +110,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val id = koejaksonKoulutussopimus.id
         assertNotNull(id)
 
-        restKoejaksoMockMvc.perform(
-            get(
-                "/api/vastuuhenkilo/koejakso/koulutussopimus/{id}", id
-            )
-        )
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejakso/koulutussopimus/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(koejaksonKoulutussopimus.id))
@@ -165,11 +135,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val id = koejaksonAloituskeskustelu.id
         assertNotNull(id)
 
-        restKoejaksoMockMvc.perform(
-            get(
-                "/api/vastuuhenkilo/koejakso/aloituskeskustelu/{id}", id
-            )
-        )
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejakso/aloituskeskustelu/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(koejaksonAloituskeskustelu.id))
@@ -363,11 +329,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
         koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
 
-        restKoejaksoMockMvc.perform(
-            get(
-                "/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id
-            )
-        )
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(koejaksonKehittamistoimenpiteet.id as Any))
@@ -393,20 +355,12 @@ class VastuuhenkiloKoejaksoResourceIT {
 
         koejaksonKehittamistoimenpiteet.lahikouluttaja = vastuuhenkilo
 
-        restKoejaksoMockMvc.perform(
-            get(
-                "/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id
-            )
-        )
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(koejaksonKehittamistoimenpiteet.id as Any))
             .andExpect(jsonPath("$.erikoistuvanNimi").value(koejaksonKehittamistoimenpiteet.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi()))
-            .andExpect(
-                jsonPath("$.erikoistuvanOpiskelijatunnus").value(
-                    koejaksonKehittamistoimenpiteet.opintooikeus?.opiskelijatunnus
-                )
-            )
+            .andExpect(jsonPath("$.erikoistuvanOpiskelijatunnus").value(koejaksonKehittamistoimenpiteet.opintooikeus?.opiskelijatunnus))
             .andExpect(jsonPath("$.erikoistuvanYliopisto").value(koejaksonKehittamistoimenpiteet.opintooikeus?.yliopisto?.nimi.toString()))
             .andExpect(jsonPath("$.lahikouluttaja.id").value(koejaksonKehittamistoimenpiteet.lahikouluttaja?.id))
             .andExpect(jsonPath("$.lahiesimies.id").value(koejaksonKehittamistoimenpiteet.lahiesimies?.id))
@@ -439,8 +393,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val newUser = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(newUser)
         em.flush()
-        val erikoistuvaLaakari =
-            ErikoistuvaLaakariHelper.createEntity(em, newUser, erikoisala = Erikoisala(5))
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, newUser, erikoisala = Erikoisala(5))
         em.persist(erikoistuvaLaakari)
 
         koejaksonKehittamistoimenpiteet.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
@@ -450,11 +403,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val id = koejaksonKehittamistoimenpiteet.id
         assertNotNull(id)
 
-        restKoejaksoMockMvc.perform(
-            get(
-                "/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id
-            )
-        ).andExpect(status().isNotFound)
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejakso/kehittamistoimenpiteet/{id}", id)).andExpect(status().isNotFound)
     }
 
     @Test
@@ -468,11 +417,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
         koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
 
-        restKoejaksoMockMvc.perform(
-            get(
-                "/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id
-            )
-        )
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(koejaksonLoppukeskustelu.id))
@@ -494,11 +439,7 @@ class VastuuhenkiloKoejaksoResourceIT {
 
         koejaksonLoppukeskustelu.lahikouluttaja = vastuuhenkilo
 
-        restKoejaksoMockMvc.perform(
-            get(
-                "/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id
-            )
-        )
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(koejaksonLoppukeskustelu.id))
@@ -521,11 +462,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val id = koejaksonLoppukeskustelu.id
         assertNotNull(id)
 
-        restKoejaksoMockMvc.perform(
-            get(
-                "/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id
-            )
-        ).andExpect(status().isNotFound)
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejakso/loppukeskustelu/{id}", id)).andExpect(status().isNotFound)
     }
 
     @Test
@@ -536,8 +473,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val newUser = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(newUser)
         em.flush()
-        val erikoistuvaLaakari =
-            ErikoistuvaLaakariHelper.createEntity(em, newUser, erikoisala = Erikoisala(5))
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, newUser, erikoisala = Erikoisala(5))
         em.persist(erikoistuvaLaakari)
 
         koejaksonLoppukeskustelu.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
@@ -563,11 +499,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val id = koejaksonVastuuhenkilonArvio.id
         assertNotNull(id)
 
-        restKoejaksoMockMvc.perform(
-            get(
-                "/api/vastuuhenkilo/koejakso/vastuuhenkilonarvio/{id}", id
-            )
-        )
+        restKoejaksoMockMvc.perform(get("/api/vastuuhenkilo/koejakso/vastuuhenkilonarvio/{id}", id))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(koejaksonVastuuhenkilonArvio.id))
@@ -593,8 +525,7 @@ class VastuuhenkiloKoejaksoResourceIT {
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
         koulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty = true
-        koulutussopimusDTO.vastuuhenkilo?.kuittausaika =
-            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        koulutussopimusDTO.vastuuhenkilo?.kuittausaika = KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         restKoejaksoMockMvc.perform(
             put("/api/vastuuhenkilo/koejakso/koulutussopimus")
@@ -623,8 +554,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
 
         koulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty = true
-        koulutussopimusDTO.vastuuhenkilo?.kuittausaika =
-            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        koulutussopimusDTO.vastuuhenkilo?.kuittausaika = KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         restKoejaksoMockMvc.perform(
             put("/api/vastuuhenkilo/koejakso/koulutussopimus")
@@ -650,8 +580,7 @@ class VastuuhenkiloKoejaksoResourceIT {
 
         val koulutussopimusDTO = koejaksonKoulutussopimusMapper.toDto(updatedKoulutussopimus)
         koulutussopimusDTO.vastuuhenkilo?.sopimusHyvaksytty = true
-        koulutussopimusDTO.vastuuhenkilo?.kuittausaika =
-            KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
+        koulutussopimusDTO.vastuuhenkilo?.kuittausaika = KoejaksonVaiheetHelper.DEFAULT_KUITTAUSAIKA_VASTUUHENKILO
 
         restKoejaksoMockMvc.perform(
             put("/api/vastuuhenkilo/koejakso/koulutussopimus")
@@ -716,8 +645,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val id = koejaksonVastuuhenkilonArvio.id
         assertNotNull(id)
 
-        val vastuuhenkilonArvioDTO =
-            koejaksonVastuuhenkilonArvioMapper.toDto(koejaksonVastuuhenkilonArvio)
+        val vastuuhenkilonArvioDTO = koejaksonVastuuhenkilonArvioMapper.toDto(koejaksonVastuuhenkilonArvio)
         vastuuhenkilonArvioDTO.koejaksoHyvaksytty = true
 
         restKoejaksoMockMvc.perform(
@@ -766,21 +694,14 @@ class VastuuhenkiloKoejaksoResourceIT {
     }
 
     fun initTest(createVastuuhenkilonArvio: Boolean? = true) {
-        user =
-            KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
+        user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
         em.persist(user)
         em.flush()
-        val userDetails = mapOf<String, List<Any>>(
-        )
+        val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
-        val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
-            "test",
-            authorities
-        )
+        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(user.id, userDetails), "test", authorities)
         TestSecurityContextHolder.getContext().authentication = authentication
-        val erikoistuvaLaakari =
-            ErikoistuvaLaakariHelper.createEntity(em)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         em.persist(erikoistuvaLaakari)
 
         vastuuhenkilo = KayttajaHelper.createEntity(em, user)
@@ -806,8 +727,7 @@ class VastuuhenkiloKoejaksoResourceIT {
         val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
         em.persist(yliopisto)
 
-        koejaksonKoulutussopimus =
-            KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
+        koejaksonKoulutussopimus = KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
         koejaksonKoulutussopimus.kouluttajat =
             mutableSetOf(
                 KoejaksonVaiheetHelper.createKoulutussopimuksenKouluttaja(
@@ -823,25 +743,17 @@ class VastuuhenkiloKoejaksoResourceIT {
             )
         em.persist(koejaksonKoulutussopimus)
 
-        koejaksonAloituskeskustelu =
-            KoejaksonVaiheetHelper.createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+        koejaksonAloituskeskustelu = KoejaksonVaiheetHelper.createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
         em.persist(koejaksonAloituskeskustelu)
-        koejaksonValiarviointi =
-            KoejaksonVaiheetHelper.createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
+        koejaksonValiarviointi = KoejaksonVaiheetHelper.createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
         em.persist(koejaksonValiarviointi)
-        koejaksonKehittamistoimenpiteet =
-            KoejaksonVaiheetHelper.createKehittamistoimenpiteet(
-                erikoistuvaLaakari,
-                kouluttaja,
-                esimies
-            )
+        koejaksonKehittamistoimenpiteet = KoejaksonVaiheetHelper.createKehittamistoimenpiteet(erikoistuvaLaakari, kouluttaja, esimies)
         em.persist(koejaksonKehittamistoimenpiteet)
-        koejaksonLoppukeskustelu =
-            KoejaksonVaiheetHelper.createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+        koejaksonLoppukeskustelu = KoejaksonVaiheetHelper.createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
         em.persist(koejaksonLoppukeskustelu)
 
         if (createVastuuhenkilonArvio == true) {
-            koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari)
+            koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
             em.persist(koejaksonVastuuhenkilonArvio)
         }
     }

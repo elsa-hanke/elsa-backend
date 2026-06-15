@@ -8,5 +8,9 @@ data class KayttajahallintaReassignedKouluttajaDTO(
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaReassignedKouluttajaDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 

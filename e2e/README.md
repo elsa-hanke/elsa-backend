@@ -1,6 +1,6 @@
 # E2E Tests
 
-End-to-end tests for the Elsa backend, powered by [Cypress](https://www.cypress.io/).
+End-to-end tests for the Elsa backend, powered by [Cypress](https://www.cypress.io/)
 
 ## Prerequisites
 

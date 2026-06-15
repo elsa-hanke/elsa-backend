@@ -164,11 +164,11 @@ class ErikoistujienSeurantaQueryService(
         return opintooikeusRepository.findAll(specification, pageableWithSort)
     }
 
-    protected fun createSpecification(
+    private fun createSpecification(
         criteria: ErikoistujanEteneminenCriteria?,
         spec: Specification<Opintooikeus?>? = null
     ): Specification<Opintooikeus?> {
-        var specification: Specification<Opintooikeus?> = Specification.where(spec)
+        var specification: Specification<Opintooikeus?> = spec ?: Specification.unrestricted()
         criteria?.let {
             it.asetusId?.let {
                 specification =

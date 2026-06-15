@@ -16,5 +16,9 @@ data class ArviointipyyntoFormDTO(
 
 ) : Serializable {
     override fun toString() = "ArviointipyyntoFormDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 

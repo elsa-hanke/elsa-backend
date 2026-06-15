@@ -15,6 +15,8 @@
 # ===================================================================
 
 management:
+  server:
+    port: 8081
   endpoints:
     web:
       base-path: /management
@@ -28,9 +30,11 @@ management:
             "jhimetrics",
             "logfile",
             "loggers",
+            "metrics",
             "threaddump",
             "caches",
             "liquibase",
+            "jobtrigger",
           ]
   endpoint:
     health:
@@ -79,7 +83,7 @@ logging:
     javax.management.remote: WARN
     jdk.event.security: INFO
     jdk.internal.httpclient: WARN
-    liquibase: WARN
+    liquibase: INFO
     org.apache: WARN
     org.ehcache: WARN
     org.glassfish.jaxb.runtime: WARN
@@ -269,6 +273,8 @@ application:
       endpoint-url: https://mixqa.uef.fi/api/v1/elsa
   feedback:
     to: julia.sillanpaa@tuni.fi
+  alert:
+    sns-topic-arn: ${APPLICATION_ALERT_SNS_TOPIC_ARN:}
   opintohallintoemail:
     hki:
     oulu:

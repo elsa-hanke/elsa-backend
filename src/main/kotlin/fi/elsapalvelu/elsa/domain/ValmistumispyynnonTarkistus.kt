@@ -81,12 +81,12 @@ data class ValmistumispyynnonTarkistus(
 ) : Serializable {
 
     @PrePersist
-    protected fun onCreate() {
+    fun onCreate() {
         muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
     }
 
     @PreUpdate
-    protected fun onUpdate() {
+    fun onUpdate() {
         muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
     }
 
@@ -99,8 +99,28 @@ data class ValmistumispyynnonTarkistus(
 
     override fun hashCode() = 31
 
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
     override fun toString(): String {
-        return "ValmistumispyyntoVirkailija(id=$id, valmistumispyynto=$valmistumispyynto, yekSuoritettu=$yekSuoritettu, yekSuorituspaiva=$yekSuorituspaiva, ptlSuoritettu=$ptlSuoritettu, ptlSuorituspaiva=$ptlSuorituspaiva, aiempiElKoulutusSuoritettu=$aiempiElKoulutusSuoritettu, aiempiElKoulutusSuorituspaiva=$aiempiElKoulutusSuorituspaiva, ltTutkintoSuoritettu=$ltTutkintoSuoritettu, ltTutkintoSuorituspaiva=$ltTutkintoSuorituspaiva, yliopistosairaalanUlkopuolinenTyoTarkistettu=$yliopistosairaalanUlkopuolinenTyoTarkistettu, yliopistosairaalatyoTarkistettu=$yliopistosairaalatyoTarkistettu, kokonaistyoaikaTarkistettu=$kokonaistyoaikaTarkistettu, teoriakoulutusTarkistettu=$teoriakoulutusTarkistettu, virkailijanYhteenveto=$virkailijanYhteenveto, kommentitVirkailijoille=$kommentitVirkailijoille, muokkauspaiva=$muokkauspaiva)"
+        return "ValmistumispyyntoVirkailija(id=$id, " +
+            "valmistumispyynto=$valmistumispyynto, " +
+            "yekSuoritettu=$yekSuoritettu, " +
+            "yekSuorituspaiva=$yekSuorituspaiva, " +
+            "ptlSuoritettu=$ptlSuoritettu, " +
+            "ptlSuorituspaiva=$ptlSuorituspaiva, " +
+            "aiempiElKoulutusSuoritettu=$aiempiElKoulutusSuoritettu, " +
+            "aiempiElKoulutusSuorituspaiva=$aiempiElKoulutusSuorituspaiva, " +
+            "ltTutkintoSuoritettu=$ltTutkintoSuoritettu, " +
+            "ltTutkintoSuorituspaiva=$ltTutkintoSuorituspaiva, " +
+            "yliopistosairaalanUlkopuolinenTyoTarkistettu=$yliopistosairaalanUlkopuolinenTyoTarkistettu, " +
+            "yliopistosairaalatyoTarkistettu=$yliopistosairaalatyoTarkistettu, " +
+            "kokonaistyoaikaTarkistettu=$kokonaistyoaikaTarkistettu, " +
+            "teoriakoulutusTarkistettu=$teoriakoulutusTarkistettu, " +
+            "virkailijanYhteenveto=$virkailijanYhteenveto, " +
+            "kommentitVirkailijoille=$kommentitVirkailijoille, " +
+            "muokkauspaiva=$muokkauspaiva)"
     }
 }
 

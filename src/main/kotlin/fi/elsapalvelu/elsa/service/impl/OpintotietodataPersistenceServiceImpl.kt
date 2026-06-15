@@ -22,8 +22,10 @@ import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import jakarta.persistence.EntityNotFoundException
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
+import org.springframework.core.env.Environment
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -31,8 +33,7 @@ import java.time.ZoneId
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 
-private const val SUU_JA_LEUKAKIRURGIA_VIRTA_PATEVYYSKOODI = "esl"
-
+@Suppress("TooManyFunctions")
 @Service
 @Transactional
 class OpintotietodataPersistenceServiceImpl(
@@ -49,7 +50,8 @@ class OpintotietodataPersistenceServiceImpl(
     private val clock: Clock,
     private val opintooikeusHerateRepository: OpintooikeusHerateRepository,
     private val mailService: MailService,
-    private val applicationProperties: ApplicationProperties
+    private val applicationProperties: ApplicationProperties,
+    private val env: Environment
 ) : OpintotietodataPersistenceService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -173,9 +175,12 @@ class OpintotietodataPersistenceServiceImpl(
         }
     }
 
-    override fun createWithoutOpintotietodata(
+    override fun createWithoutOpintotietodataOnlyDevDoNotUseInProd(
         cipher: Cipher, originalKey: SecretKey, hetu: String?, etunimi: String, sukunimi: String
     ) {
+        check(env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
+            "This is allowed only in DEVELOPMENT mode."
+        }
         val erikoistuvaLaakari = createErikoistuvaLaakari(
             cipher,
             originalKey,
@@ -320,50 +325,19 @@ class OpintotietodataPersistenceServiceImpl(
         return erikoistuvaLaakari
     }
 
-    private fun createOpintooikeus(
-        opintooikeusDTO: OpintotietoOpintooikeusDataDTO,
-        userId: String,
-        erikoistuvaLaakari: ErikoistuvaLaakari
-    ) {
-        val opintooikeusId =
-            checkOpintooikeusIdValueExistsOrLogError(
-                opintooikeusDTO.id,
-                opintooikeusDTO.yliopisto,
-                userId
-            ) ?: return
+    @Suppress("CyclomaticComplexMethod")
+    private fun createOpintooikeus(opintooikeusDTO: OpintotietoOpintooikeusDataDTO, userId: String, erikoistuvaLaakari: ErikoistuvaLaakari) {
+        val opintooikeusId = checkOpintooikeusIdValueExistsOrLogError(opintooikeusDTO.id, opintooikeusDTO.yliopisto, userId) ?: return
         val yliopisto = findYliopistoOrLogError(opintooikeusDTO.yliopisto) ?: return
-        val asetusStr =
-            checkAsetusValueExistsOrLogError(
-                opintooikeusDTO.asetus,
-                opintooikeusDTO.yliopisto,
-                userId
-            ) ?: return
+        val asetusStr = checkAsetusValueExistsOrLogError(opintooikeusDTO.asetus, opintooikeusDTO.yliopisto, userId) ?: return
         val asetus = findAsetusOrLogError(asetusStr, opintooikeusDTO.yliopisto, userId) ?: return
-        val opintooikeudenTila =
-            checkOpintooikeudenTilaValueExistsOrLogError(
-                opintooikeusDTO.tila,
-                opintooikeusDTO.yliopisto,
-                userId
-            )
-                ?: return
-        val opintooikeudenAlkamispaiva = checkOpintooikeudenAlkamispaivaValidDateExistsOrLogError(
-            opintooikeusDTO.opintooikeudenAlkamispaiva, opintooikeusDTO.yliopisto, userId
-        ) ?: return
+        val opintooikeudenTila = checkOpintooikeudenTilaValueExistsOrLogError(opintooikeusDTO.tila, opintooikeusDTO.yliopisto, userId) ?: return
+        val opintooikeudenAlkamispaiva =
+            checkOpintooikeudenAlkamispaivaValidDateExistsOrLogError(opintooikeusDTO.opintooikeudenAlkamispaiva, opintooikeusDTO.yliopisto, userId) ?: return
         val opintooikeudenPaattymispaiva =
-            checkOpintooikeudenPaattymispaivaValidDateExistsOrLogError(
-                opintooikeusDTO.opintooikeudenPaattymispaiva, opintooikeusDTO.yliopisto, userId
-            ) ?: return
-        val erikoisala =
-            findErikoisalaOrLogError(
-                opintooikeusDTO.erikoisalaTunnisteList,
-                opintooikeusDTO.yliopisto,
-                userId
-            ) ?: return
-        val opintoopas =
-            findOpintoopasByErikoisalaAndVoimassaDateOrLogWarn(
-                erikoisala.id!!,
-                opintooikeudenAlkamispaiva,
-                opintooikeusDTO.yliopisto,
+            checkOpintooikeudenPaattymispaivaValidDateExistsOrLogError(opintooikeusDTO.opintooikeudenPaattymispaiva, opintooikeusDTO.yliopisto, userId) ?: return
+        val erikoisala = findErikoisalaOrLogError(opintooikeusDTO.erikoisalaTunnisteList, opintooikeusDTO.yliopisto, userId) ?: return
+        val opintoopas = findOpintoopasByErikoisalaAndVoimassaDateOrLogWarn(erikoisala.id!!, opintooikeudenAlkamispaiva, opintooikeusDTO.yliopisto,
                 userId
             ) ?: findLatestOpintoopasByErikoisalaOrLogError(erikoisala.id!!) ?: return
 
@@ -476,13 +450,6 @@ class OpintotietodataPersistenceServiceImpl(
             asetusStr.takeIf { it != opintooikeus.asetus?.nimi }?.let {
                 findAsetusOrLogError(it, opintooikeusDTO.yliopisto, userId)?.let { asetus ->
                     opintooikeus.asetus = asetus
-                    // Oppaan ja osaamisen arvioinnin pvm päivitys ei toimi oikein, poistetaan toistaiseksi
-                    /*handleAsetusUpdated(
-                        opintooikeus,
-                        opintooikeusDTO.opintooikeudenPaattymispaiva,
-                        opintooikeusDTO.yliopisto,
-                        userId
-                    )*/
                 } ?: return
             }
             opintooikeus.muokkausaika = Instant.now()
@@ -521,54 +488,6 @@ class OpintotietodataPersistenceServiceImpl(
         if (user?.lastName != sukunimi) {
             user?.lastName = sukunimi
         }
-    }
-
-    private fun handleAsetusUpdated(
-        existingOpintooikeus: Opintooikeus,
-        newOpintooikeudenPaattymispaiva: LocalDate?,
-        yliopisto: YliopistoEnum,
-        userId: String
-    ) {
-        val opintooikeudenAlkamispaiva = existingOpintooikeus.opintooikeudenMyontamispaiva
-        val erikoisala = existingOpintooikeus.erikoisala
-
-        // Opinto-oikeuden pituus 10 vuotta lääketieteellä sekä hammaslääketieteen suu- ja leukakirurgian erikoisalalla.
-        // Muutoin hammaslääketieteellä 6 vuotta.
-        val defaultOpintooikeudenPituus =
-            when (erikoisala?.tyyppi) {
-                ErikoisalaTyyppi.LAAKETIEDE -> 10
-                ErikoisalaTyyppi.HAMMASLAAKETIEDE -> {
-                    if (erikoisala.virtaPatevyyskoodi == SUU_JA_LEUKAKIRURGIA_VIRTA_PATEVYYSKOODI) 10
-                    else 6
-                }
-
-                else -> 10
-            }
-        // Jos opinto-oikeuden päättymispäivää ei ole asetettu tai opinto-oikeuden pituus on alle 10/6 vuotta
-        // (määräaikainen opinto-oikeus), otetaan asetusmuutoksen yhteydessä käyttöön uusin opinto-opas.
-        val useLatestOpintoopas =
-            newOpintooikeudenPaattymispaiva == null || opintooikeudenAlkamispaiva!!.periodLessThan(
-                newOpintooikeudenPaattymispaiva, defaultOpintooikeudenPituus
-            )
-        val opintoopas =
-            if (useLatestOpintoopas) {
-                findLatestOpintoopasByErikoisalaOrLogError(existingOpintooikeus.erikoisala?.id!!)
-                    ?: return
-            } else {
-                val opintoopasValidDate =
-                    newOpintooikeudenPaattymispaiva!!.minusYears(defaultOpintooikeudenPituus.toLong())
-                findOpintoopasByErikoisalaAndVoimassaDateOrLogWarn(
-                    existingOpintooikeus.erikoisala?.id!!,
-                    opintoopasValidDate,
-                    yliopisto,
-                    userId
-                )
-                    ?: findLatestOpintoopasByErikoisalaOrLogError(existingOpintooikeus.erikoisala?.id!!)
-                    ?: return
-            }
-
-        existingOpintooikeus.opintoopas = opintoopas
-        existingOpintooikeus.osaamisenArvioinninOppaanPvm = opintoopas.voimassaoloAlkaa
     }
 
     private fun findYliopistoOrLogError(yliopisto: YliopistoEnum): Yliopisto? {

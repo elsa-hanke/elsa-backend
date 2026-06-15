@@ -1,0 +1,54 @@
+version: 0.2
+env:
+  variables:
+    APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION: s3://elsa-dev-cert-bucket/new-hy-sisu.crt
+    APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION: s3://elsa-dev-cert-bucket/new-hy-sisu.key
+    APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION: s3://elsa-dev-cert-bucket/id_ed25519_louhi_elsatest
+  parameter-store:
+    APPLICATION_SECURITY_PEPPI_OULU_TOKEN: /dev/application/peppioulu/token
+    APPLICATION_SECURITY_PEPPI_TURKU_API_KEY: /dev/application/peppiturku/apikey
+    APPLICATION_SECURITY_PEPPI_TURKU_BASIC_AUTH_ENCODED_KEY: /dev/application/peppiturku/basicauthencodedkey
+    APPLICATION_SECURITY_PEPPI_UEF_API_KEY: /dev/application/peppiuef/apikey
+    APPLICATION_SECURITY_SISU_HY_API_KEY: /dev/application/sisuhy/apikey
+    APPLICATION_SECURITY_SISU_TRE_CLIENT_ID: /dev/application/sisutre/cliendid
+    APPLICATION_SECURITY_SISU_TRE_CLIENT_SECRET: /dev/application/sisutre/clientsecret
+    APPLICATION_SECURITY_SISU_TRE_SCOPE_ID: /dev/application/sisutre/scopeid
+    APPLICATION_SECURITY_SISU_TRE_SUBSCRIPTION_KEY: /dev/application/sisutre/subscriptionkey
+    APPLICATION_SECURITY_SISU_TRE_TENANT_ID: /dev/application/sisutre/tenantid
+    APPLICATION_ARKISTOINTI_TRE_HOST: /dev/codebuild/arkistointi/tre/host
+    APPLICATION_ARKISTOINTI_TRE_PORT: /dev/codebuild/arkistointi/tre/port
+    APPLICATION_ARKISTOINTI_TRE_USER: /dev/codebuild/arkistointi/tre/user
+    APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_PERSON: /dev/codebuild/arkistointi/tre/contact/person
+    APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_ADDRESS: /dev/codebuild/arkistointi/tre/contact/address
+    APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_PHONE: /dev/codebuild/arkistointi/tre/contact/phone
+    APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_EMAIL: /dev/codebuild/arkistointi/tre/contact/email
+phases:
+  install:
+    runtime-versions:
+      java: corretto21
+  pre_build:
+    commands:
+      - echo "Starting external integration tests"
+      - chmod +x gradlew
+      - chmod +x src/test/scripts/run-external-integration-tests.sh
+  build:
+    commands:
+      - aws s3 cp "$APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION" /tmp/hy-sisu.crt
+      - chmod 600 /tmp/hy-sisu.crt
+      - aws s3 cp "$APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION" /tmp/hy-sisu.key
+      - chmod 600 /tmp/hy-sisu.key
+      - aws s3 cp "$APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION" /tmp/louhi_elsatest
+      - chmod 600 /tmp/louhi_elsatest
+      - APPLICATION_SECURITY_SISU_HY_CERTIFICATE_LOCATION=file:/tmp/hy-sisu.crt APPLICATION_SECURITY_SISU_HY_PRIVATE_KEY_LOCATION=file:/tmp/hy-sisu.key APPLICATION_ARKISTOINTI_TRE_PRIVATE_KEY_LOCATION=file:/tmp/louhi_elsatest bash src/test/scripts/run-external-integration-tests.sh
+  post_build:
+    commands:
+      - echo "Build status $CODEBUILD_BUILD_SUCCEEDING"
+reports:
+  external-integration-test-results:
+    files:
+      - "build/test-results/externalIntegrationTests/*.xml"
+    file-format: JUNITXML
+cache:
+  paths:
+    - "/root/.gradle/caches/**/*"
+    - "/root/.gradle/wrapper/**/*"

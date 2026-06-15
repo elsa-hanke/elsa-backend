@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper.Companion.ASIAKIRJA_PDF_DATA
+import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper.ASIAKIRJA_PDF_DATA
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
 import org.assertj.core.api.Assertions.assertThat

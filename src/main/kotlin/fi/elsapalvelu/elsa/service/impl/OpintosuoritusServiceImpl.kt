@@ -42,13 +42,13 @@ class OpintosuoritusServiceImpl(
             }.sumOf { johtamisopinto ->
                 johtamisopinto.opintopisteet ?: 0.0
             },
-            opintooikeus?.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
+            opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
             opintosuorituksetList.filter { opintosuoritus ->
                 opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS
             }.sumOf { sateilysuojakoulutus ->
                 sateilysuojakoulutus.opintopisteet ?: 0.0
             },
-            opintooikeus?.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
+            opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
         )
     }
 

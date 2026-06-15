@@ -38,6 +38,10 @@ data class ApplicationSetting(
 
     override fun hashCode() = 31
 
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
     override fun toString() = "ApplicationSetting{" +
         "id=$id" +
         "nimi=$settingName" +

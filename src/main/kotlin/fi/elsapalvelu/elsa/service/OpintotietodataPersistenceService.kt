@@ -15,7 +15,7 @@ interface OpintotietodataPersistenceService {
         opintotietodataDTOs: List<OpintotietodataDTO>
     )
 
-    fun createWithoutOpintotietodata(
+    fun createWithoutOpintotietodataOnlyDevDoNotUseInProd(
         cipher: Cipher,
         originalKey: SecretKey,
         hetu: String?,

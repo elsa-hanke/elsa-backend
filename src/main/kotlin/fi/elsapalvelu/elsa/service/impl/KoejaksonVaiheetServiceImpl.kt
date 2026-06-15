@@ -4,10 +4,9 @@ import fi.elsapalvelu.elsa.domain.Kayttaja
 import fi.elsapalvelu.elsa.domain.Opintooikeus
 import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.service.ArkistointiService
 import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioQueryService
-import fi.elsapalvelu.elsa.service.KoejaksonVastuuhenkilonArvioService
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -21,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
 
+@Suppress("TooManyFunctions")
 @Service
 @Transactional
 class KoejaksonVaiheetServiceImpl(
@@ -34,7 +34,6 @@ class KoejaksonVaiheetServiceImpl(
     private val kehittamistoimenpiteetMapper: KoejaksonKehittamistoimenpiteetMapper,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
     private val koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper,
-    private val koejaksonVastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService,
     private val vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
     private val vastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper,
     private val kayttajaRepository: KayttajaRepository,
@@ -191,7 +190,7 @@ class KoejaksonVaiheetServiceImpl(
                 return@forEach
             }
             resultMap[opintooikeusId] = mutableListOf()
-            val result = mapVastuuhenkilonArvio(it.value, kayttaja.user?.id!!)
+            val result = mapVastuuhenkilonArvio(it.value)
 
             if (!vainAvoimet) {
                 result.apply {
@@ -613,12 +612,11 @@ class KoejaksonVaiheetServiceImpl(
 
     private fun mapVastuuhenkilonArvio(
         vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
-        userId: String
     ): KoejaksonVaiheDTO {
         return KoejaksonVaiheDTO(
             vastuuhenkilonArvioDTO.id,
             KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
-            KoejaksoTila.fromVastuuhenkilonArvio(true, vastuuhenkilonArvioDTO, userId, vastuuhenkilo = true),
+            KoejaksoTila.fromVastuuhenkilonArvio(true, vastuuhenkilonArvioDTO, vastuuhenkilo = true),
             vastuuhenkilonArvioDTO.erikoistuvanNimi,
             vastuuhenkilonArvioDTO.erikoistuvanAvatar,
             vastuuhenkilonArvioDTO.muokkauspaiva

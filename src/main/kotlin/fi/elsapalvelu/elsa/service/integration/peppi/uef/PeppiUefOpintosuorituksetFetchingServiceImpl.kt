@@ -1,0 +1,31 @@
+package fi.elsapalvelu.elsa.service.integration.peppi.uef
+
+import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.service.integration.AbstractOpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
+import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Service
+
+@Service
+class PeppiUefOpintosuorituksetFetchingServiceImpl(
+    @Qualifier("PeppiUef") private val peppiUefClientBuilder: OkHttpClientBuilder,
+    private val commonOpintosuorituksetFetchingService: PeppiCommonOpintosuorituksetFetchingService,
+    private val applicationProperties: ApplicationProperties,
+    yliopistoRepository: YliopistoRepository
+) : AbstractOpintosuorituksetFetchingService(yliopistoRepository, YliopistoEnum.ITA_SUOMEN_YLIOPISTO) {
+
+    override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
+        val endpointBaseUrl =
+            "${applicationProperties.getSecurity().getPeppiUef().endpointUrl!!}/elsa-2"
+        return commonOpintosuorituksetFetchingService.fetchOpintosuoritukset(
+            endpointBaseUrl,
+            peppiUefClientBuilder.okHttpClient(),
+            hetu,
+            YliopistoEnum.ITA_SUOMEN_YLIOPISTO
+        )
+    }
+}

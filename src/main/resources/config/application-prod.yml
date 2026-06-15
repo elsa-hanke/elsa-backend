@@ -103,3 +103,21 @@ application:
   csrf:
     cookie:
       domain: 'elsapalvelu.fi' # TODO: change to localhost and use env parameter
+
+management:
+  cloudwatch2:
+    metrics:
+      export:
+        enabled: true
+        namespace: elsa
+        step: 1m
+      filter:
+        allowed-names: >-
+          jvm.memory.used,jvm.memory.max,jvm.gc.pause,
+          system.cpu.usage,process.cpu.usage,
+          executor.active,
+          hikaricp.connections.active,hikaricp.connections.pending,hikaricp.connections.timeout,
+          http.sessions.active,http.sessions.total,
+          pdf.generation.active,pdf.generation.requests.total,pdf.generation.errors.total,
+          arkistointi.active,arkistointi.requests.total,arkistointi.errors.total
+

@@ -49,4 +49,8 @@ data class ValmistumispyynnonTarkistusUpdateDTO(
 
 ) : Serializable {
     override fun toString() = "ValmistumispyynnonTarkistusUpdateDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

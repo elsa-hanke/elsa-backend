@@ -38,4 +38,8 @@ data class ArvioitavaKokonaisuusDTO(
     override fun hashCode() = 31
 
     override fun toString() = "ArvioitavaKokonaisuusDTO(id=$id)"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

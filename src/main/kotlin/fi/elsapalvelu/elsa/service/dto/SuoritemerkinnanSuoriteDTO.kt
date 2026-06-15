@@ -17,3 +17,8 @@ data class SuoritemerkinnanSuoriteDTO(
     var suoriteId: Long? = null
 
 ) : Serializable
+{
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

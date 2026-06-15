@@ -58,11 +58,11 @@ class KoejaksonVastuuhenkilonArvioQueryService(
         return koejaksonVastuuhenkilonArvioRepository.findAll(specification, pageable)
     }
 
-    protected fun createSpecification(
+    private fun createSpecification(
         criteria: NimiErikoisalaAndAvoinCriteria?,
         spec: Specification<KoejaksonVastuuhenkilonArvio?>? = null
     ): Specification<KoejaksonVastuuhenkilonArvio?> {
-        var specification: Specification<KoejaksonVastuuhenkilonArvio?> = Specification.where(spec)
+        var specification: Specification<KoejaksonVastuuhenkilonArvio?> = spec ?: Specification.unrestricted()
         criteria?.let {
             it.erikoisalaId?.let { erikoisalaId ->
                 specification = specification.and(

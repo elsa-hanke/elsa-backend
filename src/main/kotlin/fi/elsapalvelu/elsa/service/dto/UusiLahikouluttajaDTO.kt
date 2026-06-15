@@ -14,5 +14,7 @@ data class UusiLahikouluttajaDTO(
     var sahkoposti: String? = null
 
 ) : Serializable {
-    override fun hashCode() = 31
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

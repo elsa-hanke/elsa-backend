@@ -102,12 +102,12 @@ data class Valmistumispyynto(
 ) : Serializable {
 
     @PrePersist
-    protected fun onCreate() {
+    fun onCreate() {
         muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
     }
 
     @PreUpdate
-    protected fun onUpdate() {
+    fun onUpdate() {
         muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
     }
 
@@ -203,12 +203,15 @@ data class Valmistumispyynto(
 
         private fun fromValmistumispyyntoNotReturned(valmistumispyynto: Valmistumispyynto): ValmistumispyynnonTila {
             return when {
-                valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika == null && valmistumispyynto.opintooikeus?.erikoisala?.id != YEK_ERIKOISALA_ID -> ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKASTUSTA
+                valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika == null && valmistumispyynto.opintooikeus?.erikoisala?.id
+                    != YEK_ERIKOISALA_ID -> ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_TARKASTUSTA
                 valmistumispyynto.virkailijanKuittausaika == null -> ValmistumispyynnonTila.ODOTTAA_VIRKAILIJAN_TARKASTUSTA
                 valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika == null -> ValmistumispyynnonTila.ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
                 else -> ValmistumispyynnonTila.HYVAKSYTTY
             }
         }
+
+        private const val serialVersionUID = 1L
     }
 }
 

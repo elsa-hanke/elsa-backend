@@ -70,14 +70,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
                     )
                 } else {
                     avoinExpr = cb.and(
-                        cb.equal(
-                            root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.virkailijaHyvaksynyt),
-                            true
-                        ),
-                        cb.equal(
-                            root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.vastuuhenkiloHyvaksynyt),
-                            false
-                        )
+                        cb.equal(root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.virkailijaHyvaksynyt), true),
+                        cb.equal(root.get(TerveyskeskuskoulutusjaksonHyvaksynta_.vastuuhenkiloHyvaksynyt), false)
                     )
                 }
                 result = if (criteria.avoin == true) {
@@ -92,12 +86,12 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
         return terveyskeskuskoulutusjaksonHyvaksyntaRepository.findAll(specification, pageable)
     }
 
-    protected fun createSpecification(
+    private fun createSpecification(
         criteria: NimiErikoisalaAndAvoinCriteria?,
         spec: Specification<TerveyskeskuskoulutusjaksonHyvaksynta?>? = null
     ): Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> {
         var specification: Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> =
-            Specification.where(spec)
+            spec ?: Specification.unrestricted()
         criteria?.let {
             it.erikoisalaId?.let { erikoisalaId ->
                 specification = specification.and(

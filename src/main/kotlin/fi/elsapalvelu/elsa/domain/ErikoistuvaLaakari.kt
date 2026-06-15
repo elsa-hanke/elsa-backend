@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
 import jakarta.persistence.*
-import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -25,7 +24,6 @@ data class ErikoistuvaLaakari(
     @JoinColumn(unique = true)
     var kayttaja: Kayttaja? = null,
 
-    @NotEmpty
     @OneToMany(mappedBy = "erikoistuvaLaakari")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     var opintooikeudet: MutableSet<Opintooikeus> = mutableSetOf(),

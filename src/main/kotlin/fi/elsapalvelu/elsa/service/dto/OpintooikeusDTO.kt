@@ -64,4 +64,8 @@ data class OpintooikeusDTO(
 
     override fun hashCode() = 31
 
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
 }

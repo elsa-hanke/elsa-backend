@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.config.LoginException
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.service.AlertPublisherService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
@@ -46,7 +47,8 @@ class UserServiceImpl(
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
     private val seurantajaksoRepository: SeurantajaksoRepository,
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+    private val alertPublisherService: AlertPublisherService
 ) : UserService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -131,7 +133,7 @@ class UserServiceImpl(
                     user.avatar = null
                 }
             }
-        } catch (ex: UnsupportedFormatException) {
+        } catch (_: UnsupportedFormatException) {
             log.debug("Päivitettävä profiilikuva ei ole tuettu")
         }
 
@@ -194,7 +196,7 @@ class UserServiceImpl(
                 val iv = params.getParameterSpec(IvParameterSpec::class.java).iv
                 val ciphertext = if (hetu != null)
                     cipher.doFinal(
-                        hetu.toString().toByteArray(StandardCharsets.UTF_8)
+                        hetu.toByteArray(StandardCharsets.UTF_8)
                     ) else null
 
                 tokenUser.hetu = ciphertext
@@ -315,7 +317,13 @@ class UserServiceImpl(
         ) {
             log.error(
                 "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
-                    "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole" +
+                    "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole " +
+                    "tarpeeksi lähellä käyttäjän nimeä."
+            )
+            alertPublisherService.publishAlert(
+                subject = "Kirjautuminen epäonnistui: virheellinen nimi",
+                message = "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
+                    "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole " +
                     "tarpeeksi lähellä käyttäjän nimeä."
             )
             throw Exception(LoginException.VIRHEELLINEN_NIMI.name)

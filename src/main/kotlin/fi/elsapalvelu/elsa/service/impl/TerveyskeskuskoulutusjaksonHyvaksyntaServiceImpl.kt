@@ -166,7 +166,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
         opintooikeusRepository.findById(opintooikeusId).orElse(null)?.let {
             val tyoskentelyjaksot =
-                if (it.erikoisala?.id == YEK_ERIKOISALA_ID)  tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(opintooikeusId, TyoskentelyjaksoTyyppi.TERVEYSKESKUS)
+                if (it.erikoisala?.id == YEK_ERIKOISALA_ID)
+                    tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(opintooikeusId, TyoskentelyjaksoTyyppi.TERVEYSKESKUS)
                 else tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
                     opintooikeusId,
                     TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
@@ -231,19 +232,6 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
             val hyvaksynta = TerveyskeskuskoulutusjaksonHyvaksynta(opintooikeus = it, erikoistujaLahettanyt = true)
             terveyskeskuskoulutusjaksonHyvaksyntaRepository.save(hyvaksynta)
-
-            /* Tätä ei tarvitse enää lähettää (ELSA-511)
-            Jätetään kuitenkin talteen, mikäli tarvitseekin ottaa takaisin
-            mailService.sendEmailFromTemplate(
-                to = it.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
-                templateName = if (it.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusTarkastettavissa.html" else "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
-                titleKey = if (it.erikoisala?.id == YEK_ERIKOISALA_ID) "email.yektkkjaksonhyvaksymishakemustarkastettavissa.title" else "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
-                properties = mapOf(
-                    Pair(MailProperty.ID, hyvaksynta.id.toString()),
-                    Pair(MailProperty.URL_PATH, "terveyskeskuskoulutusjakson-tarkistus")
-                )
-            )*/
-
             return terveyskeskuskoulutusjaksonHyvaksyntaMapper.toDto(hyvaksynta)
         }
 
@@ -327,8 +315,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         if (result.virkailijaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
                 to = vastuuhenkilo?.user?.email,
-                templateName = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusTarkastettavissa.html" else "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
-                titleKey = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "email.yektkkjaksonhyvaksymishakemustarkastettavissa.title" else "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
+                templateName = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusTarkastettavissa.html"
+                else "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
+                titleKey = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "email.yektkkjaksonhyvaksymishakemustarkastettavissa.title"
+                else "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, result.id.toString()),
                     Pair(MailProperty.URL_PATH, "terveyskeskuskoulutusjakson-hyvaksynta")
@@ -391,8 +381,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             )
             mailService.sendEmailFromTemplate(
                 to = hyvaksynta.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
-                templateName = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusHyvaksytty.html" else "tkkjaksonHyvaksymishakemusHyvaksytty.html",
-                titleKey = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "email.yektkkjaksonhyvaksymishakemushyvaksytty.title" else "email.tkkjaksonhyvaksymishakemushyvaksytty.title",
+                templateName = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusHyvaksytty.html"
+                else "tkkjaksonHyvaksymishakemusHyvaksytty.html",
+                titleKey = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "email.yektkkjaksonhyvaksymishakemushyvaksytty.title"
+                else "email.tkkjaksonhyvaksymishakemushyvaksytty.title",
                 properties = mapOf(
                     Pair(
                         MailProperty.URL_PATH,

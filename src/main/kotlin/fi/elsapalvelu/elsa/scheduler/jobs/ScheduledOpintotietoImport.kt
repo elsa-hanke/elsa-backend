@@ -1,0 +1,106 @@
+package fi.elsapalvelu.elsa.scheduler.jobs
+
+import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.service.*
+import kotlinx.coroutines.*
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Component
+import java.nio.charset.StandardCharsets
+import java.time.Duration
+import java.time.LocalDateTime
+import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.SecretKey
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
+import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
+import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
+
+@Component
+class ScheduledOpintotietoImport(
+    private val opintotietodataFetchingService: List<OpintotietodataFetchingService>,
+    private val opintotietodataPersistenceService: OpintotietodataPersistenceService,
+    private val opintosuorituksetFetchingService: List<OpintosuorituksetFetchingService>,
+    private val opintosuorituksetPersistenceService: OpintosuorituksetPersistenceService,
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val applicationProperties: ApplicationProperties
+) : AbstractTriggerableJob() {
+
+    override val jobName = "opintotietoImport"
+
+    @Scheduled(cron = "0 0 4 ? * *", zone = "Europe/Helsinki")
+    @SchedulerLock(name = "opintotietoImport", lockAtLeastFor = "5S", lockAtMostFor = "10M")
+    fun import() {
+        runJob()
+    }
+
+    override fun runJob() {
+        log.info("OpintotietoImport käynnistetty")
+        val timestamp = LocalDateTime.now()
+        val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
+        val decodedKey = Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
+        val originalKey: SecretKey = SecretKeySpec(
+            decodedKey, 0, decodedKey.size, applicationProperties.getSecurity().secretKeyAlgorithm
+        )
+        val opintotietoServices =
+            opintotietodataFetchingService.filter { it.shouldFetchOpintotietodata() }
+                .associateBy { it.getYliopisto() }
+        val opintosuoritusServices =
+            opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
+                .associateBy { it.getYliopisto() }
+        val opintooikeudet = opintooikeusRepository.findAllValid()
+            .distinctBy { Pair(it.erikoistuvaLaakari?.id, it.yliopisto?.id) }
+        log.info("OpintotietoImport: löydetty ${opintooikeudet.size} käyttäjää")
+        opintooikeudet.forEachIndexed { index, opintooikeus ->
+            val user = opintooikeus.erikoistuvaLaakari?.kayttaja?.user!!
+            val yliopistoNimi = opintooikeus.yliopisto?.nimi
+            log.info(
+                "OpintotietoImport: käyttäjä ${index + 1}/${opintooikeudet.size}: " +
+                    "userId=${user.id}, yliopisto=$yliopistoNimi"
+            )
+            getHetu(user, cipher, originalKey)?.let { hetu ->
+                runBlocking {
+                    try {
+                        opintotietoServices[yliopistoNimi]?.fetchOpintotietodata(hetu)
+                            ?.let { data ->
+                                opintotietodataPersistenceService.createOrUpdateOpintotieto(
+                                    user.id!!,
+                                    data
+                                )
+                            }
+                        opintosuoritusServices[yliopistoNimi]?.fetchOpintosuoritukset(hetu)
+                            ?.let { data ->
+                                opintosuorituksetPersistenceService.createOrUpdateIfChanged(
+                                    user.id!!,
+                                    data
+                                )
+                            }
+                    } catch (e: Exception) {
+                        log.error(
+                            "OpintotietoImport virhe käyttäjälle ${user.id} " +
+                                "(yliopisto=$yliopistoNimi): ${e.message}",
+                            e
+                        )
+                    }
+                }
+            }
+        }
+        log.info(
+            "OpintotietoImport valmis ${
+                Duration.between(timestamp, LocalDateTime.now()).toSeconds()
+            } sekunnissa"
+        )
+    }
+
+    private fun getHetu(user: User, cipher: Cipher, originalKey: SecretKey): String? {
+        if (user.hetu == null || user.initVector == null) {
+            return null
+        }
+        cipher.init(Cipher.DECRYPT_MODE, originalKey, IvParameterSpec(user.initVector))
+        return String(cipher.doFinal(user.hetu), StandardCharsets.UTF_8)
+    }
+}

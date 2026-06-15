@@ -3,22 +3,27 @@ import { E2E_ERIKOISTUVA_EMAIL, KOULUTTAJA_EMAIL, VASTUUHENKILO_EMAIL } from '..
 export {}
 
 // Käyttötapaus 6.
-// Koejakson koulutussopimuksen täyttäminen ja lähettäminen, erikoistuja
+// Koejakson koulutustodistuksen tekeminen, erikoistuja
 // Käyttäjä: Erikoistuja
-// Tavoite: Lähettää koulutussopimus kouluttajan hyväksyttäväksi
-// Laukaisija: Erikoistuja aloittaa koejakson
-// Esiehto: Erikoistujalla on opinto-oikeus opintotietojärjestelmässä.
+// Tavoite: Lähettää koejakson koulutussopimus
+// Laukaisija: Erikoistuja on saanut opinto-oikeuden ja on aloittamassa koejaksoa
+// Esiehto: Erikoistuvalla on opinto-oikeus opintotietojärjestelmässä.
 //          Erikoistuja on lisännyt kouluttajalle katseluoikeudet.
-// Käyttötapauksen kulku:
-// 1. Erikoistuja siirtyy koejakso-sivulle
-// 2. Erikoistuja avaa koulutussopimus-lomakkeen
-// 3. Erikoistuja täyttää lomakkeen tiedot
-// 4. Erikoistuja lähettää lomakkeen kouluttajan hyväksyttäväksi
+//
+// Käyttötapaus 7.
+// Kouluttaja hyväksyy koulutussopimuksen
+// Käyttäjä: Kouluttaja
+// Suoritetaan API-kutsulla verification-tokenin kautta (valmistumispyynto-patternin mukaan)
+//
+// Käyttötapaus 8.
+// Vastuuhenkilö hyväksyy koulutussopimuksen
+// Käyttäjä: Vastuuhenkilö
+// Suoritetaan API-kutsulla verification-tokenin kautta
 
-const KOULUTTAJA_ETUNIMI     = 'E2E'
-const KOULUTTAJA_SUKUNIMI    = 'Kouluttaja'
-const VASTUUHENKILO_ETUNIMI  = 'E2E'
-const VASTUUHENKILO_SUKUNIMI = 'Vastuuhenkilo'
+const KOULUTTAJA_ETUNIMI     = 'Lassekalevi'
+const KOULUTTAJA_SUKUNIMI    = 'Hummaamistes'
+const VASTUUHENKILO_ETUNIMI  = 'Mia'
+const VASTUUHENKILO_SUKUNIMI = 'Ålands'
 
 describe('Koulutussopimus', () => {
   // ── Esialustetaan tietokanta testisarjaa varten ──────────────────────────────
@@ -28,17 +33,23 @@ describe('Koulutussopimus', () => {
     // Siivotaan vanhat koejakso-lomakkeet ennen erikoistuvan poistoa (FK-turvallisuus)
     cy.task('db:cleanupKoejakso', { erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL })
     cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
+    cy.task('db:cleanupKouluttaja', { email: KOULUTTAJA_EMAIL })
+    cy.task('db:cleanupVastuuhenkilo', { email: VASTUUHENKILO_EMAIL })
 
-    // Siemennetään tukikäyttäjät
+    // Siemennetään tukikäyttäjät ja talletetaan verification-tokenit Cypress.env:iin
     cy.task('db:seedKouluttaja', {
       email: KOULUTTAJA_EMAIL,
       etunimi: KOULUTTAJA_ETUNIMI,
       sukunimi: KOULUTTAJA_SUKUNIMI,
+    }).then((result: any) => {
+      Cypress.env('kouluttajaToken', result?.token)
     })
     cy.task('db:seedVastuuhenkilo', {
       email: VASTUUHENKILO_EMAIL,
       etunimi: VASTUUHENKILO_ETUNIMI,
       sukunimi: VASTUUHENKILO_SUKUNIMI,
+    }).then((result: any) => {
+      Cypress.env('vastuuhenkiloToken', result?.token)
     })
 
     // Kirjautuminen luo erikoistuvan ja opinto-oikeuden (createWithoutOpintotietodata)
@@ -51,7 +62,7 @@ describe('Koulutussopimus', () => {
     })
   })
 
-  // ── Käyttötapaus 6: Erikoistuja lähettää koulutussopimuksen ─────────────────
+  // ── Käyttötapaukset 6, 7, 8: koko koulutussopimusprosessi ───────────────────
 
   it('Käyttötapaus 6: Erikoistuja täyttää ja lähettää koulutussopimuksen', () => {
     // Siivotaan mahdollinen edellinen koulutussopimus jotta testi on idempotentti
@@ -62,6 +73,8 @@ describe('Koulutussopimus', () => {
     const mm = String(today.getMonth() + 1).padStart(2, '0')
     const yyyy = today.getFullYear()
     const todayStr = `${dd}.${mm}.${yyyy}`
+
+    // ── Käyttötapaus 6: Erikoistuja täyttää ja lähettää koulutussopimuksen ────
 
     // 1. Erikoistuja siirtyy koejakso-sivulle
     cy.visit('/koejakso')
@@ -107,7 +120,7 @@ describe('Koulutussopimus', () => {
       .type(todayStr)
       .blur()
 
-    // Kouluttajan valinta – valitaan siemennetty kouluttaja
+    // 5. Kouluttajan valinta – valitaan siemennetty kouluttaja
     cy.contains('label', 'Kouluttaja')
       .parent()
       .find('.multiselect')
@@ -116,14 +129,18 @@ describe('Koulutussopimus', () => {
       .contains(`${KOULUTTAJA_ETUNIMI} ${KOULUTTAJA_SUKUNIMI}`)
       .click({ force: true })
 
-    // 4. Erikoistuja lähettää lomakkeen
+    // 6. Erikoistuja lähettää lomakkeen
     cy.intercept('POST', '**/erikoistuva-laakari/koejakso/koulutussopimus').as('koulutussopimusPost')
     cy.intercept('GET', '**/erikoistuva-laakari/koejakso').as('koejaksoAfterSubmit')
 
     cy.contains('button', 'Hyväksy ja lähetä').click()
     cy.get('#confirm-send').find('button').contains('Hyväksy ja lähetä').click()
 
-    cy.wait('@koulutussopimusPost').its('response.statusCode').should('eq', 201)
+    cy.wait('@koulutussopimusPost').then(({ response }) => {
+      expect(response?.statusCode).to.eq(201)
+      expect(response?.body?.id).to.be.a('number')
+      Cypress.env('koulutussopimusId', response?.body?.id)
+    })
     cy.wait('@koejaksoAfterSubmit')
 
     // Vahvistetaan onnistuminen – lomake siirtyy odottamaan hyväksyntöjä readonly-tilaan
@@ -134,5 +151,76 @@ describe('Koulutussopimus', () => {
     ).should('be.visible')
     cy.contains('E2E Testisairaala').should('be.visible')
     cy.contains(`${KOULUTTAJA_ETUNIMI} ${KOULUTTAJA_SUKUNIMI}`).should('be.visible')
+
+    cy.then(() => {
+      const sopimusId = Cypress.env('koulutussopimusId')
+
+      // -- Käyttötapaus 7: Kouluttaja hyväksyy koulutussopimuksen --
+      // 1. Kouluttaja kirjautuu ELSA-palveluun verification-tokenin kautta
+      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+
+      // 2. Kouluttaja hakee koulutussopimuksen tiedot
+      cy.apiRequest({
+        method: 'GET',
+        url: `/api/kouluttaja/koejakso/koulutussopimus/${sopimusId}`,
+      }).then(({ status, body }) => {
+        expect(status).to.eq(200)
+
+        // 3–4. Kouluttaja täyttää koulutuspaikan tiedot ja lähettää hyväksynnän
+        // (korjausehdotus=null → hyväksyntä, ei palautus korjattavaksi)
+        // Huom: sahkoposti täytyy sisällyttää DTO:hon, muuten palvelu nollaa käyttäjän sähköpostin
+        const kouluttajat = (body.kouluttajat ?? []).map((k: any) => ({
+          ...k,
+          toimipaikka: 'E2E Testisairaala',
+          lahiosoite: 'Testikatu 1',
+          postitoimipaikka: '00100 Helsinki',
+          sahkoposti: KOULUTTAJA_EMAIL,
+        }))
+
+        cy.apiRequest({
+          method: 'PUT',
+          url: '/api/kouluttaja/koejakso/koulutussopimus',
+          body: {
+            ...body,
+            kouluttajat,
+            korjausehdotus: null,
+          },
+        }).then(({ status, body }) => {
+          expect(status).to.eq(200)
+          expect(body.kouluttajat?.some((k: any) => k.sopimusHyvaksytty === true)).to.eq(true)
+        })
+      })
+
+      // -- Käyttötapaus 8: Vastuuhenkilö hyväksyy koulutussopimuksen --
+      // 1. Vastuuhenkilö kirjautuu ELSA-palveluun verification-tokenin kautta
+      cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+
+      // 2. Vastuuhenkilö hakee koulutussopimuksen tiedot
+      cy.apiRequest({
+        method: 'GET',
+        url: `/api/vastuuhenkilo/koejakso/koulutussopimus/${sopimusId}`,
+      }).then(({ status, body }) => {
+        expect(status).to.eq(200)
+
+        // 3–4. Vastuuhenkilö tarkistaa tiedot ja hyväksyy
+        // (korjausehdotus=null → hyväksyntä, ei palautus)
+        // Huom: vastuuhenkilo.sahkoposti täytyy sisällyttää DTO:hon, muuten palvelu nollaa käyttäjän sähköpostin
+        cy.apiRequest({
+          method: 'PUT',
+          url: '/api/vastuuhenkilo/koejakso/koulutussopimus',
+          body: {
+            ...body,
+            korjausehdotus: null,
+            vastuuhenkilo: {
+              ...(body.vastuuhenkilo ?? {}),
+              sahkoposti: VASTUUHENKILO_EMAIL,
+            },
+          },
+        }).then(({ status, body }) => {
+          expect(status).to.eq(200)
+          expect(body.vastuuhenkilo?.sopimusHyvaksytty).to.eq(true)
+        })
+      })
+    })
   })
 })
