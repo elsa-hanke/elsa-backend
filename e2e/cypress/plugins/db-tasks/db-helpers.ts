@@ -27,6 +27,16 @@ export async function getKayttajaId(client: Client, email: string): Promise<numb
   return result.rows[0]?.id ?? null
 }
 
+export async function getErikoistujaLaakariId(client: Client, email: string): Promise<number | null> {
+
+  const sql = `select e.id from erikoistuva_laakari e join kayttaja k on k.id = e.kayttaja_id join jhi_user u on k.user_id = u.id  where u.email = $1`
+
+  const result = await client.query(sql, [email])
+  return result.rows[0]?.id ?? null
+
+}
+
+
 // ─── Shared koejakso deletion (used by both cleanupKoejakso and cleanupErikoistuva) ──
 
 /**
@@ -76,3 +86,11 @@ export async function deleteKoejaksoRowsByOpintooikeusId(
   await client.query(`DELETE FROM koejakson_koulutussopimus        WHERE opintooikeus_id = $1`, [oid])
 }
 
+export async function addRoletoUser(client: Client, email: string, role: string): Promise<void> {
+  await client.query(
+    `INSERT INTO jhi_user_authority (user_id, authority_name)
+     VALUES ((SELECT id FROM jhi_user WHERE email = $1), $2)
+     ON CONFLICT DO NOTHING`,
+    [email, role]
+  )
+}

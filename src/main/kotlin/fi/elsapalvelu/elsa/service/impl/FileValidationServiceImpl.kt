@@ -14,7 +14,7 @@ class FileValidationServiceImpl(
     private val asiakirjaService: AsiakirjaService
 ) : FileValidationService {
 
-    private val log = LoggerFactory.getLogger(FileValidationServiceImpl::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     private val defaultAllowedContentTypes: List<String> =
         listOf(MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, "image/jpg")

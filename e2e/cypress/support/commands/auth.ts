@@ -57,7 +57,16 @@ Cypress.Commands.add('loginWithSuomifi', (ssn = SSN_ERIKOISTUVA, email?: string,
   })
 
   cy.origin('https://testi.apro.tunnistus.fi', () => {
-    cy.get('#continue-button').click()
+
+    cy.get('body').then(($body) => {
+      const exists = $body.find('[name="_eventId_proceed"]').length > 0
+      if (exists) {
+        cy.get('[name="_eventId_proceed"]').click()
+      }
+      else {
+        cy.get('#continue-button').click()
+      }
+    })
   })
 
   if (email !== undefined) {
