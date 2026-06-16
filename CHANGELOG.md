@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- enhance error logging for archiving failures with detailed HTTP response information [`#627`](https://github.com/elsa-hanke/elsa-backend/pull/627)(15 June 2026)
+- fix: add error logging for unknown educational status in PeppiOulu data fetching service [`#625`](https://github.com/elsa-hanke/elsa-backend/pull/625)(15 June 2026)
+- Release v2.1.5 merge [`#624`](https://github.com/elsa-hanke/elsa-backend/pull/624)(15 June 2026)
 - update Kotlin and Detekt plugin versions to 2.4.0 and 2.0.0-alpha.4 [`#623`](https://github.com/elsa-hanke/elsa-backend/pull/623)(14 June 2026)
 - Peppi and Sisu services: refactoring and reorganization [`#622`](https://github.com/elsa-hanke/elsa-backend/pull/622)(13 June 2026)
 - More external integration tests [`#614`](https://github.com/elsa-hanke/elsa-backend/pull/614)(12 June 2026)
