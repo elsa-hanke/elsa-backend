@@ -315,14 +315,8 @@ class UserServiceImpl(
         if ((firstNameDistFirst > treshhold && firstNameDistLast > treshhold)
             || (lastNameDistFirst > treshhold && lastNameDistLast > treshhold)
         ) {
-            log.error(
+            log.warn(
                 "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
-                    "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole " +
-                    "tarpeeksi lähellä käyttäjän nimeä."
-            )
-            alertPublisherService.publishAlert(
-                subject = "Kirjautuminen epäonnistui: virheellinen nimi",
-                message = "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
                     "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole " +
                     "tarpeeksi lähellä käyttäjän nimeä."
             )
