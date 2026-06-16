@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.config.LoginException
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
 import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.service.AlertPublisherService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
@@ -47,8 +46,7 @@ class UserServiceImpl(
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
     private val seurantajaksoRepository: SeurantajaksoRepository,
-    private val entityManager: EntityManager,
-    private val alertPublisherService: AlertPublisherService
+    private val entityManager: EntityManager
 ) : UserService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -315,14 +313,8 @@ class UserServiceImpl(
         if ((firstNameDistFirst > treshhold && firstNameDistLast > treshhold)
             || (lastNameDistFirst > treshhold && lastNameDistLast > treshhold)
         ) {
-            log.error(
+            log.warn(
                 "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
-                    "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole " +
-                    "tarpeeksi lähellä käyttäjän nimeä."
-            )
-            alertPublisherService.publishAlert(
-                subject = "Kirjautuminen epäonnistui: virheellinen nimi",
-                message = "Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). " +
                     "Kutsussa annettu nimi ${tokenUser.firstName} ${tokenUser.lastName} ei ole " +
                     "tarpeeksi lähellä käyttäjän nimeä."
             )
