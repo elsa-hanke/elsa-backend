@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- change error logging to warning for incorrect login name and remove alert publishing [`#628`](https://github.com/elsa-hanke/elsa-backend/pull/628)(16 June 2026)
 - enhance error logging for archiving failures with detailed HTTP response information [`#627`](https://github.com/elsa-hanke/elsa-backend/pull/627)(15 June 2026)
 - fix: add error logging for unknown educational status in PeppiOulu data fetching service [`#625`](https://github.com/elsa-hanke/elsa-backend/pull/625)(15 June 2026)
 - Release v2.1.5 merge [`#624`](https://github.com/elsa-hanke/elsa-backend/pull/624)(15 June 2026)
