@@ -66,9 +66,9 @@
 <script lang="ts">
   import { parse, format, isValid, addYears, subYears } from 'date-fns'
   import { fi, sv, enUS } from 'date-fns/locale'
-  import { Component, Prop, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { requiredIf } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
+
+  import { requiredIf } from '@/utils/validators'
 
   const defaultDateFormat = 'yyyy-MM-dd'
   const defaultMinDate = format(subYears(new Date(), 40), defaultDateFormat)
@@ -82,7 +82,7 @@
   @Component({
     inheritAttrs: false
   })
-  export default class ElsaFormDatepicker extends Mixins(validationMixin) {
+  export default class ElsaFormDatepicker extends Vue {
     validations() {
       return {
         form: {
@@ -317,7 +317,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   @import '~@/styles/variables';
 
   .date-input {

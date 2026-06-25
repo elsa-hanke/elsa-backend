@@ -1,7 +1,10 @@
-import Vue from 'vue'
-import Meta from 'vue-meta'
-import VueRouter, { NavigationGuardNext, RawLocation, Route, RouteConfig } from 'vue-router'
-import { ErrorHandler } from 'vue-router/types/router'
+import {
+  createRouter,
+  createWebHistory,
+  NavigationGuardNext,
+  RouteLocationNormalized,
+  RouteRecordRaw
+} from 'vue-router'
 
 import VueI18n from '@/plugins/i18n'
 import RoleSpecificRoute from '@/router/role-specific-route.vue'
@@ -137,10 +140,11 @@ import ValmistumispyynnonArviointi from '@/views/valmistumispyynnot/vastuuhenkil
 import ValmistumispyynnonHyvaksynta from '@/views/valmistumispyynnot/vastuuhenkilo/valmistumispyynnon-hyvaksynta.vue'
 import ValmistumispyynnonTarkistus from '@/views/valmistumispyynnot/virkailija/valmistumispyynnon-tarkistus.vue'
 
-Vue.use(VueRouter)
-Vue.use(Meta)
-
-const guard = async (to: Route, from: Route, next: NavigationGuardNext) => {
+const guard = async (
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext
+) => {
   if (!store.getters['auth/isLoggedIn']) {
     await store.dispatch('auth/authorize')
   }
@@ -165,7 +169,11 @@ const guard = async (to: Route, from: Route, next: NavigationGuardNext) => {
   }
 }
 
-const etusivuGuard = async (to: Route, from: Route, next: NavigationGuardNext) => {
+const etusivuGuard = async (
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext
+) => {
   // Tekniselle pääkäyttäjälle voisi olla myös oma etusivunsa
   if (store.getters['auth/account'].authorities.includes(ELSA_ROLE.TekninenPaakayttaja)) {
     next({
@@ -177,7 +185,11 @@ const etusivuGuard = async (to: Route, from: Route, next: NavigationGuardNext) =
   }
 }
 
-const impersonatedErikoistuvaGuard = async (to: Route, from: Route, next: NavigationGuardNext) => {
+const impersonatedErikoistuvaGuard = async (
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext
+) => {
   const account = store.getters['auth/account']
   if (account.impersonated) {
     next({
@@ -190,8 +202,8 @@ const impersonatedErikoistuvaGuard = async (to: Route, from: Route, next: Naviga
 }
 
 const impersonatedErikoistuvaWithMuokkausoikeudetGuard = async (
-  _to: Route,
-  _from: Route,
+  _to: RouteLocationNormalized,
+  _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
   const account = store.getters['auth/account']
@@ -210,8 +222,8 @@ const impersonatedErikoistuvaWithMuokkausoikeudetGuard = async (
 }
 
 const impersonatedErikoistuvaVirkailijaGuard = async (
-  to: Route,
-  from: Route,
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
   const account = store.getters['auth/account']
@@ -228,17 +240,21 @@ const impersonatedErikoistuvaVirkailijaGuard = async (
   }
 }
 
-const languageGuard = async (to: Route, from: Route, next: NavigationGuardNext) => {
+const languageGuard = async (
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext
+) => {
   if ('lang' in to.query) {
     const lang = to.query['lang'] as string
     if (Object.keys(VueI18n.messages).includes(lang)) {
-      VueI18n.locale = lang
+      VueI18n.locale = lang as any
     }
   }
   next()
 }
 
-const routes: Array<RouteConfig> = [
+const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'root',
@@ -1518,7 +1534,7 @@ const routes: Array<RouteConfig> = [
   {
     path: '/sivua-ei-loytynyt',
     name: 'page-not-found',
-    alias: '*',
+    alias: '/:pathMatch(.*)*',
     component: PageNotFound
   },
   {
@@ -1539,27 +1555,21 @@ const routes: Array<RouteConfig> = [
   }
 ]
 
-const router = new VueRouter({
-  mode: 'history',
-  base: process.env.BASE_URL,
+const router = createRouter({
+  history: createWebHistory(process.env.BASE_URL),
   routes
 })
 
 const originalPush = router.push
-router.push = function push(
-  location: RawLocation,
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  onComplete?: Function,
-  onAbort?: ErrorHandler
-): Promise<Route> {
+router.push = function push(location: any, onComplete?: any, onAbort?: any): Promise<any> {
   if (onComplete || onAbort) {
-    return originalPush.call(this, location, onComplete, onAbort) as any as Promise<Route>
+    return originalPush.call(this, location, onComplete, onAbort) as any
   }
 
-  return (originalPush.call(this, location) as any as Promise<Route>).catch((err) => {
+  return (originalPush.call(this, location) as any).catch((err: any) => {
     // Sallitaan uudelleenohjaukset
-    if (VueRouter.isNavigationFailure(err, VueRouter.NavigationFailureType.redirected)) {
-      return Promise.resolve() as any
+    if (router.isNavigationFailure(err)) {
+      return Promise.resolve()
     }
 
     return Promise.reject(err)

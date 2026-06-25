@@ -143,7 +143,7 @@
 
 <script lang="ts">
   import axios, { AxiosError } from 'axios'
-  import { BModal } from 'bootstrap-vue'
+  import { BModal } from 'bootstrap-vue-next'
   import { Component, Vue } from 'vue-property-decorator'
 
   import { postLahikouluttaja } from '@/api/erikoistuva'

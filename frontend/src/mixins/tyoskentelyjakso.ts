@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios'
-import { BModal } from 'bootstrap-vue'
+import { BModal } from 'bootstrap-vue-next'
 import { Component, Vue, Prop } from 'vue-property-decorator'
 
 import { ElsaError, Tyoskentelyjakso } from '@/types'

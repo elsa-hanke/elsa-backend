@@ -91,10 +91,8 @@
 
 <script lang="ts">
   import { AxiosError } from 'axios'
-  import { BModal } from 'bootstrap-vue'
-  import { Component, Prop, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { BModal } from 'bootstrap-vue-next'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import { postLahikouluttaja } from '@/api/erikoistuva'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
@@ -104,6 +102,7 @@
   import { Kayttaja, KoejaksonVaiheHyvaksyja, ElsaError, Kouluttaja } from '@/types'
   import { formatList } from '@/utils/kouluttajaAndVastuuhenkiloListFormatter'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -112,7 +111,7 @@
       KouluttajaForm
     }
   })
-  export default class KoulutuspaikanArvioijat extends Mixins(validationMixin) {
+  export default class KoulutuspaikanArvioijat extends Vue {
     validations() {
       return {
         form: {

@@ -86,10 +86,7 @@
   </b-form>
 </template>
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, requiredIf, email, sameAs } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import { ELSA_API_LOCATION } from '@/api'
   import ElsaButton from '@/components/button/button.vue'
@@ -98,6 +95,7 @@
   import UserAvatar from '@/components/user-avatar/user-avatar.vue'
   import store from '@/store'
   import { Opintooikeus, KaytonAloitusModel } from '@/types'
+  import { required, requiredIf, email, sameAs } from '@/utils/validators'
   @Component({
     components: {
       ElsaFormGroup,
@@ -106,7 +104,7 @@
       ElsaButton
     }
   })
-  export default class KaytonAloitusForm extends Mixins(validationMixin) {
+  export default class KaytonAloitusForm extends Vue {
     validations() {
       return {
         form: {

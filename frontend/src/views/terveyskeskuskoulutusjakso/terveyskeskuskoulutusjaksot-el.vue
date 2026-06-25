@@ -187,9 +187,7 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
-  import { Prop, Watch } from 'vue-property-decorator'
+  import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
 
   import { getTerveyskeskuskoulutusjaksot as getTerveyskeskuskoulutusjaksotVastuuhenkilo } from '@/api/vastuuhenkilo'
   import {

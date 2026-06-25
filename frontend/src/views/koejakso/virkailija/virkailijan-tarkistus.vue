@@ -581,9 +581,7 @@
   import { intervalToDuration, formatDuration, isBefore, isAfter } from 'date-fns'
   import { fi, sv, enUS } from 'date-fns/locale'
   import DOMPurify from 'dompurify'
-  import Component from 'vue-class-component'
-  import { Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import { getVastuuhenkilonArvio, putVastuuhenkilonArvio } from '@/api/virkailija'
   import AsiakirjatContent from '@/components/asiakirjat/asiakirjat-content.vue'
@@ -625,7 +623,7 @@
       ElsaTextEditor
     }
   })
-  export default class VirkailijanTarkistus extends Mixins(validationMixin) {
+  export default class VirkailijanTarkistus extends Vue {
     items = [
       {
         text: this.$t('etusivu'),

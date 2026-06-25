@@ -116,14 +116,14 @@
 
 <script lang="ts">
   import { Component, Prop, Vue } from 'vue-property-decorator'
-  import { Validation } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormError from '@/components/form-error/form-error.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import ElsaPopover from '@/components/popover/popover.vue'
   import { Kurssikoodi, OpintosuoritusTyyppi } from '@/types'
+  import { required } from '@/utils/validators'
+  import type { Validation } from '@/utils/validators'
 
   @Component({
     components: {

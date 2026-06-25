@@ -278,10 +278,7 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { Validation } from 'vuelidate'
-  import { required, requiredIf } from 'vuelidate/lib/validators'
+  import { Component, Mixins, Prop } from 'vue-property-decorator'
 
   import ElsaArviointiasteikonTasoTooltipContent from '@/components/arviointiasteikon-taso/arviointiasteikon-taso-tooltip.vue'
   import ElsaButton from '@/components/button/button.vue'
@@ -305,6 +302,8 @@
   } from '@/types'
   import { vaativuustasot, ArviointiasteikkoTyyppi } from '@/utils/constants'
   import { dateBetween } from '@/utils/date'
+  import type { Validation } from '@/utils/validators'
+  import { required, requiredIf } from '@/utils/validators'
 
   @Component({
     components: {

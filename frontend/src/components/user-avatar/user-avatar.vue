@@ -20,11 +20,9 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Avatar from 'vue-avatar'
-  import Component from 'vue-class-component'
-  import { Prop } from 'vue-property-decorator'
+  import { Vue, Component, Prop } from 'vue-property-decorator'
 
+  import Avatar from '@/components/user-avatar/avatar'
   import store from '@/store'
 
   @Component({

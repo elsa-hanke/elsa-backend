@@ -1,8 +1,7 @@
 /* eslint-disable no-unused-vars */
-import { reactive } from '@vue/composition-api'
 import { format, parseISO, formatISO } from 'date-fns'
 import { enUS, fi, sv } from 'date-fns/locale'
-import Vue from 'vue'
+import { reactive, App } from 'vue'
 
 import VueI18n from '@/plugins/i18n'
 
@@ -10,12 +9,13 @@ export const durationOptions = reactive({
   showInDays: false
 })
 
-export class DatePlugin {
-  public install(vue: typeof Vue) {
+export default {
+  install(app: App) {
     function parseAndFormat(value: string, pattern: string) {
       const date = parseISO(value)
       let locale
-      switch (VueI18n.locale) {
+      const currentLocale = (VueI18n as any).global?.locale?.value ?? (VueI18n as any).locale
+      switch (currentLocale) {
         case 'sv':
           locale = sv
           break
@@ -29,21 +29,21 @@ export class DatePlugin {
       return format(date, pattern, { locale })
     }
 
-    vue.prototype.$date = function (value: string) {
+    app.config.globalProperties.$date = function (value: string) {
       return parseAndFormat(value, 'P')
     }
-    vue.prototype.$today = function () {
+    app.config.globalProperties.$today = function () {
       return parseAndFormat(formatISO(new Date()), 'P')
     }
 
-    vue.prototype.$datetime = function (value: string) {
+    app.config.globalProperties.$datetime = function (value: string) {
       if (!value) {
         return ''
       }
       return parseAndFormat(value, 'Pp')
     }
 
-    vue.prototype.$duration = function (value: number) {
+    app.config.globalProperties.$duration = function (value: number) {
       if (durationOptions.showInDays) {
         return `${Math.round(value)} vrk`
       }
@@ -71,13 +71,11 @@ export class DatePlugin {
   }
 }
 
-declare module 'vue/types/vue' {
-  interface Vue {
+declare module '@vue/runtime-core' {
+  interface ComponentCustomProperties {
     $date: (value: string) => string
     $today: () => string
     $datetime: (value: string) => string
     $duration: (value: number) => string
   }
 }
-
-Vue.use(new DatePlugin())

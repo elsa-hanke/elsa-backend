@@ -22,7 +22,7 @@ module.exports = {
   configureWebpack: {
     resolve: {
       alias: {
-        vue$: 'vue/dist/vue.esm.js'
+        vue$: 'vue/dist/vue.esm-bundler.js'
       }
     }
   },
@@ -32,6 +32,26 @@ module.exports = {
       args[0].title = 'ELSA-palvelu'
       return args
     })
+
+    // Use transpileOnly mode in ts-loader to skip type-checking during webpack build.
+    // Type checking can be done separately with vue-tsc.
+    config.module
+      .rule('ts')
+      .use('ts-loader')
+      .tap((options) => {
+        return { ...options, transpileOnly: true }
+      })
+
+    config.module
+      .rule('tsx')
+      .use('ts-loader')
+      .tap((options) => {
+        return { ...options, transpileOnly: true }
+      })
+
+    // Disable fork-ts-checker-webpack-plugin (type checking) during build
+    // Type checking is done separately with vue-tsc
+    config.plugins.delete('fork-ts-checker')
   },
 
   devServer: {

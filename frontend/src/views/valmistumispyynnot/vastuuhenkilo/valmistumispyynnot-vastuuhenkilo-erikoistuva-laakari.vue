@@ -39,8 +39,7 @@
 </template>
 
 <script lang="ts">
-  import { Component, Mixins, Watch } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
+  import { Component, Watch, Vue } from 'vue-property-decorator'
 
   import { getValmistumispyynnot } from '@/api/vastuuhenkilo'
   import ElsaButton from '@/components/button/button.vue'
@@ -63,9 +62,7 @@
       ValmistumispyynnotList
     }
   })
-  export default class ValmistumispyynnotVastuuhenkiloErikoistuvaLaakari extends Mixins(
-    validationMixin
-  ) {
+  export default class ValmistumispyynnotVastuuhenkiloErikoistuvaLaakari extends Vue {
     hakutermi = ''
     currentAvoinPage = 1
     currentMuutPage = 1

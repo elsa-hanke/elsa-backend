@@ -89,9 +89,7 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
-  import { Prop } from 'vue-property-decorator'
+  import { Vue, Component, Prop } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import UserAvatar from '@/components/user-avatar/user-avatar.vue'
@@ -190,7 +188,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   @import '~@/styles/variables';
   @import '~bootstrap/scss/mixins/breakpoints';
 

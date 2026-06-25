@@ -13,7 +13,7 @@ export default class ConfirmRouteExit extends Vue {
     window.addEventListener('beforeunload', this.beforeWindowUnload)
   }
 
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('beforeunload', this.beforeWindowUnload)
   }
 

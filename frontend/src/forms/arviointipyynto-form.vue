@@ -174,10 +174,8 @@
 
 <script lang="ts">
   import { AxiosError } from 'axios'
-  import { BModal } from 'bootstrap-vue'
-  import Component from 'vue-class-component'
-  import { Prop, Mixins } from 'vue-property-decorator'
-  import { required } from 'vuelidate/lib/validators'
+  import { BModal } from 'bootstrap-vue-next'
+  import { Component, Prop, Mixins } from 'vue-property-decorator'
 
   import { postLahikouluttaja } from '@/api/erikoistuva'
   import ElsaButton from '@/components/button/button.vue'
@@ -202,6 +200,7 @@
   import { formatList } from '@/utils/kouluttajaAndVastuuhenkiloListFormatter'
   import { toastSuccess, toastFail } from '@/utils/toast'
   import { tyoskentelyjaksoLabel } from '@/utils/tyoskentelyjakso'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {

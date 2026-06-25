@@ -26,12 +26,11 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Avatar from 'vue-avatar'
-  import Component from 'vue-class-component'
+  import { Vue, Component } from 'vue-property-decorator'
 
   import { ELSA_API_LOCATION } from '@/api'
   import ElsaButton from '@/components/button/button.vue'
+  import Avatar from '@/components/user-avatar/avatar'
   import UserAvatar from '@/components/user-avatar/user-avatar.vue'
   import store from '@/store'
 

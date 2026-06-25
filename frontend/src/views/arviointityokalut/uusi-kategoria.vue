@@ -46,9 +46,7 @@
 
 <script lang="ts">
   import { AxiosError } from 'axios'
-  import { Component, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import { postArviointityokalutKategoria } from '@/api/tekninen-paakayttaja'
   import ElsaButton from '@/components/button/button.vue'
@@ -60,6 +58,7 @@
   import VirkailijaForm from '@/forms/uusi-virkailija-form.vue'
   import { ArviointityokaluKategoria, ElsaError } from '@/types'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -79,7 +78,7 @@
       }
     }
   })
-  export default class UusiKategoria extends Mixins(validationMixin) {
+  export default class UusiKategoria extends Vue {
     items = [
       {
         text: this.$t('etusivu'),

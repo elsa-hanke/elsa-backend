@@ -39,8 +39,7 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
+  import { Vue, Component } from 'vue-property-decorator'
 
   import { getSeurantajakso, getSeurantajaksonTiedot, putSeurantajakso } from '@/api/kouluttaja'
   import SeurantajaksoForm from '@/forms/seurantajakso-form.vue'

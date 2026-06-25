@@ -598,10 +598,7 @@
 
 <script lang="ts">
   import axios from 'axios'
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { Validation, validationMixin } from 'vuelidate'
-  import { required, requiredIf } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import ElsaAccordian from '@/components/accordian/accordian.vue'
   import ElsaArviointiasteikonTasoTooltipContent from '@/components/arviointiasteikon-taso/arviointiasteikon-taso-tooltip.vue'
@@ -642,6 +639,8 @@
   } from '@/utils/constants'
   import { mapFile } from '@/utils/fileMapper'
   import { sortByAsc } from '@/utils/sort'
+  import type { Validation } from '@/utils/validators'
+  import { required, requiredIf } from '@/utils/validators'
 
   @Component({
     components: {
@@ -690,7 +689,7 @@
       }
     }
   })
-  export default class ArviointiForm extends Mixins(validationMixin) {
+  export default class ArviointiForm extends Vue {
     @Prop({ required: false, default: false })
     editing!: boolean
 
@@ -1065,7 +1064,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   @import '~@/styles/variables';
   @import '~bootstrap/scss/mixins/breakpoints';
 

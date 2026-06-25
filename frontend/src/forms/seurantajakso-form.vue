@@ -864,11 +864,8 @@
 
 <script lang="ts">
   import axios, { AxiosError } from 'axios'
-  import { BModal } from 'bootstrap-vue'
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { Validation, validationMixin } from 'vuelidate'
-  import { required, requiredIf } from 'vuelidate/lib/validators'
+  import { BModal } from 'bootstrap-vue-next'
+  import { Component, Mixins, Prop } from 'vue-property-decorator'
 
   import { postLahikouluttaja } from '@/api/erikoistuva'
   import ElsaArviointiasteikonTaso from '@/components/arviointiasteikon-taso/arviointiasteikon-taso.vue'
@@ -898,6 +895,8 @@
   import { formatList } from '@/utils/kouluttajaAndVastuuhenkiloListFormatter'
   import { toastFail, toastSuccess } from '@/utils/toast'
   import { ajankohtaLabel } from '@/utils/tyoskentelyjakso'
+  import type { Validation } from '@/utils/validators'
+  import { required, requiredIf } from '@/utils/validators'
   import SuoritemerkintaDetails from '@/views/suoritemerkinnat/suoritemerkinta-details.vue'
 
   @Component({
@@ -950,7 +949,7 @@
       }
     }
   })
-  export default class SeurantajaksoForm extends Mixins(validationMixin, TyoskentelyjaksoMixin) {
+  export default class SeurantajaksoForm extends Mixins(TyoskentelyjaksoMixin) {
     $refs!: {
       seuraavanKeskustelunAjankohta: ElsaFormDatepicker
     }
@@ -1138,7 +1137,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   @import '~@/styles/variables';
   @import '~bootstrap/scss/mixins/breakpoints';
 

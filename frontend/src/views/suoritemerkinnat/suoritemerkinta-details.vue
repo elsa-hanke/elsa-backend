@@ -70,8 +70,7 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import { Component, Prop } from 'vue-property-decorator'
+  import { Vue, Component, Prop } from 'vue-property-decorator'
 
   import ElsaArviointiasteikonTasoTooltipContent from '@/components/arviointiasteikon-taso/arviointiasteikon-taso-tooltip.vue'
   import ElsaArviointiasteikonTaso from '@/components/arviointiasteikon-taso/arviointiasteikon-taso.vue'

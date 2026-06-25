@@ -291,10 +291,7 @@
 
 <script lang="ts">
   import _get from 'lodash/get'
-  import Component from 'vue-class-component'
-  import { Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, requiredIf } from 'vuelidate/lib/validators'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import { getValiarviointi as getValiarviointiKouluttaja } from '@/api/kouluttaja'
   import { getValiarviointi as getValiarviointiVastuuhenkilo } from '@/api/vastuuhenkilo'
@@ -318,6 +315,7 @@
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required, requiredIf } from '@/utils/validators'
 
   @Component({
     components: {
@@ -348,7 +346,7 @@
       }
     }
   })
-  export default class ArviointilomakeValiarviointi extends Mixins(validationMixin) {
+  export default class ArviointilomakeValiarviointi extends Vue {
     items = [
       {
         text: this.$t('etusivu'),
@@ -575,7 +573,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   ::v-deep {
     .textarea-min-height {
       min-height: 100px;

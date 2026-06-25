@@ -1,5 +1,5 @@
 import axios from 'axios'
-import Vue from 'vue'
+import { Vue } from 'vue-property-decorator'
 
 import {
   AloituskeskusteluLomake,

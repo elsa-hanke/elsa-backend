@@ -12,8 +12,7 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
+  import { Vue, Component } from 'vue-property-decorator'
 
   import MuokkaaSeurantajaksoaErikoistuja from '@/views/seurantakeskustelut/erikoistuva/muokkaa-seurantajaksoa-erikoistuja.vue'
   import MuokkaaSeurantajaksoaKouluttajaVastuuhenkilo from '@/views/seurantakeskustelut/kouluttaja-vastuuhenkilo/muokkaa-seurantajaksoa-kouluttaja-vastuuhenkilo.vue'

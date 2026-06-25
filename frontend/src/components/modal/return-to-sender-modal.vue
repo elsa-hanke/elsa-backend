@@ -31,13 +31,11 @@
 
 <script lang="ts">
   import _get from 'lodash/get'
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -50,7 +48,7 @@
       }
     }
   })
-  export default class ElsaReturnToSenderModal extends Mixins(validationMixin) {
+  export default class ElsaReturnToSenderModal extends Vue {
     @Prop({ required: true, type: String })
     id!: string
 

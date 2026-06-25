@@ -98,14 +98,13 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { Validation, validationMixin } from 'vuelidate'
-  import { required, email } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import { Kouluttaja, UusiKouluttaja } from '@/types'
+  import type { Validation } from '@/utils/validators'
+  import { required, email } from '@/utils/validators'
 
   @Component({
     components: {
@@ -127,7 +126,7 @@
       }
     }
   })
-  export default class KouluttajaForm extends Mixins(validationMixin) {
+  export default class KouluttajaForm extends Vue {
     form: Partial<UusiKouluttaja> = {}
     params = {
       saving: false

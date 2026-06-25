@@ -33,22 +33,20 @@
 
 <script lang="ts">
   import { AxiosError } from 'axios'
-  import { BModal } from 'bootstrap-vue'
-  import Avatar from 'vue-avatar'
-  import Component from 'vue-class-component'
-  import { Prop, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { BModal } from 'bootstrap-vue-next'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import { postLahikouluttaja } from '@/api/erikoistuva'
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import ElsaFormMultiselect from '@/components/multiselect/multiselect.vue'
+  import Avatar from '@/components/user-avatar/avatar'
   import KouluttajaForm from '@/forms/kouluttaja-form.vue'
   import store from '@/store'
   import { Kayttaja, Kouluttaja, ElsaError } from '@/types'
   import { defaultKouluttaja } from '@/utils/constants'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -68,7 +66,7 @@
       }
     }
   })
-  export default class KouluttajaDetails extends Mixins(validationMixin) {
+  export default class KouluttajaDetails extends Vue {
     @Prop({ required: true, default: null })
     kouluttaja!: Kouluttaja
 

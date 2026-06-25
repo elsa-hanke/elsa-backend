@@ -261,7 +261,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   @import '~@/styles/variables';
   @import '~bootstrap/scss/mixins/breakpoints';
 

@@ -152,9 +152,7 @@
 
 <script lang="ts">
   import axios from 'axios'
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
-  import { Mixins } from 'vue-property-decorator'
+  import { Vue, Component, Mixins } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
@@ -332,7 +330,7 @@
   }
 </style>
 
-<style lang="scss" scoped>
+<style lang="scss">
   @import '~@/styles/variables';
   @import '~bootstrap/scss/mixins/breakpoints';
 

@@ -8,8 +8,7 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
+  import { Vue, Component } from 'vue-property-decorator'
 
   import KoejaksonVaiheetList from '@/components/koejakson-vaiheet/koejakson-vaiheet-list.vue'
   import store from '@/store'

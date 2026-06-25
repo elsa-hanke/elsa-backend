@@ -194,9 +194,7 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Vue, Mixins, Prop } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
+  import { Component, Vue, Prop } from 'vue-property-decorator'
 
   import AsiakirjatContent from '@/components/asiakirjat/asiakirjat-content.vue'
   import AsiakirjatUpload from '@/components/asiakirjat/asiakirjat-upload.vue'
@@ -220,7 +218,7 @@
       form: {}
     }
   })
-  export default class KoulutussuunnitelmaForm extends Mixins(validationMixin) {
+  export default class KoulutussuunnitelmaForm extends Vue {
     @Prop({
       required: true
     })

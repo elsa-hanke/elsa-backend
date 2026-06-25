@@ -1,12 +1,9 @@
-import Vue from 'vue'
-import VueI18n, { LocaleMessages } from 'vue-i18n'
+import { createI18n } from 'vue-i18n'
 
-Vue.use(VueI18n)
-
-function loadLocaleMessages(): LocaleMessages {
+function loadLocaleMessages() {
   const locales = require.context('../locales', true, /[A-Za-z0-9-_,\s]+\.json$/i)
-  const messages: LocaleMessages = {}
-  locales.keys().forEach((key) => {
+  const messages: Record<string, any> = {}
+  locales.keys().forEach((key: string) => {
     const matched = key.match(/([A-Za-z0-9-_]+)\./i)
     if (matched && matched.length > 1) {
       const locale = matched[1]
@@ -16,8 +13,11 @@ function loadLocaleMessages(): LocaleMessages {
   return messages
 }
 
-export default new VueI18n({
+const i18n = createI18n({
+  legacy: true,
   locale: 'fi',
   fallbackLocale: 'fi',
   messages: loadLocaleMessages()
 })
+
+export default i18n

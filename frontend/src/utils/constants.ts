@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { helpers } from 'vuelidate/lib/validators'
-
 import { Kouluttaja, Koulutuspaikka, Vaativuustaso, Vastuuhenkilo } from '@/types'
+import { helpers } from '@/utils/validators'
 
 export const vaativuustasot: Vaativuustaso[] = [
   {

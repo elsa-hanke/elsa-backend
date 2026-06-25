@@ -35,7 +35,6 @@
 <script lang="ts">
   import { AxiosError } from 'axios'
   import { Component, Vue } from 'vue-property-decorator'
-  import { required } from 'vuelidate/lib/validators'
 
   import { getArviointiasteikot, getOpinoopas, putOpinoopas } from '@/api/tekninen-paakayttaja'
   import OpintoopasForm from '@/forms/opintoopas-form.vue'
@@ -43,6 +42,7 @@
   import { Arviointiasteikko, ElsaError, Opintoopas } from '@/types'
   import { ERIKOISALA_YEK_ID } from '@/utils/constants'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {

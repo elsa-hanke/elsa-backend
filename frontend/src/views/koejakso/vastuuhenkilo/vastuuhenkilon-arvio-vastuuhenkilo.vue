@@ -672,10 +672,7 @@
 <script lang="ts">
   import DOMPurify from 'dompurify'
   import _get from 'lodash/get'
-  import Component from 'vue-class-component'
-  import { Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, requiredIf, email } from 'vuelidate/lib/validators'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import { getVastuuhenkilonArvio } from '@/api/vastuuhenkilo'
   import AsiakirjatContent from '@/components/asiakirjat/asiakirjat-content.vue'
@@ -709,6 +706,7 @@
     tyoskentelypaikkaTyyppiLabel,
     tyoskentelyjaksoKaytannonKoulutusLabel
   } from '@/utils/tyoskentelyjakso'
+  import { required, requiredIf, email } from '@/utils/validators'
 
   @Component({
     components: {
@@ -748,7 +746,7 @@
       }
     }
   })
-  export default class VastuuhenkilonArvioVastuuhenkilo extends Mixins(validationMixin) {
+  export default class VastuuhenkilonArvioVastuuhenkilo extends Vue {
     items = [
       {
         text: this.$t('etusivu'),

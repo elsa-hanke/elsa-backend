@@ -318,9 +318,9 @@
 </template>
 
 <script lang="ts">
-  import Avatar from 'vue-avatar'
   import { Component, Mixins } from 'vue-property-decorator'
 
+  import Avatar from '@/components/user-avatar/avatar'
   import UserAvatar from '@/components/user-avatar/user-avatar.vue'
   import NavbarMixin from '@/mixins/navbar'
 
@@ -339,7 +339,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   @import '~@/styles/variables';
 
   $navbar-height: 53.5px;

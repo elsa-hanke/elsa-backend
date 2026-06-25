@@ -35,11 +35,11 @@
 </template>
 
 <script lang="ts">
-  import Avatar from 'vue-avatar'
   import { Component, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import BCardSkeleton from '@/components/card/card.vue'
+  import Avatar from '@/components/user-avatar/avatar'
   import UserAvatar from '@/components/user-avatar/user-avatar.vue'
   import store from '@/store'
   import { getTitleFromAuthorities } from '@/utils/functions'

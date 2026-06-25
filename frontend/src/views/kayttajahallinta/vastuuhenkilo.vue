@@ -252,8 +252,6 @@
 <script lang="ts">
   import { AxiosError } from 'axios'
   import { Component, Mixins } from 'vue-property-decorator'
-  import { Validation } from 'vuelidate'
-  import { required, email, sameAs } from 'vuelidate/lib/validators'
 
   import {
     getKayttaja,
@@ -281,6 +279,8 @@
   import { formatList } from '@/utils/kouluttajaAndVastuuhenkiloListFormatter'
   import { sortByAsc } from '@/utils/sort'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required, email, sameAs } from '@/utils/validators'
+  import type { Validation } from '@/utils/validators'
   import VastuuhenkilonTehtavat from '@/views/kayttajahallinta/vastuuhenkilon-tehtavat.vue'
 
   @Component({

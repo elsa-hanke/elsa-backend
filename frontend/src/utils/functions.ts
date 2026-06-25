@@ -1,7 +1,8 @@
-import Vue from 'vue'
-import { helpers } from 'vuelidate/lib/validators'
+import { Vue } from 'vue-property-decorator'
 
 import { ELSA_ROLE } from './roles'
+
+import { helpers } from '@/utils/validators'
 
 export const clamp = (num: number, clamp: number, higher: number) =>
   higher ? Math.min(Math.max(num, clamp), higher) : Math.min(num, clamp)

@@ -135,9 +135,7 @@
 </template>
 
 <script lang="ts">
-  import { Component, Mixins, Prop } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'
@@ -147,6 +145,7 @@
   import ElsaTextEditor from '@/components/text-editor/text-editor.vue'
   import { ArvioitavaKokonaisuus, ArvioitavanKokonaisuudenKategoria } from '@/types'
   import { sortByAsc } from '@/utils/sort'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -158,7 +157,7 @@
       ElsaTextEditor
     }
   })
-  export default class ArvioitavaKokonaisuusForm extends Mixins(validationMixin) {
+  export default class ArvioitavaKokonaisuusForm extends Vue {
     $refs!: {
       voimassaoloAlkaa: ElsaFormDatepicker
       voimassaoloPaattyy: ElsaFormDatepicker
@@ -237,7 +236,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   .input-group-fi {
     padding-left: 0.95rem;
     padding-right: 0.95rem;

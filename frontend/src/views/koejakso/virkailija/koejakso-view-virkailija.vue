@@ -186,9 +186,7 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue'
-  import Component from 'vue-class-component'
-  import { Watch } from 'vue-property-decorator'
+  import { Vue, Component, Watch } from 'vue-property-decorator'
 
   import { getErikoisalat, getKoejaksot } from '@/api/virkailija'
   import ElsaButton from '@/components/button/button.vue'

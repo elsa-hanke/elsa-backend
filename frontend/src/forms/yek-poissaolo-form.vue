@@ -158,10 +158,7 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, requiredIf, integer, between } from 'vuelidate/lib/validators'
+  import { Component, Mixins, Prop } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'
@@ -177,6 +174,7 @@
   import { dateBetween } from '@/utils/date'
   import { sortByAsc } from '@/utils/sort'
   import { tyoskentelyjaksoLabel } from '@/utils/tyoskentelyjakso'
+  import { required, requiredIf, integer, between } from '@/utils/validators'
 
   @Component({
     components: {
@@ -211,7 +209,6 @@
     }
   })
   export default class YekPoissaoloForm extends Mixins<TyoskentelyjaksoMixin>(
-    validationMixin,
     TyoskentelyjaksoMixin
   ) {
     $refs!: {

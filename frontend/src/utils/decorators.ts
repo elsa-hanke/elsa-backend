@@ -1,10 +1,12 @@
-import { ComponentOptions } from 'vue'
-import { createDecorator, VueDecorator } from 'vue-class-component'
-import { Vue } from 'vue-property-decorator'
+// Vue-meta has been removed. The @Meta decorator is now a no-op.
+// Use document.title directly or @unhead/vue for page title management.
+import { createDecorator, VueDecorator } from 'vue-property-decorator'
 
-export const Meta: VueDecorator = createDecorator((options: ComponentOptions<Vue>, key: string) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const Meta: VueDecorator = createDecorator((options: any, key: string) => {
   if (!options.methods) {
     return
   }
+  // Store metaInfo for potential future use but it won't be processed by vue-meta
   options['metaInfo'] = options.methods[key]
 })

@@ -196,10 +196,7 @@
 
 <script lang="ts">
   import _get from 'lodash/get'
-  import Component from 'vue-class-component'
-  import { Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import { getKehittamistoimenpiteet as getKehittamistoimenpiteetKouluttaja } from '@/api/kouluttaja'
   import { getKehittamistoimenpiteet as getKehittamistoimenpiteetVastuuhenkilo } from '@/api/vastuuhenkilo'
@@ -223,6 +220,7 @@
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -243,7 +241,7 @@
       }
     }
   })
-  export default class ArviointilomakeKehittamistoimenpiteet extends Mixins(validationMixin) {
+  export default class ArviointilomakeKehittamistoimenpiteet extends Vue {
     items = [
       {
         text: this.$t('etusivu'),

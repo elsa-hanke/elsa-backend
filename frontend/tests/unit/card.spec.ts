@@ -1,15 +1,14 @@
-import { shallowMount, createLocalVue } from '@vue/test-utils'
-import { BootstrapVue } from 'bootstrap-vue'
+import { shallowMount } from '@vue/test-utils'
+import { createBootstrap } from 'bootstrap-vue-next'
 
 import Card from '@/components/card/card.vue'
-
-const localVue = createLocalVue()
-localVue.use(BootstrapVue)
 
 describe('Card.vue', () => {
   it('renders', () => {
     shallowMount(Card, {
-      localVue
+      global: {
+        plugins: [createBootstrap()]
+      }
     })
   })
 })

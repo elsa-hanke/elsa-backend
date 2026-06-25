@@ -30,15 +30,13 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Mixins, Prop } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { Component, Prop, Vue } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import ElsaTextEditor from '@/components/text-editor/text-editor.vue'
   import { Ilmoitus } from '@/types'
+  import { required } from '@/utils/validators'
 
   @Component({
     components: {
@@ -54,7 +52,7 @@
       }
     }
   })
-  export default class IlmoitusForm extends Mixins(validationMixin) {
+  export default class IlmoitusForm extends Vue {
     @Prop({ required: false, default: false })
     editing!: boolean
 

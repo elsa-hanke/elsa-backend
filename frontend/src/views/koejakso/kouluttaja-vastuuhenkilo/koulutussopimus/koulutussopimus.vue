@@ -246,9 +246,7 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import { getKoulutussopimus as getKoulutussopimusKouluttaja } from '@/api/kouluttaja'
   import { getKoulutussopimus as getKoulutussopimusVastuuhenkilo } from '@/api/vastuuhenkilo'
@@ -291,7 +289,7 @@
       ElsaReturnToSenderModal
     }
   })
-  export default class Koulutussopimus extends Mixins(validationMixin) {
+  export default class Koulutussopimus extends Vue {
     skipRouteExitConfirm!: boolean
     $refs!: {
       kouluttajaKoulutussopimusForm: Array<KouluttajaKoulutussopimusForm>

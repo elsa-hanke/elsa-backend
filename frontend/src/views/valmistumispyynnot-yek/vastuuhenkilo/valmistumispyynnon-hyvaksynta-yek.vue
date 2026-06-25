@@ -404,8 +404,6 @@
 <script lang="ts">
   import { AxiosError } from 'axios'
   import { Component, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, email } from 'vuelidate/lib/validators'
 
   import { ELSA_API_LOCATION } from '@/api'
   import {
@@ -430,6 +428,7 @@
   import { confirmExit } from '@/utils/confirm'
   import { phoneNumber } from '@/utils/constants'
   import { toastSuccess, toastFail } from '@/utils/toast'
+  import { required, email } from '@/utils/validators'
   import OpintosuoritusTab from '@/views/opintosuoritukset/opintosuoritus-tab.vue'
 
   @Component({
@@ -445,7 +444,6 @@
     }
   })
   export default class ValmistumispyynnonHyvaksynta extends Mixins<ValmistumispyyntoMixin>(
-    validationMixin,
     ValmistumispyyntoMixin
   ) {
     items = [

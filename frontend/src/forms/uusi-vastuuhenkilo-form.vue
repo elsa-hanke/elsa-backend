@@ -163,9 +163,7 @@
 
 <script lang="ts">
   import { AxiosError } from 'axios'
-  import { Component, Mixins } from 'vue-property-decorator'
-  import { validationMixin } from 'vuelidate'
-  import { required, email, sameAs } from 'vuelidate/lib/validators'
+  import { Component, Vue } from 'vue-property-decorator'
 
   import { postVastuuhenkilo, getYliopistot } from '@/api/kayttajahallinta'
   import ElsaButton from '@/components/button/button.vue'
@@ -182,6 +180,7 @@
     Yliopisto
   } from '@/types'
   import { toastFail, toastSuccess } from '@/utils/toast'
+  import { required, email, sameAs } from '@/utils/validators'
   import VastuuhenkilonTehtavat from '@/views/kayttajahallinta/vastuuhenkilon-tehtavat.vue'
 
   @Component({
@@ -214,7 +213,7 @@
       }
     }
   })
-  export default class VastuuhenkiloForm extends Mixins(validationMixin) {
+  export default class VastuuhenkiloForm extends Vue {
     $refs!: {
       vastuuhenkilonTehtavat: any
     }

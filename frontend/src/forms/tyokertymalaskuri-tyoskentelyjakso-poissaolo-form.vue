@@ -108,9 +108,7 @@
 </template>
 
 <script lang="ts">
-  import Component from 'vue-class-component'
-  import { Vue, Prop } from 'vue-property-decorator'
-  import { between, integer, required, requiredIf } from 'vuelidate/lib/validators'
+  import { Component, Vue, Prop } from 'vue-property-decorator'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'
@@ -120,6 +118,7 @@
   import ElsaPoissaolonSyyt from '@/components/poissaolon-syyt/poissaolon-syyt.vue'
   import ElsaPopover from '@/components/popover/popover.vue'
   import { TyokertymaLaskuriPoissaolo } from '@/types'
+  import { between, integer, required, requiredIf } from '@/utils/validators'
 
   @Component({
     components: {

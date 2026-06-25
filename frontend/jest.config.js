@@ -1,3 +1,7 @@
 module.exports = {
-  preset: '@vue/cli-plugin-unit-jest/presets/typescript-and-babel'
+  preset: '@vue/cli-plugin-unit-jest/presets/typescript-and-babel',
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^vue-property-decorator$': '<rootDir>/tests/__mocks__/vue-property-decorator.js'
+  }
 }
