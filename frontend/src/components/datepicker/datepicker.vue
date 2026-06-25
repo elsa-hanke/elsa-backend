@@ -2,7 +2,7 @@
   <div>
     <b-input-group class="date-input-group">
       <b-form-input
-        :id="`date-input-${id}`"
+        :id="id"
         v-model="form.dateStr"
         class="date-input"
         :state="validateState('dateStr')"
@@ -26,12 +26,24 @@
             day: 'numeric'
           }"
           :label-no-date-selected="$t('datepicker-no-date-selected')"
+          :label-help="''"
+          :label-button-aria-label="$t('avaa-kalenteri')"
+          :label-current-month="$t('kuluva-kuukausi')"
+          :label-prev-month="$t('edellinen-kuukausi')"
+          :label-next-month="$t('seuraava-kuukausi')"
+          :label-today="$t('tanaan')"
+          :label-selected="$t('valittu')"
           right
           @input="onDateInput"
           v-on="$listeners"
         >
           <template #button-content>
-            <font-awesome-icon :icon="['far', 'calendar-alt']" class="text-primary" />
+            <font-awesome-icon
+              :icon="['far', 'calendar-alt']"
+              class="text-primary"
+              :aria-hidden="true"
+            />
+            <span class="sr-only">{{ $t('avaa-kalenteri') }}</span>
           </template>
         </b-form-datepicker>
       </b-input-group-append>
@@ -139,8 +151,6 @@
       const isDateObj = this.value instanceof Date
       const dateStr = isDateObj ? format(this.value as Date, defaultDateFormat) : this.value
       this.form.dateStr = dateStr ? this.$date(dateStr as string) : ''
-
-      document.querySelector(`button#datepicker-${this.id}`)?.setAttribute('tabindex', '-1')
     }
 
     isValidMinDate(value: string) {
@@ -326,7 +336,16 @@
 
   ::v-deep {
     label {
-      display: none;
+      /* Hide the duplicate label visually but keep it accessible to screen readers */
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .b-form-btn-label-control {

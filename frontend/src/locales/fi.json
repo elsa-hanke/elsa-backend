@@ -1938,5 +1938,20 @@
   "arviointityokalu-palautus-epaonnistui": "Arviointityokalun palautus epäonnistui",
   "lisaa-muu-vaihtoehto": "Lisää \"Muu\"-vaihtoehto",
   "muu-mika": "Muu, mikä?",
-  "canmeds-ohjeteksti": "Kokonaisarvio CanMEDS-kompetensseista, vahvistava palaute, kehittämisehdotukset, huolenaiheet"
+  "canmeds-ohjeteksti": "Kokonaisarvio CanMEDS-kompetensseista, vahvistava palaute, kehittämisehdotukset, huolenaiheet",
+  "hyppaa-paasisaltoon": "Hyppää pääsisältöön",
+  "avaa-kalenteri": "Avaa kalenteri",
+  "kuluva-kuukausi": "Kuluva kuukausi",
+  "edellinen-kuukausi": "Edellinen kuukausi",
+  "seuraava-kuukausi": "Seuraava kuukausi",
+  "tanaan": "Tänään",
+  "valittu": "Valittu",
+  "tyhjenna-valinta": "Tyhjennä valinta",
+  "sulje": "Sulje",
+  "lisatietoja": "Lisätietoja",
+  "avaa-valikko": "Avaa valikko",
+  "sulje-valikko": "Sulje valikko",
+  "kayttajavalikko": "Käyttäjävalikko",
+  "paanavigaatio": "Päänavigaatio",
+  "sivunavigaatio": "Sivunavigaatio"
 }

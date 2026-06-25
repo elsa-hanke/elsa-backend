@@ -62,6 +62,8 @@ describe('Arviointipyyntö', () => {
     // 1. Erikoistuja siirtyy sivulle Osaaminen: Arvioinnit
     cy.visit('/arvioinnit')
     cy.contains('h1', 'Arvioinnit').should('be.visible')
+    // A11y: Arvioinnit-sivu
+    cy.checkPageA11y()
 
     // 2. Erikoistuja avaa uuden arviointipyynnön
     cy.visit('/arvioinnit/arviointipyynto')
@@ -71,6 +73,8 @@ describe('Arviointipyyntö', () => {
     // Odotetaan lomakkeen latautumista
     cy.get('.arviointipyynto').should('be.visible')
     cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
+    // A11y: tarkistetaan lomakesivu ennen täyttöä
+    cy.checkPageA11y()
 
     // Työskentelyjakso – valitaan ensimmäinen vaihtoehto
     cy.contains('label', 'Työskentelyjakso').parent().find('.multiselect').click()
@@ -124,6 +128,8 @@ describe('Arviointipyyntö', () => {
     // 5. Erikoistuja saa tiedon, että arviointipyyntö on lähetetty
     cy.url().should('include', 'arviointipyynto-lahetetty')
     cy.contains('Arviointipyyntö lähetetty').should('be.visible')
+    // A11y: vahvistussivu
+    cy.checkPageA11y()
 
     // 6. Erikoistuja siirtyy tekemään itsearviointia
     cy.visit('/arvioinnit')
@@ -179,6 +185,8 @@ describe('Arviointipyyntö', () => {
     cy.contains('h1', 'Arviointi').should('be.visible')
     cy.contains('E2E Testitapahtuma').should('be.visible')
     cy.contains('E2E itsearviointi vastaus.').should('be.visible')
+    // A11y: arvioinnin yksityiskohtasivu
+    cy.checkPageA11y()
 
     // Arviointi näkyy myös listauksessa
     cy.visit('/arvioinnit')

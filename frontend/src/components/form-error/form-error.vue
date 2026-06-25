@@ -1,6 +1,17 @@
 <template>
-  <div v-if="active" class="text-danger text-right w-100 my-2">
-    <font-awesome-icon icon="info-circle" fixed-width class="text-size-lg mr-1" />
+  <div
+    v-if="active"
+    class="text-danger text-right w-100 my-2"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+  >
+    <font-awesome-icon
+      icon="info-circle"
+      fixed-width
+      class="text-size-lg mr-1"
+      aria-hidden="true"
+    />
     {{ $t('lomake-sisaltaa-virheita') }}
   </div>
 </template>

@@ -1,6 +1,14 @@
 <template>
   <div id="app" class="d-flex position-relative flex-column justify-content-between min-vh-100">
-    <router-view class="router-view" />
+    <!-- Skip to main content link for keyboard users -->
+    <a href="#main-content" class="skip-to-main">{{ $t('hyppaa-paasisaltoon') }}</a>
+    <!-- Aria-live region for SPA route change announcements -->
+    <div id="route-announcer" aria-live="polite" aria-atomic="true" class="sr-only">
+      {{ routeAnnouncement }}
+    </div>
+    <div id="main-content">
+      <router-view class="router-view" />
+    </div>
     <b-link v-if="isLoggedIn" class="d-print-none" @click="openPalauteFormModal">
       <div class="feedback-link">
         <font-awesome-icon class="feedback-icon" :icon="['far', 'envelope']" fixed-width />
@@ -68,6 +76,7 @@
 <script lang="ts">
   import Vue from 'vue'
   import Component from 'vue-class-component'
+  import { Watch } from 'vue-property-decorator'
 
   import TietosuojaselosteModal from '@/components/tietosuojaseloste/tietosuojaseloste-modal.vue'
   import PalauteFormModal from '@/forms/palaute-form-modal.vue'
@@ -83,6 +92,7 @@
   export default class App extends Vue {
     showTietosuojaselosteFormModal = false
     showPalauteFormModal = false
+    routeAnnouncement = ''
 
     openTietosuojaselosteModal() {
       this.showTietosuojaselosteFormModal = true
@@ -94,6 +104,21 @@
 
     hidePalauteFormModal() {
       this.showPalauteFormModal = false
+    }
+
+    @Watch('$route')
+    onRouteChange() {
+      // Announce the new page to screen readers after SPA navigation
+      this.$nextTick(() => {
+        this.routeAnnouncement = document.title
+        // Move focus to the main content area
+        const mainEl = document.getElementById('main-content')
+        if (mainEl) {
+          mainEl.setAttribute('tabindex', '-1')
+          mainEl.focus()
+          mainEl.addEventListener('blur', () => mainEl.removeAttribute('tabindex'), { once: true })
+        }
+      })
     }
 
     @Meta
@@ -123,6 +148,33 @@
 <style lang="scss" scoped>
   @import '~@/styles/variables';
   @import '~bootstrap/scss/mixins/breakpoints';
+
+  .skip-to-main {
+    position: absolute;
+    top: -9999px;
+    left: 0;
+    z-index: 9999;
+    background: $primary;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+
+    &:focus {
+      top: 0;
+    }
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
 
   footer {
     border-top: 1px solid $border-color;
@@ -156,6 +208,10 @@
 
   .router-view {
     padding-bottom: 5rem;
+  }
+
+  #main-content {
+    flex: 1;
   }
 
   .app-version {

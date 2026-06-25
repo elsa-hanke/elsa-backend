@@ -48,6 +48,7 @@
           variant="outline-primary"
           class="border-0 p-0"
           :loading="row.item.disableDownload"
+          :aria-label="`${$t('lataa')} ${row.item.nimi}`"
           @click="onDownloadAsiakirja(row.item)"
         >
           <font-awesome-icon
@@ -55,6 +56,7 @@
             :icon="['fas', 'file-download']"
             fixed-width
             size="lg"
+            :aria-hidden="true"
           />
         </elsa-button>
       </template>
@@ -63,6 +65,7 @@
           variant="outline-primary"
           class="border-0 p-0"
           :loading="row.item.disableDelete"
+          :aria-label="`${$t('poista')} ${row.item.nimi}`"
           @click="onDeleteAsiakirja(row.item)"
         >
           <font-awesome-icon
@@ -70,6 +73,7 @@
             :icon="['far', 'trash-alt']"
             fixed-width
             size="lg"
+            :aria-hidden="true"
           />
         </elsa-button>
       </template>

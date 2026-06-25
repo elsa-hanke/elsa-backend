@@ -23,8 +23,13 @@
         <slot :name="name" v-bind="data"></slot>
       </template>
       <template v-if="$attrs.value && !$attrs.taggable" slot="clear">
-        <b-button variant="link" class="clear-button p-0 m-0 border-0" @click="clearMultiselect">
-          <font-awesome-layers>
+        <b-button
+          variant="link"
+          class="clear-button p-0 m-0 border-0"
+          :aria-label="$t('tyhjenna-valinta')"
+          @click="clearMultiselect"
+        >
+          <font-awesome-layers aria-hidden="true">
             <font-awesome-icon icon="circle" />
             <font-awesome-icon icon="times" class="times" transform="shrink-4" />
           </font-awesome-layers>
@@ -117,6 +122,21 @@
 
     get deselectGroupLabelText() {
       return ''
+    }
+
+    mounted() {
+      this.fixAutocomplete()
+    }
+
+    updated() {
+      this.fixAutocomplete()
+    }
+
+    fixAutocomplete() {
+      const input = this.$el.querySelector<HTMLInputElement>('input.multiselect__input')
+      if (input && input.getAttribute('autocomplete') === 'nope') {
+        input.setAttribute('autocomplete', 'off')
+      }
     }
 
     clearMultiselect() {
@@ -214,7 +234,8 @@
       .multiselect__tag {
         font-size: $font-size-sm;
         font-weight: $font-weight-500;
-        background: $primary-dark;
+        background: #005a8e;
+        color: $white;
         border-radius: $rounded-pill;
         margin-right: 6px;
 
@@ -224,7 +245,12 @@
 
           &:focus,
           &:hover {
-            background: $primary;
+            background: #003d61;
+          }
+
+          &:focus {
+            outline: 2px solid $white;
+            outline-offset: -2px;
           }
 
           &::after {
@@ -253,17 +279,19 @@
       .multiselect__option.multiselect__option--highlight,
       .multiselect__option.multiselect__option--highlight::after {
         color: $black;
-        background: #f5f5f6;
+        background: #daedf8;
+        outline: 2px solid $primary;
+        outline-offset: -2px;
       }
       .multiselect__option.multiselect__option--selected,
       .multiselect__option.multiselect__option--selected::after {
-        color: $white;
-        background: #b1b1b1;
+        color: $black;
+        background: #c0c0c0;
       }
       .multiselect__option.multiselect__option--highlight.multiselect__option--selected,
       .multiselect__option.multiselect__option--highlight.multiselect__option--selected::after {
-        color: $white;
-        background: #b1b1b1;
+        color: $black;
+        background: #c0c0c0;
       }
 
       .multiselect__option.multiselect__option--group {
@@ -294,6 +322,10 @@
     color: #f5f5f5;
     .times {
       color: #808080;
+    }
+    &:focus {
+      outline: 2px solid $primary !important;
+      outline-offset: 2px;
     }
   }
 </style>

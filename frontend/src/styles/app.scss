@@ -47,6 +47,8 @@
 
 html:not(.e2e) {
   scroll-behavior: smooth;
+  /* Prevent focused elements from hiding behind the sticky navbar (approx 64px height) */
+  scroll-padding-top: 80px;
 }
 
 body {
@@ -143,6 +145,10 @@ ul.nav.nav-tabs {
         margin-bottom: -$nav-tabs-border-bottom-width;
       }
       &:focus {
+        outline: 2px solid $primary;
+        outline-offset: -2px;
+      }
+      &:focus:not(:focus-visible) {
         outline: none;
       }
     }
@@ -304,8 +310,18 @@ h6 {
   }
 }
 
-// Remove blue outline when button is clicked
-.btn:focus,
+// Restore visible focus ring for keyboard users; suppress only on mouse click via :focus-visible
+.btn:focus {
+  outline: 2px solid $primary !important;
+  outline-offset: 2px;
+  box-shadow: $btn-focus-box-shadow;
+}
+
+.btn:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none;
+}
+
 .btn:active {
   outline: none !important;
   box-shadow: none;
@@ -397,6 +413,31 @@ button.close {
   color: $white;
   opacity: 1;
   text-shadow: 0 0 0;
+}
+
+/* Screen-reader only utility – visually hidden but accessible */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Ensure nav links also show visible focus */
+a:focus,
+.nav-link:focus {
+  outline: 2px solid $primary !important;
+  outline-offset: 2px;
+}
+
+a:focus:not(:focus-visible),
+.nav-link:focus:not(:focus-visible) {
+  outline: none !important;
 }
 
 @page {
