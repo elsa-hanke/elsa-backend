@@ -56,8 +56,7 @@
                 class="text-muted text-size-md mr-2"
               />
             </em>
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div v-html="ilmoitus.teksti"></div>
+            <div v-safe-html="ilmoitus.teksti"></div>
           </div>
         </b-alert>
       </b-col>
