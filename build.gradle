@@ -140,6 +140,10 @@ repositories {
 }
 
 dependencies {
+    constraints {
+        implementation("org.bouncycastle:bcprov-jdk18on:1.84")
+    }
+
     implementation "tech.jhipster:jhipster-framework:${jhipsterDependenciesVersion}"
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5-jakarta"
