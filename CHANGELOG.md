@@ -2,6 +2,17 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- Bump http-proxy-middleware from 2.0.9 to 2.0.10 in /frontend [`#633`](https://github.com/elsa-hanke/elsa-backend/pull/633)(27 July 2026)
+- Bump js-yaml from 3.14.2 to 3.15.0 in /frontend [`#635`](https://github.com/elsa-hanke/elsa-backend/pull/635)(27 July 2026)
+- Bump websocket-driver from 0.7.4 to 0.7.5 in /frontend [`#636`](https://github.com/elsa-hanke/elsa-backend/pull/636)(27 July 2026)
+- Bump axios from 1.16.0 to 1.18.0 in /frontend [`#638`](https://github.com/elsa-hanke/elsa-backend/pull/638)(27 July 2026)
+- Bump body-parser from 1.20.1 to 1.20.6 in /frontend [`#644`](https://github.com/elsa-hanke/elsa-backend/pull/644)(27 July 2026)
+- Bump dompurify from 3.3.1 to 3.4.12 in /frontend [`#639`](https://github.com/elsa-hanke/elsa-backend/pull/639)(27 July 2026)
+- Bump systeminformation from 5.31.6 to 5.31.17 in /e2e [`#637`](https://github.com/elsa-hanke/elsa-backend/pull/637)(27 July 2026)
+- Bump svgo from 2.8.2 to 2.8.3 in /frontend [`#643`](https://github.com/elsa-hanke/elsa-backend/pull/643)(27 July 2026)
+- Bump shell-quote from 1.8.4 to 1.10.0 in /frontend [`#641`](https://github.com/elsa-hanke/elsa-backend/pull/641)(27 July 2026)
+- Bump fast-uri from 3.1.2 to 3.1.4 in /frontend [`#640`](https://github.com/elsa-hanke/elsa-backend/pull/640)(27 July 2026)
+- bump spring boot and spring security [`#642`](https://github.com/elsa-hanke/elsa-backend/pull/642)(27 July 2026)
 - change error logging to warning for incorrect login name and remove alert publishing [`#628`](https://github.com/elsa-hanke/elsa-backend/pull/628)(16 June 2026)
 - enhance error logging for archiving failures with detailed HTTP response information [`#627`](https://github.com/elsa-hanke/elsa-backend/pull/627)(15 June 2026)
 - fix: add error logging for unknown educational status in PeppiOulu data fetching service [`#625`](https://github.com/elsa-hanke/elsa-backend/pull/625)(15 June 2026)
