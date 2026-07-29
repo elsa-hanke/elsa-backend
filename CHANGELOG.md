@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- chore: update Gradle wrapper to version 9.6.1 [`#645`](https://github.com/elsa-hanke/elsa-backend/pull/645)(28 July 2026)
 - Bump http-proxy-middleware from 2.0.9 to 2.0.10 in /frontend [`#633`](https://github.com/elsa-hanke/elsa-backend/pull/633)(27 July 2026)
 - Bump js-yaml from 3.14.2 to 3.15.0 in /frontend [`#635`](https://github.com/elsa-hanke/elsa-backend/pull/635)(27 July 2026)
 - Bump websocket-driver from 0.7.4 to 0.7.5 in /frontend [`#636`](https://github.com/elsa-hanke/elsa-backend/pull/636)(27 July 2026)
