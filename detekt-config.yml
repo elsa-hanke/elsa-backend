@@ -3,6 +3,10 @@ style:
     maxLineLength: 180
   UnusedVariable:
     active: true
+  UnusedPrivateProperty:
+    active: true
+  UnusedPrivateFunction:
+    active: true
   VarCouldBeVal:
     ignoreLateinitVar: true
   WildcardImport:

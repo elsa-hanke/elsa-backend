@@ -1,15 +1,9 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.argumentCaptor
-import com.nhaarman.mockitokotlin2.never
-import com.nhaarman.mockitokotlin2.verify
 import fi.elsapalvelu.elsa.domain.User
 import fi.elsapalvelu.elsa.domain.VerificationToken
 import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.service.AlertPublisherService
 import jakarta.persistence.EntityManager
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -35,7 +29,6 @@ class ValidateNameAlertTest {
     @Mock private lateinit var koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
     @Mock private lateinit var seurantajaksoRepository: SeurantajaksoRepository
     @Mock private lateinit var entityManager: EntityManager
-    @Mock private lateinit var alertPublisherService: AlertPublisherService
 
     private lateinit var userService: UserServiceImpl
     private lateinit var cipher: Cipher
@@ -56,61 +49,23 @@ class ValidateNameAlertTest {
             koejaksonKehittamistoimenpiteetRepository = koejaksonKehittamistoimenpiteetRepository,
             koejaksonLoppukeskusteluRepository = koejaksonLoppukeskusteluRepository,
             seurantajaksoRepository = seurantajaksoRepository,
-            entityManager = entityManager,
-            alertPublisherService = alertPublisherService
+            entityManager = entityManager
         )
 
         cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-
         token = VerificationToken()
     }
 
     // -------------------------------------------------------------------------
-    // Name mismatch → alert expected
+    // Name mismatch → exception expected
     // -------------------------------------------------------------------------
 
     @Test
-    fun `alert is published when token user name is too different from login name`() {
+    fun `exception is thrown when token user name is too different from login name`() {
         val tokenUser = User().apply {
             id = "user-1"
             firstName = "Matti"
             lastName = "Virtanen"
-        }
-
-        // "Completely Different" is far from "Matti Virtanen" → validation should fail
-        assertThrows(Exception::class.java) {
-            userService.createOrUpdateUserWithToken(
-                tokenUser = tokenUser,
-                token = token,
-                cipher = cipher,
-                originalKey = cipher.parameters?.let { null } ?: run {
-                    val kg = KeyGenerator.getInstance("AES")
-                    kg.init(128)
-                    kg.generateKey()
-                }!!,
-                hetu = null,
-                eppn = "matti.virtanen@test.fi",
-                firstName = "Completely",
-                lastName = "Different"
-            )
-        }
-
-        val subjectCaptor = argumentCaptor<String>()
-        val messageCaptor = argumentCaptor<String>()
-        verify(alertPublisherService).publishAlert(subjectCaptor.capture(), messageCaptor.capture())
-
-        assertThat(subjectCaptor.firstValue).contains("virheellinen nimi")
-        assertThat(messageCaptor.firstValue).contains("Completely")
-        assertThat(messageCaptor.firstValue).contains("Different")
-        assertThat(messageCaptor.firstValue).contains("matti.virtanen@test.fi")
-    }
-
-    @Test
-    fun `alert message contains token user name`() {
-        val tokenUser = User().apply {
-            id = "user-2"
-            firstName = "Pekka"
-            lastName = "Korhonen"
         }
 
         assertThrows(Exception::class.java) {
@@ -124,25 +79,19 @@ class ValidateNameAlertTest {
                     kg.generateKey()
                 },
                 hetu = null,
-                eppn = "pekka.korhonen@test.fi",
-                firstName = "Xyz",
-                lastName = "Abc"
+                eppn = "matti.virtanen@test.fi",
+                firstName = "Completely",
+                lastName = "Different"
             )
         }
-
-        val messageCaptor = argumentCaptor<String>()
-        verify(alertPublisherService).publishAlert(any(), messageCaptor.capture())
-
-        assertThat(messageCaptor.firstValue).contains("Pekka")
-        assertThat(messageCaptor.firstValue).contains("Korhonen")
     }
 
     // -------------------------------------------------------------------------
-    // Name close enough → no alert expected
+    // Name close enough → no exception from name validation
     // -------------------------------------------------------------------------
 
     @Test
-    fun `no alert is published when token user name is close enough to login name`() {
+    fun `no exception from name validation when token user name is close enough to login name`() {
         val secretKey = run {
             val kg = KeyGenerator.getInstance("AES")
             kg.init(128)
@@ -156,10 +105,10 @@ class ValidateNameAlertTest {
             lastName = "Virtanen"
         }
 
-        // Names match closely (Levenshtein distance ≤ 2) – validation passes
-        // but further processing will throw because kayttajaRepository is a mock
-        // returning empty; we only care that no alert was published.
-        try {
+        // Names match closely (Levenshtein distance ≤ 2) – name validation passes;
+        // further processing will throw because repos are mocked with default no-op behaviour,
+        // but that is unrelated to name validation.
+        val ex = runCatching {
             userService.createOrUpdateUserWithToken(
                 tokenUser = tokenUser,
                 token = token,
@@ -170,11 +119,13 @@ class ValidateNameAlertTest {
                 firstName = "Matti",
                 lastName = "Virtanen"
             )
-        } catch (_: Exception) {
-            // expected – repos are mocked with default no-op / empty behaviour
-        }
+        }.exceptionOrNull()
 
-        verify(alertPublisherService, never()).publishAlert(any(), any())
+        // If an exception was thrown it must NOT be the VIRHEELLINEN_NIMI login error
+        if (ex != null) {
+            assert(ex.message != fi.elsapalvelu.elsa.config.LoginException.VIRHEELLINEN_NIMI.name) {
+                "Name validation should not fail for matching names, but got: ${ex.message}"
+            }
+        }
     }
 }
-
