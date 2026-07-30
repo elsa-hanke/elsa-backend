@@ -38,6 +38,8 @@ declare global {
       loginAsVastuuhenkilo(token?: string): void
 
       loginAsVirkailija(token?: string): void
+
+      logout(): void
     }
   }
 }
@@ -168,5 +170,18 @@ Cypress.Commands.add('loginAsVirkailija', (token?: string) => {
     }
   )
 })
+
+Cypress.Commands.add('logout', () => {
+
+  cy.getCookie('XSRF-TOKEN').then((cookie) => {
+    cy.request({
+      method: 'POST',
+      url: '/api/logout',
+      headers: { 'X-XSRF-TOKEN': cookie?.value ?? '' },
+    })
+  })
+
+})
+
 
 export {}
