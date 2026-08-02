@@ -28,7 +28,7 @@ plugins {
     id "org.sonarqube"
     id "com.apollographql.apollo" version "${apolloVersion}"
     id "org.hibernate.orm" version "${hibernateVersion}"
-    id "org.cyclonedx.bom" version "3.2.4"
+    id "org.cyclonedx.bom" version "3.3.0"
 }
 
 apply plugin: 'org.liquibase.gradle'
@@ -198,7 +198,7 @@ dependencies {
 
 
 wrapper {
-    gradleVersion = "9.5.1"
+    gradleVersion = "9.6.1"
 }
 
 detekt {
