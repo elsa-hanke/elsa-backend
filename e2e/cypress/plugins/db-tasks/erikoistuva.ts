@@ -73,6 +73,14 @@ async function fetchTyoskentelypaikkaIds(client: Client, el_id: number): Promise
 
 async function deleteTyoskentelyjaksoRows(client: Client, el_id: number): Promise<void> {
   await client.query(
+    `DELETE FROM suoritemerkinta
+     WHERE tyoskentelyjakso_id IN (
+       SELECT id FROM tyoskentelyjakso
+       WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)
+     )`,
+    [el_id]
+  )
+  await client.query(
     `DELETE FROM suoritusarvioinnin_arvioitava_kokonaisuus
      WHERE suoritusarviointi_id IN (
        SELECT id FROM suoritusarviointi
@@ -153,6 +161,24 @@ async function deleteTeoriakoulutusRows(client: Client, el_id: number): Promise<
   )
 }
 
+// ─── Paivakirjamerkinta cleanup ──────────────────────────────────────────────
+
+async function deletePaivakirjamerkintaRows(client: Client, el_id: number): Promise<void> {
+  await client.query(
+    `DELETE FROM rel_paivakirjamerkinta__aihekategoria
+     WHERE paivakirjamerkinta_id IN (
+       SELECT id FROM paivakirjamerkinta
+       WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)
+     )`,
+    [el_id]
+  )
+  await client.query(
+    `DELETE FROM paivakirjamerkinta
+     WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)`,
+    [el_id]
+  )
+}
+
 // ─── Opintooikeus cleanup ─────────────────────────────────────────────────────
 
 async function deleteOpintooikeusRows(client: Client, el_id: number): Promise<void> {
@@ -193,6 +219,7 @@ async function deleteErikoistuvaLaakari(client: Client, ids: UserIds): Promise<v
     await deleteKoulutussuunnitelmaRows(client, el_id)
     await deleteTyoskentelyjaksoRows(client, el_id)
     await deleteTyoskentelypaikkaRows(client, paikkaIds)
+    await deletePaivakirjamerkintaRows(client, el_id)
     await deleteTeoriakoulutusRows(client, el_id)
     await deleteOpintooikeusRows(client, el_id)
 

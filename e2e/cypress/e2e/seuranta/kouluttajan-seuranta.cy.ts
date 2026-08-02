@@ -1,16 +1,12 @@
-import {E2E_ERIKOISTUVA_EMAIL} from "../../support/commands";
-import {KOULUTTAJA_EMAIL, VASTUUHENKILO_EMAIL, VIRKAILIJA_EMAIL} from "../../support/commands/credentials";
+import { E2E_ERIKOISTUVA_EMAIL } from '../../support/commands'
+import { KOULUTTAJA_EMAIL, VASTUUHENKILO_EMAIL, VIRKAILIJA_EMAIL } from '../../support/commands/credentials'
 
 const KOULUTTAJA_ETUNIMI = 'Lassekalevi'
 const KOULUTTAJA_SUKUNIMI = 'Hummaamistes'
 const VASTUUHENKILO_ETUNIMI = 'Mia'
 const VASTUUHENKILO_SUKUNIMI = 'Ålands'
-const VIRKAILIJA_ETUNIMI = 'Daniel'
-const VIRKAILIJA_SUKUNIMI = 'Siekkinen'
 
-
-describe('Erikoistuvan laakarin seuranta', () => {
-
+describe('Kouluttajan seuranta', () => {
   before(() => {
     Cypress.session.clearAllSavedSessions()
     cy.task('db:cleanupKoejakso', { erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL })
@@ -33,23 +29,21 @@ describe('Erikoistuvan laakarin seuranta', () => {
       email: VASTUUHENKILO_EMAIL,
       etunimi: VASTUUHENKILO_ETUNIMI,
       sukunimi: VASTUUHENKILO_SUKUNIMI,
-    }).then((result: any) => {
-      Cypress.env('vastuuhenkiloToken', result?.token)
     })
 
     cy.task('db:seedKouluttajavaltuutus', {
       erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL,
       kouluttajaEmail: KOULUTTAJA_EMAIL,
     })
-
-
   })
 
-  it('Erikoistuvan laakarin seuranta', () => {
-    cy.loginAsErikoistuva()
-    cy.luoTyoskentelyjakso()
+  it('Kouluttaja tarkistaa seurantasivun', () => {
+    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.visit('/etusivu')
+    cy.get('.mt-5').should('be.visible')
+    cy.get('.btn > div').should('be.visible').click()
 
+    // Tarkistetaan, että palaa omaan profiiliin -painike on näkyvissä.
+    cy.get('.text-white > .btn').should('be.visible').click()
   })
-
 })
-
