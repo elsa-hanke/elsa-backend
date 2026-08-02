@@ -8,7 +8,8 @@ dependencies {
     kapt "org.hibernate:hibernate-jpamodelgen:${hibernateVersion}"
 
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:${kotlinVersion}"
-    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0"
+    // Source: https://mvnrepository.com/artifact/org.mockito.kotlin/mockito-kotlin
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
 }
 
 kotlin {
