@@ -147,7 +147,7 @@ dependencies {
     implementation "tech.jhipster:jhipster-framework:${jhipsterDependenciesVersion}"
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5-jakarta"
-    implementation "org.ehcache:ehcache:3.10.8"
+    implementation "org.ehcache:ehcache:3.10.9"
     implementation "org.hibernate.orm:hibernate-jcache:${hibernateVersion}"
     implementation "org.hibernate.orm:hibernate-envers:${hibernateVersion}"
     implementation "org.liquibase:liquibase-core"
@@ -179,7 +179,7 @@ dependencies {
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-sns:3.2.1'
     implementation 'io.micrometer:micrometer-registry-cloudwatch2'
     implementation "org.apache.commons:commons-text:1.15.0"
-    implementation "net.coobird:thumbnailator:0.4.14"
+    implementation "net.coobird:thumbnailator:0.4.21"
     implementation "org.fluentd:fluent-logger:0.3.4"
     implementation "com.sndyuk:logback-more-appenders:1.8.6"
     implementation "com.apollographql.apollo:apollo-runtime:${apolloVersion}"
