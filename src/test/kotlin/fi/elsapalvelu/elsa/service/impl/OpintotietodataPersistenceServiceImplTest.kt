@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.whenever
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
@@ -99,13 +99,13 @@ class OpintotietodataPersistenceServiceImplTest {
         whenever(userRepository.findById(userId)).thenReturn(Optional.of(user))
 
         val kayttaja = Kayttaja(user = user, tila = KayttajatilinTila.AKTIIVINEN)
-        whenever(kayttajaRepository.save(any())).thenReturn(kayttaja)
+        whenever(kayttajaRepository.save(any<Kayttaja>())).thenReturn(kayttaja)
 
         val erikoistuvaLaakari = ErikoistuvaLaakari(
             kayttaja = kayttaja,
             syntymaaika = LocalDate.now(ZoneId.systemDefault()).minusYears(40)
         )
-        whenever(erikoistuvaLaakariRepository.save(any())).thenReturn(erikoistuvaLaakari)
+        whenever(erikoistuvaLaakariRepository.save(any<ErikoistuvaLaakari>())).thenReturn(erikoistuvaLaakari)
 
         val erikoisala = Erikoisala(id = 46L, nimi = "Testala", tyyppi = ErikoisalaTyyppi.LAAKETIEDE)
         val yliopisto = Yliopisto(nimi = YliopistoEnum.HELSINGIN_YLIOPISTO)
@@ -128,8 +128,8 @@ class OpintotietodataPersistenceServiceImplTest {
             asetus = asetus,
             tila = OpintooikeudenTila.AKTIIVINEN
         )
-        whenever(opintooikeusRepository.save(any())).thenReturn(savedOpintooikeus)
-        whenever(userRepository.save(any())).thenReturn(user)
+        whenever(opintooikeusRepository.save(any<Opintooikeus>())).thenReturn(savedOpintooikeus)
+        whenever(userRepository.save(any<User>())).thenReturn(user)
 
         assertDoesNotThrow {
             service.createWithoutOpintotietodataOnlyDevDoNotUseInProd(
