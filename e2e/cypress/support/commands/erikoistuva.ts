@@ -8,7 +8,7 @@ declare global {
        * @param container - Cypress chainable pointing to the multiselect wrapper element.
        */
       luoTyoskentelyjakso(token?: string): void
-      pyydaaArviointi(token?: string): void
+      pyydaArviointi(token?: string): void
     }
   }
 }
@@ -87,4 +87,3 @@ Cypress.Commands.add("pyydaArviointi", (token?: string) => {
 
 
 export {}
-
