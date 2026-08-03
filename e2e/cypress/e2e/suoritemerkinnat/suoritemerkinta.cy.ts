@@ -51,7 +51,9 @@ describe('Suoritemerkintä', () => {
       Cypress.env('suoritemerkintaId', response?.body?.[0]?.id)
     })
 
-    cy.visit(`/suoritemerkinnat/${Cypress.env('suoritemerkintaId')}`)
+    cy.then(() => {
+      cy.visit(`/suoritemerkinnat/${Cypress.env('suoritemerkintaId')}`)
+    })
     cy.contains('h1', 'Suoritemerkintä').should('be.visible')
     cy.contains('E2E Testisairaala').should('be.visible')
     cy.contains(/1\.2\.2025|01\.02\.2025/).should('be.visible')
