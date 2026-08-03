@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- ehcache and thumbnailator bump [`#650`](https://github.com/elsa-hanke/elsa-backend/pull/650)(2 August 2026)
+- com.nhaarman.mockitokotlin2 -&gt; org.mockito.kotlin [`#649`](https://github.com/elsa-hanke/elsa-backend/pull/649)(2 August 2026)
 - ELSA-1169 erikoistuvan-seuranta.cy.ts [`#632`](https://github.com/elsa-hanke/elsa-backend/pull/632)(30 July 2026)
 - chore: update Gradle wrapper to version 9.6.1 [`#645`](https://github.com/elsa-hanke/elsa-backend/pull/645)(28 July 2026)
 - Bump http-proxy-middleware from 2.0.9 to 2.0.10 in /frontend [`#633`](https://github.com/elsa-hanke/elsa-backend/pull/633)(27 July 2026)
