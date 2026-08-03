@@ -15,7 +15,9 @@ describe('Työkertymälaskuri', () => {
     cy.contains('span', 'Työkertymä yhteensä')
       .parent()
       .find('.duration-text')
-      .should('have.text', '0 vrk')
+      .invoke('text')
+      .invoke('trim')
+      .should('eq', '0 vrk')
 
     cy.contains('button', 'Lisää työskentelyjakso').click()
     cy.wait('@poissaolonSyyt', { timeout: 15000 }).its('response.statusCode').should('eq', 200)
@@ -41,7 +43,7 @@ describe('Työkertymälaskuri', () => {
         .clear()
         .type('31.03.2025')
         .blur()
-      cy.contains('label', 'Työaika täydestä työpäivästä')
+      cy.contains('label', 'Työaika (50–100 %)')
         .parent()
         .find('input[type="number"]')
         .clear()
@@ -56,6 +58,7 @@ describe('Työkertymälaskuri', () => {
       .parent()
       .find('.duration-text')
       .invoke('text')
+      .invoke('trim')
       .should('not.eq', '0 vrk')
 
     cy.contains('.tyoskentelyjaksot-table button', 'E2E Laskurisairaala').click()
@@ -71,5 +74,21 @@ describe('Työkertymälaskuri', () => {
 
     cy.get('.modal-content').should('not.exist')
     cy.contains('.tyoskentelyjaksot-table', 'E2E Muokattu laskurisairaala').should('be.visible')
+
+    // Summary card assertions
+    cy.contains('span', 'Työkertymä yhteensä')
+      .parent()
+      .find('.duration-text')
+      .invoke('text')
+      .invoke('trim')
+      .should('not.eq', '0 vrk')
+
+    // Table row assertions
+    cy.get('.tyoskentelyjaksot-table').within(() => {
+      cy.contains('E2E Muokattu laskurisairaala').should('be.visible')
+      cy.contains(/1\.1\.2025.*31\.3\.2025/).should('be.visible')
+      cy.contains('100 %').should('be.visible')
+      cy.contains('Ei poissaoloja').should('be.visible')
+    })
   })
 })
