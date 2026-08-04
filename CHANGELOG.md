@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- More e2e tests [`#652`](https://github.com/elsa-hanke/elsa-backend/pull/652)(3 August 2026)
+- More e2e tests [`#651`](https://github.com/elsa-hanke/elsa-backend/pull/651)(3 August 2026)
 - ehcache and thumbnailator bump [`#650`](https://github.com/elsa-hanke/elsa-backend/pull/650)(2 August 2026)
 - com.nhaarman.mockitokotlin2 -&gt; org.mockito.kotlin [`#649`](https://github.com/elsa-hanke/elsa-backend/pull/649)(2 August 2026)
 - ELSA-1169 erikoistuvan-seuranta.cy.ts [`#632`](https://github.com/elsa-hanke/elsa-backend/pull/632)(30 July 2026)
