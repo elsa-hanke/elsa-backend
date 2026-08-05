@@ -11,12 +11,15 @@ export {}
 //   GET /api/vastuuhenkilo/arviointityokalut
 //   GET /api/vastuuhenkilo/arviointityokalut/kategoriat
 
-const VASTUUHENKILO_ETUNIMI  = 'E2E'
-const VASTUUHENKILO_SUKUNIMI = 'ArviointityokaluVastuuhenkilo'
+const VASTUUHENKILO_ETUNIMI  = 'Mia'
+const VASTUUHENKILO_SUKUNIMI = 'Ålands'
 
 describe('Arviointityökalut – vastuuhenkilö', () => {
   before(() => {
     Cypress.session.clearAllSavedSessions()
+
+    cy.task('db:cleanupErikoistuva', { email: VASTUUHENKILO_EMAIL })
+    cy.task('db:cleanupVastuuhenkilo', { email: VASTUUHENKILO_EMAIL })
 
     cy.task('db:seedVastuuhenkilo', {
       email: VASTUUHENKILO_EMAIL,

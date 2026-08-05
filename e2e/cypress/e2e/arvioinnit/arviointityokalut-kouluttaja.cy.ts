@@ -11,12 +11,15 @@ export {}
 //   GET /api/kouluttaja/arviointityokalut
 //   GET /api/kouluttaja/arviointityokalut/kategoriat
 
-const KOULUTTAJA_ETUNIMI  = 'E2E'
-const KOULUTTAJA_SUKUNIMI = 'ArviointityokaluKouluttaja'
+const KOULUTTAJA_ETUNIMI  = 'Lassekalevi'
+const KOULUTTAJA_SUKUNIMI = 'Hummaamistes'
 
 describe('Arviointityökalut – kouluttaja', () => {
   before(() => {
     Cypress.session.clearAllSavedSessions()
+
+    cy.task('db:cleanupErikoistuva', { email: KOULUTTAJA_EMAIL })
+    cy.task('db:cleanupKouluttaja', { email: KOULUTTAJA_EMAIL })
 
     cy.task('db:seedKouluttaja', {
       email: KOULUTTAJA_EMAIL,
