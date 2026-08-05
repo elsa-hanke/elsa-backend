@@ -14,7 +14,7 @@ Projektissa on valmiita kehityskomentoja `Justfile`-tiedostossa.
 Käynnistä Postgres tietokanta komennolla:
 
 ```
-docker-compose -f src/main/docker/postgresql.yml up -d
+docker-compose -f infra/postgresql.yml up -d
 ```
 
 Käynnistä applikaatio dev profiililla:
