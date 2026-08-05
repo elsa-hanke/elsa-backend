@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
-import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.VastuuhenkilonVastuualueetDTO

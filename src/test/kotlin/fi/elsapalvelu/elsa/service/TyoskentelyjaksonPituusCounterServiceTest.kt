@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.PoissaolonSyy
-import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi
+import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
+import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyyTyyppi
 import fi.elsapalvelu.elsa.service.helpers.KeskeytysaikaMockHelper
 import fi.elsapalvelu.elsa.service.helpers.TyoskentelyjaksoMockHelper
 import org.assertj.core.api.Assertions.assertThat

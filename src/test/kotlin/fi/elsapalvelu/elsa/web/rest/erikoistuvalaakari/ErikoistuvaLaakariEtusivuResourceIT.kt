@@ -2,9 +2,18 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.enumeration.ArviointiasteikkoTyyppi
-import fi.elsapalvelu.elsa.domain.enumeration.AvoinAsiaTyyppiEnum
-import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
+import fi.elsapalvelu.elsa.domain.koejakso.*
+import fi.elsapalvelu.elsa.domain.tyoskentely.*
+import fi.elsapalvelu.elsa.domain.arviointi.*
+import fi.elsapalvelu.elsa.domain.suoritteet.*
+import fi.elsapalvelu.elsa.domain.koulutus.*
+import fi.elsapalvelu.elsa.domain.seuranta.*
+import fi.elsapalvelu.elsa.domain.valmistuminen.*
+import fi.elsapalvelu.elsa.domain.kayttaja.*
+import fi.elsapalvelu.elsa.domain.perustiedot.*
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointiasteikkoTyyppi
+import fi.elsapalvelu.elsa.domain.kayttaja.AvoinAsiaTyyppiEnum
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT

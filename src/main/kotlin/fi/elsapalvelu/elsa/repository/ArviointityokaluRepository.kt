@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.Arviointityokalu
-import fi.elsapalvelu.elsa.domain.ArviointityokaluKategoria
+import fi.elsapalvelu.elsa.domain.arviointi.Arviointityokalu
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokaluKategoria
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository

@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.ApplicationSetting
-import fi.elsapalvelu.elsa.domain.enumeration.ApplicationSettingTyyppi
+import fi.elsapalvelu.elsa.domain.perustiedot.ApplicationSetting
+import fi.elsapalvelu.elsa.domain.perustiedot.ApplicationSettingTyyppi
 import fi.elsapalvelu.elsa.repository.ApplicationSettingRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

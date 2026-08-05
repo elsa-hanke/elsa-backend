@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi
 
-import fi.elsapalvelu.elsa.domain.Opintooikeus
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties

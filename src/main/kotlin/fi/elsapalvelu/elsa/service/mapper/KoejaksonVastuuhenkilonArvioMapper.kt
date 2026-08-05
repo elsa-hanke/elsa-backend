@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import fi.elsapalvelu.elsa.domain.KoejaksonLoppukeskustelu
-import fi.elsapalvelu.elsa.domain.KoejaksonVastuuhenkilonArvio
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonLoppukeskustelu
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping

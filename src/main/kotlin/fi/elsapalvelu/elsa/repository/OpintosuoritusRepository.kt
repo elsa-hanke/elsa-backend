@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.Opintosuoritus
-import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
+import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 

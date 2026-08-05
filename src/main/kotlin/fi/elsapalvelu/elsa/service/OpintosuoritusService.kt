@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetDTO
 import java.time.LocalDate
 

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.Koulutusjakso
+import fi.elsapalvelu.elsa.domain.koulutus.Koulutusjakso
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository

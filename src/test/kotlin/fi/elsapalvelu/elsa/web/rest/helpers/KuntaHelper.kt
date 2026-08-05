@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.Kunta
+import fi.elsapalvelu.elsa.domain.perustiedot.Kunta
 
 object KuntaHelper {
     private const val DEFAULT_ABBREVIATION = "AAAAAAAAAA"

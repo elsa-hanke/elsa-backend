@@ -1,0 +1,11 @@
+package fi.elsapalvelu.elsa.domain.kayttaja
+
+enum class AvoinAsiaTyyppiEnum {
+    KOULUTUSSOPIMUS,
+    ALOITUSKESKUSTELU,
+    VASTUUHENKILON_ARVIO,
+    SEURANTAJAKSO,
+    TERVEYSKESKUSKOULUTUSJAKSO,
+    VALMISTUMISPYYNTO,
+    KOULUTTAJAVALTUUTUS
+}

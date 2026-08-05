@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.Opintooikeus
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query

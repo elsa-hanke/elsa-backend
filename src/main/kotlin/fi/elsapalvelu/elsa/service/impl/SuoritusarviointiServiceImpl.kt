@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.SuoritusarvioinninArviointityokalunVastaus
-import fi.elsapalvelu.elsa.domain.Suoritusarviointi
+import fi.elsapalvelu.elsa.domain.arviointi.SuoritusarvioinninArviointityokalunVastaus
+import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService

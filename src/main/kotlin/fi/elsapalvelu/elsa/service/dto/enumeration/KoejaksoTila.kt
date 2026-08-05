@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.enumeration
 
-import fi.elsapalvelu.elsa.domain.KoejaksonVastuuhenkilonArvio
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.service.dto.*
 
 enum class KoejaksoTila {

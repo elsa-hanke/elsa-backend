@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.Opintoopas
+import fi.elsapalvelu.elsa.domain.koulutus.Opintoopas
 import fi.elsapalvelu.elsa.extensions.toMonths
 import fi.elsapalvelu.elsa.extensions.toYears
 import fi.elsapalvelu.elsa.repository.OpintoopasRepository

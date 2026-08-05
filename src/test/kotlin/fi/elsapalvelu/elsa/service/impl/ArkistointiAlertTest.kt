@@ -6,7 +6,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.AlertPublisherService
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
 import fi.elsapalvelu.elsa.service.arkistointi.HelsinkiSiiloService

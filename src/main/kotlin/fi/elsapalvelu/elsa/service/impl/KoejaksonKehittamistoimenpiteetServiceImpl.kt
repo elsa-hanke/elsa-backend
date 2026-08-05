@@ -2,8 +2,8 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.service.OpintooikeusService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import fi.elsapalvelu.elsa.domain.KoejaksonKehittamistoimenpiteet
-import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKehittamistoimenpiteet
+import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKehittamistoimenpiteetRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository

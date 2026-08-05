@@ -4,8 +4,8 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.domain.Opintooikeus
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.AlertPublisherService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiMetadata
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult

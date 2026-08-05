@@ -4,8 +4,8 @@ import fi.elsapalvelu.elsa.OpintotietodataSisuHyQuery
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_SISU_KOULUTUS
 import fi.elsapalvelu.elsa.config.YEK_KOULUTETTAVA_SISU_HY_KOULUTUS
-import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila.Companion.fromSisuOpintooikeudenTilaStr
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila.Companion.fromSisuOpintooikeudenTilaStr
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.checkErrors
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository

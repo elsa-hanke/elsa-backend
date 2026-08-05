@@ -3,7 +3,16 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.config.LoginException
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
+import fi.elsapalvelu.elsa.domain.koejakso.*
+import fi.elsapalvelu.elsa.domain.tyoskentely.*
+import fi.elsapalvelu.elsa.domain.arviointi.*
+import fi.elsapalvelu.elsa.domain.suoritteet.*
+import fi.elsapalvelu.elsa.domain.koulutus.*
+import fi.elsapalvelu.elsa.domain.seuranta.*
+import fi.elsapalvelu.elsa.domain.valmistuminen.*
+import fi.elsapalvelu.elsa.domain.kayttaja.*
+import fi.elsapalvelu.elsa.domain.perustiedot.*
+import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR

@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.kayttaja.Authority
+import fi.elsapalvelu.elsa.domain.kayttaja.User
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach

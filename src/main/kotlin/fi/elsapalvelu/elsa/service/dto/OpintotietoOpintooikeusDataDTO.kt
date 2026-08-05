@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import java.io.Serializable
 import java.time.LocalDate
 

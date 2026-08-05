@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.PoissaolonSyy
+import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 
 data class HyvaksiluettavatCounterData(
     // Poissaolon syy tyyppi: VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI ja vahennetaanKerran = true.

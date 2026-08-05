@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
+import fi.elsapalvelu.elsa.domain.kayttaja.Authority
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA

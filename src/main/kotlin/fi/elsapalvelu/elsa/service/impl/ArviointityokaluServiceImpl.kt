@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.Arviointityokalu
-import fi.elsapalvelu.elsa.domain.ArviointityokaluKysymys
-import fi.elsapalvelu.elsa.domain.ArviointityokaluKysymysVaihtoehto
-import fi.elsapalvelu.elsa.domain.AsiakirjaData
-import fi.elsapalvelu.elsa.domain.enumeration.ArviointityokalunTila
+import fi.elsapalvelu.elsa.domain.arviointi.Arviointityokalu
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokaluKysymys
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokaluKysymysVaihtoehto
+import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokalunTila
 import fi.elsapalvelu.elsa.repository.ArviointityokaluKategoriaRepository
 import fi.elsapalvelu.elsa.repository.ArviointityokaluRepository
 import fi.elsapalvelu.elsa.service.ArviointityokaluService

@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.peppi.uef
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.YliopistoRepository
 import fi.elsapalvelu.elsa.service.integration.AbstractOpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder

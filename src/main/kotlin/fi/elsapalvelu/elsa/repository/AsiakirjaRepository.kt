@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.Asiakirja
-import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
+import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
+import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository

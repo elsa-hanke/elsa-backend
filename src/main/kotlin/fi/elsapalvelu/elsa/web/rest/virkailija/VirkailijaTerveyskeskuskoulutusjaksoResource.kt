@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
-import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
+import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.KayttajaService
 import fi.elsapalvelu.elsa.service.TerveyskeskuskoulutusjaksonHyvaksyntaService

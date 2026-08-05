@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.mail
 
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService
 import org.slf4j.LoggerFactory

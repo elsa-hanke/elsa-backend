@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
-import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
-import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
+import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
+import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.Seurantajakso
+import fi.elsapalvelu.elsa.domain.seuranta.Seurantajakso
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*

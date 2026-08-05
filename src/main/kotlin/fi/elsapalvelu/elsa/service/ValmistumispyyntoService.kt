@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.domain.enumeration.ErikoisalaTyyppi
+import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole

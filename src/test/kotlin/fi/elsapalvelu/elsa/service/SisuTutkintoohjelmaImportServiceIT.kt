@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.Erikoisala
-import fi.elsapalvelu.elsa.domain.ErikoisalaSisuTutkintoohjelma
+import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
+import fi.elsapalvelu.elsa.domain.koulutus.ErikoisalaSisuTutkintoohjelma
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
 import fi.elsapalvelu.elsa.service.integration.sisu.Entity
 import fi.elsapalvelu.elsa.service.integration.sisu.Qualifications

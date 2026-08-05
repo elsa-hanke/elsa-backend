@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.ArvioitavanKokonaisuudenKategoria
-import fi.elsapalvelu.elsa.domain.Erikoisala
+import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavanKokonaisuudenKategoria
+import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId

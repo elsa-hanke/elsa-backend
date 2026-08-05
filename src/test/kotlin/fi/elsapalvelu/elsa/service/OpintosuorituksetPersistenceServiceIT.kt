@@ -1,12 +1,12 @@
 package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.OpintosuoritusKurssikoodi
-import fi.elsapalvelu.elsa.domain.OpintosuoritusTyyppi
-import fi.elsapalvelu.elsa.domain.Yliopisto
-import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusKurssikoodi
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppi
+import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.OpintosuoritusRepository
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO

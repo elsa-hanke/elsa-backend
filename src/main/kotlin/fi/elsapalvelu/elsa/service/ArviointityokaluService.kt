@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.domain.AsiakirjaData
+import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.service.dto.UserDTO

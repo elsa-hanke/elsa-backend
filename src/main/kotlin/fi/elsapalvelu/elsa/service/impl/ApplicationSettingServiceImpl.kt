@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.enumeration.ApplicationSettingTyyppi
+import fi.elsapalvelu.elsa.domain.perustiedot.ApplicationSettingTyyppi
 import fi.elsapalvelu.elsa.repository.ApplicationSettingRepository
 import fi.elsapalvelu.elsa.service.ApplicationSettingService
 import org.springframework.stereotype.Service

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import fi.elsapalvelu.elsa.domain.VastuuhenkilonTehtavatyyppi
+import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppi
 import fi.elsapalvelu.elsa.service.dto.VastuuhenkilonTehtavatyyppiDTO
 import org.mapstruct.Mapper
 import org.mapstruct.ReportingPolicy

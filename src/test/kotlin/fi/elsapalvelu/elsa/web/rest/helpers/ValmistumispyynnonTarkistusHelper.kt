@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.ValmistumispyynnonTarkistus
-import fi.elsapalvelu.elsa.domain.Valmistumispyynto
+import fi.elsapalvelu.elsa.domain.valmistuminen.ValmistumispyynnonTarkistus
+import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import java.time.LocalDate
 
 object ValmistumispyynnonTarkistusHelper {

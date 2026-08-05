@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
+import fi.elsapalvelu.elsa.domain.kayttaja.Authority
+import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
 import java.io.Serializable
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotNull

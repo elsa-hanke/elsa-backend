@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.web.rest.equalsVerifier
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
+import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
 class SuoritusarviointiTest {
 
     @Test

@@ -12,7 +12,7 @@ import com.itextpdf.layout.font.FontProvider
 import com.itextpdf.layout.properties.ObjectFit
 import com.itextpdf.layout.properties.UnitValue
 import com.itextpdf.pdfa.PdfADocument
-import fi.elsapalvelu.elsa.domain.Asiakirja
+import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_LUO_PDF

@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Paivakirjamerkinta
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.seuranta.Paivakirjamerkinta
+import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId

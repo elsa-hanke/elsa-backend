@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.kayttaja.User
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.mail.MailException

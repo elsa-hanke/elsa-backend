@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
+import fi.elsapalvelu.elsa.domain.kayttaja.Authority
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.security.StaleXsrfCookieClearingFilter

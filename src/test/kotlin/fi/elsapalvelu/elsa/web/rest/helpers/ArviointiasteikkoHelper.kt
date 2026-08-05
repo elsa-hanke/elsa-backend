@@ -1,7 +1,7 @@
-import fi.elsapalvelu.elsa.domain.Arviointiasteikko
-import fi.elsapalvelu.elsa.domain.ArviointiasteikonTaso
-import fi.elsapalvelu.elsa.domain.enumeration.ArviointiasteikkoTyyppi
-import fi.elsapalvelu.elsa.domain.enumeration.ArviointiasteikonTasoTyyppi
+import fi.elsapalvelu.elsa.domain.arviointi.Arviointiasteikko
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointiasteikonTaso
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointiasteikkoTyyppi
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointiasteikonTasoTyyppi
 
 object ArviointiasteikkoHelper {
 

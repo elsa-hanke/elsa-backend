@@ -1,12 +1,12 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.VerificationToken
-import fi.elsapalvelu.elsa.domain.Yliopisto
-import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.Authority
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.kayttaja.VerificationToken
+import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
+import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA

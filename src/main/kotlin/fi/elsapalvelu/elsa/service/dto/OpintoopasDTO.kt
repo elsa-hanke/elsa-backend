@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.enumeration.ArviointiasteikkoTyyppi
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointiasteikkoTyyppi
 import java.io.Serializable
 import java.time.LocalDate
 import jakarta.validation.constraints.NotNull

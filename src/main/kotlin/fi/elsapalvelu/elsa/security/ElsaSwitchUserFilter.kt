@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.security
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.domain.Opintooikeus
-import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository

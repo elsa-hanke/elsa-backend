@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.Teoriakoulutus
+import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository

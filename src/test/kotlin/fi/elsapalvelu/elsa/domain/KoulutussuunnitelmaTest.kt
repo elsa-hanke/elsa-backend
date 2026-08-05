@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.domain
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
+import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
 class KoulutussuunnitelmaTest {
 
     @Test

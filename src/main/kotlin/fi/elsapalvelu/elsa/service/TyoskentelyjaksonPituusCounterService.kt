@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.domain.Keskeytysaika
-import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
+import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
 import java.time.LocalDate
 

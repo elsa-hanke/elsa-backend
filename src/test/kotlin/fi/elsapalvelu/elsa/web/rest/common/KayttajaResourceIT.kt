@@ -2,11 +2,11 @@ package fi.elsapalvelu.elsa.web.rest.common
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.Yliopisto
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.Authority
+import fi.elsapalvelu.elsa.domain.kayttaja.KayttajaYliopistoErikoisala
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.dto.ErikoisalaDTO

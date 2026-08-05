@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import fi.elsapalvelu.elsa.domain.TerveyskeskuskoulutusjaksonHyvaksynta
+import fi.elsapalvelu.elsa.domain.valmistuminen.TerveyskeskuskoulutusjaksonHyvaksynta
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksonHyvaksyntaDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping

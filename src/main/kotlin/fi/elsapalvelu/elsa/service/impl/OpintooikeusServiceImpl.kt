@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.Opintooikeus
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.kayttaja.Authority
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.OpintoopasRepository

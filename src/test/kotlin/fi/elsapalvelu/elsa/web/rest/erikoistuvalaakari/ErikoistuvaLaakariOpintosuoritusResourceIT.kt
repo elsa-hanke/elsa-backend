@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.Opintosuoritus
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
+import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT

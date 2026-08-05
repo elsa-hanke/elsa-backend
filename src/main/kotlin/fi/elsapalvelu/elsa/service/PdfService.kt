@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.domain.Asiakirja
+import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import org.thymeleaf.context.Context
 import java.io.InputStream
 import java.io.OutputStream

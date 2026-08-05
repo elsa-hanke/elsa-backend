@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.domain.enumeration.ApplicationSettingTyyppi
+import fi.elsapalvelu.elsa.domain.perustiedot.ApplicationSettingTyyppi
 import java.time.Instant
 
 interface ApplicationSettingService {

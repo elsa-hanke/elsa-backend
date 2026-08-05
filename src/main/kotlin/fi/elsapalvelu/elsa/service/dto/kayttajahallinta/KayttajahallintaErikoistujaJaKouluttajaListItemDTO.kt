@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
-import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
+import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
 import fi.elsapalvelu.elsa.service.dto.KayttajahallintaYliopistoErikoisalaDTO
 import jakarta.validation.constraints.NotNull
 import java.io.Serializable
