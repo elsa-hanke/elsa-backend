@@ -2,9 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
-import fi.elsapalvelu.elsa.repository.KayttajaYliopistoErikoisalaRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonLoppukeskusteluRepository
 import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
@@ -13,9 +11,9 @@ import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
+import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
-import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KoejaksonVaiheetHelper
@@ -24,34 +22,24 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
-import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
-import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
-import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
-@AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
-class VastuuhenkiloKoejaksoResourceIT {
+class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
 
     @Autowired private lateinit var koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
     @Autowired private lateinit var koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper
     @Autowired private lateinit var koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
     @Autowired  private lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
     @Autowired private lateinit var koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
-    @Autowired private lateinit var kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository
-    @Autowired private lateinit var em: EntityManager
-    @Autowired private lateinit var restKoejaksoMockMvc: MockMvc
+    @Autowired private lateinit var koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
 
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
     private lateinit var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu
@@ -60,10 +48,9 @@ class VastuuhenkiloKoejaksoResourceIT {
     private lateinit var koejaksonLoppukeskustelu: KoejaksonLoppukeskustelu
     private lateinit var koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
     private lateinit var user: User
-    private lateinit var vastuuhenkilo: Kayttaja
 
-    @Autowired
-    private lateinit var koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
+    // convenience alias so all existing test calls compile unchanged
+    private val restKoejaksoMockMvc get() = testMockMvc
 
     @BeforeEach
     fun setup() {
@@ -697,60 +684,29 @@ class VastuuhenkiloKoejaksoResourceIT {
         user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
         em.persist(user)
         em.flush()
-        val userDetails = mapOf<String, List<Any>>()
-        val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(user.id, userDetails), "test", authorities)
-        TestSecurityContextHolder.getContext().authentication = authentication
+        setSecurityContext(user.id!!, VASTUUHENKILO)
+
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         em.persist(erikoistuvaLaakari)
 
-        vastuuhenkilo = KayttajaHelper.createEntity(em, user)
-        em.persist(vastuuhenkilo)
-
-        val vastuualue = em.findAll(VastuuhenkilonTehtavatyyppi::class)
-            .first { it.nimi == VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN }
-        val yliopistoAndErikoisala = KayttajaYliopistoErikoisala(
-            kayttaja = vastuuhenkilo,
-            yliopisto = erikoistuvaLaakari.opintooikeudet.first().yliopisto,
-            erikoisala = erikoistuvaLaakari.opintooikeudet.first().erikoisala,
-            vastuuhenkilonTehtavat = mutableSetOf(vastuualue)
-        )
-        kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
-        vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
+        // vastuuhenkilo Kayttaja is linked to the same authenticated User
+        vastuuhenkilo = createVastuuhenkiloForKoejakso(erikoistuvaLaakari, user = user)
 
         val kouluttaja = KayttajaHelper.createEntity(em)
         em.persist(kouluttaja)
-
         val esimies = KayttajaHelper.createEntity(em)
         em.persist(esimies)
-
         val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
         em.persist(yliopisto)
 
-        koejaksonKoulutussopimus = KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
-        koejaksonKoulutussopimus.kouluttajat =
-            mutableSetOf(
-                KoejaksonVaiheetHelper.createKoulutussopimuksenKouluttaja(
-                    koejaksonKoulutussopimus,
-                    kouluttaja
-                )
-            )
-        koejaksonKoulutussopimus.koulutuspaikat =
-            mutableSetOf(
-                KoejaksonVaiheetHelper.createKoulutussopimuksenKoulutuspaikka(
-                    koejaksonKoulutussopimus, yliopisto
-                )
-            )
-        em.persist(koejaksonKoulutussopimus)
-
-        koejaksonAloituskeskustelu = KoejaksonVaiheetHelper.createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
-        em.persist(koejaksonAloituskeskustelu)
-        koejaksonValiarviointi = KoejaksonVaiheetHelper.createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
-        em.persist(koejaksonValiarviointi)
-        koejaksonKehittamistoimenpiteet = KoejaksonVaiheetHelper.createKehittamistoimenpiteet(erikoistuvaLaakari, kouluttaja, esimies)
-        em.persist(koejaksonKehittamistoimenpiteet)
-        koejaksonLoppukeskustelu = KoejaksonVaiheetHelper.createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
-        em.persist(koejaksonLoppukeskustelu)
+        val vaiheet = KoejaksonVaiheetHelper.persistKoejaksoVaiheet(
+            em, erikoistuvaLaakari, kouluttaja, esimies, vastuuhenkilo, yliopisto
+        )
+        koejaksonKoulutussopimus = vaiheet.koulutussopimus
+        koejaksonAloituskeskustelu = vaiheet.aloituskeskustelu
+        koejaksonValiarviointi = vaiheet.valiarviointi
+        koejaksonKehittamistoimenpiteet = vaiheet.kehittamistoimenpiteet
+        koejaksonLoppukeskustelu = vaiheet.loppukeskustelu
 
         if (createVastuuhenkilonArvio == true) {
             koejaksonVastuuhenkilonArvio = createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)
