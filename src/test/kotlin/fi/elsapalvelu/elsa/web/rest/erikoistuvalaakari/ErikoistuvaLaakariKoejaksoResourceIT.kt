@@ -7,26 +7,20 @@ import fi.elsapalvelu.elsa.domain.enumeration.*
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.mapper.*
+import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
-import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper.DEFAULT_NIMIKE
-import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.core.IsNull
 import org.junit.jupiter.api.*
 import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.*
-import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
@@ -37,9 +31,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-@AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
-class ErikoistuvaLaakariKoejaksoResourceIT {
+class ErikoistuvaLaakariKoejaksoResourceIT : ResourceIntegrationTestBase() {
 
     @Autowired private lateinit var koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository
     @Autowired private lateinit var koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository
@@ -55,8 +48,6 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     @Autowired private lateinit var koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper
     @Autowired private lateinit var koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
     @Autowired private lateinit var objectMapper: ObjectMapper
-    @Autowired private lateinit var em: EntityManager
-    @Autowired private lateinit var restKoejaksoMockMvc: MockMvc
 
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
     private lateinit var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu
@@ -66,8 +57,10 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
     private lateinit var koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
     private lateinit var user: User
     private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
-    private lateinit var vastuuhenkilo: Kayttaja
     private lateinit var tempFile: File
+
+    // convenience alias so all existing test calls compile unchanged
+    private val restKoejaksoMockMvc get() = testMockMvc
 
     @BeforeEach
     fun setup() {
@@ -670,10 +663,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
-        val userDetails = mapOf<String, List<Any>>()
-        val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(user.id, userDetails), "test", authorities)
-        TestSecurityContextHolder.getContext().authentication = authentication
+        setSecurityContext(user.id!!, ERIKOISTUVA_LAAKARI)
         erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user)
         em.persist(erikoistuvaLaakari)
 
@@ -702,24 +692,22 @@ class ErikoistuvaLaakariKoejaksoResourceIT {
         tempFile.deleteOnExit()
     }
 
-    private fun createVastuuhenkilo(yliopisto: Yliopisto? = null, erikoisala: Erikoisala? = null, addTehtavatyyppiForKoejakso: Boolean = true): Kayttaja {
-        val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO))
-        em.persist(vastuuhenkiloUser)
-
-        val vastuuhenkilo = KayttajaHelper.createEntity(em, vastuuhenkiloUser)
-        em.persist(vastuuhenkilo)
-
-        val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
-        val yliopistoErikoisala = KayttajaYliopistoErikoisala(kayttaja = vastuuhenkilo, yliopisto = yliopisto ?: opintooikeus?.yliopisto,
-            erikoisala = erikoisala ?: opintooikeus?.erikoisala)
-        em.persist(yliopistoErikoisala)
-
-        if (addTehtavatyyppiForKoejakso) {
-            em.findAll(VastuuhenkilonTehtavatyyppi::class).firstOrNull { it.nimi == VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN }
-                ?.let { yliopistoErikoisala.vastuuhenkilonTehtavat.add(it) }
-        }
-        return vastuuhenkilo
-    }
+    /**
+     * Delegates to [createVastuuhenkiloForKoejakso] in the base class.
+     * Kept as a thin wrapper so the handful of test methods that call it with
+     * custom parameters (different erikoisala, no koejakso tehtavatyyppi) compile
+     * without changes.
+     */
+    private fun createVastuuhenkilo(
+        yliopisto: Yliopisto? = null,
+        erikoisala: Erikoisala? = null,
+        addTehtavatyyppiForKoejakso: Boolean = true
+    ): Kayttaja = createVastuuhenkiloForKoejakso(
+        erikoistuvaLaakari,
+        yliopisto = yliopisto,
+        erikoisala = erikoisala,
+        addTehtavatyyppiForKoejakso = addTehtavatyyppiForKoejakso
+    )
 
     companion object {
         private const val UPDATED_EMAIL = "doe.john@example.com"

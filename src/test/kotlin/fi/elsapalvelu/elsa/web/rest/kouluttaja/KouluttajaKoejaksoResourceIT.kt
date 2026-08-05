@@ -16,9 +16,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.*
-import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -631,8 +628,7 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
-        val authorities = listOf(SimpleGrantedAuthority(KOULUTTAJA))
-        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(user.id, mapOf<String, List<Any>>()), "test", authorities)
+        setSecurityContext(user.id!!, KOULUTTAJA)
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         em.persist(erikoistuvaLaakari)
         val vastuuhenkilo = KayttajaHelper.createEntity(em)
@@ -643,17 +639,11 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
         em.persist(esimies)
         val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
         em.persist(yliopisto)
-        koejaksonKoulutussopimus = KoejaksonVaiheetHelper.createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
-        koejaksonKoulutussopimus.kouluttajat = mutableSetOf(KoejaksonVaiheetHelper.createKoulutussopimuksenKouluttaja(koejaksonKoulutussopimus, kouluttaja))
-        koejaksonKoulutussopimus.koulutuspaikat = mutableSetOf(KoejaksonVaiheetHelper.createKoulutussopimuksenKoulutuspaikka(koejaksonKoulutussopimus, yliopisto))
-        em.persist(koejaksonKoulutussopimus)
-        koejaksonAloituskeskustelu = KoejaksonVaiheetHelper.createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
-        em.persist(koejaksonAloituskeskustelu)
-        koejaksonValiarviointi = KoejaksonVaiheetHelper.createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
-        em.persist(koejaksonValiarviointi)
-        koejaksonKehittamistoimenpiteet = KoejaksonVaiheetHelper.createKehittamistoimenpiteet(erikoistuvaLaakari, kouluttaja, esimies)
-        em.persist(koejaksonKehittamistoimenpiteet)
-        koejaksonLoppukeskustelu = KoejaksonVaiheetHelper.createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
-        em.persist(koejaksonLoppukeskustelu)
+        val vaiheet = KoejaksonVaiheetHelper.persistKoejaksoVaiheet(em, erikoistuvaLaakari, kouluttaja, esimies, vastuuhenkilo, yliopisto)
+        koejaksonKoulutussopimus = vaiheet.koulutussopimus
+        koejaksonAloituskeskustelu = vaiheet.aloituskeskustelu
+        koejaksonValiarviointi = vaiheet.valiarviointi
+        koejaksonKehittamistoimenpiteet = vaiheet.kehittamistoimenpiteet
+        koejaksonLoppukeskustelu = vaiheet.loppukeskustelu
     }
 }
