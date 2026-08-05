@@ -227,6 +227,7 @@ async function deleteErikoistuvaLaakari(client: Client, ids: UserIds): Promise<v
   }
 
   if (kayttaja_id) {
+    await client.query(`DELETE FROM kayttaja_yliopisto_erikoisala WHERE kayttaja_id = $1`, [kayttaja_id])
     await client.query(`DELETE FROM kayttaja WHERE id = $1`, [kayttaja_id])
   }
 
