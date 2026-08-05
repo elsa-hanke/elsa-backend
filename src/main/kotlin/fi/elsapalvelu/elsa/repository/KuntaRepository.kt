@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.Kunta
+import fi.elsapalvelu.elsa.domain.perustiedot.Kunta
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

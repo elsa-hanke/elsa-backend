@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.peppi.oulu
 
 import fi.elsapalvelu.elsa.OpintosuorituksetPeppiOuluQuery
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.checkErrors
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository

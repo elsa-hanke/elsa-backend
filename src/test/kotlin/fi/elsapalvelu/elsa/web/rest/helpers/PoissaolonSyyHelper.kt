@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.PoissaolonSyy
-import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi
+import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
+import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyyTyyppi
 import java.time.LocalDate
 import java.time.ZoneId
 

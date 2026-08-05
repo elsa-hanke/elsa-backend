@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.arkistointi
 
-import fi.elsapalvelu.elsa.domain.Asiakirja
+import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import java.io.Serializable
 
 data class RecordProperties(

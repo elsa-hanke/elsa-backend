@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.extensions
 
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.User_
+import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.kayttaja.User_
 import tech.jhipster.service.filter.StringFilter
 import java.util.*
 import jakarta.persistence.criteria.CriteriaBuilder

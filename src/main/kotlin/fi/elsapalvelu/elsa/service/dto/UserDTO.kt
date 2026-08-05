@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto
 
 import fi.elsapalvelu.elsa.config.LOGIN_REGEX
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.kayttaja.User
 import java.time.Instant
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank

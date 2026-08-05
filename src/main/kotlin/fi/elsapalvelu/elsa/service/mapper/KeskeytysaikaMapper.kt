@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import fi.elsapalvelu.elsa.domain.Keskeytysaika
+import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping

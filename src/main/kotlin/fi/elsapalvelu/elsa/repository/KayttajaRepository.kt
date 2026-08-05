@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
+import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
@@ -28,7 +28,7 @@ interface KayttajaRepository : JpaRepository<Kayttaja, Long>, JpaSpecificationEx
     @Query(
         "select k from Kayttaja k join k.user u left join u.authorities a left join k.yliopistotAndErikoisalat y " +
             "where a.name in :authorities and k.id = y.kayttaja.id and y.yliopisto.id = :yliopistoId and y.erikoisala.id = :erikoisalaId " +
-            "and k.tila != fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila.PASSIIVINEN"
+            "and k.tila != fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila.PASSIIVINEN"
     )
     fun findAllByAuthoritiesAndYliopistoAndErikoisala(
         authorities: List<String>,
@@ -39,7 +39,7 @@ interface KayttajaRepository : JpaRepository<Kayttaja, Long>, JpaSpecificationEx
     @Query(
         "select k from Kayttaja k join k.user u left join u.authorities a left join k.yliopistotAndErikoisalat y " +
             "where a.name in :authorities and k.id = y.kayttaja.id and y.yliopisto.id = :yliopistoId " +
-            "and k.tila != fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila.PASSIIVINEN"
+            "and k.tila != fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila.PASSIIVINEN"
     )
     fun findAllByAuthoritiesAndYliopisto(
         authorities: List<String>,
@@ -49,7 +49,7 @@ interface KayttajaRepository : JpaRepository<Kayttaja, Long>, JpaSpecificationEx
     @Query(
         "select k from Kayttaja k join k.user u left join u.authorities a left join k.yliopistotAndErikoisalat y " +
             "where a.name in :authorities and k.id = y.kayttaja.id and y.erikoisala.id = :erikoisalaId " +
-            "and k.tila != fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila.PASSIIVINEN"
+            "and k.tila != fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila.PASSIIVINEN"
     )
     fun findAllByAuthoritiesAndErikoisala(
         authorities: List<String>,

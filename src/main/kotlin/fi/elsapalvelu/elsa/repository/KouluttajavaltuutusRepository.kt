@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus
+import fi.elsapalvelu.elsa.domain.kayttaja.Kouluttajavaltuutus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query

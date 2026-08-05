@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import fi.elsapalvelu.elsa.domain.PoissaolonSyy
+import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 import fi.elsapalvelu.elsa.service.dto.PoissaolonSyyDTO
 import org.mapstruct.Mapper
 import org.mapstruct.ReportingPolicy

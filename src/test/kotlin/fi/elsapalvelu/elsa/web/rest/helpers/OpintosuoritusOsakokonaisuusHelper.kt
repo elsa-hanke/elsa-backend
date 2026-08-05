@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.Opintosuoritus
-import fi.elsapalvelu.elsa.domain.OpintosuoritusOsakokonaisuus
+import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusOsakokonaisuus
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId

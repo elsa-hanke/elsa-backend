@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.sisu.helsinki
 
 import fi.elsapalvelu.elsa.OpintosuorituksetSisuHyQuery
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.checkErrors
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.YliopistoRepository

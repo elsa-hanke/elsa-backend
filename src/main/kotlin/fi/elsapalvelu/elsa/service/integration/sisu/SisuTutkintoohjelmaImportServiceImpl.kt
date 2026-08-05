@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.integration.sisu
 
-import fi.elsapalvelu.elsa.domain.ErikoisalaSisuTutkintoohjelma
+import fi.elsapalvelu.elsa.domain.koulutus.ErikoisalaSisuTutkintoohjelma
 import fi.elsapalvelu.elsa.repository.ErikoisalaRepository
 import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaImportService
 import org.springframework.stereotype.Service

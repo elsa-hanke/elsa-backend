@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.ArvioitavaKokonaisuus
+import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavaKokonaisuus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.enumeration.ArviointiasteikonTasoTyyppi
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointiasteikonTasoTyyppi
 import java.io.Serializable
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min

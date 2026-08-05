@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import fi.elsapalvelu.elsa.domain.SuoritusarvioinninArviointityokalunVastaus
+import fi.elsapalvelu.elsa.domain.arviointi.SuoritusarvioinninArviointityokalunVastaus
 import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninArviointityokalunVastausDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping

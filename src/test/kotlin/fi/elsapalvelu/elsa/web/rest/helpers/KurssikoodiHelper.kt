@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.OpintosuoritusKurssikoodi
-import fi.elsapalvelu.elsa.domain.OpintosuoritusTyyppi
-import fi.elsapalvelu.elsa.domain.Yliopisto
-import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusKurssikoodi
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppi
+import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 

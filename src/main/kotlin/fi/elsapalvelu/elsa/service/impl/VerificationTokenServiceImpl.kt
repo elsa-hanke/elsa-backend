@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.VerificationToken
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.kayttaja.VerificationToken
 import fi.elsapalvelu.elsa.repository.VerificationTokenRepository
 import fi.elsapalvelu.elsa.service.VerificationTokenService
 import org.springframework.stereotype.Service

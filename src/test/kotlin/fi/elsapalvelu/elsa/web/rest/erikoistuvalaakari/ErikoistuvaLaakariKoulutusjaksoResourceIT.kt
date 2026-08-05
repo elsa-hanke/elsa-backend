@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.Koulutusjakso
-import fi.elsapalvelu.elsa.domain.Koulutussuunnitelma
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.koulutus.Koulutusjakso
+import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
+import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.KoulutusjaksoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI

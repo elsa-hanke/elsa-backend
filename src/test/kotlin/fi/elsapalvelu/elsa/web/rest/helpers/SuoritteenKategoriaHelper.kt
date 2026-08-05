@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.Erikoisala
-import fi.elsapalvelu.elsa.domain.SuoritteenKategoria
+import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
+import fi.elsapalvelu.elsa.domain.suoritteet.SuoritteenKategoria
 import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 

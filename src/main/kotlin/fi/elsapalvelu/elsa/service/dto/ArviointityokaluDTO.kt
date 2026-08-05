@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.ArviointityokaluKategoria
-import fi.elsapalvelu.elsa.domain.AsiakirjaData
-import fi.elsapalvelu.elsa.domain.enumeration.ArviointityokalunTila
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokaluKategoria
+import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokalunTila
 import jakarta.validation.constraints.NotNull
 import java.io.Serializable
 

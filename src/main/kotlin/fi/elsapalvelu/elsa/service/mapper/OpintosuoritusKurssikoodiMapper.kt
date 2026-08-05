@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import fi.elsapalvelu.elsa.domain.OpintosuoritusKurssikoodi
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusKurssikoodi
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusKurssikoodiDTO
 import org.mapstruct.Mapper
 import org.mapstruct.ReportingPolicy

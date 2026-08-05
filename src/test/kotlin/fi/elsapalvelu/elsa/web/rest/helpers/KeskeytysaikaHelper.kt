@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.Keskeytysaika
-import fi.elsapalvelu.elsa.domain.PoissaolonSyy
-import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
+import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
+import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import jakarta.persistence.EntityManager

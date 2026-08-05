@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.enumeration
 
-import fi.elsapalvelu.elsa.domain.TerveyskeskuskoulutusjaksonHyvaksynta
+import fi.elsapalvelu.elsa.domain.valmistuminen.TerveyskeskuskoulutusjaksonHyvaksynta
 
 enum class TerveyskeskuskoulutusjaksoTila {
     UUSI,

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto
 
-import fi.elsapalvelu.elsa.domain.enumeration.KaytannonKoulutusTyyppi
+import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
 import java.io.Serializable
 
 class TyoskentelyjaksotTilastotKaytannonKoulutusDTO(

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.repository
 
-import fi.elsapalvelu.elsa.domain.OpintooikeusHerate
+import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeusHerate
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.service.helpers
 
-import fi.elsapalvelu.elsa.domain.Keskeytysaika
-import fi.elsapalvelu.elsa.domain.PoissaolonSyy
-import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
-import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi
+import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
+import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
+import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyyTyyppi
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.time.LocalDate

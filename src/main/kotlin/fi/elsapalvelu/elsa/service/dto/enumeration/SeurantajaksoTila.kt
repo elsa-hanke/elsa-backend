@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.enumeration
 
-import fi.elsapalvelu.elsa.domain.Seurantajakso
+import fi.elsapalvelu.elsa.domain.seuranta.Seurantajakso
 import fi.elsapalvelu.elsa.service.dto.*
 
 enum class SeurantajaksoTila {

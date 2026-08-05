@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.integration.peppi
 
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import okhttp3.OkHttpClient
 

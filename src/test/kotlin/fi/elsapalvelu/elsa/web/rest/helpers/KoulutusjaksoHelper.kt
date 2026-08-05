@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.Koulutusjakso
-import fi.elsapalvelu.elsa.domain.Koulutussuunnitelma
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.koulutus.Koulutusjakso
+import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
+import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 import java.time.LocalDate

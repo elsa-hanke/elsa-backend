@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.scheduler.jobs
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.domain.User
+import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.*
 import kotlinx.coroutines.*

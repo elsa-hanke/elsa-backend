@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.domain.Keskeytysaika
-import fi.elsapalvelu.elsa.domain.Tyoskentelyjakso
-import fi.elsapalvelu.elsa.domain.enumeration.PoissaolonSyyTyyppi.*
+import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
+import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
+import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyyTyyppi.*
 import fi.elsapalvelu.elsa.extensions.daysBetween
 import fi.elsapalvelu.elsa.extensions.duringYears
 import fi.elsapalvelu.elsa.extensions.endOfYearDate
