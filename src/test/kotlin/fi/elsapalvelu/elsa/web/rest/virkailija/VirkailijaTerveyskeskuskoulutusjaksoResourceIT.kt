@@ -261,8 +261,6 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         assertThat(testHyvaksynta.virkailijanKorjausehdotus).isEqualTo("test")
     }
 
-    // ── file-download tests ───────────────────────────────────────────────────
-
     @Test
     @Transactional
     fun getTerveyskeskuskoulutusjaksoTyoskentelyjaksoLiiteReturnsBytesWhenFound() {
@@ -300,8 +298,6 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         )
             .andExpect(status().isNotFound)
     }
-
-    // ── exception-handling tests ──────────────────────────────────────────────
 
     /**
      * Verifies that withTerveyskeskusExceptionHandling translates EntityNotFoundException

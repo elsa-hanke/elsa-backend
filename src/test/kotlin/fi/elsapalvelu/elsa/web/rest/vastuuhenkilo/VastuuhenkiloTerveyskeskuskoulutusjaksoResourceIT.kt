@@ -329,8 +329,6 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResourceIT {
         assertThat(testHyvaksynta.vastuuhenkilonKorjausehdotus).isEqualTo("test")
     }
 
-    // ── file-download tests ───────────────────────────────────────────────────
-
     @Test
     @Transactional
     fun getTerveyskeskuskoulutusjaksoTyoskentelyjaksoLiiteReturnsBytesWhenFound() {
@@ -368,16 +366,6 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResourceIT {
         )
             .andExpect(status().isNotFound)
     }
-
-    // ── exception-handling tests ──────────────────────────────────────────────
-    // NOTE: withTerveyskeskusExceptionHandling catches EntityNotFoundException thrown by
-    // mapTerveyskeskuskoulutusjakso → getVastuuhenkilo().  That path requires VASTUUHENKILO
-    // authority (enforced by SecurityConfiguration line "/api/vastuuhenkilo/**") AND a
-    // KayttajaYliopistoErikoisala with TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN, so any
-    // user who reaches this endpoint is always found by getVastuuhenkilo().  The exception
-    // branch is therefore not reachable in an integration test without mocking the service
-    // layer; it is covered by the virkailija IT instead (see
-    // VirkailijaTerveyskeskuskoulutusjaksoResourceIT.getTerveyskeskuskoulutusjaksoThrowsEntityNotFoundReturnsBadRequest).
 
     fun initTest(
         vastuuhenkilonYliopistoNimi: YliopistoEnum? = YliopistoEnum.TAMPEREEN_YLIOPISTO,
