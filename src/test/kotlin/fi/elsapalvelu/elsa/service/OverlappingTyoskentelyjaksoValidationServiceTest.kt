@@ -4,8 +4,8 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyyTyyppi
-import fi.elsapalvelu.elsa.repository.KeskeytysaikaRepository
-import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
+import fi.elsapalvelu.elsa.repository.tyoskentely.KeskeytysaikaRepository
+import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.PoissaolonSyyDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO

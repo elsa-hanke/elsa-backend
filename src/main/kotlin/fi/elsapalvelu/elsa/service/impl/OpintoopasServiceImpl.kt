@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.domain.koulutus.Opintoopas
 import fi.elsapalvelu.elsa.extensions.toMonths
 import fi.elsapalvelu.elsa.extensions.toYears
-import fi.elsapalvelu.elsa.repository.OpintoopasRepository
+import fi.elsapalvelu.elsa.repository.koulutus.OpintoopasRepository
 import fi.elsapalvelu.elsa.service.OpintoopasService
 import fi.elsapalvelu.elsa.service.dto.OpintoopasDTO
 import fi.elsapalvelu.elsa.service.dto.OpintoopasSimpleDTO

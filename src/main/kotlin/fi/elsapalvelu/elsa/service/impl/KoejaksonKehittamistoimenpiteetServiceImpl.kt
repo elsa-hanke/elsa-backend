@@ -4,10 +4,10 @@ import fi.elsapalvelu.elsa.service.OpintooikeusService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKehittamistoimenpiteet
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonKehittamistoimenpiteetRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonKehittamistoimenpiteetRepository
+import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonValiarviointiRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.KoejaksonKehittamistoimenpiteetService
 import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService

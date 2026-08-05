@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.config
 
-import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import org.opensaml.security.x509.X509Support
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean

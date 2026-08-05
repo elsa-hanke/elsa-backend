@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.AsetusRepository
+import fi.elsapalvelu.elsa.repository.perustiedot.AsetusRepository
 import fi.elsapalvelu.elsa.service.AsetusService
 import fi.elsapalvelu.elsa.service.dto.AsetusDTO
 import fi.elsapalvelu.elsa.service.mapper.AsetusMapper

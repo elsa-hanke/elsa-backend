@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.repository.OpintosuoritusKurssikoodiRepository
+import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusKurssikoodiRepository
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusKurssikoodiDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusTyyppiDTO

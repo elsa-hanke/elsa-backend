@@ -5,10 +5,10 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusOsakokonaisuus
 import fi.elsapalvelu.elsa.extensions.match
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
-import fi.elsapalvelu.elsa.repository.OpintosuoritusKurssikoodiRepository
-import fi.elsapalvelu.elsa.repository.OpintosuoritusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusKurssikoodiRepository
+import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusRepository
 import fi.elsapalvelu.elsa.service.OpintosuorituksetPersistenceService
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO

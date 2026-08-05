@@ -12,9 +12,9 @@ import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.repository.KoejaksonKoulutussopimusRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonLoppukeskusteluRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonVastuuhenkilonArvioRepository
+import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonKoulutussopimusRepository
+import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonLoppukeskusteluRepository
+import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi

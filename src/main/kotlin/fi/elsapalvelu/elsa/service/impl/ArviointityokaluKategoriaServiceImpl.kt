@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.ArviointityokaluKategoriaRepository
-import fi.elsapalvelu.elsa.repository.ArviointityokaluRepository
+import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluKategoriaRepository
+import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluRepository
 import fi.elsapalvelu.elsa.service.ArviointityokaluKategoriaService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluKategoriaMapper
