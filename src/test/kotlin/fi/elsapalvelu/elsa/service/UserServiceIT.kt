@@ -18,6 +18,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertNotNull
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 private const val DEFAULT_LOGIN = "johndoe"
 private const val DEFAULT_EMAIL = "johndoe@localhost"
 private const val DEFAULT_FIRSTNAME = "john"

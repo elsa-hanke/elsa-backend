@@ -2,9 +2,9 @@ package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
-import fi.elsapalvelu.elsa.service.OpintooikeusService
-import fi.elsapalvelu.elsa.service.OpintosuoritusService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
+import fi.elsapalvelu.elsa.service.koulutus.OpintosuoritusService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

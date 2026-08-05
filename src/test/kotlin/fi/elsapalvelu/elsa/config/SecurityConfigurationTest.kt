@@ -9,12 +9,12 @@ import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.VerificationTokenRepository
-import fi.elsapalvelu.elsa.service.OpintooikeusService
+import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
-import fi.elsapalvelu.elsa.service.OpintosuorituksetPersistenceService
+import fi.elsapalvelu.elsa.service.koulutus.OpintosuorituksetPersistenceService
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
-import fi.elsapalvelu.elsa.service.OpintotietodataPersistenceService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.koulutus.OpintotietodataPersistenceService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import kotlinx.coroutines.runBlocking

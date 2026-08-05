@@ -1,0 +1,37 @@
+package fi.elsapalvelu.elsa.service.koulutus
+
+import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import javax.crypto.Cipher
+import javax.crypto.SecretKey
+
+interface OpintotietodataPersistenceService {
+
+    fun create(
+        cipher: Cipher,
+        originalKey: SecretKey,
+        hetu: String?,
+        etunimi: String,
+        sukunimi: String,
+        opintotietodataDTOs: List<OpintotietodataDTO>
+    )
+
+    fun createWithoutOpintotietodataOnlyDevDoNotUseInProd(
+        cipher: Cipher,
+        originalKey: SecretKey,
+        hetu: String?,
+        etunimi: String,
+        sukunimi: String
+    )
+
+    fun createOrUpdateIfChanged(
+        userId: String,
+        etunimi: String,
+        sukunimi: String,
+        opintotietodataDTOs: List<OpintotietodataDTO>
+    )
+
+    fun createOrUpdateOpintotieto(
+        userId: String,
+        opintotietodataDTO: OpintotietodataDTO
+    )
+}

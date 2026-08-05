@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.mail
 
 import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.service.MailProperty
-import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
+import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionSynchronization

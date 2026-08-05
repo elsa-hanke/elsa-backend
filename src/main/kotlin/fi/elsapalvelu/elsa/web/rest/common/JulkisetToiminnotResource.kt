@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
 import fi.elsapalvelu.elsa.domain.perustiedot.ApplicationSettingTyyppi
-import fi.elsapalvelu.elsa.service.ApplicationSettingService
-import fi.elsapalvelu.elsa.service.IlmoitusService
+import fi.elsapalvelu.elsa.service.perustiedot.ApplicationSettingService
+import fi.elsapalvelu.elsa.service.seuranta.IlmoitusService
 import fi.elsapalvelu.elsa.service.PoissaolonSyyService
 import fi.elsapalvelu.elsa.service.dto.IlmoitusDTO
 import fi.elsapalvelu.elsa.service.dto.PoissaolonSyyDTO

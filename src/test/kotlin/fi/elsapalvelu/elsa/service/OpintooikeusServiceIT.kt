@@ -32,6 +32,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class OpintooikeusServiceIT {

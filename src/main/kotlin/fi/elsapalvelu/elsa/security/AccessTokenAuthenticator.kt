@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.security
 
 import fi.elsapalvelu.elsa.extensions.responseCount
-import fi.elsapalvelu.elsa.service.AuthenticationTokenService
+import fi.elsapalvelu.elsa.service.kayttaja.AuthenticationTokenService
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response

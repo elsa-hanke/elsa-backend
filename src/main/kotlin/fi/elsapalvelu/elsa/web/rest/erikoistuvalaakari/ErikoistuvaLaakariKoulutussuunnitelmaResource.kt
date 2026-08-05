@@ -2,10 +2,10 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
-import fi.elsapalvelu.elsa.service.FileValidationService
-import fi.elsapalvelu.elsa.service.KoulutussuunnitelmaService
-import fi.elsapalvelu.elsa.service.OpintooikeusService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.kayttaja.FileValidationService
+import fi.elsapalvelu.elsa.service.koulutus.KoulutussuunnitelmaService
+import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.KoulutussuunnitelmaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException

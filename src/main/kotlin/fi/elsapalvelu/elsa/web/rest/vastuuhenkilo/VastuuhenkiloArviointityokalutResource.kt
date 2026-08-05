@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
-import fi.elsapalvelu.elsa.service.ArviointityokaluKategoriaService
-import fi.elsapalvelu.elsa.service.ArviointityokaluService
+import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluKategoriaService
+import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluService
 import fi.elsapalvelu.elsa.web.rest.common.ArviointityokalutResource
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController

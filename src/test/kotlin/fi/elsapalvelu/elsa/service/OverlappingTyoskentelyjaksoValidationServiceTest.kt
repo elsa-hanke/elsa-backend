@@ -11,8 +11,8 @@ import fi.elsapalvelu.elsa.service.dto.PoissaolonSyyDTO
 import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.helpers.KeskeytysaikaMockHelper
 import fi.elsapalvelu.elsa.service.helpers.TyoskentelyjaksoMockHelper
-import fi.elsapalvelu.elsa.service.impl.OverlappingTyoskentelyjaksoValidationServiceImpl
-import fi.elsapalvelu.elsa.service.impl.TyoskentelyjaksonPituusCounterServiceImpl
+import fi.elsapalvelu.elsa.service.impl.tyoskentely.OverlappingTyoskentelyjaksoValidationServiceImpl
+import fi.elsapalvelu.elsa.service.impl.tyoskentely.TyoskentelyjaksonPituusCounterServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito

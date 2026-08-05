@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
-import fi.elsapalvelu.elsa.service.SuoritusarvioinninKommenttiService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.arviointi.SuoritusarvioinninKommenttiService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value

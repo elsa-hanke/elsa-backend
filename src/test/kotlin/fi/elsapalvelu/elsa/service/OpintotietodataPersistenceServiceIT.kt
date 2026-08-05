@@ -46,6 +46,8 @@ import jakarta.persistence.EntityManager
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import kotlin.test.assertNotNull
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import fi.elsapalvelu.elsa.service.koulutus.OpintotietodataPersistenceService
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional

@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fi.elsapalvelu.elsa.service.ArviointityokaluKategoriaService
-import fi.elsapalvelu.elsa.service.ArviointityokaluService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluKategoriaService
+import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
 import jakarta.validation.Valid

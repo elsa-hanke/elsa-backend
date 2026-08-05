@@ -6,8 +6,8 @@ import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeusHerate
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusHerateRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
-import fi.elsapalvelu.elsa.service.MailProperty
-import fi.elsapalvelu.elsa.service.MailService
+import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
+import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
