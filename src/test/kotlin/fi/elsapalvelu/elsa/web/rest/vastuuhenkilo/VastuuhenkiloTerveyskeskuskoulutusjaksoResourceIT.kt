@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.TerveyskeskuskoulutusjaksonHyvaksyntaRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoUpdateDTO
@@ -27,6 +28,7 @@ import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
@@ -39,6 +41,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.LocalDateTime
 import jakarta.persistence.EntityManager
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -325,6 +328,115 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResourceIT {
         assertThat(testHyvaksynta.vastuuhenkiloHyvaksynyt).isFalse
         assertThat(testHyvaksynta.virkailijanKorjausehdotus).isNull()
         assertThat(testHyvaksynta.vastuuhenkilonKorjausehdotus).isEqualTo("test")
+    }
+
+    // ── file-download tests ───────────────────────────────────────────────────
+
+    @Test
+    @Transactional
+    fun getTerveyskeskuskoulutusjaksoTyoskentelyjaksoLiiteReturnsBytesWhenFound() {
+        initTest()
+        val tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).first()
+        val fileContent = "test-file-content".toByteArray()
+        val asiakirja = Asiakirja(
+            opintooikeus = tyoskentelyjakso.opintooikeus,
+            tyoskentelyjakso = tyoskentelyjakso,
+            nimi = "liite.pdf",
+            tyyppi = MediaType.APPLICATION_PDF_VALUE,
+            lisattypvm = LocalDateTime.now(),
+            asiakirjaData = AsiakirjaData(data = fileContent)
+        )
+        em.persist(asiakirja)
+        em.flush()
+
+        val id = asiakirja.id
+        assertNotNull(id)
+
+        restKoejaksoMockMvc.perform(
+            get("/api/vastuuhenkilo/terveyskeskuskoulutusjakso/tyoskentelyjakso-liite/{id}", id)
+        )
+            .andExpect(status().isOk)
+            .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, Matchers.containsString("attachment")))
+            .andExpect(content().bytes(fileContent))
+    }
+
+    @Test
+    @Transactional
+    fun getTerveyskeskuskoulutusjaksoTyoskentelyjaksoLiiteReturnsNotFoundWhenMissing() {
+        initTest()
+        restKoejaksoMockMvc.perform(
+            get("/api/vastuuhenkilo/terveyskeskuskoulutusjakso/tyoskentelyjakso-liite/{id}", 999999L)
+        )
+            .andExpect(status().isNotFound)
+    }
+
+    // ── exception-handling tests ──────────────────────────────────────────────
+
+    /**
+     * Verifies that withTerveyskeskusExceptionHandling translates EntityNotFoundException
+     * → 400 BadRequest. We trigger this by using a Kayttaja who has the right
+     * KayttajaYliopistoErikoisala (so the service user-check passes) but whose
+     * User does NOT carry the VASTUUHENKILO authority in the DB, so
+     * getVastuuhenkilo() returns null and throws EntityNotFoundException.
+     */
+    @Test
+    @Transactional
+    fun getTerveyskeskuskoulutusjaksoThrowsEntityNotFoundReturnsBadRequest() {
+        // User with ERIKOISTUVA_LAAKARI authority – NOT VASTUUHENKILO
+        user = KayttajaResourceWithMockUserIT.createEntity(
+            authority = Authority(name = ERIKOISTUVA_LAAKARI)
+        )
+        em.persist(user)
+        em.flush()
+
+        val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
+        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(user.id, emptyMap()),
+            "test",
+            authorities
+        )
+
+        yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
+        em.persist(yliopisto)
+
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(
+            em,
+            yliopisto = yliopisto,
+            laillistamispaiva = DEFAULT_LAILLISTAMISPAIVA
+        )
+        em.persist(erikoistuvaLaakari)
+
+        // Kayttaja with the right tehtavatyyppi so the user-check passes …
+        val tehtavatyypit = em.findAll(VastuuhenkilonTehtavatyyppi::class)
+        vastuuhenkilo = KayttajaHelper.createEntity(em, user = user)
+        vastuuhenkilo.yliopistotAndErikoisalat.add(
+            KayttajaYliopistoErikoisala(
+                kayttaja = vastuuhenkilo,
+                yliopisto = yliopisto,
+                erikoisala = Erikoisala(50),
+                vastuuhenkilonTehtavat = mutableSetOf(
+                    tehtavatyypit.first {
+                        it.nimi == VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
+                    }
+                )
+            )
+        )
+        em.persist(vastuuhenkilo)
+
+        // … but getVastuuhenkilo() queries by VASTUUHENKILO authority and finds nobody.
+        val hyvaksynta = createTerveyskeskuskoulutusjaksonHyvaksynta(
+            erikoistuvaLaakari,
+            vastuuhenkilo
+        )
+        em.persist(hyvaksynta)
+        em.flush()
+
+        assertNotNull(hyvaksynta.id)
+
+        restKoejaksoMockMvc.perform(
+            get("/api/vastuuhenkilo/terveyskeskuskoulutusjakso/{id}", hyvaksynta.id)
+        )
+            .andExpect(status().isBadRequest)
     }
 
     fun initTest(

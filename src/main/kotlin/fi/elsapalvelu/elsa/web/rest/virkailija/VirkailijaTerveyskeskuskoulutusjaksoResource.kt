@@ -9,27 +9,27 @@ import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksonHyvaksyntaDTO
-import fi.elsapalvelu.elsa.web.rest.TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME
-import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import fi.elsapalvelu.elsa.web.rest.common.TerveyskeskuskoulutusjaksoBaseResource
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.security.Principal
-import jakarta.persistence.EntityNotFoundException
-import jakarta.validation.ValidationException
 import org.springframework.web.multipart.MultipartFile
+import java.security.Principal
 import java.time.LocalDate
-
 
 @RestController
 @RequestMapping("/api/virkailija")
 class VirkailijaTerveyskeskuskoulutusjaksoResource(
-    private val userService: UserService,
-    private val kayttajaService: KayttajaService,
-    private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
-    private val asiakirjaService: AsiakirjaService
+    userService: UserService,
+    kayttajaService: KayttajaService,
+    terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
+    asiakirjaService: AsiakirjaService
+) : TerveyskeskuskoulutusjaksoBaseResource(
+    userService,
+    kayttajaService,
+    terveyskeskuskoulutusjaksonHyvaksyntaService,
+    asiakirjaService
 ) {
 
     @GetMapping("/terveyskeskuskoulutusjaksot")
@@ -40,11 +40,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
     ): ResponseEntity<Page<TerveyskeskuskoulutusjaksoSimpleDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findByVirkailijaUserId(
-                user.id!!,
-                criteria,
-                pageable
-            )
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByVirkailijaUserId(user.id!!, criteria, pageable)
         )
     }
 
@@ -56,27 +52,10 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         val kayttaja = kayttajaService.findByUserId(user.id!!).get()
         val yliopistoIds = kayttaja.yliopistot?.map { it.id!! }.orEmpty().toList()
-        try {
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndYliopistoIdVirkailija(
-                id,
-                yliopistoIds
-            )
-                .let {
-                    if (it == null) return ResponseEntity.notFound().build()
-                    return ResponseEntity.ok(it)
-                }
-        } catch (e: EntityNotFoundException) {
-            throw BadRequestAlertException(
-                "Vastuuhenkilöä ei löytynyt",
-                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
-                "dataillegal.vastuuhenkiloa-ei-loytynyt"
-            )
-        } catch (e: ValidationException) {
-            throw BadRequestAlertException(
-                "Terveyskeskuskoulutusjakson vähimmäispituus ei täyty",
-                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
-                "dataillegal.terveyskeskuskoulutusjakson-vahimmaispituus-ei-tayty"
-            )
+        return withTerveyskeskusExceptionHandling {
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndYliopistoIdVirkailija(id, yliopistoIds)
+                ?.let { ResponseEntity.ok(it) }
+                ?: ResponseEntity.notFound().build()
         }
     }
 
@@ -87,15 +66,13 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
         val kayttaja = kayttajaService.findByUserId(user.id!!)
-        val asiakirja = asiakirjaService
-            .findByIdAndTyoskentelyjaksoTyyppi(
+        return buildAsiakirjaDownloadResponse(
+            asiakirjaService.findByIdAndTyoskentelyjaksoTyyppi(
                 id,
                 TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
-                kayttaja.orElse(null)?.yliopistot?.map { it.id!! })
-
-        return asiakirja?.asiakirjaData?.fileInputStream
-            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
-            ?: ResponseEntity.notFound().build()
+                kayttaja.orElse(null)?.yliopistot?.map { it.id!! }
+            )
+        )
     }
 
     @PutMapping("/terveyskeskuskoulutusjakson-hyvaksynta/{id}")
@@ -107,18 +84,16 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-
-        terveyskeskuskoulutusjaksonHyvaksyntaService.update(
-            user.id!!,
-            true,
-            id,
-            dto?.korjausehdotus,
-            dto?.lisatiedotVirkailijalta,
-            laillistamispaiva,
-            laillistamispaivanLiite
+        return ResponseEntity.ok(
+            terveyskeskuskoulutusjaksonHyvaksyntaService.update(
+                user.id!!,
+                true,
+                id,
+                dto?.korjausehdotus,
+                dto?.lisatiedotVirkailijalta,
+                laillistamispaiva,
+                laillistamispaivanLiite
+            )
         )
-            .let {
-                return ResponseEntity.ok(it)
-            }
     }
 }
