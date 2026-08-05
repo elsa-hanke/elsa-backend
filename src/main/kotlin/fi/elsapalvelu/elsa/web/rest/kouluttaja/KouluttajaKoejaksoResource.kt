@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.web.rest.ENTITY_KOEJAKSON_SOPIMUS
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.*
 import tech.jhipster.web.util.ResponseUtil
 import java.security.Principal
 
-private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 
 @RestController
 @RequestMapping("/api/kouluttaja")
