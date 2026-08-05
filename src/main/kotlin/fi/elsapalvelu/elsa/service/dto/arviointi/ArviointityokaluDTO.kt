@@ -1,0 +1,42 @@
+package fi.elsapalvelu.elsa.service.dto.arviointi
+
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokaluKategoria
+import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokalunTila
+import jakarta.validation.constraints.NotNull
+import java.io.Serializable
+
+data class ArviointityokaluDTO(
+
+    var id: Long? = null,
+
+    var versio: Long = 1,
+
+    var alkuperainenId: Long? = null,
+
+    @get: NotNull
+    var nimi: String? = null,
+
+    var ohjeteksti: String? = null,
+
+    var kategoria: ArviointityokaluKategoria? = null,
+
+    var kysymykset: List<ArviointityokaluKysymysDTO>? = listOf(),
+
+    var tila: ArviointityokalunTila? = null,
+
+    var liite: AsiakirjaData? = null,
+
+    var liitetiedostonNimi: String? = null,
+
+    var liitetiedostonTyyppi: String? = null,
+
+    var kaytossa: Boolean = true,
+
+    ) : Serializable {
+    override fun toString() = "ArviointityokaluDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

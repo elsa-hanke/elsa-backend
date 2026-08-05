@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokaluKysymysVaihtoehto
-import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKysymysVaihtoehtoDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluKysymysVaihtoehtoDTO
 import org.mapstruct.Mapper
 import org.mapstruct.ReportingPolicy
 

@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
 import org.mapstruct.*
 
 @Mapper(

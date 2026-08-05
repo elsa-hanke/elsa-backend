@@ -19,7 +19,7 @@ import fi.elsapalvelu.elsa.repository.valmistuminen.TerveyskeskuskoulutusjaksonH
 import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
-import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoUpdateDTO
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.TerveyskeskuskoulutusjaksoUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes

@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
-import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.TeoriakoulutusDTO
 import org.mapstruct.*
 
 @Mapper(

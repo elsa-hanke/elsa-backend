@@ -15,9 +15,9 @@ import fi.elsapalvelu.elsa.service.seuranta.*
 import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.TeoriakoulutuksetDTO
-import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.TeoriakoulutuksetDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.TeoriakoulutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

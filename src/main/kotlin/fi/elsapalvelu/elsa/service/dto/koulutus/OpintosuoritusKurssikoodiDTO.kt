@@ -1,0 +1,25 @@
+package fi.elsapalvelu.elsa.service.dto.koulutus
+
+import java.io.Serializable
+
+data class OpintosuoritusKurssikoodiDTO(
+
+    var id: Long? = null,
+
+    var tunniste: String? = null,
+
+    var tyyppi: OpintosuoritusTyyppiDTO? = null
+
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is OpintosuoritusKurssikoodiDTO) return false
+        return id != null && id == other.id
+    }
+
+    override fun hashCode() = 31
+}

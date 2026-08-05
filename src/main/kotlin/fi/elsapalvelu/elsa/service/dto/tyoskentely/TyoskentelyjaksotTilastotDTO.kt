@@ -1,0 +1,25 @@
+package fi.elsapalvelu.elsa.service.dto.tyoskentely
+
+import java.io.Serializable
+
+class TyoskentelyjaksotTilastotDTO(
+
+    var tyoskentelyaikaYhteensa: Double,
+
+    var arvioErikoistumiseenHyvaksyttavista: Double,
+
+    var arvioPuuttuvastaKoulutuksesta: Double,
+
+    var koulutustyypit: TyoskentelyjaksotTilastotKoulutustyypitDTO,
+
+    var kaytannonKoulutus: MutableSet<TyoskentelyjaksotTilastotKaytannonKoulutusDTO> = mutableSetOf(),
+
+    var tyoskentelyjaksot: MutableSet<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO> = mutableSetOf()
+
+) : Serializable {
+    override fun toString() = "TyoskentelyjaksotTilastotDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

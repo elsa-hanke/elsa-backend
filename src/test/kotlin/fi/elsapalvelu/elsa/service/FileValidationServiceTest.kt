@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.impl.kayttaja.FileValidationServiceImpl
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.service.kayttaja.FileValidationService

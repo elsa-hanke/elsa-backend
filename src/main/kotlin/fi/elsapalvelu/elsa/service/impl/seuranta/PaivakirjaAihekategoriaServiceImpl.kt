@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.seuranta
 
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjaAihekategoriaRepository
 import fi.elsapalvelu.elsa.service.seuranta.PaivakirjaAihekategoriaService
-import fi.elsapalvelu.elsa.service.dto.PaivakirjaAihekategoriaDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjaAihekategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.PaivakirjaAihekategoriaMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

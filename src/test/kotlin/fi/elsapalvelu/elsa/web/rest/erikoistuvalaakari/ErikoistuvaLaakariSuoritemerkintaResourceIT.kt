@@ -14,8 +14,8 @@ import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoritemerkintaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.dto.SuoritemerkinnanSuoriteDTO
-import fi.elsapalvelu.elsa.service.dto.UusiSuoritemerkintaDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritemerkinnanSuoriteDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.UusiSuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritemerkintaMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes

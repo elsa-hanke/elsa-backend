@@ -18,7 +18,7 @@ import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyynnonTarkistusR
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusUpdateDTO
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT

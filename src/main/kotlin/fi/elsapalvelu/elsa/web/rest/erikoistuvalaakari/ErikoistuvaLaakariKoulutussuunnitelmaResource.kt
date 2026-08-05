@@ -6,8 +6,8 @@ import fi.elsapalvelu.elsa.service.kayttaja.FileValidationService
 import fi.elsapalvelu.elsa.service.koulutus.KoulutussuunnitelmaService
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.KoulutussuunnitelmaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutussuunnitelmaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus

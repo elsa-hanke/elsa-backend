@@ -15,7 +15,7 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.constants.OPINTOOIKEUS_NOT_FOUND_ERROR
-import fi.elsapalvelu.elsa.service.dto.OpintooikeusDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.OpintooikeusDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaOpintooikeusDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintooikeusMapper
 import jakarta.persistence.EntityNotFoundException

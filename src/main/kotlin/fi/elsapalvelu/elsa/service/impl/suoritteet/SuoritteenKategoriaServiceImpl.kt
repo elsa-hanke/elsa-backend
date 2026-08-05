@@ -3,9 +3,9 @@ package fi.elsapalvelu.elsa.service.impl.suoritteet
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoritteenKategoriaRepository
 import fi.elsapalvelu.elsa.service.suoritteet.SuoritteenKategoriaService
-import fi.elsapalvelu.elsa.service.dto.SuoritteenKategoriaDTO
-import fi.elsapalvelu.elsa.service.dto.SuoritteenKategoriaSimpleDTO
-import fi.elsapalvelu.elsa.service.dto.SuoritteenKategoriaWithErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritteenKategoriaDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritteenKategoriaSimpleDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritteenKategoriaWithErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritteenKategoriaMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoritteenKategoriaSimpleMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoritteenKategoriaWithErikoisalaMapper

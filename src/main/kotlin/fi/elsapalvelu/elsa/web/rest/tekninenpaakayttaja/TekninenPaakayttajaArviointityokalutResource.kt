@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluKategoriaService
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluService
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
-import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
-import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluKategoriaDTO
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*

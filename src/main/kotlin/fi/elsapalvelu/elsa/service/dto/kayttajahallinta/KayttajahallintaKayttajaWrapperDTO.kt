@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
 
-import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
-import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.ErikoistuvaLaakariDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaDTO
 import java.io.Serializable
 
 data class KayttajahallintaKayttajaWrapperDTO(

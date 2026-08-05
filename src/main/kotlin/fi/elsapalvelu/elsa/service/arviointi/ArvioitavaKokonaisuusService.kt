@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.arviointi
 
-import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusDTO
-import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusWithErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavaKokonaisuusDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavaKokonaisuusWithErikoisalaDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.util.*

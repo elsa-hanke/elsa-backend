@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.arviointi
 
-import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.SuoritusarvioinninKommenttiDTO
 import java.util.*
 
 interface SuoritusarvioinninKommenttiService {

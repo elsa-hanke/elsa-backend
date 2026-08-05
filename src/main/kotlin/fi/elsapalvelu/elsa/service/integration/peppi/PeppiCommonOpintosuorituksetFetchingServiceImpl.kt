@@ -11,8 +11,8 @@ import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintosuoritukse
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR
-import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
-import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody

@@ -22,6 +22,15 @@ import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.koejakso.*
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
+import fi.elsapalvelu.elsa.service.dto.arviointi.*
+import fi.elsapalvelu.elsa.service.dto.suoritteet.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.*
+import fi.elsapalvelu.elsa.service.dto.seuranta.*
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.*
+import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.SeurantajaksoTila
 import fi.elsapalvelu.elsa.service.mapper.ArviointiasteikkoMapper
 import fi.elsapalvelu.elsa.service.mapper.SeurantajaksoMapper

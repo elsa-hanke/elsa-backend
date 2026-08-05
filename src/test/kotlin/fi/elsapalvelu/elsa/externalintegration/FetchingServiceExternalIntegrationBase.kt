@@ -3,11 +3,11 @@ package fi.elsapalvelu.elsa.externalintegration
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
-import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
-import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
-import fi.elsapalvelu.elsa.service.dto.OpintosuoritusOsakokonaisuusDTO
-import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO
-import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusOsakokonaisuusDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietoOpintooikeusDataDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

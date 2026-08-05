@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.koulutus
 
-import fi.elsapalvelu.elsa.service.dto.KoulutussuunnitelmaDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutussuunnitelmaDTO
 
 interface KoulutussuunnitelmaService {
     fun save(

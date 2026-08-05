@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration
 
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 
 interface OpintotietodataFetchingService {
     suspend fun fetchOpintotietodata(hetu: String): OpintotietodataDTO?

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.koulutus
 
-import fi.elsapalvelu.elsa.service.dto.OpintosuoritusKurssikoodiDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusKurssikoodiDTO
 import java.util.*
 
 interface OpintosuoritusKurssikooditService {

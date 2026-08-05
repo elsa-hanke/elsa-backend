@@ -10,9 +10,9 @@ import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusKurssikoodiRepository
 import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusRepository
 import fi.elsapalvelu.elsa.service.koulutus.OpintosuorituksetPersistenceService
-import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
-import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
-import fi.elsapalvelu.elsa.service.dto.OpintosuoritusOsakokonaisuusDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusOsakokonaisuusDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusMapper
 import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusOsakokonaisuusMapper
 import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusTyyppiMapper

@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.seuranta.PaivakirjaAihekategoria
-import fi.elsapalvelu.elsa.service.dto.PaivakirjaAihekategoriaDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjaAihekategoriaDTO
 import org.mapstruct.*
 
 @Mapper(componentModel = "spring", uses = [], unmappedTargetPolicy = ReportingPolicy.IGNORE)

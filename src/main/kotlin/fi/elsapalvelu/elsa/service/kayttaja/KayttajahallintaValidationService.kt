@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.kayttaja
 
-import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
-import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
 
 interface KayttajahallintaValidationService {

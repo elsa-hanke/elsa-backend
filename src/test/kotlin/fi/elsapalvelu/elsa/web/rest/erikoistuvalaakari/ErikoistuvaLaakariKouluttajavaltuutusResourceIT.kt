@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KouluttajavaltuutusDTO
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes

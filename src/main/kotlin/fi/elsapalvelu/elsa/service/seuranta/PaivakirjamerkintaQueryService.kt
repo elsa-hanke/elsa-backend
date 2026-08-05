@@ -12,7 +12,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.service.criteria.PaivakirjamerkintaCriteria
-import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkintaDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjamerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.PaivakirjamerkintaMapper
 import jakarta.persistence.criteria.*
 import org.springframework.data.domain.Page

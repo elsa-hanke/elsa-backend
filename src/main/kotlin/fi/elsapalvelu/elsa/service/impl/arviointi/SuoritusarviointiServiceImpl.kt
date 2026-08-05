@@ -15,10 +15,10 @@ import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.arviointi.SuoritusarviointiService
-import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
-import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDataDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarvioinninArvioitavaKokonaisuusMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper

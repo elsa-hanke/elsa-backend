@@ -1,0 +1,17 @@
+package fi.elsapalvelu.elsa.service.dto.suoritteet
+
+import java.io.Serializable
+
+data class VanhentuneetSuorituksetDTO (
+
+    var vanhojaTyoskentelyjaksojaOrSuorituksiaExists: Boolean? = null,
+
+    var kuulusteluVanhentunut: Boolean? = null
+
+) : Serializable {
+    override fun toString() = "VanhentuneetSuorituksetDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

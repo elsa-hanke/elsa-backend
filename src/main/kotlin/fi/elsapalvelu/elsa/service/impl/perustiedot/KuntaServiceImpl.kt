@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.perustiedot
 
 import fi.elsapalvelu.elsa.repository.perustiedot.KuntaRepository
 import fi.elsapalvelu.elsa.service.perustiedot.KuntaService
-import fi.elsapalvelu.elsa.service.dto.KuntaDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.KuntaDTO
 import fi.elsapalvelu.elsa.service.mapper.KuntaMapper
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page

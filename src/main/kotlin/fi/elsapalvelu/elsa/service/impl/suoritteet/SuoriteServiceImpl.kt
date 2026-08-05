@@ -4,8 +4,8 @@ import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoriteRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoritemerkintaRepository
 import fi.elsapalvelu.elsa.service.suoritteet.SuoriteService
-import fi.elsapalvelu.elsa.service.dto.SuoriteDTO
-import fi.elsapalvelu.elsa.service.dto.SuoriteWithErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoriteDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoriteWithErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoriteMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoriteWithErikoisalaMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoritteenKategoriaWithErikoisalaMapper

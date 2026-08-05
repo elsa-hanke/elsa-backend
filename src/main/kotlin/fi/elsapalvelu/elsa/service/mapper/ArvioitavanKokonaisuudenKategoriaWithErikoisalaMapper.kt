@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavanKokonaisuudenKategoria
-import fi.elsapalvelu.elsa.service.dto.ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO
 import org.mapstruct.Mapper
 import org.mapstruct.ReportingPolicy
 

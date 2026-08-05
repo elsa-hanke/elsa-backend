@@ -1,0 +1,23 @@
+package fi.elsapalvelu.elsa.service.dto.koejakso
+
+import java.io.Serializable
+
+data class KoulutussopimuksenKoulutuspaikkaDTO(
+
+    var id: Long? = null,
+
+    var nimi: String? = null,
+
+    var koulutussopimusOmanYliopistonKanssa: Boolean? = null,
+
+    var yliopistoId: Long? = null,
+
+    var yliopisto: String? = null
+
+) : Serializable {
+    override fun toString() = "KoulutussopimuksenKoulutuspaikkaDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

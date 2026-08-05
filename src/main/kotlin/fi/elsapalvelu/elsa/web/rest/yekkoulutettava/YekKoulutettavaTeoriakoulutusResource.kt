@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.koulutus.OpintosuoritusService
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
-import fi.elsapalvelu.elsa.service.dto.OpintosuoritusDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

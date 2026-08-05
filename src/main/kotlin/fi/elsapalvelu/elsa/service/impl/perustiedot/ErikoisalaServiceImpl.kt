@@ -2,8 +2,8 @@ package fi.elsapalvelu.elsa.service.impl.perustiedot
 
 import fi.elsapalvelu.elsa.repository.perustiedot.ErikoisalaRepository
 import fi.elsapalvelu.elsa.service.perustiedot.ErikoisalaService
-import fi.elsapalvelu.elsa.service.dto.ErikoisalaDTO
-import fi.elsapalvelu.elsa.service.dto.ErikoisalaWithTehtavatyypitDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.ErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.ErikoisalaWithTehtavatyypitDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaWithTehtavatyypitMapper
 import org.springframework.stereotype.Service

@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.common
 
 import fi.elsapalvelu.elsa.service.kayttaja.PalauteService
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
-import fi.elsapalvelu.elsa.service.dto.PalauteDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.PalauteDTO
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

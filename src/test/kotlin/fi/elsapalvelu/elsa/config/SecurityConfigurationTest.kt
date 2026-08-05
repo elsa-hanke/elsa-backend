@@ -15,8 +15,8 @@ import fi.elsapalvelu.elsa.service.koulutus.OpintosuorituksetPersistenceService
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.koulutus.OpintotietodataPersistenceService
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
-import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
-import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

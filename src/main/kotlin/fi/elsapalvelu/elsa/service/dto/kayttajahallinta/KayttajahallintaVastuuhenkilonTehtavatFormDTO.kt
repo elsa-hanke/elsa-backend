@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
-import fi.elsapalvelu.elsa.service.dto.ErikoisalaWithTehtavatyypitDTO
-import fi.elsapalvelu.elsa.service.dto.KayttajahallintaFormVastuuhenkiloDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.ErikoisalaWithTehtavatyypitDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajahallintaFormVastuuhenkiloDTO
 import java.io.Serializable
 
 class KayttajahallintaVastuuhenkilonTehtavatFormDTO(

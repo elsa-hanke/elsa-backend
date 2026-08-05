@@ -1,0 +1,29 @@
+package fi.elsapalvelu.elsa.service.dto.kayttaja
+
+import java.io.InputStream
+import java.io.Serializable
+import jakarta.validation.constraints.NotNull
+
+data class AsiakirjaDataDTO(
+
+    var id: Long? = null,
+
+    @get: NotNull
+    var fileInputStream: InputStream? = null,
+
+    @get: NotNull
+    var fileSize: Long? = null
+
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is AsiakirjaDataDTO) return false
+        return id != null && id == other.id
+    }
+
+    override fun hashCode() = 31
+}

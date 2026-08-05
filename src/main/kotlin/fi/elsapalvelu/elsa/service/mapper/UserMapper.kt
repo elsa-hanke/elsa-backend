@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
 import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
 import org.springframework.stereotype.Service
 
 /**

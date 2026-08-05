@@ -24,6 +24,15 @@ import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum.*
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.koejakso.*
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
+import fi.elsapalvelu.elsa.service.dto.arviointi.*
+import fi.elsapalvelu.elsa.service.dto.suoritteet.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.*
+import fi.elsapalvelu.elsa.service.dto.seuranta.*
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.*
+import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole.*
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase

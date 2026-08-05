@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKehittamistoimenpiteet
-import fi.elsapalvelu.elsa.service.dto.KoejaksonKehittamistoimenpiteetDTO
+import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonKehittamistoimenpiteetDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings

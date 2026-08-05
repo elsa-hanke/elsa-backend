@@ -12,7 +12,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.service.criteria.SuoritusarviointiCriteria
-import fi.elsapalvelu.elsa.service.dto.SuoritusarviointiDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.SuoritusarviointiDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
 import jakarta.persistence.criteria.*
 import org.springframework.data.jpa.domain.Specification

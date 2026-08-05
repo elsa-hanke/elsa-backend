@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppi
-import fi.elsapalvelu.elsa.service.dto.OpintosuoritusTyyppiDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusTyyppiDTO
 import org.mapstruct.Mapper
 import org.mapstruct.ReportingPolicy
 

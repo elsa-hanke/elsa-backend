@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.kayttaja.PalauteService
-import fi.elsapalvelu.elsa.service.dto.PalauteDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.PalauteDTO
 import org.springframework.stereotype.Service
 
 @Service

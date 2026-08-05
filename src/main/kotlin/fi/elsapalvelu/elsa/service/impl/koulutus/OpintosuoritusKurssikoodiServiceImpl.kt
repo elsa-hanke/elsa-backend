@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusKurssikoodiRepository
 import fi.elsapalvelu.elsa.service.koulutus.OpintosuoritusKurssikooditService
-import fi.elsapalvelu.elsa.service.dto.OpintosuoritusKurssikoodiDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusKurssikoodiDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusKurssikoodiMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

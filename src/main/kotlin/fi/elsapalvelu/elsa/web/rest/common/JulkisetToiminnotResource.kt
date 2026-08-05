@@ -4,8 +4,8 @@ import fi.elsapalvelu.elsa.domain.perustiedot.ApplicationSettingTyyppi
 import fi.elsapalvelu.elsa.service.perustiedot.ApplicationSettingService
 import fi.elsapalvelu.elsa.service.seuranta.IlmoitusService
 import fi.elsapalvelu.elsa.service.PoissaolonSyyService
-import fi.elsapalvelu.elsa.service.dto.IlmoitusDTO
-import fi.elsapalvelu.elsa.service.dto.PoissaolonSyyDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.IlmoitusDTO
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.PoissaolonSyyDTO
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

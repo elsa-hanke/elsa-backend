@@ -9,9 +9,9 @@ import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.tyoskentely.OverlappingTyoskentelyjaksoValidationService
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksonPituusCounterService
 import fi.elsapalvelu.elsa.service.constants.HYVAKSILUETTAVAT_DAYS
-import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
-import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.HyvaksiluettavatCounterData
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 import java.time.LocalDate

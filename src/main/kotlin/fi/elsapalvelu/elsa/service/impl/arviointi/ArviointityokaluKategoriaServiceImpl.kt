@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.impl.arviointi
 import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluKategoriaRepository
 import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluRepository
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluKategoriaService
-import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluKategoriaMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

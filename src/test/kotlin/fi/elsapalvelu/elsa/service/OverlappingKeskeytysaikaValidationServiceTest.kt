@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
-import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.helpers.KeskeytysaikaMockHelper
 import fi.elsapalvelu.elsa.service.helpers.TyoskentelyjaksoMockHelper
 import fi.elsapalvelu.elsa.service.impl.tyoskentely.OverlappingKeskeytysaikaValidationServiceImpl

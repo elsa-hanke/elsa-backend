@@ -14,7 +14,7 @@ import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
-import fi.elsapalvelu.elsa.service.dto.KayttajahallintaYliopistoErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajahallintaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistujaJaKouluttajaListItemDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import fi.elsapalvelu.elsa.service.mapper.VastuuhenkilonTehtavatyyppiMapper

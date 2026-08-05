@@ -1,0 +1,26 @@
+package fi.elsapalvelu.elsa.service.dto.koejakso
+
+import java.io.Serializable
+import java.time.LocalDate
+
+data class KoejaksonKouluttajaDTO(
+
+    var id: Long? = null,
+
+    var kayttajaUserId: String? = null,
+
+    var nimi: String? = null,
+
+    var nimike: String? = null,
+
+    var sopimusHyvaksytty: Boolean? = null,
+
+    var kuittausaika: LocalDate? = null
+
+) : Serializable {
+    override fun toString() = "KoejaksonKouluttajaDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

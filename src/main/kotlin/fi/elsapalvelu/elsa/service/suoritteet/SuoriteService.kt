@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.suoritteet
 
-import fi.elsapalvelu.elsa.service.dto.SuoriteDTO
-import fi.elsapalvelu.elsa.service.dto.SuoriteWithErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoriteDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoriteWithErikoisalaDTO
 import java.util.*
 
 interface SuoriteService {

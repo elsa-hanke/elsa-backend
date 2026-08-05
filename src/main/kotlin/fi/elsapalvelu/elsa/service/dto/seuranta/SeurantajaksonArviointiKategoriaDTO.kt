@@ -1,0 +1,19 @@
+package fi.elsapalvelu.elsa.service.dto.seuranta
+
+import java.io.Serializable
+
+data class SeurantajaksonArviointiKategoriaDTO(
+
+    var nimi: String? = null,
+
+    var jarjestysnumero: Int? = null,
+
+    var arvioitavatKokonaisuudet: List<SeurantajaksonArviointiKokonaisuusDTO>? = null
+
+) : Serializable {
+    override fun toString() = "SeurantajaksonArviointiKategoriaDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

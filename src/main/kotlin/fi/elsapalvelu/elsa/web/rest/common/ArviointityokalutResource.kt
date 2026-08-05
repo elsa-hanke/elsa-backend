@@ -2,8 +2,8 @@ package fi.elsapalvelu.elsa.web.rest.common
 
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluKategoriaService
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluService
-import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
-import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluKategoriaDTO
 import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

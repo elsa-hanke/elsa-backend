@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.arviointi
 
-import fi.elsapalvelu.elsa.service.dto.ArviointiasteikkoDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointiasteikkoDTO
 
 interface ArviointiasteikkoService {
 

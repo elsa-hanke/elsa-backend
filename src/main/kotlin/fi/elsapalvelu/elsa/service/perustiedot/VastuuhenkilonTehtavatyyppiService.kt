@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.perustiedot
 
-import fi.elsapalvelu.elsa.service.dto.VastuuhenkilonTehtavatyyppiDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.VastuuhenkilonTehtavatyyppiDTO
 
 interface VastuuhenkilonTehtavatyyppiService {
 

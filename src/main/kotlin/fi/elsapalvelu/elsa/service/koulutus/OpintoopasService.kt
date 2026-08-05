@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.koulutus
 
-import fi.elsapalvelu.elsa.service.dto.OpintoopasDTO
-import fi.elsapalvelu.elsa.service.dto.OpintoopasSimpleDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintoopasDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintoopasSimpleDTO
 
 interface OpintoopasService {
 

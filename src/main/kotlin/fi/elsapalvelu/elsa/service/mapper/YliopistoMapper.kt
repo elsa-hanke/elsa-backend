@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
-import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.YliopistoDTO
 import org.mapstruct.*
 
 @Mapper(

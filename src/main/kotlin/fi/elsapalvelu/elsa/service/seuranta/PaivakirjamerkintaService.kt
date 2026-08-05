@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.seuranta
 
-import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkintaDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjamerkintaDTO
 
 interface PaivakirjamerkintaService {
 

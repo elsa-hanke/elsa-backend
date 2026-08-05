@@ -1,0 +1,17 @@
+package fi.elsapalvelu.elsa.service.dto.valmistuminen
+
+import java.io.Serializable
+
+data class TerveyskeskuskoulutusjaksoUpdateDTO(
+
+    var korjausehdotus: String? = null,
+
+    var lisatiedotVirkailijalta: String? = null
+
+) : Serializable {
+    override fun toString() = "TerveyskeskuskoulutusjaksoUpdateDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

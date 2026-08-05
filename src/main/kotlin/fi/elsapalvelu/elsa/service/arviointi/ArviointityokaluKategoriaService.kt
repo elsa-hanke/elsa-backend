@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.arviointi
 
-import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluKategoriaDTO
 import java.util.*
 
 interface ArviointityokaluKategoriaService {

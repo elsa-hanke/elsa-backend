@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration
 
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetPersistenceDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
 
 interface OpintosuorituksetFetchingService {
 

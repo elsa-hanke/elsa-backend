@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.kayttaja
 
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
-import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
-import fi.elsapalvelu.elsa.service.dto.LaillistamispaivaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.ErikoistuvaLaakariDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.LaillistamispaivaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import org.springframework.data.domain.Page

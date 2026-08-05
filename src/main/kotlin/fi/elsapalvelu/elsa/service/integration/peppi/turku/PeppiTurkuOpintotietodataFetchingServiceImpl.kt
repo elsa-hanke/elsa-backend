@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.integration.AbstractOpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
-import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintotietodataFetchingServiceImpl
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
