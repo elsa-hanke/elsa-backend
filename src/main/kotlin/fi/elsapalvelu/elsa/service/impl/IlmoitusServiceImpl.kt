@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.IlmoitusRepository
+import fi.elsapalvelu.elsa.repository.seuranta.IlmoitusRepository
 import fi.elsapalvelu.elsa.service.IlmoitusService
 import fi.elsapalvelu.elsa.service.dto.IlmoitusDTO
 import fi.elsapalvelu.elsa.service.mapper.IlmoitusMapper

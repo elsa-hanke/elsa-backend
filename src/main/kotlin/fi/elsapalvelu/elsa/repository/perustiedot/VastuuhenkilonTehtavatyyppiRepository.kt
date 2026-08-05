@@ -1,0 +1,8 @@
+package fi.elsapalvelu.elsa.repository.perustiedot
+
+import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppi
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
+
+@Repository
+interface VastuuhenkilonTehtavatyyppiRepository : JpaRepository<VastuuhenkilonTehtavatyyppi, Long>

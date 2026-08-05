@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.checkErrors
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
-import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.integration.AbstractOpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
 import fi.elsapalvelu.elsa.service.dto.OpintotietoOpintooikeusDataDTO

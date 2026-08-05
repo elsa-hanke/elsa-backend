@@ -1,0 +1,14 @@
+package fi.elsapalvelu.elsa.repository.koulutus
+
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusKurssikoodi
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
+
+@Repository
+interface OpintosuoritusKurssikoodiRepository : JpaRepository<OpintosuoritusKurssikoodi, Long> {
+
+    fun findAllByYliopistoNimi(yliopisto: YliopistoEnum): List<OpintosuoritusKurssikoodi>
+
+    fun findByIdAndYliopistoNimi(id: Long, yliopisto: YliopistoEnum): OpintosuoritusKurssikoodi?
+}

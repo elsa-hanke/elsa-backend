@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.perustiedot.ApplicationSettingTyyppi
-import fi.elsapalvelu.elsa.repository.ApplicationSettingRepository
+import fi.elsapalvelu.elsa.repository.perustiedot.ApplicationSettingRepository
 import fi.elsapalvelu.elsa.service.ApplicationSettingService
 import org.springframework.stereotype.Service
 import java.time.Instant

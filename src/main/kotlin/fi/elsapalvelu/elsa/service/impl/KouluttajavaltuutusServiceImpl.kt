@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.MailProperty

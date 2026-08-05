@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.common
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
 import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.USER

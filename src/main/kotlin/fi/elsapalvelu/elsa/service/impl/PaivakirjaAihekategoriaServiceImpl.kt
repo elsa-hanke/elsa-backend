@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.PaivakirjaAihekategoriaRepository
+import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjaAihekategoriaRepository
 import fi.elsapalvelu.elsa.service.PaivakirjaAihekategoriaService
 import fi.elsapalvelu.elsa.service.dto.PaivakirjaAihekategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.PaivakirjaAihekategoriaMapper

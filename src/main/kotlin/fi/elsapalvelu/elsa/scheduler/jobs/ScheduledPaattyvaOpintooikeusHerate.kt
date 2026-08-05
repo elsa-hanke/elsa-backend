@@ -3,8 +3,8 @@ package fi.elsapalvelu.elsa.scheduler.jobs
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeusHerate
-import fi.elsapalvelu.elsa.repository.OpintooikeusHerateRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusHerateRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
 import fi.elsapalvelu.elsa.service.MailProperty
 import fi.elsapalvelu.elsa.service.MailService

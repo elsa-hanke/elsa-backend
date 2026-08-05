@@ -3,6 +3,15 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.kayttaja.VerificationToken
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.repository.koejakso.*
+import fi.elsapalvelu.elsa.repository.tyoskentely.*
+import fi.elsapalvelu.elsa.repository.arviointi.*
+import fi.elsapalvelu.elsa.repository.suoritteet.*
+import fi.elsapalvelu.elsa.repository.koulutus.*
+import fi.elsapalvelu.elsa.repository.seuranta.*
+import fi.elsapalvelu.elsa.repository.valmistuminen.*
+import fi.elsapalvelu.elsa.repository.kayttaja.*
+import fi.elsapalvelu.elsa.repository.perustiedot.*
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach

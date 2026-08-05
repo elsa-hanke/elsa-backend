@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration
 
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 
 abstract class AbstractOpintosuorituksetFetchingService(
     private val yliopistoRepository: YliopistoRepository,

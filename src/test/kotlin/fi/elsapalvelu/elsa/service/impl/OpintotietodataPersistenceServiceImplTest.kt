@@ -18,6 +18,15 @@ import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.repository.koejakso.*
+import fi.elsapalvelu.elsa.repository.tyoskentely.*
+import fi.elsapalvelu.elsa.repository.arviointi.*
+import fi.elsapalvelu.elsa.repository.suoritteet.*
+import fi.elsapalvelu.elsa.repository.koulutus.*
+import fi.elsapalvelu.elsa.repository.seuranta.*
+import fi.elsapalvelu.elsa.repository.valmistuminen.*
+import fi.elsapalvelu.elsa.repository.kayttaja.*
+import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.service.MailService
 import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.dto.UserDTO

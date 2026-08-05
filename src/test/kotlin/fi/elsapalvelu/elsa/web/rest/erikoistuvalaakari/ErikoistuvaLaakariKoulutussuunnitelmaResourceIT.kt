@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.repository.KoulutussuunnitelmaRepository
+import fi.elsapalvelu.elsa.repository.koulutus.KoulutussuunnitelmaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.mapper.KoulutussuunnitelmaMapper

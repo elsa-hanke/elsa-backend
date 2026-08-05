@@ -4,8 +4,8 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutusjakso
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KoulutusjaksoRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.koulutus.KoulutusjaksoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.KoulutusjaksoMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT

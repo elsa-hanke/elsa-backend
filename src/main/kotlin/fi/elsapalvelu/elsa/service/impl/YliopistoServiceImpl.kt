@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.YliopistoRepository
+import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.YliopistoService
 import fi.elsapalvelu.elsa.service.dto.HakaYliopistoDTO
 import fi.elsapalvelu.elsa.service.dto.YliopistoDTO

@@ -2,10 +2,10 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonValiarviointi
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonAloituskeskusteluRepository
-import fi.elsapalvelu.elsa.repository.KoejaksonValiarviointiRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonAloituskeskusteluRepository
+import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonValiarviointiRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoejaksonValiarviointiDTO

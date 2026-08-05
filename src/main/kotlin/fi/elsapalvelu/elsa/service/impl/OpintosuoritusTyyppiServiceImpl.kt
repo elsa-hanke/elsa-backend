@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.OpintosuoritusTyyppiRepository
+import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusTyyppiRepository
 import fi.elsapalvelu.elsa.service.OpintosuoritusTyyppiService
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusTyyppiDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusTyyppiMapper

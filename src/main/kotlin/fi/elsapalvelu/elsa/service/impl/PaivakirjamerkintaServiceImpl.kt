@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
-import fi.elsapalvelu.elsa.repository.PaivakirjamerkintaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.service.PaivakirjamerkintaService
 import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.PaivakirjamerkintaMapper

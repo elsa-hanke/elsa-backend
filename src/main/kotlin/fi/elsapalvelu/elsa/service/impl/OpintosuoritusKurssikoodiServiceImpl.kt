@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.OpintosuoritusKurssikoodiRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusKurssikoodiRepository
 import fi.elsapalvelu.elsa.service.OpintosuoritusKurssikooditService
 import fi.elsapalvelu.elsa.service.dto.OpintosuoritusKurssikoodiDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusKurssikoodiMapper

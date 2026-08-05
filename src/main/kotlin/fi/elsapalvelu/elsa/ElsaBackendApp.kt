@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.repository.ErikoisalaSisuTutkintoohjelmaRepository
+import fi.elsapalvelu.elsa.repository.koulutus.ErikoisalaSisuTutkintoohjelmaRepository
 import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingService
 import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaImportService
 import jakarta.annotation.PostConstruct

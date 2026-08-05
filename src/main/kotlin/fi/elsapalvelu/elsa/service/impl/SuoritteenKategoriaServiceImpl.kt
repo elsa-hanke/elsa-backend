@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
-import fi.elsapalvelu.elsa.repository.SuoritteenKategoriaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.suoritteet.SuoritteenKategoriaRepository
 import fi.elsapalvelu.elsa.service.SuoritteenKategoriaService
 import fi.elsapalvelu.elsa.service.dto.SuoritteenKategoriaDTO
 import fi.elsapalvelu.elsa.service.dto.SuoritteenKategoriaSimpleDTO

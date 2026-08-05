@@ -22,6 +22,15 @@ import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.repository.koejakso.*
+import fi.elsapalvelu.elsa.repository.tyoskentely.*
+import fi.elsapalvelu.elsa.repository.arviointi.*
+import fi.elsapalvelu.elsa.repository.suoritteet.*
+import fi.elsapalvelu.elsa.repository.koulutus.*
+import fi.elsapalvelu.elsa.repository.seuranta.*
+import fi.elsapalvelu.elsa.repository.valmistuminen.*
+import fi.elsapalvelu.elsa.repository.kayttaja.*
+import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.mapper.*
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase

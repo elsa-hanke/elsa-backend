@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
-import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
+import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO

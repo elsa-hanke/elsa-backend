@@ -2,9 +2,9 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
-import fi.elsapalvelu.elsa.repository.PaivakirjamerkintaRepository
-import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
+import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.service.TeoriakoulutusService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO

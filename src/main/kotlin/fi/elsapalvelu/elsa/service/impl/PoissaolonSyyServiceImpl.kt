@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
-import fi.elsapalvelu.elsa.repository.PoissaolonSyyRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.tyoskentely.PoissaolonSyyRepository
 import fi.elsapalvelu.elsa.service.PoissaolonSyyService
 import fi.elsapalvelu.elsa.service.dto.PoissaolonSyyDTO
 import fi.elsapalvelu.elsa.service.mapper.PoissaolonSyyMapper

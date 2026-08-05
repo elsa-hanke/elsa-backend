@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.scheduler.jobs
 
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
 import fi.elsapalvelu.elsa.service.*
 import kotlinx.coroutines.runBlocking

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.VastuuhenkilonTehtavatyyppiRepository
+import fi.elsapalvelu.elsa.repository.perustiedot.VastuuhenkilonTehtavatyyppiRepository
 import fi.elsapalvelu.elsa.service.VastuuhenkilonTehtavatyyppiService
 import fi.elsapalvelu.elsa.service.dto.VastuuhenkilonTehtavatyyppiDTO
 import fi.elsapalvelu.elsa.service.mapper.VastuuhenkilonTehtavatyyppiMapper

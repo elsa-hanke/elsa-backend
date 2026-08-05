@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.repository.PaivakirjamerkintaRepository
+import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.criteria.PaivakirjamerkintaCriteria

@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.KeskeytysaikaRepository
-import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
+import fi.elsapalvelu.elsa.repository.tyoskentely.KeskeytysaikaRepository
+import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.KeskeytysaikaService
 import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper

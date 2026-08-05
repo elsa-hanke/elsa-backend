@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.SuoritemerkintaRepository
-import fi.elsapalvelu.elsa.repository.TyoskentelyjaksoRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.suoritteet.SuoritemerkintaRepository
+import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.SuoritemerkintaService
 import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.dto.UusiSuoritemerkintaDTO

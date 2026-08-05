@@ -5,8 +5,8 @@ import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokaluKysymys
 import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokaluKysymysVaihtoehto
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokalunTila
-import fi.elsapalvelu.elsa.repository.ArviointityokaluKategoriaRepository
-import fi.elsapalvelu.elsa.repository.ArviointityokaluRepository
+import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluKategoriaRepository
+import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluRepository
 import fi.elsapalvelu.elsa.service.ArviointityokaluService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO

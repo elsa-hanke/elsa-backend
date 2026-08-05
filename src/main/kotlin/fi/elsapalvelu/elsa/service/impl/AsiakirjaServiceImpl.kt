@@ -3,9 +3,9 @@ package fi.elsapalvelu.elsa.service.impl
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
-import fi.elsapalvelu.elsa.repository.AsiakirjaRepository
-import fi.elsapalvelu.elsa.repository.KoulutussuunnitelmaRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
+import fi.elsapalvelu.elsa.repository.koulutus.KoulutussuunnitelmaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.AsiakirjaService
 import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalaDTO

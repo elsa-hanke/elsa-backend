@@ -10,7 +10,7 @@ import fi.elsapalvelu.elsa.domain.seuranta.*
 import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
-import fi.elsapalvelu.elsa.repository.PaivakirjamerkintaRepository
+import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.service.criteria.PaivakirjamerkintaCriteria
 import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.PaivakirjamerkintaMapper

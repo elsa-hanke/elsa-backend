@@ -2,8 +2,8 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
-import fi.elsapalvelu.elsa.repository.OpintosuoritusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusRepository
 import fi.elsapalvelu.elsa.service.OpintosuoritusService
 import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusMapper

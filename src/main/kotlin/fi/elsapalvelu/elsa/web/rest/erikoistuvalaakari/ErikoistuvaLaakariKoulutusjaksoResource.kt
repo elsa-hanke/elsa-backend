@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.repository.KoulutusjaksoRepository
+import fi.elsapalvelu.elsa.repository.koulutus.KoulutusjaksoRepository
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.KoulutusjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.KoulutusjaksoFormDTO

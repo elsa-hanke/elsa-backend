@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.ArviointiasteikkoRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.arviointi.ArviointiasteikkoRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.ArviointiasteikkoService
 import fi.elsapalvelu.elsa.service.dto.ArviointiasteikkoDTO
 import fi.elsapalvelu.elsa.service.mapper.ArviointiasteikkoMapper

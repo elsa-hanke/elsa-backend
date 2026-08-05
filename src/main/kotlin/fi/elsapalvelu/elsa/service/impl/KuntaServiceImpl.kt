@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
-import fi.elsapalvelu.elsa.repository.KuntaRepository
+import fi.elsapalvelu.elsa.repository.perustiedot.KuntaRepository
 import fi.elsapalvelu.elsa.service.KuntaService
 import fi.elsapalvelu.elsa.service.dto.KuntaDTO
 import fi.elsapalvelu.elsa.service.mapper.KuntaMapper
