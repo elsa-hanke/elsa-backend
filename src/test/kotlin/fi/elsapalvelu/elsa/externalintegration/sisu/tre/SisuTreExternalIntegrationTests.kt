@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
-import fi.elsapalvelu.elsa.service.AuthenticationTokenService
+import fi.elsapalvelu.elsa.service.kayttaja.AuthenticationTokenService
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
-import fi.elsapalvelu.elsa.service.impl.AuthenticationTokenClientBuilderImpl
+import fi.elsapalvelu.elsa.service.impl.kayttaja.AuthenticationTokenClientBuilderImpl
 import fi.elsapalvelu.elsa.service.integration.sisu.tampere.SisuTreAuthenticationTokenServiceImpl
 import fi.elsapalvelu.elsa.service.integration.sisu.tampere.SisuTreClientBuilderImpl
 import fi.elsapalvelu.elsa.service.integration.sisu.tampere.SisuTreOpintosuorituksetFetchingServiceImpl

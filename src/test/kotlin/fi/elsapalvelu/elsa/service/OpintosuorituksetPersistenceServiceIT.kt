@@ -24,6 +24,7 @@ import java.time.LocalDate
 import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
+import fi.elsapalvelu.elsa.service.koulutus.OpintosuorituksetPersistenceService
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class OpintosuorituksetPersistenceServiceIT {

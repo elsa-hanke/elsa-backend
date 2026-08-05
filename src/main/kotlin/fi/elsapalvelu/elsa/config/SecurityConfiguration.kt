@@ -17,6 +17,15 @@ import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.security.StaleXsrfCookieClearingFilter
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService

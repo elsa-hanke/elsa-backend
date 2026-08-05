@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
-import fi.elsapalvelu.elsa.service.ArviointityokaluService
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.YliopistoService
+import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import fi.elsapalvelu.elsa.service.perustiedot.YliopistoService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.HakaYliopistoDTO
 import fi.elsapalvelu.elsa.service.dto.YliopistoDTO

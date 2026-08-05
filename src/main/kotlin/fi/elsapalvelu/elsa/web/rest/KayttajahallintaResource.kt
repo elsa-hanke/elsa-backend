@@ -9,6 +9,15 @@ import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.constants.ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.*

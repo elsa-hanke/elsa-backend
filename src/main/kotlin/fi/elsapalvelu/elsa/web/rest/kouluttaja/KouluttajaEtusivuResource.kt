@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
-import fi.elsapalvelu.elsa.service.EtusivuService
-import fi.elsapalvelu.elsa.service.KoejaksonVaiheetService
-import fi.elsapalvelu.elsa.service.SeurantajaksoService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.kayttaja.EtusivuService
+import fi.elsapalvelu.elsa.service.koejakso.KoejaksonVaiheetService
+import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import org.springframework.data.domain.Page

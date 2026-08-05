@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
-import fi.elsapalvelu.elsa.service.EtusivuService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.kayttaja.EtusivuService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.AvoinAsiaDTO
 import fi.elsapalvelu.elsa.service.dto.ErikoistumisenEdistyminenDTO
 import org.springframework.http.ResponseEntity

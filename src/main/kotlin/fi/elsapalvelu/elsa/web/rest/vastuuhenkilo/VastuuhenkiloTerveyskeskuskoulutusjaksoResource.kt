@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
-import fi.elsapalvelu.elsa.service.AsiakirjaService
-import fi.elsapalvelu.elsa.service.KayttajaService
-import fi.elsapalvelu.elsa.service.TerveyskeskuskoulutusjaksonHyvaksyntaService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
+import fi.elsapalvelu.elsa.service.kayttaja.KayttajaService
+import fi.elsapalvelu.elsa.service.valmistuminen.TerveyskeskuskoulutusjaksonHyvaksyntaService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoUpdateDTO

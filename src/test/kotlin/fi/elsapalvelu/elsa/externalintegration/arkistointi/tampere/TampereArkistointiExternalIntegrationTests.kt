@@ -19,7 +19,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.TampereLouhiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
-import fi.elsapalvelu.elsa.service.impl.AlertPublisherServiceImpl
+import fi.elsapalvelu.elsa.service.impl.kayttaja.AlertPublisherServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.Disabled

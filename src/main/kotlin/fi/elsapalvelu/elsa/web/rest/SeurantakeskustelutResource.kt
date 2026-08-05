@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest
 
-import fi.elsapalvelu.elsa.service.SeurantajaksoService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.SeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.SeurantajaksonTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.SeurantajaksoTila

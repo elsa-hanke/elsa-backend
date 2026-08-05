@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME

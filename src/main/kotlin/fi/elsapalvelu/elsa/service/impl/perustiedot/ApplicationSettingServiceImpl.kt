@@ -1,0 +1,16 @@
+package fi.elsapalvelu.elsa.service.impl.perustiedot
+
+import fi.elsapalvelu.elsa.domain.perustiedot.ApplicationSettingTyyppi
+import fi.elsapalvelu.elsa.repository.perustiedot.ApplicationSettingRepository
+import fi.elsapalvelu.elsa.service.perustiedot.ApplicationSettingService
+import org.springframework.stereotype.Service
+import java.time.Instant
+
+@Service
+class ApplicationSettingServiceImpl(
+    private val applicationSettingRepository: ApplicationSettingRepository
+) : ApplicationSettingService {
+    override fun getDatetimeSettingValue(settingName: ApplicationSettingTyyppi): Instant? {
+        return applicationSettingRepository.findOneBySettingName(settingName)?.datetimeSetting
+    }
+}

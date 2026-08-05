@@ -13,6 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 
+import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksoService
+import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksonPituusCounterService
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class TyoskentelyjaksonPituusCounterServiceTest {

@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 
+import fi.elsapalvelu.elsa.service.impl.kayttaja.UserServiceImpl
 @ExtendWith(MockitoExtension::class)
 class ValidateNameAlertTest {
 

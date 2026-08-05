@@ -27,8 +27,8 @@ import fi.elsapalvelu.elsa.repository.seuranta.*
 import fi.elsapalvelu.elsa.repository.valmistuminen.*
 import fi.elsapalvelu.elsa.repository.kayttaja.*
 import fi.elsapalvelu.elsa.repository.perustiedot.*
-import fi.elsapalvelu.elsa.service.MailService
-import fi.elsapalvelu.elsa.service.UserService
+import fi.elsapalvelu.elsa.service.kayttaja.MailService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.UserDTO
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -46,6 +46,7 @@ import java.util.Optional
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 
+import fi.elsapalvelu.elsa.service.impl.koulutus.OpintotietodataPersistenceServiceImpl
 class OpintotietodataPersistenceServiceImplTest {
 
     @Mock private lateinit var userService: UserService
