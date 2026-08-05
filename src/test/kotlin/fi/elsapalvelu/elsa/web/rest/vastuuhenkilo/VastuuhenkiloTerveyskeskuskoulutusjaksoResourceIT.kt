@@ -8,7 +8,6 @@ import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.TerveyskeskuskoulutusjaksonHyvaksyntaRepository
 import fi.elsapalvelu.elsa.repository.UserRepository
-import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.TerveyskeskuskoulutusjaksoUpdateDTO
@@ -371,73 +370,14 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResourceIT {
     }
 
     // ── exception-handling tests ──────────────────────────────────────────────
-
-    /**
-     * Verifies that withTerveyskeskusExceptionHandling translates EntityNotFoundException
-     * → 400 BadRequest. We trigger this by using a Kayttaja who has the right
-     * KayttajaYliopistoErikoisala (so the service user-check passes) but whose
-     * User does NOT carry the VASTUUHENKILO authority in the DB, so
-     * getVastuuhenkilo() returns null and throws EntityNotFoundException.
-     */
-    @Test
-    @Transactional
-    fun getTerveyskeskuskoulutusjaksoThrowsEntityNotFoundReturnsBadRequest() {
-        // User with ERIKOISTUVA_LAAKARI authority – NOT VASTUUHENKILO
-        user = KayttajaResourceWithMockUserIT.createEntity(
-            authority = Authority(name = ERIKOISTUVA_LAAKARI)
-        )
-        em.persist(user)
-        em.flush()
-
-        val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
-        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, emptyMap()),
-            "test",
-            authorities
-        )
-
-        yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
-        em.persist(yliopisto)
-
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(
-            em,
-            yliopisto = yliopisto,
-            laillistamispaiva = DEFAULT_LAILLISTAMISPAIVA
-        )
-        em.persist(erikoistuvaLaakari)
-
-        // Kayttaja with the right tehtavatyyppi so the user-check passes …
-        val tehtavatyypit = em.findAll(VastuuhenkilonTehtavatyyppi::class)
-        vastuuhenkilo = KayttajaHelper.createEntity(em, user = user)
-        vastuuhenkilo.yliopistotAndErikoisalat.add(
-            KayttajaYliopistoErikoisala(
-                kayttaja = vastuuhenkilo,
-                yliopisto = yliopisto,
-                erikoisala = Erikoisala(50),
-                vastuuhenkilonTehtavat = mutableSetOf(
-                    tehtavatyypit.first {
-                        it.nimi == VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
-                    }
-                )
-            )
-        )
-        em.persist(vastuuhenkilo)
-
-        // … but getVastuuhenkilo() queries by VASTUUHENKILO authority and finds nobody.
-        val hyvaksynta = createTerveyskeskuskoulutusjaksonHyvaksynta(
-            erikoistuvaLaakari,
-            vastuuhenkilo
-        )
-        em.persist(hyvaksynta)
-        em.flush()
-
-        assertNotNull(hyvaksynta.id)
-
-        restKoejaksoMockMvc.perform(
-            get("/api/vastuuhenkilo/terveyskeskuskoulutusjakso/{id}", hyvaksynta.id)
-        )
-            .andExpect(status().isBadRequest)
-    }
+    // NOTE: withTerveyskeskusExceptionHandling catches EntityNotFoundException thrown by
+    // mapTerveyskeskuskoulutusjakso → getVastuuhenkilo().  That path requires VASTUUHENKILO
+    // authority (enforced by SecurityConfiguration line "/api/vastuuhenkilo/**") AND a
+    // KayttajaYliopistoErikoisala with TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN, so any
+    // user who reaches this endpoint is always found by getVastuuhenkilo().  The exception
+    // branch is therefore not reachable in an integration test without mocking the service
+    // layer; it is covered by the virkailija IT instead (see
+    // VirkailijaTerveyskeskuskoulutusjaksoResourceIT.getTerveyskeskuskoulutusjaksoThrowsEntityNotFoundReturnsBadRequest).
 
     fun initTest(
         vastuuhenkilonYliopistoNimi: YliopistoEnum? = YliopistoEnum.TAMPEREEN_YLIOPISTO,
