@@ -1,8 +1,20 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.*
+import jakarta.persistence.EntityManager
 import java.time.LocalDate
 import java.time.ZoneId
+
+/**
+ * All five koejakso phases as a single value returned by [persistKoejaksoVaiheet].
+ */
+data class KoejaksoVaiheet(
+    val koulutussopimus: KoejaksonKoulutussopimus,
+    val aloituskeskustelu: KoejaksonAloituskeskustelu,
+    val valiarviointi: KoejaksonValiarviointi,
+    val kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet,
+    val loppukeskustelu: KoejaksonLoppukeskustelu
+)
 
 object KoejaksonVaiheetHelper {
         const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
@@ -149,6 +161,39 @@ object KoejaksonVaiheetHelper {
                 muokkauspaiva = DEFAULT_MUOKKAUSPAIVA,
                 vastuuhenkilo = vastuuhenkilo,
             )
+        }
+
+        /**
+         * Creates and persists all five koejakso phases (koulutussopimus with kouluttajat /
+         * koulutuspaikat, aloituskeskustelu, väliarviointi, kehittamistoimenpiteet,
+         * loppukeskustelu) in dependency order and returns them as a [KoejaksoVaiheet].
+         *
+         * Replaces the repeated 10-line block that appeared in
+         * KouluttajaKoejaksoResourceIT, VastuuhenkiloKoejaksoResourceIT, and
+         * ErikoistuvaLaakariKoejaksoResourceIT.
+         */
+        @JvmStatic
+        fun persistKoejaksoVaiheet(
+            em: EntityManager,
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            kouluttaja: Kayttaja,
+            esimies: Kayttaja,
+            vastuuhenkilo: Kayttaja,
+            yliopisto: Yliopisto
+        ): KoejaksoVaiheet {
+            val sopimus = createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
+            sopimus.kouluttajat = mutableSetOf(createKoulutussopimuksenKouluttaja(sopimus, kouluttaja))
+            sopimus.koulutuspaikat = mutableSetOf(createKoulutussopimuksenKoulutuspaikka(sopimus, yliopisto))
+            em.persist(sopimus)
+            val aloitus = createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+            em.persist(aloitus)
+            val vali = createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
+            em.persist(vali)
+            val kehit = createKehittamistoimenpiteet(erikoistuvaLaakari, kouluttaja, esimies)
+            em.persist(kehit)
+            val loppu = createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+            em.persist(loppu)
+            return KoejaksoVaiheet(sopimus, aloitus, vali, kehit, loppu)
         }
 
 }
