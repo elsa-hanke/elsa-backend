@@ -23,6 +23,13 @@ describe('Asiakirjat', () => {
 
     cy.contains('.asiakirjat-table', 'test.pdf').should('be.visible')
 
+    cy.intercept('GET', '**/erikoistuva-laakari/asiakirjat/*').as('asiakirjaDownload')
+    cy.contains('tr', 'test.pdf').find('td.download-btn button').click({ force: true })
+    cy.wait('@asiakirjaDownload', { timeout: 15000 }).then(({ response }) => {
+      expect(response?.statusCode).to.eq(200)
+      expect(response?.headers?.['content-disposition']).to.include('attachment')
+    })
+
     cy.intercept('DELETE', '**/erikoistuva-laakari/asiakirjat/*').as('asiakirjaDelete')
     cy.contains('tr', 'test.pdf').find('button').last().click({ force: true })
     cy.get('.modal-content').contains('button', 'Poista').click()

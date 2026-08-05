@@ -6,11 +6,15 @@ import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.criteria.SuoritusarviointiCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URI
 import java.net.URLEncoder
@@ -18,10 +22,6 @@ import java.security.Principal
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.validation.Valid
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.web.multipart.MultipartFile
-import org.springframework.web.server.ResponseStatusException
 
 private const val ENTITY_NAME = "suoritusarviointi"
 
@@ -270,16 +270,9 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 asiakirjaId
             )
 
-        asiakirja?.asiakirjaData?.fileInputStream?.use {
-            return ResponseEntity.ok()
-                .header(
-                    HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
-                )
-                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
-                .body(it.readBytes())
-        }
-        return ResponseEntity.notFound().build()
+        return asiakirja?.asiakirjaData?.fileInputStream
+            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            ?: ResponseEntity.notFound().build()
     }
 
     @DeleteMapping("/suoritusarvioinnit/{id}")

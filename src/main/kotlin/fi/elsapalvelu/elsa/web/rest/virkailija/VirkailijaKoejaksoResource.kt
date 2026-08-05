@@ -5,13 +5,12 @@ import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
 import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import tech.jhipster.web.util.ResponseUtil
-import java.net.URLEncoder
 import java.security.Principal
 import jakarta.validation.Valid
 
@@ -62,16 +61,9 @@ class VirkailijaKoejaksoResource(
                 id,
                 kayttaja.orElse(null)?.yliopistot?.map { it.id!! })
 
-        asiakirja?.asiakirjaData?.fileInputStream?.use {
-            return ResponseEntity.ok()
-                .header(
-                    HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
-                )
-                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
-                .body(it.readBytes())
-        }
-        return ResponseEntity.notFound().build()
+        return asiakirja?.asiakirjaData?.fileInputStream
+            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            ?: ResponseEntity.notFound().build()
     }
 
     @GetMapping("/koejakso/vastuuhenkilon-arvio/{id}/liite/{asiakirjaId}")
@@ -81,31 +73,15 @@ class VirkailijaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id!!)
-            .orElse(null)?.let {
-            it.asiakirjat?.firstOrNull { asiakirja -> asiakirja.id == asiakirjaId }
-                ?.let { asiakirja ->
-                    asiakirjaService.findById(asiakirja.id!!)?.let { asiakirjaWithData ->
-                        asiakirjaWithData.asiakirjaData?.fileInputStream?.use { data ->
-                            return ResponseEntity.ok()
-                                .header(
-                                    HttpHeaders.CONTENT_DISPOSITION,
-                                    "attachment; filename=\"" + URLEncoder.encode(
-                                        asiakirja.nimi,
-                                        "UTF-8"
-                                    ) + "\""
-                                )
-                                .header(
-                                    HttpHeaders.CONTENT_TYPE,
-                                    asiakirja.tyyppi + "; charset=UTF-8"
-                                )
-                                .body(data.readBytes())
-                        }
-                    }
-                }
-        }
-
-        return ResponseEntity.notFound().build()
+        return koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id!!)
+            .orElse(null)
+            ?.asiakirjat?.firstOrNull { asiakirja -> asiakirja.id == asiakirjaId }
+            ?.let { asiakirja ->
+                asiakirjaService.findById(asiakirja.id!!)
+                    ?.asiakirjaData?.fileInputStream
+                    ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            }
+            ?: ResponseEntity.notFound().build()
     }
 
     @PutMapping("/koejakso/vastuuhenkilonarvio")

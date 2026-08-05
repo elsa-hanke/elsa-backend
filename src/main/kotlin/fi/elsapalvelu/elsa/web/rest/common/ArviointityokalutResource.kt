@@ -4,12 +4,10 @@ import fi.elsapalvelu.elsa.service.ArviointityokaluKategoriaService
 import fi.elsapalvelu.elsa.service.ArviointityokaluService
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.ArviointityokaluKategoriaDTO
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
-import org.springframework.http.HttpHeaders
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import java.net.URLEncoder
 
 abstract class ArviointityokalutResource(
     private val arviointityokaluService: ArviointityokaluService,
@@ -30,18 +28,12 @@ abstract class ArviointityokalutResource(
         @PathVariable id: Long
     ): ResponseEntity<ByteArray> {
         val arviointityokalu = arviointityokaluService.findOneByLiiteId(id)
-        val asiakirjaData: AsiakirjaDataDTO = arviointityokaluService.getAsiakirjaDataDTO(arviointityokalu.liite)
-        asiakirjaData.fileInputStream?.use {
-            return ResponseEntity.ok()
-                .header(
-                    HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + URLEncoder.encode(arviointityokalu.liitetiedostonNimi, "UTF-8") + "\""
-                )
-                .header(HttpHeaders.CONTENT_TYPE, arviointityokalu.liitetiedostonTyyppi + "; charset=UTF-8")
-                .body(it.readBytes())
-        }
-
-        return ResponseEntity.notFound().build()
+        val asiakirjaData = arviointityokaluService.getAsiakirjaDataDTO(arviointityokalu.liite)
+        return asiakirjaData.fileInputStream
+            ?.toFileDownloadResponse(
+                arviointityokalu.liitetiedostonNimi ?: "",
+                arviointityokalu.liitetiedostonTyyppi ?: ""
+            )
+            ?: ResponseEntity.notFound().build()
     }
 }
-
