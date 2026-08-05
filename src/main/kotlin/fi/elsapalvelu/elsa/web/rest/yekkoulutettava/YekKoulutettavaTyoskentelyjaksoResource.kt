@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
+import fi.elsapalvelu.elsa.web.rest.TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.Valid
@@ -28,7 +29,6 @@ private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
 private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
 private const val TYOSKENTELYPAIKKA_ENTITY_NAME = "tyoskentelypaikka"
-private const val TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME = "terveyskeskuskoulutusjakson_hyvaksynta"
 
 @Suppress("TooManyFunctions")
 @RestController

@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.service.UserService
 import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import org.slf4j.LoggerFactory
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import jakarta.validation.Valid
 
-private const val VALMISTUMISPYYNTO_ENTITY_NAME = "valmistumispyynto"
 
 @RestController
 @RequestMapping("/api/vastuuhenkilo")
