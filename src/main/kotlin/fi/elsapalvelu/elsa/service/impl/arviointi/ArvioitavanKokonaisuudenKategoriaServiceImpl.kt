@@ -6,9 +6,9 @@ import fi.elsapalvelu.elsa.service.arviointi.ArvioitavanKokonaisuudenKategoriaSe
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavanKokonaisuudenKategoriaDTO
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavanKokonaisuudenKategoriaSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO
-import fi.elsapalvelu.elsa.service.mapper.ArvioitavanKokonaisuudenKategoriaMapper
-import fi.elsapalvelu.elsa.service.mapper.ArvioitavanKokonaisuudenKategoriaSimpleMapper
-import fi.elsapalvelu.elsa.service.mapper.ArvioitavanKokonaisuudenKategoriaWithErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.ArvioitavanKokonaisuudenKategoriaMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.ArvioitavanKokonaisuudenKategoriaSimpleMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.ArvioitavanKokonaisuudenKategoriaWithErikoisalaMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

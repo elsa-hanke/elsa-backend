@@ -1,0 +1,28 @@
+package fi.elsapalvelu.elsa.service.mapper.seuranta
+
+import fi.elsapalvelu.elsa.domain.seuranta.Paivakirjamerkinta
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjamerkintaDTO
+import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.Mappings
+import org.mapstruct.ReportingPolicy
+
+import fi.elsapalvelu.elsa.service.mapper.EntityMapper
+import fi.elsapalvelu.elsa.service.mapper.koulutus.TeoriakoulutusMapper
+@Mapper(
+    componentModel = "spring",
+    uses = [
+        PaivakirjaAihekategoriaMapper::class,
+        TeoriakoulutusMapper::class
+    ],
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
+interface PaivakirjamerkintaMapper : EntityMapper<PaivakirjamerkintaDTO, Paivakirjamerkinta> {
+
+    @Mappings(
+        Mapping(target = "aihekategoriat", source = "aihekategoriat", qualifiedByName = ["idSet"])
+    )
+    override fun toDto(entity: Paivakirjamerkinta): PaivakirjamerkintaDTO
+
+    override fun toEntity(dto: PaivakirjamerkintaDTO): Paivakirjamerkinta
+}

@@ -7,7 +7,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.mapper.PaivakirjamerkintaMapper
+import fi.elsapalvelu.elsa.service.mapper.seuranta.PaivakirjamerkintaMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll

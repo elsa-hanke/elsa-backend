@@ -18,8 +18,8 @@ import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepos
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
-import fi.elsapalvelu.elsa.service.mapper.KoejaksonKoulutussopimusMapper
-import fi.elsapalvelu.elsa.service.mapper.KoejaksonVastuuhenkilonArvioMapper
+import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonKoulutussopimusMapper
+import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonVastuuhenkilonArvioMapper
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes

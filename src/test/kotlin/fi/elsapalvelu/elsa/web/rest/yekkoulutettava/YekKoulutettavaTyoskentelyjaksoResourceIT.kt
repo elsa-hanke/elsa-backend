@@ -26,10 +26,10 @@ import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
-import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
-import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
-import fi.elsapalvelu.elsa.service.mapper.KuntaMapper
-import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.ErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.KeskeytysaikaMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.KuntaMapper
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll

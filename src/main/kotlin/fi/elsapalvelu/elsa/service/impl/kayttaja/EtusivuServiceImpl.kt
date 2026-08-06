@@ -48,7 +48,7 @@ import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
-import fi.elsapalvelu.elsa.service.mapper.ArviointiasteikkoMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.ArviointiasteikkoMapper
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.context.MessageSource
 import org.springframework.data.domain.Page

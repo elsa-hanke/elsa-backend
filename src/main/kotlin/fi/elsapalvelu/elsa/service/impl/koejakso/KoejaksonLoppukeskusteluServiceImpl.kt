@@ -24,7 +24,7 @@ import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonLoppukeskusteluDTO
-import fi.elsapalvelu.elsa.service.mapper.KoejaksonLoppukeskusteluMapper
+import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonLoppukeskusteluMapper
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service

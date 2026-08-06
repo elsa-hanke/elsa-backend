@@ -17,7 +17,7 @@ import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.constants.OPINTOOIKEUS_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.kayttaja.OpintooikeusDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaOpintooikeusDTO
-import fi.elsapalvelu.elsa.service.mapper.OpintooikeusMapper
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.OpintooikeusMapper
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder

@@ -13,9 +13,9 @@ import fi.elsapalvelu.elsa.service.koulutus.OpintosuorituksetPersistenceService
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusOsakokonaisuusDTO
-import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusMapper
-import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusOsakokonaisuusMapper
-import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusTyyppiMapper
+import fi.elsapalvelu.elsa.service.mapper.koulutus.OpintosuoritusMapper
+import fi.elsapalvelu.elsa.service.mapper.koulutus.OpintosuoritusOsakokonaisuusMapper
+import fi.elsapalvelu.elsa.service.mapper.koulutus.OpintosuoritusTyyppiMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

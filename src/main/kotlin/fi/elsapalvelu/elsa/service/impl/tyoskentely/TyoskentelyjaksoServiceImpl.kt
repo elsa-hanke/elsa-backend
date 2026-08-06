@@ -23,9 +23,9 @@ import fi.elsapalvelu.elsa.service.dto.seuranta.*
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
-import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
-import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoMapper
-import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoWithKeskeytysajatMapper
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.AsiakirjaMapper
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.TyoskentelyjaksoMapper
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.TyoskentelyjaksoWithKeskeytysajatMapper
 import jakarta.validation.ValidationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service

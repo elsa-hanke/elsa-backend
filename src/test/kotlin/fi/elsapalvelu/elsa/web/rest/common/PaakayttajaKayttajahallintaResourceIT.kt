@@ -14,7 +14,7 @@ import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.perustiedot.YliopistoDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
-import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.ErikoisalaMapper
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper

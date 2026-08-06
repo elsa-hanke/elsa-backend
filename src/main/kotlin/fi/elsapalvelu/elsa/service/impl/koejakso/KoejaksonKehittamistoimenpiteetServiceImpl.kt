@@ -14,7 +14,7 @@ import fi.elsapalvelu.elsa.service.kayttaja.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonKehittamistoimenpiteetDTO
-import fi.elsapalvelu.elsa.service.mapper.KoejaksonKehittamistoimenpiteetMapper
+import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonKehittamistoimenpiteetMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

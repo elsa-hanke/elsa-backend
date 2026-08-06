@@ -10,7 +10,7 @@ import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusKurssikoodiReposito
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusKurssikoodiDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusTyyppiDTO
-import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusKurssikoodiMapper
+import fi.elsapalvelu.elsa.service.mapper.koulutus.OpintosuoritusKurssikoodiMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper

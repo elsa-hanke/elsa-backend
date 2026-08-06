@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.service.seuranta.PaivakirjamerkintaService
 import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjamerkintaDTO
-import fi.elsapalvelu.elsa.service.mapper.PaivakirjamerkintaMapper
+import fi.elsapalvelu.elsa.service.mapper.seuranta.PaivakirjamerkintaMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

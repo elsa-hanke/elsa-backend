@@ -14,6 +14,15 @@ import fi.elsapalvelu.elsa.repository.kayttaja.*
 import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.service.mapper.*
+import fi.elsapalvelu.elsa.service.mapper.koejakso.*
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.*
+import fi.elsapalvelu.elsa.service.mapper.arviointi.*
+import fi.elsapalvelu.elsa.service.mapper.suoritteet.*
+import fi.elsapalvelu.elsa.service.mapper.koulutus.*
+import fi.elsapalvelu.elsa.service.mapper.seuranta.*
+import fi.elsapalvelu.elsa.service.mapper.valmistuminen.*
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.*
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.*

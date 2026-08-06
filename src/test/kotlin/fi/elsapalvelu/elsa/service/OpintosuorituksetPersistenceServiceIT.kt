@@ -11,8 +11,8 @@ import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusRepository
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusOsakokonaisuusDTO
-import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusMapper
-import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusOsakokonaisuusMapper
+import fi.elsapalvelu.elsa.service.mapper.koulutus.OpintosuoritusMapper
+import fi.elsapalvelu.elsa.service.mapper.koulutus.OpintosuoritusOsakokonaisuusMapper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach

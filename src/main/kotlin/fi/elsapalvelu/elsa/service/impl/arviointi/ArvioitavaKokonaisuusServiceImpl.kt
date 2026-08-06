@@ -6,9 +6,9 @@ import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.service.arviointi.ArvioitavaKokonaisuusService
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavaKokonaisuusDTO
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavaKokonaisuusWithErikoisalaDTO
-import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusMapper
-import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusWithErikoisalaMapper
-import fi.elsapalvelu.elsa.service.mapper.ArvioitavanKokonaisuudenKategoriaSimpleMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.ArvioitavaKokonaisuusMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.ArvioitavaKokonaisuusWithErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.ArvioitavanKokonaisuudenKategoriaSimpleMapper
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull

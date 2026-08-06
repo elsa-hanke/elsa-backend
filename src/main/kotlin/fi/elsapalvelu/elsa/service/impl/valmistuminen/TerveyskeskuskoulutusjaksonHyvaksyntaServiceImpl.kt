@@ -29,9 +29,9 @@ import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.TerveyskeskuskoulutusjaksoSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.TerveyskeskuskoulutusjaksonHyvaksyntaDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
-import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
-import fi.elsapalvelu.elsa.service.mapper.TerveyskeskuskoulutusjaksonHyvaksyntaMapper
-import fi.elsapalvelu.elsa.service.mapper.TyoskentelyjaksoWithKeskeytysajatMapper
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.KayttajaMapper
+import fi.elsapalvelu.elsa.service.mapper.valmistuminen.TerveyskeskuskoulutusjaksonHyvaksyntaMapper
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.TyoskentelyjaksoWithKeskeytysajatMapper
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull

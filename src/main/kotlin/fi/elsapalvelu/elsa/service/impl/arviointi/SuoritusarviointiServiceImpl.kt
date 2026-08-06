@@ -19,9 +19,9 @@ import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.service.dto.arviointi.SuoritusarviointiDTO
-import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
-import fi.elsapalvelu.elsa.service.mapper.SuoritusarvioinninArvioitavaKokonaisuusMapper
-import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.AsiakirjaMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.SuoritusarvioinninArvioitavaKokonaisuusMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.SuoritusarviointiMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

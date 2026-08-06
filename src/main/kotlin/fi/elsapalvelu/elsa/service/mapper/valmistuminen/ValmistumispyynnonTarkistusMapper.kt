@@ -1,0 +1,21 @@
+package fi.elsapalvelu.elsa.service.mapper.valmistuminen
+
+import fi.elsapalvelu.elsa.domain.valmistuminen.ValmistumispyynnonTarkistus
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusDTO
+import org.mapstruct.Mapper
+import org.mapstruct.ReportingPolicy
+
+import fi.elsapalvelu.elsa.service.mapper.EntityMapper
+@Mapper(
+    componentModel = "spring",
+    uses = [
+        ValmistumispyyntoMapper::class
+    ], unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
+interface ValmistumispyynnonTarkistusMapper :
+    EntityMapper<ValmistumispyynnonTarkistusDTO, ValmistumispyynnonTarkistus> {
+
+    override fun toDto(entity: ValmistumispyynnonTarkistus): ValmistumispyynnonTarkistusDTO
+
+    override fun toEntity(dto: ValmistumispyynnonTarkistusDTO): ValmistumispyynnonTarkistus
+}

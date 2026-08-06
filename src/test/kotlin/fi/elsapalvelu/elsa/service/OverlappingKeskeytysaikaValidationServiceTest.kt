@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.helpers.KeskeytysaikaMockHelper
 import fi.elsapalvelu.elsa.service.helpers.TyoskentelyjaksoMockHelper
 import fi.elsapalvelu.elsa.service.impl.tyoskentely.OverlappingKeskeytysaikaValidationServiceImpl
-import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.KeskeytysaikaMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`

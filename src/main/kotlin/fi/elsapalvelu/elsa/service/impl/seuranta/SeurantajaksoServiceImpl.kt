@@ -32,8 +32,8 @@ import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.SeurantajaksoTila
-import fi.elsapalvelu.elsa.service.mapper.ArviointiasteikkoMapper
-import fi.elsapalvelu.elsa.service.mapper.SeurantajaksoMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.ArviointiasteikkoMapper
+import fi.elsapalvelu.elsa.service.mapper.seuranta.SeurantajaksoMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

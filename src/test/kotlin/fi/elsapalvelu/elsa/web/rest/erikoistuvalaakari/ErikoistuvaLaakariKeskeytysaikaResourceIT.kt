@@ -9,7 +9,7 @@ import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.KeskeytysaikaRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.KeskeytysaikaMapper
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes

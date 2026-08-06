@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.repository.tyoskentely.KeskeytysaikaRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.tyoskentely.KeskeytysaikaService
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
-import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.KeskeytysaikaMapper
 import jakarta.validation.ValidationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

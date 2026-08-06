@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.PoissaolonSyyRepository
 import fi.elsapalvelu.elsa.service.PoissaolonSyyService
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.PoissaolonSyyDTO
-import fi.elsapalvelu.elsa.service.mapper.PoissaolonSyyMapper
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.PoissaolonSyyMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

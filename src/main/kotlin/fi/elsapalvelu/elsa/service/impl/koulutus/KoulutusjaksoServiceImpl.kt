@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.service.koulutus.KoulutusjaksoService
 import fi.elsapalvelu.elsa.service.koulutus.KoulutussuunnitelmaService
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutusjaksoDTO
-import fi.elsapalvelu.elsa.service.mapper.KoulutusjaksoMapper
+import fi.elsapalvelu.elsa.service.mapper.koulutus.KoulutusjaksoMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
