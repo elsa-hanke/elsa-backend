@@ -21,6 +21,7 @@ import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.ENTITY_KOEJAKSON_SOPIMUS
+import fi.elsapalvelu.elsa.web.rest.common.KoejaksoResourceSupport
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -38,7 +39,8 @@ class KouluttajaKoejaksoResource(
     private val koejaksonValiarviointiService: KoejaksonValiarviointiService,
     private val koejaksonKehittamistoimenpiteetService: KoejaksonKehittamistoimenpiteetService,
     private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService,
-    private val koejaksonVaiheetService: KoejaksonVaiheetService
+    private val koejaksonVaiheetService: KoejaksonVaiheetService,
+    private val koejaksoResourceSupport: KoejaksoResourceSupport
 ) {
 
     @GetMapping("/koejaksot")
@@ -95,13 +97,12 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        var aloituskeskusteluDTO =
-            koejaksonAloituskeskusteluService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
-
-        if (!aloituskeskusteluDTO.isPresent) {
-            aloituskeskusteluDTO =
-                koejaksonAloituskeskusteluService.findOneByIdAndLahiesimiesUserId(id, user.id!!)
-        }
+        val aloituskeskusteluDTO = koejaksoResourceSupport.findByLahikouluttajaOrLahiesimies(
+            id,
+            user.id!!,
+            koejaksonAloituskeskusteluService::findOneByIdAndLahikouluttajaUserId,
+            koejaksonAloituskeskusteluService::findOneByIdAndLahiesimiesUserId
+        )
         return ResponseUtil.wrapOrNotFound(aloituskeskusteluDTO)
     }
 
@@ -111,13 +112,12 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        var valiarviointiDTO =
-            koejaksonValiarviointiService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
-
-        if (!valiarviointiDTO.isPresent) {
-            valiarviointiDTO =
-                koejaksonValiarviointiService.findOneByIdAndLahiesimiesUserId(id, user.id!!)
-        }
+        val valiarviointiDTO = koejaksoResourceSupport.findByLahikouluttajaOrLahiesimies(
+            id,
+            user.id!!,
+            koejaksonValiarviointiService::findOneByIdAndLahikouluttajaUserId,
+            koejaksonValiarviointiService::findOneByIdAndLahiesimiesUserId
+        )
         return ResponseUtil.wrapOrNotFound(valiarviointiDTO)
     }
 
@@ -127,16 +127,12 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        var kehittamistoimenpiteetDTO =
-            koejaksonKehittamistoimenpiteetService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
-
-        if (!kehittamistoimenpiteetDTO.isPresent) {
-            kehittamistoimenpiteetDTO =
-                koejaksonKehittamistoimenpiteetService.findOneByIdAndLahiesimiesUserId(
-                    id,
-                    user.id!!
-                )
-        }
+        val kehittamistoimenpiteetDTO = koejaksoResourceSupport.findByLahikouluttajaOrLahiesimies(
+            id,
+            user.id!!,
+            koejaksonKehittamistoimenpiteetService::findOneByIdAndLahikouluttajaUserId,
+            koejaksonKehittamistoimenpiteetService::findOneByIdAndLahiesimiesUserId
+        )
         return ResponseUtil.wrapOrNotFound(kehittamistoimenpiteetDTO)
     }
 
@@ -146,16 +142,12 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        var loppukeskusteluDTO =
-            koejaksonLoppukeskusteluService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
-
-        if (!loppukeskusteluDTO.isPresent) {
-            loppukeskusteluDTO =
-                koejaksonLoppukeskusteluService.findOneByIdAndLahiesimiesUserId(
-                    id,
-                    user.id!!
-                )
-        }
+        val loppukeskusteluDTO = koejaksoResourceSupport.findByLahikouluttajaOrLahiesimies(
+            id,
+            user.id!!,
+            koejaksonLoppukeskusteluService::findOneByIdAndLahikouluttajaUserId,
+            koejaksonLoppukeskusteluService::findOneByIdAndLahiesimiesUserId
+        )
         return ResponseUtil.wrapOrNotFound(loppukeskusteluDTO)
     }
 }

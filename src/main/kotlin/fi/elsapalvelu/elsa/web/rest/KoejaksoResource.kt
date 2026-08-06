@@ -20,7 +20,7 @@ import fi.elsapalvelu.elsa.service.dto.seuranta.*
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
-import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import fi.elsapalvelu.elsa.web.rest.common.KoejaksoResourceSupport
 import fi.elsapalvelu.elsa.web.rest.kouluttaja.*
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -37,7 +37,8 @@ open class KoejaksoResource(
     private val koejaksonAloituskeskusteluService: KoejaksonAloituskeskusteluService,
     private val koejaksonValiarviointiService: KoejaksonValiarviointiService,
     private val koejaksonKehittamistoimenpiteetService: KoejaksonKehittamistoimenpiteetService,
-    private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService
+    private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService,
+    private val koejaksoResourceSupport: KoejaksoResourceSupport
 ) {
 
     @PutMapping("/koejakso/aloituskeskustelu")
@@ -45,50 +46,30 @@ open class KoejaksoResource(
         @Valid @RequestBody aloituskeskusteluDTO: KoejaksonAloituskeskusteluDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
-        validateId(aloituskeskusteluDTO.id, ENTITY_KOEJAKSON_ALOITUSKESKUSTELU)
+        koejaksoResourceSupport.validateId(aloituskeskusteluDTO.id, ENTITY_KOEJAKSON_ALOITUSKESKUSTELU)
         val user = userService.getAuthenticatedUser(principal)
 
-        var aloituskeskustelu =
-            koejaksonAloituskeskusteluService.findOneByIdAndLahikouluttajaUserId(
-                aloituskeskusteluDTO.id!!,
-                user.id!!
-            )
+        val aloituskeskustelu = koejaksoResourceSupport.findForUpdateByLahikouluttajaOrLahiesimies(
+            id = aloituskeskusteluDTO.id!!,
+            userId = user.id!!,
+            entity = ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
+            notFoundMessage = "Koejakson aloituskeskustelua ei löydy.",
+            notFoundErrorKey = "dataillegal.koejakson-aloituskeskustelua-ei-loydy",
+            lahiesimiesBeforeLahikouluttajaMessage = "Esihenkilö ei saa muokata aloituskeskustelua, " +
+                "jos kouluttaja ei ole hyväksynyt sitä",
+            lahiesimiesBeforeLahikouluttajaErrorKey = "dataillegal.esimies-ei-saa-muokata-aloituskeskustelua-jos-kouluttaja-ei-ole-hyvaksynyt-sita",
+            findByLahikouluttaja = koejaksonAloituskeskusteluService::findOneByIdAndLahikouluttajaUserId,
+            findByLahiesimies = koejaksonAloituskeskusteluService::findOneByIdAndLahiesimiesUserId,
+            lahikouluttajaSopimusHyvaksytty = { it.lahikouluttaja?.sopimusHyvaksytty }
+        )
 
-        if (!aloituskeskustelu.isPresent) {
-            aloituskeskustelu =
-                koejaksonAloituskeskusteluService.findOneByIdAndLahiesimiesUserId(
-                    aloituskeskusteluDTO.id!!,
-                    user.id!!
-                )
+        koejaksoResourceSupport.validateLahetetty(
+            aloituskeskustelu.lahetetty,
+            ENTITY_KOEJAKSON_ALOITUSKESKUSTELU
+        )
 
-            if (!aloituskeskustelu.isPresent) {
-                throw BadRequestAlertException(
-                    "Koejakson aloituskeskustelua ei löydy.",
-                    ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                    "dataillegal.koejakson-aloituskeskustelua-ei-loydy"
-                )
-            }
-
-            if (aloituskeskustelu.get().lahikouluttaja?.sopimusHyvaksytty != true) {
-                throw BadRequestAlertException(
-                    "Esihenkilö ei saa muokata aloituskeskustelua, " +
-                        "jos kouluttaja ei ole hyväksynyt sitä",
-                    ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                    "dataillegal.esimies-ei-saa-muokata-aloituskeskustelua-jos-kouluttaja-ei-ole-hyvaksynyt-sita"
-                )
-            }
-        }
-
-        if (aloituskeskustelu.get().lahetetty != true) {
-            throw BadRequestAlertException(
-                "Arviointia ei saa muokata, jos erikoistuva ei ole lähettänyt pyyntöä.",
-                ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
-                "dataillegal.arviointia-ei-saa-muokata-jos-erikoistuva-ei-ole-lahettanyt-pyyntoa"
-            )
-        }
-
-        validateArviointi(
-            aloituskeskustelu.get().lahiesimies?.sopimusHyvaksytty,
+        koejaksoResourceSupport.validateArviointi(
+            aloituskeskustelu.lahiesimies?.sopimusHyvaksytty,
             ENTITY_KOEJAKSON_ALOITUSKESKUSTELU
         )
 
@@ -101,42 +82,25 @@ open class KoejaksoResource(
         @Valid @RequestBody valiarviointiDTO: KoejaksonValiarviointiDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
-        validateId(valiarviointiDTO.id, ENTITY_KOEJAKSON_LOPPUKESKUSTELU)
+        koejaksoResourceSupport.validateId(valiarviointiDTO.id, ENTITY_KOEJAKSON_LOPPUKESKUSTELU)
         val user = userService.getAuthenticatedUser(principal)
 
-        var valiarviointi =
-            koejaksonValiarviointiService.findOneByIdAndLahikouluttajaUserId(
-                valiarviointiDTO.id!!,
-                user.id!!
-            )
+        val valiarviointi = koejaksoResourceSupport.findForUpdateByLahikouluttajaOrLahiesimies(
+            id = valiarviointiDTO.id!!,
+            userId = user.id!!,
+            entity = ENTITY_KOEJAKSON_VALIARVIOINTI,
+            notFoundMessage = "Koejakson väliarviointia ei löydy.",
+            notFoundErrorKey = "dataillegal.koejakson-valiarviointia-ei-loydy",
+            lahiesimiesBeforeLahikouluttajaMessage = "Esimies ei saa muokata väliarviointia, " +
+                "jos kouluttaja ei ole hyväksynyt sitä",
+            lahiesimiesBeforeLahikouluttajaErrorKey = "dataillegal.esimies-ei-saa-muoktata-valiarviointia-jos-kouluttaja-ei-ole-hyvaksynyt-sita",
+            findByLahikouluttaja = koejaksonValiarviointiService::findOneByIdAndLahikouluttajaUserId,
+            findByLahiesimies = koejaksonValiarviointiService::findOneByIdAndLahiesimiesUserId,
+            lahikouluttajaSopimusHyvaksytty = { it.lahikouluttaja?.sopimusHyvaksytty }
+        )
 
-        if (!valiarviointi.isPresent) {
-            valiarviointi =
-                koejaksonValiarviointiService.findOneByIdAndLahiesimiesUserId(
-                    valiarviointiDTO.id!!,
-                    user.id!!
-                )
-
-            if (!valiarviointi.isPresent) {
-                throw BadRequestAlertException(
-                    "Koejakson väliarviointia ei löydy.",
-                    ENTITY_KOEJAKSON_VALIARVIOINTI,
-                    "dataillegal.koejakson-valiarviointia-ei-loydy"
-                )
-            }
-
-            if (valiarviointi.get().lahikouluttaja?.sopimusHyvaksytty != true) {
-                throw BadRequestAlertException(
-                    "Esimies ei saa muokata väliarviointia, " +
-                        "jos kouluttaja ei ole hyväksynyt sitä",
-                    ENTITY_KOEJAKSON_VALIARVIOINTI,
-                    "dataillegal.esimies-ei-saa-muoktata-valiarviointia-jos-kouluttaja-ei-ole-hyvaksynyt-sita"
-                )
-            }
-        }
-
-        validateArviointi(
-            valiarviointi.get().lahiesimies?.sopimusHyvaksytty,
+        koejaksoResourceSupport.validateArviointi(
+            valiarviointi.lahiesimies?.sopimusHyvaksytty,
             ENTITY_KOEJAKSON_VALIARVIOINTI
         )
 
@@ -149,42 +113,25 @@ open class KoejaksoResource(
         @Valid @RequestBody kehittamistoimenpiteetDTO: KoejaksonKehittamistoimenpiteetDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
-        validateId(kehittamistoimenpiteetDTO.id, ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET)
+        koejaksoResourceSupport.validateId(kehittamistoimenpiteetDTO.id, ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET)
         val user = userService.getAuthenticatedUser(principal)
 
-        var kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findOneByIdAndLahikouluttajaUserId(
-                kehittamistoimenpiteetDTO.id!!,
-                user.id!!
-            )
+        val kehittamistoimenpiteet = koejaksoResourceSupport.findForUpdateByLahikouluttajaOrLahiesimies(
+            id = kehittamistoimenpiteetDTO.id!!,
+            userId = user.id!!,
+            entity = ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
+            notFoundMessage = "Koejakson kehittämistoimenpiteitä ei löydy.",
+            notFoundErrorKey = "dataillegal.koejakson-kehittamistoimenpiteita-ei-loydy",
+            lahiesimiesBeforeLahikouluttajaMessage = "Esimies ei saa muokata kehittämistoimenpiteitä, " +
+                "jos kouluttaja ei ole hyväksynyt niitä",
+            lahiesimiesBeforeLahikouluttajaErrorKey = "dataillegal.esimies-ei-saa-muokata-kehittamistoimenpiteita-jos-kouluttaja-ei-ole-hyvaksynyt-niita",
+            findByLahikouluttaja = koejaksonKehittamistoimenpiteetService::findOneByIdAndLahikouluttajaUserId,
+            findByLahiesimies = koejaksonKehittamistoimenpiteetService::findOneByIdAndLahiesimiesUserId,
+            lahikouluttajaSopimusHyvaksytty = { it.lahikouluttaja?.sopimusHyvaksytty }
+        )
 
-        if (!kehittamistoimenpiteet.isPresent) {
-            kehittamistoimenpiteet =
-                koejaksonKehittamistoimenpiteetService.findOneByIdAndLahiesimiesUserId(
-                    kehittamistoimenpiteetDTO.id!!,
-                    user.id!!
-                )
-
-            if (!kehittamistoimenpiteet.isPresent) {
-                throw BadRequestAlertException(
-                    "Koejakson kehittämistoimenpiteitä ei löydy.",
-                    ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                    "dataillegal.koejakson-kehittamistoimenpiteita-ei-loydy"
-                )
-            }
-
-            if (kehittamistoimenpiteet.get().lahikouluttaja?.sopimusHyvaksytty != true) {
-                throw BadRequestAlertException(
-                    "Esimies ei saa muokata kehittämistoimenpiteitä, " +
-                        "jos kouluttaja ei ole hyväksynyt niitä",
-                    ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
-                    "dataillegal.esimies-ei-saa-muokata-kehittamistoimenpiteita-jos-kouluttaja-ei-ole-hyvaksynyt-niita"
-                )
-            }
-        }
-
-        validateArviointi(
-            kehittamistoimenpiteet.get().lahiesimies?.sopimusHyvaksytty,
+        koejaksoResourceSupport.validateArviointi(
+            kehittamistoimenpiteet.lahiesimies?.sopimusHyvaksytty,
             ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET
         )
 
@@ -198,42 +145,25 @@ open class KoejaksoResource(
         @Valid @RequestBody loppukeskusteluDTO: KoejaksonLoppukeskusteluDTO,
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
-        validateId(loppukeskusteluDTO.id, ENTITY_KOEJAKSON_LOPPUKESKUSTELU)
+        koejaksoResourceSupport.validateId(loppukeskusteluDTO.id, ENTITY_KOEJAKSON_LOPPUKESKUSTELU)
         val user = userService.getAuthenticatedUser(principal)
 
-        var loppukeskustelu =
-            koejaksonLoppukeskusteluService.findOneByIdAndLahikouluttajaUserId(
-                loppukeskusteluDTO.id!!,
-                user.id!!
-            )
+        val loppukeskustelu = koejaksoResourceSupport.findForUpdateByLahikouluttajaOrLahiesimies(
+            id = loppukeskusteluDTO.id!!,
+            userId = user.id!!,
+            entity = ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
+            notFoundMessage = "Koejakson loppukeskustelua ei löydy.",
+            notFoundErrorKey = "dataillegal.koejakson-loppukeskustelua-ei-loydy",
+            lahiesimiesBeforeLahikouluttajaMessage = "Esimies ei saa muokata loppukeskustelua, " +
+                "jos kouluttaja ei ole hyväksynyt niitä",
+            lahiesimiesBeforeLahikouluttajaErrorKey = "dataillegal.esimies-ei-saa-muokata-loppukeskustelua-jos-kouluttaja-ei-ole-hyvaksynyt-niita",
+            findByLahikouluttaja = koejaksonLoppukeskusteluService::findOneByIdAndLahikouluttajaUserId,
+            findByLahiesimies = koejaksonLoppukeskusteluService::findOneByIdAndLahiesimiesUserId,
+            lahikouluttajaSopimusHyvaksytty = { it.lahikouluttaja?.sopimusHyvaksytty }
+        )
 
-        if (!loppukeskustelu.isPresent) {
-            loppukeskustelu =
-                koejaksonLoppukeskusteluService.findOneByIdAndLahiesimiesUserId(
-                    loppukeskusteluDTO.id!!,
-                    user.id!!
-                )
-
-            if (!loppukeskustelu.isPresent) {
-                throw BadRequestAlertException(
-                    "Koejakson loppukeskustelua ei löydy.",
-                    ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                    "dataillegal.koejakson-loppukeskustelua-ei-loydy"
-                )
-            }
-
-            if (loppukeskustelu.get().lahikouluttaja?.sopimusHyvaksytty != true) {
-                throw BadRequestAlertException(
-                    "Esimies ei saa muokata loppukeskustelua, " +
-                        "jos kouluttaja ei ole hyväksynyt niitä",
-                    ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
-                    "dataillegal.esimies-ei-saa-muokata-loppukeskustelua-jos-kouluttaja-ei-ole-hyvaksynyt-niita"
-                )
-            }
-        }
-
-        validateArviointi(
-            loppukeskustelu.get().lahiesimies?.sopimusHyvaksytty,
+        koejaksoResourceSupport.validateArviointi(
+            loppukeskustelu.lahiesimies?.sopimusHyvaksytty,
             ENTITY_KOEJAKSON_LOPPUKESKUSTELU
         )
 
@@ -241,26 +171,4 @@ open class KoejaksoResource(
         return ResponseEntity.ok(result)
     }
 
-    private fun validateArviointi(
-        hyvaksytty: Boolean?,
-        entity: String
-    ) {
-        if (hyvaksytty == true) {
-            throw BadRequestAlertException(
-                "Hyväksyttyä arviointia ei saa muokata",
-                entity,
-                "dataillegal.hyvaksyttya-arviointia-ei-saa-muokata"
-            )
-        }
-    }
-
-    private fun validateId(id: Long?, entity: String) {
-        if (id == null) {
-            throw BadRequestAlertException(
-                "Virheellinen id",
-                entity,
-                "idnull"
-            )
-        }
-    }
 }
