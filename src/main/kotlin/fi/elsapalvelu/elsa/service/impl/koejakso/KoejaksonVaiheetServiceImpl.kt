@@ -31,6 +31,15 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import fi.elsapalvelu.elsa.service.mapper.*
+import fi.elsapalvelu.elsa.service.mapper.koejakso.*
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.*
+import fi.elsapalvelu.elsa.service.mapper.arviointi.*
+import fi.elsapalvelu.elsa.service.mapper.suoritteet.*
+import fi.elsapalvelu.elsa.service.mapper.koulutus.*
+import fi.elsapalvelu.elsa.service.mapper.seuranta.*
+import fi.elsapalvelu.elsa.service.mapper.valmistuminen.*
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.*
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service

@@ -17,7 +17,7 @@ import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajahallintaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistujaJaKouluttajaListItemDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
-import fi.elsapalvelu.elsa.service.mapper.VastuuhenkilonTehtavatyyppiMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.VastuuhenkilonTehtavatyyppiMapper
 import jakarta.persistence.criteria.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable

@@ -7,8 +7,8 @@ import fi.elsapalvelu.elsa.repository.koulutus.OpintoopasRepository
 import fi.elsapalvelu.elsa.service.koulutus.OpintoopasService
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintoopasDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintoopasSimpleDTO
-import fi.elsapalvelu.elsa.service.mapper.OpintoopasMapper
-import fi.elsapalvelu.elsa.service.mapper.OpintoopasSimpleMapper
+import fi.elsapalvelu.elsa.service.mapper.koulutus.OpintoopasMapper
+import fi.elsapalvelu.elsa.service.mapper.koulutus.OpintoopasSimpleMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

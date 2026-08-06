@@ -4,8 +4,8 @@ import fi.elsapalvelu.elsa.repository.perustiedot.ErikoisalaRepository
 import fi.elsapalvelu.elsa.service.perustiedot.ErikoisalaService
 import fi.elsapalvelu.elsa.service.dto.perustiedot.ErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.perustiedot.ErikoisalaWithTehtavatyypitDTO
-import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
-import fi.elsapalvelu.elsa.service.mapper.ErikoisalaWithTehtavatyypitMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.ErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.ErikoisalaWithTehtavatyypitMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*

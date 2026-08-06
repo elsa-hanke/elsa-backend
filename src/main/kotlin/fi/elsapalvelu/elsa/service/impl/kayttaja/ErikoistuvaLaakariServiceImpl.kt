@@ -40,9 +40,9 @@ import fi.elsapalvelu.elsa.service.dto.kayttaja.ErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.LaillistamispaivaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
-import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
-import fi.elsapalvelu.elsa.service.mapper.ErikoistuvaLaakariMapper
-import fi.elsapalvelu.elsa.service.mapper.YliopistoMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.ErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.ErikoistuvaLaakariMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.YliopistoMapper
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable

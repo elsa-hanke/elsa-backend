@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluKategoriaReposit
 import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluRepository
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluKategoriaService
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluKategoriaDTO
-import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluKategoriaMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.ArviointityokaluKategoriaMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant

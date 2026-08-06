@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.impl.perustiedot
 import fi.elsapalvelu.elsa.repository.perustiedot.AsetusRepository
 import fi.elsapalvelu.elsa.service.perustiedot.AsetusService
 import fi.elsapalvelu.elsa.service.dto.perustiedot.AsetusDTO
-import fi.elsapalvelu.elsa.service.mapper.AsetusMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.AsetusMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

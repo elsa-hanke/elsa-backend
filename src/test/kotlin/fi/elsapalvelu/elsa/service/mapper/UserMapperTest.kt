@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.UserMapper
 private const val DEFAULT_LOGIN = "johndoe"
 private const val DEFAULT_ID = "id1"
 

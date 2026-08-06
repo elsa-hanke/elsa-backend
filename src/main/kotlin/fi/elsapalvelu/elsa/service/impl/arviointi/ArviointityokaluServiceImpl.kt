@@ -11,7 +11,7 @@ import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluService
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDataDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
-import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.ArviointityokaluMapper
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

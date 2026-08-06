@@ -4,8 +4,8 @@ import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.perustiedot.YliopistoService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.HakaYliopistoDTO
 import fi.elsapalvelu.elsa.service.dto.perustiedot.YliopistoDTO
-import fi.elsapalvelu.elsa.service.mapper.HakaYliopistoMapper
-import fi.elsapalvelu.elsa.service.mapper.YliopistoMapper
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.HakaYliopistoMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.YliopistoMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*

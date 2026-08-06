@@ -1,0 +1,29 @@
+package fi.elsapalvelu.elsa.service.mapper.kayttaja
+
+import fi.elsapalvelu.elsa.domain.kayttaja.Kouluttajavaltuutus
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KouluttajavaltuutusDTO
+import org.mapstruct.Mapper
+import org.mapstruct.ReportingPolicy
+
+import fi.elsapalvelu.elsa.service.mapper.EntityMapper
+@Mapper(
+    componentModel = "spring",
+    uses = [
+        ErikoistuvaLaakariMapper::class,
+        KayttajaMapper::class
+    ],
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
+interface KouluttajavaltuutusMapper :
+    EntityMapper<KouluttajavaltuutusDTO, Kouluttajavaltuutus> {
+
+    override fun toDto(entity: Kouluttajavaltuutus): KouluttajavaltuutusDTO
+
+    override fun toEntity(dto: KouluttajavaltuutusDTO): Kouluttajavaltuutus
+
+    fun fromId(id: Long?) = id?.let {
+        val kouluttajavaltuutus = Kouluttajavaltuutus()
+        kouluttajavaltuutus.id = id
+        kouluttajavaltuutus
+    }
+}

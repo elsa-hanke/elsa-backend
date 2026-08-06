@@ -34,6 +34,15 @@ import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.mapper.*
+import fi.elsapalvelu.elsa.service.mapper.koejakso.*
+import fi.elsapalvelu.elsa.service.mapper.tyoskentely.*
+import fi.elsapalvelu.elsa.service.mapper.arviointi.*
+import fi.elsapalvelu.elsa.service.mapper.suoritteet.*
+import fi.elsapalvelu.elsa.service.mapper.koulutus.*
+import fi.elsapalvelu.elsa.service.mapper.seuranta.*
+import fi.elsapalvelu.elsa.service.mapper.valmistuminen.*
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.*
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes

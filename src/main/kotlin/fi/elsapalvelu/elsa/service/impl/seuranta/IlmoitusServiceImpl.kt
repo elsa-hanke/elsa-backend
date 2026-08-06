@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.impl.seuranta
 import fi.elsapalvelu.elsa.repository.seuranta.IlmoitusRepository
 import fi.elsapalvelu.elsa.service.seuranta.IlmoitusService
 import fi.elsapalvelu.elsa.service.dto.seuranta.IlmoitusDTO
-import fi.elsapalvelu.elsa.service.mapper.IlmoitusMapper
+import fi.elsapalvelu.elsa.service.mapper.seuranta.IlmoitusMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

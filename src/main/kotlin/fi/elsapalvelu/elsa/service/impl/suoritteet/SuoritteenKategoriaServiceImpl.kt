@@ -6,9 +6,9 @@ import fi.elsapalvelu.elsa.service.suoritteet.SuoritteenKategoriaService
 import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritteenKategoriaDTO
 import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritteenKategoriaSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritteenKategoriaWithErikoisalaDTO
-import fi.elsapalvelu.elsa.service.mapper.SuoritteenKategoriaMapper
-import fi.elsapalvelu.elsa.service.mapper.SuoritteenKategoriaSimpleMapper
-import fi.elsapalvelu.elsa.service.mapper.SuoritteenKategoriaWithErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.suoritteet.SuoritteenKategoriaMapper
+import fi.elsapalvelu.elsa.service.mapper.suoritteet.SuoritteenKategoriaSimpleMapper
+import fi.elsapalvelu.elsa.service.mapper.suoritteet.SuoritteenKategoriaWithErikoisalaMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

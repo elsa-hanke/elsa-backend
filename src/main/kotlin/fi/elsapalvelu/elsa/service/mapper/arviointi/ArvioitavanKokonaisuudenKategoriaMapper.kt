@@ -1,0 +1,33 @@
+package fi.elsapalvelu.elsa.service.mapper.arviointi
+
+import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavanKokonaisuudenKategoria
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavanKokonaisuudenKategoriaDTO
+import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.Mappings
+import org.mapstruct.ReportingPolicy
+
+import fi.elsapalvelu.elsa.service.mapper.EntityMapper
+@Mapper(
+    componentModel = "spring",
+    uses = [
+        ArvioitavaKokonaisuusMapper::class
+    ],
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
+interface ArvioitavanKokonaisuudenKategoriaMapper :
+    EntityMapper<ArvioitavanKokonaisuudenKategoriaDTO, ArvioitavanKokonaisuudenKategoria> {
+
+    @Mappings(
+        Mapping(target = "arvioitavatKokonaisuudet", ignore = true)
+    )
+    override fun toEntity(dto: ArvioitavanKokonaisuudenKategoriaDTO): ArvioitavanKokonaisuudenKategoria
+
+    override fun toDto(entity: ArvioitavanKokonaisuudenKategoria): ArvioitavanKokonaisuudenKategoriaDTO
+
+    fun fromId(id: Long?) = id?.let {
+        val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoria()
+        arvioitavanKokonaisuudenKategoria.id = id
+        arvioitavanKokonaisuudenKategoria
+    }
+}
