@@ -1,6 +1,8 @@
 style:
   MaxLineLength:
     maxLineLength: 180
+  UnusedImport:
+    active: true
   UnusedVariable:
     active: true
   UnusedPrivateProperty:

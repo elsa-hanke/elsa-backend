@@ -15,7 +15,6 @@ import fi.elsapalvelu.elsa.service.impl.tyoskentely.OverlappingTyoskentelyjaksoV
 import fi.elsapalvelu.elsa.service.impl.tyoskentely.TyoskentelyjaksonPituusCounterServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.springframework.boot.test.context.SpringBootTest

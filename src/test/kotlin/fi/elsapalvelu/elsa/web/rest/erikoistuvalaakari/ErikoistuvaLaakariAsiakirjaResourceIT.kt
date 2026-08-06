@@ -13,7 +13,6 @@ import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
-import org.hibernate.engine.jdbc.BlobProxy
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

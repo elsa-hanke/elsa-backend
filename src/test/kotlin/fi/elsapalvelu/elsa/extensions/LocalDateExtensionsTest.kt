@@ -1,9 +1,7 @@
 package fi.elsapalvelu.elsa.extensions
 
-import fi.elsapalvelu.elsa.ElsaBackendApp
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
 import java.time.LocalDate
 
 class LocalDateExtensionsTest {
