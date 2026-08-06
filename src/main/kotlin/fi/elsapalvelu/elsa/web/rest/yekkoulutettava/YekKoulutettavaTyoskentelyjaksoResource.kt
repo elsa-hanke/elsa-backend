@@ -45,7 +45,6 @@ private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
 private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
 private const val TYOSKENTELYPAIKKA_ENTITY_NAME = "tyoskentelypaikka"
 
-@Suppress("TooManyFunctions")
 @RestController
 @RequestMapping("/api/yek-koulutettava")
 class YekKoulutettavaTyoskentelyjaksoResource(
