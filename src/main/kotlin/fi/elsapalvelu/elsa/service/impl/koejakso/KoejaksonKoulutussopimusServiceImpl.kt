@@ -220,7 +220,7 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         val erikoisala = opintooikeus?.erikoisala!!
         val yek = erikoisala.id == YEK_ERIKOISALA_ID
-        val erikoistujanNimi = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
+        val erikoistujanNimi = opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.getName()
         logger.info("Lahetetaan arkistopyynto: ${result.zipFilePath}")
         arkistointiService.laheta(
             yliopisto = yliopisto,
