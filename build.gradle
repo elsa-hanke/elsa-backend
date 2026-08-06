@@ -108,6 +108,8 @@ tasks.register('externalIntegrationTests', Test) {
 }
 
 check.dependsOn integrationTest
+check.dependsOn tasks.named("detekt")
+check.dependsOn tasks.named("detektTest")
 tasks.register('testReport', TestReport) {
     destinationDirectory = layout.buildDirectory.dir("reports/tests")
     testResults.from(test)
