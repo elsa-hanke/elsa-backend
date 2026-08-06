@@ -19,8 +19,7 @@ export {}
 describe('Työskentelyjakson muokkaaminen', () => {
   // Esialustetaan tietokanta koko testisarjaa varten
   before(() => {
-    Cypress.session.clearAllSavedSessions()
-    cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
+    cy.resetErikoistuvaE2eState()
     // Kirjautuminen luo erikoistuvan ja opinto-oikeuden (createWithoutOpintotietodata)
     cy.loginAsErikoistuva()
     // Siemennetään työskentelyjakso suoraan tietokantaan (nopein tapa varmistaa esiehto)

@@ -17,8 +17,7 @@ import {E2E_ERIKOISTUVA_EMAIL} from "../../support/commands";
 
 describe('Koulutussuunnitelma', () => {
   before(() => {
-    Cypress.session.clearAllSavedSessions()
-    cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
+    cy.resetErikoistuvaE2eState()
     cy.loginAsErikoistuva()
   })
 

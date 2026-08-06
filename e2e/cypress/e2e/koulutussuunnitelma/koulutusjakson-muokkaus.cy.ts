@@ -1,5 +1,3 @@
-import { E2E_ERIKOISTUVA_EMAIL } from '../../support/commands'
-
 export {}
 
 // Käyttötapaus 5b.
@@ -18,8 +16,7 @@ export {}
 describe('Koulutusjakson muokkaaminen', () => {
   // Esialustetaan tietokanta koko testisarjaa varten
   before(() => {
-    Cypress.session.clearAllSavedSessions()
-    cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
+    cy.resetErikoistuvaE2eState()
     // Kirjautuminen luo erikoistuvan ja opinto-oikeuden (createWithoutOpintotietodata)
     cy.loginAsErikoistuva()
   })

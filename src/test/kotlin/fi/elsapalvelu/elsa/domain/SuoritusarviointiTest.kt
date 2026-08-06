@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.domain
 
-import fi.elsapalvelu.elsa.web.rest.equalsVerifier
-import org.assertj.core.api.Assertions.assertThat
+import fi.elsapalvelu.elsa.web.rest.entityEqualsVerifier as verifyEntityEquals
 import org.junit.jupiter.api.Test
 
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
@@ -9,15 +8,6 @@ class SuoritusarviointiTest {
 
     @Test
     fun equalsVerifier() {
-        equalsVerifier(Suoritusarviointi::class)
-        val suoritusarviointi1 = Suoritusarviointi()
-        suoritusarviointi1.id = 1L
-        val suoritusarviointi2 = Suoritusarviointi()
-        suoritusarviointi2.id = suoritusarviointi1.id
-        assertThat(suoritusarviointi1).isEqualTo(suoritusarviointi2)
-        suoritusarviointi2.id = 2L
-        assertThat(suoritusarviointi1).isNotEqualTo(suoritusarviointi2)
-        suoritusarviointi1.id = null
-        assertThat(suoritusarviointi1).isNotEqualTo(suoritusarviointi2)
+        verifyEntityEquals(Suoritusarviointi::class)
     }
 }

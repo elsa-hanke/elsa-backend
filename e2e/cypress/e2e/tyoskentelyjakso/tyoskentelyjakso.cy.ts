@@ -11,13 +11,10 @@
  *  Ensimmäisellä kirjautumisella backend suorittaa createWithoutOpintotietodata, joka luo
  *  erikoistuva_laakari + opintooikeus -tietueet. Erillistä siementämistä ei tarvita.
  */
-import {E2E_ERIKOISTUVA_EMAIL} from "../../support/commands";
 
 describe('Työskentelyjakso', () => {
   before(() => {
-    // Tyhjennetään kaikki tallennetut sessiot ja siivotaan testidata
-    Cypress.session.clearAllSavedSessions()
-    cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
+    cy.resetErikoistuvaE2eState()
     cy.loginAsErikoistuva()
   })
 

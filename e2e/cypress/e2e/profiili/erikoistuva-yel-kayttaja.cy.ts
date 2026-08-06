@@ -47,8 +47,7 @@ describe('Katseluoikeudet', () => {
 
   before(() => {
     cy.log('BEFORE!!!')
-    Cypress.session.clearAllSavedSessions()
-    cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
+    cy.resetErikoistuvaE2eState()
     cy.task('db:cleanupOpintooikeus', {email: E2E_ERIKOISTUVA_EMAIL})
   })
 

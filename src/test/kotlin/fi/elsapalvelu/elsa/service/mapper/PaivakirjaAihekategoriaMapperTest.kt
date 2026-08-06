@@ -1,15 +1,13 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import org.junit.jupiter.api.BeforeEach
+import fi.elsapalvelu.elsa.web.rest.mapperVerifier as verifyMapper
+import org.junit.jupiter.api.Test
 
-import fi.elsapalvelu.elsa.service.mapper.seuranta.PaivakirjaAihekategoriaMapper
 import fi.elsapalvelu.elsa.service.mapper.seuranta.PaivakirjaAihekategoriaMapperImpl
 class PaivakirjaAihekategoriaMapperTest {
 
-    private lateinit var paivakirjaAihekategoriaMapper: PaivakirjaAihekategoriaMapper
-
-    @BeforeEach
-    fun setUp() {
-        paivakirjaAihekategoriaMapper = PaivakirjaAihekategoriaMapperImpl()
+    @Test
+    fun mapperVerifier() {
+        verifyMapper<PaivakirjaAihekategoriaMapperImpl>()
     }
 }
