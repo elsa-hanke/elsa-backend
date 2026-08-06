@@ -27,9 +27,11 @@ export const opintoOikeusTasks = {
   async 'db:seedOpintooikeus'({
     email,
     opintoOikeus,
+    updateCurrent = false,
   }: {
     email: string
     opintoOikeus: OpintoOikeus
+    updateCurrent?: boolean
   }): Promise<number> {
     return withDb(dbClient, async (client: Client) => {
       if (!opintoOikeus) {
@@ -50,6 +52,60 @@ export const opintoOikeusTasks = {
       console.log(opintoOikeus)
 
       opintoOikeus.erikoistuva_laakari_id = erikoistuva
+      if (updateCurrent) {
+        const currentOpintooikeus = await client.query(
+          `SELECT id FROM public.opintooikeus WHERE erikoistuva_laakari_id = $1 AND kaytossa = true LIMIT 1`,
+          [erikoistuva]
+        )
+        const currentId: number | undefined = currentOpintooikeus.rows[0]?.id
+        if (!currentId) {
+          throw new Error(`Could not find active opintooikeus for ${email}`)
+        }
+
+        await client.query(
+          `UPDATE public.opintooikeus
+           SET opintooikeuden_myontamispaiva = $2,
+               opintooikeuden_paattymispaiva = $3,
+               opiskelijatunnus = $4,
+               osaamisen_arvioinnin_oppaan_pvm = $5,
+               yliopisto_id = $6,
+               erikoisala_id = $7,
+               opintoopas_id = $8,
+               asetus_id = $9,
+               kaytossa = $10,
+               yliopisto_opintooikeus_id = $11,
+               tila = $12,
+               muokkausaika = $13,
+               terveyskeskuskoulutusjakso_suoritettu = $14,
+               muokkausoikeudet_virkailijoilla = $15,
+               viimeinen_katselupaiva = $16
+           WHERE id = $1`,
+          [
+            currentId,
+            opintoOikeus.myontamispaiva,
+            opintoOikeus.paattymispaiva,
+            opintoOikeus.opiskelijatunnus,
+            opintoOikeus.osaamisen_arvioinnin_oppaan_pvm,
+            opintoOikeus.yliopisto_id,
+            opintoOikeus.erikoisala_id,
+            opintoOikeus.opintoopas_id,
+            opintoOikeus.asetus_id,
+            opintoOikeus.kaytossa,
+            opintoOikeus.yliopisto_opintooikeus_id,
+            opintoOikeus.tila,
+            opintoOikeus.muokkausaika,
+            opintoOikeus.terveyskeskuskoulutusjakso_suoritettu,
+            opintoOikeus.muokkausoikeudet_virkailijoilla,
+            opintoOikeus.viimeinen_katselupaiva
+          ]
+        )
+        await client.query(
+          `UPDATE public.erikoistuva_laakari SET aktiivinen_opintooikeus = $1 WHERE id = $2`,
+          [currentId, erikoistuva]
+        )
+        return currentId
+      }
+
       if ( opintoOikeus.kaytossa ) {
         await client.query(`UPDATE public.opintooikeus SET kaytossa = false WHERE erikoistuva_laakari_id = $1`, [erikoistuva])
       }

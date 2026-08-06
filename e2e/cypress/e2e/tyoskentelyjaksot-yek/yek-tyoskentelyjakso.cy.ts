@@ -28,7 +28,11 @@ describe('YEK työskentelyjakso', () => {
     Cypress.session.clearAllSavedSessions()
     cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
     cy.loginAsErikoistuva()
-    cy.task('db:seedOpintooikeus', { email: E2E_ERIKOISTUVA_EMAIL, opintoOikeus: yekOpintooikeus })
+    cy.task('db:seedOpintooikeus', {
+      email: E2E_ERIKOISTUVA_EMAIL,
+      opintoOikeus: yekOpintooikeus,
+      updateCurrent: true
+    })
     cy.logout()
   })
 
@@ -52,6 +56,26 @@ describe('YEK työskentelyjakso', () => {
       new URL(Cypress.config('baseUrl') as string).origin
     )
 
+    cy.request('/api/kayttaja').then(({ body }) => {
+      if (body.activeAuthority === 'ROLE_YEK_KOULUTETTAVA') {
+        return
+      }
+
+      cy.getCookie('XSRF-TOKEN').then((cookie) => {
+        cy.request({
+          method: 'POST',
+          url: '/api/vaihda-rooli',
+          form: true,
+          body: { rooli: 'ROLE_YEK_KOULUTETTAVA' },
+          headers: { 'X-XSRF-TOKEN': cookie?.value ?? '' }
+        })
+      })
+    })
+
+    cy.request('/api/kayttaja')
+      .its('body.activeAuthority')
+      .should('eq', 'ROLE_YEK_KOULUTETTAVA')
+
     cy.visit('/yektyoskentelyjaksot')
     cy.contains('h1', 'Työskentelyjaksot').should('be.visible')
 
@@ -68,6 +92,8 @@ describe('YEK työskentelyjakso', () => {
       .blur()
 
     cy.get('input[type="file"]').first().selectFile('cypress/fixtures/test.pdf', { force: true })
+
+    cy.get('input[type="radio"][name="laakarikoulutus"]').first().click({ force: true })
 
     cy.get('input[type="radio"][name="tyoskentelyjakso-tyyppi"]').first().click({ force: true })
 
