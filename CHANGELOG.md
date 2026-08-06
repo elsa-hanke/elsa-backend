@@ -2,6 +2,11 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- Bump fast-uri from 3.1.4 to 3.1.5 in /frontend [`#658`](https://github.com/elsa-hanke/elsa-backend/pull/658)(5 August 2026)
+- Refactors the handling of Terveyskeskuskoulutusjakso-related REST endpoints by introducing a shared base resource class to centralize exception handling and file download logic [`#657`](https://github.com/elsa-hanke/elsa-backend/pull/657)(5 August 2026)
+- file download response standardization + test [`#655`](https://github.com/elsa-hanke/elsa-backend/pull/655)(5 August 2026)
+- arviointityökalut e2e tests [`#654`](https://github.com/elsa-hanke/elsa-backend/pull/654)(5 August 2026)
+- use infra/postgresql.yml instead of src/main/docker/postgresql.yml for starting and stopping the Postgres database [`#653`](https://github.com/elsa-hanke/elsa-backend/pull/653)(5 August 2026)
 - More e2e tests [`#652`](https://github.com/elsa-hanke/elsa-backend/pull/652)(3 August 2026)
 - More e2e tests [`#651`](https://github.com/elsa-hanke/elsa-backend/pull/651)(3 August 2026)
 - ehcache and thumbnailator bump [`#650`](https://github.com/elsa-hanke/elsa-backend/pull/650)(2 August 2026)
