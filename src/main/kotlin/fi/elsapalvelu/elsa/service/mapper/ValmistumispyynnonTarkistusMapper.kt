@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.valmistuminen.ValmistumispyynnonTarkistus
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusDTO
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusDTO
 import org.mapstruct.Mapper
 import org.mapstruct.ReportingPolicy
 

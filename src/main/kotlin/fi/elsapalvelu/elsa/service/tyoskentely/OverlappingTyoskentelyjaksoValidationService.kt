@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.tyoskentely
 
-import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
 
 interface OverlappingTyoskentelyjaksoValidationService {
 

@@ -4,8 +4,8 @@ import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoritemerkintaRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.suoritteet.SuoritemerkintaService
-import fi.elsapalvelu.elsa.service.dto.SuoritemerkintaDTO
-import fi.elsapalvelu.elsa.service.dto.UusiSuoritemerkintaDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritemerkintaDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.UusiSuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.SuoritemerkintaMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service

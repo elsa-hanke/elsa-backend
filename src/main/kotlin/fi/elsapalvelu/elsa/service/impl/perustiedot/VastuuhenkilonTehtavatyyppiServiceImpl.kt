@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.perustiedot
 
 import fi.elsapalvelu.elsa.repository.perustiedot.VastuuhenkilonTehtavatyyppiRepository
 import fi.elsapalvelu.elsa.service.perustiedot.VastuuhenkilonTehtavatyyppiService
-import fi.elsapalvelu.elsa.service.dto.VastuuhenkilonTehtavatyyppiDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.VastuuhenkilonTehtavatyyppiDTO
 import fi.elsapalvelu.elsa.service.mapper.VastuuhenkilonTehtavatyyppiMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service

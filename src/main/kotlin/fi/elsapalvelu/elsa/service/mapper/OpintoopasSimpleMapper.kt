@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.koulutus.Opintoopas
-import fi.elsapalvelu.elsa.service.dto.OpintoopasSimpleDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintoopasSimpleDTO
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings

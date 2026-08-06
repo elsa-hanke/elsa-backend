@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.tyoskentely
 
 import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
-import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.HyvaksiluettavatCounterData
 import java.time.LocalDate
 
 interface TyoskentelyjaksonPituusCounterService {

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.koulutus
 
-import fi.elsapalvelu.elsa.service.dto.OpintotietodataDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 

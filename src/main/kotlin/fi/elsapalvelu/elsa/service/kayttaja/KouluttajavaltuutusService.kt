@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.kayttaja
 
-import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KouluttajavaltuutusDTO
 import java.util.*
 
 interface KouluttajavaltuutusService {

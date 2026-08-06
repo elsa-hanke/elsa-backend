@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.impl.arviointi
 import fi.elsapalvelu.elsa.repository.arviointi.ArviointiasteikkoRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.arviointi.ArviointiasteikkoService
-import fi.elsapalvelu.elsa.service.dto.ArviointiasteikkoDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointiasteikkoDTO
 import fi.elsapalvelu.elsa.service.mapper.ArviointiasteikkoMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service

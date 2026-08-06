@@ -36,8 +36,8 @@ import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
-import fi.elsapalvelu.elsa.service.dto.ErikoistuvaLaakariDTO
-import fi.elsapalvelu.elsa.service.dto.LaillistamispaivaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.ErikoistuvaLaakariDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.LaillistamispaivaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper

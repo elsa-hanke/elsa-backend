@@ -1,0 +1,17 @@
+package fi.elsapalvelu.elsa.service.dto.valmistuminen
+
+import java.io.Serializable
+
+data class ValmistumispyyntoArviointienTilaDTO (
+
+    var hasArvioitaviaKokonaisuuksiaWithArviointiLowerThanFour: Boolean = false,
+
+    var hasArvioitaviaKokonaisuuksiaWithoutArviointi: Boolean = false
+
+) : Serializable {
+    override fun toString() = "ValmistumispyyntoArviointienTilaDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

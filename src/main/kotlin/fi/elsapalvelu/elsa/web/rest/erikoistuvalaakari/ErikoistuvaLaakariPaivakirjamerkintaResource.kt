@@ -13,9 +13,9 @@ import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.criteria.PaivakirjamerkintaCriteria
-import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkinnatOptionsDTO
-import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkintaDTO
-import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkintaFormDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjamerkinnatOptionsDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjamerkintaDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjamerkintaFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page

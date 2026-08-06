@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.web.rest.equalsVerifier
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
+import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutussuunnitelmaDTO
 class KoulutussuunnitelmaDTOTest {
 
     @Test

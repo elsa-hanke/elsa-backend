@@ -25,8 +25,8 @@ import fi.elsapalvelu.elsa.repository.kayttaja.*
 import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
-import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
-import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.OmatTiedotDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
 import net.coobird.thumbnailator.Thumbnails
 import net.coobird.thumbnailator.tasks.UnsupportedFormatException
 import org.apache.commons.text.similarity.LevenshteinDistance

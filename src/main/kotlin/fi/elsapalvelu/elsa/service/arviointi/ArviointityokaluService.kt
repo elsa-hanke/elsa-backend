@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.service.arviointi
 
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
-import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
-import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDataDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
 import org.springframework.web.multipart.MultipartFile
 import java.util.*
 

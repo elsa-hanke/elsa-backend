@@ -4,8 +4,8 @@ import fi.elsapalvelu.elsa.repository.arviointi.ArvioitavaKokonaisuusRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.service.arviointi.ArvioitavaKokonaisuusService
-import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusDTO
-import fi.elsapalvelu.elsa.service.dto.ArvioitavaKokonaisuusWithErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavaKokonaisuusDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavaKokonaisuusWithErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusMapper
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavaKokonaisuusWithErikoisalaMapper
 import fi.elsapalvelu.elsa.service.mapper.ArvioitavanKokonaisuudenKategoriaSimpleMapper

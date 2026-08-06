@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.koulutus
 
-import fi.elsapalvelu.elsa.service.dto.KoulutusjaksoDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutusjaksoDTO
 
 interface KoulutusjaksoService {
 

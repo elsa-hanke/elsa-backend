@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.perustiedot
 
-import fi.elsapalvelu.elsa.service.dto.ErikoisalaDTO
-import fi.elsapalvelu.elsa.service.dto.ErikoisalaWithTehtavatyypitDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.ErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.ErikoisalaWithTehtavatyypitDTO
 import java.util.*
 
 interface ErikoisalaService {

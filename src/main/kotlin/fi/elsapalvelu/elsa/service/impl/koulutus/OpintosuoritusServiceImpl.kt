@@ -5,7 +5,7 @@ import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusRepository
 import fi.elsapalvelu.elsa.service.koulutus.OpintosuoritusService
-import fi.elsapalvelu.elsa.service.dto.OpintosuorituksetDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintosuoritusMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

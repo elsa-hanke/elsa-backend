@@ -8,9 +8,9 @@ import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokalunTila
 import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluKategoriaRepository
 import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluRepository
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluService
-import fi.elsapalvelu.elsa.service.dto.ArviointityokaluDTO
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
-import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDataDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
 import fi.elsapalvelu.elsa.service.mapper.ArviointityokaluMapper
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service

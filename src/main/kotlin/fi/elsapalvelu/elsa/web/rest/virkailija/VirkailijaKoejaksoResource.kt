@@ -11,8 +11,8 @@ import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
-import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
-import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
+import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonVaiheDTO
+import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import org.springframework.data.domain.Page

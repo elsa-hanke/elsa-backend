@@ -2,8 +2,8 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.kayttaja.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
-import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
-import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KouluttajavaltuutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity

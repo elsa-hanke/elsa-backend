@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.koejakso
 
-import fi.elsapalvelu.elsa.service.dto.KoejaksonKehittamistoimenpiteetDTO
+import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonKehittamistoimenpiteetDTO
 import java.util.*
 
 interface KoejaksonKehittamistoimenpiteetService {

@@ -3,9 +3,9 @@ package fi.elsapalvelu.elsa.service.tyoskentely
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksoDTO
-import fi.elsapalvelu.elsa.service.dto.TyoskentelyjaksotTilastotDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksotTilastotDTO
 
 interface TyoskentelyjaksoService {
 

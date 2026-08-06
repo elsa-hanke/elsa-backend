@@ -1,0 +1,19 @@
+package fi.elsapalvelu.elsa.service.dto.tyoskentely
+
+import java.io.Serializable
+
+class KeskeytysaikaFormDTO(
+
+    var poissaolonSyyt: MutableSet<PoissaolonSyyDTO> = mutableSetOf(),
+
+    var tyoskentelyjaksot: MutableSet<TyoskentelyjaksoDTO> = mutableSetOf()
+
+) : Serializable {
+    override fun toString() = "KeskeytysaikaFormDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}
+
+

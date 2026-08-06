@@ -9,7 +9,7 @@ import fi.elsapalvelu.elsa.extensions.endOfYearDate
 import fi.elsapalvelu.elsa.extensions.startOfYearDate
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksonPituusCounterService
 import fi.elsapalvelu.elsa.service.constants.HYVAKSILUETTAVAT_DAYS
-import fi.elsapalvelu.elsa.service.dto.HyvaksiluettavatCounterData
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.HyvaksiluettavatCounterData
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal

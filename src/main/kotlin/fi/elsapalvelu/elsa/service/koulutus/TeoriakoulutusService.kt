@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.koulutus
 
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.TeoriakoulutusDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.TeoriakoulutusDTO
 import java.time.LocalDate
 
 interface TeoriakoulutusService {

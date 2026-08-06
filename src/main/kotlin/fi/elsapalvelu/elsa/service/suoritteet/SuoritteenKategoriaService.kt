@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.suoritteet
 
-import fi.elsapalvelu.elsa.service.dto.SuoritteenKategoriaDTO
-import fi.elsapalvelu.elsa.service.dto.SuoritteenKategoriaSimpleDTO
-import fi.elsapalvelu.elsa.service.dto.SuoritteenKategoriaWithErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritteenKategoriaDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritteenKategoriaSimpleDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritteenKategoriaWithErikoisalaDTO
 import java.util.*
 
 interface SuoritteenKategoriaService {

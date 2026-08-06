@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.seuranta
 
-import fi.elsapalvelu.elsa.service.dto.IlmoitusDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.IlmoitusDTO
 
 interface IlmoitusService {
 

@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.repository.koulutus.KoulutussuunnitelmaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.koulutus.KoulutussuunnitelmaService
-import fi.elsapalvelu.elsa.service.dto.KoulutussuunnitelmaDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutussuunnitelmaDTO
 import fi.elsapalvelu.elsa.service.mapper.KoulutussuunnitelmaMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull

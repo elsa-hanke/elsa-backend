@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.perustiedot
 
-import fi.elsapalvelu.elsa.service.dto.HakaYliopistoDTO
-import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.HakaYliopistoDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.YliopistoDTO
 import java.util.*
 
 interface YliopistoService {

@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.mapper
 
 import fi.elsapalvelu.elsa.domain.arviointi.Arviointiasteikko
-import fi.elsapalvelu.elsa.service.dto.ArviointiasteikkoDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointiasteikkoDTO
 import org.mapstruct.Mapper
 import org.mapstruct.ReportingPolicy
 

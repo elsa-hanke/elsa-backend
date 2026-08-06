@@ -7,8 +7,8 @@ import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.koulutus.KoulutussuunnitelmaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.AsiakirjaMapper
 import org.hibernate.engine.jdbc.BlobProxy
 import org.slf4j.LoggerFactory

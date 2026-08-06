@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.extensions
 
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDataDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDataDTO
 import org.springframework.web.multipart.MultipartFile
 
 fun MultipartFile.mapAsiakirja(): AsiakirjaDTO {

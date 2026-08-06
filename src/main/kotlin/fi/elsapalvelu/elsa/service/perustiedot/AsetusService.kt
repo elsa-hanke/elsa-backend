@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.perustiedot
 
-import fi.elsapalvelu.elsa.service.dto.AsetusDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.AsetusDTO
 
 interface AsetusService {
 

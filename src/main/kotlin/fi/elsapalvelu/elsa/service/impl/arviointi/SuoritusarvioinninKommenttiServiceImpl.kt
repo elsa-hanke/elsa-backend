@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.arviointi.SuoritusarvioinninKommenttiService
-import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
+import fi.elsapalvelu.elsa.service.dto.arviointi.SuoritusarvioinninKommenttiDTO
 import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
 import fi.elsapalvelu.elsa.service.mapper.SuoritusarvioinninKommenttiMapper
 import org.springframework.stereotype.Service

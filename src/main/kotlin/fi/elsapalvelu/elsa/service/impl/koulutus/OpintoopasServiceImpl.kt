@@ -5,8 +5,8 @@ import fi.elsapalvelu.elsa.extensions.toMonths
 import fi.elsapalvelu.elsa.extensions.toYears
 import fi.elsapalvelu.elsa.repository.koulutus.OpintoopasRepository
 import fi.elsapalvelu.elsa.service.koulutus.OpintoopasService
-import fi.elsapalvelu.elsa.service.dto.OpintoopasDTO
-import fi.elsapalvelu.elsa.service.dto.OpintoopasSimpleDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintoopasDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintoopasSimpleDTO
 import fi.elsapalvelu.elsa.service.mapper.OpintoopasMapper
 import fi.elsapalvelu.elsa.service.mapper.OpintoopasSimpleMapper
 import org.springframework.data.repository.findByIdOrNull

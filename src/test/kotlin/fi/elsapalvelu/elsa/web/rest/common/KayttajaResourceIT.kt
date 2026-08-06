@@ -18,9 +18,9 @@ import fi.elsapalvelu.elsa.repository.valmistuminen.*
 import fi.elsapalvelu.elsa.repository.kayttaja.*
 import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.security.*
-import fi.elsapalvelu.elsa.service.dto.ErikoisalaDTO
-import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalatDTO
-import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.ErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaYliopistoErikoisalatDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.YliopistoDTO
 import fi.elsapalvelu.elsa.web.rest.createByteArray
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper

@@ -11,8 +11,8 @@ import fi.elsapalvelu.elsa.repository.perustiedot.ErikoisalaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
-import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalaDTO
-import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaYliopistoErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.YliopistoDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
 import fi.elsapalvelu.elsa.service.mapper.ErikoisalaMapper
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase

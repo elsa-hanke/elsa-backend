@@ -2,8 +2,8 @@ package fi.elsapalvelu.elsa.service.kayttaja
 
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.kayttaja.VerificationToken
-import fi.elsapalvelu.elsa.service.dto.OmatTiedotDTO
-import fi.elsapalvelu.elsa.service.dto.UserDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.OmatTiedotDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication

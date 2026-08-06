@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.kayttaja.ErikoistuvaLaakariService
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
-import fi.elsapalvelu.elsa.service.dto.LaillistamispaivaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.LaillistamispaivaDTO
 import fi.elsapalvelu.elsa.service.impl.kayttaja.UserServiceImpl
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpStatus

@@ -7,8 +7,8 @@ import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.kayttaja.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
-import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
-import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KouluttajavaltuutusDTO
 import fi.elsapalvelu.elsa.service.mapper.KouluttajavaltuutusMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

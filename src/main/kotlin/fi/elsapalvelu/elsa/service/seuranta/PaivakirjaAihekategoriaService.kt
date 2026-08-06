@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.seuranta
 
-import fi.elsapalvelu.elsa.service.dto.PaivakirjaAihekategoriaDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjaAihekategoriaDTO
 import java.util.*
 
 interface PaivakirjaAihekategoriaService {

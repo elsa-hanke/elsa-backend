@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.impl.tyoskentely
 import fi.elsapalvelu.elsa.repository.tyoskentely.KeskeytysaikaRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.tyoskentely.KeskeytysaikaService
-import fi.elsapalvelu.elsa.service.dto.KeskeytysaikaDTO
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.mapper.KeskeytysaikaMapper
 import jakarta.validation.ValidationException
 import org.springframework.stereotype.Service
